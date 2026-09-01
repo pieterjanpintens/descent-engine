@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bidvtvo2r5es8"]
+
+[ext_resource type="PackedScene" uid="uid://bjxcxn5tmkipw" path="res://models/pilars.glb" id="1_17lks"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_17lks"]
+size = Vector3(3.2000003, 7.9999995, 3.2000003)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8gma1"]
+size = Vector3(3.2000003, 4.6, 3.2000003)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g26cx"]
+size = Vector3(3.2000003, 13.8, 3.2000003)
+
+[node name="pilars" unique_id=531234300 instance=ExtResource("1_17lks")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="medium" parent_id_path=PackedInt32Array(1668979684) index="0" unique_id=1433932099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6000003, 3.9999998, -1.6000001)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="medium/StaticBody3D" index="0" unique_id=555091006]
+shape = SubResource("BoxShape3D_17lks")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="mini" parent_id_path=PackedInt32Array(1756722209) index="0" unique_id=942853420]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6000003, 2.3, -1.6000001)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="mini/StaticBody3D" index="0" unique_id=238784541]
+shape = SubResource("BoxShape3D_8gma1")
+
+[node name="tall" parent="." index="2" unique_id=34921834]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00038433075, 0.024241447, 0)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="tall" index="0" unique_id=1465344222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6000003, 6.9, -1.6000001)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="tall/StaticBody3D" index="0" unique_id=77028744]
+shape = SubResource("BoxShape3D_g26cx")
