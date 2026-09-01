@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://clllnjusli6o1"]
+
+[ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://mission_data/LayeredMap.gd" id="1_2y7ip"]
+[ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="2_5hf1y"]
+
+[node name="Node3D" type="Node3D" unique_id=196911830]
+script = ExtResource("1_2y7ip")
+
+[node name="FloorGridMap" type="GridMap" parent="." unique_id=838633005]
+mesh_library = ExtResource("2_5hf1y")
+cell_size = Vector3(1.6, 3.4, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(131071, 2, 1048592, 131071, 10, 1441808, 196599, 11, 1441807, 65536, 8, 1441793, 65541, 3, 1048600, 30, 65527, 1048601, 34, 65527, 1048594, 131078, 8, 0, 262149, 7, 0, 196615, 8, 0, 196613, 11, 7, 4, 18, 9, 19, 20, 9, 25, 20, 1)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="WallGridMap" type="GridMap" parent="." unique_id=1523794195]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+mesh_library = ExtResource("2_5hf1y")
+cell_size = Vector3(1.6, 3.4, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(131071, 2, 1048592, 131071, 10, 1441808, 196599, 11, 1441807, 65536, 8, 1441793, 65541, 3, 1048600, 30, 65527, 1048601, 34, 65527, 1048594, 131078, 8, 0, 262149, 7, 0, 196615, 8, 0, 196613, 11, 7, 4, 18, 9, 19, 20, 9, 25, 20, 1)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="PropGridMap" type="GridMap" parent="." unique_id=1045065303]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+mesh_library = ExtResource("2_5hf1y")
+cell_size = Vector3(1.6, 3.4, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(131071, 2, 1048592, 131071, 10, 1441808, 196599, 11, 1441807, 65536, 8, 1441793, 65541, 3, 1048600, 30, 65527, 1048601, 34, 65527, 1048594, 131078, 8, 0, 262149, 7, 0, 196615, 8, 0, 196613, 11, 7, 4, 18, 9, 19, 20, 9, 25, 20, 1)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)

@@ -14,6 +14,10 @@ config/name="Descent-Engine"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
+[autoload]
+
+FootprintRegistry="*uid://dgih1obkp15pl"
+
 [display]
 
 window/stretch/mode="canvas_items"

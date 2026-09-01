@@ -33,10 +33,10 @@ func _ready() -> void:
 ## interactables list in sync with what's actually painted.
 func sync_prop_cell(origin: Vector3i) -> void:
 	# Clear any existing entry at this origin first, using ITS stored
-	# footprint/orientation - never guess from the new state.
+	# footprint - never guess from the new state.
 	var existing := _find_interactable(origin)
 	if existing != null:
-		FootprintRegistry.remove_item(mission, origin, existing.mesh_item_name, existing.orientation)
+		FootprintRegistry.clear_occupied(mission, origin, existing.footprint)
 		mission.interactables.erase(existing)
 
 	var item_id := prop_grid.get_cell_item(origin)
@@ -45,10 +45,11 @@ func sync_prop_cell(origin: Vector3i) -> void:
 
 	var mesh_name := prop_grid.mesh_library.get_item_name(item_id)
 	var orientation := prop_grid.get_cell_item_orientation(origin)
+	var basis := prop_grid.get_cell_item_basis(origin)
 	var defaults := FootprintRegistry.get_logical_defaults(mesh_name)
-	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), orientation)
+	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
 
-	FootprintRegistry.register_item(mission, origin, mesh_name, orientation)
+	FootprintRegistry.mark_occupied(mission, origin, footprint)
 
 	var entry := InteractableEntry.new()
 	entry.mesh_item_name = mesh_name

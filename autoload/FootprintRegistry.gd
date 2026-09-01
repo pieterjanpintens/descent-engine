@@ -35,12 +35,11 @@ func get_footprint(mesh_item_name: String) -> Vector3i:
 	return FOOTPRINTS.get(mesh_item_name, Vector3i.ONE)
 
 
-## Rotates a footprint to match a GridMap cell orientation index. GridMap
-## orientations 0-23 come from Basis.get_orthogonal_index(); for footprint
-## purposes we only care about the flat Y-axis quarter turns, which swap
-## X/Z at 90 and 270 degrees.
-func rotate_footprint(footprint: Vector3i, orientation: int) -> Vector3i:
-	var basis := Basis.from_orthogonal_index(orientation)
+## Rotates a footprint to match a cell's orientation Basis (get this from
+## GridMap.get_cell_item_basis(cell) - GDScript has no way to reconstruct a
+## Basis from a raw orientation int on its own, so always pass the real one).
+## We only care about the flat Y-axis quarter turns, which swap X/Z.
+func rotate_footprint(footprint: Vector3i, basis: Basis) -> Vector3i:
 	var forward := basis * Vector3.FORWARD
 	var is_quarter_turn := absf(forward.x) > 0.5  # rotated 90 or 270 around Y
 	if is_quarter_turn:
@@ -55,23 +54,20 @@ func get_logical_defaults(mesh_item_name: String) -> Dictionary:
 	return {"walkable": true, "blocks_los": false}
 
 
-## Registers a placed item's full footprint into a MissionData's occupancy
-## index. Call this from the Creator whenever a prop/pillar/stairs is
-## painted or moved. Call remove_item() first if repainting the same origin.
-func register_item(mission: MissionData, origin: Vector3i, mesh_item_name: String, orientation: int) -> void:
-	var base := get_footprint(mesh_item_name)
-	var size := rotate_footprint(base, orientation)
-	for x in size.x:
-		for z in size.z:
+## Marks every cell of an already-rotated footprint as occupied by origin.
+func mark_occupied(mission: MissionData, origin: Vector3i, footprint: Vector3i) -> void:
+	for x in footprint.x:
+		for z in footprint.z:
 			var cell := origin + Vector3i(x, 0, z)
 			mission.occupied_cells[cell] = origin
 
 
-func remove_item(mission: MissionData, origin: Vector3i, mesh_item_name: String, orientation: int) -> void:
-	var base := get_footprint(mesh_item_name)
-	var size := rotate_footprint(base, orientation)
-	for x in size.x:
-		for z in size.z:
+## Clears every cell of an already-rotated footprint, but only if it's
+## still owned by origin (avoids clobbering a different item that
+## happens to overlap the same cells after edits).
+func clear_occupied(mission: MissionData, origin: Vector3i, footprint: Vector3i) -> void:
+	for x in footprint.x:
+		for z in footprint.z:
 			var cell := origin + Vector3i(x, 0, z)
 			if mission.occupied_cells.get(cell) == origin:
 				mission.occupied_cells.erase(cell)
