@@ -77,21 +77,30 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 ## layers.
 func rebuild_floor_tiles() -> void:
 	mission.tiles.clear()
+	mission.floor_placements.clear()
 
 	for origin in floor_grid.get_used_cells():
-		_write_tile_footprint(origin, floor_grid)
+		_write_tile_footprint(origin, floor_grid, TilePlacement.Layer.FLOOR)
 
 	# Wall layer cells override floor defaults where both are present.
 	for origin in wall_grid.get_used_cells():
-		_write_tile_footprint(origin, wall_grid)
+		_write_tile_footprint(origin, wall_grid, TilePlacement.Layer.WALL)
 
 
-func _write_tile_footprint(origin: Vector3i, grid: GridMap) -> void:
+func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement.Layer) -> void:
 	var item_id := grid.get_cell_item(origin)
 	var mesh_name := grid.mesh_library.get_item_name(item_id)
+	var orientation := grid.get_cell_item_orientation(origin)
 	var basis := grid.get_cell_item_basis(origin)
 	var defaults := FootprintRegistry.get_logical_defaults(mesh_name)
 	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
+
+	var placement := TilePlacement.new()
+	placement.layer = layer
+	placement.origin_cell = origin
+	placement.mesh_item_name = mesh_name
+	placement.orientation = orientation
+	mission.floor_placements.append(placement)
 
 	for offset in footprint:
 		var cell: Vector3i = origin + offset
@@ -102,3 +111,42 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap) -> void:
 		entry.walkable = defaults.walkable
 		entry.blocks_los = defaults.blocks_los
 		mission.tiles[cell] = entry
+
+
+## Reverse of sync_prop_cell()/rebuild_floor_tiles(): given a loaded
+## MissionData, clears all three GridMaps and repaints them to match.
+## Used by the Player to render a loaded mission, and reusable by the
+## Creator later for "open an existing mission to keep editing."
+func apply_mission(mission_to_apply: MissionData) -> void:
+	floor_grid.clear()
+	wall_grid.clear()
+	prop_grid.clear()
+
+	mission = mission_to_apply
+
+	for placement in mission.floor_placements:
+		var grid := floor_grid if placement.layer == TilePlacement.Layer.FLOOR else wall_grid
+		var item_id := _find_item_id(grid, placement.mesh_item_name)
+		if item_id == -1:
+			push_warning("No MeshLibrary item named '%s' - skipping floor placement at %s" % [placement.mesh_item_name, placement.origin_cell])
+			continue
+		grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
+
+	for entry in mission.interactables:
+		var item_id := _find_item_id(prop_grid, entry.mesh_item_name)
+		if item_id == -1:
+			push_warning("No MeshLibrary item named '%s' - skipping prop at %s" % [entry.mesh_item_name, entry.origin_cell])
+			continue
+		prop_grid.set_cell_item(entry.origin_cell, item_id, entry.orientation)
+
+
+## MeshLibrary only looks up items by numeric id, not name - this does the
+## name -> id search once per call. Fine for mission-load frequency; would
+## be worth caching if this ever runs somewhere hot.
+func _find_item_id(grid: GridMap, mesh_name: String) -> int:
+	if grid.mesh_library == null:
+		return -1
+	for id in grid.mesh_library.get_item_list():
+		if grid.mesh_library.get_item_name(id) == mesh_name:
+			return id
+	return -1

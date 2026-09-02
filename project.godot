@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="Descent-Engine"
-run/main_scene="uid://clllnjusli6o1"
+run/main_scene="uid://b4b20wrtuq1a6"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
 FootprintRegistry="*uid://dgih1obkp15pl"
+GameState="*uid://con3wwam8jgli"
 
 [display]
 

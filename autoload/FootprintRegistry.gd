@@ -64,6 +64,15 @@ const FOOTPRINTS: Dictionary = {
 	"tall": [Vector3i.ZERO],
 	"mini": [Vector3i.ZERO],
 	"medium": [Vector3i.ZERO],
+	# Stairs - low point (marked Y) is origin, 3 rows x 2 cols, all occupied:
+	#   xx   <- high point
+	#   xx
+	#   xy   <- origin (low point)
+	"stair": [
+		Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
 }
 
 ## Naming-convention defaults used to auto-fill TileEntry / InteractableEntry
@@ -86,6 +95,7 @@ const LOGICAL_OVERRIDES: Dictionary = {
 	"tall": {"walkable": false, "blocks_los": true},
 	"mini": {"walkable": false, "blocks_los": true},
 	"medium": {"walkable": false, "blocks_los": true},
+	"stair": {"walkable": true, "blocks_los": false},
 }
 
 

@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://b4b20wrtuq1a6"]
+
+[ext_resource type="Script" uid="uid://dx66u7jfoolxh" path="res://mission_data/MainMenu.gd" id="1_i26rj"]
+
+[node name="MainMenu" type="Control" unique_id=2081411479]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 1.0
+offset_right = 1.0
+script = ExtResource("1_i26rj")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=849289510]
+layout_mode = 0
+offset_right = 733.0
+offset_bottom = 485.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1720461025]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=770086588]
+layout_mode = 2
+text = "Play Mission"
+
+[node name="EditorButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1832514075]
+layout_mode = 2
+text = "Editor"
+
+[node name="ExitButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1762109289]
+layout_mode = 2
+text = "Exit
+"
+
+[node name="MissionFileDialog" type="FileDialog" parent="." unique_id=726541557]
+unique_name_in_owner = true
+title = "Open a File"
+file_mode = 0
+root_subfolder = "res://missions/"
+filters = PackedStringArray("*.tres")
+
+[connection signal="pressed" from="CenterContainer/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/EditorButton" to="." method="_on_editor_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]
+[connection signal="file_selected" from="MissionFileDialog" to="." method="_on_mission_file_dialog_file_selected"]

@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://b7qdos73brxto"]
+
+[ext_resource type="Script" uid="uid://ck8p4kdw1so6e" path="res://mission_data/MissionPlayer.gd" id="1_mmcbr"]
+[ext_resource type="PackedScene" uid="uid://clllnjusli6o1" path="res://map/MissionMap.tscn" id="2_m65w1"]
+
+[node name="MissionPlayer" type="Node3D" unique_id=1408308473]
+script = ExtResource("1_mmcbr")
+
+[node name="LayeredMap" parent="." unique_id=196911830 instance=ExtResource("2_m65w1")]
+unique_name_in_owner = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1137452863]
+
+[node name="InfoLabel" type="Label" parent="CanvasLayer" unique_id=1799991092]
+unique_name_in_owner = true
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="BackButton" type="Button" parent="CanvasLayer" unique_id=239467295]
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Back to Menu"
+
+[connection signal="pressed" from="CanvasLayer/BackButton" to="." method="_on_back_button_pressed"]

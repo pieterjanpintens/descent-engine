@@ -15,6 +15,12 @@ extends Resource
 ## coordinate itself. Value = TileEntry.
 @export var tiles: Dictionary = {}  # Dictionary[Vector3i, TileEntry]
 
+## Raw paint records for the floor/wall layers - one entry per origin cell
+## painted, regardless of how many cells its footprint covers. Needed to
+## repaint FloorGridMap/WallGridMap when loading a mission; tiles alone
+## isn't enough (see TilePlacement).
+@export var floor_placements: Array[TilePlacement] = []
+
 ## Multi-cell occupancy index. Key = any cell covered by a placed item,
 ## Value = the "owner" cell where that item's GridMap entry actually lives.
 ## Populated by FootprintRegistry.register_item(), consumed by movement/LOS.

@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://clllnjusli6o1"]
+
+[ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://mission_data/LayeredMap.gd" id="1_s1qvr"]
+[ext_resource type="Resource" uid="uid://1mhx76kw6l6s" path="res://missions/test_mission.tres" id="2_6k7rr"]
+[ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="3_hmlx3"]
+[ext_resource type="Script" uid="uid://bqqv08geh8gew" path="res://mission_data/DebugSync.gd" id="4_crsba"]
+[ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://mission_data/FreeLookCamera.gd" id="5_d5ryy"]
+
+[node name="MissionMap" type="Node3D" unique_id=196911830]
+script = ExtResource("1_s1qvr")
+mission = ExtResource("2_6k7rr")
+
+[node name="FloorGridMap" type="GridMap" parent="." unique_id=1856212036]
+mesh_library = ExtResource("3_hmlx3")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="WallGridMap" type="GridMap" parent="." unique_id=865159183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh_library = ExtResource("3_hmlx3")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+
+[node name="PropGridMap" type="GridMap" parent="." unique_id=162235783]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh_library = ExtResource("3_hmlx3")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="DebugSync" type="Node" parent="." unique_id=1690748850 node_paths=PackedStringArray("layered_map")]
+script = ExtResource("4_crsba")
+layered_map = NodePath("..")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1143453402]
+transform = Transform3D(0.95472014, -0.09436332, 0.28214374, 0.015280571, 0.9626666, 0.27025843, -0.29711285, -0.25370985, 0.92051905, 7.298462, 12.627319, 18.269897)
+script = ExtResource("5_d5ryy")
+
+[node name="Camera3D" type="Camera3D" parent="Camera" unique_id=459842855]
+transform = Transform3D(0.9547201, -0.09436324, 0.2821438, 0.015280589, 0.96266633, 0.27025837, -0.2971128, -0.25370976, 0.920519, 7.2984614, 12.627319, 18.269897)
+script = ExtResource("5_d5ryy")
+
+[node name="OmniLight" type="OmniLight3D" parent="." unique_id=1769447952]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.900024, 0)
