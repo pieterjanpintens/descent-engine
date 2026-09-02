@@ -9,8 +9,10 @@ extends Resource
 @export var grid_size: Vector3i = Vector3i(20, 1, 20)
 @export var cell_size: float = 1.0
 
-## Logical per-cell data. Key = Vector3i cell coordinate (Y is almost always 0
-## unless you support multiple levels), Value = TileEntry.
+## Logical per-cell data. Key = Vector3i cell coordinate. Y is the level -
+## distinct floors AND localized elevation (a dais, a ledge) both just use
+## different Y values; there's no separate "level" concept beyond the cell
+## coordinate itself. Value = TileEntry.
 @export var tiles: Dictionary = {}  # Dictionary[Vector3i, TileEntry]
 
 ## Multi-cell occupancy index. Key = any cell covered by a placed item,
@@ -59,3 +61,20 @@ func get_interactable_at(cell: Vector3i) -> InteractableEntry:
 		if entry.origin_cell == owner_cell:
 			return entry
 	return null
+
+
+## Returns every LEVEL_LINK interactable usable FROM the given cell (i.e.
+## cell matches link_from_cell, or link_to_cell if the link is
+## bidirectional). Movement logic should check this explicitly rather than
+## assuming any adjacency between cells at different Y - stairs/ledges are
+## deliberate connections, not automatic neighbors.
+func get_level_links_from(cell: Vector3i) -> Array[InteractableEntry]:
+	var links: Array[InteractableEntry] = []
+	for entry in interactables:
+		if entry.type != InteractableEntry.Type.LEVEL_LINK:
+			continue
+		if entry.link_from_cell == cell:
+			links.append(entry)
+		elif entry.link_bidirectional and entry.link_to_cell == cell:
+			links.append(entry)
+	return links

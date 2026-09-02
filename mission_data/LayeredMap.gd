@@ -68,28 +68,37 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 	return null
 
 
-## Rebuilds TileEntry data for every painted floor/wall cell using
-## naming-convention defaults. Run after a painting pass, or whenever you
-## want to regenerate logical data from the visual layers.
+## Rebuilds TileEntry data for every cell covered by a painted floor/wall
+## piece, using naming-convention defaults. Floor tiles are irregular
+## multi-cell shapes just like props - GridMap only tracks the origin cell
+## each was painted at, so we expand each origin through its registered
+## footprint to find every cell it actually covers. Run after a painting
+## pass, or whenever you want to regenerate logical data from the visual
+## layers.
 func rebuild_floor_tiles() -> void:
 	mission.tiles.clear()
 
-	for cell in floor_grid.get_used_cells():
-		_write_tile_entry(cell, floor_grid)
+	for origin in floor_grid.get_used_cells():
+		_write_tile_footprint(origin, floor_grid)
 
 	# Wall layer cells override floor defaults where both are present.
-	for cell in wall_grid.get_used_cells():
-		_write_tile_entry(cell, wall_grid)
+	for origin in wall_grid.get_used_cells():
+		_write_tile_footprint(origin, wall_grid)
 
 
-func _write_tile_entry(cell: Vector3i, grid: GridMap) -> void:
-	var item_id := grid.get_cell_item(cell)
+func _write_tile_footprint(origin: Vector3i, grid: GridMap) -> void:
+	var item_id := grid.get_cell_item(origin)
 	var mesh_name := grid.mesh_library.get_item_name(item_id)
+	var basis := grid.get_cell_item_basis(origin)
 	var defaults := FootprintRegistry.get_logical_defaults(mesh_name)
-	var entry: TileEntry = mission.tiles.get(cell)
-	if entry == null:
-		entry = TileEntry.new()
-	entry.mesh_item_name = mesh_name
-	entry.walkable = defaults.walkable
-	entry.blocks_los = defaults.blocks_los
-	mission.tiles[cell] = entry
+	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
+
+	for offset in footprint:
+		var cell: Vector3i = origin + offset
+		var entry: TileEntry = mission.tiles.get(cell)
+		if entry == null:
+			entry = TileEntry.new()
+		entry.mesh_item_name = mesh_name
+		entry.walkable = defaults.walkable
+		entry.blocks_los = defaults.blocks_los
+		mission.tiles[cell] = entry
