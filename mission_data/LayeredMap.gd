@@ -126,14 +126,14 @@ func apply_mission(mission_to_apply: MissionData) -> void:
 
 	for placement in mission.floor_placements:
 		var grid := floor_grid if placement.layer == TilePlacement.Layer.FLOOR else wall_grid
-		var item_id := _find_item_id(grid, placement.mesh_item_name)
+		var item_id := find_item_id(grid, placement.mesh_item_name)
 		if item_id == -1:
 			push_warning("No MeshLibrary item named '%s' - skipping floor placement at %s" % [placement.mesh_item_name, placement.origin_cell])
 			continue
 		grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for entry in mission.interactables:
-		var item_id := _find_item_id(prop_grid, entry.mesh_item_name)
+		var item_id := find_item_id(prop_grid, entry.mesh_item_name)
 		if item_id == -1:
 			push_warning("No MeshLibrary item named '%s' - skipping prop at %s" % [entry.mesh_item_name, entry.origin_cell])
 			continue
@@ -141,9 +141,10 @@ func apply_mission(mission_to_apply: MissionData) -> void:
 
 
 ## MeshLibrary only looks up items by numeric id, not name - this does the
-## name -> id search once per call. Fine for mission-load frequency; would
-## be worth caching if this ever runs somewhere hot.
-func _find_item_id(grid: GridMap, mesh_name: String) -> int:
+## name -> id search once per call. Fine for occasional use (mission load,
+## interactive painting); would be worth caching if this ever runs
+## somewhere hot (e.g. every frame).
+func find_item_id(grid: GridMap, mesh_name: String) -> int:
 	if grid.mesh_library == null:
 		return -1
 	for id in grid.mesh_library.get_item_list():

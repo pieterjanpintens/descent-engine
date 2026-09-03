@@ -167,6 +167,49 @@ func get_logical_defaults(mesh_item_name: String) -> Dictionary:
 	return {"walkable": true, "blocks_los": false}
 
 
+## Exact-name overrides for which physical layer a mesh belongs to.
+## Anything not listed falls through to the automatic rules in get_layer().
+const MESH_LAYER: Dictionary = {
+	"tall": "prop",
+	"mini": "prop",
+	"medium": "prop",
+	"stair": "prop",
+}
+
+## Returns "floor", "wall", or "prop" for a mesh item name - this is the
+## SINGLE source of truth for which GridMap a mesh belongs in. All three
+## GridMaps share one MeshLibrary, so nothing else distinguishes "this is a
+## floor tile" from "this is a pillar" except this classification - callers
+## (CreatorController, LayeredMap) should always derive the destination
+## grid from this rather than from separately-tracked UI state, so it's
+## structurally impossible to paint a prop into the floor layer by mistake.
+func get_layer(mesh_item_name: String) -> String:
+	if MESH_LAYER.has(mesh_item_name):
+		return MESH_LAYER[mesh_item_name]
+	if mesh_item_name.begins_with("wall_"):
+		return "wall"
+	if _looks_like_tile_face(mesh_item_name):
+		return "floor"
+	# Most physical components in this game (pillars, stairs, tables,
+	# bookshelves, chests, doors...) are props, not floor tiles - only 18
+	# named tile faces are actually floor pieces. Prop is the safer default
+	# for anything unrecognized.
+	return "prop"
+
+
+## Tile faces are named like "7a" / "12b" - one or more digits followed by
+## a single a/b letter. Matching that shape means we don't need a manual
+## MESH_LAYER entry for every one of the ~22 tiles.
+func _looks_like_tile_face(mesh_item_name: String) -> bool:
+	if mesh_item_name.length() < 2:
+		return false
+	var last_char := mesh_item_name[mesh_item_name.length() - 1]
+	if last_char != "a" and last_char != "b":
+		return false
+	var digits := mesh_item_name.substr(0, mesh_item_name.length() - 1)
+	return digits.is_valid_int()
+
+
 ## Marks every cell of an already-rotated footprint as occupied by origin.
 func mark_occupied(mission: MissionData, origin: Vector3i, footprint: Array[Vector3i]) -> void:
 	for offset in footprint:

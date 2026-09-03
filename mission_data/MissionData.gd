@@ -31,6 +31,20 @@ extends Resource
 @export var triggers: Array[MissionTrigger] = []
 
 
+## Returns { group_name: count } tallying every placed floor/wall/prop
+## piece by its PHYSICAL component group (see ComponentInventory - both
+## faces of a double-sided tile count as the same physical piece).
+func get_component_usage() -> Dictionary:
+	var usage: Dictionary = {}
+	for placement in floor_placements:
+		var group := ComponentInventory.get_group(placement.mesh_item_name)
+		usage[group] = usage.get(group, 0) + 1
+	for entry in interactables:
+		var group := ComponentInventory.get_group(entry.mesh_item_name)
+		usage[group] = usage.get(group, 0) + 1
+	return usage
+
+
 func get_tile(cell: Vector3i) -> TileEntry:
 	return tiles.get(cell, null)
 

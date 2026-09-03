@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://clllnjusli6o1"]
 
 [ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://mission_data/LayeredMap.gd" id="1_s1qvr"]
-[ext_resource type="Resource" uid="uid://1mhx76kw6l6s" path="res://missions/test_mission.tres" id="2_6k7rr"]
+[ext_resource type="Resource" uid="uid://dq1cwwmxjwfxw" path="res://missions/test_mission.tres" id="2_6k7rr"]
 [ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="3_hmlx3"]
 [ext_resource type="Script" uid="uid://bqqv08geh8gew" path="res://mission_data/DebugSync.gd" id="4_crsba"]
 [ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://mission_data/FreeLookCamera.gd" id="5_d5ryy"]
+[ext_resource type="Script" uid="uid://ljy27dceiepg" path="res://mission_data/CreatorController.gd" id="6_a7isx"]
 
-[node name="MissionMap" type="Node3D" unique_id=196911830]
+[node name="LayeredMap" type="Node3D" unique_id=196911830]
 script = ExtResource("1_s1qvr")
 mission = ExtResource("2_6k7rr")
 
@@ -49,3 +50,7 @@ script = ExtResource("5_d5ryy")
 
 [node name="OmniLight" type="OmniLight3D" parent="." unique_id=1769447952]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.900024, 0)
+
+[node name="CreatorController" type="Node3D" parent="." unique_id=516128030 node_paths=PackedStringArray("layered_map")]
+script = ExtResource("6_a7isx")
+layered_map = NodePath("..")
