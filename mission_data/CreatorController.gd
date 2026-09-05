@@ -34,6 +34,9 @@ extends Node3D
 @export var ghost_color: Color = Color(0.2, 1.0, 0.4, 0.45)
 @export var grid_overlay_color: Color = Color(1.0, 1.0, 1.0, 0.15)
 @export var grid_overlay_radius: int = 15  ## cells shown in each direction from the hovered cell
+@export var origin_overlay_color: Color = Color(0.173, 0.529, 0.431, 0.627)
+
+
 
 enum PaintLayer { FLOOR, WALL, PROP }
 
@@ -46,6 +49,9 @@ var _quarter_turn_orientations: Array[int] = []
 var _ghost: MeshInstance3D
 var _grid_overlay: MeshInstance3D
 var _grid_overlay_mesh: ImmediateMesh
+var _origin_overlay: MeshInstance3D
+var _origin_overlay_mesh: ImmediateMesh
+
 var _hovered_cell: Vector3i = Vector3i.ZERO
 var _has_hover: bool = false
 
@@ -60,6 +66,7 @@ func _ready() -> void:
 	_compute_quarter_turn_orientations()
 	_setup_ghost()
 	_setup_grid_overlay()
+	_setup_origin_overlay()
 	if camera == null:
 		camera = get_viewport().get_camera_3d()
 
@@ -100,6 +107,19 @@ func _setup_grid_overlay() -> void:
 	_grid_overlay.material_override = material
 	_grid_overlay.visible = false
 	add_child(_grid_overlay)
+	
+func _setup_origin_overlay() -> void:
+	_origin_overlay_mesh = ImmediateMesh.new()
+	_origin_overlay = MeshInstance3D.new()
+	_origin_overlay.mesh = _origin_overlay_mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = origin_overlay_color
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.disable_ambient_light = true
+	_origin_overlay.material_override = material
+	_origin_overlay.visible = false
+	add_child(_origin_overlay)
 
 
 const PAINT_LAYER_NAMES: Array[String] = ["floor", "wall", "prop"]
@@ -223,6 +243,7 @@ func _process(_delta: float) -> void:
 	_update_hover()
 	_update_ghost_transform()
 	_update_grid_overlay()
+	_update_origin_overlay()
 
 
 func _update_hover() -> void:
@@ -281,6 +302,24 @@ func _update_ghost_transform() -> void:
 	var rot_basis := Basis(Vector3.UP, deg_to_rad(90.0 * current_quarter_turn))
 	_ghost.global_transform = grid.global_transform * Transform3D(rot_basis, local_pos)
 	_ghost.visible = true
+
+## Draws a origin
+func _update_origin_overlay() -> void:
+	if not _has_hover:
+		_origin_overlay.visible = false
+		return
+
+	_origin_overlay_mesh.clear_surfaces()
+	_origin_overlay_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+	_origin_overlay_mesh.surface_add_vertex(Vector3i.ZERO)
+	_origin_overlay_mesh.surface_add_vertex(Vector3i(1,0,0))
+	_origin_overlay_mesh.surface_add_vertex(Vector3i.ZERO)
+	_origin_overlay_mesh.surface_add_vertex(Vector3i(0,1,0))	
+	_origin_overlay_mesh.surface_add_vertex(Vector3i.ZERO)
+	_origin_overlay_mesh.surface_add_vertex(Vector3i(0,0,1))
+	_origin_overlay_mesh.surface_end()
+	_origin_overlay.global_transform = Transform3D.IDENTITY
+	_origin_overlay.visible = true
 
 
 ## Draws a line grid on the TARGET grid's plane (same one placement/hover
@@ -399,11 +438,38 @@ func erase_at_cursor() -> void:
 	# the cell that was actually clicked.
 	var interior_point: Vector3 = result.position - result.normal * 0.01
 	var local_pos: Vector3 = hit_grid.to_local(interior_point)
-	var cell: Vector3i = hit_grid.local_to_map(local_pos)
-	print("erase_at_cursor: erasing cell %s on %s" % [cell, hit_grid.name])
+	var hit_cell: Vector3i = hit_grid.local_to_map(local_pos)
 
-	hit_grid.set_cell_item(cell, GridMap.INVALID_CELL_ITEM)
-	_sync_after_edit(hit_grid, cell)
+	# GridMap only stores an item at a multi-cell placement's ORIGIN cell -
+	# every other cell it visually covers is empty as far as GridMap is
+	# concerned. The raycast can land on any of those covered cells, so
+	# translate back to the real origin before touching GridMap, using the
+	# same occupancy maps sync_prop_cell()/rebuild_floor_tiles() maintain.
+	var origin: Vector3i
+	if hit_grid == layered_map.prop_grid:
+		origin = _find_origin(layered_map.mission.occupied_cells, hit_cell)
+	else:
+		origin = _find_origin(layered_map.mission.floor_occupied_cells, hit_cell)
+
+	print("erase_at_cursor: hit cell %s -> erasing origin %s on %s" % [hit_cell, origin, hit_grid.name])
+
+	hit_grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
+	_sync_after_edit(hit_grid, origin)
+
+
+## Looks up hit_cell's origin in the given occupancy map. Falls back to
+## matching by X/Z column alone (ignoring Y) if there's no exact match -
+## needed because a mesh can render much taller than the single GridMap
+## cell it's actually painted at (e.g. the "tall" pillar), so a raycast hit
+## partway up it lands at a Y index that doesn't match the real placement.
+func _find_origin(occupancy_map: Dictionary, hit_cell: Vector3i) -> Vector3i:
+	if occupancy_map.has(hit_cell):
+		return occupancy_map[hit_cell]
+	for key in occupancy_map.keys():
+		if key.x == hit_cell.x and key.z == hit_cell.z:
+			return occupancy_map[key]
+	print("Nothing found")
+	return hit_cell
 
 
 func _sync_after_edit(grid: GridMap, cell: Vector3i) -> void:

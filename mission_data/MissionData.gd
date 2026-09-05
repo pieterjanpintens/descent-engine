@@ -6,8 +6,6 @@ extends Resource
 ## the Player load/save this same resource so there is one source of truth.
 
 @export var mission_name: String = ""
-@export var grid_size: Vector3i = Vector3i(20, 1, 20)
-@export var cell_size: float = 1.0
 
 ## Logical per-cell data. Key = Vector3i cell coordinate. Y is the level -
 ## distinct floors AND localized elevation (a dais, a ledge) both just use
@@ -20,6 +18,14 @@ extends Resource
 ## repaint FloorGridMap/WallGridMap when loading a mission; tiles alone
 ## isn't enough (see TilePlacement).
 @export var floor_placements: Array[TilePlacement] = []
+
+## Floor/wall equivalent of occupied_cells: every cell a floor/wall piece
+## covers -> the origin cell GridMap actually has the item painted at.
+## GridMap only stores data at the origin cell of a multi-cell item -
+## everything else it covers is, as far as GridMap itself is concerned,
+## empty. Needed to translate "which cell did a raycast hit" into "which
+## cell does GridMap need to actually be told to erase."
+@export var floor_occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Vector3i]
 
 ## Multi-cell occupancy index. Key = any cell covered by a placed item,
 ## Value = the "owner" cell where that item's GridMap entry actually lives.

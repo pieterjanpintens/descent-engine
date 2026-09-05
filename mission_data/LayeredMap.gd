@@ -13,7 +13,7 @@ extends Node3D
 ##  |- PropGridMap   (GridMap)
 
 @export var mission: MissionData
-@export var floor_thickness: float = 0.1
+@export var floor_thickness: float = 0.2
 
 @onready var floor_grid: GridMap = $FloorGridMap
 @onready var wall_grid: GridMap = $WallGridMap
@@ -78,6 +78,7 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 func rebuild_floor_tiles() -> void:
 	mission.tiles.clear()
 	mission.floor_placements.clear()
+	mission.floor_occupied_cells.clear()
 
 	for origin in floor_grid.get_used_cells():
 		_write_tile_footprint(origin, floor_grid, TilePlacement.Layer.FLOOR)
@@ -104,6 +105,7 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 
 	for offset in footprint:
 		var cell: Vector3i = origin + offset
+		mission.floor_occupied_cells[cell] = origin
 		var entry: TileEntry = mission.tiles.get(cell)
 		if entry == null:
 			entry = TileEntry.new()
