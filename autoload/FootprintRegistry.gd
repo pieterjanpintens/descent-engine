@@ -58,12 +58,14 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 		Vector3i(-3, 0, 1), Vector3i(-2, 0, 1),
 	],
-	# Pillars - 1x1 tile-square each. Listed explicitly for clarity even
-	# though this matches the no-entry default, since these are exactly
-	# the kind of item someone might reasonably expect needs an entry.
-	"tall": [Vector3i.ZERO],
-	"mini": [Vector3i.ZERO],
-	"medium": [Vector3i.ZERO],
+	# Pillars - 1x1 tile-square each. Asset geometry: pivot at (0,0,0),
+	# mesh extends to (1,0,-1) - i.e. +1 tile-square in X, but the pivot
+	# is already at the correct Z edge (0, not -1). This offset makes
+	# expand_footprint's shared "forward corner is pivot" convention land
+	# on the correct cells for this specific asset's actual pivot placement.
+	"tall": [Vector3i(1, 0, 0)],
+	"mini": [Vector3i(1, 0, 0)],
+	"medium": [Vector3i(1, 0, 0)],
 	# Stairs - low point (marked Y) is origin, 3 rows x 2 cols, all occupied:
 	#   xx   <- high point
 	#   xx
@@ -121,12 +123,19 @@ func get_tile_square_footprint(mesh_item_name: String) -> Array[Vector3i]:
 
 
 ## Expands a tile-square-unit footprint (already rotated, if rotation is
-## needed) into fine-grained GridMap cell offsets.
+## needed) into fine-grained GridMap cell offsets. Each offset is treated
+## as the square's FAR corner, extending backward toward -X/-Z by a full
+## CELLS_PER_TILE - e.g. Vector3i.ZERO with CELLS_PER_TILE=2 expands to
+## (-1,-1), (-1,-2), (-2,-1), (-2,-2). Verified against real in-game
+## mismatches: an earlier attempt at this correction (shifting by
+## CELLS_PER_TILE - 1) closed most but not all of a uniform +1 tile-square
+## error seen across every shape - this closes the remaining one-fine-cell
+## gap in the same direction.
 func expand_footprint(square_footprint: Array[Vector3i]) -> Array[Vector3i]:
 	var expanded: Array[Vector3i] = []
 	for square_offset in square_footprint:
-		var base_x: int = square_offset.x * CELLS_PER_TILE
-		var base_z: int = square_offset.z * CELLS_PER_TILE
+		var base_x: int = square_offset.x * CELLS_PER_TILE - CELLS_PER_TILE
+		var base_z: int = square_offset.z * CELLS_PER_TILE - CELLS_PER_TILE
 		for dx in CELLS_PER_TILE:
 			for dz in CELLS_PER_TILE:
 				expanded.append(Vector3i(base_x + dx, square_offset.y, base_z + dz))
