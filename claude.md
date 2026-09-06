@@ -160,6 +160,25 @@ These are the source scenes used to build/populate the shared `MeshLibrary` that
 three GridMaps (Floor/Wall/Prop) consume — keep them around as the mesh-authoring
 source of truth, don't treat them as dead/orphaned files to delete.
 
+## CI / Release
+
+`.github/workflows/release.yml` builds and publishes a GitHub Release automatically.
+
+- **Trigger**: pushing a tag matching `v*.*.*` (e.g. `v1.0.0`), or manually via the
+  Actions tab (`workflow_dispatch`).
+- **Build**: runs in the `barichello/godot-ci:4.7.2` Docker image (bundles Godot
+  4.7.2 + matching export templates — keep this pinned version in sync with the
+  project's actual Godot minor version, `config/features` in `project.godot`).
+  Exports the `"Windows Desktop"` preset from `export_presets.cfg` headlessly, zips
+  the resulting `.exe`/`.pck`, and uploads it as a build artifact.
+- **Release**: a second job downloads that artifact and creates a GitHub Release
+  (via `softprops/action-gh-release`) with auto-generated release notes and the zip
+  attached. Uses the default `GITHUB_TOKEN` — no extra secrets needed.
+- Only Windows is exported currently, matching the only preset that exists in
+  `export_presets.cfg`. Adding Linux/Mac/Web presets later means adding a matching
+  `export-<platform>` job (same pattern as the existing `export-windows` job); the
+  `release` job already gathers artifacts generically and doesn't need to change.
+
 ## Hard-won Godot 4 / GDScript lessons
 
 These cost real debugging time — worth not re-learning them:
