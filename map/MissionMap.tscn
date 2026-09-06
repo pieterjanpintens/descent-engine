@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://clllnjusli6o1"]
 
 [ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://mission_data/LayeredMap.gd" id="1_s1qvr"]
-[ext_resource type="Resource" uid="uid://xltki0ayh1i0" path="res://missions/test_mission.tres" id="2_6k7rr"]
+[ext_resource type="Resource" uid="uid://dnsp20gv60lj6" path="res://missions/test_mission.tres" id="2_6k7rr"]
 [ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="3_hmlx3"]
 [ext_resource type="Script" uid="uid://bqqv08geh8gew" path="res://mission_data/DebugSync.gd" id="4_crsba"]
 [ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://mission_data/FreeLookCamera.gd" id="5_d5ryy"]

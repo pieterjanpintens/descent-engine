@@ -40,6 +40,8 @@ extends Node3D
 @export var grid_overlay_color: Color = Color(1.0, 1.0, 1.0, 0.15)
 @export var grid_overlay_radius: int = 15  ## cells shown in each direction from the hovered cell
 @export var origin_overlay_color: Color = Color(0.173, 0.529, 0.431, 0.627)
+@export var floor_occupancy_color: Color = Color(0.2, 0.6, 1.0, 0.9)
+@export var prop_occupancy_color: Color = Color(1.0, 0.4, 0.2, 0.9)
 
 
 
@@ -56,6 +58,9 @@ var _grid_overlay: MeshInstance3D
 var _grid_overlay_mesh: ImmediateMesh
 var _origin_overlay: MeshInstance3D
 var _origin_overlay_mesh: ImmediateMesh
+var _occupancy_overlay: MeshInstance3D
+var _occupancy_overlay_mesh: ImmediateMesh
+var show_occupancy_overlay: bool = false
 
 var _hovered_cell: Vector3i = Vector3i.ZERO
 var _has_hover: bool = false
@@ -72,6 +77,7 @@ func _ready() -> void:
 	_setup_ghost()
 	_setup_grid_overlay()
 	_setup_origin_overlay()
+	_setup_occupancy_overlay()
 	if camera == null:
 		camera = get_viewport().get_camera_3d()
 
@@ -128,6 +134,20 @@ func _setup_origin_overlay() -> void:
 
 
 const PAINT_LAYER_NAMES: Array[String] = ["floor", "wall", "prop"]
+
+
+func _setup_occupancy_overlay() -> void:
+	_occupancy_overlay_mesh = ImmediateMesh.new()
+	_occupancy_overlay = MeshInstance3D.new()
+	_occupancy_overlay.mesh = _occupancy_overlay_mesh
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.disable_ambient_light = true
+	_occupancy_overlay.material_override = material
+	_occupancy_overlay.visible = false
+	add_child(_occupancy_overlay)
 
 
 func _current_grid() -> GridMap:
@@ -239,6 +259,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				change_level(1)
 			KEY_PAGEDOWN:
 				change_level(-1)
+			KEY_O:
+				print("show stuff")
+				show_occupancy_overlay = not show_occupancy_overlay
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if Input.is_key_pressed(KEY_SHIFT):
 			erase_at_cursor()
@@ -251,6 +274,7 @@ func _process(_delta: float) -> void:
 	_update_ghost_transform()
 	_update_grid_overlay()
 	_update_origin_overlay()
+	_update_occupancy_overlay()
 
 
 func _update_hover() -> void:
@@ -310,20 +334,24 @@ func _update_ghost_transform() -> void:
 	_ghost.global_transform = grid.global_transform * Transform3D(rot_basis, local_pos)
 	_ghost.visible = true
 
-## Draws a origin
+## Draws a small axis cross at world origin, scaled to the target grid's
+## actual cell size so it stays proportional to whatever scale the project
+## is using rather than a fixed, possibly tiny-or-huge 1-unit length.
 func _update_origin_overlay() -> void:
 	if not _has_hover:
 		_origin_overlay.visible = false
 		return
 
+	var cell_size := _target_grid().cell_size
+
 	_origin_overlay_mesh.clear_surfaces()
 	_origin_overlay_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
 	_origin_overlay_mesh.surface_add_vertex(Vector3.ZERO)
-	_origin_overlay_mesh.surface_add_vertex(Vector3(1, 0, 0))
+	_origin_overlay_mesh.surface_add_vertex(Vector3(cell_size.x, 0, 0))
 	_origin_overlay_mesh.surface_add_vertex(Vector3.ZERO)
-	_origin_overlay_mesh.surface_add_vertex(Vector3(0, 1, 0))
+	_origin_overlay_mesh.surface_add_vertex(Vector3(0, cell_size.y, 0))
 	_origin_overlay_mesh.surface_add_vertex(Vector3.ZERO)
-	_origin_overlay_mesh.surface_add_vertex(Vector3(0, 0, 1))
+	_origin_overlay_mesh.surface_add_vertex(Vector3(0, 0, cell_size.z))
 	_origin_overlay_mesh.surface_end()
 	_origin_overlay.global_transform = Transform3D.IDENTITY
 	_origin_overlay.visible = true
@@ -363,6 +391,59 @@ func _update_grid_overlay() -> void:
 	_grid_overlay_mesh.surface_end()
 	_grid_overlay.global_transform = grid.global_transform
 	_grid_overlay.visible = true
+
+
+## Draws wireframe outlines of every cell MissionData currently thinks is
+## occupied - floor_occupied_cells (floor_occupancy_color) and
+## occupied_cells/props (prop_occupancy_color) - so you can visually
+## compare against where a mesh actually renders. Toggle with O.
+##
+## Built assuming GridMap's Center X/Y/Z are OFF, so map_to_local() returns
+## a cell's CORNER, not its center - each box extends forward by a full
+## cell_size from that corner. If centering is ever re-enabled on an axis,
+## that axis's offset needs to be added back in here.
+func _update_occupancy_overlay() -> void:
+	if not show_occupancy_overlay:
+		_occupancy_overlay.visible = false
+		return
+
+	_occupancy_overlay_mesh.clear_surfaces()
+	_occupancy_overlay_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+
+	for cell in layered_map.mission.floor_occupied_cells:
+		_add_cell_outline(layered_map.floor_grid, cell, floor_occupancy_color)
+
+	for cell in layered_map.mission.occupied_cells:
+		_add_cell_outline(layered_map.prop_grid, cell, prop_occupancy_color)
+
+	_occupancy_overlay_mesh.surface_end()
+	_occupancy_overlay.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
+	_occupancy_overlay.visible = true
+
+
+func _add_cell_outline(grid: GridMap, cell: Vector3i, color: Color) -> void:
+	var corner_local: Vector3 = grid.map_to_local(cell)
+	var size := grid.cell_size
+
+	# Bottom face of the cell's box: corner -> corner + size on X/Z.
+	var local_corners := [
+		corner_local,
+		corner_local + Vector3(size.x, 0, 0),
+		corner_local + Vector3(size.x, 0, size.z),
+		corner_local + Vector3(0, 0, size.z),
+	]
+
+	var world_corners: Array[Vector3] = []
+	for c in local_corners:
+		world_corners.append(grid.to_global(c))
+
+	for i in 4:
+		var a: Vector3 = world_corners[i]
+		var b: Vector3 = world_corners[(i + 1) % 4]
+		_occupancy_overlay_mesh.surface_set_color(color)
+		_occupancy_overlay_mesh.surface_add_vertex(a)
+		_occupancy_overlay_mesh.surface_set_color(color)
+		_occupancy_overlay_mesh.surface_add_vertex(b)
 
 
 func place_at_cursor() -> void:

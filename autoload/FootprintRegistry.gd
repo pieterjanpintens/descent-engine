@@ -108,20 +108,42 @@ const LOGICAL_OVERRIDES: Dictionary = {
 ## >>> Set this to match whatever you divided your GridMap cell_size by.
 const CELLS_PER_TILE: int = 2
 
-## Returns the fine-grained footprint (list of Vector3i cell offsets from
-## origin, in actual GridMap cell units) for a mesh item name. Automatically
-## expands FOOTPRINTS' tile-square entries by CELLS_PER_TILE. Defaults to a
-## single tile-square (still expanded) if the mesh isn't listed.
-func get_footprint(mesh_item_name: String) -> Array[Vector3i]:
+## Returns the RAW, unrotated, unexpanded tile-square offsets for a mesh
+## item name - exactly as authored in FOOTPRINTS. Rotate this BEFORE
+## expanding (see expand_footprint) - the true physical pivot lives at
+## tile-square granularity, not at whatever fine-cell corner CELLS_PER_TILE
+## happens to expand it to.
+func get_tile_square_footprint(mesh_item_name: String) -> Array[Vector3i]:
 	var raw: Array = FOOTPRINTS.get(mesh_item_name, [Vector3i.ZERO])
+	var typed: Array[Vector3i] = []
+	typed.assign(raw)
+	return typed
+
+
+## Expands a tile-square-unit footprint (already rotated, if rotation is
+## needed) into fine-grained GridMap cell offsets.
+func expand_footprint(square_footprint: Array[Vector3i]) -> Array[Vector3i]:
 	var expanded: Array[Vector3i] = []
-	for square_offset in raw:
+	for square_offset in square_footprint:
 		var base_x: int = square_offset.x * CELLS_PER_TILE
 		var base_z: int = square_offset.z * CELLS_PER_TILE
 		for dx in CELLS_PER_TILE:
 			for dz in CELLS_PER_TILE:
 				expanded.append(Vector3i(base_x + dx, square_offset.y, base_z + dz))
 	return expanded
+
+
+## Full convenience pipeline for the UNROTATED case: raw tile-square
+## offsets, expanded to fine cells. Do NOT use this if you also need to
+## rotate - call get_tile_square_footprint() -> rotate_footprint() ->
+## expand_footprint() in that order instead (see LayeredMap for the actual
+## call sites). Rotating an already-expanded footprint rotates around a
+## fine-cell CORNER instead of the tile-square's true pivot, which breaks
+## anything not perfectly symmetric about that corner - this was the cause
+## of pillars visually landing correctly but their registered occupied
+## cells jumping to the wrong quadrant after rotation.
+func get_footprint(mesh_item_name: String) -> Array[Vector3i]:
+	return expand_footprint(get_tile_square_footprint(mesh_item_name))
 
 
 ## Rotates every offset in a footprint to match a cell's orientation Basis
@@ -150,12 +172,23 @@ func _quarter_turns_from_basis(basis: Basis) -> int:
 		return 3
 
 
+## Rotates a MIN-CORNER tile-square offset by 90 degrees around the origin.
+## This is NOT just rotating a point - each offset represents a full unit
+## square extending +1 in X and Z from that corner, so rotating the SQUARE
+## as a region (not just its corner) requires an extra -1 correction on
+## the new axis its extension direction rotated into. Without this, a
+## rotated shape's reference corners move but its extent doesn't rotate
+## with them, which is what caused rotated pillars/tiles to register the
+## wrong occupied cells even though the visual mesh looked fine.
+##
+## Verified by construction: applying this 4 times returns the original
+## offset exactly (correct order-4 rotation group behavior). Rotation
+## DIRECTION (this vs. the mirrored alternative) still needs confirming
+## against a real asymmetric shape in-game - if a rotated tile/pillar
+## lands in the mirror-image quadrant of where it visually should, swap
+## which axis gets the "-1" and which gets negated.
 func _rotate_cell_90(cell: Vector3i) -> Vector3i:
-	# 90 degree rotation around Y. If footprints come out mirrored/rotated
-	# the wrong way in testing, flip the sign here (swap which term is
-	# negated) - direction (CW vs CCW) depends on convention and is easy
-	# to get backwards on the first try.
-	return Vector3i(cell.z, cell.y, -cell.x)
+	return Vector3i(cell.z, cell.y, -cell.x - 1)
 
 
 func get_logical_defaults(mesh_item_name: String) -> Dictionary:

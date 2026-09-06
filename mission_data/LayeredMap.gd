@@ -13,7 +13,7 @@ extends Node3D
 ##  |- PropGridMap   (GridMap)
 
 @export var mission: MissionData
-@export var floor_thickness: float = 0.2
+@export var floor_thickness: float = 0.1
 
 @onready var floor_grid: GridMap = $FloorGridMap
 @onready var wall_grid: GridMap = $WallGridMap

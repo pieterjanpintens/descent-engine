@@ -29,7 +29,7 @@ const MAX_COUNTS: Dictionary = {
 	"tall": 8,
 	"mini": 16,
 	"medium": 8,
-	"stair": 2,
+	"stair": 6,
 }
 
 
