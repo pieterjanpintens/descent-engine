@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="MissionData" format=3]
 
-[ext_resource type="Script" path="res://mission_data/Tileplacement.gd" id="1_bmja8"]
-[ext_resource type="Script" path="res://mission_data/InteractableEntry.gd" id="2_eyn0j"]
-[ext_resource type="Script" path="res://mission_data/MonsterSpawn.gd" id="3_if0a2"]
-[ext_resource type="Script" path="res://mission_data/MissionData.gd" id="4_y4suj"]
-[ext_resource type="Script" path="res://mission_data/TileEntry.gd" id="5_w22dc"]
-[ext_resource type="Script" path="res://mission_data/MissionTrigger.gd" id="6_votxk"]
+[ext_resource type="Script" uid="uid://dwrybawwvnqw4" path="res://scripts/Tileplacement.gd" id="1_bmja8"]
+[ext_resource type="Script" uid="uid://e1xsmf1lb660" path="res://scripts/InteractableEntry.gd" id="2_eyn0j"]
+[ext_resource type="Script" uid="uid://blpbct2pir678" path="res://scripts/MonsterSpawn.gd" id="3_if0a2"]
+[ext_resource type="Script" uid="uid://dld1c2y0qdnt8" path="res://scripts/MissionData.gd" id="4_y4suj"]
+[ext_resource type="Script" uid="uid://b16e0uiyhfa4o" path="res://scripts/TileEntry.gd" id="5_w22dc"]
+[ext_resource type="Script" uid="uid://kyby0y73x7qc" path="res://scripts/MissionTrigger.gd" id="6_votxk"]
 
 [sub_resource type="Resource" id="Resource_i2a5b"]
 script = ExtResource("1_bmja8")

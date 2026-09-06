@@ -9,17 +9,15 @@ tool) and a **Mission Player** (loads and renders a saved mission).
 
 **Note on file layout**: nearly all non-autoload `.gd` scripts (data classes,
 `CreatorController`, `MissionPlayer`, `MainMenu`, `LayeredMap`, etc.) physically live
-in one flat folder, `mission_data/` — the groupings below (`creator/`, `player/`,
-`ui/`, `map/`) describe the **scene** files (`.tscn`) and functional area, not the
-script's actual directory. This works fine (Godot doesn't care where a script sits
-relative to its scene, and several scripts are genuinely shared across
-Creator/Player) but the folder name is a leftover from when it only held Resource
-data classes. All three autoload scripts (`FootprintRegistry`, `GameState`,
-`ComponentInventory`) now live together in `autoload/`. Planned: rename
-`mission_data/` to something like `src/` or `scripts/` once it doesn't collide with
-in-flight changes — see Open Items.
+in one flat folder, `scripts/` — the groupings below (`creator/`, `player/`, `ui/`,
+`map/`) describe the **scene** files (`.tscn`) and functional area, not the script's
+actual directory. This works fine (Godot doesn't care where a script sits relative to
+its scene, and several scripts are genuinely shared across Creator/Player). All three
+autoload scripts (`FootprintRegistry`, `GameState`, `ComponentInventory`) live
+together in `autoload/`. (This folder was called `mission_data/` until it was renamed
+to `scripts/` once it held far more than data-resource classes.)
 
-**Data layer** (scripts in `mission_data/`) — pure Resource classes, no logic beyond helpers:
+**Data layer** (scripts in `scripts/`) — pure Resource classes, no logic beyond helpers:
 
 - `MissionData` — root resource. Fields: `mission_name`, `grid_size`, `cell_size`,
   `tiles` (Dict[Vector3i, TileEntry] — flattened per-cell walkable/LOS data),
@@ -87,7 +85,7 @@ in-flight changes — see Open Items.
 	continued editing).
   - `find_item_id(grid, mesh_name)` — MeshLibrary name→id lookup (public, used by
 	`CreatorController` too).
-- `MissionIO` (`mission_data/MissionIO.gd`) — static `save_mission()`/`load_mission()`
+- `MissionIO` (`scripts/MissionIO.gd`) — static `save_mission()`/`load_mission()`
   wrapping `ResourceSaver`/`ResourceLoader`. Verified round-trip correctness including
   nested Resources, typed arrays, and Vector3i-keyed dictionaries.
 
@@ -236,6 +234,3 @@ These cost real debugging time — worth not re-learning them:
 7. `ComponentInventory` limit warnings only `push_warning()` to the Output panel —
    needs on-screen UI feedback once there's any kind of HUD.
 8. Fill in real `ComponentInventory.MAX_COUNTS` from the actual physical box contents.
-9. Consider renaming `mission_data/` (see file-layout note above) to something like
-   `src/` or `scripts/` now that it holds far more than data-resource classes — try it
-   after other pending updates are committed, then update this doc's paths to match.

@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://clllnjusli6o1"]
 
-[ext_resource type="Script" uid="uid://bqqv08geh8gew" path="res://mission_data/DebugSync.gd" id="4_crsba"]
+[ext_resource type="Script" uid="uid://bqqv08geh8gew" path="res://scripts/DebugSync.gd" id="4_crsba"]
 [ext_resource type="PackedScene" uid="uid://ecrsocoarltr" path="res://map/LayeredMapCore.tscn" id="5_02u5f"]
-[ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://mission_data/FreeLookCamera.gd" id="5_d5ryy"]
-[ext_resource type="Script" uid="uid://ljy27dceiepg" path="res://mission_data/CreatorController.gd" id="6_a7isx"]
-[ext_resource type="Script" uid="uid://d1cyr63qnt1hr" path="res://mission_data/CreatorSaveLoad.gd" id="7_iyoar"]
+[ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://scripts/FreeLookCamera.gd" id="5_d5ryy"]
+[ext_resource type="Script" uid="uid://ljy27dceiepg" path="res://scripts/CreatorController.gd" id="6_a7isx"]
+[ext_resource type="Script" uid="uid://d1cyr63qnt1hr" path="res://scripts/CreatorSaveLoad.gd" id="7_iyoar"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 

@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://ecrsocoarltr"]
 
-[ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://mission_data/LayeredMap.gd" id="1_rak1w"]
+[ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://scripts/LayeredMap.gd" id="1_rak1w"]
 [ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="2_fneos"]
-[ext_resource type="Script" uid="uid://dwrybawwvnqw4" path="res://mission_data/Tileplacement.gd" id="2_qgj7d"]
-[ext_resource type="Script" uid="uid://e1xsmf1lb660" path="res://mission_data/InteractableEntry.gd" id="3_2us3w"]
-[ext_resource type="Script" uid="uid://blpbct2pir678" path="res://mission_data/MonsterSpawn.gd" id="4_avu3l"]
-[ext_resource type="Script" uid="uid://dld1c2y0qdnt8" path="res://mission_data/MissionData.gd" id="5_1rm0q"]
-[ext_resource type="Script" uid="uid://kyby0y73x7qc" path="res://mission_data/MissionTrigger.gd" id="6_c166l"]
+[ext_resource type="Script" uid="uid://dwrybawwvnqw4" path="res://scripts/Tileplacement.gd" id="2_qgj7d"]
+[ext_resource type="Script" uid="uid://e1xsmf1lb660" path="res://scripts/InteractableEntry.gd" id="3_2us3w"]
+[ext_resource type="Script" uid="uid://blpbct2pir678" path="res://scripts/MonsterSpawn.gd" id="4_avu3l"]
+[ext_resource type="Script" uid="uid://dld1c2y0qdnt8" path="res://scripts/MissionData.gd" id="5_1rm0q"]
+[ext_resource type="Script" uid="uid://kyby0y73x7qc" path="res://scripts/MissionTrigger.gd" id="6_c166l"]
 
 [sub_resource type="Resource" id="Resource_a7isx"]
 script = ExtResource("5_1rm0q")
