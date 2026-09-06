@@ -7,7 +7,19 @@ tool) and a **Mission Player** (loads and renders a saved mission).
 
 ## Architecture overview
 
-**Data layer** (`mission_data/`) — pure Resource classes, no logic beyond helpers:
+**Note on file layout**: nearly all non-autoload `.gd` scripts (data classes,
+`CreatorController`, `MissionPlayer`, `MainMenu`, `LayeredMap`, etc.) physically live
+in one flat folder, `mission_data/` — the groupings below (`creator/`, `player/`,
+`ui/`, `map/`) describe the **scene** files (`.tscn`) and functional area, not the
+script's actual directory. This works fine (Godot doesn't care where a script sits
+relative to its scene, and several scripts are genuinely shared across
+Creator/Player) but the folder name is a leftover from when it only held Resource
+data classes. All three autoload scripts (`FootprintRegistry`, `GameState`,
+`ComponentInventory`) now live together in `autoload/`. Planned: rename
+`mission_data/` to something like `src/` or `scripts/` once it doesn't collide with
+in-flight changes — see Open Items.
+
+**Data layer** (scripts in `mission_data/`) — pure Resource classes, no logic beyond helpers:
 
 - `MissionData` — root resource. Fields: `mission_name`, `grid_size`, `cell_size`,
   `tiles` (Dict[Vector3i, TileEntry] — flattened per-cell walkable/LOS data),
@@ -144,6 +156,12 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
 Autoloads registered in Project Settings: `FootprintRegistry`, `GameState`,
 `ComponentInventory`.
 
+**Root-level source scenes** (`floors.tscn`, `pilars.tscn`, `stair.tscn`) — not part
+of the app itself and not referenced by any other scene or by Project Settings.
+These are the source scenes used to build/populate the shared `MeshLibrary` that all
+three GridMaps (Floor/Wall/Prop) consume — keep them around as the mesh-authoring
+source of truth, don't treat them as dead/orphaned files to delete.
+
 ## Hard-won Godot 4 / GDScript lessons
 
 These cost real debugging time — worth not re-learning them:
@@ -218,3 +236,6 @@ These cost real debugging time — worth not re-learning them:
 7. `ComponentInventory` limit warnings only `push_warning()` to the Output panel —
    needs on-screen UI feedback once there's any kind of HUD.
 8. Fill in real `ComponentInventory.MAX_COUNTS` from the actual physical box contents.
+9. Consider renaming `mission_data/` (see file-layout note above) to something like
+   `src/` or `scripts/` now that it holds far more than data-resource classes — try it
+   after other pending updates are committed, then update this doc's paths to match.
