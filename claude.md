@@ -44,19 +44,19 @@ in-flight changes — see Open Items.
 - `FootprintRegistry` — the single source of truth for shape/rotation/layer-classification
   math. Key pieces:
   - `FOOTPRINTS` — hand-authored shapes in **tile-square units** (not fine cells),
-    keyed by exact mesh item name. Currently has: `1a`/`1b`/`2a`/`2b` (2×3 rectangle,
-    origin = bottom-right corner), `7a`/`7b` (plus/cross shape, origin = a specific
-    marked cell), `stair` (3×2, origin = the low point), `tall`/`mini`/`medium`
-    (pillars — see the calibration note below, **not** `Vector3i.ZERO`).
+	keyed by exact mesh item name. Currently has: `1a`/`1b`/`2a`/`2b` (2×3 rectangle,
+	origin = bottom-right corner), `7a`/`7b` (plus/cross shape, origin = a specific
+	marked cell), `stair` (3×2, origin = the low point), `tall`/`mini`/`medium`
+	(pillars — see the calibration note below, **not** `Vector3i.ZERO`).
   - `CELLS_PER_TILE = 2` — GridMap's cell_size was halved from the tile-square scale
 	to support sub-tile pillar placement; this constant bridges "authored in
 	tile-squares" to "actual fine GridMap cells."
   - `get_tile_square_footprint()` → raw authored offsets. `expand_footprint()` →
 	converts to fine cells. **Critical convention**: an offset represents a square's
-    **far corner**, extending backward toward -X/-Z by a full `CELLS_PER_TILE` — this
-    took many iterations to nail down, see "Hard-won lessons" below.
+	**far corner**, extending backward toward -X/-Z by a full `CELLS_PER_TILE` — this
+	took many iterations to nail down, see "Hard-won lessons" below.
   - `rotate_footprint()` / `_rotate_cell_90()` — rotates at **tile-square granularity,
-    before expansion** (rotating after expansion rotates around the wrong pivot). The
+	before expansion** (rotating after expansion rotates around the wrong pivot). The
 	single-step rotation includes a `-1` correction because it's rotating a *region*
 	(min-corner + extent), not a bare point.
   - `get_layer(mesh_name)` → `"floor"`/`"wall"`/`"prop"` — the single source of truth
@@ -98,7 +98,7 @@ in-flight changes — see Open Items.
   `select_layer`) is deliberately the only thing that touches selection state, so a
   future palette UI can call the same methods instead of duplicating logic.
   - **Critical design point**: the *destination* GridMap for a placement is always
-    derived from `FootprintRegistry.get_layer(selected_mesh)` (via `_target_grid()`),
+	derived from `FootprintRegistry.get_layer(selected_mesh)` (via `_target_grid()`),
 	**never** from the UI's current layer filter (`current_layer`/`L` key) — the
 	filter only controls which meshes `cycle_mesh()` offers to browse. This was a real
 	bug once (props landing in FloorGridMap) and is now structurally prevented.
