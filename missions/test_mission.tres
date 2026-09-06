@@ -9,48 +9,146 @@
 
 [sub_resource type="Resource" id="Resource_k3yb4"]
 script = ExtResource("1_k3yb4")
-mesh_item_name = "2a"
+origin_cell = Vector3i(0, 0, 4)
+mesh_item_name = "2b"
 
 [sub_resource type="Resource" id="Resource_epkos"]
 script = ExtResource("1_k3yb4")
-origin_cell = Vector3i(-7, 0, 2)
+origin_cell = Vector3i(12, 0, 4)
 mesh_item_name = "7b"
 
 [sub_resource type="Resource" id="Resource_dld8p"]
-script = ExtResource("2_7yy8x")
-mesh_item_name = "medium"
-origin_cell = Vector3i(3, 0, -2)
-footprint = Array[Vector3i]([Vector3i(0, 0, 0), Vector3i(0, 0, 1), Vector3i(1, 0, 0), Vector3i(1, 0, 1)])
-blocks_los = true
+script = ExtResource("1_k3yb4")
+origin_cell = Vector3i(4, 1, 5)
+mesh_item_name = "1a"
+orientation = 22
 
 [sub_resource type="Resource" id="Resource_c5lah"]
 script = ExtResource("2_7yy8x")
-mesh_item_name = "stair"
-origin_cell = Vector3i(11, 0, -1)
-footprint = Array[Vector3i]([Vector3i(-2, 0, -4), Vector3i(-2, 0, -3), Vector3i(-1, 0, -4), Vector3i(-1, 0, -3), Vector3i(0, 0, -4), Vector3i(0, 0, -3), Vector3i(1, 0, -4), Vector3i(1, 0, -3), Vector3i(-2, 0, -2), Vector3i(-2, 0, -1), Vector3i(-1, 0, -2), Vector3i(-1, 0, -1), Vector3i(0, 0, -2), Vector3i(0, 0, -1), Vector3i(1, 0, -2), Vector3i(1, 0, -1), Vector3i(-2, 0, 0), Vector3i(-2, 0, 1), Vector3i(-1, 0, 0), Vector3i(-1, 0, 1), Vector3i(0, 0, 0), Vector3i(0, 0, 1), Vector3i(1, 0, 0), Vector3i(1, 0, 1)])
-blocks_movement = false
+mesh_item_name = "medium"
+origin_cell = Vector3i(4, 0, 0)
+footprint = Array[Vector3i]([Vector3i(0, 0, -2), Vector3i(0, 0, -1), Vector3i(1, 0, -2), Vector3i(1, 0, -1)])
+blocks_los = true
 
 [sub_resource type="Resource" id="Resource_yo74k"]
 script = ExtResource("2_7yy8x")
-mesh_item_name = "medium"
-origin_cell = Vector3i(3, 0, 4)
-footprint = Array[Vector3i]([Vector3i(0, 0, 0), Vector3i(0, 0, 1), Vector3i(1, 0, 0), Vector3i(1, 0, 1)])
-blocks_los = true
+mesh_item_name = "stair"
+origin_cell = Vector3i(-2, 0, 4)
+footprint = Array[Vector3i]([Vector3i(5, 0, -4), Vector3i(4, 0, -4), Vector3i(5, 0, -3), Vector3i(4, 0, -3), Vector3i(5, 0, -2), Vector3i(4, 0, -2), Vector3i(5, 0, -1), Vector3i(4, 0, -1), Vector3i(3, 0, -4), Vector3i(2, 0, -4), Vector3i(3, 0, -3), Vector3i(2, 0, -3), Vector3i(3, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -1), Vector3i(2, 0, -1), Vector3i(1, 0, -4), Vector3i(0, 0, -4), Vector3i(1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -1), Vector3i(0, 0, -1)])
+orientation = 22
+blocks_movement = false
 
 [sub_resource type="Resource" id="Resource_aps0b"]
-script = ExtResource("2_7yy8x")
-mesh_item_name = "tall"
-origin_cell = Vector3i(-2, 0, 6)
-footprint = Array[Vector3i]([Vector3i(0, 0, 0), Vector3i(0, 0, 1), Vector3i(1, 0, 0), Vector3i(1, 0, 1)])
-blocks_los = true
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
 
 [sub_resource type="Resource" id="Resource_oklg0"]
-script = ExtResource("2_7yy8x")
-mesh_item_name = "tall"
-origin_cell = Vector3i(-4, 0, 8)
-footprint = Array[Vector3i]([Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(0, 0, -1), Vector3i(1, 0, -1)])
-orientation = 16
-blocks_los = true
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_44anx"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_jxojr"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_kes0a"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_n6psk"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_swkl1"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_xhvja"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_xlgab"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_jndku"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_vj8oq"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_ijmxx"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_ygwix"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_rjknm"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_pmcbm"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_pyndv"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_3sj7o"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_rbosa"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_hfcsv"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_1luno"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_d1lef"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_cg24x"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_kwico"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_el00y"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "2b"
+
+[sub_resource type="Resource" id="Resource_qik2c"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_2oia0"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_gfv58"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_ocnf1"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
 
 [sub_resource type="Resource" id="Resource_ieh8n"]
 script = ExtResource("5_k3yb4")
@@ -100,6 +198,14 @@ mesh_item_name = "7b"
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
 
+[sub_resource type="Resource" id="Resource_ie6dq"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_nna0n"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
 [sub_resource type="Resource" id="Resource_f7ils"]
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
@@ -115,6 +221,38 @@ mesh_item_name = "7b"
 [sub_resource type="Resource" id="Resource_otwh5"]
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_5pjat"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_xt2qd"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_iavbb"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_kghu0"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_uqlku"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_q0631"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_g52g7"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_jkjqq"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
 
 [sub_resource type="Resource" id="Resource_2wh1w"]
 script = ExtResource("5_k3yb4")
@@ -148,6 +286,30 @@ mesh_item_name = "7b"
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
 
+[sub_resource type="Resource" id="Resource_68mvx"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_e3up2"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_n3k1t"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_tf7i8"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_hx0qa"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_7h2of"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
 [sub_resource type="Resource" id="Resource_88qin"]
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
@@ -179,6 +341,30 @@ mesh_item_name = "7b"
 [sub_resource type="Resource" id="Resource_eyb41"]
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
+
+[sub_resource type="Resource" id="Resource_01jxm"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ebw5c"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_khc1b"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_elj3k"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_6boph"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_r46q0"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
 
 [sub_resource type="Resource" id="Resource_2iych"]
 script = ExtResource("5_k3yb4")
@@ -212,13 +398,29 @@ mesh_item_name = "7b"
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
 
-[sub_resource type="Resource" id="Resource_qik2c"]
+[sub_resource type="Resource" id="Resource_1fq5f"]
 script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
+mesh_item_name = "1a"
 
-[sub_resource type="Resource" id="Resource_2oia0"]
+[sub_resource type="Resource" id="Resource_nnotc"]
 script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_bov5l"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_i2tts"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_so0r7"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_j48tv"]
+script = ExtResource("5_k3yb4")
+mesh_item_name = "1a"
 
 [sub_resource type="Resource" id="Resource_o2rnp"]
 script = ExtResource("5_k3yb4")
@@ -233,14 +435,6 @@ script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
 
 [sub_resource type="Resource" id="Resource_x6ib1"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
-
-[sub_resource type="Resource" id="Resource_1fq5f"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
-
-[sub_resource type="Resource" id="Resource_01jxm"]
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
 
@@ -292,341 +486,266 @@ mesh_item_name = "7b"
 script = ExtResource("5_k3yb4")
 mesh_item_name = "7b"
 
-[sub_resource type="Resource" id="Resource_gfv58"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
-
-[sub_resource type="Resource" id="Resource_ocnf1"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
-
-[sub_resource type="Resource" id="Resource_5pjat"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
-
-[sub_resource type="Resource" id="Resource_xt2qd"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "7b"
-
-[sub_resource type="Resource" id="Resource_kes0a"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_n6psk"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_swkl1"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_xhvja"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_xlgab"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_jndku"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_vj8oq"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_ijmxx"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_ygwix"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_rjknm"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_pmcbm"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_pyndv"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_3sj7o"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_rbosa"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_hfcsv"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_1luno"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_d1lef"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_cg24x"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_kwico"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_el00y"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_44anx"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_jxojr"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_ie6dq"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_nna0n"]
-script = ExtResource("5_k3yb4")
-mesh_item_name = "2a"
-
 [resource]
 script = ExtResource("3_k3yb4")
+mission_name = "test_mission"
 tiles = {
-Vector3i(-17, 0, 0): SubResource("Resource_ieh8n"),
-Vector3i(-17, 0, 1): SubResource("Resource_7vawk"),
-Vector3i(-17, 0, 2): SubResource("Resource_bm1xn"),
-Vector3i(-17, 0, 3): SubResource("Resource_yqbm1"),
-Vector3i(-16, 0, 0): SubResource("Resource_6ffs5"),
-Vector3i(-16, 0, 1): SubResource("Resource_l04o3"),
-Vector3i(-16, 0, 2): SubResource("Resource_ukk24"),
-Vector3i(-16, 0, 3): SubResource("Resource_nn7q1"),
-Vector3i(-15, 0, 0): SubResource("Resource_odmuv"),
-Vector3i(-15, 0, 1): SubResource("Resource_itd15"),
-Vector3i(-15, 0, 2): SubResource("Resource_dfdlq"),
-Vector3i(-15, 0, 3): SubResource("Resource_6xjdk"),
-Vector3i(-14, 0, 0): SubResource("Resource_f7ils"),
-Vector3i(-14, 0, 1): SubResource("Resource_orllv"),
-Vector3i(-14, 0, 2): SubResource("Resource_7udqe"),
-Vector3i(-14, 0, 3): SubResource("Resource_otwh5"),
-Vector3i(-13, 0, -2): SubResource("Resource_2wh1w"),
-Vector3i(-13, 0, -1): SubResource("Resource_yyqqn"),
-Vector3i(-13, 0, 0): SubResource("Resource_l8g8d"),
-Vector3i(-13, 0, 1): SubResource("Resource_w3u3e"),
-Vector3i(-13, 0, 2): SubResource("Resource_gjx4k"),
-Vector3i(-13, 0, 3): SubResource("Resource_7xx6a"),
-Vector3i(-13, 0, 4): SubResource("Resource_py1e6"),
-Vector3i(-13, 0, 5): SubResource("Resource_chpq4"),
-Vector3i(-12, 0, -2): SubResource("Resource_88qin"),
-Vector3i(-12, 0, -1): SubResource("Resource_tjy3x"),
-Vector3i(-12, 0, 0): SubResource("Resource_qoqem"),
-Vector3i(-12, 0, 1): SubResource("Resource_vmf0r"),
-Vector3i(-12, 0, 2): SubResource("Resource_7k46v"),
-Vector3i(-12, 0, 3): SubResource("Resource_dr428"),
-Vector3i(-12, 0, 4): SubResource("Resource_sij3u"),
-Vector3i(-12, 0, 5): SubResource("Resource_eyb41"),
-Vector3i(-11, 0, -2): SubResource("Resource_2iych"),
-Vector3i(-11, 0, -1): SubResource("Resource_3s4me"),
-Vector3i(-11, 0, 0): SubResource("Resource_cer6d"),
-Vector3i(-11, 0, 1): SubResource("Resource_titsu"),
-Vector3i(-11, 0, 2): SubResource("Resource_xpkym"),
-Vector3i(-11, 0, 3): SubResource("Resource_ogsff"),
-Vector3i(-11, 0, 4): SubResource("Resource_625fw"),
-Vector3i(-11, 0, 5): SubResource("Resource_b0mao"),
-Vector3i(-10, 0, -2): SubResource("Resource_qik2c"),
-Vector3i(-10, 0, -1): SubResource("Resource_2oia0"),
-Vector3i(-10, 0, 0): SubResource("Resource_o2rnp"),
-Vector3i(-10, 0, 1): SubResource("Resource_qumcx"),
-Vector3i(-10, 0, 2): SubResource("Resource_01m0y"),
-Vector3i(-10, 0, 3): SubResource("Resource_x6ib1"),
-Vector3i(-10, 0, 4): SubResource("Resource_1fq5f"),
-Vector3i(-10, 0, 5): SubResource("Resource_01jxm"),
-Vector3i(-9, 0, 0): SubResource("Resource_vm1go"),
-Vector3i(-9, 0, 1): SubResource("Resource_4netn"),
-Vector3i(-9, 0, 2): SubResource("Resource_stgvo"),
-Vector3i(-9, 0, 3): SubResource("Resource_2fpfb"),
-Vector3i(-8, 0, 0): SubResource("Resource_itqij"),
-Vector3i(-8, 0, 1): SubResource("Resource_ifgc0"),
-Vector3i(-8, 0, 2): SubResource("Resource_p4nqv"),
-Vector3i(-8, 0, 3): SubResource("Resource_3k6ol"),
-Vector3i(-7, 0, 0): SubResource("Resource_1nurv"),
-Vector3i(-7, 0, 1): SubResource("Resource_cubaw"),
-Vector3i(-7, 0, 2): SubResource("Resource_hl060"),
-Vector3i(-7, 0, 3): SubResource("Resource_mlew3"),
-Vector3i(-6, 0, 0): SubResource("Resource_gfv58"),
-Vector3i(-6, 0, 1): SubResource("Resource_ocnf1"),
-Vector3i(-6, 0, 2): SubResource("Resource_5pjat"),
-Vector3i(-6, 0, 3): SubResource("Resource_xt2qd"),
-Vector3i(-4, 0, -2): SubResource("Resource_kes0a"),
-Vector3i(-4, 0, -1): SubResource("Resource_n6psk"),
-Vector3i(-4, 0, 0): SubResource("Resource_swkl1"),
-Vector3i(-4, 0, 1): SubResource("Resource_xhvja"),
-Vector3i(-3, 0, -2): SubResource("Resource_xlgab"),
-Vector3i(-3, 0, -1): SubResource("Resource_jndku"),
-Vector3i(-3, 0, 0): SubResource("Resource_vj8oq"),
-Vector3i(-3, 0, 1): SubResource("Resource_ijmxx"),
-Vector3i(-2, 0, -2): SubResource("Resource_ygwix"),
-Vector3i(-2, 0, -1): SubResource("Resource_rjknm"),
-Vector3i(-2, 0, 0): SubResource("Resource_pmcbm"),
-Vector3i(-2, 0, 1): SubResource("Resource_pyndv"),
-Vector3i(-1, 0, -2): SubResource("Resource_3sj7o"),
-Vector3i(-1, 0, -1): SubResource("Resource_rbosa"),
-Vector3i(-1, 0, 0): SubResource("Resource_hfcsv"),
-Vector3i(-1, 0, 1): SubResource("Resource_1luno"),
-Vector3i(0, 0, -2): SubResource("Resource_d1lef"),
-Vector3i(0, 0, -1): SubResource("Resource_cg24x"),
-Vector3i(0, 0, 0): SubResource("Resource_kwico"),
-Vector3i(0, 0, 1): SubResource("Resource_el00y"),
-Vector3i(1, 0, -2): SubResource("Resource_44anx"),
-Vector3i(1, 0, -1): SubResource("Resource_jxojr"),
-Vector3i(1, 0, 0): SubResource("Resource_ie6dq"),
-Vector3i(1, 0, 1): SubResource("Resource_nna0n")
+Vector3i(-6, 0, 0): SubResource("Resource_aps0b"),
+Vector3i(-6, 0, 1): SubResource("Resource_oklg0"),
+Vector3i(-6, 0, 2): SubResource("Resource_44anx"),
+Vector3i(-6, 0, 3): SubResource("Resource_jxojr"),
+Vector3i(-5, 0, 0): SubResource("Resource_kes0a"),
+Vector3i(-5, 0, 1): SubResource("Resource_n6psk"),
+Vector3i(-5, 0, 2): SubResource("Resource_swkl1"),
+Vector3i(-5, 0, 3): SubResource("Resource_xhvja"),
+Vector3i(-4, 0, 0): SubResource("Resource_xlgab"),
+Vector3i(-4, 0, 1): SubResource("Resource_jndku"),
+Vector3i(-4, 0, 2): SubResource("Resource_vj8oq"),
+Vector3i(-4, 0, 3): SubResource("Resource_ijmxx"),
+Vector3i(-3, 0, 0): SubResource("Resource_ygwix"),
+Vector3i(-3, 0, 1): SubResource("Resource_rjknm"),
+Vector3i(-3, 0, 2): SubResource("Resource_pmcbm"),
+Vector3i(-3, 0, 3): SubResource("Resource_pyndv"),
+Vector3i(-2, 0, 0): SubResource("Resource_3sj7o"),
+Vector3i(-2, 0, 1): SubResource("Resource_rbosa"),
+Vector3i(-2, 0, 2): SubResource("Resource_hfcsv"),
+Vector3i(-2, 0, 3): SubResource("Resource_1luno"),
+Vector3i(-1, 0, 0): SubResource("Resource_d1lef"),
+Vector3i(-1, 0, 1): SubResource("Resource_cg24x"),
+Vector3i(-1, 0, 2): SubResource("Resource_kwico"),
+Vector3i(-1, 0, 3): SubResource("Resource_el00y"),
+Vector3i(0, 0, 0): SubResource("Resource_qik2c"),
+Vector3i(0, 0, 1): SubResource("Resource_2oia0"),
+Vector3i(0, 0, 2): SubResource("Resource_gfv58"),
+Vector3i(0, 0, 3): SubResource("Resource_ocnf1"),
+Vector3i(1, 0, 0): SubResource("Resource_ieh8n"),
+Vector3i(1, 0, 1): SubResource("Resource_7vawk"),
+Vector3i(1, 0, 2): SubResource("Resource_bm1xn"),
+Vector3i(1, 0, 3): SubResource("Resource_yqbm1"),
+Vector3i(2, 0, 0): SubResource("Resource_6ffs5"),
+Vector3i(2, 0, 1): SubResource("Resource_l04o3"),
+Vector3i(2, 0, 2): SubResource("Resource_ukk24"),
+Vector3i(2, 0, 3): SubResource("Resource_nn7q1"),
+Vector3i(3, 0, 0): SubResource("Resource_odmuv"),
+Vector3i(3, 0, 1): SubResource("Resource_itd15"),
+Vector3i(3, 0, 2): SubResource("Resource_dfdlq"),
+Vector3i(3, 0, 3): SubResource("Resource_6xjdk"),
+Vector3i(4, 0, -2): SubResource("Resource_ie6dq"),
+Vector3i(4, 0, -1): SubResource("Resource_nna0n"),
+Vector3i(4, 0, 0): SubResource("Resource_f7ils"),
+Vector3i(4, 0, 1): SubResource("Resource_orllv"),
+Vector3i(4, 0, 2): SubResource("Resource_7udqe"),
+Vector3i(4, 0, 3): SubResource("Resource_otwh5"),
+Vector3i(4, 0, 4): SubResource("Resource_5pjat"),
+Vector3i(4, 0, 5): SubResource("Resource_xt2qd"),
+Vector3i(4, 1, -1): SubResource("Resource_iavbb"),
+Vector3i(4, 1, 0): SubResource("Resource_kghu0"),
+Vector3i(4, 1, 1): SubResource("Resource_uqlku"),
+Vector3i(4, 1, 2): SubResource("Resource_q0631"),
+Vector3i(4, 1, 3): SubResource("Resource_g52g7"),
+Vector3i(4, 1, 4): SubResource("Resource_jkjqq"),
+Vector3i(5, 0, -2): SubResource("Resource_2wh1w"),
+Vector3i(5, 0, -1): SubResource("Resource_yyqqn"),
+Vector3i(5, 0, 0): SubResource("Resource_l8g8d"),
+Vector3i(5, 0, 1): SubResource("Resource_w3u3e"),
+Vector3i(5, 0, 2): SubResource("Resource_gjx4k"),
+Vector3i(5, 0, 3): SubResource("Resource_7xx6a"),
+Vector3i(5, 0, 4): SubResource("Resource_py1e6"),
+Vector3i(5, 0, 5): SubResource("Resource_chpq4"),
+Vector3i(5, 1, -1): SubResource("Resource_68mvx"),
+Vector3i(5, 1, 0): SubResource("Resource_e3up2"),
+Vector3i(5, 1, 1): SubResource("Resource_n3k1t"),
+Vector3i(5, 1, 2): SubResource("Resource_tf7i8"),
+Vector3i(5, 1, 3): SubResource("Resource_hx0qa"),
+Vector3i(5, 1, 4): SubResource("Resource_7h2of"),
+Vector3i(6, 0, -2): SubResource("Resource_88qin"),
+Vector3i(6, 0, -1): SubResource("Resource_tjy3x"),
+Vector3i(6, 0, 0): SubResource("Resource_qoqem"),
+Vector3i(6, 0, 1): SubResource("Resource_vmf0r"),
+Vector3i(6, 0, 2): SubResource("Resource_7k46v"),
+Vector3i(6, 0, 3): SubResource("Resource_dr428"),
+Vector3i(6, 0, 4): SubResource("Resource_sij3u"),
+Vector3i(6, 0, 5): SubResource("Resource_eyb41"),
+Vector3i(6, 1, -1): SubResource("Resource_01jxm"),
+Vector3i(6, 1, 0): SubResource("Resource_ebw5c"),
+Vector3i(6, 1, 1): SubResource("Resource_khc1b"),
+Vector3i(6, 1, 2): SubResource("Resource_elj3k"),
+Vector3i(6, 1, 3): SubResource("Resource_6boph"),
+Vector3i(6, 1, 4): SubResource("Resource_r46q0"),
+Vector3i(7, 0, -2): SubResource("Resource_2iych"),
+Vector3i(7, 0, -1): SubResource("Resource_3s4me"),
+Vector3i(7, 0, 0): SubResource("Resource_cer6d"),
+Vector3i(7, 0, 1): SubResource("Resource_titsu"),
+Vector3i(7, 0, 2): SubResource("Resource_xpkym"),
+Vector3i(7, 0, 3): SubResource("Resource_ogsff"),
+Vector3i(7, 0, 4): SubResource("Resource_625fw"),
+Vector3i(7, 0, 5): SubResource("Resource_b0mao"),
+Vector3i(7, 1, -1): SubResource("Resource_1fq5f"),
+Vector3i(7, 1, 0): SubResource("Resource_nnotc"),
+Vector3i(7, 1, 1): SubResource("Resource_bov5l"),
+Vector3i(7, 1, 2): SubResource("Resource_i2tts"),
+Vector3i(7, 1, 3): SubResource("Resource_so0r7"),
+Vector3i(7, 1, 4): SubResource("Resource_j48tv"),
+Vector3i(8, 0, 0): SubResource("Resource_o2rnp"),
+Vector3i(8, 0, 1): SubResource("Resource_qumcx"),
+Vector3i(8, 0, 2): SubResource("Resource_01m0y"),
+Vector3i(8, 0, 3): SubResource("Resource_x6ib1"),
+Vector3i(9, 0, 0): SubResource("Resource_vm1go"),
+Vector3i(9, 0, 1): SubResource("Resource_4netn"),
+Vector3i(9, 0, 2): SubResource("Resource_stgvo"),
+Vector3i(9, 0, 3): SubResource("Resource_2fpfb"),
+Vector3i(10, 0, 0): SubResource("Resource_itqij"),
+Vector3i(10, 0, 1): SubResource("Resource_ifgc0"),
+Vector3i(10, 0, 2): SubResource("Resource_p4nqv"),
+Vector3i(10, 0, 3): SubResource("Resource_3k6ol"),
+Vector3i(11, 0, 0): SubResource("Resource_1nurv"),
+Vector3i(11, 0, 1): SubResource("Resource_cubaw"),
+Vector3i(11, 0, 2): SubResource("Resource_hl060"),
+Vector3i(11, 0, 3): SubResource("Resource_mlew3")
 }
-floor_placements = Array[ExtResource("1_k3yb4")]([SubResource("Resource_k3yb4"), SubResource("Resource_epkos")])
+floor_placements = Array[ExtResource("1_k3yb4")]([SubResource("Resource_k3yb4"), SubResource("Resource_epkos"), SubResource("Resource_dld8p")])
 floor_occupied_cells = {
-Vector3i(-17, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-17, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-17, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-17, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-16, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-16, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-16, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-16, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-15, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-15, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-15, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-15, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-14, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-14, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-14, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-14, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, -2): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, -1): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, 4): Vector3i(-7, 0, 2),
-Vector3i(-13, 0, 5): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, -2): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, -1): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, 4): Vector3i(-7, 0, 2),
-Vector3i(-12, 0, 5): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, -2): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, -1): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, 4): Vector3i(-7, 0, 2),
-Vector3i(-11, 0, 5): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, -2): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, -1): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, 4): Vector3i(-7, 0, 2),
-Vector3i(-10, 0, 5): Vector3i(-7, 0, 2),
-Vector3i(-9, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-9, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-9, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-9, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-8, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-8, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-8, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-8, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-7, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-7, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-7, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-7, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-6, 0, 0): Vector3i(-7, 0, 2),
-Vector3i(-6, 0, 1): Vector3i(-7, 0, 2),
-Vector3i(-6, 0, 2): Vector3i(-7, 0, 2),
-Vector3i(-6, 0, 3): Vector3i(-7, 0, 2),
-Vector3i(-4, 0, -2): Vector3i(0, 0, 0),
-Vector3i(-4, 0, -1): Vector3i(0, 0, 0),
-Vector3i(-4, 0, 0): Vector3i(0, 0, 0),
-Vector3i(-4, 0, 1): Vector3i(0, 0, 0),
-Vector3i(-3, 0, -2): Vector3i(0, 0, 0),
-Vector3i(-3, 0, -1): Vector3i(0, 0, 0),
-Vector3i(-3, 0, 0): Vector3i(0, 0, 0),
-Vector3i(-3, 0, 1): Vector3i(0, 0, 0),
-Vector3i(-2, 0, -2): Vector3i(0, 0, 0),
-Vector3i(-2, 0, -1): Vector3i(0, 0, 0),
-Vector3i(-2, 0, 0): Vector3i(0, 0, 0),
-Vector3i(-2, 0, 1): Vector3i(0, 0, 0),
-Vector3i(-1, 0, -2): Vector3i(0, 0, 0),
-Vector3i(-1, 0, -1): Vector3i(0, 0, 0),
-Vector3i(-1, 0, 0): Vector3i(0, 0, 0),
-Vector3i(-1, 0, 1): Vector3i(0, 0, 0),
-Vector3i(0, 0, -2): Vector3i(0, 0, 0),
-Vector3i(0, 0, -1): Vector3i(0, 0, 0),
-Vector3i(0, 0, 0): Vector3i(0, 0, 0),
-Vector3i(0, 0, 1): Vector3i(0, 0, 0),
-Vector3i(1, 0, -2): Vector3i(0, 0, 0),
-Vector3i(1, 0, -1): Vector3i(0, 0, 0),
-Vector3i(1, 0, 0): Vector3i(0, 0, 0),
-Vector3i(1, 0, 1): Vector3i(0, 0, 0)
+Vector3i(-6, 0, 0): Vector3i(0, 0, 4),
+Vector3i(-6, 0, 1): Vector3i(0, 0, 4),
+Vector3i(-6, 0, 2): Vector3i(0, 0, 4),
+Vector3i(-6, 0, 3): Vector3i(0, 0, 4),
+Vector3i(-5, 0, 0): Vector3i(0, 0, 4),
+Vector3i(-5, 0, 1): Vector3i(0, 0, 4),
+Vector3i(-5, 0, 2): Vector3i(0, 0, 4),
+Vector3i(-5, 0, 3): Vector3i(0, 0, 4),
+Vector3i(-4, 0, 0): Vector3i(0, 0, 4),
+Vector3i(-4, 0, 1): Vector3i(0, 0, 4),
+Vector3i(-4, 0, 2): Vector3i(0, 0, 4),
+Vector3i(-4, 0, 3): Vector3i(0, 0, 4),
+Vector3i(-3, 0, 0): Vector3i(0, 0, 4),
+Vector3i(-3, 0, 1): Vector3i(0, 0, 4),
+Vector3i(-3, 0, 2): Vector3i(0, 0, 4),
+Vector3i(-3, 0, 3): Vector3i(0, 0, 4),
+Vector3i(-2, 0, 0): Vector3i(0, 0, 4),
+Vector3i(-2, 0, 1): Vector3i(0, 0, 4),
+Vector3i(-2, 0, 2): Vector3i(0, 0, 4),
+Vector3i(-2, 0, 3): Vector3i(0, 0, 4),
+Vector3i(-1, 0, 0): Vector3i(0, 0, 4),
+Vector3i(-1, 0, 1): Vector3i(0, 0, 4),
+Vector3i(-1, 0, 2): Vector3i(0, 0, 4),
+Vector3i(-1, 0, 3): Vector3i(0, 0, 4),
+Vector3i(0, 0, 0): Vector3i(12, 0, 4),
+Vector3i(0, 0, 1): Vector3i(12, 0, 4),
+Vector3i(0, 0, 2): Vector3i(12, 0, 4),
+Vector3i(0, 0, 3): Vector3i(12, 0, 4),
+Vector3i(1, 0, 0): Vector3i(12, 0, 4),
+Vector3i(1, 0, 1): Vector3i(12, 0, 4),
+Vector3i(1, 0, 2): Vector3i(12, 0, 4),
+Vector3i(1, 0, 3): Vector3i(12, 0, 4),
+Vector3i(2, 0, 0): Vector3i(12, 0, 4),
+Vector3i(2, 0, 1): Vector3i(12, 0, 4),
+Vector3i(2, 0, 2): Vector3i(12, 0, 4),
+Vector3i(2, 0, 3): Vector3i(12, 0, 4),
+Vector3i(3, 0, 0): Vector3i(12, 0, 4),
+Vector3i(3, 0, 1): Vector3i(12, 0, 4),
+Vector3i(3, 0, 2): Vector3i(12, 0, 4),
+Vector3i(3, 0, 3): Vector3i(12, 0, 4),
+Vector3i(4, 0, -2): Vector3i(12, 0, 4),
+Vector3i(4, 0, -1): Vector3i(12, 0, 4),
+Vector3i(4, 0, 0): Vector3i(12, 0, 4),
+Vector3i(4, 0, 1): Vector3i(12, 0, 4),
+Vector3i(4, 0, 2): Vector3i(12, 0, 4),
+Vector3i(4, 0, 3): Vector3i(12, 0, 4),
+Vector3i(4, 0, 4): Vector3i(12, 0, 4),
+Vector3i(4, 0, 5): Vector3i(12, 0, 4),
+Vector3i(4, 1, -1): Vector3i(4, 1, 5),
+Vector3i(4, 1, 0): Vector3i(4, 1, 5),
+Vector3i(4, 1, 1): Vector3i(4, 1, 5),
+Vector3i(4, 1, 2): Vector3i(4, 1, 5),
+Vector3i(4, 1, 3): Vector3i(4, 1, 5),
+Vector3i(4, 1, 4): Vector3i(4, 1, 5),
+Vector3i(5, 0, -2): Vector3i(12, 0, 4),
+Vector3i(5, 0, -1): Vector3i(12, 0, 4),
+Vector3i(5, 0, 0): Vector3i(12, 0, 4),
+Vector3i(5, 0, 1): Vector3i(12, 0, 4),
+Vector3i(5, 0, 2): Vector3i(12, 0, 4),
+Vector3i(5, 0, 3): Vector3i(12, 0, 4),
+Vector3i(5, 0, 4): Vector3i(12, 0, 4),
+Vector3i(5, 0, 5): Vector3i(12, 0, 4),
+Vector3i(5, 1, -1): Vector3i(4, 1, 5),
+Vector3i(5, 1, 0): Vector3i(4, 1, 5),
+Vector3i(5, 1, 1): Vector3i(4, 1, 5),
+Vector3i(5, 1, 2): Vector3i(4, 1, 5),
+Vector3i(5, 1, 3): Vector3i(4, 1, 5),
+Vector3i(5, 1, 4): Vector3i(4, 1, 5),
+Vector3i(6, 0, -2): Vector3i(12, 0, 4),
+Vector3i(6, 0, -1): Vector3i(12, 0, 4),
+Vector3i(6, 0, 0): Vector3i(12, 0, 4),
+Vector3i(6, 0, 1): Vector3i(12, 0, 4),
+Vector3i(6, 0, 2): Vector3i(12, 0, 4),
+Vector3i(6, 0, 3): Vector3i(12, 0, 4),
+Vector3i(6, 0, 4): Vector3i(12, 0, 4),
+Vector3i(6, 0, 5): Vector3i(12, 0, 4),
+Vector3i(6, 1, -1): Vector3i(4, 1, 5),
+Vector3i(6, 1, 0): Vector3i(4, 1, 5),
+Vector3i(6, 1, 1): Vector3i(4, 1, 5),
+Vector3i(6, 1, 2): Vector3i(4, 1, 5),
+Vector3i(6, 1, 3): Vector3i(4, 1, 5),
+Vector3i(6, 1, 4): Vector3i(4, 1, 5),
+Vector3i(7, 0, -2): Vector3i(12, 0, 4),
+Vector3i(7, 0, -1): Vector3i(12, 0, 4),
+Vector3i(7, 0, 0): Vector3i(12, 0, 4),
+Vector3i(7, 0, 1): Vector3i(12, 0, 4),
+Vector3i(7, 0, 2): Vector3i(12, 0, 4),
+Vector3i(7, 0, 3): Vector3i(12, 0, 4),
+Vector3i(7, 0, 4): Vector3i(12, 0, 4),
+Vector3i(7, 0, 5): Vector3i(12, 0, 4),
+Vector3i(7, 1, -1): Vector3i(4, 1, 5),
+Vector3i(7, 1, 0): Vector3i(4, 1, 5),
+Vector3i(7, 1, 1): Vector3i(4, 1, 5),
+Vector3i(7, 1, 2): Vector3i(4, 1, 5),
+Vector3i(7, 1, 3): Vector3i(4, 1, 5),
+Vector3i(7, 1, 4): Vector3i(4, 1, 5),
+Vector3i(8, 0, 0): Vector3i(12, 0, 4),
+Vector3i(8, 0, 1): Vector3i(12, 0, 4),
+Vector3i(8, 0, 2): Vector3i(12, 0, 4),
+Vector3i(8, 0, 3): Vector3i(12, 0, 4),
+Vector3i(9, 0, 0): Vector3i(12, 0, 4),
+Vector3i(9, 0, 1): Vector3i(12, 0, 4),
+Vector3i(9, 0, 2): Vector3i(12, 0, 4),
+Vector3i(9, 0, 3): Vector3i(12, 0, 4),
+Vector3i(10, 0, 0): Vector3i(12, 0, 4),
+Vector3i(10, 0, 1): Vector3i(12, 0, 4),
+Vector3i(10, 0, 2): Vector3i(12, 0, 4),
+Vector3i(10, 0, 3): Vector3i(12, 0, 4),
+Vector3i(11, 0, 0): Vector3i(12, 0, 4),
+Vector3i(11, 0, 1): Vector3i(12, 0, 4),
+Vector3i(11, 0, 2): Vector3i(12, 0, 4),
+Vector3i(11, 0, 3): Vector3i(12, 0, 4)
 }
 occupied_cells = {
-Vector3i(-4, 0, 7): Vector3i(-4, 0, 8),
-Vector3i(-4, 0, 8): Vector3i(-4, 0, 8),
-Vector3i(-3, 0, 7): Vector3i(-4, 0, 8),
-Vector3i(-3, 0, 8): Vector3i(-4, 0, 8),
-Vector3i(-2, 0, 6): Vector3i(-2, 0, 6),
-Vector3i(-2, 0, 7): Vector3i(-2, 0, 6),
-Vector3i(-1, 0, 6): Vector3i(-2, 0, 6),
-Vector3i(-1, 0, 7): Vector3i(-2, 0, 6),
-Vector3i(3, 0, -2): Vector3i(3, 0, -2),
-Vector3i(3, 0, -1): Vector3i(3, 0, -2),
-Vector3i(3, 0, 4): Vector3i(3, 0, 4),
-Vector3i(3, 0, 5): Vector3i(3, 0, 4),
-Vector3i(4, 0, -2): Vector3i(3, 0, -2),
-Vector3i(4, 0, -1): Vector3i(3, 0, -2),
-Vector3i(4, 0, 4): Vector3i(3, 0, 4),
-Vector3i(4, 0, 5): Vector3i(3, 0, 4),
-Vector3i(9, 0, -5): Vector3i(11, 0, -1),
-Vector3i(9, 0, -4): Vector3i(11, 0, -1),
-Vector3i(9, 0, -3): Vector3i(11, 0, -1),
-Vector3i(9, 0, -2): Vector3i(11, 0, -1),
-Vector3i(9, 0, -1): Vector3i(11, 0, -1),
-Vector3i(9, 0, 0): Vector3i(11, 0, -1),
-Vector3i(10, 0, -5): Vector3i(11, 0, -1),
-Vector3i(10, 0, -4): Vector3i(11, 0, -1),
-Vector3i(10, 0, -3): Vector3i(11, 0, -1),
-Vector3i(10, 0, -2): Vector3i(11, 0, -1),
-Vector3i(10, 0, -1): Vector3i(11, 0, -1),
-Vector3i(10, 0, 0): Vector3i(11, 0, -1),
-Vector3i(11, 0, -5): Vector3i(11, 0, -1),
-Vector3i(11, 0, -4): Vector3i(11, 0, -1),
-Vector3i(11, 0, -3): Vector3i(11, 0, -1),
-Vector3i(11, 0, -2): Vector3i(11, 0, -1),
-Vector3i(11, 0, -1): Vector3i(11, 0, -1),
-Vector3i(11, 0, 0): Vector3i(11, 0, -1),
-Vector3i(12, 0, -5): Vector3i(11, 0, -1),
-Vector3i(12, 0, -4): Vector3i(11, 0, -1),
-Vector3i(12, 0, -3): Vector3i(11, 0, -1),
-Vector3i(12, 0, -2): Vector3i(11, 0, -1),
-Vector3i(12, 0, -1): Vector3i(11, 0, -1),
-Vector3i(12, 0, 0): Vector3i(11, 0, -1)
+Vector3i(-2, 0, 0): Vector3i(-2, 0, 4),
+Vector3i(-2, 0, 1): Vector3i(-2, 0, 4),
+Vector3i(-2, 0, 2): Vector3i(-2, 0, 4),
+Vector3i(-2, 0, 3): Vector3i(-2, 0, 4),
+Vector3i(-1, 0, 0): Vector3i(-2, 0, 4),
+Vector3i(-1, 0, 1): Vector3i(-2, 0, 4),
+Vector3i(-1, 0, 2): Vector3i(-2, 0, 4),
+Vector3i(-1, 0, 3): Vector3i(-2, 0, 4),
+Vector3i(0, 0, 0): Vector3i(-2, 0, 4),
+Vector3i(0, 0, 1): Vector3i(-2, 0, 4),
+Vector3i(0, 0, 2): Vector3i(-2, 0, 4),
+Vector3i(0, 0, 3): Vector3i(-2, 0, 4),
+Vector3i(1, 0, 0): Vector3i(-2, 0, 4),
+Vector3i(1, 0, 1): Vector3i(-2, 0, 4),
+Vector3i(1, 0, 2): Vector3i(-2, 0, 4),
+Vector3i(1, 0, 3): Vector3i(-2, 0, 4),
+Vector3i(2, 0, 0): Vector3i(-2, 0, 4),
+Vector3i(2, 0, 1): Vector3i(-2, 0, 4),
+Vector3i(2, 0, 2): Vector3i(-2, 0, 4),
+Vector3i(2, 0, 3): Vector3i(-2, 0, 4),
+Vector3i(3, 0, 0): Vector3i(-2, 0, 4),
+Vector3i(3, 0, 1): Vector3i(-2, 0, 4),
+Vector3i(3, 0, 2): Vector3i(-2, 0, 4),
+Vector3i(3, 0, 3): Vector3i(-2, 0, 4),
+Vector3i(4, 0, -2): Vector3i(4, 0, 0),
+Vector3i(4, 0, -1): Vector3i(4, 0, 0),
+Vector3i(5, 0, -2): Vector3i(4, 0, 0),
+Vector3i(5, 0, -1): Vector3i(4, 0, 0)
 }
-interactables = Array[ExtResource("2_7yy8x")]([SubResource("Resource_dld8p"), SubResource("Resource_c5lah"), SubResource("Resource_yo74k"), SubResource("Resource_aps0b"), SubResource("Resource_oklg0")])
+interactables = Array[ExtResource("2_7yy8x")]([SubResource("Resource_c5lah"), SubResource("Resource_yo74k")])

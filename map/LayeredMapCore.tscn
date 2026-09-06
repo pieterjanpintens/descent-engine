@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://ecrsocoarltr"]
+
+[ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://mission_data/LayeredMap.gd" id="1_rak1w"]
+[ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="2_fneos"]
+[ext_resource type="Script" uid="uid://dwrybawwvnqw4" path="res://mission_data/Tileplacement.gd" id="2_qgj7d"]
+[ext_resource type="Script" uid="uid://e1xsmf1lb660" path="res://mission_data/InteractableEntry.gd" id="3_2us3w"]
+[ext_resource type="Script" uid="uid://blpbct2pir678" path="res://mission_data/MonsterSpawn.gd" id="4_avu3l"]
+[ext_resource type="Script" uid="uid://dld1c2y0qdnt8" path="res://mission_data/MissionData.gd" id="5_1rm0q"]
+[ext_resource type="Script" uid="uid://kyby0y73x7qc" path="res://mission_data/MissionTrigger.gd" id="6_c166l"]
+
+[sub_resource type="Resource" id="Resource_a7isx"]
+script = ExtResource("5_1rm0q")
+metadata/_custom_type_script = "uid://dld1c2y0qdnt8"
+
+[node name="LayeredMapCore" type="Node3D" unique_id=1723327192]
+script = ExtResource("1_rak1w")
+mission = SubResource("Resource_a7isx")
+
+[node name="FloorGridMap" type="GridMap" parent="." unique_id=568817112]
+mesh_library = ExtResource("2_fneos")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="WallGridMap" type="GridMap" parent="." unique_id=1875138720]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh_library = ExtResource("2_fneos")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+
+[node name="PropGridMap" type="GridMap" parent="." unique_id=1798530071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh_library = ExtResource("2_fneos")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_editor_floor_ = Vector3(0, 0, 0)

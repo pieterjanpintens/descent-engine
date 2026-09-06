@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://b7qdos73brxto"]
 
 [ext_resource type="Script" uid="uid://ck8p4kdw1so6e" path="res://mission_data/MissionPlayer.gd" id="1_mmcbr"]
-[ext_resource type="PackedScene" uid="uid://clllnjusli6o1" path="res://map/MissionMap.tscn" id="2_m65w1"]
+[ext_resource type="PackedScene" uid="uid://ecrsocoarltr" path="res://map/LayeredMapCore.tscn" id="2_m65w1"]
 
 [node name="MissionPlayer" type="Node3D" unique_id=1408308473]
 script = ExtResource("1_mmcbr")
 
-[node name="LayeredMap" parent="." unique_id=196911830 instance=ExtResource("2_m65w1")]
+[node name="LayeredMap" parent="." unique_id=1723327192 instance=ExtResource("2_m65w1")]
 unique_name_in_owner = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1137452863]
@@ -20,5 +20,10 @@ offset_bottom = 23.0
 offset_right = 8.0
 offset_bottom = 8.0
 text = "Back to Menu"
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1656439624]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1455109278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6751664, 0)
 
 [connection signal="pressed" from="CanvasLayer/BackButton" to="." method="_on_back_button_pressed"]
