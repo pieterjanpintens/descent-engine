@@ -225,11 +225,28 @@ These cost real debugging time — worth not re-learning them:
   on a different corner convention than the floor tiles/stairs use. When something
   still looks wrong after fixing the general math, check whether it's an
   asset-specific quirk rather than a shared bug.
+- Follow-up to the above: the pivot-corner mismatch is now **auto-detected and
+  corrected** (`FootprintRegistry._apply_pivot_correction()`), instead of hand-fixing
+  each affected tile's offsets. Every mesh's Blender pivot sits on a genuine corner of
+  its own geometry, so cells adjacent to the origin along one axis only ever extend in
+  a single direction — never both. `expand_footprint()` assumes that direction is
+  always -X/-Z; if a mesh's authored data shows the origin's own row (`z == 0`)
+  extending toward +X, or its own column (`x == 0`) extending toward +Z, that means
+  its real pivot sits on the opposite edge, and every offset needs a uniform `+1` on
+  that axis to compensate. This is checked automatically from the raw `FOOTPRINTS`
+  data now (discovered via `3a`/`3b`, where `3b`'s origin sits at the shape's own
+  leftmost column — pure `x >= 0` throughout — while `3a`'s doesn't). It only works
+  when there's a second offset to compare against, so a 1×1 footprint (the pillars)
+  can't be auto-corrected this way and still needs its manual offset — see the note
+  by the pillar entries in `FOOTPRINTS`.
 
 ## Current data authored so far
 
-- Floor tiles: `1a`/`1b`, `2a`/`2b` (2×3 rectangle), `7a`/`7b` (plus/cross) — **19 of
-  ~22 tiles still need their shapes measured and entered**.
+- Floor tiles: `1a`/`1b`, `2a`/`2b` (2×3 rectangle), `3a`/`3b` (notched rectangle,
+  mirrored faces), `4a`/`4b`/`5a`/`5b` (stepped/L-shape, mirrored faces — tile 5
+  shares tile 4's shape), `7a`/`7b` (plus/cross), `18a`/`18b` (large 7×7
+  octagon-ish shape, 36 cells) — **15 of ~22 tiles still need their shapes
+  measured and entered**.
 - `stair` — 3×2 shape entered; the low/high point distinction and `LEVEL_LINK` wiring
   (which cells it actually connects, and across how many levels) is **not yet done** —
   that's mission-instance-specific data, not something the mesh shape alone defines.
@@ -239,7 +256,7 @@ These cost real debugging time — worth not re-learning them:
 
 ## Open items / natural next steps
 
-1. Finish authoring the remaining ~19 floor tile shapes (now that placement/rotation
+1. Finish authoring the remaining ~15 floor tile shapes (now that placement/rotation
    is verified trustworthy, this should go faster than the first few did).
 2. Real palette UI (buttons/icons) instead of keyboard `,`/`.` cycling — architecture
    is already prepared for this (see `CreatorController`'s public API note above).

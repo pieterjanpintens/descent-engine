@@ -41,6 +41,59 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
 		Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 	],
+	# Tile 3 - notched rectangle, 3 rows x 4 cols. Origin is the marked cell:
+	#   xx..   <- 3a
+	#   xxxx
+	#   xxxy   <- origin (row 3, col 4)
+	"3a": [
+		Vector3i(-3, 0, -2), Vector3i(-2, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# 3b - the other face, same physical piece mirrored left/right:
+	#   ..xx
+	#   xxxx
+	#   yxxx   <- origin (row 3, col 1)
+	"3b": [
+		Vector3i(2, 0, -2), Vector3i(3, 0, -2),
+		Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0), Vector3i(3, 0, 0),
+	],
+	# Tile 4 - stepped/L-shaped, 4 rows x 4 cols. Origin is the marked cell:
+	#   xx..   <- 4a
+	#   xx..
+	#   xxxx
+	#   yxxx   <- origin (row 4, col 1)
+	"4a": [
+		Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0), Vector3i(3, 0, 0),
+	],
+	# 4b - the other face, same physical piece mirrored left/right:
+	#   ..xx
+	#   ..xx
+	#   xxxx
+	#   xxxy   <- origin (row 4, col 4)
+	"4b": [
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Tile 5 - same shape as tile 4
+	"5a": [
+		Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0), Vector3i(3, 0, 0),
+	],
+	"5b": [
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
 	# Tile 7 - plus/cross shape, 4 rows x 6 cols:
 	#   ..xx..
 	#   xxxxxx
@@ -58,11 +111,50 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 		Vector3i(-3, 0, 1), Vector3i(-2, 0, 1),
 	],
+	# Tile 18 - large irregular octagon-ish shape, 7 rows x 7 cols. Origin is
+	# the marked cell:
+	#   00xx000
+	#   0xxxx00
+	#   xxxxxx0
+	#   xxxxxxx
+	#   xxxxxxx
+	#   xxxxxx0
+	#   0xxxy00   <- 18a origin (row 7, col 5)
+	"18a": [
+		Vector3i(-2, 0, -6), Vector3i(-1, 0, -6),
+		Vector3i(-3, 0, -5), Vector3i(-2, 0, -5), Vector3i(-1, 0, -5), Vector3i(0, 0, -5),
+		Vector3i(-4, 0, -4), Vector3i(-3, 0, -4), Vector3i(-2, 0, -4), Vector3i(-1, 0, -4), Vector3i(0, 0, -4), Vector3i(1, 0, -4),
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3), Vector3i(2, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# 18b - the other face:
+	#   000xx00
+	#   00xxxx0
+	#   0xxxxxx
+	#   xxxxxxx
+	#   xxxxxxx
+	#   0xxxxxx
+	#   00xxxy0   <- origin (row 7, col 6)
+	"18b": [
+		Vector3i(-2, 0, -6), Vector3i(-1, 0, -6),
+		Vector3i(-3, 0, -5), Vector3i(-2, 0, -5), Vector3i(-1, 0, -5), Vector3i(0, 0, -5),
+		Vector3i(-4, 0, -4), Vector3i(-3, 0, -4), Vector3i(-2, 0, -4), Vector3i(-1, 0, -4), Vector3i(0, 0, -4), Vector3i(1, 0, -4),
+		Vector3i(-5, 0, -3), Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-5, 0, -2), Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
 	# Pillars - 1x1 tile-square each. Asset geometry: pivot at (0,0,0),
 	# mesh extends to (1,0,-1) - i.e. +1 tile-square in X, but the pivot
 	# is already at the correct Z edge (0, not -1). This offset makes
 	# expand_footprint's shared "forward corner is pivot" convention land
 	# on the correct cells for this specific asset's actual pivot placement.
+	# NOTE: this is a hand-correction, not something _apply_pivot_correction()
+	# can derive - a 1x1 footprint has no second offset to read direction
+	# from. If the pillar mesh's pivot is ever moved in Blender to the
+	# quadrant that extends -X/-Z instead, this should become Vector3i.ZERO.
 	"tall": [Vector3i(1, 0, 0)],
 	"mini": [Vector3i(1, 0, 0)],
 	"medium": [Vector3i(1, 0, 0)],
@@ -119,7 +211,40 @@ func get_tile_square_footprint(mesh_item_name: String) -> Array[Vector3i]:
 	var raw: Array = FOOTPRINTS.get(mesh_item_name, [Vector3i.ZERO])
 	var typed: Array[Vector3i] = []
 	typed.assign(raw)
-	return typed
+	return _apply_pivot_correction(typed)
+
+
+## The Blender pivot always sits on a physical corner of the tile-square
+## containing the origin - so cells adjacent to the origin along a given
+## axis only ever extend in ONE direction, never both. expand_footprint()
+## assumes that direction is always -X/-Z (the "far corner" convention).
+## When a mesh's number/label pivot happens to sit on the opposite edge
+## instead, the origin's own row/column will read the opposite sign, and
+## every offset in the footprint needs a uniform +1 nudge on that axis to
+## land on the correct fine cells - this detects that case automatically
+## from the authored data instead of hand-correcting each affected tile's
+## offsets (as had to be done for tile 3b/4a/5a).
+##
+## Only works when there's a second offset to read direction from - a
+## single-cell footprint (e.g. a manually pre-corrected pillar, see
+## FOOTPRINTS above) has nothing to compare against and is left untouched.
+func _apply_pivot_correction(footprint: Array[Vector3i]) -> Array[Vector3i]:
+	if footprint.size() <= 1:
+		return footprint
+	var needs_x := false
+	var needs_z := false
+	for offset in footprint:
+		if offset.z == 0 and offset.x > 0:
+			needs_x = true
+		if offset.x == 0 and offset.z > 0:
+			needs_z = true
+	if not needs_x and not needs_z:
+		return footprint
+	var correction := Vector3i(1 if needs_x else 0, 0, 1 if needs_z else 0)
+	var corrected: Array[Vector3i] = []
+	for offset in footprint:
+		corrected.append(offset + correction)
+	return corrected
 
 
 ## Expands a tile-square-unit footprint (already rotated, if rotation is

@@ -16,7 +16,11 @@ extends Node
 const MESH_TO_GROUP: Dictionary = {
 	"1a": "tile_1", "1b": "tile_1",
 	"2a": "tile_2", "2b": "tile_2",
+	"3a": "tile_3", "3b": "tile_3",
+	"4a": "tile_4", "4b": "tile_4",
+	"5a": "tile_5", "5b": "tile_5",
 	"7a": "tile_7", "7b": "tile_7",
+	"18a": "tile_18", "18b": "tile_18",
 }
 
 ## Max physical count per group. -1 or missing = untracked/unlimited (no
@@ -25,7 +29,11 @@ const MESH_TO_GROUP: Dictionary = {
 const MAX_COUNTS: Dictionary = {
 	"tile_1": 1,
 	"tile_2": 1,
+	"tile_3": 1,
+	"tile_4": 1,
+	"tile_5": 1,
 	"tile_7": 1,
+	"tile_18": 1,
 	"tall": 8,
 	"mini": 16,
 	"medium": 8,
