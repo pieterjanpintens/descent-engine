@@ -7,11 +7,16 @@ extends Node3D
 ## CONTROLS (temporary, keyboard-only until a real palette UI exists):
 ##   Left-click        - place the currently selected mesh at the hovered cell
 ##   Shift + Left-click - erase whatever's at the hovered cell
-##   Tab / Shift+Tab    - cycle selected mesh forward/backward within the
+##   , / .              - cycle selected mesh backward/forward within the
 ##                        current layer FILTER (see below)
 ##   R                  - rotate the selection 90 degrees before placing
-##   L                  - cycle which layer Tab browses: Floor -> Wall -> Prop
+##   L                  - cycle which layer , / . browses: Floor -> Wall -> Prop
 ##   Page Up/Down       - move the painting level (Y) up/down
+##
+## NOTE: mesh cycling deliberately does NOT use Tab - Tab is Godot's
+## built-in ui_focus_next action, and now that this scene has real Button
+## nodes (Save/Load/New), Tab gets consumed by UI focus navigation before
+## _unhandled_input ever sees it.
 ##
 ## IMPORTANT: L only changes which meshes Tab offers to browse - it does
 ## NOT determine where a placed item actually lands. All three GridMaps
@@ -222,8 +227,10 @@ func _current_orientation() -> int:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
-			KEY_TAB:
-				cycle_mesh(-1 if Input.is_key_pressed(KEY_SHIFT) else 1)
+			KEY_COMMA:
+				cycle_mesh(-1)
+			KEY_PERIOD:
+				cycle_mesh(1)
 			KEY_R:
 				rotate_selection()
 			KEY_L:
@@ -311,12 +318,12 @@ func _update_origin_overlay() -> void:
 
 	_origin_overlay_mesh.clear_surfaces()
 	_origin_overlay_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
-	_origin_overlay_mesh.surface_add_vertex(Vector3i.ZERO)
-	_origin_overlay_mesh.surface_add_vertex(Vector3i(1,0,0))
-	_origin_overlay_mesh.surface_add_vertex(Vector3i.ZERO)
-	_origin_overlay_mesh.surface_add_vertex(Vector3i(0,1,0))	
-	_origin_overlay_mesh.surface_add_vertex(Vector3i.ZERO)
-	_origin_overlay_mesh.surface_add_vertex(Vector3i(0,0,1))
+	_origin_overlay_mesh.surface_add_vertex(Vector3.ZERO)
+	_origin_overlay_mesh.surface_add_vertex(Vector3(1, 0, 0))
+	_origin_overlay_mesh.surface_add_vertex(Vector3.ZERO)
+	_origin_overlay_mesh.surface_add_vertex(Vector3(0, 1, 0))
+	_origin_overlay_mesh.surface_add_vertex(Vector3.ZERO)
+	_origin_overlay_mesh.surface_add_vertex(Vector3(0, 0, 1))
 	_origin_overlay_mesh.surface_end()
 	_origin_overlay.global_transform = Transform3D.IDENTITY
 	_origin_overlay.visible = true
@@ -439,6 +446,13 @@ func erase_at_cursor() -> void:
 	var interior_point: Vector3 = result.position - result.normal * 0.01
 	var local_pos: Vector3 = hit_grid.to_local(interior_point)
 	var hit_cell: Vector3i = hit_grid.local_to_map(local_pos)
+
+	# Diagnostic: compare the RAW raycast hit position against where
+	# GridMap itself thinks hit_cell's world position is. If these are far
+	# apart, the mismatch is in the collision shape/mesh's real-world
+	# position, not in our occupancy bookkeeping.
+	var gridmap_thinks_cell_is_at: Vector3 = hit_grid.to_global(hit_grid.map_to_local(hit_cell))
+	print("erase_at_cursor: raw hit world pos = %s | GridMap's world pos for %s = %s" % [result.position, hit_cell, gridmap_thinks_cell_is_at])
 
 	# GridMap only stores an item at a multi-cell placement's ORIGIN cell -
 	# every other cell it visually covers is empty as far as GridMap is

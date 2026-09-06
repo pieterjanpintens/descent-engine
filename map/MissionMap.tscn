@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bqqv08geh8gew" path="res://mission_data/DebugSync.gd" id="4_crsba"]
 [ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://mission_data/FreeLookCamera.gd" id="5_d5ryy"]
 [ext_resource type="Script" uid="uid://ljy27dceiepg" path="res://mission_data/CreatorController.gd" id="6_a7isx"]
+[ext_resource type="Script" uid="uid://d1cyr63qnt1hr" path="res://mission_data/CreateSaveLoad.gd" id="7_iyoar"]
 
 [node name="LayeredMap" type="Node3D" unique_id=196911830]
 script = ExtResource("1_s1qvr")
@@ -54,3 +55,36 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.900024, 0)
 [node name="CreatorController" type="Node3D" parent="." unique_id=516128030 node_paths=PackedStringArray("layered_map")]
 script = ExtResource("6_a7isx")
 layered_map = NodePath("..")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1095084307]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer" unique_id=726651457 node_paths=PackedStringArray("layered_map")]
+offset_right = 1144.0
+offset_bottom = 52.0
+script = ExtResource("7_iyoar")
+layered_map = NodePath("../..")
+
+[node name="NewButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=911392132]
+layout_mode = 2
+text = "New"
+
+[node name="SaveButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=704653810]
+layout_mode = 2
+text = "Save"
+
+[node name="LoadButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=2549628]
+layout_mode = 2
+text = "Load"
+
+[node name="MissionFileDialog" type="FileDialog" parent="CanvasLayer/HBoxContainer" unique_id=2043348998]
+unique_name_in_owner = true
+root_subfolder = "res://missions/"
+filters = PackedStringArray("*.tres")
+
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="." method="_on_new_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="CanvasLayer/HBoxContainer" method="_on_new_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/SaveButton" to="CanvasLayer/HBoxContainer" method="_on_save_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/LoadButton" to="." method="_on_load_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/LoadButton" to="CanvasLayer/HBoxContainer" method="_on_load_button_pressed"]
+[connection signal="file_selected" from="CanvasLayer/HBoxContainer/MissionFileDialog" to="CanvasLayer/HBoxContainer" method="_on_mission_file_dialog_file_selected"]

@@ -37,6 +37,8 @@ func _clear_everything() -> void:
 	layered_map.wall_grid.clear()
 	layered_map.prop_grid.clear()
 	layered_map.mission.tiles.clear()
+	layered_map.mission.floor_placements.clear()
+	layered_map.mission.floor_occupied_cells.clear()
 	layered_map.mission.occupied_cells.clear()
 	layered_map.mission.interactables.clear()
 	print("Cleared all three GridMap layers and MissionData.")
@@ -71,6 +73,10 @@ func _print_mission_dump(mission: MissionData) -> void:
 	for cell in mission.tiles:
 		var entry: TileEntry = mission.tiles[cell]
 		print("  %s -> mesh=%s walkable=%s blocks_los=%s" % [cell, entry.mesh_item_name, entry.walkable, entry.blocks_los])
+
+	print("floor_occupied_cells (%d):" % mission.floor_occupied_cells.size())
+	for cell in mission.floor_occupied_cells:
+		print("  %s -> owned by %s" % [cell, mission.floor_occupied_cells[cell]])
 
 	print("occupied_cells (%d):" % mission.occupied_cells.size())
 	for cell in mission.occupied_cells:
