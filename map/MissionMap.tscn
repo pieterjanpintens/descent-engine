@@ -12,17 +12,6 @@
 script = ExtResource("4_crsba")
 layered_map = NodePath("../LayeredMap")
 
-[node name="Camera" type="Camera3D" parent="." unique_id=1143453402]
-transform = Transform3D(0.95472014, -0.09436332, 0.28214374, 0.015280571, 0.9626666, 0.27025843, -0.29711285, -0.25370985, 0.92051905, 7.298462, 12.627319, 18.269897)
-script = ExtResource("5_d5ryy")
-
-[node name="Camera3D" type="Camera3D" parent="Camera" unique_id=459842855]
-transform = Transform3D(0.9547201, -0.09436324, 0.2821438, 0.015280589, 0.96266633, 0.27025837, -0.2971128, -0.25370976, 0.920519, 7.2984614, 12.627319, 18.269897)
-script = ExtResource("5_d5ryy")
-
-[node name="OmniLight" type="OmniLight3D" parent="." unique_id=1769447952]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.900024, 0)
-
 [node name="CreatorController" type="Node3D" parent="." unique_id=516128030 node_paths=PackedStringArray("layered_map")]
 script = ExtResource("6_a7isx")
 layered_map = NodePath("../LayeredMap")
@@ -54,6 +43,13 @@ filters = PackedStringArray("*.tres")
 
 [node name="LayeredMap" parent="." unique_id=1723327192 instance=ExtResource("5_02u5f")]
 unique_name_in_owner = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=459842855]
+transform = Transform3D(0.82622004, -0.25251362, 0.5035845, -0.050998457, 0.85671777, 0.51325804, -0.56103444, -0.44974613, 0.6949596, 18.229631, 29.832336, 29.715546)
+script = ExtResource("5_d5ryy")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1232056568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 214.38597, 0)
 
 [connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="." method="_on_new_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="CanvasLayer/HBoxContainer" method="_on_new_button_pressed"]

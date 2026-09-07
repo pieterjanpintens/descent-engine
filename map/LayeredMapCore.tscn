@@ -40,3 +40,11 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="UnderlayGridMap" type="GridMap" parent="." unique_id=1699887744]
+mesh_library = ExtResource("2_fneos")
+cell_size = Vector3(1.6, 3.6, 1.6)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_editor_floor_ = Vector3(0, 0, 0)

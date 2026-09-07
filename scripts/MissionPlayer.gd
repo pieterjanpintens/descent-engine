@@ -26,7 +26,7 @@ func _ready() -> void:
 	layered_map.apply_mission(mission)
 
 	var display_name := mission.mission_name if mission.mission_name != "" else GameState.current_mission_path.get_file()
-	info_label.text = "%s  (tiles=%d, interactables=%d)" % [display_name, mission.tiles.size(), mission.interactables.size()]
+	info_label.text = "%s  (tiles=%d, interactables=%d, underlays=%d)" % [display_name, mission.tiles.size(), mission.interactables.size(), mission.underlay_placements.size()]
 
 
 func _on_back_button_pressed() -> void:

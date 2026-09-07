@@ -1,16 +1,17 @@
 class_name LayeredMap
 extends Node3D
 
-## Attach to a scene containing three GridMap children named FloorGridMap,
-## WallGridMap and PropGridMap - all sharing the same MeshLibrary and
-## cell_size. This node keeps the layers visually stacked and exposes
-## helpers to sync painted cells into a MissionData resource.
+## Attach to a scene containing four GridMap children named FloorGridMap,
+## WallGridMap, PropGridMap, and UnderlayGridMap - all sharing the same
+## MeshLibrary and cell_size. This node keeps the layers visually stacked and
+## exposes helpers to sync painted cells into a MissionData resource.
 ##
 ## Scene layout expected:
 ## LayeredMap (this script)
-##  |- FloorGridMap  (GridMap)
-##  |- WallGridMap   (GridMap)
-##  |- PropGridMap   (GridMap)
+##  |- FloorGridMap     (GridMap)
+##  |- WallGridMap      (GridMap)
+##  |- PropGridMap      (GridMap)
+##  |- UnderlayGridMap  (GridMap)
 
 @export var mission: MissionData
 @export var floor_thickness: float = 0.1
@@ -18,14 +19,18 @@ extends Node3D
 @onready var floor_grid: GridMap = $FloorGridMap
 @onready var wall_grid: GridMap = $WallGridMap
 @onready var prop_grid: GridMap = $PropGridMap
+@onready var underlay_grid: GridMap = $UnderlayGridMap
 
 
 func _ready() -> void:
 	# Only position differs between layers - cell_size and XZ cell
-	# coordinates must stay identical across all three or occupancy lookups
-	# (and the footprint registry) will target the wrong cells.
+	# coordinates must stay identical across all four or occupancy lookups
+	# (and the footprint registry) will target the wrong cells. Underlay
+	# stays at the SAME Y as floor (not offset below it) - it's meant to be
+	# visible exactly where the floor doesn't cover it, not hidden beneath.
 	wall_grid.position = Vector3.ZERO
 	prop_grid.position = Vector3(0, floor_thickness, 0)
+	underlay_grid.position = Vector3.ZERO
 
 
 ## Call after painting/moving/erasing a cell in PropGridMap (in-editor or
@@ -115,14 +120,47 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 		mission.tiles[cell] = entry
 
 
-## Reverse of sync_prop_cell()/rebuild_floor_tiles(): given a loaded
-## MissionData, clears all three GridMaps and repaints them to match.
-## Used by the Player to render a loaded mission, and reusable by the
+## Underlay equivalent of rebuild_floor_tiles() - kept as a SEPARATE pass
+## rather than folded into it, because underlay tiles physically coexist
+## with whatever floor tile sits on the same cells (they're meant to peek
+## through, not replace it). Writing them into mission.tiles the same way
+## floor/wall do would have one silently clobber the other's walkable/
+## blocks_los data depending on iteration order. Underlay currently carries
+## no logical (walkable/blocks_los) data of its own - it's visual/hazard
+## marker data only, tracked purely via underlay_placements/
+## underlay_occupied_cells.
+func rebuild_underlay_tiles() -> void:
+	mission.underlay_placements.clear()
+	mission.underlay_occupied_cells.clear()
+
+	for origin in underlay_grid.get_used_cells():
+		var item_id := underlay_grid.get_cell_item(origin)
+		var mesh_name := underlay_grid.mesh_library.get_item_name(item_id)
+		var orientation := underlay_grid.get_cell_item_orientation(origin)
+		var basis := underlay_grid.get_cell_item_basis(origin)
+		var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
+
+		var placement := TilePlacement.new()
+		placement.layer = TilePlacement.Layer.UNDERLAY
+		placement.origin_cell = origin
+		placement.mesh_item_name = mesh_name
+		placement.orientation = orientation
+		mission.underlay_placements.append(placement)
+
+		for offset in footprint:
+			var cell: Vector3i = origin + offset
+			mission.underlay_occupied_cells[cell] = origin
+
+
+## Reverse of sync_prop_cell()/rebuild_floor_tiles()/rebuild_underlay_tiles():
+## given a loaded MissionData, clears all four GridMaps and repaints them to
+## match. Used by the Player to render a loaded mission, and reusable by the
 ## Creator later for "open an existing mission to keep editing."
 func apply_mission(mission_to_apply: MissionData) -> void:
 	floor_grid.clear()
 	wall_grid.clear()
 	prop_grid.clear()
+	underlay_grid.clear()
 
 	mission = mission_to_apply
 
@@ -133,6 +171,13 @@ func apply_mission(mission_to_apply: MissionData) -> void:
 			push_warning("No MeshLibrary item named '%s' - skipping floor placement at %s" % [placement.mesh_item_name, placement.origin_cell])
 			continue
 		grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
+
+	for placement in mission.underlay_placements:
+		var item_id := find_item_id(underlay_grid, placement.mesh_item_name)
+		if item_id == -1:
+			push_warning("No MeshLibrary item named '%s' - skipping underlay placement at %s" % [placement.mesh_item_name, placement.origin_cell])
+			continue
+		underlay_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for entry in mission.interactables:
 		var item_id := find_item_id(prop_grid, entry.mesh_item_name)

@@ -21,6 +21,10 @@ const MESH_TO_GROUP: Dictionary = {
 	"5a": "tile_5", "5b": "tile_5",
 	"7a": "tile_7", "7b": "tile_7",
 	"18a": "tile_18", "18b": "tile_18",
+	# Underlay hazard cards are double-sided too, just like the tile faces
+	# above - water/spikes share one physical card, lava/acid share another.
+	"water": "card_water_spikes", "spikes": "card_water_spikes",
+	"lava": "card_lava_acid", "acid": "card_lava_acid",
 }
 
 ## Max physical count per group. -1 or missing = untracked/unlimited (no
@@ -34,6 +38,8 @@ const MAX_COUNTS: Dictionary = {
 	"tile_5": 1,
 	"tile_7": 1,
 	"tile_18": 1,
+	"card_water_spikes": 4,
+	"card_lava_acid": 4,
 	"tall": 8,
 	"mini": 16,
 	"medium": 8,

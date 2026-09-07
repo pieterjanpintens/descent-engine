@@ -10,7 +10,7 @@ extends Node3D
 ##   , / .              - cycle selected mesh backward/forward within the
 ##                        current layer FILTER (see below)
 ##   R                  - rotate the selection 90 degrees before placing
-##   L                  - cycle which layer , / . browses: Floor -> Wall -> Prop
+##   L                  - cycle which layer , / . browses: Floor -> Wall -> Prop -> Underlay
 ##   Page Up/Down       - move the painting level (Y) up/down
 ##
 ## NOTE: mesh cycling deliberately does NOT use Tab - Tab is Godot's
@@ -42,10 +42,11 @@ extends Node3D
 @export var origin_overlay_color: Color = Color(0.173, 0.529, 0.431, 0.627)
 @export var floor_occupancy_color: Color = Color(0.2, 0.6, 1.0, 0.9)
 @export var prop_occupancy_color: Color = Color(1.0, 0.4, 0.2, 0.9)
+@export var underlay_occupancy_color: Color = Color(0.7, 0.2, 1.0, 0.9)
 
 
 
-enum PaintLayer { FLOOR, WALL, PROP }
+enum PaintLayer { FLOOR, WALL, PROP, UNDERLAY }
 
 var current_layer: PaintLayer = PaintLayer.FLOOR
 var current_level: int = 0
@@ -133,7 +134,7 @@ func _setup_origin_overlay() -> void:
 	add_child(_origin_overlay)
 
 
-const PAINT_LAYER_NAMES: Array[String] = ["floor", "wall", "prop"]
+const PAINT_LAYER_NAMES: Array[String] = ["floor", "wall", "prop", "underlay"]
 
 
 func _setup_occupancy_overlay() -> void:
@@ -158,6 +159,8 @@ func _current_grid() -> GridMap:
 			return layered_map.wall_grid
 		PaintLayer.PROP:
 			return layered_map.prop_grid
+		PaintLayer.UNDERLAY:
+			return layered_map.underlay_grid
 	return layered_map.floor_grid
 
 
@@ -176,6 +179,8 @@ func _target_grid() -> GridMap:
 			return layered_map.floor_grid
 		"wall":
 			return layered_map.wall_grid
+		"underlay":
+			return layered_map.underlay_grid
 		_:
 			return layered_map.prop_grid
 
@@ -221,7 +226,7 @@ func select_layer(layer: PaintLayer) -> void:
 
 
 func cycle_layer() -> void:
-	select_layer((current_layer + 1) % 3 as PaintLayer)
+	select_layer((current_layer + 1) % 4 as PaintLayer)
 
 
 func change_level(delta: int) -> void:
@@ -416,6 +421,9 @@ func _update_occupancy_overlay() -> void:
 	for cell in layered_map.mission.occupied_cells:
 		_add_cell_outline(layered_map.prop_grid, cell, prop_occupancy_color)
 
+	for cell in layered_map.mission.underlay_occupied_cells:
+		_add_cell_outline(layered_map.underlay_grid, cell, underlay_occupancy_color)
+
 	_occupancy_overlay_mesh.surface_end()
 	_occupancy_overlay.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
 	_occupancy_overlay.visible = true
@@ -543,6 +551,8 @@ func erase_at_cursor() -> void:
 	var origin: Vector3i
 	if hit_grid == layered_map.prop_grid:
 		origin = _find_origin(layered_map.mission.occupied_cells, hit_cell)
+	elif hit_grid == layered_map.underlay_grid:
+		origin = _find_origin(layered_map.mission.underlay_occupied_cells, hit_cell)
 	else:
 		origin = _find_origin(layered_map.mission.floor_occupied_cells, hit_cell)
 
@@ -570,6 +580,10 @@ func _find_origin(occupancy_map: Dictionary, hit_cell: Vector3i) -> Vector3i:
 func _sync_after_edit(grid: GridMap, cell: Vector3i) -> void:
 	if grid == layered_map.prop_grid:
 		layered_map.sync_prop_cell(cell)
+	elif grid == layered_map.underlay_grid:
+		# Full rebuild is simplest/correct for now, same tradeoff as the
+		# floor/wall branch below.
+		layered_map.rebuild_underlay_tiles()
 	else:
 		# Full rebuild is simplest/correct for now. Once maps get large
 		# enough for this to matter for responsiveness, this is the place

@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://cunrxyk6gce1i"]
+
+[ext_resource type="PackedScene" uid="uid://b6s14n0ye0exv" path="res://models/underlays.glb" id="1_x4kw6"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_x4kw6"]
+size = Vector3(16, 0.012500011, 12.800001)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0hj8j"]
+size = Vector3(16, 0.012500011, 12.800001)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ymjy4"]
+size = Vector3(16, 0.012500011, 12.800001)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xy4gq"]
+size = Vector3(16, 0.012500011, 12.800001)
+
+[node name="underlays" unique_id=747968254 instance=ExtResource("1_x4kw6")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="lava" parent_id_path=PackedInt32Array(366185097) index="0" unique_id=816617909]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.00625, -6.4000006)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="lava/StaticBody3D" index="0" unique_id=2058769163]
+shape = SubResource("BoxShape3D_x4kw6")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="acid" parent_id_path=PackedInt32Array(145805548) index="0" unique_id=1159646365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.00625, -6.4000006)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="acid/StaticBody3D" index="0" unique_id=15676631]
+shape = SubResource("BoxShape3D_0hj8j")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="water" parent_id_path=PackedInt32Array(1949605436) index="0" unique_id=2003448336]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.00625, -6.4000006)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="water/StaticBody3D" index="0" unique_id=1611705737]
+shape = SubResource("BoxShape3D_ymjy4")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="spikes" parent_id_path=PackedInt32Array(2006607197) index="0" unique_id=1191465842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.00625, -6.4000006)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="spikes/StaticBody3D" index="0" unique_id=1770817703]
+shape = SubResource("BoxShape3D_xy4gq")

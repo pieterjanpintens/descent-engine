@@ -10,9 +10,9 @@ extends Node
 ## Vector3i offsets. The origin cell itself (Vector3i.ZERO) should always be
 ## included in the list.
 ##
-## This same table is used for BOTH the floor layer and the prop layer -
-## floor tiles are multi-cell items exactly like stairs/bookshelves, just
-## painted into FloorGridMap instead of PropGridMap.
+## This same table is used across the floor, wall, underlay, and prop layers
+## - floor tiles are multi-cell items exactly like stairs/bookshelves/hazard
+## planes, just painted into a different GridMap.
 
 ## >>> Add every mesh item name here with its unrotated cell layout (as if
 ## >>> painted at orientation 0). Anything not listed defaults to a single
@@ -166,6 +166,39 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
 		Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
 		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Underlay hazard planes - always a plain 5x4 tile-square rectangle, same
+	# shape for every hazard type since we author these meshes ourselves
+	# rather than measuring a physical part. Pivot deliberately placed at
+	# the far corner (matching every other footprint's convention) so this
+	# never needs pivot correction. Origin is arbitrarily the "5-wide"
+	# corner - if it turns out rotated 90 from the physical paper piece,
+	# use the Creator's R key rather than re-deriving this list. These mesh
+	# names have no shared prefix (unlike wall_/tile faces), so get_layer()
+	# below classifies them via an explicit MESH_LAYER entry instead.
+	"water": [
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"acid": [
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"lava": [
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"spikes": [
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 	],
 }
 
@@ -341,15 +374,20 @@ const MESH_LAYER: Dictionary = {
 	"mini": "prop",
 	"medium": "prop",
 	"stair": "prop",
+	"water": "underlay",
+	"acid": "underlay",
+	"lava": "underlay",
+	"spikes": "underlay",
 }
 
-## Returns "floor", "wall", or "prop" for a mesh item name - this is the
-## SINGLE source of truth for which GridMap a mesh belongs in. All three
-## GridMaps share one MeshLibrary, so nothing else distinguishes "this is a
-## floor tile" from "this is a pillar" except this classification - callers
-## (CreatorController, LayeredMap) should always derive the destination
-## grid from this rather than from separately-tracked UI state, so it's
-## structurally impossible to paint a prop into the floor layer by mistake.
+## Returns "floor", "wall", "underlay", or "prop" for a mesh item name -
+## this is the SINGLE source of truth for which GridMap a mesh belongs in.
+## All four GridMaps share one MeshLibrary, so nothing else distinguishes
+## "this is a floor tile" from "this is a pillar" except this classification
+## - callers (CreatorController, LayeredMap) should always derive the
+## destination grid from this rather than from separately-tracked UI state,
+## so it's structurally impossible to paint a prop into the floor layer by
+## mistake.
 func get_layer(mesh_item_name: String) -> String:
 	if MESH_LAYER.has(mesh_item_name):
 		return MESH_LAYER[mesh_item_name]

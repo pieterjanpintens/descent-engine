@@ -24,12 +24,19 @@ to `scripts/` once it held far more than data-resource classes.)
   `floor_placements` (Array[TilePlacement] — raw paint records: origin+mesh+orientation,
   needed to *repaint* the floor/wall GridMaps from saved data), `floor_occupied_cells`
   (Dict[Vector3i, Vector3i] — every covered cell → its origin, floor/wall equivalent of
-  `occupied_cells`), `occupied_cells` (same but for props), `interactables`
+  `occupied_cells`), `occupied_cells` (same but for props), `underlay_placements` /
+  `underlay_occupied_cells` (floor-equivalent pair for the underlay hazard layer — kept
+  as its OWN separate pair rather than folded into `floor_placements`/`tiles`, because
+  an underlay hazard physically coexists with whatever floor tile sits on the same
+  cells; writing it into the shared `tiles` dict would have one silently overwrite the
+  other's `walkable`/`blocks_los` depending on sync order), `interactables`
   (Array[InteractableEntry]), `monster_spawns`, `triggers`. Methods: `get_tile()`,
   `is_walkable()`, `blocks_los()`, `get_interactable_at()`, `get_level_links_from()`,
-  `get_component_usage()`.
+  `get_component_usage()` (tallies floor + underlay + prop placements together for
+  `ComponentInventory`).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id.
-- `TilePlacement` — layer (FLOOR/WALL enum), origin_cell, mesh_item_name, orientation.
+- `TilePlacement` — layer (FLOOR/WALL/UNDERLAY enum), origin_cell, mesh_item_name,
+  orientation.
 - `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK), mesh_item_name,
   origin_cell, footprint (Array[Vector3i], rotation-adjusted), orientation,
   blocks_movement, blocks_los, props (free-form Dict), plus `link_from_cell`/
@@ -45,7 +52,11 @@ to `scripts/` once it held far more than data-resource classes.)
 	keyed by exact mesh item name. Currently has: `1a`/`1b`/`2a`/`2b` (2×3 rectangle,
 	origin = bottom-right corner), `7a`/`7b` (plus/cross shape, origin = a specific
 	marked cell), `stair` (3×2, origin = the low point), `tall`/`mini`/`medium`
-	(pillars — see the calibration note below, **not** `Vector3i.ZERO`).
+	(pillars — see the calibration note below, **not** `Vector3i.ZERO`),
+	`water`/`acid`/`lava`/`spikes` — the underlay hazard planes (all four share one
+	identical 5×4 rectangle — these are hand-authored meshes we control ourselves,
+	not measured physical parts, so the pivot was deliberately placed on the
+	convention-matching far corner and never needs pivot correction).
   - `CELLS_PER_TILE = 2` — GridMap's cell_size was halved from the tile-square scale
 	to support sub-tile pillar placement; this constant bridges "authored in
 	tile-squares" to "actual fine GridMap cells."
@@ -57,30 +68,43 @@ to `scripts/` once it held far more than data-resource classes.)
 	before expansion** (rotating after expansion rotates around the wrong pivot). The
 	single-step rotation includes a `-1` correction because it's rotating a *region*
 	(min-corner + extent), not a bare point.
-  - `get_layer(mesh_name)` → `"floor"`/`"wall"`/`"prop"` — the single source of truth
-	for which GridMap a mesh belongs in (all three GridMaps share **one** MeshLibrary,
-	so nothing else distinguishes them). Tile faces auto-detected by name pattern
-	(`^\d+[ab]$`); everything else defaults to `"prop"` unless overridden.
+  - `get_layer(mesh_name)` → `"floor"`/`"wall"`/`"underlay"`/`"prop"` — the single
+	source of truth for which GridMap a mesh belongs in (all four GridMaps share
+	**one** MeshLibrary, so nothing else distinguishes them). Tile faces
+	auto-detected by name pattern (`^\d+[ab]$`); `water`/`acid`/`lava`/`spikes` are
+	explicit `MESH_LAYER` overrides routing to `"underlay"` (no shared naming
+	convention to auto-detect from, unlike `wall_`); everything else defaults to
+	`"prop"` unless overridden.
   - `LOGICAL_DEFAULTS` (prefix-based) / `LOGICAL_OVERRIDES` (exact-name) — auto-fill
 	walkable/blocks_los from mesh naming convention.
   - `mark_occupied()` / `clear_occupied()` — occupancy bookkeeping helpers.
 - `ComponentInventory` — tracks physical piece counts so the Creator can block designs
   that need more copies of a tile/pillar than physically exist. `MESH_TO_GROUP` groups
   both faces of a double-sided tile (`1a`/`1b`) into one shared count pool (they're one
-  physical object). `MAX_COUNTS` currently has **placeholder numbers** — needs real
-  counts from the actual component list.
+  physical object) — the underlay hazard cards are double-sided the same way:
+  `water`/`spikes` share one physical card (group `card_water_spikes`, max 4), and
+  `lava`/`acid` share another (`card_lava_acid`, max 4) — these are **real, confirmed
+  counts**, unlike the rest of `MAX_COUNTS` which is still placeholder numbers pending
+  the actual physical component list.
 - `GameState` — trivial: holds `current_mission_path` to pass between scenes (menu →
   player) since `change_scene_to_file()` takes no parameters.
 
 **Core logic** (`map/`, root of the reusable scene):
 
 - `LayeredMap.gd` — attached to `LayeredMapCore.tscn`'s root. Owns `floor_grid`/
-  `wall_grid`/`prop_grid` (@onready refs to child GridMaps) and `mission`. Two
-  directions of sync:
-  - **Read** (painting → data): `sync_prop_cell(origin)` and `rebuild_floor_tiles()`
-	walk the painted GridMap cells and populate `MissionData`.
+  `wall_grid`/`prop_grid`/`underlay_grid` (@onready refs to child GridMaps) and
+  `mission`. `_ready()` positions the non-floor layers relative to floor: `prop_grid`
+  sits `+floor_thickness` above (so props render on top of the floor surface);
+  `underlay_grid` stays at the SAME Y as floor (`Vector3.ZERO`, not offset below it)
+  — it's meant to show through exactly where the floor doesn't cover it, not sit
+  hidden beneath. Two directions of sync:
+  - **Read** (painting → data): `sync_prop_cell(origin)`, `rebuild_floor_tiles()`
+	(floor + wall), and `rebuild_underlay_tiles()` walk the painted GridMap cells and
+	populate `MissionData`. Underlay is a deliberately SEPARATE rebuild pass from
+	floor/wall (not a third case folded into `rebuild_floor_tiles()`) — see the
+	`underlay_placements` note above for why.
   - **Write** (data → painting): `apply_mission(mission)` clears and repaints all
-	three GridMaps from a loaded `MissionData` — used identically by both the Player
+	four GridMaps from a loaded `MissionData` — used identically by both the Player
 	(to render a loaded mission) and the Creator (to open an existing mission for
 	continued editing).
   - `find_item_id(grid, mesh_name)` — MeshLibrary name→id lookup (public, used by
@@ -104,16 +128,19 @@ to `scripts/` once it held far more than data-resource classes.)
 	rotation (`R`), physical-limit checking before placing (`ComponentInventory`).
   - Erase: **real physics raycast** against GridMap collision (not plane math) —
 	translates the hit cell back to the actual painted origin via
-	`occupied_cells`/`floor_occupied_cells`, with a column-fallback (match X/Z, ignore
-	Y) for meshes taller than one cell (e.g. the `tall` pillar).
+	`occupied_cells`/`floor_occupied_cells`/`underlay_occupied_cells`, with a
+	column-fallback (match X/Z, ignore Y) for meshes taller than one cell (e.g. the
+	`tall` pillar).
   - Debug overlays, all toggleable: ghost preview, reference grid lines, world-origin
 	axis gizmo, and an occupancy overlay (`O` key) that draws wireframe boxes of what
-	`floor_occupied_cells`/`occupied_cells` actually think is covered — built assuming
-	GridMap's **Center X/Y/Z are OFF** (map_to_local returns a cell's corner, not
-	center) — this was essential for diagnosing the footprint bugs.
+	`floor_occupied_cells`/`occupied_cells`/`underlay_occupied_cells` actually think is
+	covered — built assuming GridMap's **Center X/Y/Z are OFF** (map_to_local returns
+	a cell's corner, not center) — this was essential for diagnosing the footprint
+	bugs.
   - Controls: Left-click place, Shift+Left-click erase, `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
-	filter, PageUp/PageDown change level, `O` toggle occupancy overlay.
+	filter (Floor → Wall → Prop → Underlay), PageUp/PageDown change level, `O` toggle
+	occupancy overlay.
 - `CreatorSaveLoad.gd` — Save/Load/New buttons + a `FileDialog` (must be
   **Access = Resources**, not File System, to get usable `res://` paths). Reuses
   `MissionIO` + `LayeredMap.apply_mission()`.
@@ -138,9 +165,9 @@ to `scripts/` once it held far more than data-resource classes.)
 Split into a minimal reusable piece plus two separate wrappers, specifically so
 Play mode doesn't inherit Creator-only tooling (this was a real bug that got fixed):
 
-- **`map/LayeredMapCore.tscn`** — just `LayeredMap.gd` + the three GridMaps
-  (FloorGridMap/WallGridMap/PropGridMap, sharing one MeshLibrary and identical
-  cell_size). Instanced by both of the below.
+- **`map/LayeredMapCore.tscn`** — just `LayeredMap.gd` + the four GridMaps
+  (FloorGridMap/WallGridMap/PropGridMap/UnderlayGridMap, sharing one MeshLibrary and
+  identical cell_size). Instanced by both of the below.
 - **`map/MissionMap.tscn`** (the Creator) — instances `LayeredMapCore` as `%LayeredMap`,
   plus `Camera3D` (FreeLookCamera), `DirectionalLight3D`, `DebugSync`,
   `CreatorController`, and a `CanvasLayer` with the `CreatorSaveLoad` Save/Load/New
@@ -187,9 +214,10 @@ These cost real debugging time — worth not re-learning them:
   to GDScript**. Use `GridMap.get_cell_item_basis(cell)` (read) and
   `GridMap.get_orthogonal_index_from_basis(basis)` (write) instead — both are instance
   methods on GridMap, so borrow any GridMap node purely for the calculation.
-- All three GridMaps (Floor/Wall/Prop) intentionally **share one MeshLibrary** — you
-  cannot tell "this is a floor tile" from "this is a pillar" by which grid's library
-  you query. `FootprintRegistry.get_layer()` is the actual source of truth.
+- All four GridMaps (Floor/Wall/Prop/Underlay) intentionally **share one
+  MeshLibrary** — you cannot tell "this is a floor tile" from "this is a pillar" by
+  which grid's library you query. `FootprintRegistry.get_layer()` is the actual
+  source of truth.
 - This project's GridMaps have **Center X/Y/Z all OFF** — `map_to_local()` returns a
   cell's *corner*, not its center. Any code building world positions from cell indices
   needs to account for this explicitly.
@@ -253,6 +281,17 @@ These cost real debugging time — worth not re-learning them:
 - Pillars `tall`/`mini`/`medium` — 1×1 tile-square, correctly calibrated.
 - `ComponentInventory.MAX_COUNTS` — placeholder numbers throughout, needs real counts
   from the physical component list.
+- Underlay hazard layer (water/acid/lava/spikes) — all the code/data-model/scene
+  plumbing exists (4th GridMap, `FootprintRegistry` shapes, `ComponentInventory`
+  entries, `CreatorController` paint/erase support), but **no actual mesh items exist
+  in the shared MeshLibrary yet** for `water`/`acid`/`lava`/`spikes` — nothing is
+  paintable until those are added.
+  Each is meant to be a thin flat plane (~0.1 thick or less) sized to 5×4 world
+  tile-squares, with a 1:1 UV-mapped texture. Blocked on textures being supplied;
+  once available, either hand-build the mesh+material in the Godot editor and add it
+  to `descent-meshes.tres` as a new MeshLibrary item, or add it via one of the
+  root-level source scenes (`floors.tscn`/`pilars.tscn`/`stair.tscn`) the same way
+  the other mesh items got in.
 
 ## Open items / natural next steps
 

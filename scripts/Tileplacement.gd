@@ -7,7 +7,7 @@ extends Resource
 ## saved mission - TileEntry alone doesn't carry enough info to know WHICH
 ## origin cell to paint at, since multiple covered cells share one entry.
 
-enum Layer { FLOOR, WALL }
+enum Layer { FLOOR, WALL, UNDERLAY }
 
 @export var layer: Layer = Layer.FLOOR
 @export var origin_cell: Vector3i = Vector3i.ZERO

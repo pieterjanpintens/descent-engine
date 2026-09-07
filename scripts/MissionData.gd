@@ -32,17 +32,29 @@ extends Resource
 ## Populated by FootprintRegistry.register_item(), consumed by movement/LOS.
 @export var occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Vector3i]
 
+## Underlay layer (water/acid/lava/spikes physical paper pieces that sit
+## beneath the floor tiles) - a separate painted layer, NOT folded into
+## tiles/floor_placements. Unlike wall (which overrides floor's logical
+## defaults on the same cell), underlay coexists with whatever floor tile
+## sits above it, so it can't share TileEntry's single walkable/blocks_los
+## slot per cell without one silently clobbering the other.
+@export var underlay_placements: Array[TilePlacement] = []
+@export var underlay_occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Vector3i]
+
 @export var interactables: Array[InteractableEntry] = []
 @export var monster_spawns: Array[MonsterSpawn] = []
 @export var triggers: Array[MissionTrigger] = []
 
 
-## Returns { group_name: count } tallying every placed floor/wall/prop
-## piece by its PHYSICAL component group (see ComponentInventory - both
+## Returns { group_name: count } tallying every placed floor/wall/underlay/
+## prop piece by its PHYSICAL component group (see ComponentInventory - both
 ## faces of a double-sided tile count as the same physical piece).
 func get_component_usage() -> Dictionary:
 	var usage: Dictionary = {}
 	for placement in floor_placements:
+		var group := ComponentInventory.get_group(placement.mesh_item_name)
+		usage[group] = usage.get(group, 0) + 1
+	for placement in underlay_placements:
 		var group := ComponentInventory.get_group(placement.mesh_item_name)
 		usage[group] = usage.get(group, 0) + 1
 	for entry in interactables:
