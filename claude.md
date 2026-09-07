@@ -52,7 +52,10 @@ to `scripts/` once it held far more than data-resource classes.)
 	keyed by exact mesh item name. Currently has: `1a`/`1b`/`2a`/`2b` (2×3 rectangle,
 	origin = bottom-right corner), `7a`/`7b` (plus/cross shape, origin = a specific
 	marked cell), `stair` (3×2, origin = the low point), `tall`/`mini`/`medium`
-	(pillars — see the calibration note below, **not** `Vector3i.ZERO`),
+	(pillars — see the calibration note below, **not** `Vector3i.ZERO`), `gate` (2×1,
+	single column, origin cell unmarked/assumed), `archway` (4×1, single column),
+	`tree` (1×1, listed explicitly for
+	visibility even though it's the same as the unlisted default),
 	`water`/`acid`/`lava`/`spikes` — the underlay hazard planes (all four share one
 	identical 5×4 rectangle — these are hand-authored meshes we control ourselves,
 	not measured physical parts, so the pivot was deliberately placed on the
@@ -281,17 +284,17 @@ These cost real debugging time — worth not re-learning them:
 - Pillars `tall`/`mini`/`medium` — 1×1 tile-square, correctly calibrated.
 - `ComponentInventory.MAX_COUNTS` — placeholder numbers throughout, needs real counts
   from the physical component list.
-- Underlay hazard layer (water/acid/lava/spikes) — all the code/data-model/scene
-  plumbing exists (4th GridMap, `FootprintRegistry` shapes, `ComponentInventory`
-  entries, `CreatorController` paint/erase support), but **no actual mesh items exist
-  in the shared MeshLibrary yet** for `water`/`acid`/`lava`/`spikes` — nothing is
-  paintable until those are added.
-  Each is meant to be a thin flat plane (~0.1 thick or less) sized to 5×4 world
-  tile-squares, with a 1:1 UV-mapped texture. Blocked on textures being supplied;
-  once available, either hand-build the mesh+material in the Godot editor and add it
-  to `descent-meshes.tres` as a new MeshLibrary item, or add it via one of the
-  root-level source scenes (`floors.tscn`/`pilars.tscn`/`stair.tscn`) the same way
-  the other mesh items got in.
+- Underlay hazard layer (`water`/`acid`/`lava`/`spikes`) — fully wired up and
+  paintable: 4th GridMap, `FootprintRegistry` shapes, `ComponentInventory` card
+  grouping (`water`/`spikes` share one physical card, `lava`/`acid` share another,
+  max 4 each — real confirmed counts), mesh items present in `descent-meshes.tres`,
+  sourced from `underlays.tscn` (root-level, same role as `floors.tscn`/
+  `pilars.tscn`/`stair.tscn` — the mesh-authoring source, not dead/orphaned).
+- Props `gate` (2×1 column, origin unmarked/assumed at the bottom cell — worth
+  double-checking in-game), `archway` (4×1 column), `tree` (1×1) — shapes entered,
+  mesh items present. `gate`/`archway` default to walkable/non-LOS-blocking
+  (treated as openings); `tree` defaults to blocking movement + LOS like a pillar.
+  These are naming-convention *defaults* only — unverified in-game.
 
 ## Open items / natural next steps
 

@@ -167,6 +167,24 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
 		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 	],
+	# Gate - single column, 2x1 tile-squares. Origin cell wasn't explicitly
+	# marked - assumed to be the bottom cell, consistent with every other
+	# footprint (including archway right below) always anchoring at one end:
+	#   x
+	#   x   <- assumed origin (bottom)
+	"gate": [Vector3i(0, 0, -1), Vector3i(0, 0, 0)],
+	# Archway - single column, 4x1 tile-squares. Origin is the marked cell:
+	#   x
+	#   x
+	#   x
+	#   y   <- origin (bottom)
+	"archway": [
+		Vector3i(0, 0, -3), Vector3i(0, 0, -2), Vector3i(0, 0, -1), Vector3i(0, 0, 0),
+	],
+	# Tree - single tile-square. No explicit entry is actually needed (anything
+	# not listed already defaults to [Vector3i.ZERO]), but it's listed here for
+	# visibility alongside the other props.
+	"tree": [Vector3i.ZERO],
 	# Underlay hazard planes - always a plain 5x4 tile-square rectangle, same
 	# shape for every hazard type since we author these meshes ourselves
 	# rather than measuring a physical part. Pivot deliberately placed at
@@ -223,6 +241,13 @@ const LOGICAL_OVERRIDES: Dictionary = {
 	"mini": {"walkable": false, "blocks_los": true},
 	"medium": {"walkable": false, "blocks_los": true},
 	"stair": {"walkable": true, "blocks_los": false},
+	# Gate/archway are openings - same defaults as door_/hazard_ prefixed
+	# items would get, just spelled out here since these names don't follow
+	# that prefix convention.
+	"gate": {"walkable": true, "blocks_los": false},
+	"archway": {"walkable": true, "blocks_los": false},
+	# Tree blocks movement and sightline like a pillar.
+	"tree": {"walkable": false, "blocks_los": true},
 }
 
 
