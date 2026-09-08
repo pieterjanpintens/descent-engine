@@ -20,6 +20,8 @@ config/icon="res://icon.svg"
 FootprintRegistry="*uid://dgih1obkp15pl"
 GameState="*uid://con3wwam8jgli"
 ComponentInventory="*uid://dupa0vtovmebg"
+OfficialAssetMap="*res://autoload/OfficialAssetMap.gd"
+OfficialAssetOverrides="*res://autoload/OfficialAssetOverrides.gd"
 
 [display]
 

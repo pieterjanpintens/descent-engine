@@ -1,3 +1,4 @@
+class_name FreeLookCamera
 extends Camera3D
 
 ## Attach directly to your Camera3D. Mimics Godot's editor navigation:
@@ -18,6 +19,20 @@ var _pitch: float = 0.0
 
 
 func _ready() -> void:
+	_yaw = rotation.y
+	_pitch = rotation.x
+
+
+## Repositions the camera to look at a world point (e.g. "jump to this
+## placed tile" from CreatorPalette) - offsets back/up from the target so
+## it's framed nicely rather than sitting exactly on top of it. Updates
+## the internal _yaw/_pitch too, not just rotation directly - otherwise
+## the next right-click-drag would compute rotation from the STALE stored
+## values and the camera would snap back to wherever it was facing before
+## the jump the moment you tried to look around.
+func jump_to(target: Vector3, distance: float = 12.0) -> void:
+	global_position = target + Vector3(0, distance * 0.6, distance)
+	look_at(target, Vector3.UP)
 	_yaw = rotation.y
 	_pitch = rotation.x
 

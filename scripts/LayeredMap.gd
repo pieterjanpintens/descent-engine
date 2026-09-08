@@ -32,6 +32,12 @@ func _ready() -> void:
 	prop_grid.position = Vector3(0, floor_thickness, 0)
 	underlay_grid.position = Vector3.ZERO
 
+	# All four grids share one MeshLibrary, so this only needs to run once -
+	# swaps in the user's own official-game textures (if they've run the
+	# importer tool against their own install) in place of the shipped
+	# placeholders. A no-op if no override files are present.
+	OfficialAssetOverrides.apply_overrides(floor_grid.mesh_library)
+
 
 ## Call after painting/moving/erasing a cell in PropGridMap (in-editor or
 ## from an in-game Creator tool) to keep MissionData's occupancy index and

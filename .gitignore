@@ -1,3 +1,12 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Official "Legends of the Dark" game assets used as local Blender/UV
+# reference only - never commit/redistribute copyrighted game art, see
+# CLAUDE.md's "Official asset overrides" section.
+/models/original/
+
+# Python build artifacts (tools/ scripts)
+__pycache__/
+*.pyc

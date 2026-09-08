@@ -12,10 +12,11 @@ tool) and a **Mission Player** (loads and renders a saved mission).
 in one flat folder, `scripts/` — the groupings below (`creator/`, `player/`, `ui/`,
 `map/`) describe the **scene** files (`.tscn`) and functional area, not the script's
 actual directory. This works fine (Godot doesn't care where a script sits relative to
-its scene, and several scripts are genuinely shared across Creator/Player). All three
-autoload scripts (`FootprintRegistry`, `GameState`, `ComponentInventory`) live
-together in `autoload/`. (This folder was called `mission_data/` until it was renamed
-to `scripts/` once it held far more than data-resource classes.)
+its scene, and several scripts are genuinely shared across Creator/Player). All five
+autoload scripts (`FootprintRegistry`, `GameState`, `ComponentInventory`,
+`OfficialAssetMap`, `OfficialAssetOverrides` — see **Official asset overrides**
+below) live together in `autoload/`. (This folder was called `mission_data/` until it
+was renamed to `scripts/` once it held far more than data-resource classes.)
 
 **Data layer** (scripts in `scripts/`) — pure Resource classes, no logic beyond helpers:
 
@@ -120,8 +121,30 @@ to `scripts/` once it held far more than data-resource classes.)
 
 - `CreatorController.gd` — the in-game paint tool (mimics Godot's own GridMap panel,
   but as a runtime game feature). Public API (`select_mesh`, `cycle_mesh`,
-  `select_layer`) is deliberately the only thing that touches selection state, so a
-  future palette UI can call the same methods instead of duplicating logic.
+  `select_layer`) is deliberately the only thing that touches selection state, and it
+  emits `layer_changed`/`mesh_changed` signals whenever that state actually changes
+  (from either keyboard input or `CreatorPalette` calling these same methods) — this
+  is what keeps the two paths from ever drifting out of sync.
+- `CreatorPalette.gd` (attached to `MissionMap.tscn`'s `CanvasLayer/Palette`) — the
+  real palette UI: clickable layer tabs (Floor/Wall/Prop/Underlay) plus a scrollable
+  icon grid for whichever layer is active, replacing blind `,`/`.` cycling as the
+  primary way to pick a mesh (keyboard cycling still works side by side). Built
+  entirely at runtime in `_ready()`/`_build_ui()` rather than hand-authored as child
+  nodes in the `.tscn` — same pattern `CreatorController` already uses for its
+  ghost/grid/origin/occupancy overlays, and the mesh grid's contents are dynamic
+  (depend on `MeshLibrary` contents) so couldn't be static `.tscn` content anyway.
+  Icons come from `MeshLibrary.get_item_preview()` (Godot auto-generates these per
+  item) rather than hand-made icon assets.
+  - **Two display modes**, via a "Show unavailable" checkbox: default hides any mesh
+	that's hit its `ComponentInventory` physical limit entirely (the palette only
+	shows what you can currently draw). Checked, it shows everything and greys out
+	exhausted ones — clicking a greyed entry doesn't select it (there's nothing left
+	to place), it instead calls `CreatorController.locate_mesh()`, which finds the
+	first placed instance in the mission and calls `FreeLookCamera.jump_to()` to
+	snap the camera there. `jump_to()` deliberately updates the camera's internal
+	`_yaw`/`_pitch` too, not just `rotation` directly — otherwise the next
+	right-click-drag would compute rotation from the stale stored values and the
+	camera would snap back to its pre-jump orientation.
   - **Critical design point**: the *destination* GridMap for a placement is always
 	derived from `FootprintRegistry.get_layer(selected_mesh)` (via `_target_grid()`),
 	**never** from the UI's current layer filter (`current_layer`/`L` key) — the
@@ -200,6 +223,49 @@ and crops each piece and auto-rotates it upright where possible, but orientation
 not a one-shot batch command. See `tools/scan_extraction/README.md` for the actual
 workflow and known limitations (touching pieces, near-circular/zigzag shapes
 confusing the rotation fit).
+
+`tools/asset_import/` — a Python (UnityPy) importer that lets a user who owns the
+real "Descent: Legends of the Dark" companion app unlock its actual textures
+locally, without this project ever shipping or redistributing that copyrighted art
+— see **Official asset overrides** below for the full mechanism. Run it once
+pointed at your own game install; nothing it produces ever gets committed.
+
+## Official asset overrides
+
+Same pattern [OpenMW](https://openmw.org/) uses for Morrowind: this project ships
+zero copyrighted game art, only placeholder textures — the real look only ever
+appears locally, for a user who separately owns the official game and runs
+`tools/asset_import/import_official_assets.py` against their own install.
+
+- `OfficialAssetMap` (autoload) — hand-maintained `Dictionary` mapping our
+  MeshLibrary item names (e.g. `"acid"`) to the official game's internal asset
+  names (e.g. `"W1_Underlay_FetidPool"`). The names don't follow any shared
+  convention — confirmed by actually inspecting the game's Unity AssetBundles —
+  so this can never be derived automatically, only hand-authored per item. Only
+  covers items actually confirmed this way so far: the four underlay hazards
+  (`water`/`acid`/`lava`/`spikes`). Floor tile faces (`1a`–`21b`) aren't mapped
+  yet — the official game reuses a handful of shared materials
+  (flagstone/grass/dirt/wood planks) across many physical tile shapes rather than
+  one texture per tile number, and which shape should use which material is a
+  design decision that hasn't been made yet.
+- `OfficialAssetOverrides` (autoload) — `apply_overrides(mesh_library)`, called
+  once from `LayeredMap._ready()` (all four GridMaps share one MeshLibrary, so one
+  call covers everything). For every mapped item, checks
+  `user://official_assets/<OfficialName>.png` and swaps it onto that item's
+  material if present, else leaves the shipped placeholder untouched. Always
+  **duplicates** the material before touching it — never mutates in place, in case
+  two items ever end up sharing one material resource.
+  - **Only handles single-surface meshes right now** (`surface_get_material(0)`).
+	Verified true for every current `OfficialAssetMap` entry by inspecting
+	`descent-meshes.tres` directly, but NOT true project-wide — the `"medium"`/
+	`"mini"` pillar meshes have multiple surfaces/materials each (their own
+	original sculpts, not part of this system, but proof the assumption doesn't
+	hold everywhere). If a future mapped item turns out multi-surface, this needs
+	to loop surfaces instead of hardcoding index 0.
+- Props like `gate`/`archway`/`tree` and the pillars/`stair` are the user's own
+  original sculpted models (not derived from the official game at all), so they're
+  intentionally absent from `OfficialAssetMap` — there's no "official" version to
+  swap in for those.
 
 ## CI / Release
 
@@ -311,8 +377,11 @@ These cost real debugging time — worth not re-learning them:
 
 1. Finish authoring the remaining ~15 floor tile shapes (now that placement/rotation
    is verified trustworthy, this should go faster than the first few did).
-2. Real palette UI (buttons/icons) instead of keyboard `,`/`.` cycling — architecture
-   is already prepared for this (see `CreatorController`'s public API note above).
+2. ~~Real palette UI~~ — done, see `CreatorPalette.gd`, including the "jump to a
+   placed instance" follow-up (via the "Show unavailable" mode + `locate_mesh()`).
+   **Unverified in-editor** (built without visual feedback — I have no way to launch
+   the Godot editor and see it rendered); worth confirming the layout/icons/jump
+   behavior actually work before trusting it.
 3. Monster spawns / mission triggers — data model exists, no authoring workflow yet.
 4. Movement + line-of-sight in the Player — `MissionData.is_walkable()`/`blocks_los()`
    exist and are correct, but nothing calls them yet; the Player is still just a
@@ -323,3 +392,7 @@ These cost real debugging time — worth not re-learning them:
 7. `ComponentInventory` limit warnings only `push_warning()` to the Output panel —
    needs on-screen UI feedback once there's any kind of HUD.
 8. Fill in real `ComponentInventory.MAX_COUNTS` from the actual physical box contents.
+9. Decide which floor tile faces (`1a`–`21b`) should use which shared floor material
+   (flagstone/grass/dirt/wood planks) — needed before `OfficialAssetMap` can cover
+   floor tiles the way it already covers the underlay hazards; see **Official asset
+   overrides** above.

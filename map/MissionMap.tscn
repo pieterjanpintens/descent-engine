@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://scripts/FreeLookCamera.gd" id="5_d5ryy"]
 [ext_resource type="Script" uid="uid://ljy27dceiepg" path="res://scripts/CreatorController.gd" id="6_a7isx"]
 [ext_resource type="Script" uid="uid://d1cyr63qnt1hr" path="res://scripts/CreatorSaveLoad.gd" id="7_iyoar"]
+[ext_resource type="Script" path="res://scripts/CreatorPalette.gd" id="8_palette"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -40,6 +41,11 @@ text = "Load"
 unique_name_in_owner = true
 root_subfolder = "res://missions/"
 filters = PackedStringArray("*.tres")
+
+[node name="Palette" type="Control" parent="CanvasLayer" node_paths=PackedStringArray("creator_controller", "layered_map")]
+script = ExtResource("8_palette")
+creator_controller = NodePath("../../CreatorController")
+layered_map = NodePath("../../LayeredMap")
 
 [node name="LayeredMap" parent="." unique_id=1723327192 instance=ExtResource("5_02u5f")]
 unique_name_in_owner = true

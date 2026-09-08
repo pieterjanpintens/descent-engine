@@ -1,3 +1,4 @@
+class_name CreatorController
 extends Node3D
 
 ## In-game paint tool for the Mission Creator - the "mimic GridMap's own
@@ -47,6 +48,14 @@ extends Node3D
 
 
 enum PaintLayer { FLOOR, WALL, PROP, UNDERLAY }
+
+## Emitted whenever selection state actually changes, from whichever path
+## caused it (keyboard cycling OR a future/present palette UI calling
+## select_mesh()/select_layer() directly) - a UI palette should listen to
+## these rather than polling, so it never drifts out of sync with keyboard
+## input still working side by side.
+signal layer_changed(layer: PaintLayer)
+signal mesh_changed(mesh_name: String)
 
 var current_layer: PaintLayer = PaintLayer.FLOOR
 var current_level: int = 0
@@ -174,6 +183,10 @@ func _target_grid() -> GridMap:
 	var mesh_name := _current_mesh_name()
 	if mesh_name == "":
 		return _current_grid()  # nothing selected yet - fall back to the browse filter
+	return _grid_for_mesh(mesh_name)
+
+
+func _grid_for_mesh(mesh_name: String) -> GridMap:
 	match FootprintRegistry.get_layer(mesh_name):
 		"floor":
 			return layered_map.floor_grid
@@ -183,6 +196,46 @@ func _target_grid() -> GridMap:
 			return layered_map.underlay_grid
 		_:
 			return layered_map.prop_grid
+
+
+## Finds the first placed instance of mesh_name anywhere in the current
+## mission and jumps the camera to it - the counterpart to select_mesh()
+## for CreatorPalette's "show unavailable, click to locate" mode (an
+## exhausted-inventory mesh can't be selected for painting, so locating
+## where it's already used is the only useful click left). Returns false
+## if nothing is placed yet (nothing to jump to).
+func locate_mesh(mesh_name: String) -> bool:
+	var found := false
+	var origin_cell := Vector3i.ZERO
+
+	match FootprintRegistry.get_layer(mesh_name):
+		"prop":
+			for entry in layered_map.mission.interactables:
+				if entry.mesh_item_name == mesh_name:
+					origin_cell = entry.origin_cell
+					found = true
+					break
+		"underlay":
+			for placement in layered_map.mission.underlay_placements:
+				if placement.mesh_item_name == mesh_name:
+					origin_cell = placement.origin_cell
+					found = true
+					break
+		_:  # floor or wall - both live in floor_placements
+			for placement in layered_map.mission.floor_placements:
+				if placement.mesh_item_name == mesh_name:
+					origin_cell = placement.origin_cell
+					found = true
+					break
+
+	if not found:
+		return false
+
+	var grid := _grid_for_mesh(mesh_name)
+	var world_pos: Vector3 = grid.to_global(grid.map_to_local(origin_cell))
+	if camera is FreeLookCamera:
+		(camera as FreeLookCamera).jump_to(world_pos)
+	return true
 
 
 ## Every mesh item name belonging to the CURRENT layer filter. All three
@@ -201,7 +254,33 @@ func get_available_mesh_names() -> Array[String]:
 		var name := library.get_item_name(id)
 		if FootprintRegistry.get_layer(name) == wanted_layer:
 			names.append(name)
+	names.sort_custom(_mesh_name_less_than)
 	return names
+
+
+## Natural sort so tile faces read 1a, 1b, 2a, ..., 9b, 10a, 10b, ... -
+## plain alphabetical sort would put "10a" before "2a" since it compares
+## character-by-character ("1" < "2"). Splits off the leading digit run
+## as a NUMBER for the primary comparison, falling back to plain string
+## comparison for the remainder (handles non-numbered names like "gate"/
+## "water" too - they just sort alphabetically among themselves, which is
+## all that matters since numbered tile faces and plain-named props/
+## underlays never appear in the same layer's list together anyway).
+func _mesh_name_less_than(a: String, b: String) -> bool:
+	var key_a := _natural_sort_key(a)
+	var key_b := _natural_sort_key(b)
+	if key_a[0] != key_b[0]:
+		return key_a[0] < key_b[0]
+	return key_a[1] < key_b[1]
+
+
+func _natural_sort_key(mesh_name: String) -> Array:
+	var i := 0
+	while i < mesh_name.length() and mesh_name[i].is_valid_int():
+		i += 1
+	var digit_part := mesh_name.substr(0, i)
+	var number: int = int(digit_part) if digit_part != "" else -1
+	return [number, mesh_name.substr(i)]
 
 
 func select_mesh(mesh_name: String) -> void:
@@ -209,6 +288,7 @@ func select_mesh(mesh_name: String) -> void:
 	if index != -1:
 		current_mesh_index = index
 		_update_ghost_mesh()
+		mesh_changed.emit(mesh_name)
 
 
 func cycle_mesh(direction: int) -> void:
@@ -217,12 +297,15 @@ func cycle_mesh(direction: int) -> void:
 		return
 	current_mesh_index = wrapi(current_mesh_index + direction, 0, names.size())
 	_update_ghost_mesh()
+	mesh_changed.emit(names[current_mesh_index])
 
 
 func select_layer(layer: PaintLayer) -> void:
 	current_layer = layer
 	current_mesh_index = 0
 	_update_ghost_mesh()
+	layer_changed.emit(layer)
+	mesh_changed.emit(_current_mesh_name())
 
 
 func cycle_layer() -> void:
@@ -472,6 +555,20 @@ func place_at_cursor() -> void:
 		return
 	grid.set_cell_item(_hovered_cell, item_id, _current_orientation())
 	_sync_after_edit(grid, _hovered_cell)
+
+
+## True if there's at least one more physical copy of mesh_name available
+## to place, ignoring any specific target cell (untracked meshes always
+## return true). Used by CreatorPalette to decide whether to show/grey a
+## mesh - _can_place() below is the placement-time version, which also
+## accounts for replacing an existing piece of the same group in place.
+func is_mesh_available(mesh_name: String) -> bool:
+	var max_count := ComponentInventory.get_max_count(mesh_name)
+	if max_count < 0:
+		return true  # untracked - no limit configured yet
+	var group := ComponentInventory.get_group(mesh_name)
+	var usage := layered_map.mission.get_component_usage()
+	return usage.get(group, 0) < max_count
 
 
 ## True if placing mesh_name at target_cell would stay within its physical
