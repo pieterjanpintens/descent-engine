@@ -190,6 +190,17 @@ These are the source scenes used to build/populate the shared `MeshLibrary` that
 three GridMaps (Floor/Wall/Prop) consume — keep them around as the mesh-authoring
 source of truth, don't treat them as dead/orphaned files to delete.
 
+## Tooling
+
+`tools/scan_extraction/` — a small Python (OpenCV) pipeline that turns a raw
+physical-tile scan (`models/scans/*.png`, one photo of several tile faces on a
+white background) into the composed textures in `models/floor/`. It auto-detects
+and crops each piece and auto-rotates it upright where possible, but orientation
+(0 vs 180) and irregular-shape rotation fits still need a human eye per piece —
+not a one-shot batch command. See `tools/scan_extraction/README.md` for the actual
+workflow and known limitations (touching pieces, near-circular/zigzag shapes
+confusing the rotation fit).
+
 ## CI / Release
 
 `.github/workflows/release.yml` builds and publishes a GitHub Release automatically.
