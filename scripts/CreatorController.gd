@@ -174,10 +174,12 @@ func _setup_tile_labels() -> void:
 	add_child(_tile_labels_container)
 
 
-## Shows the mesh_item_name of every placed floor/wall/underlay/prop piece
-## at its origin cell - mainly useful now that many floor tile faces share
-## the same generic material (flagstone/grass/dirt/wood planks) and can no
-## longer be told apart by looks alone. Rebuilt on toggle and after edits
+## Shows the mesh_item_name (plus a direction arrow) of every placed
+## floor/wall/underlay/prop piece, centered on the piece's actual footprint,
+## not just its origin cell - see _add_tile_label(). Mainly useful now that
+## many floor tile faces share the same generic material (flagstone/grass/
+## dirt/wood planks) and can no longer be told apart by looks alone.
+## Rebuilt on toggle and after edits
 ## (see _sync_after_edit()), NOT every frame like the occupancy overlay -
 ## that one's cheap ImmediateMesh geometry, but this creates real Label3D
 ## scene nodes, which would be wasteful to tear down and recreate 60x/sec.
@@ -196,18 +198,53 @@ func _rebuild_tile_labels() -> void:
 
 
 func _add_tile_label(grid: GridMap, origin_cell: Vector3i, mesh_name: String) -> void:
+	var basis := grid.get_cell_item_basis(origin_cell)
+
+	# Same trick used to build occupied_cells (see LayeredMap._write_tile_footprint()
+	# / sync_prop_cell()) - the origin cell is only ever ONE corner of a footprint
+	# (far-corner convention), so a label placed there for anything bigger than 1x1
+	# reads as floating off the piece instead of sitting on it. Expanding+rotating
+	# the real footprint and averaging its cells gives the shape's actual center.
+	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
+	var cell_size := grid.cell_size
+	var centroid_cells := Vector3.ZERO
+	for offset in footprint:
+		centroid_cells += Vector3(offset) + Vector3(0.5, 0.0, 0.5)  # +0.5: cell corner -> cell center
+	centroid_cells /= footprint.size()
+
+	# One label at the shape's center - text carries both the name and a
+	# direction arrow (same forward-vector check FootprintRegistry.
+	# _quarter_turns_from_basis() uses internally to pick a rotation). A
+	# second Label3D positioned independently at the raw origin cell isn't
+	# worth it: that cell is only ever ONE tiny fine-cell-sized corner of the
+	# footprint (same reason the name needed the centroid fix above), so it
+	# reads as floating off to the side of the piece instead of on it.
 	var label := Label3D.new()
-	label.text = mesh_name
+	label.text = "%s %s" % [_direction_arrow(basis), mesh_name]
 	label.font_size = 64
 	label.outline_size = 12
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true  # always readable, never hidden behind geometry
-	# map_to_local() returns the cell's CORNER (Center X/Y/Z are off project-wide),
-	# so nudge to the corner's cell-center-ish + a bit of height for legibility.
-	var cell_size := grid.cell_size
-	var local_pos: Vector3 = grid.map_to_local(origin_cell) + Vector3(cell_size.x * 0.5, 0.3, cell_size.z * 0.5)
+	# map_to_local() returns the cell's CORNER (Center X/Y/Z are off project-wide).
+	var local_pos: Vector3 = grid.map_to_local(origin_cell) + Vector3(centroid_cells.x * cell_size.x, 0.3, centroid_cells.z * cell_size.z)
 	label.global_transform = grid.global_transform * Transform3D(Basis.IDENTITY, local_pos)
 	_tile_labels_container.add_child(label)
+
+
+## Forward-facing arrow glyph for a cell's orientation Basis. Mirrors the
+## same quarter-turn thresholds as FootprintRegistry._quarter_turns_from_basis()
+## (kept private there, since it only needs to feed rotate_footprint) so the
+## printed arrow always agrees with which way the footprint was actually rotated.
+func _direction_arrow(basis: Basis) -> String:
+	var forward := basis * Vector3.FORWARD
+	if forward.z < -0.5:
+		return "↑"
+	elif forward.x < -0.5:
+		return "←"
+	elif forward.z > 0.5:
+		return "↓"
+	else:
+		return "→"
 
 
 func _current_grid() -> GridMap:

@@ -173,7 +173,18 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   - Controls: Left-click place, Shift+Left-click erase, `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
 	filter (Floor → Wall → Prop → Underlay), PageUp/PageDown change level, `O` toggle
-	occupancy overlay, `N` toggle tile name labels.
+	occupancy overlay, `N` toggle tile name labels — one `Label3D` per placed
+	piece showing a direction arrow plus its `mesh_item_name` (e.g. "↑ 18a"),
+	centered on the piece's actual footprint rather than pinned to its origin
+	cell — it reuses the same rotate/expand-footprint calculation
+	`occupied_cells` is built from (`FootprintRegistry.get_footprint()` +
+	`rotate_footprint()` against the real `GridMap.get_cell_item_basis()`) and
+	averages the covered cells, since the origin cell is only ever one tiny
+	fine-cell-sized far corner of the shape (per the far-corner convention) —
+	anchoring anything there for a piece bigger than 1×1 reads as floating off
+	to the side instead of sitting on it (this bit both the name and, briefly,
+	a separately-positioned direction arrow — now folded into the one
+	correctly-centered label instead of a second independently-placed node).
 - `CreatorSaveLoad.gd` — Save/Load/New buttons + a `FileDialog` (must be
   **Access = Resources**, not File System, to get usable `res://` paths). Reuses
   `MissionIO` + `LayeredMap.apply_mission()`.
