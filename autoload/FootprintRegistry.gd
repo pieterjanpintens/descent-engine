@@ -146,6 +146,351 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
 		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 	],
+	# Tiles 6/8/10/11/12/14/15/16/17/19/20 - derived from mesh geometry
+	# (tools/footprint_extraction/extract_footprints.py), not hand-typed ASCII
+	# art - see that script's docstring for how (calibrated/validated against
+	# every tile above before trusting it on these). Comments below are that
+	# same tool's ASCII-preview output, kept for the same "eyeball it" purpose
+	# the hand-authored comments elsewhere serve.
+	#
+	# Tile 6 - notched rectangle, 4 rows x 4 cols. UNVERIFIED - the user
+	# authored this mesh from memory on holiday, without the physical box or a
+	# scan to check against, so double-check this shape against the real tile
+	# before relying on it for a real mission:
+	#   .xx.
+	#   xxxx
+	#   xxxx
+	#   xxxy   <- 6a origin (row 4, col 4)
+	"6a": [
+		Vector3i(-2, 0, -3), Vector3i(-1, 0, -3),
+		Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# 6b - the other face. UNVERIFIED, same caveat as 6a above:
+	#   .xx.
+	#   xxxx
+	#   xxxx
+	#   xxxx
+	"6b": [
+		Vector3i(1, 0, -3), Vector3i(2, 0, -3),
+		Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -2),
+		Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0), Vector3i(3, 0, 0),
+	],
+	# Tile 8 - small cross/T notch, 4 rows x 6 cols:
+	#   ..xx..
+	#   xxxxxx
+	#   xxxxxy   <- 8a origin (row 3, col 6)
+	#   ..xx..
+	"8a": [
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2),
+		Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-3, 0, 1), Vector3i(-2, 0, 1),
+	],
+	# 8b - the other face:
+	#   .xx...
+	#   xxxxxx
+	#   xxxxxy   <- origin (row 3, col 6)
+	#   ..xx..
+	"8b": [
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2),
+		Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-3, 0, 1), Vector3i(-2, 0, 1),
+	],
+	# Tile 9 - large irregular slanted shape, mirrored faces. Hand-authored
+	# from ASCII art (not extracted - see the note by tile 21 above; 9's mesh
+	# in floors.glb has the same interior-pivot problem, a 72-cell solid
+	# rectangle):
+	#   ....xx
+	#   .xxxxx
+	#   xxxxx.
+	#   yxx...   <- 9a origin (row 4, col 1)
+	"9a": [
+		Vector3i(3, 0, -3), Vector3i(4, 0, -3),
+		Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -2), Vector3i(4, 0, -2),
+		Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0), Vector3i(1, 0, 0),
+	],
+	# 9b - the other face, mirrored:
+	#   xx....
+	#   xxxxx.
+	#   .xxxxx
+	#   ...xxy   <- origin (row 4, col 6)
+	"9b": [
+		Vector3i(-5, 0, -3), Vector3i(-4, 0, -3),
+		Vector3i(-5, 0, -2), Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Tile 10 - notched rectangle, 5 rows x 6 cols:
+	#   xx..xx
+	#   xxxxxx
+	#   xxxxxx
+	#   .xxxy.
+	#   ..xx..   <- 10a origin (row 4, col 5)
+	"10a": [
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	# 10b - the other face (identical shape to 10a):
+	"10b": [
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	# Tile 11 - irregular slanted shape, 5 rows x 6 cols, mirrored faces:
+	#   ..xx..
+	#   .xxxx.
+	#   .xxxxx
+	#   xxxxxx
+	#   xxxy..   <- 11a origin (row 5, col 4)
+	"11a": [
+		Vector3i(-1, 0, -4), Vector3i(0, 0, -4),
+		Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# 11b - the other face, mirrored:
+	#   ..xx..
+	#   .xxxx.
+	#   xxxxx.
+	#   xxxxxx
+	#   .yxxxx   <- origin (row 5, col 2)
+	"11b": [
+		Vector3i(0, 0, -4), Vector3i(1, 0, -4),
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3), Vector3i(2, 0, -3),
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2),
+		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0), Vector3i(3, 0, 0),
+	],
+	# Tile 12 - notched rectangle, 6 rows x 6 cols:
+	#   ..xx..
+	#   xxxxxx
+	#   xxxxxx
+	#   xxxxxx
+	#   .xxxy.
+	#   ..xx..   <- 12a origin (row 5, col 5)
+	"12a": [
+		Vector3i(-2, 0, -4), Vector3i(-1, 0, -4),
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	# 12b - the other face (identical shape to 12a):
+	"12b": [
+		Vector3i(-2, 0, -4), Vector3i(-1, 0, -4),
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	# Tile 14 - irregular stepped shape, 6 rows x 7 cols, mirrored faces:
+	#   ..xx...
+	#   ..xx...
+	#   ..xxxxx
+	#   ..xxxxx
+	#   xxxx...
+	#   xxxy...   <- 14a origin (row 6, col 4)
+	"14a": [
+		Vector3i(-1, 0, -5), Vector3i(0, 0, -5),
+		Vector3i(-1, 0, -4), Vector3i(0, 0, -4),
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3), Vector3i(2, 0, -3), Vector3i(3, 0, -3),
+		Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# 14b - the other face, mirrored:
+	#   xxxx...
+	#   xxxx...
+	#   ..xxxxx
+	#   ..xxxxx
+	#   ..xx...
+	#   ..xy...   <- origin (row 6, col 3)
+	"14b": [
+		Vector3i(-3, 0, -5), Vector3i(-2, 0, -5), Vector3i(-1, 0, -5), Vector3i(0, 0, -5),
+		Vector3i(-3, 0, -4), Vector3i(-2, 0, -4), Vector3i(-1, 0, -4), Vector3i(0, 0, -4),
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3), Vector3i(2, 0, -3), Vector3i(3, 0, -3),
+		Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -2),
+		Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Tile 13 - large notched shape, 6 rows x 6 cols. Hand-authored from ASCII
+	# art (not extracted - see the note by tile 21 above; 13's mesh in
+	# floors.glb has the same interior-pivot problem). Symmetric - both faces
+	# identical:
+	#   ..xx..
+	#   xxxxxx
+	#   xxxxxx
+	#   .xxxx.
+	#   .xxxy.   <- origin (row 5, col 5)
+	#   ..xx..
+	"13a": [
+		Vector3i(-2, 0, -4), Vector3i(-1, 0, -4),
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	"13b": [
+		Vector3i(-2, 0, -4), Vector3i(-1, 0, -4),
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	# Tile 15 - wide notched rectangle, 3 rows x 8 cols (symmetric - both faces
+	# identical, unlike most double-sided tiles):
+	#   xx....xx
+	#   xxxxxxxx
+	#   xxxxxxxy   <- origin (row 3, col 8)
+	"15a": [
+		Vector3i(-7, 0, -2), Vector3i(-6, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-7, 0, -1), Vector3i(-6, 0, -1), Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-7, 0, 0), Vector3i(-6, 0, 0), Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"15b": [
+		Vector3i(-7, 0, -2), Vector3i(-6, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-7, 0, -1), Vector3i(-6, 0, -1), Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-7, 0, 0), Vector3i(-6, 0, 0), Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Tile 16 - large irregular shape, 6 rows x 7 cols:
+	#   ...xx..
+	#   xxxxxx.
+	#   xxxxxxx
+	#   .xxxxxx
+	#   .xxxxy.   <- 16a origin (row 5, col 6)
+	#   .xx....
+	"16a": [
+		Vector3i(-2, 0, -4), Vector3i(-1, 0, -4),
+		Vector3i(-5, 0, -3), Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-5, 0, -2), Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-4, 0, 1), Vector3i(-3, 0, 1),
+	],
+	# 16b - the other face:
+	#   .xx....
+	#   .xxxxx.
+	#   .xxxxxx
+	#   xxxxxxx
+	#   xxxxxy.   <- origin (row 5, col 6)
+	#   ...xx..
+	"16b": [
+		Vector3i(-4, 0, -4), Vector3i(-3, 0, -4),
+		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(-2, 0, 1), Vector3i(-1, 0, 1),
+	],
+	# Tile 17 - notched rectangle, 5 rows x 6 cols (symmetric - both faces
+	# identical):
+	#   xx..xx
+	#   xxxxxx
+	#   xxxxxx
+	#   xxxxxx
+	#   xxxxxy   <- origin (row 5, col 6)
+	"17a": [
+		Vector3i(-5, 0, -4), Vector3i(-4, 0, -4), Vector3i(-1, 0, -4), Vector3i(0, 0, -4),
+		Vector3i(-5, 0, -3), Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-5, 0, -2), Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"17b": [
+		Vector3i(-5, 0, -4), Vector3i(-4, 0, -4), Vector3i(-1, 0, -4), Vector3i(0, 0, -4),
+		Vector3i(-5, 0, -3), Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-5, 0, -2), Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2),
+		Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Tile 19 - small solid rectangle, 3 rows x 4 cols. UNVERIFIED - the user
+	# authored this mesh from memory on holiday, without the physical box or a
+	# scan to check against, so double-check this shape against the real tile
+	# before relying on it for a real mission. Identical shape both faces:
+	#   xxxx
+	#   xxxx
+	#   .xy.   <- origin (row 3, col 3)
+	"19a": [
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"19b": [
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# Tile 20 - staggered zigzag, 5 rows x 4 cols. Origin's pivot sits on the
+	# shape's own OPPOSITE edge for the "b" face (same already-handled case as
+	# 3b/4a/5a - see _apply_pivot_correction() below), so (0,0) itself isn't
+	# actually covered for 20b - that's expected, not a bug:
+	#   xxx.
+	#   xxx.
+	#   .xx.
+	#   .xxx
+	#   .xxy   <- 20a origin (row 5, col 3)
+	"20a": [
+		Vector3i(-3, 0, -4), Vector3i(-2, 0, -4), Vector3i(-1, 0, -4),
+		Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3),
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2),
+		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1),
+		Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	# 20b - the other face:
+	#   .xxx
+	#   .xxx
+	#   .xx.
+	#   xxx.
+	#   xxx.   <- origin sits one cell right of this shape's near corner (see note above)
+	"20b": [
+		Vector3i(1, 0, -4), Vector3i(2, 0, -4), Vector3i(3, 0, -4),
+		Vector3i(1, 0, -3), Vector3i(2, 0, -3), Vector3i(3, 0, -3),
+		Vector3i(1, 0, -2), Vector3i(2, 0, -2),
+		Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0),
+	],
+	# Tile 21 - small cross, 4 rows x 4 cols. Hand-authored from ASCII art
+	# (not extracted from floors.glb like 8/15/16/17/20 above) - the mesh
+	# geometry currently in floors.glb for "21a"/"21b" is a ~56-cell solid
+	# rectangle with the pivot in its interior, nothing like this shape, so
+	# it's not just a pivot-correction case (see extract_footprints.py's
+	# pivot validity check) - the mesh itself needs fixing/replacing in
+	# Blender before extraction would work for this one. Both faces reduce
+	# to the SAME stored offsets below (verified) - same as 1/2/7/18, the
+	# filled cells are identical between faces, only the origin marker cell
+	# printed on the card differs, and pivot-correction normalizes that away:
+	#   .xx.
+	#   xxxx
+	#   xxxx
+	#   .xy.   <- 21a origin (row 4, col 3)
+	#   .yx.   <- 21b origin (row 4, col 2) - same filled cells as above
+	"21a": [
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
+	"21b": [
+		Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
+		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
+		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
+		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+	],
 	# Pillars - 1x1 tile-square each. Asset geometry: pivot at (0,0,0),
 	# mesh extends to (1,0,-1) - i.e. +1 tile-square in X, but the pivot
 	# is already at the correct Z edge (0, not -1). This offset makes

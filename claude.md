@@ -248,6 +248,46 @@ locally, without this project ever shipping or redistributing that copyrighted a
 — see **Official asset overrides** below for the full mechanism. Run it once
 pointed at your own game install; nothing it produces ever gets committed.
 
+`tools/footprint_extraction/` — derives `FootprintRegistry.FOOTPRINTS` entries
+directly from `models/floors.glb`'s mesh geometry instead of hand-typing ASCII
+art — see **Footprint extraction from mesh geometry** below.
+
+## Footprint extraction from mesh geometry
+
+`tools/footprint_extraction/extract_footprints.py` reads `models/floors.glb`
+(a standard glTF binary, one named node per tile face - `"1a"`, `"18b"`, etc.,
+matching `FootprintRegistry.FOOTPRINTS`'s keys exactly) and computes each
+tile's footprint by sampling every candidate tile-square cell's center point
+against the mesh's actual triangles (XZ-projected; floor tiles are flat), then
+converts that into the same "raw, pre-`_apply_pivot_correction()`" storage
+form the hand-authored entries use - see the script's own docstrings for the
+exact offset<->world-space mapping and the pivot-correction round-trip math.
+No third-party deps; parses the GLB/glTF container by hand (good enough for
+this one-shot use, not a general glTF library).
+
+Two safety checks gate its output:
+- **Calibration**: every tile already hand-authored in `FOOTPRINTS` is
+  re-derived from the mesh and compared byte-for-byte against the existing
+  entry before the script will print anything for NEW tiles. If any known
+  tile doesn't match exactly, it refuses to run rather than risk silently
+  wrong data.
+- **Pivot validity**: checks the actual invariant the whole rotate/expand
+  pipeline depends on (cells along the origin's own row/column extend in only
+  ONE direction - see the pivot-correction note under "Hard-won lessons"
+  below) rather than a naive bounding-box-corner check, since shapes like
+  tile 7's cross legitimately bulge past the origin's row/column elsewhere in
+  the piece. A tile whose Blender pivot sits genuinely in the shape's
+  interior (found for `21a`/`21b` - see **Current data authored so far**)
+  fails this check and is excluded from the output with a warning, since no
+  uniform correction can fix it - the mesh's origin needs moving to an actual
+  corner in Blender and re-exporting.
+
+Run it with `python tools/footprint_extraction/extract_footprints.py` from the
+repo root any time new tile faces are added to `floors.glb`; it prints an
+ASCII-art preview of every new tile (same style as the hand-authored comments
+in `FootprintRegistry.gd`, for eyeballing that `a`/`b` faces are proper
+mirror images etc.) plus ready-to-paste `Vector3i` entries.
+
 ## Official asset overrides
 
 Same pattern [OpenMW](https://openmw.org/) uses for Morrowind: this project ships
@@ -377,9 +417,36 @@ These cost real debugging time — worth not re-learning them:
 
 - Floor tiles: `1a`/`1b`, `2a`/`2b` (2×3 rectangle), `3a`/`3b` (notched rectangle,
   mirrored faces), `4a`/`4b`/`5a`/`5b` (stepped/L-shape, mirrored faces — tile 5
-  shares tile 4's shape), `7a`/`7b` (plus/cross), `18a`/`18b` (large 7×7
-  octagon-ish shape, 36 cells) — **15 of ~22 tiles still need their shapes
-  measured and entered**.
+  shares tile 4's shape), `6a`/`6b` (notched rectangle), `7a`/`7b` (plus/cross),
+  `8a`/`8b` (small cross/T notch), `9a`/`9b` (large irregular slanted shape,
+  mirrored), `10a`/`10b` (notched rectangle), `11a`/`11b` (irregular slanted
+  shape, mirrored), `12a`/`12b` (notched rectangle), `13a`/`13b` (large notched
+  shape, symmetric), `14a`/`14b` (irregular stepped shape, mirrored), `15a`/`15b`
+  (wide notched rectangle, symmetric), `16a`/`16b` (large irregular shape),
+  `17a`/`17b` (notched rectangle, symmetric), `18a`/`18b` (large 7×7 octagon-ish
+  shape, 36 cells), `19a`/`19b` (small solid rectangle), `20a`/`20b` (staggered
+  zigzag), `21a`/`21b` (small 4×4 cross) — all of these except `9a`/`9b`,
+  `13a`/`13b`, and `21a`/`21b` were derived from mesh geometry rather than
+  hand-typed ASCII art, see **Footprint extraction from mesh geometry** below.
+  - **`6a`/`6b` and `19a`/`19b` are UNVERIFIED** - the user modeled these two
+	tiles' meshes from memory while away from the physical box with no scan to
+	check against ("on holiday", 2026-09-08), so their shape is a guess. The
+	extracted footprint faithfully matches whatever the mesh says, but the mesh
+	itself might not match the real physical tile - re-check both against the
+	actual box before relying on them for a real mission, and re-run the
+	extraction tool if the mesh gets corrected.
+  - `9a`/`9b`, `13a`/`13b`, and `21a`/`21b` were hand-authored from ASCII art
+	instead of extracted: the mesh geometry in `floors.glb` for those three
+	names is a large solid rectangle with the pivot in its interior (72/72/56
+	cells respectively) - nothing like the actual shapes, so it's not just a
+	pivot-correction case, the meshes themselves need fixing/replacing in
+	Blender before extraction would work for tiles 9/13/21.
+  - `bridge.001` and `stair.001` are also present in `floors.glb` but aren't
+	tile-face names and are deliberately skipped by the extraction tool - the
+	user has flagged these as unexpected/leftover, not (yet) real tiles.
+  - Remaining tile numbers beyond what's listed here still need their meshes
+	added to `floors.glb` (or shapes measured/entered by hand) and re-run
+	through the tool.
 - `stair` — 3×2 shape entered; the low/high point distinction and `LEVEL_LINK` wiring
   (which cells it actually connects, and across how many levels) is **not yet done** —
   that's mission-instance-specific data, not something the mesh shape alone defines.
@@ -400,8 +467,17 @@ These cost real debugging time — worth not re-learning them:
 
 ## Open items / natural next steps
 
-1. Finish authoring the remaining ~15 floor tile shapes (now that placement/rotation
-   is verified trustworthy, this should go faster than the first few did).
+1. Finish authoring the remaining floor tile shapes not yet in `FootprintRegistry`
+   (see **Current data authored so far** above for exactly which numbers) - most of
+   these can now go through `tools/footprint_extraction/` instead of hand-typed
+   ASCII art once their mesh exists in `floors.glb` with a correct corner pivot.
+   - **Verify `6a`/`6b` and `19a`/`19b` against the real physical box** - these were
+	 modeled from memory while the user was away from the box with no scan to check
+	 against, so they're guesses and might not match the real tiles.
+   - Fix the Blender pivot (move to a real corner, re-export) for `9a`/`9b`,
+	 `13a`/`13b`, and `21a`/`21b` - their meshes currently have the origin in the
+	 shape's interior, which the extraction tool can detect but not correct.
+	 All three are unblocked in the meantime via hand-authored ASCII art.
 2. ~~Real palette UI~~ — done, see `CreatorPalette.gd`, including the "jump to a
    placed instance" follow-up (via the "Show unavailable" mode + `locate_mesh()`).
    **Unverified in-editor** (built without visual feedback — I have no way to launch
