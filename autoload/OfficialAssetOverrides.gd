@@ -14,20 +14,52 @@ const OVERRIDE_DIR := "user://official_assets/"
 
 ## Call once at startup with the shared MeshLibrary (all four GridMaps -
 ## floor/wall/prop/underlay - use the same one, so this only needs to run
-## once, not per-grid). Safe to call with no override files present; it's
-## then just a no-op scan.
+## once, not per-grid). Scans EVERY item's current texture (not just ones
+## with some special name) since OfficialAssetMap matches by placeholder
+## texture path - several floor tile faces share the exact same
+## "flagstone"/"grass"/etc. texture, so this naturally swaps all of them
+## without needing a map entry per tile face. Safe to call with no
+## override files present; it's then just a no-op scan.
 func apply_overrides(mesh_library: MeshLibrary) -> void:
 	if mesh_library == null:
 		return
 	for item_id in mesh_library.get_item_list():
-		var mesh_name := mesh_library.get_item_name(item_id)
-		var official_name := OfficialAssetMap.get_official_name(mesh_name)
-		if official_name == "":
-			continue
-		var texture := _load_override_texture(official_name)
-		if texture == null:
-			continue
-		_apply_texture(mesh_library, item_id, texture)
+		_apply_to_item(mesh_library, item_id)
+
+
+func _apply_to_item(mesh_library: MeshLibrary, item_id: int) -> void:
+	var mesh := mesh_library.get_item_mesh(item_id)
+	if mesh == null or mesh.get_surface_count() == 0:
+		return
+
+	# Only surface 0 - see the class-level note on multi-surface items
+	# (the "medium"/"mini" pillars have several; nothing currently mapped
+	# does).
+	var material := mesh.surface_get_material(0)
+	if not (material is StandardMaterial3D):
+		return
+
+	var current_texture: Texture2D = material.albedo_texture
+	if current_texture == null or current_texture.resource_path == "":
+		return
+
+	var official_name := OfficialAssetMap.get_official_name(current_texture.resource_path)
+	if official_name == "":
+		return
+
+	var override_texture := _load_override_texture(official_name)
+	if override_texture == null:
+		return
+
+	# Duplicate before touching - never mutate a material in place, in
+	# case two items ever end up sharing one material resource (they
+	# already share the same TEXTURE by design for floor tiles, but each
+	# item should still end up with its own independent material after
+	# this, not a shared one two different swaps could stomp on).
+	var new_material: StandardMaterial3D = material.duplicate()
+	new_material.albedo_texture = override_texture
+	mesh.surface_set_material(0, new_material)
+	mesh_library.set_item_mesh(item_id, mesh)
 
 
 func _load_override_texture(official_name: String) -> ImageTexture:
@@ -39,30 +71,3 @@ func _load_override_texture(official_name: String) -> ImageTexture:
 		push_warning("OfficialAssetOverrides: failed to load %s" % path)
 		return null
 	return ImageTexture.create_from_image(image)
-
-
-## Duplicates the material before touching it - each MeshLibrary item here
-## already owns its own distinct mesh resource (verified against
-## descent-meshes.tres), but materials could still be accidentally shared
-## between them (e.g. two objects left on Blender's default material), and
-## mutating a shared material in place would silently reskin the wrong
-## items too.
-##
-## Only handles a single surface (surface 0). Confirmed all items current
-## OfficialAssetMap entries (the underlay hazards) are single-surface -
-## some OTHER items (the "medium"/"mini" pillars) do have multiple
-## surfaces/materials, so if this ever needs to cover a multi-surface
-## item, this function needs to loop surfaces and either take a surface
-## index or a per-surface texture list, not just one texture.
-func _apply_texture(mesh_library: MeshLibrary, item_id: int, texture: ImageTexture) -> void:
-	var mesh := mesh_library.get_item_mesh(item_id)
-	if mesh == null or mesh.get_surface_count() == 0:
-		return
-	var material := mesh.surface_get_material(0)
-	if not (material is StandardMaterial3D):
-		push_warning("OfficialAssetOverrides: item '%s' has no StandardMaterial3D on surface 0, skipping" % mesh_library.get_item_name(item_id))
-		return
-	var new_material: StandardMaterial3D = material.duplicate()
-	new_material.albedo_texture = texture
-	mesh.surface_set_material(0, new_material)
-	mesh_library.set_item_mesh(item_id, mesh)

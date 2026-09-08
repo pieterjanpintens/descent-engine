@@ -13,6 +13,10 @@ extends Node3D
 ##   R                  - rotate the selection 90 degrees before placing
 ##   L                  - cycle which layer , / . browses: Floor -> Wall -> Prop -> Underlay
 ##   Page Up/Down       - move the painting level (Y) up/down
+##   O                  - toggle occupancy overlay
+##   N                  - toggle tile name labels (mesh_item_name at each origin cell -
+##                        mainly useful now that many floor tiles share a generic
+##                        material and can't be told apart by looks alone)
 ##
 ## NOTE: mesh cycling deliberately does NOT use Tab - Tab is Godot's
 ## built-in ui_focus_next action, and now that this scene has real Button
@@ -72,6 +76,9 @@ var _occupancy_overlay: MeshInstance3D
 var _occupancy_overlay_mesh: ImmediateMesh
 var show_occupancy_overlay: bool = false
 
+var _tile_labels_container: Node3D
+var show_tile_labels: bool = false
+
 var _hovered_cell: Vector3i = Vector3i.ZERO
 var _has_hover: bool = false
 
@@ -88,6 +95,7 @@ func _ready() -> void:
 	_setup_grid_overlay()
 	_setup_origin_overlay()
 	_setup_occupancy_overlay()
+	_setup_tile_labels()
 	if camera == null:
 		camera = get_viewport().get_camera_3d()
 
@@ -158,6 +166,48 @@ func _setup_occupancy_overlay() -> void:
 	_occupancy_overlay.material_override = material
 	_occupancy_overlay.visible = false
 	add_child(_occupancy_overlay)
+
+
+func _setup_tile_labels() -> void:
+	_tile_labels_container = Node3D.new()
+	_tile_labels_container.visible = false
+	add_child(_tile_labels_container)
+
+
+## Shows the mesh_item_name of every placed floor/wall/underlay/prop piece
+## at its origin cell - mainly useful now that many floor tile faces share
+## the same generic material (flagstone/grass/dirt/wood planks) and can no
+## longer be told apart by looks alone. Rebuilt on toggle and after edits
+## (see _sync_after_edit()), NOT every frame like the occupancy overlay -
+## that one's cheap ImmediateMesh geometry, but this creates real Label3D
+## scene nodes, which would be wasteful to tear down and recreate 60x/sec.
+func _rebuild_tile_labels() -> void:
+	for child in _tile_labels_container.get_children():
+		child.queue_free()
+
+	var mission := layered_map.mission
+	for placement in mission.floor_placements:
+		var grid := layered_map.floor_grid if placement.layer == TilePlacement.Layer.FLOOR else layered_map.wall_grid
+		_add_tile_label(grid, placement.origin_cell, placement.mesh_item_name)
+	for placement in mission.underlay_placements:
+		_add_tile_label(layered_map.underlay_grid, placement.origin_cell, placement.mesh_item_name)
+	for entry in mission.interactables:
+		_add_tile_label(layered_map.prop_grid, entry.origin_cell, entry.mesh_item_name)
+
+
+func _add_tile_label(grid: GridMap, origin_cell: Vector3i, mesh_name: String) -> void:
+	var label := Label3D.new()
+	label.text = mesh_name
+	label.font_size = 64
+	label.outline_size = 12
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true  # always readable, never hidden behind geometry
+	# map_to_local() returns the cell's CORNER (Center X/Y/Z are off project-wide),
+	# so nudge to the corner's cell-center-ish + a bit of height for legibility.
+	var cell_size := grid.cell_size
+	var local_pos: Vector3 = grid.map_to_local(origin_cell) + Vector3(cell_size.x * 0.5, 0.3, cell_size.z * 0.5)
+	label.global_transform = grid.global_transform * Transform3D(Basis.IDENTITY, local_pos)
+	_tile_labels_container.add_child(label)
 
 
 func _current_grid() -> GridMap:
@@ -350,6 +400,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_O:
 				print("show stuff")
 				show_occupancy_overlay = not show_occupancy_overlay
+			KEY_N:
+				show_tile_labels = not show_tile_labels
+				_tile_labels_container.visible = show_tile_labels
+				if show_tile_labels:
+					_rebuild_tile_labels()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if Input.is_key_pressed(KEY_SHIFT):
 			erase_at_cursor()
@@ -686,3 +741,6 @@ func _sync_after_edit(grid: GridMap, cell: Vector3i) -> void:
 		# enough for this to matter for responsiveness, this is the place
 		# to swap in an incremental single-cell sync instead.
 		layered_map.rebuild_floor_tiles()
+
+	if show_tile_labels:
+		_rebuild_tile_labels()

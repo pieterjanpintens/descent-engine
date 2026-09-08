@@ -158,15 +158,22 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
 	column-fallback (match X/Z, ignore Y) for meshes taller than one cell (e.g. the
 	`tall` pillar).
   - Debug overlays, all toggleable: ghost preview, reference grid lines, world-origin
-	axis gizmo, and an occupancy overlay (`O` key) that draws wireframe boxes of what
+	axis gizmo, an occupancy overlay (`O` key) that draws wireframe boxes of what
 	`floor_occupied_cells`/`occupied_cells`/`underlay_occupied_cells` actually think is
 	covered — built assuming GridMap's **Center X/Y/Z are OFF** (map_to_local returns
 	a cell's corner, not center) — this was essential for diagnosing the footprint
-	bugs.
+	bugs — and a tile-name-label overlay (`N` key, `_rebuild_tile_labels()`) that
+	shows every placed item's `mesh_item_name` as a `Label3D` at its origin cell.
+	Rebuilt on toggle and after edits (via `_sync_after_edit()`), NOT every frame
+	like the occupancy overlay — that one's cheap `ImmediateMesh` geometry, but this
+	creates real `Label3D` scene nodes, too costly to tear down/recreate 60x/sec.
+	Mainly useful now that many floor tile faces share one generic material
+	(flagstone/grass/dirt/wood planks) and can no longer be told apart by looks
+	alone.
   - Controls: Left-click place, Shift+Left-click erase, `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
 	filter (Floor → Wall → Prop → Underlay), PageUp/PageDown change level, `O` toggle
-	occupancy overlay.
+	occupancy overlay, `N` toggle tile name labels.
 - `CreatorSaveLoad.gd` — Save/Load/New buttons + a `FileDialog` (must be
   **Access = Resources**, not File System, to get usable `res://` paths). Reuses
   `MissionIO` + `LayeredMap.apply_mission()`.
@@ -237,31 +244,38 @@ zero copyrighted game art, only placeholder textures — the real look only ever
 appears locally, for a user who separately owns the official game and runs
 `tools/asset_import/import_official_assets.py` against their own install.
 
-- `OfficialAssetMap` (autoload) — hand-maintained `Dictionary` mapping our
-  MeshLibrary item names (e.g. `"acid"`) to the official game's internal asset
-  names (e.g. `"W1_Underlay_FetidPool"`). The names don't follow any shared
-  convention — confirmed by actually inspecting the game's Unity AssetBundles —
-  so this can never be derived automatically, only hand-authored per item. Only
-  covers items actually confirmed this way so far: the four underlay hazards
-  (`water`/`acid`/`lava`/`spikes`). Floor tile faces (`1a`–`21b`) aren't mapped
-  yet — the official game reuses a handful of shared materials
-  (flagstone/grass/dirt/wood planks) across many physical tile shapes rather than
-  one texture per tile number, and which shape should use which material is a
-  design decision that hasn't been made yet.
+- `OfficialAssetMap` (autoload) — hand-maintained `Dictionary` mapping a shipped
+  **placeholder texture's `res://` path** (e.g.
+  `"res://models/floors_flagstone.png"`) to the official game's internal asset name
+  (e.g. `"W1_Tiles_Flagstone"`). Keyed by texture path rather than mesh/item name
+  **deliberately**: many floor tile faces share the exact same placeholder texture
+  (that's the whole point of the flagstone/grass/dirt/wood-planks material system),
+  so matching by texture means one map entry covers every tile face using that
+  look, instead of needing one entry per tile face all pointing at the same
+  texture. Works identically for the underlay hazards too, since each of those
+  already has its own uniquely-named placeholder. The names don't follow any
+  shared convention — confirmed by actually inspecting the game's Unity
+  AssetBundles — so this can never be derived automatically, only hand-authored.
+  Currently covers all 8 confirmed so far: the four underlay hazards
+  (`water`/`acid`/`lava`/`spikes`) and the four floor materials
+  (flagstone/grass/dirt/wood planks).
 - `OfficialAssetOverrides` (autoload) — `apply_overrides(mesh_library)`, called
   once from `LayeredMap._ready()` (all four GridMaps share one MeshLibrary, so one
-  call covers everything). For every mapped item, checks
-  `user://official_assets/<OfficialName>.png` and swaps it onto that item's
-  material if present, else leaves the shipped placeholder untouched. Always
-  **duplicates** the material before touching it — never mutates in place, in case
-  two items ever end up sharing one material resource.
+  call covers everything). Scans **every** item (not just specially-named ones,
+  since matching is texture-based now) — for each, reads its current
+  `surface_get_material(0).albedo_texture.resource_path`, looks that path up in
+  `OfficialAssetMap`, and if `user://official_assets/<OfficialName>.png` exists,
+  swaps it onto that item's material. Leaves the shipped placeholder untouched
+  otherwise. Always **duplicates** the material before touching it — never mutates
+  in place, so every item ends up with its own independent material even though
+  many floor tile faces started out sharing the same one.
   - **Only handles single-surface meshes right now** (`surface_get_material(0)`).
-	Verified true for every current `OfficialAssetMap` entry by inspecting
+	Verified true for every current `OfficialAssetMap`-matched item by inspecting
 	`descent-meshes.tres` directly, but NOT true project-wide — the `"medium"`/
 	`"mini"` pillar meshes have multiple surfaces/materials each (their own
 	original sculpts, not part of this system, but proof the assumption doesn't
-	hold everywhere). If a future mapped item turns out multi-surface, this needs
-	to loop surfaces instead of hardcoding index 0.
+	hold everywhere). If a future mapped texture turns out to be used on a
+	multi-surface item, this needs to loop surfaces instead of hardcoding index 0.
 - Props like `gate`/`archway`/`tree` and the pillars/`stair` are the user's own
   original sculpted models (not derived from the official game at all), so they're
   intentionally absent from `OfficialAssetMap` — there's no "official" version to
@@ -392,7 +406,9 @@ These cost real debugging time — worth not re-learning them:
 7. `ComponentInventory` limit warnings only `push_warning()` to the Output panel —
    needs on-screen UI feedback once there's any kind of HUD.
 8. Fill in real `ComponentInventory.MAX_COUNTS` from the actual physical box contents.
-9. Decide which floor tile faces (`1a`–`21b`) should use which shared floor material
-   (flagstone/grass/dirt/wood planks) — needed before `OfficialAssetMap` can cover
-   floor tiles the way it already covers the underlay hazards; see **Official asset
-   overrides** above.
+9. ~~Decide which floor tile faces should use which shared floor material~~ — done
+   (Blender remap assigns each tile face one of flagstone/grass/dirt/wood planks),
+   and `OfficialAssetMap`/`OfficialAssetOverrides` now cover floor tiles the same
+   way they cover the underlay hazards. **Unverified**: confirm in-editor that all
+   8 override textures actually apply correctly across every tile face, not just
+   the ones spot-checked so far.
