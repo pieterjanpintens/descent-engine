@@ -209,10 +209,10 @@ const FOOTPRINTS: Dictionary = {
 	#   xxxxx.
 	#   yxx...   <- 9a origin (row 4, col 1)
 	"9a": [
-		Vector3i(3, 0, -3), Vector3i(4, 0, -3),
-		Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -2), Vector3i(4, 0, -2),
-		Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1),
-		Vector3i(-1, 0, 0), Vector3i(0, 0, 0), Vector3i(1, 0, 0),
+		Vector3i(4, 0, -3), Vector3i(5, 0, -3),
+		Vector3i(1, 0, -2), Vector3i(2, 0, -2), Vector3i(3, 0, -2), Vector3i(4, 0, -2), Vector3i(5, 0, -2),
+		Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1), Vector3i(3, 0, -1), Vector3i(4, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(2, 0, 0),
 	],
 	# 9b - the other face, mirrored:
 	#   xx....
@@ -486,10 +486,10 @@ const FOOTPRINTS: Dictionary = {
 		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
 	],
 	"21b": [
-		Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
-		Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2),
-		Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1),
-		Vector3i(-1, 0, 0), Vector3i(0, 0, 0),
+		Vector3i(0, 0, -3), Vector3i(1, 0, -3),
+		Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(1, 0, -2), Vector3i(2, 0, -2),
+		Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(1, 0, -1), Vector3i(2, 0, -1),
+		Vector3i(0, 0, 0), Vector3i(1, 0, 0),
 	],
 	# Pillars - 1x1 tile-square each. Asset geometry: pivot at (0,0,0),
 	# mesh extends to (1,0,-1) - i.e. +1 tile-square in X, but the pivot
