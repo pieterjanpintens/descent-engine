@@ -19,6 +19,18 @@ drift out of sync with what the Godot side actually looks for), searches
 every bundle file for each mapped official asset name, and saves matches
 as PNGs into the Godot project's user:// data folder.
 
+Matches both Texture2D assets (the floor/underlay materials) and Sprite
+assets (icon-atlas assets like the token textures - Unity packs these as a
+Sprite referencing a sub-rect of a shared atlas rather than a standalone
+Texture2D, but UnityPy's `.image` resolves either one the same way).
+
+Loads the ENTIRE bundles folder into one UnityPy environment rather than
+one file at a time - required for assets whose material/texture (or, for
+Sprites, atlas) lives in a different bundle file than the object itself
+(seen with the token meshes' cross-bundle material references). Slower and
+more memory-hungry than per-file loading, but this is a one-off local tool,
+not something run often.
+
 On Windows, Godot 4's default user:// folder for this project is:
     %APPDATA%\\Godot\\app_userdata\\Descent-Engine\\official_assets\\
 (matches project.godot's config/name - if that ever changes, this path
@@ -28,7 +40,6 @@ https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html)
 import sys
 import os
 import re
-import glob
 import UnityPy
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,26 +75,28 @@ def main():
     os.makedirs(OVERRIDE_DIR, exist_ok=True)
     found = set()
 
-    for path in sorted(f for f in glob.glob(os.path.join(bundles_dir, "*")) if os.path.isfile(f)):
-        if not wanted - found:
+    print("Loading bundles folder (this can take a while)...")
+    env = UnityPy.load(bundles_dir)
+
+    for obj in env.objects:
+        if obj.type.name not in ("Texture2D", "Sprite"):
+            continue
+        if not (wanted - found):
             break
         try:
-            env = UnityPy.load(path)
+            data = obj.read()
         except Exception:
             continue
-        for obj in env.objects:
-            if obj.type.name != "Texture2D":
-                continue
+        name = getattr(data, "m_Name", "")
+        if name in wanted and name not in found:
             try:
-                data = obj.read()
+                image = data.image
             except Exception:
                 continue
-            name = getattr(data, "m_Name", "")
-            if name in wanted and name not in found:
-                out_path = os.path.join(OVERRIDE_DIR, f"{name}.png")
-                data.image.save(out_path)
-                print(f"saved {out_path}")
-                found.add(name)
+            out_path = os.path.join(OVERRIDE_DIR, f"{name}.png")
+            image.save(out_path)
+            print(f"saved {out_path}")
+            found.add(name)
 
     missing = wanted - found
     if missing:

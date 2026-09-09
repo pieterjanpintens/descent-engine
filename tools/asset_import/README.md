@@ -34,7 +34,10 @@ python import_official_assets.py "<path to game>\<Game>_Data\StreamingAssets\bun
 
 Reads the list of what to look for directly from `OfficialAssetMap.gd` (so it can
 never drift out of sync with what Godot actually looks for), searches the game's
-AssetBundle files for matching texture names, and saves them into Godot's
+AssetBundle files for matching asset names - both `Texture2D` (the floor/underlay
+materials) and `Sprite` (icon-atlas assets, like the token textures - Unity packs
+these as a sub-rect of a shared atlas rather than a standalone `Texture2D`, but
+UnityPy's `.image` resolves either the same way) - and saves them into Godot's
 `user://official_assets/` folder for this project - on Windows, that's:
 
 ```
@@ -43,6 +46,12 @@ AssetBundle files for matching texture names, and saves them into Godot's
 
 Re-run any time `OfficialAssetMap.gd` gains new entries. No Godot rebuild/export
 needed - it picks up new override files the next time the app starts.
+
+Loads the entire bundles folder into one UnityPy environment (rather than one
+file at a time) so cross-bundle references resolve - some assets' material,
+texture, or (for Sprites) atlas lives in a different bundle file than the
+object itself. Slower and more memory-hungry than per-file loading, but this
+is a one-off local tool, not something run often.
 
 ## Extending the map
 

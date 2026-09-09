@@ -14,7 +14,7 @@ extends Node3D
 ##  |- UnderlayGridMap  (GridMap)
 
 @export var mission: MissionData
-@export var floor_thickness: float = 0.1
+@export var floor_thickness: float = 0.2
 
 @onready var floor_grid: GridMap = $FloorGridMap
 @onready var wall_grid: GridMap = $WallGridMap

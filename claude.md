@@ -331,6 +331,13 @@ appears locally, for a user who separately owns the official game and runs
   original sculpted models (not derived from the official game at all), so they're
   intentionally absent from `OfficialAssetMap` — there's no "official" version to
   swap in for those.
+- Token props (`exploration`/`interact`/`umbra`, from `models/tokens.glb`) ARE
+  mapped, unlike the props above — each token type has its own unique official
+  texture (`Token_Explore`/`Token_Interact`/`Token_Umbra`), no sharing like the
+  floor materials. These represent an event/interaction system that doesn't
+  exist yet (see Open Items) - for now they're just placed props, classified as
+  `"prop"` layer via `get_layer()`'s default (not yet given their own layer -
+  may get one later once the event system exists, not decided).
 
 ## CI / Release
 
@@ -464,6 +471,12 @@ These cost real debugging time — worth not re-learning them:
   mesh items present. `gate`/`archway` default to walkable/non-LOS-blocking
   (treated as openings); `tree` defaults to blocking movement + LOS like a pillar.
   These are naming-convention *defaults* only — unverified in-game.
+- Token props `exploration`/`interact`/`umbra` (1×1 each, `models/tokens.glb`) —
+  shapes entered, mesh items present, official-asset-mapped (see **Official
+  asset overrides** above). Currently just placed props (`"prop"` layer,
+  walkable/non-LOS-blocking naming-convention default) with no logic behind
+  them yet - the event/interaction system they're meant to key into doesn't
+  exist, see Open Items.
 
 ## Open items / natural next steps
 
@@ -484,6 +497,9 @@ These cost real debugging time — worth not re-learning them:
    the Godot editor and see it rendered); worth confirming the layout/icons/jump
    behavior actually work before trusting it.
 3. Monster spawns / mission triggers — data model exists, no authoring workflow yet.
+   Related: the `exploration`/`interact`/`umbra` token props exist as placeable
+   meshes now but have no behavior wired up - they're meant to key into a
+   future event-based interaction system (not designed yet).
 4. Movement + line-of-sight in the Player — `MissionData.is_walkable()`/`blocks_los()`
    exist and are correct, but nothing calls them yet; the Player is still just a
    static rendered map.

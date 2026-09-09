@@ -30,6 +30,11 @@ const MAP: Dictionary = {
 	"res://models/floors_grass.png": "W1_Tiles_Grass",
 	"res://models/floors_dirt.png": "W1_Tiles_Dirt",
 	"res://models/floors_wood_planks.png": "W1_Tiles_WoodPlanks",
+	# Token props - each token type has its own unique official art (unlike
+	# the floor materials, there's no sharing here).
+	"res://models/tokens_Exploration.png": "Token_Explore",
+	"res://models/tokens_Interact.png": "Token_Interact",
+	"res://models/tokens_Umbra.png": "Token_Umbra",
 }
 
 

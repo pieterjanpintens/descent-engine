@@ -530,6 +530,13 @@ const FOOTPRINTS: Dictionary = {
 	# not listed already defaults to [Vector3i.ZERO]), but it's listed here for
 	# visibility alongside the other props.
 	"tree": [Vector3i.ZERO],
+	# Event/interaction tokens (exploration/interact/umbra) - single tile-square
+	# each, same "listed for visibility" reasoning as tree above. Currently
+	# classified as props (get_layer() default) rather than their own layer -
+	# may get a dedicated layer later, not decided yet.
+	"exploration": [Vector3i.ZERO],
+	"interact": [Vector3i.ZERO],
+	"umbra": [Vector3i.ZERO],
 	# Underlay hazard planes - always a plain 5x4 tile-square rectangle, same
 	# shape for every hazard type since we author these meshes ourselves
 	# rather than measuring a physical part. Pivot deliberately placed at
