@@ -57,6 +57,7 @@ signal selected(type: SelectionType, id: String)
 
 @export var layered_map: LayeredMap
 @export var creator_controller: CreatorController
+@export var operation_history: OperationHistory  ## records group create/rename/delete/move for undo/redo
 
 var _selected_type: SelectionType = SelectionType.ROOT
 var _selected_id: String = ""
@@ -297,7 +298,9 @@ func _on_item_edited() -> void:
 	if group == null:
 		return
 	var new_name: String = item.get_text(0).strip_edges()
-	group.name = new_name if new_name != "" else "New Group"
+	operation_history.record("Rename group", func():
+		group.name = new_name if new_name != "" else "New Group"
+	)
 	item.set_text(0, group.name)  # normalize back if it was blanked out
 	layered_map.notify_objects_changed()
 
@@ -411,11 +414,13 @@ func _on_context_menu_id_pressed(id: int) -> void:
 
 func _create_group(parent_id: String) -> void:
 	var mission := layered_map.mission
-	var group := MissionGroup.new()
-	group.id = mission.allocate_object_id()
-	group.name = "New Group"
-	group.parent_id = parent_id
-	mission.groups.append(group)
+	operation_history.record("New group", func():
+		var group := MissionGroup.new()
+		group.id = mission.allocate_object_id()
+		group.name = "New Group"
+		group.parent_id = parent_id
+		mission.groups.append(group)
+	)
 	layered_map.notify_objects_changed()
 
 
@@ -435,19 +440,21 @@ func _delete_group(group_id: String) -> void:
 	var group := _find_group_by_id(group_id)
 	if group == null:
 		return
-	for child_group in mission.groups:
-		if child_group.parent_id == group_id:
-			child_group.parent_id = group.parent_id
-	for entry in mission.interactables:
-		if entry.parent_id == group_id:
-			entry.parent_id = group.parent_id
-	for placement in mission.floor_placements:
-		if placement.parent_id == group_id:
-			placement.parent_id = group.parent_id
-	for placement in mission.underlay_placements:
-		if placement.parent_id == group_id:
-			placement.parent_id = group.parent_id
-	mission.groups.erase(group)
+	operation_history.record("Delete group", func():
+		for child_group in mission.groups:
+			if child_group.parent_id == group_id:
+				child_group.parent_id = group.parent_id
+		for entry in mission.interactables:
+			if entry.parent_id == group_id:
+				entry.parent_id = group.parent_id
+		for placement in mission.floor_placements:
+			if placement.parent_id == group_id:
+				placement.parent_id = group.parent_id
+		for placement in mission.underlay_placements:
+			if placement.parent_id == group_id:
+				placement.parent_id = group.parent_id
+		mission.groups.erase(group)
+	)
 	layered_map.notify_objects_changed()
 
 
@@ -455,19 +462,31 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 	if id < 0 or id >= _move_to_target_ids.size():
 		return
 	var new_parent_id: String = _move_to_target_ids[id]
+
+	# Resolve the target FIRST, outside the closure - so a not-found target
+	# (shouldn't normally happen) bails out without recording a no-op
+	# operation, same as the original early-return behavior.
+	var group: MissionGroup = null
+	var entry: InteractableEntry = null
+	var placement: TilePlacement = null
 	match _context_target_type:
 		SelectionType.GROUP:
-			var group := _find_group_by_id(_context_target_id)
-			if group != null:
-				group.parent_id = new_parent_id
+			group = _find_group_by_id(_context_target_id)
 		SelectionType.OBJECT:
-			var entry := _find_interactable_by_id(_context_target_id)
-			if entry != null:
-				entry.parent_id = new_parent_id
+			entry = _find_interactable_by_id(_context_target_id)
 		SelectionType.TILE:
-			var placement := _find_tile_by_id(_context_target_id)
-			if placement != null:
-				placement.parent_id = new_parent_id
+			placement = _find_tile_by_id(_context_target_id)
 		_:
 			return
+	if group == null and entry == null and placement == null:
+		return
+
+	operation_history.record("Move to group", func():
+		if group != null:
+			group.parent_id = new_parent_id
+		elif entry != null:
+			entry.parent_id = new_parent_id
+		elif placement != null:
+			placement.parent_id = new_parent_id
+	)
 	layered_map.notify_objects_changed()

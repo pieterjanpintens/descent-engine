@@ -391,7 +391,25 @@ combat/monster AI (explicitly out of scope for the first working version).
 	item, without re-jumping the camera (see that script's
 	`_on_object_picked()`). This is the "controller emits, UI listens"
 	convention again — `CreatorController` doesn't know `CreatorOutline`
-	exists.
+	exists. `CreatorPalette.gd` also flips Draw mode automatically, both
+	directions (requested 2026-09-10): forces it OFF
+	(`creator_controller.set_draw_mode(false)`) whenever `SidePanel`
+	switches away from the `Palette` tab (listens to its parent
+	`TabContainer`'s own `tab_changed` signal) — draw mode only makes
+	sense while the tool that picks WHAT gets painted is actually on
+	screen, and Select mode naturally pairs with switching to `Outline`
+	to browse/select objects instead. And forces it ON
+	(`set_draw_mode(true)`) from `_on_layer_tab_pressed()`/
+	`_on_mesh_button_pressed()` - picking a layer or a mesh is a clear "I
+	want to paint" signal. Deliberately NOT on the "Show unavailable"
+	checkbox (a display filter, not paint intent) or
+	`_on_locate_mesh_button_pressed()` (clicking an exhausted mesh to jump
+	to it, not something you can select to paint) - and deliberately NOT
+	a generic click-anywhere-in-the-Palette handler on the root Control,
+	since a `Button`'s default `mouse_filter = STOP` would consume the
+	click before it ever reached a parent's `_gui_input()` anyway, so
+	that wouldn't actually fire for the buttons/checkbox inside it -
+	hooking the specific press handlers was the only approach that works.
   - Controls: `D` toggle Draw/Select mode, Left-click place (Draw mode) /
 	select (Select mode), Shift+Left-click erase (Draw mode only), `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
@@ -547,11 +565,83 @@ combat/monster AI (explicitly out of scope for the first working version).
   Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
   - those live in `SidePanel/Outline/Split/Inspector/PropertiesFields`
   (see `CreatorPropertiesPanel.gd`'s entry above), not this script's own
-  node - all still only read/written at Save/New/Load time, not
-  live-synced. The old `_ready()` that pinned the toolbar row's right edge
-  against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row overlapping
-  the palette) is gone - moot now that there's no toolbar row to overlap
-  anything, see Open item #12.
+  node. **Live-synced as of 2026-09-10** (for undo/redo, see
+  `OperationHistory.gd` below) - previously documented as "only read/
+  written at Save/New/Load time, not live-synced", that changed because
+  meldable, undoable operations need a live write to react to. The
+  SpinBoxes write straight to `mission.min_players`/`max_players` on
+  `value_changed`, each wrapped in `operation_history.record()`; the
+  `LineEdit` commits on `text_submitted`/`focus_exited` (not per
+  keystroke - that would flood the undo stack one entry per character).
+  `_apply_objective_field()`/`_apply_player_count_fields()` are still
+  called once more at Save time as a harmless safety net (catches an
+  edit that never got committed - e.g. text typed but Enter never
+  pressed - before Save was clicked). A new `_on_mission_objects_changed()`
+  listens for `LayeredMap.mission_objects_changed` (Load/New, and now
+  undo/redo) to refresh these fields FROM the mission, replacing the old
+  explicit `_refresh_objective_field()`/`_refresh_player_count_fields()`
+  calls that used to sit directly in `_on_new_button_pressed()`/
+  `_load_from()`. The old `_ready()` that pinned the toolbar row's right
+  edge against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row
+  overlapping the palette) is gone - moot now that there's no toolbar row
+  to overlap anything, see Open item #12.
+- **`OperationHistory.gd`** (attached to `MenuBar/Edit`, a `PopupMenu`
+  sibling of `MenuBar/File`) — undo/redo for the Creator, requested
+  2026-09-10 ("I think this means we need to store a stack of relevant
+  changes done"). **Design**: rather than separate do()/undo() logic per
+  mutation kind, every recorded `Operation` stores a deep-duplicated
+  `MissionData` snapshot (`.duplicate(true)`) from immediately before and
+  after the change; undo/redo is then just
+  `LayeredMap.apply_mission(snapshot.duplicate(true))` (duplicated again
+  on the way OUT, so the live mission is never the same object instance
+  sitting in the history stack - Resources are reference types, a later
+  edit would otherwise corrupt the stored snapshot) for every mutation
+  kind uniformly - painting, erasing, group CRUD, property edits all just
+  become "mission was A, now it's B." `apply_mission()` already emits
+  `mission_objects_changed`, so `CreatorOutline`'s tree,
+  `CreatorPalette`'s availability grid, and now `CreatorSaveLoad`'s
+  fields all refresh after any undo/redo with zero extra wiring. Trades
+  memory (a full mission snapshot per operation, capped at
+  `MAX_OPERATIONS = 50`) for never needing per-mutation-kind reverse
+  logic - "simplest first", missions here are modest in size.
+  - `func record(label: String, mutate: Callable) -> void` - the API
+	every mutation site calls, wrapping its EXISTING mutation code in a
+	`Callable` rather than being restructured: `CreatorController.gd`
+	(paint/erase/spawn-cell-toggle), `CreatorOutline.gd` (group create/
+	rename/delete/move), `CreatorSaveLoad.gd` (objective/player-count, see
+	that script's entry above). Melds into the top-of-stack `Operation`
+	instead of pushing a new one when the label matches and it's within
+	`MELD_WINDOW_MSEC` (1.5s) - the user's own example ("pressing the
+	player count button 6 times should be one operation") - which also
+	naturally makes a whole paint/erase drag stroke one undo step, since
+	every cell painted during one continuous drag shares the "Paint"/
+	"Erase" label.
+  - **Reentrancy**: one recorded mutation's side effect can trigger
+	ANOTHER recorded mutation - e.g. `CreatorSaveLoad`'s min-players field
+	clamping max-players when min gets dragged above it, which fires
+	max's own `value_changed` → `record()` call mid-`mutate.call()` of the
+	outer one. `record()` tracks whether it's already inside a `mutate`
+	call and, if so, just runs the nested `mutate` directly without its
+	own before/after/push-or-meld bookkeeping - the outer call's own
+	`after` snapshot naturally absorbs the nested change, so what the user
+	experienced as one action stays one `Operation`.
+  - **Ctrl+Z/Ctrl+Shift+Z are handled in `CreatorController._unhandled_input()`,
+	NOT on this script's own node** - `OperationHistory` is attached to a
+	`PopupMenu` (a `Window`-derived node), and whether a `Window`'s
+	`_unhandled_input()` fires reliably while closed/invisible is
+	genuinely uncertain without being able to run the editor to check.
+	Reusing `CreatorController`'s own `_unhandled_input()` (already proven
+	reliable this session for every other keyboard shortcut) was the
+	lower-risk choice - it just calls `undo()`/`redo()` directly, same as
+	the Undo/Redo menu items' own `id_pressed` handler does. The menu
+	items themselves grey out via `set_item_disabled()` whenever there's
+	nothing to undo/redo.
+  - **Unverified in-editor**, same caveat as everything else built this
+	session without the ability to launch Godot and see it rendered -
+	especially worth confirming: a paint stroke → undo reverts GridMap +
+	tree + palette together; rapid SpinBox clicks → one undo reverts all
+	of them; undoing past a group delete → members reattach to the group,
+	not left orphaned at root.
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
   move while dragging, scroll wheel to dolly, Shift to boost speed. Its
   `_input()` bails out on a right-click that's over a `Control`
@@ -663,7 +753,8 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
 - **`map/MissionMap.tscn`** (the Creator) — instances `LayeredMapCore` as `%LayeredMap`,
   plus `Camera3D` (FreeLookCamera), `DirectionalLight3D`, `DebugSync`,
   `CreatorController`, and a `CanvasLayer/MainLayout` shell: a top-spanning
-  `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`) above an
+  `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`; Edit →
+  Undo/Redo, `OperationHistory.gd`, see **Creator tooling** below) above an
   `EditorArea` splitting the 3D view's space (left, just an empty
   input-transparent spacer - the 3D content isn't a `Control`) from
   `SidePanel` (right, `Palette`/`Outline` tabs — `Outline` itself splits,

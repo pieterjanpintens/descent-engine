@@ -28,6 +28,7 @@ var _layer_buttons: Array[Button] = []
 var _mesh_buttons: Dictionary = {}  # mesh_item_name -> Button
 var _mesh_grid: GridContainer
 var _selected_mesh_name: String = ""
+var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 
 ## false (default): meshes with no physical copies left simply aren't
 ## shown - matches the natural "the palette is what you can currently
@@ -56,7 +57,21 @@ func _ready() -> void:
 	# switch, the checkbox) happened to force a rebuild. Fixed 2026-09-10.
 	layered_map.mission_objects_changed.connect(_queue_mesh_grid_rebuild)
 
+	_side_panel = get_parent() as TabContainer
+	if _side_panel != null:
+		_side_panel.tab_changed.connect(_on_side_panel_tab_changed)
+
 	_on_layer_changed(creator_controller.current_layer)
+
+
+## Draw mode only makes sense while the Palette is the active tab - it's
+## what picks WHAT gets painted. Switching to another tab (e.g. Outline,
+## to browse/select placed objects) turns it off - Select mode is what
+## naturally pairs with that workflow anyway (left-click picks an object
+## instead of painting one). Requested 2026-09-10.
+func _on_side_panel_tab_changed(tab_index: int) -> void:
+	if tab_index != _side_panel.get_tab_idx_from_control(self):
+		creator_controller.set_draw_mode(false)
 
 
 func _build_ui() -> void:
@@ -103,7 +118,14 @@ func _build_ui() -> void:
 	scroll.add_child(_mesh_grid)
 
 
+## Picking a layer or a mesh (below) is a clear "I want to paint" signal -
+## the reverse of _on_side_panel_tab_changed() turning draw mode off when
+## you leave the Palette entirely. Requested 2026-09-10. Deliberately NOT
+## on the "Show unavailable" checkbox (a display filter, not paint intent)
+## or _on_locate_mesh_button_pressed() (clicking an EXHAUSTED mesh to jump
+## to it - explicitly not something you can select to paint).
 func _on_layer_tab_pressed(layer_index: int) -> void:
+	creator_controller.set_draw_mode(true)
 	creator_controller.select_layer(layer_index as CreatorController.PaintLayer)
 
 
@@ -186,6 +208,7 @@ func _rebuild_mesh_grid() -> void:
 
 
 func _on_mesh_button_pressed(mesh_name: String) -> void:
+	creator_controller.set_draw_mode(true)  # see _on_layer_tab_pressed()'s comment
 	creator_controller.select_mesh(mesh_name)
 
 

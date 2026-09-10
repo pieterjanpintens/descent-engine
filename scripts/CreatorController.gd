@@ -17,6 +17,10 @@ extends Node3D
 ##                        and selects/scrolls to the matching tree item.
 ##   Shift + Left-click - in Draw mode only: erase whatever's at the hovered
 ##                        cell.
+##   Ctrl+Z             - undo, Ctrl+Shift+Z - redo (OperationHistory.gd,
+##                        requested 2026-09-10). Handled here rather than
+##                        on OperationHistory.gd's own node - see that
+##                        script's doc comment for why.
 ##
 ## Hover/placement snaps to tile-square ("game unit") resolution for
 ## everything except pillars - see FootprintRegistry.allows_fine_placement()
@@ -65,6 +69,7 @@ extends Node3D
 ## cycling and UI buttons never disagree about what's selected.
 
 @export var layered_map: LayeredMap
+@export var operation_history: OperationHistory  ## records every mutation below for undo/redo - see that script's own doc comment
 @export var camera: Camera3D  ## leave unset to auto-grab the viewport's active camera
 @export var ghost_color: Color = Color(0.2, 1.0, 0.4, 0.45)
 @export var grid_overlay_color: Color = Color(1.0, 1.0, 1.0, 0.15)
@@ -532,6 +537,17 @@ func _current_orientation() -> int:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
+		# Handled here rather than in OperationHistory.gd itself, which is
+		# attached to a PopupMenu (a Window-derived node) - see that
+		# script's own doc comment for why. Deliberately doesn't check
+		# event.echo (OS key-repeat) - holding Ctrl+Z down to keep undoing
+		# is standard editor behavior.
+		if event.keycode == KEY_Z and event.ctrl_pressed:
+			if event.shift_pressed:
+				operation_history.redo()
+			else:
+				operation_history.undo()
+			return
 		match event.keycode:
 			KEY_COMMA:
 				cycle_mesh(-1)
@@ -645,13 +661,15 @@ func _toggle_spawn_cell_at_cursor() -> void:
 	if not _spawn_has_hover:
 		return
 	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
-	var cells := layered_map.mission.player_spawn_cells
-	var index := cells.find(tile_square)
-	if index == -1:
-		cells.append(tile_square)
-	else:
-		cells.remove_at(index)
-	layered_map.set_spawn_overlay_cells(cells)
+	operation_history.record("Toggle spawn cell", func():
+		var cells := layered_map.mission.player_spawn_cells
+		var index := cells.find(tile_square)
+		if index == -1:
+			cells.append(tile_square)
+		else:
+			cells.remove_at(index)
+		layered_map.set_spawn_overlay_cells(cells)
+	)
 
 
 func _update_hover() -> void:
@@ -879,8 +897,10 @@ func place_at_cursor() -> void:
 		var max_count := ComponentInventory.get_max_count(mesh_name)
 		push_warning("Can't place '%s' - physical limit reached (%d available for '%s')" % [mesh_name, max_count, group])
 		return
-	grid.set_cell_item(_hovered_cell, item_id, _current_orientation())
-	_sync_after_edit(grid, _hovered_cell)
+	operation_history.record("Paint", func():
+		grid.set_cell_item(_hovered_cell, item_id, _current_orientation())
+		_sync_after_edit(grid, _hovered_cell)
+	)
 
 
 ## True if there's at least one more physical copy of mesh_name available
@@ -943,8 +963,10 @@ func erase_at_cursor() -> void:
 
 	print("erase_at_cursor: hit cell %s -> erasing origin %s on %s" % [hit_cell, origin, hit_grid.name])
 
-	hit_grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
-	_sync_after_edit(hit_grid, origin)
+	operation_history.record("Erase", func():
+		hit_grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
+		_sync_after_edit(hit_grid, origin)
+	)
 
 
 ## Select mode's counterpart to place_at_cursor()/erase_at_cursor() - left-

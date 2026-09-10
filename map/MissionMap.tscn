@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorPalette.gd" id="8_palette"]
 [ext_resource type="Script" path="res://scripts/CreatorOutline.gd" id="9_outline"]
 [ext_resource type="Script" path="res://scripts/CreatorPropertiesPanel.gd" id="10_inspector"]
+[ext_resource type="Script" path="res://scripts/OperationHistory.gd" id="11_history"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -15,9 +16,10 @@
 script = ExtResource("4_crsba")
 layered_map = NodePath("../LayeredMap")
 
-[node name="CreatorController" type="Node3D" parent="." unique_id=516128030 node_paths=PackedStringArray("layered_map")]
+[node name="CreatorController" type="Node3D" parent="." unique_id=516128030 node_paths=PackedStringArray("layered_map", "operation_history")]
 script = ExtResource("6_a7isx")
 layered_map = NodePath("../LayeredMap")
+operation_history = NodePath("../CanvasLayer/MainLayout/MenuBar/Edit")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1095084307]
 
@@ -32,14 +34,19 @@ mouse_filter = 2
 [node name="MenuBar" type="MenuBar" parent="CanvasLayer/MainLayout"]
 layout_mode = 2
 
-[node name="File" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map")]
+[node name="File" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map", "operation_history")]
 script = ExtResource("7_iyoar")
 layered_map = NodePath("../../../../LayeredMap")
+operation_history = NodePath("../Edit")
 
 [node name="MissionFileDialog" type="FileDialog" parent="CanvasLayer/MainLayout/MenuBar/File"]
 unique_name_in_owner = true
 root_subfolder = "res://missions/"
 filters = PackedStringArray("*.tres")
+
+[node name="Edit" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map")]
+script = ExtResource("11_history")
+layered_map = NodePath("../../../../LayeredMap")
 
 [node name="EditorArea" type="HBoxContainer" parent="CanvasLayer/MainLayout"]
 layout_mode = 2
@@ -72,12 +79,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="OutlineTree" type="Tree" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("layered_map", "creator_controller")]
+[node name="OutlineTree" type="Tree" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("layered_map", "creator_controller", "operation_history")]
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("9_outline")
 layered_map = NodePath("../../../../../../../LayeredMap")
 creator_controller = NodePath("../../../../../../../CreatorController")
+operation_history = NodePath("../../../../../../../CanvasLayer/MainLayout/MenuBar/Edit")
 
 [node name="Inspector" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("creator_outline", "layered_map", "mission_fields")]
 layout_mode = 2
