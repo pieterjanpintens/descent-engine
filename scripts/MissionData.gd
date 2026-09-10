@@ -2,8 +2,14 @@ class_name MissionData
 extends Resource
 
 ## Root resource describing a single mission: grid layout, static occupancy,
-## monster spawns and trigger/event definitions. Both the Mission Creator and
-## the Player load/save this same resource so there is one source of truth.
+## monster spawns, and the story layer (triggers, win/loss objectives, custom
+## variables). Both the Mission Creator and the Player load/save this same
+## resource so there is one source of truth.
+##
+## The story layer's own runtime (variable values live during a playthrough,
+## current round/checkpoint, win/loss state) is deliberately NOT part of
+## this resource - MissionData is what got authored, not a live game. That
+## runtime container doesn't exist yet.
 
 @export var mission_name: String = ""
 
@@ -44,6 +50,14 @@ extends Resource
 @export var interactables: Array[InteractableEntry] = []
 @export var monster_spawns: Array[MonsterSpawn] = []
 @export var triggers: Array[MissionTrigger] = []
+
+## Win/loss conditions - see MissionObjective for why both share one list.
+@export var objectives: Array[MissionObjective] = []
+
+## Custom variable declarations Condition/Effect can reference by name, on
+## top of the runtime's own built-ins (round_number, player_count, ...)
+## which aren't declared here - see MissionVariable.
+@export var custom_variables: Array[MissionVariable] = []
 
 
 ## Returns { group_name: count } tallying every placed floor/wall/underlay/

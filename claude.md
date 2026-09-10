@@ -31,19 +31,116 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   an underlay hazard physically coexists with whatever floor tile sits on the same
   cells; writing it into the shared `tiles` dict would have one silently overwrite the
   other's `walkable`/`blocks_los` depending on sync order), `interactables`
-  (Array[InteractableEntry]), `monster_spawns`, `triggers`. Methods: `get_tile()`,
-  `is_walkable()`, `blocks_los()`, `get_interactable_at()`, `get_level_links_from()`,
-  `get_component_usage()` (tallies floor + underlay + prop placements together for
-  `ComponentInventory`).
+  (Array[InteractableEntry]), `monster_spawns`, `triggers`, `objectives`,
+  `custom_variables` (see **Story layer** below for the last three). Methods:
+  `get_tile()`, `is_walkable()`, `blocks_los()`, `get_interactable_at()`,
+  `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
+  prop placements together for `ComponentInventory`).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id.
 - `TilePlacement` — layer (FLOOR/WALL/UNDERLAY enum), origin_cell, mesh_item_name,
   orientation.
 - `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK), mesh_item_name,
   origin_cell, footprint (Array[Vector3i], rotation-adjusted), orientation,
-  blocks_movement, blocks_los, props (free-form Dict), plus `link_from_cell`/
-  `link_to_cell`/`link_bidirectional` for stairs (LEVEL_LINK type) — **not yet wired
-  up to real stairs instances**, see Open Items.
-- `MonsterSpawn`, `MissionTrigger` — data model exists, unused so far (no authoring UI).
+  blocks_movement, blocks_los, props (free-form Dict — "visible"/"interactible"
+  bool keys are well-known, read by the runtime directly, both default true when
+  absent), `actions` (Array[PropAction] — see **Story layer**), `reference_name`
+  (optional human-chosen id, e.g. "front_door" — see **Story layer**), plus
+  `link_from_cell`/`link_to_cell`/`link_bidirectional` for stairs (LEVEL_LINK
+  type) — **not yet wired up to real stairs instances**, see Open Items.
+- `MonsterSpawn` — data model exists, unused so far (no authoring UI, no
+  combat/monster AI yet — see Open Items).
+
+## Story layer
+
+Not built from a spec — designed in conversation, working through the actual
+game flow first (see the round-loop diagram below) before naming any resource
+shapes. Nothing here has a runtime evaluator or authoring UI yet — this is
+the data model only, agreed upon 2026-09-10, implementation to follow.
+
+**The round loop** (`RoundCheckpoint.Checkpoint` enum): six named points -
+`BEFORE_PLAYER_PHASE` → `PLAYER_PHASE` → `AFTER_PLAYER_PHASE` →
+`BEFORE_DARKNESS_PHASE` → `DARKNESS_PHASE` → `AFTER_DARKNESS_PHASE` → loop.
+Player phase is where players act and report interactions (the app never
+sees real player positions on the physical board - it only knows what gets
+reported, matching the original game's own companion app). Darkness phase is
+mostly hardcoded monster AI, not condition/effect driven. `NONE` means "not
+checkpoint-driven" - see event-driven triggers below.
+
+**One comparison primitive, shared everywhere**: `Condition` (variable_name +
+Operator enum + value) and `Effect` (variable_name + value, a SET). Both
+deliberately basic for now - no AND/OR nesting, no cross-object queries, no
+increment/expression support. `conditions: Array[Condition]` anywhere in this
+system is an implicit AND across every entry.
+
+**One variable registry, three ways to fill it**: `MissionVariable` (name +
+Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
+variable in `MissionData.custom_variables`; the runtime provides its own
+built-ins (round_number, player_count, ...) using the same shape without
+being authored. A variable's value can come from: the runtime advancing it
+itself (round_number), an `Effect` writing it (a prop action fires), or a
+posed yes/no question answered by the table (since some things - "is a
+player on tile 2a" - can't be computed, only asked, and the honest answer is
+the whole point: "if they lie they ruin their own game"). All three look
+identical to a `Condition` reading the variable - "asked" isn't a special
+condition type, just a variable source. Type is checked against `type` at
+evaluation/mission-load time (push_warning() + skip on mismatch), not in the
+Inspector - a per-variable-typed widget would need a custom
+EditorInspectorPlugin, more tooling than this needs right now.
+
+**`PropAction`** (on `InteractableEntry.actions`) — action_id + description +
+`effects: Array[Effect]`. What a player can report doing to a prop ("push" /
+"You can push this lever"). Firing one applies its effects immediately - the
+event-driven half of the trigger system below.
+
+**Referencing a specific instance** — `InteractableEntry.reference_name`
+(optional, e.g. "front_door") lets one prop's trigger react to another
+named one's state ("if front_door is open, spawn a monster"). No special
+resolution mechanism needed - variable names are already free-form strings,
+so this is purely an authoring convention: the door's own "open" PropAction
+writes a variable named e.g. "front_door.open", and anything else's
+Condition just reads that same string. reference_name should be unique per
+mission when set - not yet validated in-editor.
+
+**`MissionTrigger`** (reworked - previously a fixed TriggerType enum
+[ON_ENTER_REGION/ON_DOOR_OPENED/ON_MONSTER_GROUP_DEFEATED/ON_INTERACT/
+ON_MANUAL] plus a free-text `effect_notes` "formal effect system comes
+later" field) — now: `checkpoint` (RoundCheckpoint.Checkpoint, NONE if
+event-driven instead) XOR `event_id` (non-empty = fires live the instant
+that event happens - currently only a PropAction's action_id, but the same
+mechanism covers future event sources like "a player dies"/"a monster dies",
+deliberately left out of the loop for now), `conditions`, `effects`,
+`priority` (int - tie-break among triggers sharing a checkpoint/event, lower
+fires first; matters when one trigger's effect writes a variable another's
+condition depends on), `one_shot`, `already_fired` (both carried over
+unchanged).
+
+**`MissionObjective`** (new, in `MissionData.objectives`) — win AND loss
+conditions in one list, deliberately: "round counter exceeded N" and "the
+final goal is achieved" are the same shape (checkpoint + conditions), just
+opposite `outcome` (WIN/LOSE enum). Evaluated in `priority` order at each
+objective's checkpoint (typically `AFTER_DARKNESS_PHASE`); first one whose
+conditions all hold ends the game with that outcome - the engine's own
+win/loss check is just another objective, not a special case.
+
+**`MissionPlayer.gd` now walks the checkpoint loop** (Player phase ↔ Darkness
+phase, round counter, see that script's own entry above) - but it's still
+just the loop shell. Live variable values (round_number/player_count aren't
+actually exposed as variables yet, just a plain `current_round` int), and
+actually firing triggers/evaluating objectives at each checkpoint, are both
+still TODO-commented stubs in `_run_darkness_and_loop()`, not implemented.
+
+**Still not designed/built**: the runtime variable registry itself (nothing
+holds MissionVariable values live yet - `MissionRuntime` or similar,
+distinct from `MissionData`); the evaluator that reads that registry to fire
+triggers/objectives; any authoring UI for actions/triggers/variables beyond
+the single objective-description field (`%ObjectiveLineEdit` in
+`CreatorSaveLoad.gd`) - expect new UI surfaces, e.g. a per-prop inspector, a
+real objectives list with conditions; player count (2-6, not the physical
+box's 4 - all 6 playable characters should be usable, kept as a later
+difficulty-scaling input, not yet asked for anywhere) and action economy (3
+actions/turn, 1 must be move - the app doesn't need to enforce this, the
+physical game already does, move is a "dummy action" the app can ignore);
+combat/monster AI (explicitly out of scope for the first working version).
 
 **Autoloads** (`autoload/`):
 
@@ -187,7 +284,10 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
 	correctly-centered label instead of a second independently-placed node).
 - `CreatorSaveLoad.gd` — Save/Load/New buttons + a `FileDialog` (must be
   **Access = Resources**, not File System, to get usable `res://` paths). Reuses
-  `MissionIO` + `LayeredMap.apply_mission()`.
+  `MissionIO` + `LayeredMap.apply_mission()`. Also owns `%ObjectiveLineEdit` -
+  the only objective-authoring UI so far, just the WIN `MissionObjective`'s
+  description (no conditions yet - see **Story layer**). Only read/written at
+  Save/New/Load time, not live-synced on every keystroke.
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
   move while dragging, scroll wheel to dolly, Shift to boost speed.
 - `debug/DebugSync.gd` — temporary manual test harness. Keys **1/2/3/4** (deliberately
@@ -201,8 +301,19 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   `MissionPlayer.tscn` with the chosen path via `GameState`) / Editor (loads the
   Creator scene) / Exit.
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
-  `%LayeredMap.apply_mission()`, shows mission name + counts in a label. Currently
-  **static** — no movement, no interaction, just a rendered map.
+  `%LayeredMap.apply_mission()`, shows mission name + counts in a label. Now runs
+  the basic round loop (see **Story layer**'s `RoundCheckpoint.Checkpoint`):
+  Player phase → "All players done" button → walks every remaining checkpoint
+  (mostly no-ops, commented where a future trigger/objective evaluation pass
+  hooks in) → Darkness phase (a flat `darkness_phase_duration` timed pause
+  standing in for real world-effect resolution + monster AI, neither built
+  yet) → loops back to Player phase, round incremented. `%DarknessOverlay`
+  (a full-rect `ColorRect`, `mouse_filter = IGNORE` so it darkens without
+  blocking clicks) is the only visual change so far. Shows the mission's WIN
+  `MissionObjective`'s description if one was authored. Still **no actual
+  movement/LOS/player-position tracking** — round 1's entry into Player phase
+  doubles as "players spawn" (the app never tracks real positions, so there's
+  no digital spawn step beyond this — see **Story layer**).
 
 ## Scene structure (post-refactor)
 
@@ -496,10 +607,14 @@ These cost real debugging time — worth not re-learning them:
    **Unverified in-editor** (built without visual feedback — I have no way to launch
    the Godot editor and see it rendered); worth confirming the layout/icons/jump
    behavior actually work before trusting it.
-3. Monster spawns / mission triggers — data model exists, no authoring workflow yet.
-   Related: the `exploration`/`interact`/`umbra` token props exist as placeable
-   meshes now but have no behavior wired up - they're meant to key into a
-   future event-based interaction system (not designed yet).
+3. Monster spawns — data model exists, no authoring workflow, no combat/AI yet.
+   The story layer (triggers/objectives/variables/prop actions) has a designed
+   data model and `MissionPlayer.gd` now runs the round-loop shell (Player
+   phase ↔ Darkness phase, see **Story layer**) - but no variable registry, no
+   trigger/objective evaluator, and only one field of authoring UI (the
+   objective description) exist yet; those are the actual next step. The
+   `exploration`/`interact`/`umbra` token props are placeable meshes with no
+   behavior wired up until that evaluator exists.
 4. Movement + line-of-sight in the Player — `MissionData.is_walkable()`/`blocks_los()`
    exist and are correct, but nothing calls them yet; the Player is still just a
    static rendered map.

@@ -10,13 +10,36 @@ enum Type {
 }
 
 @export var type: Type = Type.PROP
+## Optional, empty by default - lets the map designer give a specific
+## instance a human-chosen identifier (e.g. "front_door") so OTHER
+## props/triggers can reference its state in a Condition/Effect, e.g. a
+## trap's trigger might read variable_name "front_door.open" to check it,
+## while the door's own "open" PropAction writes that same variable_name in
+## its effects. This needs no special resolution mechanism - variable names
+## are already free-form strings in the runtime's flat registry (see
+## MissionVariable/Condition/Effect in claude.md's Story layer section), so
+## reference_name is purely an authoring convention for constructing
+## readable, collision-avoiding variable names, not something the engine
+## looks up by itself. Should be unique per mission when set - not yet
+## validated in-editor.
+@export var reference_name: String = ""
 @export var mesh_item_name: String = ""   ## matches the GridMap MeshLibrary item
 @export var origin_cell: Vector3i = Vector3i.ZERO
 @export var footprint: Array[Vector3i] = [Vector3i.ZERO]  ## cell offsets from origin_cell, already rotation-adjusted, see FootprintRegistry
 @export var orientation: int = 0                ## GridMap cell orientation index (0-23)
 @export var blocks_movement: bool = true
 @export var blocks_los: bool = false
-@export var props: Dictionary = {}   ## free-form: linked_region, locked, loot_table, etc.
+## Free-form: linked_region, locked, loot_table, etc. Two keys are
+## well-known and read by the runtime directly: "visible" (bool - hidden
+## props don't render/aren't interactable until some effect flips it, e.g.
+## a secret passage revealed by searching a bookshelf) and "interactible"
+## (bool - toggles whether this prop's actions[] can currently be used).
+## Both default to true when absent.
+@export var props: Dictionary = {}
+## What a player can report doing to this prop (push a lever, search a
+## bookshelf) - see PropAction. Empty means purely decorative, nothing to
+## report.
+@export var actions: Array[PropAction] = []
 
 ## Only meaningful when type == LEVEL_LINK. Two cells this connector joins -
 ## covers both "real" floor-to-floor stairs (large Y difference) and a

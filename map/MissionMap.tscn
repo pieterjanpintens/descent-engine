@@ -25,6 +25,10 @@ offset_bottom = 52.0
 script = ExtResource("7_iyoar")
 layered_map = NodePath("../../LayeredMap")
 
+[node name="BackButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=555000000]
+layout_mode = 2
+text = "Back to Menu"
+
 [node name="NewButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=911392132]
 layout_mode = 2
 text = "New"
@@ -42,6 +46,17 @@ unique_name_in_owner = true
 root_subfolder = "res://missions/"
 filters = PackedStringArray("*.tres")
 
+[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/HBoxContainer" unique_id=555000001]
+layout_mode = 2
+text = "Objective:"
+
+[node name="ObjectiveLineEdit" type="LineEdit" parent="CanvasLayer/HBoxContainer" unique_id=555000002]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Final objective description"
+
 [node name="Palette" type="Control" parent="CanvasLayer" node_paths=PackedStringArray("creator_controller", "layered_map")]
 script = ExtResource("8_palette")
 creator_controller = NodePath("../../CreatorController")
@@ -57,6 +72,7 @@ script = ExtResource("5_d5ryy")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1232056568]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 214.38597, 0)
 
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/BackButton" to="CanvasLayer/HBoxContainer" method="_on_back_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="." method="_on_new_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="CanvasLayer/HBoxContainer" method="_on_new_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]

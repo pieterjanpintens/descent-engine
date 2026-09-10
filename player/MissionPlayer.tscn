@@ -22,6 +22,34 @@ offset_right = 8.0
 offset_bottom = 8.0
 text = "Back to Menu"
 
+[node name="ObjectiveLabel" type="Label" parent="CanvasLayer" unique_id=555000101]
+unique_name_in_owner = true
+offset_top = 24.0
+offset_right = 40.0
+offset_bottom = 47.0
+
+[node name="PhaseLabel" type="Label" parent="CanvasLayer" unique_id=555000102]
+unique_name_in_owner = true
+offset_top = 48.0
+offset_right = 40.0
+offset_bottom = 71.0
+
+[node name="EndPhaseButton" type="Button" parent="CanvasLayer" unique_id=555000103]
+unique_name_in_owner = true
+offset_top = 72.0
+offset_right = 8.0
+offset_bottom = 80.0
+text = "All players done - go to darkness"
+
+[node name="DarknessOverlay" type="ColorRect" parent="CanvasLayer" unique_id=555000104]
+unique_name_in_owner = true
+visible = false
+mouse_filter = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.5)
+
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1656439624]
 transform = Transform3D(1, 0, 0, 0, 0.9347722, 0.3552478, 0, -0.3552478, 0.9347722, 0, 1.2423263, 1.8106883)
 script = ExtResource("3_gd8vj")
@@ -31,3 +59,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6751664, 0)
 sky_mode = 1
 
 [connection signal="pressed" from="CanvasLayer/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/EndPhaseButton" to="." method="_on_end_phase_button_pressed"]
