@@ -19,69 +19,91 @@ layered_map = NodePath("../LayeredMap")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1095084307]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer" unique_id=726651457 node_paths=PackedStringArray("layered_map")]
-offset_bottom = 52.0
+[node name="MainLayout" type="VBoxContainer" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MenuBar" type="MenuBar" parent="CanvasLayer/MainLayout"]
+layout_mode = 2
+
+[node name="File" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map")]
 script = ExtResource("7_iyoar")
-layered_map = NodePath("../../LayeredMap")
+layered_map = NodePath("../../../../LayeredMap")
 
-[node name="BackButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=555000000]
-layout_mode = 2
-text = "Back to Menu"
-
-[node name="NewButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=911392132]
-layout_mode = 2
-text = "New"
-
-[node name="SaveButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=704653810]
-layout_mode = 2
-text = "Save"
-
-[node name="LoadButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=2549628]
-layout_mode = 2
-text = "Load"
-
-[node name="MissionFileDialog" type="FileDialog" parent="CanvasLayer/HBoxContainer" unique_id=2043348998]
+[node name="MissionFileDialog" type="FileDialog" parent="CanvasLayer/MainLayout/MenuBar/File"]
 unique_name_in_owner = true
 root_subfolder = "res://missions/"
 filters = PackedStringArray("*.tres")
 
-[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/HBoxContainer" unique_id=555000001]
+[node name="EditorArea" type="HBoxContainer" parent="CanvasLayer/MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="ViewportSpacer" type="Control" parent="CanvasLayer/MainLayout/EditorArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="SidePanel" type="TabContainer" parent="CanvasLayer/MainLayout/EditorArea"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="Palette" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel" node_paths=PackedStringArray("creator_controller", "layered_map")]
+layout_mode = 2
+script = ExtResource("8_palette")
+creator_controller = NodePath("../../../../../CreatorController")
+layered_map = NodePath("../../../../../LayeredMap")
+
+[node name="Properties" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel" unique_id=555000201]
+layout_mode = 2
+
+[node name="PropertiesFields" type="VBoxContainer" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
 layout_mode = 2
 text = "Objective:"
 
-[node name="ObjectiveLineEdit" type="LineEdit" parent="CanvasLayer/HBoxContainer" unique_id=555000002]
+[node name="ObjectiveLineEdit" type="LineEdit" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 placeholder_text = "Final objective description"
 
-[node name="MinPlayersLabel" type="Label" parent="CanvasLayer/HBoxContainer" unique_id=555000003]
+[node name="MinPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
 layout_mode = 2
-text = "Players:"
+text = "Min players:"
 
-[node name="MinPlayersSpinBox" type="SpinBox" parent="CanvasLayer/HBoxContainer" unique_id=555000004]
+[node name="MinPlayersSpinBox" type="SpinBox" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 1
 max_value = 6
 value = 1
 
-[node name="MaxPlayersLabel" type="Label" parent="CanvasLayer/HBoxContainer" unique_id=555000005]
+[node name="MaxPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
 layout_mode = 2
-text = "-"
+text = "Max players:"
 
-[node name="MaxPlayersSpinBox" type="SpinBox" parent="CanvasLayer/HBoxContainer" unique_id=555000006]
+[node name="MaxPlayersSpinBox" type="SpinBox" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 1
 max_value = 6
 value = 6
-
-[node name="Palette" type="Control" parent="CanvasLayer" node_paths=PackedStringArray("creator_controller", "layered_map")]
-script = ExtResource("8_palette")
-creator_controller = NodePath("../../CreatorController")
-layered_map = NodePath("../../LayeredMap")
 
 [node name="LayeredMap" parent="." unique_id=1723327192 instance=ExtResource("5_02u5f")]
 unique_name_in_owner = true
@@ -93,11 +115,4 @@ script = ExtResource("5_d5ryy")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1232056568]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 214.38597, 0)
 
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/BackButton" to="CanvasLayer/HBoxContainer" method="_on_back_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="." method="_on_new_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/NewButton" to="CanvasLayer/HBoxContainer" method="_on_new_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/SaveButton" to="CanvasLayer/HBoxContainer" method="_on_save_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/LoadButton" to="." method="_on_load_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/LoadButton" to="CanvasLayer/HBoxContainer" method="_on_load_button_pressed"]
-[connection signal="file_selected" from="CanvasLayer/HBoxContainer/MissionFileDialog" to="CanvasLayer/HBoxContainer" method="_on_mission_file_dialog_file_selected"]
+[connection signal="file_selected" from="CanvasLayer/MainLayout/MenuBar/File/MissionFileDialog" to="CanvasLayer/MainLayout/MenuBar/File" method="_on_mission_file_dialog_file_selected"]

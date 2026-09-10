@@ -236,12 +236,47 @@ combat/monster AI (explicitly out of scope for the first working version).
   emits `layer_changed`/`mesh_changed` signals whenever that state actually changes
   (from either keyboard input or `CreatorPalette` calling these same methods) — this
   is what keeps the two paths from ever drifting out of sync.
-- `CreatorPalette.gd` (attached to `MissionMap.tscn`'s `CanvasLayer/Palette`) — the
-  real palette UI: clickable layer tabs (Floor/Wall/Prop/Underlay) plus a scrollable
-  icon grid for whichever layer is active, replacing blind `,`/`.` cycling as the
-  primary way to pick a mesh (keyboard cycling still works side by side). Built
-  entirely at runtime in `_ready()`/`_build_ui()` rather than hand-authored as child
-  nodes in the `.tscn` — same pattern `CreatorController` already uses for its
+- **`CanvasLayer/MainLayout`** (`MissionMap.tscn`) — the Creator's overall
+  shell, a full-rect `VBoxContainer`: a top-spanning `MenuBar` (see
+  `CreatorSaveLoad.gd` below) stacked above an `EditorArea` `HBoxContainer`
+  holding the 3D view's space on the left and `SidePanel` on the right —
+  the redesign requested 2026-09-10 to replace the ad-hoc toolbar row (see
+  Open item #12). **Not a real `HSplitContainer`** — that only splits
+  between two `Control`s, and the 3D scene renders straight to the main
+  viewport rather than through a `Control`/`SubViewport`, so there's no
+  second `Control` to split against without a much bigger refactor
+  (`SubViewportContainer` + `SubViewport`, which would also change
+  `CreatorController`'s screen-space mouse-ray math). Took the fallback the
+  request itself offered instead: `SidePanel` gets a static
+  `custom_minimum_size` (260px) and the left side is just an empty
+  `ViewportSpacer` `Control` that reserves layout width — the 3D content
+  itself isn't inside it at all, it's simply visible through/behind the
+  CanvasLayer wherever no opaque 2D Control covers it.
+  - **Critical, and a repeat of the `CreatorPalette` mouse_filter lesson
+	below**: `MainLayout`, `EditorArea`, and `ViewportSpacer` all
+	explicitly set `mouse_filter = MOUSE_FILTER_IGNORE`. Left at the
+	default `STOP`, any one of them — being full-rect or full-height
+	Controls sitting directly over what used to be uncovered screen space —
+	would silently swallow every click/drag meant for `FreeLookCamera` and
+	`CreatorController`'s paint/erase input, the same way `CreatorPalette`'s
+	background once did. Only `MenuBar` and `SidePanel` keep the default
+	`STOP` (desired — clicks on the menu bar or the palette/properties tabs
+	should NOT fall through to the 3D world).
+- **`SidePanel`** (`CanvasLayer/MainLayout/EditorArea/SidePanel`) — a plain
+  `TabContainer`, no script, now one level deeper than before (nested in
+  `EditorArea` rather than anchored directly to `CanvasLayer`). Two tabs
+  (title = child node name, Godot's own `TabContainer` default): `Palette`
+  (the existing `CreatorPalette`, unchanged, just re-parented — its own
+  self-anchoring code in `_build_ui()` is still inert, harmlessly
+  overridden by `TabContainer`'s own Container layout) and `Properties` —
+  no longer empty, see its own entry below.
+- `CreatorPalette.gd` (attached to `MissionMap.tscn`'s
+  `CanvasLayer/MainLayout/EditorArea/SidePanel/Palette`) — the real palette UI: clickable layer tabs
+  (Floor/Wall/Prop/Underlay) plus a scrollable icon grid for whichever layer
+  is active, replacing blind `,`/`.` cycling as the primary way to pick a mesh
+  (keyboard cycling still works side by side). Built entirely at runtime in
+  `_ready()`/`_build_ui()` rather than hand-authored as child nodes in the
+  `.tscn` — same pattern `CreatorController` already uses for its
   ghost/grid/origin/occupancy overlays, and the mesh grid's contents are dynamic
   (depend on `MeshLibrary` contents) so couldn't be static `.tscn` content anyway.
   Icons come from `MeshLibrary.get_item_preview()` (Godot auto-generates these per
@@ -311,17 +346,31 @@ combat/monster AI (explicitly out of scope for the first working version).
 	`LayeredMap.get_tile_square_world_corners()` - the exact same method
 	the actually-placed overlay uses, so the preview can never show a
 	different square than the one that actually gets toggled.
-- `CreatorSaveLoad.gd` — Back/Save/Load/New buttons + a `FileDialog` (must be
-  **Access = Resources**, not File System, to get usable `res://` paths). Reuses
-  `MissionIO` + `LayeredMap.apply_mission()`. Also owns `%ObjectiveLineEdit`
-  and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` - all only read/written at
-  Save/New/Load time, not live-synced. `_ready()` pins this row's right edge
-  to `CreatorPalette.PANEL_WIDTH` from the screen's own right edge (not a
-  duplicated magic number) - quick fix for the row visually overlapping the
-  palette once enough fields got added to outgrow the `.tscn`'s old
-  hardcoded width; doesn't address the row itself getting cramped with more
-  fields, or the Creator's UI layout in general - see Open items, a real
-  redesign is still wanted, just not today's fix.
+- `CreatorSaveLoad.gd` — attached to `MenuBar/File`, a `PopupMenu` under the
+  top-spanning `MenuBar` (`CanvasLayer/MainLayout/MenuBar`, see
+  `MainLayout`'s entry above) - New/Save/Load/Back are menu items now
+  (added via `add_item()` in `_ready()`, dispatched through one
+  `id_pressed` handler), not standalone Buttons in a toolbar row. Holds a
+  child `FileDialog` (must be **Access = Resources**, not File System, to
+  get usable `res://` paths). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
+  Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
+  - those now live in `SidePanel`'s `Properties` tab (see that entry below),
+  not this script's own node - all still only read/written at Save/New/Load
+  time, not live-synced. The old `_ready()` that pinned the toolbar row's
+  right edge against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row
+  overlapping the palette) is gone - moot now that there's no toolbar row
+  to overlap anything, see Open item #12.
+- **`SidePanel/Properties`** (`CanvasLayer/MainLayout/EditorArea/SidePanel/Properties`)
+  — no longer empty: houses `%ObjectiveLineEdit` and
+  `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` (a plain `VBoxContainer`,
+  `PropertiesFields`, laid out vertically now that the tab is a narrow
+  260px column instead of a wide toolbar row) - mission-level metadata
+  moved here out of the old toolbar row when it became the `MenuBar`. This
+  is a pragmatic reuse of the tab, not what it's ultimately for - see Open
+  item #13, the tab is still meant to become a per-PLACED-OBJECT inspector
+  once object selection exists; mission-level fields living here in the
+  meantime is a fine home for them (there's nowhere better yet) but should
+  be revisited once that real inspector content needs the space.
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
   move while dragging, scroll wheel to dolly, Shift to boost speed.
 - `debug/DebugSync.gd` — temporary manual test harness. Keys **1/2/3/4** (deliberately
@@ -427,8 +476,13 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   identical cell_size). Instanced by both of the below.
 - **`map/MissionMap.tscn`** (the Creator) — instances `LayeredMapCore` as `%LayeredMap`,
   plus `Camera3D` (FreeLookCamera), `DirectionalLight3D`, `DebugSync`,
-  `CreatorController`, and a `CanvasLayer` with the `CreatorSaveLoad` Save/Load/New
-  buttons.
+  `CreatorController`, and a `CanvasLayer/MainLayout` shell: a top-spanning
+  `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`) above an
+  `EditorArea` splitting the 3D view's space (left, just an empty
+  input-transparent spacer - the 3D content isn't a `Control`) from
+  `SidePanel` (right, `Palette`/`Properties` tabs) - see the `MainLayout`
+  entry under **Creator tooling** above for why this isn't a real
+  `HSplitContainer`.
 - **`player/MissionPlayer.tscn`** — instances `LayeredMapCore` as `%LayeredMap`, plus
   its own separate `Camera3D`/`DirectionalLight3D`, and a `CanvasLayer` with an info
   `Label` and a Back button. No editing tools at all.
@@ -769,10 +823,29 @@ These cost real debugging time — worth not re-learning them:
 	portraits~~ - done, see `EmbarkDialog`/`HeroCatalog` above (still
 	placeholder names/art, but a real per-session party now, not a fixed
 	count).
-12. The Creator's UI has been growing one field/button at a time all
-	session (palette, objective, player-count, back button, ...) onto what
-	was originally a bare Save/Load/New row - stated intent to do a real
-	layout redesign at some point (a proper toolbar/inspector shape, not
-	more ad-hoc rows), not yet started. `CreatorSaveLoad._ready()`'s
-	palette-width pin (see that script's entry above) is a stopgap against
-	the one concrete symptom (overlap), not a redesign.
+12. ~~The Creator's UI has been growing one field/button at a time...~~ —
+	the requested 2026-09-10 redesign is done: a top-spanning `MenuBar`
+	(File → New/Save/Load/Back) over an `EditorArea` splitting the 3D
+	view's space from `SidePanel` - see `MainLayout`'s entry above. **Not**
+	a real `HSplitContainer` (the offered fallback was taken instead) -
+	`SidePanel` is a static 260px width, since a genuine drag-resizable
+	split would need the 3D view rendered through a `SubViewportContainer`
+	(it currently renders straight to the main viewport, not through any
+	`Control`), which would also touch `CreatorController`'s screen-space
+	mouse-ray math - a bigger refactor than this pass, and not yet decided
+	whether it's worth doing. Revisit if a static-width panel actually
+	proves cramped in practice.
+13. `SidePanel/Properties` is no longer empty, but not for its originally
+	intended reason either - see that entry above: it currently just holds
+	the Objective/player-count fields that used to live in the old toolbar
+	row (moved there once the toolbar became the `MenuBar`), not real
+	per-object inspector content yet. Still needed for the actual
+	inspector: a way to select a placed object in the Creator (nothing
+	tracks "the currently selected placed instance" yet -
+	`CreatorController`/`CreatorPalette` only track which MESH is selected
+	for painting, not a specific placed one); the actual inspector content
+	once something's selected (editing `InteractableEntry.reference_name`,
+	`actions`/`PropAction`s, `props` dict keys like visible/interactible -
+	see **Story layer**); switching to this tab automatically on selection;
+	and, once that content exists, probably relocating the mission-level
+	fields somewhere that isn't the per-object inspector tab.

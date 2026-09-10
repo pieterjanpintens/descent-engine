@@ -1,13 +1,24 @@
-extends Control
+extends PopupMenu
 
-## Save/Load/New/Back UI for the Mission Creator. Expected scene layout:
-##   CreatorSaveLoad (Control, this script)
-##    |- ...Back/New/Save/Load buttons...
+## File menu (New/Save/Load/Back) for the Mission Creator, plus the
+## mission-level Objective/player-count fields - those now live in the
+## SidePanel's "Properties" tab (see MissionMap.tscn) rather than a
+## toolbar row, since the toolbar became this menu bar instead. Attached
+## directly to the "File" PopupMenu under the top-spanning MenuBar - items
+## are added here in code rather than hand-authored in the .tscn, same
+## reasoning as every other runtime-built UI piece in this project
+## (CreatorPalette, PlayerDialog, ...): a PopupMenu's item list is fragile
+## to hand-write as raw scene text.
+##
+## Expected scene layout:
+##   MenuBar (MenuBar)
+##    |- File (PopupMenu, this script)
+##        |- MissionFileDialog (FileDialog, Access=Resources, marked as
+##            Unique Name %MissionFileDialog)
+##   SidePanel/Properties/PropertiesFields
 ##    |- ObjectiveLineEdit (LineEdit, marked as Unique Name %ObjectiveLineEdit)
 ##    |- MinPlayersSpinBox / MaxPlayersSpinBox (SpinBox, marked as Unique
 ##        Names %MinPlayersSpinBox / %MaxPlayersSpinBox)
-##    |- MissionFileDialog (FileDialog, Access=Resources, marked as
-##        Unique Name %MissionFileDialog)
 ##
 ## Loading a mission for EDITING and loading it for PLAYING turn out to be
 ## the exact same operation - both just call LayeredMap.apply_mission(),
@@ -24,19 +35,28 @@ extends Control
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
+enum FileAction { NEW, SAVE, LOAD, BACK }
 
-## The .tscn had this row's width hardcoded (offset_right = 1144) from
-## before the objective/player-count fields existed - once those got added
-## the row's actual content outgrew that fixed box and started overlapping
-## CreatorPalette's right-anchored panel. Quick fix, not the real one: pin
-## the right edge to CreatorPalette.PANEL_WIDTH from the screen's own right
-## edge (not a duplicated magic number) so this row can never overlap the
-## palette regardless of window size or how many more fields get added
-## here later - doesn't fix the row itself potentially getting cramped
-## with too many fields, that's a real redesign, not today's problem.
+
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_TOP_WIDE)
-	offset_right = -CreatorPalette.PANEL_WIDTH
+	add_item("New", FileAction.NEW)
+	add_item("Save", FileAction.SAVE)
+	add_item("Load", FileAction.LOAD)
+	add_separator()
+	add_item("Back to Menu", FileAction.BACK)
+	id_pressed.connect(_on_id_pressed)
+
+
+func _on_id_pressed(id: int) -> void:
+	match id:
+		FileAction.NEW:
+			_on_new_button_pressed()
+		FileAction.SAVE:
+			_on_save_button_pressed()
+		FileAction.LOAD:
+			_on_load_button_pressed()
+		FileAction.BACK:
+			_on_back_button_pressed()
 
 
 func _on_back_button_pressed() -> void:
