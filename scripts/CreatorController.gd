@@ -17,6 +17,15 @@ extends Node3D
 ##   N                  - toggle tile name labels (mesh_item_name at each origin cell -
 ##                        mainly useful now that many floor tiles share a generic
 ##                        material and can't be told apart by looks alone)
+##   P                  - toggle player-spawn PAINT mode: left-click TOGGLES the
+##                        hovered tile-square in/out of mission.player_spawn_cells
+##                        (independent of the normal mesh paint/erase - no mesh
+##                        needs to be selected). The yellow overlay itself - see
+##                        LayeredMap.set_spawn_overlay_cells() - is always visible
+##                        whenever spawn cells exist, not just while P is active;
+##                        P only toggles whether clicking edits it. Hides the
+##                        normal mesh ghost preview while active - unrelated tool,
+##                        unrelated hover target, confusing to see both at once.
 ##
 ## NOTE: mesh cycling deliberately does NOT use Tab - Tab is Godot's
 ## built-in ui_focus_next action, and now that this scene has real Button
@@ -79,6 +88,12 @@ var show_occupancy_overlay: bool = false
 var _tile_labels_container: Node3D
 var show_tile_labels: bool = false
 
+var spawn_paint_mode: bool = false
+var _spawn_hovered_cell: Vector3i = Vector3i.ZERO
+var _spawn_has_hover: bool = false
+var _spawn_ghost: MeshInstance3D
+var _spawn_ghost_mesh: ImmediateMesh
+
 var _hovered_cell: Vector3i = Vector3i.ZERO
 var _has_hover: bool = false
 
@@ -96,8 +111,17 @@ func _ready() -> void:
 	_setup_origin_overlay()
 	_setup_occupancy_overlay()
 	_setup_tile_labels()
+	_setup_spawn_ghost()
 	if camera == null:
 		camera = get_viewport().get_camera_3d()
+
+	# Always visible (not gated behind P/spawn_paint_mode) - useful to see
+	# the spawn area at a glance while doing other editing, not just while
+	# actively drawing it. set_spawn_overlay_visible() already no-ops to
+	# invisible when there's no geometry, so this is a safe no-op on a
+	# mission with no spawn cells authored yet.
+	layered_map.set_spawn_overlay_cells(layered_map.mission.player_spawn_cells)
+	layered_map.set_spawn_overlay_visible(true)
 
 
 ## Computes the real GridMap orientation index for each of the four flat
@@ -149,6 +173,28 @@ func _setup_origin_overlay() -> void:
 	_origin_overlay.material_override = material
 	_origin_overlay.visible = false
 	add_child(_origin_overlay)
+
+
+## Same idea as the normal mesh ghost preview, so spawn-paint mode "behaves
+## like floors/props" instead of leaving you to guess which tile-square a
+## click will land on - filled, in ghost_color (the same green as the
+## normal ghost), one tile-square at the hovered cell. Uses
+## LayeredMap.get_tile_square_world_corners() - the exact same corner math
+## the actual placed overlay (LayeredMap._add_spawn_quad) uses, so preview
+## and placement can never disagree.
+func _setup_spawn_ghost() -> void:
+	_spawn_ghost_mesh = ImmediateMesh.new()
+	_spawn_ghost = MeshInstance3D.new()
+	_spawn_ghost.mesh = _spawn_ghost_mesh
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.disable_ambient_light = true
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_spawn_ghost.material_override = material
+	_spawn_ghost.visible = false
+	add_child(_spawn_ghost)
 
 
 const PAINT_LAYER_NAMES: Array[String] = ["floor", "wall", "prop", "underlay"]
@@ -442,8 +488,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				_tile_labels_container.visible = show_tile_labels
 				if show_tile_labels:
 					_rebuild_tile_labels()
+			KEY_P:
+				spawn_paint_mode = not spawn_paint_mode
+				# The spawn overlay itself stays visible all the time now
+				# (see _ready()) - P only toggles whether clicking edits it.
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if Input.is_key_pressed(KEY_SHIFT):
+		if spawn_paint_mode:
+			_toggle_spawn_cell_at_cursor()
+		elif Input.is_key_pressed(KEY_SHIFT):
 			erase_at_cursor()
 		else:
 			place_at_cursor()
@@ -455,6 +507,82 @@ func _process(_delta: float) -> void:
 	_update_grid_overlay()
 	_update_origin_overlay()
 	_update_occupancy_overlay()
+	if spawn_paint_mode:
+		_update_spawn_hover()
+		_update_spawn_ghost()
+	else:
+		_spawn_ghost.visible = false
+
+
+## Separate from _update_hover() deliberately - spawn cells are always
+## floor-level regardless of whatever mesh/layer happens to be currently
+## selected for normal painting, so this always raycasts against
+## floor_grid specifically rather than _target_grid().
+func _update_spawn_hover() -> void:
+	_spawn_has_hover = false
+	if camera == null:
+		return
+
+	var grid := layered_map.floor_grid
+	var mouse_pos := get_viewport().get_mouse_position()
+	var ray_origin := camera.project_ray_origin(mouse_pos)
+	var ray_dir := camera.project_ray_normal(mouse_pos)
+
+	var grid_local_y: float = current_level * grid.cell_size.y
+	var world_point: Vector3 = grid.to_global(Vector3(0, grid_local_y, 0))
+	var plane := Plane(Vector3.UP, world_point.y)
+
+	var hit = plane.intersects_ray(ray_origin, ray_dir)
+	if hit == null:
+		return
+
+	var local_point: Vector3 = grid.to_local(hit)
+	_spawn_hovered_cell = grid.local_to_map(local_point)
+	_spawn_hovered_cell.y = current_level
+	_spawn_has_hover = true
+
+
+## Shows exactly which tile-square _toggle_spawn_cell_at_cursor() would
+## toggle if clicked right now - same reasoning as the normal mesh ghost
+## preview (place_at_cursor()'s own visual guide), just for this separate
+## tool. Uses LayeredMap.get_tile_square_world_corners(), the same method
+## the actually-placed overlay is built from, so this can never show a
+## different square than the one that actually gets toggled.
+func _update_spawn_ghost() -> void:
+	if not _spawn_has_hover:
+		_spawn_ghost.visible = false
+		return
+
+	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
+	var corners := layered_map.get_tile_square_world_corners(tile_square)
+
+	_spawn_ghost_mesh.clear_surfaces()
+	_spawn_ghost_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+		_spawn_ghost_mesh.surface_set_color(ghost_color)
+		_spawn_ghost_mesh.surface_add_vertex(v)
+	_spawn_ghost_mesh.surface_end()
+	_spawn_ghost.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
+	_spawn_ghost.visible = true
+
+
+## Spawn areas are authored in tile-squares ("game units", 3.2x3.2 world
+## units) not individual fine GridMap cells - a player figure occupies
+## roughly one tile-square, not a quarter of one. _spawn_hovered_cell is a
+## fine cell (that's the GridMap's own raycast resolution); snap it to its
+## containing tile-square before storing - see
+## FootprintRegistry.fine_cell_to_tile_square().
+func _toggle_spawn_cell_at_cursor() -> void:
+	if not _spawn_has_hover:
+		return
+	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
+	var cells := layered_map.mission.player_spawn_cells
+	var index := cells.find(tile_square)
+	if index == -1:
+		cells.append(tile_square)
+	else:
+		cells.remove_at(index)
+	layered_map.set_spawn_overlay_cells(cells)
 
 
 func _update_hover() -> void:
@@ -505,7 +633,9 @@ func _update_ghost_mesh() -> void:
 
 
 func _update_ghost_transform() -> void:
-	if not _has_hover or _ghost.mesh == null:
+	# Confusing to see the normal mesh-paint preview while placing spawn
+	# markers instead - unrelated tool, unrelated hover target.
+	if spawn_paint_mode or not _has_hover or _ghost.mesh == null:
 		_ghost.visible = false
 		return
 	var grid := _target_grid()

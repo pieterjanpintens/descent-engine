@@ -51,6 +51,16 @@ extends Resource
 @export var monster_spawns: Array[MonsterSpawn] = []
 @export var triggers: Array[MissionTrigger] = []
 
+## Where players may start round 1 - just cells, no per-spawn metadata
+## (unlike MonsterSpawn, which needs type/facing/trigger per monster).
+## TILE-SQUARE ("game unit", 3.2x3.2 world units) coordinates, NOT fine
+## GridMap cells - a player figure occupies roughly one tile-square, not a
+## quarter of one - see FootprintRegistry.fine_cell_to_tile_square(). Drawn
+## in the Creator, shown as a yellow overlay in the Player before round 1 -
+## see LayeredMap.set_spawn_overlay_cells(). Empty is valid (no overlay
+## shown, round 1 just starts) - not every mission needs this authored yet.
+@export var player_spawn_cells: Array[Vector3i] = []
+
 ## Win/loss conditions - see MissionObjective for why both share one list.
 @export var objectives: Array[MissionObjective] = []
 

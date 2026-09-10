@@ -21,6 +21,9 @@ extends Node3D
 @onready var prop_grid: GridMap = $PropGridMap
 @onready var underlay_grid: GridMap = $UnderlayGridMap
 
+var _spawn_overlay: MeshInstance3D
+var _spawn_overlay_mesh: ImmediateMesh
+
 
 func _ready() -> void:
 	# Only position differs between layers - cell_size and XZ cell
@@ -37,6 +40,87 @@ func _ready() -> void:
 	# importer tool against their own install) in place of the shipped
 	# placeholders. A no-op if no override files are present.
 	OfficialAssetOverrides.apply_overrides(floor_grid.mesh_library)
+
+	_setup_spawn_overlay()
+
+
+func _setup_spawn_overlay() -> void:
+	_spawn_overlay_mesh = ImmediateMesh.new()
+	_spawn_overlay = MeshInstance3D.new()
+	_spawn_overlay.mesh = _spawn_overlay_mesh
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.disable_ambient_light = true
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_spawn_overlay.material_override = material
+	_spawn_overlay.visible = false
+	add_child(_spawn_overlay)
+
+
+## Yellow semi-transparent overlay marking a set of TILE-SQUARE ("game
+## unit") cells (mission's player_spawn_cells) - same "start area"
+## highlight the original game's own app shows. Cells here are tile-square
+## coordinates, not fine GridMap cells - see
+## FootprintRegistry.fine_cell_to_tile_square() and _add_spawn_quad() below.
+## Shared here (not duplicated in CreatorController/MissionPlayer) since
+## both the Creator and Player instance this same scene and both need to
+## show it - Creator while drawing it, Player before round 1. Rebuilt from
+## scratch each call; pass an empty array to clear it.
+func set_spawn_overlay_cells(cells: Array[Vector3i]) -> void:
+	_spawn_overlay_mesh.clear_surfaces()
+	if cells.is_empty():
+		_spawn_overlay.visible = false
+		return
+
+	_spawn_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for cell in cells:
+		_add_spawn_quad(cell)
+	_spawn_overlay_mesh.surface_end()
+	_spawn_overlay.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
+	_spawn_overlay.visible = true
+
+
+func set_spawn_overlay_visible(value: bool) -> void:
+	_spawn_overlay.visible = value and _spawn_overlay_mesh.get_surface_count() > 0
+
+
+func _add_spawn_quad(cell: Vector3i) -> void:
+	var corners := get_tile_square_world_corners(cell)
+	var color := Color(1.0, 0.9, 0.2, 0.45)
+	for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+		_spawn_overlay_mesh.surface_set_color(color)
+		_spawn_overlay_mesh.surface_add_vertex(v)
+
+
+## `cell` is a TILE-SQUARE ("game unit") coordinate, not a fine GridMap
+## cell - see FootprintRegistry.fine_cell_to_tile_square(). Expands it to
+## its near fine-cell corner using the same far-corner math
+## expand_footprint() uses (base = ts*CELLS_PER_TILE - CELLS_PER_TILE) - bare,
+## no manual correction (an earlier attempt at one made things worse, not
+## better, and turned out to be chasing a UX problem - hard to tell where a
+## click will land with no preview - not an actual math bug; see
+## CreatorController's spawn-paint hover ghost, which reuses this exact
+## method so preview and placement can never disagree). Returns the four
+## WORLD-SPACE corners (in quad winding order) spanning the FULL tile-square
+## (CELLS_PER_TILE fine cells per side), lifted just above the floor surface
+## (floor_thickness + a small epsilon) so it reads as a decal on top of the
+## floor rather than z-fighting with it. Same corner-based box-building
+## approach as CreatorController's occupancy overlay (GridMap's Center X/Y/Z
+## are OFF, so map_to_local() returns a cell's CORNER, not its center).
+func get_tile_square_world_corners(cell: Vector3i) -> Array[Vector3]:
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var near_fine_cell := Vector3i(cell.x * cpt - cpt, cell.y, cell.z * cpt - cpt)
+	var corner_local: Vector3 = floor_grid.map_to_local(near_fine_cell)
+	var size := Vector3(cpt * floor_grid.cell_size.x, 0, cpt * floor_grid.cell_size.z)
+	var lift := Vector3(0, floor_thickness + 0.02, 0)
+	return [
+		floor_grid.to_global(corner_local + lift),
+		floor_grid.to_global(corner_local + Vector3(size.x, 0, 0) + lift),
+		floor_grid.to_global(corner_local + Vector3(size.x, 0, size.z) + lift),
+		floor_grid.to_global(corner_local + Vector3(0, 0, size.z) + lift),
+	]
 
 
 ## Call after painting/moving/erasing a cell in PropGridMap (in-editor or

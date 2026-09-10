@@ -677,6 +677,26 @@ func expand_footprint(square_footprint: Array[Vector3i]) -> Array[Vector3i]:
 	return expanded
 
 
+## Inverse of expand_footprint()'s far-corner convention, at a single-cell
+## level: converts one FINE GridMap cell to the tile-square ("game unit")
+## cell that contains it. Same "+1" far-corner offset math derived for
+## tools/footprint_extraction/extract_footprints.py (see that script's
+## module docstring for the full derivation/calibration) - a tile-square
+## offset ts corresponds to world/fine-cell range (ts-1)*CELLS_PER_TILE up
+## to (not including) ts*CELLS_PER_TILE, so converting the other way needs
+## the same +1.
+## Used wherever something needs to snap a raycast-hovered fine cell to
+## tile-square granularity instead of the GridMap's own finer resolution -
+## e.g. CreatorController's player-spawn paint mode (spawn areas are
+## authored in tile-squares/"game units", not individual fine cells).
+func fine_cell_to_tile_square(fine_cell: Vector3i) -> Vector3i:
+	return Vector3i(
+		floori(float(fine_cell.x) / CELLS_PER_TILE) + 1,
+		fine_cell.y,
+		floori(float(fine_cell.z) / CELLS_PER_TILE) + 1,
+	)
+
+
 ## Full convenience pipeline for the UNROTATED case: raw tile-square
 ## offsets, expanded to fine cells. Do NOT use this if you also need to
 ## rotate - call get_tile_square_footprint() -> rotate_footprint() ->

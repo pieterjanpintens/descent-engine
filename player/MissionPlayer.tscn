@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://ck8p4kdw1so6e" path="res://scripts/MissionPlayer.gd" id="1_mmcbr"]
 [ext_resource type="PackedScene" uid="uid://ecrsocoarltr" path="res://map/LayeredMapCore.tscn" id="2_m65w1"]
 [ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://scripts/FreeLookCamera.gd" id="3_gd8vj"]
+[ext_resource type="Script" path="res://scripts/PlayerDialog.gd" id="4_dialog"]
 
 [node name="MissionPlayer" type="Node3D" unique_id=1408308473]
 script = ExtResource("1_mmcbr")
@@ -49,6 +50,10 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0, 0, 0, 0.5)
+
+[node name="Dialog" type="Control" parent="CanvasLayer" unique_id=555000105]
+unique_name_in_owner = true
+script = ExtResource("4_dialog")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1656439624]
 transform = Transform3D(1, 0, 0, 0, 0.9347722, 0.3552478, 0, -0.3552478, 0.9347722, 0, 1.2423263, 1.8106883)

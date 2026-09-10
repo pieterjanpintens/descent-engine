@@ -32,8 +32,12 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   cells; writing it into the shared `tiles` dict would have one silently overwrite the
   other's `walkable`/`blocks_los` depending on sync order), `interactables`
   (Array[InteractableEntry]), `monster_spawns`, `triggers`, `objectives`,
-  `custom_variables` (see **Story layer** below for the last three). Methods:
-  `get_tile()`, `is_walkable()`, `blocks_los()`, `get_interactable_at()`,
+  `custom_variables` (see **Story layer** below for the last three),
+  `player_spawn_cells` (Array[Vector3i] - just cells, no per-spawn metadata
+  unlike `MonsterSpawn`; drawn in the Creator with `P`, shown as a yellow
+  overlay in the Player before round 1 - see `LayeredMap.gd` and
+  `CreatorController.gd`'s controls list). Methods: `get_tile()`,
+  `is_walkable()`, `blocks_los()`, `get_interactable_at()`,
   `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
   prop placements together for `ComponentInventory`).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id.
@@ -210,6 +214,13 @@ combat/monster AI (explicitly out of scope for the first working version).
 	continued editing).
   - `find_item_id(grid, mesh_name)` — MeshLibrary name→id lookup (public, used by
 	`CreatorController` too).
+  - `set_spawn_overlay_cells(cells)` / `set_spawn_overlay_visible(bool)` — the
+	yellow player-spawn-area overlay (see `MissionData.player_spawn_cells`),
+	a filled-quad `ImmediateMesh` (same corner-based box-building approach as
+	`CreatorController`'s occupancy overlay, but triangles not lines). Lives
+	here rather than duplicated in `CreatorController`/`MissionPlayer` since
+	both instance this same scene and both need to show it - Creator while
+	drawing it, Player before round 1.
 - `MissionIO` (`scripts/MissionIO.gd`) — static `save_mission()`/`load_mission()`
   wrapping `ResourceSaver`/`ResourceLoader`. Verified round-trip correctness including
   nested Resources, typed arrays, and Vector3i-keyed dictionaries.
@@ -281,8 +292,23 @@ combat/monster AI (explicitly out of scope for the first working version).
 	anchoring anything there for a piece bigger than 1×1 reads as floating off
 	to the side instead of sitting on it (this bit both the name and, briefly,
 	a separately-positioned direction arrow — now folded into the one
-	correctly-centered label instead of a second independently-placed node).
-- `CreatorSaveLoad.gd` — Save/Load/New buttons + a `FileDialog` (must be
+	correctly-centered label instead of a second independently-placed node),
+	`P` toggle player-spawn PAINT mode — left-click TOGGLES the hovered
+	tile-square in/out of `MissionData.player_spawn_cells`, independent of
+	the normal mesh paint/erase (no mesh needs to be selected; hover is
+	computed against `floor_grid` directly rather than `_target_grid()`,
+	then snapped fine-cell→tile-square, since spawn cells aren't tied to
+	whatever layer/mesh happens to be selected). The yellow overlay itself
+	(see `LayeredMap.gd` above) is always visible whenever spawn cells
+	exist, not gated behind `P` - only whether clicking edits it is. Hides
+	the normal mesh ghost preview while active (unrelated tool/hover
+	target, confusing to see both) and shows its own hover ghost instead -
+	a single tile-square quad in `ghost_color` (same green) at whatever
+	cell would be toggled if clicked right now, via
+	`LayeredMap.get_tile_square_world_corners()` - the exact same method
+	the actually-placed overlay uses, so the preview can never show a
+	different square than the one that actually gets toggled.
+- `CreatorSaveLoad.gd` — Back/Save/Load/New buttons + a `FileDialog` (must be
   **Access = Resources**, not File System, to get usable `res://` paths). Reuses
   `MissionIO` + `LayeredMap.apply_mission()`. Also owns `%ObjectiveLineEdit` -
   the only objective-authoring UI so far, just the WIN `MissionObjective`'s
@@ -303,17 +329,32 @@ combat/monster AI (explicitly out of scope for the first working version).
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
   `%LayeredMap.apply_mission()`, shows mission name + counts in a label. Now runs
   the basic round loop (see **Story layer**'s `RoundCheckpoint.Checkpoint`):
-  Player phase → "All players done" button → walks every remaining checkpoint
-  (mostly no-ops, commented where a future trigger/objective evaluation pass
-  hooks in) → Darkness phase (a flat `darkness_phase_duration` timed pause
-  standing in for real world-effect resolution + monster AI, neither built
-  yet) → loops back to Player phase, round incremented. `%DarknessOverlay`
-  (a full-rect `ColorRect`, `mouse_filter = IGNORE` so it darkens without
-  blocking clicks) is the only visual change so far. Shows the mission's WIN
-  `MissionObjective`'s description if one was authored. Still **no actual
-  movement/LOS/player-position tracking** — round 1's entry into Player phase
-  doubles as "players spawn" (the app never tracks real positions, so there's
-  no digital spawn step beyond this — see **Story layer**).
+  round 1 first shows the spawn area (if authored, see below) and waits for
+  confirmation, then Player phase → "All players done" button → walks every
+  remaining checkpoint (mostly no-ops, commented where a future
+  trigger/objective evaluation pass hooks in) → Darkness phase (a flat
+  `darkness_phase_duration` timed pause standing in for real world-effect
+  resolution + monster AI, neither built yet) → loops back to Player phase,
+  round incremented. `%DarknessOverlay` (a full-rect `ColorRect`,
+  `mouse_filter = IGNORE` so it darkens without blocking clicks) is the only
+  phase-change visual so far. Shows the mission's WIN `MissionObjective`'s
+  description if one was authored. Still **no actual movement/LOS/
+  player-position tracking** — the app never tracks real positions (see
+  **Story layer**), which is why "players spawn" is just a highlighted area
+  + a confirmation dialog, not anything the app verifies.
+- `PlayerDialog.gd` (`%Dialog` in `MissionPlayer.tscn`) — reusable async
+  dialog, built at runtime (same reasoning as `CreatorPalette` - content/
+  buttons vary per call): `ask_ok(text)`, `ask_yes_no(text) -> bool`,
+  `ask_count(text, min, max) -> int`, `ask_narrative(pages) -> void`
+  (OK/NEXT/BACK through multiple pages). Centered near the top of the
+  screen, sized to its own compact box rather than the full screen - the
+  rest of the screen (camera, map) stays interactive while a dialog is up,
+  e.g. so players can look around to answer a yes/no question about the
+  board. This is the mechanism **Story layer**'s "asked" variables (things
+  the app can't compute, only ask - "is a player on tile 2a") are meant to
+  use once the evaluator exists; not wired to variables yet, just the
+  reusable UI piece plus the one caller so far (`ask_ok` for spawn
+  confirmation).
 
 ## Scene structure (post-refactor)
 
@@ -616,8 +657,9 @@ These cost real debugging time — worth not re-learning them:
    `exploration`/`interact`/`umbra` token props are placeable meshes with no
    behavior wired up until that evaluator exists.
 4. Movement + line-of-sight in the Player — `MissionData.is_walkable()`/`blocks_los()`
-   exist and are correct, but nothing calls them yet; the Player is still just a
-   static rendered map.
+   exist and are correct, but nothing calls them yet. The Player now runs the
+   basic round loop (see **Story layer** and `MissionPlayer.gd`'s entry above)
+   but still has no actual player tokens/movement on the map itself.
 5. Wire up `LEVEL_LINK` stairs properly once needed (per-instance `link_from_cell`/
    `link_to_cell`, set when a specific stairs piece is placed in a specific mission).
 6. `CreatorSaveLoad`'s New button has no unsaved-changes confirmation.
@@ -630,3 +672,14 @@ These cost real debugging time — worth not re-learning them:
    way they cover the underlay hazards. **Unverified**: confirm in-editor that all
    8 override textures actually apply correctly across every tile face, not just
    the ones spot-checked so far.
+10. Snap floor/wall/prop painting (not just player-spawn painting) to
+    tile-square granularity - stated intent, not yet implemented. Currently
+    every layer's hover/place/erase resolves at the GridMap's own fine-cell
+    resolution (half a tile-square, see `FootprintRegistry.CELLS_PER_TILE`),
+    which is only physically meaningful for pillars (the reason that finer
+    resolution exists at all) - a floor tile or bookshelf sitting at a
+    half-tile offset isn't a real placement. Touches the core
+    hover/place/erase pipeline in `CreatorController.gd` for every layer, not
+    a small change - the new `fine_cell_to_tile_square()` conversion and
+    `get_tile_square_world_corners()` helper (built for player-spawn
+    painting) are the pieces this would reuse.

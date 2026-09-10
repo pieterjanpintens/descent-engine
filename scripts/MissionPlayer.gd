@@ -24,6 +24,7 @@ extends Node3D
 @onready var phase_label: Label = %PhaseLabel
 @onready var end_phase_button: Button = %EndPhaseButton
 @onready var darkness_overlay: ColorRect = %DarknessOverlay
+@onready var dialog: PlayerDialog = %Dialog
 
 var mission: MissionData
 var current_round: int = 1
@@ -45,11 +46,24 @@ func _ready() -> void:
 
 	# Round 1's first entry into Player phase IS "players spawn" - the app
 	# doesn't track real player positions (see claude.md's Story layer
-	# section), so there's no digital spawn step beyond this: players place
-	# their tokens on the board's own marked starting area and begin.
+	# section), so there's no digital spawn step beyond this: highlight the
+	# authored starting area (if any), wait for confirmation, then remove
+	# it - players place their tokens on it themselves.
 	_set_checkpoint(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE)
 	# (future: fire BEFORE_PLAYER_PHASE triggers here)
+	await _show_spawn_area_and_confirm()
 	_enter_player_phase()
+
+
+## No-op if the mission doesn't have a spawn area authored - not every
+## mission needs this yet (see MissionData.player_spawn_cells).
+func _show_spawn_area_and_confirm() -> void:
+	if mission.player_spawn_cells.is_empty():
+		return
+	layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
+	layered_map.set_spawn_overlay_visible(true)
+	await dialog.ask_ok("Place your player figures in the highlighted area, then confirm.")
+	layered_map.set_spawn_overlay_visible(false)
 
 
 func _on_back_button_pressed() -> void:
