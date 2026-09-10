@@ -355,6 +355,29 @@ combat/monster AI (explicitly out of scope for the first working version).
   use once the evaluator exists; not wired to variables yet, just the
   reusable UI piece plus the one caller so far (`ask_ok` for spawn
   confirmation).
+- `PlayerInteractionController.gd` (`%InteractionDock` in `MissionPlayer.tscn`)
+  — drag-to-interact UI, matching the original companion app's own gesture:
+  drag a hero portrait onto the world to interact with something. First pass
+  only (see Open items): a row of `HERO_COUNT` (4) placeholder portraits (no
+  real hero art or player roster yet - player count isn't tracked in the
+  runtime anywhere), dragging draws a `Line2D` toward the cursor, hovering an
+  `InteractableEntry` with a non-empty `actions` list highlights its
+  footprint cells (filled quads, same corner-math style as every other
+  overlay in this project), and releasing over one just `print()`s which
+  hero interacted with what - no `PropAction` actually fires yet, that needs
+  the trigger/effect evaluator (see **Story layer**), which doesn't exist.
+  Deliberately skips Godot's built-in Control drag-and-drop
+  (`_get_drag_data`/`_drop_data`) - the drop target is a 3D world position
+  found by raycasting, not another Control, so manual mouse tracking (a
+  global `_input()` once a drag starts, not just `gui_input`) is simpler
+  than fighting that system to reach underneath it. Hit-testing reuses
+  `CreatorController.erase_at_cursor()`'s real physics-raycast-against-
+  GridMap-collision technique (not the flat-plane approximation
+  `_update_hover()` uses for painting, which assumes a fixed editing level -
+  irrelevant here) plus the already-existing `MissionData.get_interactable_at()`.
+  The game's own rule ("only interact with what you're physically adjacent
+  to") isn't enforced - that needs real player-position tracking, which
+  doesn't exist. **Unverified in-editor.**
 
 ## Scene structure (post-refactor)
 
@@ -696,3 +719,12 @@ These cost real debugging time — worth not re-learning them:
 	tiles. **Unverified in-editor** - built without visual feedback, worth
 	confirming placement across a few different tile shapes (not just
 	pillars) before trusting it fully.
+11. Player drag-to-interact (`PlayerInteractionController.gd`) - UI, hover
+	highlight, and drop-detection are in (see that script's entry above),
+    but dropping only `print()`s - nothing actually happens yet. Needs, in
+    rough order: the trigger/effect evaluator (see **Story layer**) so a
+	drop can actually fire a `PropAction`'s effects; the game's own
+	adjacency rule (interact only with what you're physically near), which
+	needs real player-position tracking that doesn't exist; hiding the
+    portrait dock during Darkness phase (currently stays up the whole
+    time); a real hero roster instead of 4 hardcoded placeholder portraits.
