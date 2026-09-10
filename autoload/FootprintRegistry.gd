@@ -799,6 +799,27 @@ func get_layer(mesh_item_name: String) -> String:
 	return "prop"
 
 
+## Meshes allowed to sit at fine-cell (half-tile-square) resolution instead
+## of being snapped to the tile-square grid every other layer uses -
+## currently just the pillars, which the game genuinely places at
+## tile-square INTERSECTIONS (where 4 tile-squares meet), not centered on
+## one. That's the actual reason CELLS_PER_TILE subdivides GridMap's
+## cell_size below the tile-square scale in the first place - everything
+## else painting at that same fine resolution was always incidental, not
+## intended, which is what let floor tiles/props end up at
+## physically-meaningless half-tile offsets before CreatorController's
+## hover snapping (see _update_hover()) started enforcing this.
+const FINE_PLACEMENT_MESH_NAMES: Dictionary = {
+	"tall": true,
+	"mini": true,
+	"medium": true,
+}
+
+
+func allows_fine_placement(mesh_item_name: String) -> bool:
+	return FINE_PLACEMENT_MESH_NAMES.has(mesh_item_name)
+
+
 ## Tile faces are named like "7a" / "12b" - one or more digits followed by
 ## a single a/b letter. Matching that shape means we don't need a manual
 ## MESH_LAYER entry for every one of the ~22 tiles.

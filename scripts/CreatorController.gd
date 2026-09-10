@@ -8,6 +8,13 @@ extends Node3D
 ## CONTROLS (temporary, keyboard-only until a real palette UI exists):
 ##   Left-click        - place the currently selected mesh at the hovered cell
 ##   Shift + Left-click - erase whatever's at the hovered cell
+##
+## Hover/placement snaps to tile-square ("game unit") resolution for
+## everything except pillars - see FootprintRegistry.allows_fine_placement()
+## and _snap_to_tile_square_far_corner(). Pillars alone keep GridMap's raw
+## fine-cell resolution, since they genuinely place at tile-square
+## intersections rather than centered on one square - that's the actual
+## reason CELLS_PER_TILE subdivides cell_size below tile-square scale.
 ##   , / .              - cycle selected mesh backward/forward within the
 ##                        current layer FILTER (see below)
 ##   R                  - rotate the selection 90 degrees before placing
@@ -618,7 +625,33 @@ func _update_hover() -> void:
 	# accident. We already KNOW which level this is - don't let a rounding
 	# guess override it.
 	_hovered_cell.y = current_level
+	# Snap to tile-square ("game unit") resolution for everything except
+	# pillars - GridMap's own fine-cell resolution is twice as fine as a
+	# real physical placement, and painting a floor tile/prop at a
+	# half-tile offset isn't a real placement (see
+	# FootprintRegistry.allows_fine_placement()). Pillars keep the raw
+	# raycast result - they genuinely place at tile-square intersections.
+	if not FootprintRegistry.allows_fine_placement(_current_mesh_name()):
+		_hovered_cell = _snap_to_tile_square_far_corner(_hovered_cell)
 	_has_hover = true
+
+
+## The far-corner fine cell of the tile-square containing fine_cell - the
+## specific fine cell FootprintRegistry's far-corner convention expects as
+## a mesh's actual painted origin. Verified directly against
+## expand_footprint(): for origin O, offset (0,0) expands to occupied fine
+## cells {O-CELLS_PER_TILE, ..., O-1} - so for that occupied range to be
+## exactly the block fine_cell_to_tile_square() maps back to tile-square ts
+## (i.e. round-trip correctly), O must be ts*CELLS_PER_TILE exactly, NOT
+## ts*CELLS_PER_TILE - 1 (an earlier version of this function had that
+## extra -1, confirmed wrong by hand-checking every fine cell in a tile
+## square's range against fine_cell_to_tile_square() - it does NOT map
+## back to the same ts once expanded). Reuses fine_cell_to_tile_square()
+## rather than re-deriving the tile-square math a second time.
+func _snap_to_tile_square_far_corner(fine_cell: Vector3i) -> Vector3i:
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var tile_square := FootprintRegistry.fine_cell_to_tile_square(fine_cell)
+	return Vector3i(tile_square.x * cpt, fine_cell.y, tile_square.z * cpt)
 
 
 func _update_ghost_mesh() -> void:
@@ -673,6 +706,12 @@ func _update_origin_overlay() -> void:
 ## Rebuilt every frame via ImmediateMesh - cheap at this line count, but if
 ## grid_overlay_radius gets large this is the place to add throttling
 ## (e.g. only rebuild when _hovered_cell or current_level actually changed).
+## Line spacing matches whatever _update_hover() actually snaps to for the
+## current selection - tile-square ("game unit") steps for everything
+## except pillars, fine-cell steps for pillars (see
+## FootprintRegistry.allows_fine_placement()). _hovered_cell is already
+## snapped the same way, so the lines stay aligned to it regardless of
+## which step size is in effect.
 func _update_grid_overlay() -> void:
 	if not _has_hover:
 		_grid_overlay.visible = false
@@ -680,21 +719,22 @@ func _update_grid_overlay() -> void:
 
 	var grid := _target_grid()
 	var r := grid_overlay_radius
+	var step := 1 if FootprintRegistry.allows_fine_placement(_current_mesh_name()) else FootprintRegistry.CELLS_PER_TILE
 
 	_grid_overlay_mesh.clear_surfaces()
 	_grid_overlay_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
 
 	for i in range(-r, r + 1):
-		var x := _hovered_cell.x + i
-		var p1: Vector3 = grid.map_to_local(Vector3i(x, current_level, _hovered_cell.z - r))
-		var p2: Vector3 = grid.map_to_local(Vector3i(x, current_level, _hovered_cell.z + r))
+		var x := _hovered_cell.x + i * step
+		var p1: Vector3 = grid.map_to_local(Vector3i(x, current_level, _hovered_cell.z - r * step))
+		var p2: Vector3 = grid.map_to_local(Vector3i(x, current_level, _hovered_cell.z + r * step))
 		_grid_overlay_mesh.surface_add_vertex(p1)
 		_grid_overlay_mesh.surface_add_vertex(p2)
 
 	for j in range(-r, r + 1):
-		var z := _hovered_cell.z + j
-		var p1: Vector3 = grid.map_to_local(Vector3i(_hovered_cell.x - r, current_level, z))
-		var p2: Vector3 = grid.map_to_local(Vector3i(_hovered_cell.x + r, current_level, z))
+		var z := _hovered_cell.z + j * step
+		var p1: Vector3 = grid.map_to_local(Vector3i(_hovered_cell.x - r * step, current_level, z))
+		var p2: Vector3 = grid.map_to_local(Vector3i(_hovered_cell.x + r * step, current_level, z))
 		_grid_overlay_mesh.surface_add_vertex(p1)
 		_grid_overlay_mesh.surface_add_vertex(p2)
 

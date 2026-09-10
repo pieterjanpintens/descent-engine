@@ -672,14 +672,27 @@ These cost real debugging time — worth not re-learning them:
    way they cover the underlay hazards. **Unverified**: confirm in-editor that all
    8 override textures actually apply correctly across every tile face, not just
    the ones spot-checked so far.
-10. Snap floor/wall/prop painting (not just player-spawn painting) to
-    tile-square granularity - stated intent, not yet implemented. Currently
-    every layer's hover/place/erase resolves at the GridMap's own fine-cell
-    resolution (half a tile-square, see `FootprintRegistry.CELLS_PER_TILE`),
-    which is only physically meaningful for pillars (the reason that finer
-    resolution exists at all) - a floor tile or bookshelf sitting at a
-    half-tile offset isn't a real placement. Touches the core
-    hover/place/erase pipeline in `CreatorController.gd` for every layer, not
-    a small change - the new `fine_cell_to_tile_square()` conversion and
-    `get_tile_square_world_corners()` helper (built for player-spawn
-    painting) are the pieces this would reuse.
+10. ~~Snap floor/wall/prop painting to tile-square granularity~~ — done.
+    `CreatorController._update_hover()` now snaps `_hovered_cell` to the
+    far-corner fine cell of its containing tile-square
+    (`_snap_to_tile_square_far_corner()`, reusing
+    `FootprintRegistry.fine_cell_to_tile_square()`) for every mesh except
+    pillars (`FootprintRegistry.allows_fine_placement()`, exact-name lookup,
+    currently just tall/mini/medium) - pillars genuinely place at
+    tile-square intersections, everything else only ever made sense at
+    whole-tile-square resolution. One snap point fixes placement, the ghost
+    preview, and the grid overlay reference all at once, since they all read
+    `_hovered_cell`. The reference grid overlay (`_update_grid_overlay()`)
+    now also steps at tile-square spacing for the same non-pillar case
+    (fine-cell spacing only for pillars) - previously fine-cell spacing for
+    everyone. `_snap_to_tile_square_far_corner()` originally had an
+    off-by-one (`ts*CELLS_PER_TILE - 1` instead of `ts*CELLS_PER_TILE`),
+	caught and fixed by hand-verifying against `expand_footprint()`'s actual
+	occupied-cell output rather than trusting the first derivation - the
+	wrong version silently shifted every newly-placed non-pillar mesh one
+	fine cell off from where the (already-correct)
+	`get_tile_square_world_corners()`/spawn-overlay math expected it, which
+	is what made the spawn overlay look shifted relative to freshly-placed
+	tiles. **Unverified in-editor** - built without visual feedback, worth
+	confirming placement across a few different tile shapes (not just
+	pillars) before trusting it fully.
