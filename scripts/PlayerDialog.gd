@@ -13,10 +13,14 @@ extends Control
 ## same reasoning as CreatorPalette: content and buttons change per call,
 ## nothing here would be static scene content anyway.
 ##
-## Deliberately sized to its own compact box, not the full screen - the
-## rest of the screen (camera, map) stays interactive while a dialog is up
-## (e.g. players may want to look around the map to answer a yes/no
-## question), only clicks within the dialog's own box are captured.
+## Modal while visible: the root Control covers the full screen (a dim
+## scrim, mouse_filter STOP - same STOP-blocks-everything-behind-it
+## mechanism CreatorPalette's background bug worked through earlier this
+## session, deliberately relied on here instead of worked around) so
+## nothing else - camera look/zoom, the End Phase/Back buttons, the world -
+## is reachable until the dialog is answered. The actual visible box (text
+## + buttons) is a child positioned center-top within that full-rect root,
+## not the root itself.
 ##
 ## Usage (all async - caller awaits the result):
 ##   await dialog.ask_ok("Place your figures in the highlighted area.")
@@ -42,15 +46,26 @@ func _ready() -> void:
 
 
 func _build_ui() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	custom_minimum_size = Vector2(PANEL_WIDTH, 0)
-	offset_left = -PANEL_WIDTH / 2.0
-	offset_right = PANEL_WIDTH / 2.0
-	offset_top = 16.0
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_STOP  # the modal scrim - blocks everything behind it
+
+	var scrim := ColorRect.new()
+	scrim.color = Color(0, 0, 0, 0.35)
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE  # self (the root) already blocks; this is purely visual
+	add_child(scrim)
+
+	var panel := Control.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0)
+	panel.offset_left = -PANEL_WIDTH / 2.0
+	panel.offset_right = PANEL_WIDTH / 2.0
+	panel.offset_top = 16.0
+	add_child(panel)
 
 	var background := PanelContainer.new()
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(background)
+	panel.add_child(background)
 
 	var vbox := VBoxContainer.new()
 	background.add_child(vbox)

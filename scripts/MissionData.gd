@@ -13,6 +13,13 @@ extends Resource
 
 @export var mission_name: String = ""
 
+## How many players this mission supports - defaults to the full
+## HeroCatalog.SLOT_COUNT (6) range so a mission with nothing authored here
+## stays unrestricted. Enforced by EmbarkDialog (greys out remaining slots
+## once max_players are selected, requires at least min_players to start).
+@export var min_players: int = 1
+@export var max_players: int = 6  ## keep in sync with HeroCatalog.SLOT_COUNT
+
 ## Logical per-cell data. Key = Vector3i cell coordinate. Y is the level -
 ## distinct floors AND localized elevation (a dais, a ledge) both just use
 ## different Y values; there's no separate "level" concept beyond the cell

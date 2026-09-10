@@ -25,10 +25,17 @@ extends Node3D
 @onready var end_phase_button: Button = %EndPhaseButton
 @onready var darkness_overlay: ColorRect = %DarknessOverlay
 @onready var dialog: PlayerDialog = %Dialog
+@onready var embark_dialog: EmbarkDialog = %Embark
+@onready var interaction_dock: PlayerInteractionController = %InteractionDock
 
 var mission: MissionData
 var current_round: int = 1
 var current_checkpoint: RoundCheckpoint.Checkpoint = RoundCheckpoint.Checkpoint.NONE
+## Which HeroCatalog slot each player number maps to, in player-number order
+## - set once by EmbarkDialog at the start of _ready(), see that class and
+## PlayerInteractionController.set_roster(). Player count is just this
+## array's size - there's no separate tracked count.
+var player_roster: Array[int] = []
 
 
 func _ready() -> void:
@@ -43,6 +50,13 @@ func _ready() -> void:
 	info_label.text = "%s  (tiles=%d, interactables=%d, underlays=%d)" % [display_name, mission.tiles.size(), mission.interactables.size(), mission.underlay_placements.size()]
 
 	_show_objective()
+
+	# Embark comes before anything else - the table picks its party before
+	# there's any board state to interact with. Defines player count (the
+	# roster's size) and which character is player 1/2/3/... - equipment
+	# selection is explicitly deferred, see EmbarkDialog's own docstring.
+	player_roster = await embark_dialog.ask_roster(mission)
+	interaction_dock.set_roster(player_roster)
 
 	# Round 1's first entry into Player phase IS "players spawn" - the app
 	# doesn't track real player positions (see claude.md's Story layer

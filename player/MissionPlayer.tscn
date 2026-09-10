@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cgenpt3xn78jc" path="res://scripts/FreeLookCamera.gd" id="3_gd8vj"]
 [ext_resource type="Script" path="res://scripts/PlayerDialog.gd" id="4_dialog"]
 [ext_resource type="Script" path="res://scripts/PlayerInteractionController.gd" id="5_interact"]
+[ext_resource type="Script" path="res://scripts/EmbarkDialog.gd" id="6_embark"]
 
 [node name="MissionPlayer" type="Node3D" unique_id=1408308473]
 script = ExtResource("1_mmcbr")
@@ -60,6 +61,10 @@ script = ExtResource("4_dialog")
 unique_name_in_owner = true
 script = ExtResource("5_interact")
 layered_map = NodePath("../../LayeredMap")
+
+[node name="Embark" type="Control" parent="CanvasLayer" unique_id=555000107]
+unique_name_in_owner = true
+script = ExtResource("6_embark")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1656439624]
 transform = Transform3D(1, 0, 0, 0, 0.9347722, 0.3552478, 0, -0.3552478, 0.9347722, 0, 1.2423263, 1.8106883)

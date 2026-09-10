@@ -1,3 +1,4 @@
+class_name CreatorPalette
 extends Control
 
 ## Real palette UI for the Mission Creator - replaces blind `,`/`.`

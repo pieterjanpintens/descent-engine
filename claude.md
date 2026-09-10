@@ -36,7 +36,10 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   `player_spawn_cells` (Array[Vector3i] - just cells, no per-spawn metadata
   unlike `MonsterSpawn`; drawn in the Creator with `P`, shown as a yellow
   overlay in the Player before round 1 - see `LayeredMap.gd` and
-  `CreatorController.gd`'s controls list). Methods: `get_tile()`,
+  `CreatorController.gd`'s controls list), `min_players`/`max_players`
+  (both default 1-6, the full `HeroCatalog` range - enforced by
+  `EmbarkDialog`, authored via `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` in
+  the Creator). Methods: `get_tile()`,
   `is_walkable()`, `blocks_los()`, `get_interactable_at()`,
   `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
   prop placements together for `ComponentInventory`).
@@ -310,10 +313,15 @@ combat/monster AI (explicitly out of scope for the first working version).
 	different square than the one that actually gets toggled.
 - `CreatorSaveLoad.gd` — Back/Save/Load/New buttons + a `FileDialog` (must be
   **Access = Resources**, not File System, to get usable `res://` paths). Reuses
-  `MissionIO` + `LayeredMap.apply_mission()`. Also owns `%ObjectiveLineEdit` -
-  the only objective-authoring UI so far, just the WIN `MissionObjective`'s
-  description (no conditions yet - see **Story layer**). Only read/written at
-  Save/New/Load time, not live-synced on every keystroke.
+  `MissionIO` + `LayeredMap.apply_mission()`. Also owns `%ObjectiveLineEdit`
+  and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` - all only read/written at
+  Save/New/Load time, not live-synced. `_ready()` pins this row's right edge
+  to `CreatorPalette.PANEL_WIDTH` from the screen's own right edge (not a
+  duplicated magic number) - quick fix for the row visually overlapping the
+  palette once enough fields got added to outgrow the `.tscn`'s old
+  hardcoded width; doesn't address the row itself getting cramped with more
+  fields, or the Creator's UI layout in general - see Open items, a real
+  redesign is still wanted, just not today's fix.
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
   move while dragging, scroll wheel to dolly, Shift to boost speed.
 - `debug/DebugSync.gd` — temporary manual test harness. Keys **1/2/3/4** (deliberately
@@ -346,21 +354,51 @@ combat/monster AI (explicitly out of scope for the first working version).
   dialog, built at runtime (same reasoning as `CreatorPalette` - content/
   buttons vary per call): `ask_ok(text)`, `ask_yes_no(text) -> bool`,
   `ask_count(text, min, max) -> int`, `ask_narrative(pages) -> void`
-  (OK/NEXT/BACK through multiple pages). Centered near the top of the
-  screen, sized to its own compact box rather than the full screen - the
-  rest of the screen (camera, map) stays interactive while a dialog is up,
-  e.g. so players can look around to answer a yes/no question about the
-  board. This is the mechanism **Story layer**'s "asked" variables (things
-  the app can't compute, only ask - "is a player on tile 2a") are meant to
-  use once the evaluator exists; not wired to variables yet, just the
-  reusable UI piece plus the one caller so far (`ask_ok` for spawn
-  confirmation).
+  (OK/NEXT/BACK through multiple pages). **Modal** while visible - the root
+  Control is a full-screen dim scrim (`mouse_filter = STOP`, deliberately
+  relying on the same STOP-blocks-everything-behind-it mechanism
+  `CreatorPalette`'s background bug worked through earlier this session,
+  rather than working around it) so nothing else (camera, the End Phase/Back
+  buttons, the world) is reachable until answered; the actual visible box
+  (text + buttons) is a child centered near the top, not the root itself.
+  This is the mechanism **Story layer**'s "asked" variables (things the app
+  can't compute, only ask - "is a player on tile 2a") are meant to use once
+  the evaluator exists; not wired to variables yet, just the reusable UI
+  piece plus the one caller so far (`ask_ok` for spawn confirmation).
+- `HeroCatalog.gd` — never instantiated, just a shared namespace (same
+  pattern as `RoundCheckpoint`) for the placeholder party roster: `SLOT_COUNT`
+  (6), `slot_name(i)`/`slot_color(i)`. No real hero names/art - Descent's own
+  are the original game's copyrighted content (see **Official asset
+  overrides**), and there's no override mechanism for hero identity anyway.
+  Shared between `EmbarkDialog` and `PlayerInteractionController` so both
+  always agree on what slot N looks like.
+- `EmbarkDialog.gd` (`%Embark` in `MissionPlayer.tscn`) — shown once right
+  after a mission loads, before anything else (round 1, spawn confirmation,
+  all of it) - the table picks which `HeroCatalog` slots are playing.
+  `ask_roster(mission) -> Array[int]` returns the selected slot indices in
+  slot order (which player number is which character, not just a count).
+  Enforces `MissionData.min_players`/`max_players` (both default to the
+  full 1-6 range, so a mission with nothing authored stays unrestricted):
+  once `max_players` are selected, every remaining unselected slot greys
+  out (`Button.disabled`, not hidden) until one gets freed up again; Start
+  stays disabled below `min_players`. Authored in the Creator via
+  `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` next to the objective field in
+  `CreatorSaveLoad.gd`, same "only read at save/load time" pattern as the
+  objective `LineEdit`. Equipment selection is explicitly deferred - "for
+  now we focus on adding players." **Modal** - same full-screen scrim
+  mechanism as `PlayerDialog` (see that entry above), especially important
+  here since nothing else in the Player scene should be reachable before a
+  party even exists.
 - `PlayerInteractionController.gd` (`%InteractionDock` in `MissionPlayer.tscn`)
   — drag-to-interact UI, matching the original companion app's own gesture:
   drag a hero portrait onto the world to interact with something. First pass
-  only (see Open items): a row of `HERO_COUNT` (4) placeholder portraits (no
-  real hero art or player roster yet - player count isn't tracked in the
-  runtime anywhere), dragging draws a `Line2D` toward the cursor, hovering an
+  only (see Open items): `set_roster(roster)` (called once by
+  `MissionPlayer._ready()` after `EmbarkDialog` resolves) rebuilds the
+  portrait row from the actual chosen party - dock position and
+  `HeroCatalog` slot aren't the same thing once the roster isn't slots
+  0..N-1 in order (e.g. `[0, 2, 5]`), so drag state tracks the dock
+  position and looks up the real slot for anything shown to the user.
+  Dragging a portrait draws a `Line2D` toward the cursor, hovering an
   `InteractableEntry` with a non-empty `actions` list highlights its
   footprint cells (filled quads, same corner-math style as every other
   overlay in this project), and releasing over one just `print()`s which
@@ -696,20 +734,20 @@ These cost real debugging time — worth not re-learning them:
    8 override textures actually apply correctly across every tile face, not just
    the ones spot-checked so far.
 10. ~~Snap floor/wall/prop painting to tile-square granularity~~ — done.
-    `CreatorController._update_hover()` now snaps `_hovered_cell` to the
-    far-corner fine cell of its containing tile-square
-    (`_snap_to_tile_square_far_corner()`, reusing
-    `FootprintRegistry.fine_cell_to_tile_square()`) for every mesh except
-    pillars (`FootprintRegistry.allows_fine_placement()`, exact-name lookup,
-    currently just tall/mini/medium) - pillars genuinely place at
-    tile-square intersections, everything else only ever made sense at
-    whole-tile-square resolution. One snap point fixes placement, the ghost
-    preview, and the grid overlay reference all at once, since they all read
-    `_hovered_cell`. The reference grid overlay (`_update_grid_overlay()`)
-    now also steps at tile-square spacing for the same non-pillar case
-    (fine-cell spacing only for pillars) - previously fine-cell spacing for
-    everyone. `_snap_to_tile_square_far_corner()` originally had an
-    off-by-one (`ts*CELLS_PER_TILE - 1` instead of `ts*CELLS_PER_TILE`),
+	`CreatorController._update_hover()` now snaps `_hovered_cell` to the
+	far-corner fine cell of its containing tile-square
+	(`_snap_to_tile_square_far_corner()`, reusing
+	`FootprintRegistry.fine_cell_to_tile_square()`) for every mesh except
+	pillars (`FootprintRegistry.allows_fine_placement()`, exact-name lookup,
+	currently just tall/mini/medium) - pillars genuinely place at
+	tile-square intersections, everything else only ever made sense at
+	whole-tile-square resolution. One snap point fixes placement, the ghost
+	preview, and the grid overlay reference all at once, since they all read
+	`_hovered_cell`. The reference grid overlay (`_update_grid_overlay()`)
+	now also steps at tile-square spacing for the same non-pillar case
+	(fine-cell spacing only for pillars) - previously fine-cell spacing for
+	everyone. `_snap_to_tile_square_far_corner()` originally had an
+	off-by-one (`ts*CELLS_PER_TILE - 1` instead of `ts*CELLS_PER_TILE`),
 	caught and fixed by hand-verifying against `expand_footprint()`'s actual
 	occupied-cell output rather than trusting the first derivation - the
 	wrong version silently shifted every newly-placed non-pillar mesh one
@@ -721,10 +759,20 @@ These cost real debugging time — worth not re-learning them:
 	pillars) before trusting it fully.
 11. Player drag-to-interact (`PlayerInteractionController.gd`) - UI, hover
 	highlight, and drop-detection are in (see that script's entry above),
-    but dropping only `print()`s - nothing actually happens yet. Needs, in
-    rough order: the trigger/effect evaluator (see **Story layer**) so a
+	but dropping only `print()`s - nothing actually happens yet. Needs, in
+	rough order: the trigger/effect evaluator (see **Story layer**) so a
 	drop can actually fire a `PropAction`'s effects; the game's own
 	adjacency rule (interact only with what you're physically near), which
 	needs real player-position tracking that doesn't exist; hiding the
-    portrait dock during Darkness phase (currently stays up the whole
-    time); a real hero roster instead of 4 hardcoded placeholder portraits.
+	portrait dock during Darkness phase (currently stays up the whole
+	time). ~~A real hero roster instead of hardcoded placeholder
+	portraits~~ - done, see `EmbarkDialog`/`HeroCatalog` above (still
+	placeholder names/art, but a real per-session party now, not a fixed
+	count).
+12. The Creator's UI has been growing one field/button at a time all
+	session (palette, objective, player-count, back button, ...) onto what
+	was originally a bare Save/Load/New row - stated intent to do a real
+	layout redesign at some point (a proper toolbar/inspector shape, not
+	more ad-hoc rows), not yet started. `CreatorSaveLoad._ready()`'s
+	palette-width pin (see that script's entry above) is a stopgap against
+	the one concrete symptom (overlap), not a redesign.

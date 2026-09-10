@@ -20,7 +20,6 @@ layered_map = NodePath("../LayeredMap")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1095084307]
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer" unique_id=726651457 node_paths=PackedStringArray("layered_map")]
-offset_right = 1144.0
 offset_bottom = 52.0
 script = ExtResource("7_iyoar")
 layered_map = NodePath("../../LayeredMap")
@@ -56,6 +55,28 @@ custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Final objective description"
+
+[node name="MinPlayersLabel" type="Label" parent="CanvasLayer/HBoxContainer" unique_id=555000003]
+layout_mode = 2
+text = "Players:"
+
+[node name="MinPlayersSpinBox" type="SpinBox" parent="CanvasLayer/HBoxContainer" unique_id=555000004]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1
+max_value = 6
+value = 1
+
+[node name="MaxPlayersLabel" type="Label" parent="CanvasLayer/HBoxContainer" unique_id=555000005]
+layout_mode = 2
+text = "-"
+
+[node name="MaxPlayersSpinBox" type="SpinBox" parent="CanvasLayer/HBoxContainer" unique_id=555000006]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1
+max_value = 6
+value = 6
 
 [node name="Palette" type="Control" parent="CanvasLayer" node_paths=PackedStringArray("creator_controller", "layered_map")]
 script = ExtResource("8_palette")

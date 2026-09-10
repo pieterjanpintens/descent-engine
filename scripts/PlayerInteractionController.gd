@@ -9,9 +9,9 @@ extends Control
 ## exist (see claude.md's Story layer section).
 ##
 ## Scope for this first pass (see claude.md's Open items):
-##   1. UI + drag detection - a row of placeholder hero portraits (no real
-##      hero art/roster yet - player count isn't tracked in the runtime
-##      either), dragging one draws a line toward the cursor.
+##   1. UI + drag detection - the party set during EmbarkDialog (see
+##      set_roster()) shown as a row of placeholder portraits, dragging one
+##      draws a line toward the cursor.
 ##   2. Interactable props (InteractableEntry with a non-empty `actions`)
 ##      highlight while a drag hovers over them.
 ##   3. Releasing a drag over an interactable just prints debug info - no
@@ -27,13 +27,19 @@ extends Control
 @export var camera: Camera3D  ## leave unset to auto-grab the viewport's active camera
 @export var highlight_color: Color = Color(0.3, 1.0, 1.0, 0.5)
 
-const HERO_COUNT := 4
 const PORTRAIT_SIZE := 56.0
 
+var _row: HBoxContainer
 var _portraits: Array[Control] = []
+## Parallel to _portraits - _roster[dock_position] is the HeroCatalog slot
+## index that portrait represents (see set_roster()). Dock position and
+## catalog slot aren't the same thing once the party doesn't happen to be
+## slots 0..N-1 in order (e.g. roster [0, 2, 5]).
+var _roster: Array[int] = []
+
 var _drag_line: Line2D
 var _dragging: bool = false
-var _drag_hero_index: int = -1
+var _drag_dock_position: int = -1
 
 var _highlight_overlay: MeshInstance3D
 var _highlight_overlay_mesh: ImmediateMesh
@@ -55,19 +61,16 @@ func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var row := HBoxContainer.new()
-	row.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	row.offset_top = -PORTRAIT_SIZE - 24.0
-	row.offset_bottom = -24.0
-	row.add_theme_constant_override("separation", 12)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(row)
-
-	for i in HERO_COUNT:
-		var portrait := _make_portrait(i)
-		row.add_child(portrait)
-		_portraits.append(portrait)
+	_row = HBoxContainer.new()
+	_row.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_row.offset_top = -PORTRAIT_SIZE - 24.0
+	_row.offset_bottom = -24.0
+	_row.add_theme_constant_override("separation", 12)
+	_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_row)
+	# Empty until set_roster() is called (after EmbarkDialog resolves) -
+	# there's nothing to show a portrait row FOR until the party is chosen.
 
 	_drag_line = Line2D.new()
 	_drag_line.width = 4.0
@@ -76,34 +79,53 @@ func _build_ui() -> void:
 	add_child(_drag_line)
 
 
-## Placeholder only - a flat color swatch + "P<n>" label, same "safe dummy"
-## style used elsewhere in this project (no real hero portrait art, no
-## roster system yet).
-func _make_portrait(index: int) -> Control:
+## Rebuilds the portrait row from the party EmbarkDialog.ask_roster()
+## returned - one portrait per HeroCatalog slot index in `roster`, in that
+## order. Safe to call again later if the party ever needs to change
+## mid-session (not currently done anywhere, but nothing here assumes
+## it's only called once).
+func set_roster(roster: Array[int]) -> void:
+	for child in _row.get_children():
+		child.queue_free()
+	_portraits.clear()
+	_roster = roster.duplicate()
+
+	for dock_position in _roster.size():
+		var portrait := _make_portrait(_roster[dock_position], dock_position)
+		_row.add_child(portrait)
+		_portraits.append(portrait)
+
+
+## Placeholder only - a flat color swatch + name label, same "safe dummy"
+## style used elsewhere in this project (no real hero portrait art). Uses
+## HeroCatalog so this always matches whatever EmbarkDialog showed for the
+## same slot.
+func _make_portrait(hero_slot: int, dock_position: int) -> Control:
 	var portrait := Panel.new()
 	portrait.custom_minimum_size = Vector2(PORTRAIT_SIZE, PORTRAIT_SIZE)
 	portrait.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color.from_hsv(float(index) / HERO_COUNT, 0.55, 0.85)
+	style.bg_color = HeroCatalog.slot_color(hero_slot)
 	style.set_corner_radius_all(8)
 	portrait.add_theme_stylebox_override("panel", style)
 
 	var label := Label.new()
-	label.text = "P%d" % (index + 1)
+	label.text = HeroCatalog.slot_name(hero_slot)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	portrait.add_child(label)
 
-	portrait.gui_input.connect(_on_portrait_gui_input.bind(index))
+	portrait.gui_input.connect(_on_portrait_gui_input.bind(dock_position))
 	return portrait
 
 
-func _on_portrait_gui_input(event: InputEvent, hero_index: int) -> void:
+func _on_portrait_gui_input(event: InputEvent, dock_position: int) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		_dragging = true
-		_drag_hero_index = hero_index
+		_drag_dock_position = dock_position
 		_drag_line.visible = true
 		get_viewport().set_input_as_handled()
 
@@ -123,7 +145,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _update_drag_line(mouse_pos: Vector2) -> void:
-	var portrait := _portraits[_drag_hero_index]
+	var portrait := _portraits[_drag_dock_position]
 	var start := portrait.global_position + portrait.size / 2.0
 	_drag_line.points = PackedVector2Array([start, mouse_pos])
 
@@ -137,16 +159,17 @@ func _update_hover_highlight(screen_pos: Vector2) -> void:
 
 
 func _end_drag(screen_pos: Vector2) -> void:
+	var hero_name := HeroCatalog.slot_name(_roster[_drag_dock_position])
 	var entry := _interactable_at(screen_pos)
 	if entry != null:
 		var action_ids: Array = entry.actions.map(func(a): return a.action_id)
 		var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
-		print("Hero %d interacted with '%s' (%s) - actions: %s" % [_drag_hero_index + 1, label, entry.mesh_item_name, action_ids])
+		print("%s interacted with '%s' (%s) - actions: %s" % [hero_name, label, entry.mesh_item_name, action_ids])
 	else:
-		print("Hero %d: drag released on nothing interactable" % (_drag_hero_index + 1))
+		print("%s: drag released on nothing interactable" % hero_name)
 
 	_dragging = false
-	_drag_hero_index = -1
+	_drag_dock_position = -1
 	_drag_line.visible = false
 	_hovered_entry = null
 	_rebuild_highlight()
