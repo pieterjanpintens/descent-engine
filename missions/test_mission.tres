@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="MissionData" format=3]
 
-[ext_resource type="Script" path="res://scripts/Tileplacement.gd" id="1_k3yb4"]
+[ext_resource type="Script" path="res://scripts/TilePlacement.gd" id="1_k3yb4"]
 [ext_resource type="Script" path="res://scripts/MissionVariable.gd" id="1_yo74k"]
 [ext_resource type="Script" path="res://scripts/InteractableEntry.gd" id="2_7yy8x"]
 [ext_resource type="Script" path="res://scripts/MonsterSpawn.gd" id="3_epkos"]

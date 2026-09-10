@@ -13,3 +13,14 @@ enum Layer { FLOOR, WALL, UNDERLAY }
 @export var origin_cell: Vector3i = Vector3i.ZERO
 @export var mesh_item_name: String = ""
 @export var orientation: int = 0
+
+## Outline-tree identity, same purpose/allocator as InteractableEntry.id -
+## see that field's own comment and CreatorOutline.gd. Only FLOOR and
+## UNDERLAY placements actually appear in the outline tree (requested
+## 2026-09-10) - WALL placements still get an id assigned by
+## LayeredMap.rebuild_floor_tiles() (simplest to treat uniformly there)
+## but CreatorOutline.gd deliberately skips them when building the tree.
+## Wall painting isn't actually used in real missions - flagged for
+## possible removal later, not attempted here.
+@export var id: String = ""
+@export var parent_id: String = ""

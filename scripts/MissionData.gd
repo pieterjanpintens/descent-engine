@@ -58,6 +58,16 @@ extends Resource
 @export var monster_spawns: Array[MonsterSpawn] = []
 @export var triggers: Array[MissionTrigger] = []
 
+## Organizational nodes for the Creator's outline tree - see
+## CreatorOutline.gd/MissionGroup.gd. Purely a layering/selection aid over
+## `interactables`, not a spatial or gameplay concept of its own.
+@export var groups: Array[MissionGroup] = []
+
+## Backing counter for allocate_object_id() below - must be @export so it
+## persists across save/load and never reissues an id already baked into
+## a saved mission's own interactables/groups.
+@export var _next_object_id: int = 1
+
 ## Where players may start round 1 - just cells, no per-spawn metadata
 ## (unlike MonsterSpawn, which needs type/facing/trigger per monster).
 ## TILE-SQUARE ("game unit", 3.2x3.2 world units) coordinates, NOT fine
@@ -92,6 +102,16 @@ func get_component_usage() -> Dictionary:
 		var group := ComponentInventory.get_group(entry.mesh_item_name)
 		usage[group] = usage.get(group, 0) + 1
 	return usage
+
+
+## Mints a fresh, never-reused id for a new InteractableEntry or
+## MissionGroup - see CreatorOutline.gd/MissionGroup.gd. The one shared
+## allocator so object ids and group ids can never collide with each
+## other either (they live in the same outline-tree id namespace).
+func allocate_object_id() -> String:
+	var result := "obj_%d" % _next_object_id
+	_next_object_id += 1
+	return result
 
 
 func get_tile(cell: Vector3i) -> TileEntry:

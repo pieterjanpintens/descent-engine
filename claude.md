@@ -45,15 +45,32 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   prop placements together for `ComponentInventory`).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id.
 - `TilePlacement` — layer (FLOOR/WALL/UNDERLAY enum), origin_cell, mesh_item_name,
-  orientation.
-- `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK), mesh_item_name,
+  orientation, `id`/`parent_id` (same outline-tree identity as
+  `InteractableEntry`'s, added 2026-09-10 — see **Creator outline tree**
+  below; only FLOOR and UNDERLAY placements actually appear in the tree,
+  WALL is excluded — wall painting isn't used in real missions, see Open
+  items).
+- `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK), `id`
+  (stable outline-tree identity, assigned once via
+  `MissionData.allocate_object_id()` when first placed, never regenerated
+  — see **Creator outline tree** below), `parent_id` (empty = directly
+  under the mission root in the outline tree, else a `MissionGroup`'s
+  `id`), mesh_item_name,
   origin_cell, footprint (Array[Vector3i], rotation-adjusted), orientation,
   blocks_movement, blocks_los, props (free-form Dict — "visible"/"interactible"
   bool keys are well-known, read by the runtime directly, both default true when
   absent), `actions` (Array[PropAction] — see **Story layer**), `reference_name`
-  (optional human-chosen id, e.g. "front_door" — see **Story layer**), plus
-  `link_from_cell`/`link_to_cell`/`link_bidirectional` for stairs (LEVEL_LINK
-  type) — **not yet wired up to real stairs instances**, see Open Items.
+  (optional human-chosen id, e.g. "front_door" — see **Story layer**; distinct
+  from `id` above — `reference_name` is the optional, human-facing,
+  Story-layer-facing one, `id` is internal bookkeeping nobody types by hand),
+  plus `link_from_cell`/`link_to_cell`/`link_bidirectional` for stairs
+  (LEVEL_LINK type) — **not yet wired up to real stairs instances**, see
+  Open Items.
+- `MissionGroup` — a purely organizational node in the Creator's outline
+  tree, NOT a spatial/gameplay concept: `id`, `name`, `parent_id` (groups
+  can nest under groups), `visible` (the one property meant to cascade to
+  a group's members eventually — stored but not yet consumed by any
+  evaluator, see **Creator outline tree** below). `MissionData.groups`.
 - `MonsterSpawn` — data model exists, unused so far (no authoring UI, no
   combat/monster AI yet — see Open Items).
 
@@ -211,6 +228,25 @@ combat/monster AI (explicitly out of scope for the first working version).
 	populate `MissionData`. Underlay is a deliberately SEPARATE rebuild pass from
 	floor/wall (not a third case folded into `rebuild_floor_tiles()`) — see the
 	`underlay_placements` note above for why.
+	- **Hard-won lesson, 2026-09-10**: `sync_prop_cell()` always erases
+	  whatever `InteractableEntry` was at that origin cell and constructs a
+	  brand-new one, even when "erasing" is really just a repaint (mesh or
+	  orientation correction) of the same logical object. Once
+	  `InteractableEntry` gained an `id`/`parent_id` (see **Creator outline
+	  tree** below), this would have silently orphaned an object's outline-
+	  tree identity and group membership on every such repaint. Fixed by
+	  explicitly carrying `id`/`parent_id`/`reference_name`/`props`/
+	  `actions` over from the entry that was just there before
+	  constructing the replacement — see this function's own comment. The
+	  kind of bug this project has been bitten by before (see the tile-
+	  square snapping off-by-one below) — an erase-then-recreate pattern
+	  silently dropping state nobody was watching for.
+  - `signal mission_objects_changed` — fires whenever `mission.interactables`
+	or `mission.groups` changes shape (from `sync_prop_cell()`,
+	`apply_mission()`, or `notify_objects_changed()` — the last one for
+	callers, like `CreatorOutline.gd`'s group CRUD, that mutate `groups`
+	directly without going through GridMap painting at all). The Creator
+	outline tree's only signal to listen to for "go rebuild".
   - **Write** (data → painting): `apply_mission(mission)` clears and repaints all
 	four GridMaps from a loaded `MissionData` — used identically by both the Player
 	(to render a loaded mission) and the Creator (to open an existing mission for
@@ -266,10 +302,10 @@ combat/monster AI (explicitly out of scope for the first working version).
   `TabContainer`, no script, now one level deeper than before (nested in
   `EditorArea` rather than anchored directly to `CanvasLayer`). Two tabs
   (title = child node name, Godot's own `TabContainer` default): `Palette`
-  (the existing `CreatorPalette`, unchanged, just re-parented — its own
-  self-anchoring code in `_build_ui()` is still inert, harmlessly
-  overridden by `TabContainer`'s own Container layout) and `Properties` —
-  no longer empty, see its own entry below.
+  (the existing `CreatorPalette` — see the correction below, its
+  self-anchoring code was NOT actually inert) and `Outline` (was called
+  `Properties`, renamed 2026-09-10 once it grew the object-browser tree —
+  see its own entry below).
 - `CreatorPalette.gd` (attached to `MissionMap.tscn`'s
   `CanvasLayer/MainLayout/EditorArea/SidePanel/Palette`) — the real palette UI: clickable layer tabs
   (Floor/Wall/Prop/Underlay) plus a scrollable icon grid for whichever layer
@@ -281,6 +317,32 @@ combat/monster AI (explicitly out of scope for the first working version).
   (depend on `MeshLibrary` contents) so couldn't be static `.tscn` content anyway.
   Icons come from `MeshLibrary.get_item_preview()` (Godot auto-generates these per
   item) rather than hand-made icon assets.
+  - **Correction, 2026-09-10**: `_build_ui()` used to also call
+	`set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)` on itself,
+	on the assumption (stated in earlier revisions of this doc, and never
+	actually verified in-editor) that `TabContainer` would harmlessly
+	override it once `CreatorPalette` became a tab child. **It did not** —
+	confirmed in-editor: `PRESET_RIGHT_WIDE` spans the full height from
+	y=0, ignoring the tab bar's own height, so this row rendered on top of
+	and ate clicks meant for `SidePanel`'s own Palette/Outline tab labels
+	(the user couldn't switch tabs at all). Removed — a `TabContainer`
+	child with `layout_mode = 2` should never also self-anchor; the
+	`custom_minimum_size` hint alone (still kept) is enough. Worth
+	remembering as a "hard-won lesson": manual anchor-setting code on a
+	Container-managed child isn't reliably harmless just because the
+	Container usually wins — verify, don't assume.
+  - **Correction, 2026-09-10**: availability (which meshes show as
+	greyed/hidden once `ComponentInventory`'s physical limit is hit) used
+	to only refresh on a layer switch or the "Show unavailable" checkbox -
+	painting the SAME mesh repeatedly (e.g. several floor tiles in a row
+	without switching mesh, a very common way to paint) never triggered
+	`_rebuild_mesh_grid()` at all, so an exhausted mesh stayed shown as
+	available until something else forced a refresh. Fixed by listening
+	to `LayeredMap.mission_objects_changed` too (now fires for floor/
+	underlay edits as well as props, see that signal's own entry above),
+	routed through a `call_deferred()`-coalescing `_queue_mesh_grid_rebuild()`
+	wrapper (same pattern/reasoning as `CreatorOutline.refresh()`) since
+	that signal can fire once per painted cell during a fast drag stroke.
   - **Two display modes**, via a "Show unavailable" checkbox: default hides any mesh
 	that's hit its `ComponentInventory` physical limit entirely (the palette only
 	shows what you can currently draw). Checked, it shows everything and greys out
@@ -316,7 +378,22 @@ combat/monster AI (explicitly out of scope for the first working version).
 	Mainly useful now that many floor tile faces share one generic material
 	(flagstone/grass/dirt/wood planks) and can no longer be told apart by looks
 	alone.
-  - Controls: Left-click place, Shift+Left-click erase, `,`/`.` cycle mesh (not Tab —
+  - **Draw mode** (`draw_mode`, `D` key toggles, `draw_mode_changed(enabled)`
+	signal, requested 2026-09-10) — starts OFF (**Select mode**). In Draw
+	mode, Left-click/Shift+Left-click place/erase as below, and the
+	placement ghost preview shows. In Select mode, Left-click instead
+	calls `select_at_cursor()`: raycasts (reusing `erase_at_cursor()`'s
+	exact hit-cell resolution, now factored into a shared
+	`_raycast_hit_cell()` + `_origin_for_hit()`) and emits
+	`object_picked(kind, id)` (`kind`: `"object"`/`"floor"`/`"underlay"`,
+	WALL silently skipped) rather than painting/erasing anything —
+	`CreatorOutline.gd` listens and selects + scrolls to the matching tree
+	item, without re-jumping the camera (see that script's
+	`_on_object_picked()`). This is the "controller emits, UI listens"
+	convention again — `CreatorController` doesn't know `CreatorOutline`
+	exists.
+  - Controls: `D` toggle Draw/Select mode, Left-click place (Draw mode) /
+	select (Select mode), Shift+Left-click erase (Draw mode only), `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
 	filter (Floor → Wall → Prop → Underlay), PageUp/PageDown change level, `O` toggle
 	occupancy overlay, `N` toggle tile name labels — one `Label3D` per placed
@@ -346,6 +423,120 @@ combat/monster AI (explicitly out of scope for the first working version).
 	`LayeredMap.get_tile_square_world_corners()` - the exact same method
 	the actually-placed overlay uses, so the preview can never show a
 	different square than the one that actually gets toggled.
+- **Creator outline tree** (`CreatorOutline.gd`, attached to
+  `SidePanel/Outline/Split/OutlineTree`, a `Tree`) — a scene-graph-style
+  object browser: every placed `InteractableEntry` (prop/door/hazard/
+  level-link) plus every FLOOR `TilePlacement` and every `underlay_placements`
+  entry (floor/underlay tiles joined 2026-09-10, at the user's own prompting
+  — "they are pretty unique on their own" — each is its own distinct placed
+  instance too), plus optional, purely organizational `MissionGroup` nodes
+  the designer can create to group related objects (e.g. "everything in
+  this room"), requested 2026-09-10 as the "select a placed object"
+  prerequisite Open item #13 had been waiting on.
+  - **WALL placements are deliberately excluded** — the user has indicated
+	wall painting isn't actually used in real missions and flagged it as a
+	candidate for removal later (not attempted here, see Open items). Wall
+	`TilePlacement`s still get an `id` assigned (they share
+	`rebuild_floor_tiles()` with floor), this script just skips them when
+	building tree items — see `_find_tile_by_id()`/`_add_tile_item()`.
+  - Floor/underlay tiles reuse the exact same `id`/`parent_id` machinery as
+	interactables even though `rebuild_floor_tiles()`/
+	`rebuild_underlay_tiles()` do a full clear-and-rebuild rather than
+	interactables' incremental single-cell sync (`sync_prop_cell()`) — both
+	rebuild functions now build a lookup of the PREVIOUS placements (keyed
+	by layer+origin_cell for floor/wall, origin_cell alone for underlay,
+	since it only has one `Layer` value) before clearing, and carry an old
+	placement's `id`/`parent_id` forward when the new rebuild finds a match
+	at the same key, only minting a fresh id when there's no match. Mirrors
+	`sync_prop_cell()`'s own field-carry-over fix (see that function's
+	entry above) — same problem, just solved once per whole-layer rebuild
+	instead of once per cell.
+  - Built at runtime like every other dynamic-content Creator UI piece
+	(`CreatorPalette`, ...). Full rebuild on every `LayeredMap.
+	mission_objects_changed` signal (emitted from `sync_prop_cell()`,
+	`rebuild_floor_tiles()`, `rebuild_underlay_tiles()`, `apply_mission()`,
+	and the group-CRUD methods below via
+	`LayeredMap.notify_objects_changed()`) rather than incremental
+	`TreeItem` patching — same simplicity tradeoff `CreatorPalette.
+	_rebuild_mesh_grid()` already makes. `refresh()` coalesces repeated
+	calls into one `call_deferred()`-scheduled rebuild rather than
+	rebuilding immediately per call — the "simplest first" approach
+	initially skipped this, but floor/underlay edits happen much more
+	often than prop edits while actively painting a level (a full-layer
+	rebuild fires on every single cell), and calling `Tree.clear()`/
+	`create_item()` too rapidly back-to-back turned out to intermittently
+	return null mid-rebuild — see the "hard-won lesson" below.
+  - Node labels: an object shows `reference_name` if set else
+	`mesh_item_name`; a floor/underlay tile always shows its
+	`mesh_item_name` (no `reference_name` equivalent exists for
+	`TilePlacement`, so these commonly repeat, e.g. several "1a" entries —
+	expected, same as an unnamed prop); a group shows its own `name`; the
+	always-present root item shows `mission.mission_name` (or "Untitled
+	Mission"). Pre-existing saved missions have interactables/floor/underlay
+	entries with `id == ""` — lazily adopted into the id system the first
+	time the tree sees them (`refresh()`'s migration step), so old missions
+	don't need a one-off conversion.
+  - `SelectionType` has a fourth case, `TILE`, for floor/underlay entries
+	(distinct from `OBJECT`/`InteractableEntry`, since `TilePlacement` is a
+	different Resource with different fields — no `reference_name`/
+	`actions`/`props`). Selecting an item emits `selected(type, id)` —
+	`CreatorPropertiesPanel.gd` (below) is the only listener, same "talk
+	only through public API + signals" convention as `CreatorPalette`/
+	`CreatorController`. Selecting a placed OBJECT or TILE also jumps the
+	camera to it via `CreatorController.jump_to_cell(origin_cell, grid)`
+	(the precise, per-instance counterpart to `locate_mesh()`, which only
+	finds the first instance of a mesh name — not precise enough once
+	several props/tiles share a mesh; `grid` defaults to `prop_grid` for an
+	OBJECT, and is passed explicitly as `floor_grid`/`underlay_grid` for a
+	TILE, tagged in that tree item's own metadata at build time so no
+	re-lookup is needed) — the "find object back" half of this feature's
+	purpose. A rebuild re-selects whatever was selected before it, falling
+	back to root only if that item no longer exists (e.g. it just got
+	erased) — and deliberately does NOT re-jump the camera on a
+	rebuild-driven reselection, only on an actual click, so painting
+	elsewhere on the map while an object happens to be selected doesn't
+	keep yanking the camera back to it.
+  - **The reverse direction** (world → tree, not tree → world): also
+	listens to `CreatorController.object_picked` — a Select-mode left-click
+	in the 3D view (see `CreatorController`'s Draw mode entry above) picks
+	whatever's under the cursor, and `_on_object_picked()` selects +
+	`scroll_to_item()`s the matching tree item, deliberately WITHOUT
+	jumping the camera (it's already exactly where the user clicked) —
+	the tree-driven selection path above jumps the camera, this one
+	doesn't, that's the only difference between them.
+  - Right-click context menu (root → New Group; group → New Subgroup/
+	Rename Group/Delete Group/Move to…; object/tile → Move to… only) —
+	groups are fully managed from the tree since they have no GridMap
+	presence at all to conflict with. **Delete Group promotes its direct
+	children (groups, objects, AND floor/underlay tiles) to the deleted
+	group's own parent** rather than deleting them — a group is purely
+	organizational, deleting one should never silently destroy placed
+	objects. "Move to…" is guarded against creating a parent cycle (a
+	group can't be moved into its own descendant — objects/tiles are never
+	parents themselves, so this only matters for moving a group).
+	Group rename is inline-editable (double-click, or via the
+	menu triggering `Tree.edit_selected()`), same native Tree UX as a file
+	explorer.
+  - **Object/tile rename/delete are deliberately NOT available from this
+	tree** — rename borders on the property editing the user explicitly
+	deferred to a later pass ("modify their properties in a later stage"),
+	and delete would need to mirror `erase_at_cursor()`'s GridMap-clear
+	path. Both stay exclusively available via the existing 3D-viewport
+	paint/erase tools. True drag-and-drop reparenting (vs. the "Move to…"
+	menu) is a possible follow-on, not attempted here.
+  - **Unverified in-editor**, same caveat as everything else built this
+	session without the ability to launch Godot and see it rendered.
+- `CreatorPropertiesPanel.gd` (attached to `SidePanel/Outline/Split/
+  Inspector`) — switches between the existing mission-level fields
+  (`PropertiesFields` — Objective/player-count, still fully owned/
+  read-written by `CreatorSaveLoad.gd` at Save/Load/New time, completely
+  unchanged, this script only ever toggles their visibility) when the
+  outline tree's ROOT is selected, and a minimal read-only placeholder
+  (name/type/cell) when an object or group is selected. This is
+  intentionally the ENTIRE scope of this pass's "properties panel" work —
+  real property editing for objects/groups is explicit future work, not
+  attempted here. Talks to `CreatorOutline` only through its `selected`
+  signal, same convention as above.
 - `CreatorSaveLoad.gd` — attached to `MenuBar/File`, a `PopupMenu` under the
   top-spanning `MenuBar` (`CanvasLayer/MainLayout/MenuBar`, see
   `MainLayout`'s entry above) - New/Save/Load/Back are menu items now
@@ -354,25 +545,20 @@ combat/monster AI (explicitly out of scope for the first working version).
   child `FileDialog` (must be **Access = Resources**, not File System, to
   get usable `res://` paths). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
   Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
-  - those now live in `SidePanel`'s `Properties` tab (see that entry below),
-  not this script's own node - all still only read/written at Save/New/Load
-  time, not live-synced. The old `_ready()` that pinned the toolbar row's
-  right edge against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row
-  overlapping the palette) is gone - moot now that there's no toolbar row
-  to overlap anything, see Open item #12.
-- **`SidePanel/Properties`** (`CanvasLayer/MainLayout/EditorArea/SidePanel/Properties`)
-  — no longer empty: houses `%ObjectiveLineEdit` and
-  `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` (a plain `VBoxContainer`,
-  `PropertiesFields`, laid out vertically now that the tab is a narrow
-  260px column instead of a wide toolbar row) - mission-level metadata
-  moved here out of the old toolbar row when it became the `MenuBar`. This
-  is a pragmatic reuse of the tab, not what it's ultimately for - see Open
-  item #13, the tab is still meant to become a per-PLACED-OBJECT inspector
-  once object selection exists; mission-level fields living here in the
-  meantime is a fine home for them (there's nowhere better yet) but should
-  be revisited once that real inspector content needs the space.
+  - those live in `SidePanel/Outline/Split/Inspector/PropertiesFields`
+  (see `CreatorPropertiesPanel.gd`'s entry above), not this script's own
+  node - all still only read/written at Save/New/Load time, not
+  live-synced. The old `_ready()` that pinned the toolbar row's right edge
+  against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row overlapping
+  the palette) is gone - moot now that there's no toolbar row to overlap
+  anything, see Open item #12.
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
-  move while dragging, scroll wheel to dolly, Shift to boost speed.
+  move while dragging, scroll wheel to dolly, Shift to boost speed. Its
+  `_input()` bails out on a right-click that's over a `Control`
+  (`get_viewport().gui_get_hovered_control() != null`) before engaging -
+  otherwise it captures the mouse out from under any UI that also wants a
+  right-click (e.g. `CreatorOutline`'s context menu) - see "Hard-won
+  lessons" below.
 - `debug/DebugSync.gd` — temporary manual test harness. Keys **1/2/3/4** (deliberately
   *not* F5-F8, which are Godot's own Run/Run Scene/Pause/Stop shortcuts and get
   intercepted by the editor): 1 = sync+dump MissionData to Output, 2 = clear
@@ -480,7 +666,11 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`) above an
   `EditorArea` splitting the 3D view's space (left, just an empty
   input-transparent spacer - the 3D content isn't a `Control`) from
-  `SidePanel` (right, `Palette`/`Properties` tabs) - see the `MainLayout`
+  `SidePanel` (right, `Palette`/`Outline` tabs — `Outline` itself splits,
+  via a `VSplitContainer`, into the object-browser `Tree`
+  (`CreatorOutline.gd`) on top and the mission/object properties panel
+  (`CreatorPropertiesPanel.gd`) below - a real drag-resizable split, since
+  unlike `EditorArea` both panes here are plain 2D Controls) - see the `MainLayout`
   entry under **Creator tooling** above for why this isn't a real
   `HSplitContainer`.
 - **`player/MissionPlayer.tscn`** — instances `LayeredMapCore` as `%LayeredMap`, plus
@@ -629,6 +819,57 @@ appears locally, for a user who separately owns the official game and runs
 
 These cost real debugging time — worth not re-learning them:
 
+- A `Container`-managed child (`layout_mode = 2`, e.g. a `TabContainer`
+  tab) should **never also call `set_anchors_and_offsets_preset()`/set
+  `offset_*` on itself** in code. It's tempting to assume the Container
+  will harmlessly override it, but confirmed in-editor that's not
+  reliable: `CreatorPalette._build_ui()` called
+  `set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)` on itself
+  (a leftover from before it became a `TabContainer` tab), which spans
+  full height from y=0 regardless of the tab bar's own height — it
+  rendered on top of and ate clicks meant for `SidePanel`'s own tab
+  labels, making tabs unswitchable. Verify, don't assume, when a Control
+  gains a Container parent it didn't originally have.
+- `Node._input(event)` fires on **every** node that defines it, for
+  **every** input event, unconditionally — BEFORE Godot's own GUI system
+  gets a chance to route the event to whatever `Control` is under the
+  cursor. Confirmed in-editor 2026-09-10: `FreeLookCamera._input()`
+  engages right-click-drag camera-look (which captures/hides the mouse)
+  regardless of what the click was actually over, so right-clicking
+  `CreatorOutline`'s `Tree` for its context menu ALSO engaged the camera,
+  capturing the mouse out from under the menu (looked like the mouse
+  "froze" and the menu appeared re-centered mid-screen — it was reading
+  the just-recaptured cursor position). Fixed by checking
+  `get_viewport().gui_get_hovered_control() != null` at the top of the
+  right-click handler and bailing out if so — any future raw `_input()`
+  handler in this project that reacts to a mouse button needs the same
+  guard once UI can plausibly be under the cursor at the same time.
+- **Windows' filesystem is case-insensitive; Godot's resource/class
+  registration is not.** Found 2026-09-10: `map/LayeredMapCore.tscn` and
+  three mission `.tres` files had `res://scripts/Tileplacement.gd`
+  (lowercase `p`) baked into old `ext_resource` entries — a stale
+  authoring-time typo that loaded fine for a long time (Windows doesn't
+  care) until Godot's global class registration started treating it as a
+  SECOND script independently declaring `class_name TilePlacement`,
+  producing a baffling "Class 'TilePlacement' hides a global script
+  class" parse error pointing at the correctly-cased file's own
+  declaration line. If a `class_name` error ever again points at a
+  script's own declaration line rather than anywhere it's used, grep the
+  project for a differently-cased version of that script's filename
+  before assuming the code itself is wrong.
+- `Tree.clear()` followed by `Tree.create_item()` (the standard "rebuild
+  this Tree from scratch" idiom, used by `CreatorOutline._rebuild_tree()`)
+  is **not safe to call at high frequency, back-to-back** — confirmed
+  in-editor 2026-09-10: with `LayeredMap.mission_objects_changed` firing
+  once per painted floor cell, dragging to paint several cells in one
+  stroke called `refresh()`/`_rebuild_tree()` many times in quick
+  succession, and `create_item()` intermittently returned null mid-rebuild
+  ("Cannot call method 'set_text' on a null value"). Fixed by having
+  `refresh()` coalesce repeated calls into a single `call_deferred()`-
+  scheduled rebuild instead of one immediate rebuild per call — cheap
+  insurance for any future UI that rebuilds a `Tree` (or likely other
+  from-scratch-rebuilt controls) in response to a signal that can fire
+  many times per frame/stroke.
 - `Basis.from_orthogonal_index()` / `Basis.get_orthogonal_index()` are **not exposed
   to GDScript**. Use `GridMap.get_cell_item_basis(cell)` (read) and
   `GridMap.get_orthogonal_index_from_basis(basis)` (write) instead — both are instance
@@ -835,17 +1076,29 @@ These cost real debugging time — worth not re-learning them:
 	mouse-ray math - a bigger refactor than this pass, and not yet decided
 	whether it's worth doing. Revisit if a static-width panel actually
 	proves cramped in practice.
-13. `SidePanel/Properties` is no longer empty, but not for its originally
-	intended reason either - see that entry above: it currently just holds
-	the Objective/player-count fields that used to live in the old toolbar
-	row (moved there once the toolbar became the `MenuBar`), not real
-	per-object inspector content yet. Still needed for the actual
-	inspector: a way to select a placed object in the Creator (nothing
-	tracks "the currently selected placed instance" yet -
-	`CreatorController`/`CreatorPalette` only track which MESH is selected
-	for painting, not a specific placed one); the actual inspector content
-	once something's selected (editing `InteractableEntry.reference_name`,
-	`actions`/`PropAction`s, `props` dict keys like visible/interactible -
-	see **Story layer**); switching to this tab automatically on selection;
-	and, once that content exists, probably relocating the mission-level
-	fields somewhere that isn't the per-object inspector tab.
+13. ~~`SidePanel/Properties` is an empty placeholder...~~ — the "select a
+	placed object" half is done, requested 2026-09-10: `SidePanel/Outline`
+	(renamed from `Properties`) now has a real object-browser `Tree`
+	(`CreatorOutline.gd`) plus group nodes for organizing placed objects -
+	see **Creator outline tree** above and `MissionGroup`/`InteractableEntry.
+	id`/`parent_id` in the data layer section. Still remaining: the actual
+	per-object PROPERTY EDITING content (editing
+	`InteractableEntry.reference_name`, `actions`/`PropAction`s, `props`
+	dict keys like visible/interactible - see **Story layer**) -
+	`CreatorPropertiesPanel.gd` currently shows only a read-only name/type/
+	cell summary for a selected object/group, real editing was explicitly
+	deferred by the user to a later pass ("modify their properties in a
+	later stage"); true drag-and-drop reparenting in the tree (a "Move
+	to…" context-menu item does the same job without it, see **Creator
+	outline tree** above); and wiring `MissionGroup.visible` into an actual
+	cascading effect once the Story layer's trigger/effect evaluator exists
+	(still doesn't - see **Story layer**).
+14. **Wall painting isn't actually used in real missions** (the user's own
+	words, 2026-09-10) - `WallGridMap`/`TilePlacement.Layer.WALL` and
+	everything that handles it (`CreatorController`'s Wall layer filter,
+	`rebuild_floor_tiles()` painting both floor+wall in one pass,
+	`CreatorOutline.gd` explicitly skipping WALL when building the tree)
+	is a candidate for removal in a future pass - not attempted here, this
+	was flagged in passing while scoping the outline tree's floor/underlay
+	support (see **Creator outline tree** above), not something anyone has
+	asked to actually remove yet.

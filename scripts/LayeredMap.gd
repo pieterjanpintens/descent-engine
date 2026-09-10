@@ -16,6 +16,14 @@ extends Node3D
 @export var mission: MissionData
 @export var floor_thickness: float = 0.2
 
+## Fires whenever mission.interactables or mission.groups changes shape
+## (an object placed/erased/repainted, or a group created/renamed/deleted/
+## reparented) - CreatorOutline.gd listens to this to know when to rebuild
+## its tree. Deliberately NOT fired for floor/wall/underlay edits - those
+## aren't part of the outline tree, see CreatorOutline.gd's own doc
+## comment for why.
+signal mission_objects_changed
+
 @onready var floor_grid: GridMap = $FloorGridMap
 @onready var wall_grid: GridMap = $WallGridMap
 @onready var prop_grid: GridMap = $PropGridMap
@@ -128,7 +136,9 @@ func get_tile_square_world_corners(cell: Vector3i) -> Array[Vector3]:
 ## interactables list in sync with what's actually painted.
 func sync_prop_cell(origin: Vector3i) -> void:
 	# Clear any existing entry at this origin first, using ITS stored
-	# footprint - never guess from the new state.
+	# footprint - never guess from the new state. Keep a reference to it
+	# (rather than just erasing) so its identity/authoring survives a
+	# repaint of the same cell - see the field-carry-over note below.
 	var existing := _find_interactable(origin)
 	if existing != null:
 		FootprintRegistry.clear_occupied(mission, origin, existing.footprint)
@@ -136,6 +146,7 @@ func sync_prop_cell(origin: Vector3i) -> void:
 
 	var item_id := prop_grid.get_cell_item(origin)
 	if item_id == GridMap.INVALID_CELL_ITEM:
+		mission_objects_changed.emit()
 		return  # cell was erased, nothing further to register
 
 	var mesh_name := prop_grid.mesh_library.get_item_name(item_id)
@@ -153,7 +164,31 @@ func sync_prop_cell(origin: Vector3i) -> void:
 	entry.orientation = orientation
 	entry.blocks_movement = not defaults.walkable
 	entry.blocks_los = defaults.blocks_los
+	# This function always erases-then-recreates rather than updating in
+	# place, so a repaint of an already-placed cell (correcting its mesh
+	# or orientation) would otherwise silently orphan its outline-tree
+	# identity, group membership, and any authored reference_name/props/
+	# actions. Carry those over from the entry that was just here;
+	# otherwise mint a fresh id for a genuinely new placement.
+	if existing != null:
+		entry.id = existing.id
+		entry.parent_id = existing.parent_id
+		entry.reference_name = existing.reference_name
+		entry.props = existing.props
+		entry.actions = existing.actions
+	else:
+		entry.id = mission.allocate_object_id()
 	mission.interactables.append(entry)
+	mission_objects_changed.emit()
+
+
+## For callers that mutate mission.groups/mission.interactables' parent_id
+## directly (CreatorOutline.gd's group New/Rename/Delete/Move to... - none
+## of that touches the GridMap the way sync_prop_cell() does, so there's
+## nothing to repaint, just the "something changed, rebuild the tree"
+## notification CreatorOutline.gd is listening for).
+func notify_objects_changed() -> void:
+	mission_objects_changed.emit()
 
 
 func _find_interactable(origin: Vector3i) -> InteractableEntry:
@@ -171,19 +206,32 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 ## pass, or whenever you want to regenerate logical data from the visual
 ## layers.
 func rebuild_floor_tiles() -> void:
+	# Keyed by (layer, origin_cell) rather than origin_cell alone - floor
+	# and wall are separate GridMaps that can share the same numeric cell
+	# coordinate, and this function rebuilds both into one shared array.
+	var old_by_key: Dictionary = {}
+	for placement in mission.floor_placements:
+		old_by_key[_tile_placement_key(placement.layer, placement.origin_cell)] = placement
+
 	mission.tiles.clear()
 	mission.floor_placements.clear()
 	mission.floor_occupied_cells.clear()
 
 	for origin in floor_grid.get_used_cells():
-		_write_tile_footprint(origin, floor_grid, TilePlacement.Layer.FLOOR)
+		_write_tile_footprint(origin, floor_grid, TilePlacement.Layer.FLOOR, old_by_key)
 
 	# Wall layer cells override floor defaults where both are present.
 	for origin in wall_grid.get_used_cells():
-		_write_tile_footprint(origin, wall_grid, TilePlacement.Layer.WALL)
+		_write_tile_footprint(origin, wall_grid, TilePlacement.Layer.WALL, old_by_key)
+
+	mission_objects_changed.emit()
 
 
-func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement.Layer) -> void:
+func _tile_placement_key(layer: TilePlacement.Layer, origin_cell: Vector3i) -> String:
+	return "%d:%s" % [layer, origin_cell]
+
+
+func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement.Layer, old_by_key: Dictionary) -> void:
 	var item_id := grid.get_cell_item(origin)
 	var mesh_name := grid.mesh_library.get_item_name(item_id)
 	var orientation := grid.get_cell_item_orientation(origin)
@@ -196,6 +244,21 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 	placement.origin_cell = origin
 	placement.mesh_item_name = mesh_name
 	placement.orientation = orientation
+
+	# This function rebuilds EVERY placement from scratch on every single
+	# edit anywhere on the map (see the class doc's "full rebuild" note) -
+	# without this, a repainted tile would silently lose its outline-tree
+	# id/parent_id every time ANY floor/wall cell gets painted, not just
+	# itself. Carry the old entry's identity forward when this origin
+	# cell already had something; only mint a fresh id for a genuinely
+	# new placement. Mirrors sync_prop_cell()'s own field-carry-over fix.
+	var old: TilePlacement = old_by_key.get(_tile_placement_key(layer, origin))
+	if old != null:
+		placement.id = old.id
+		placement.parent_id = old.parent_id
+	else:
+		placement.id = mission.allocate_object_id()
+
 	mission.floor_placements.append(placement)
 
 	for offset in footprint:
@@ -220,6 +283,12 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 ## marker data only, tracked purely via underlay_placements/
 ## underlay_occupied_cells.
 func rebuild_underlay_tiles() -> void:
+	# Underlay has only one Layer value, so origin_cell alone is an
+	# unambiguous key here (unlike rebuild_floor_tiles()'s floor+wall case).
+	var old_by_cell: Dictionary = {}
+	for placement in mission.underlay_placements:
+		old_by_cell[placement.origin_cell] = placement
+
 	mission.underlay_placements.clear()
 	mission.underlay_occupied_cells.clear()
 
@@ -235,11 +304,24 @@ func rebuild_underlay_tiles() -> void:
 		placement.origin_cell = origin
 		placement.mesh_item_name = mesh_name
 		placement.orientation = orientation
+
+		# Same identity-carry-over reasoning as rebuild_floor_tiles() -
+		# this rebuilds every placement from scratch on every edit
+		# anywhere in the underlay layer.
+		var old: TilePlacement = old_by_cell.get(origin)
+		if old != null:
+			placement.id = old.id
+			placement.parent_id = old.parent_id
+		else:
+			placement.id = mission.allocate_object_id()
+
 		mission.underlay_placements.append(placement)
 
 		for offset in footprint:
 			var cell: Vector3i = origin + offset
 			mission.underlay_occupied_cells[cell] = origin
+
+	mission_objects_changed.emit()
 
 
 ## Reverse of sync_prop_cell()/rebuild_floor_tiles()/rebuild_underlay_tiles():
@@ -275,6 +357,12 @@ func apply_mission(mission_to_apply: MissionData) -> void:
 			push_warning("No MeshLibrary item named '%s' - skipping prop at %s" % [entry.mesh_item_name, entry.origin_cell])
 			continue
 		prop_grid.set_cell_item(entry.origin_cell, item_id, entry.orientation)
+
+	# A whole new mission's worth of interactables/groups just got swapped
+	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its
+	# tree from scratch here too, same as after a single sync_prop_cell()
+	# edit. Harmless no-op in the Player (nothing there listens).
+	mission_objects_changed.emit()
 
 
 ## MeshLibrary only looks up items by numeric id, not name - this does the

@@ -40,6 +40,15 @@ func jump_to(target: Vector3, distance: float = 12.0) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT:
+			# _input() fires for EVERY node unconditionally, before Godot's
+			# own GUI system gets a chance to claim the event for whatever
+			# Control is under the cursor - a right-click meant for e.g.
+			# CreatorOutline's context menu would otherwise ALSO engage
+			# camera-look here, capturing (hiding + re-centering) the mouse
+			# out from under that menu. Skip engaging entirely when a
+			# Control actually wants this click.
+			if event.pressed and get_viewport().gui_get_hovered_control() != null:
+				return
 			_rotating = event.pressed
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if _rotating else Input.MOUSE_MODE_VISIBLE
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:

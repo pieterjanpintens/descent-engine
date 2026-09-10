@@ -6,8 +6,17 @@ extends Node3D
 ## LayeredMap (or anywhere in the same scene) and wire up the exports.
 ##
 ## CONTROLS (temporary, keyboard-only until a real palette UI exists):
-##   Left-click        - place the currently selected mesh at the hovered cell
-##   Shift + Left-click - erase whatever's at the hovered cell
+##   D                  - toggle Draw mode (see draw_mode below) - starts OFF
+##                        (Select mode), so painting is something you opt
+##                        into rather than the permanent default (requested
+##                        2026-09-10, it used to always be in draw mode).
+##   Left-click         - in Draw mode: place the currently selected mesh at
+##                        the hovered cell. In Select mode: pick whatever's
+##                        under the cursor and report it via object_picked()
+##                        - see select_at_cursor(). CreatorOutline.gd listens
+##                        and selects/scrolls to the matching tree item.
+##   Shift + Left-click - in Draw mode only: erase whatever's at the hovered
+##                        cell.
 ##
 ## Hover/placement snaps to tile-square ("game unit") resolution for
 ## everything except pillars - see FootprintRegistry.allows_fine_placement()
@@ -76,6 +85,27 @@ enum PaintLayer { FLOOR, WALL, PROP, UNDERLAY }
 ## input still working side by side.
 signal layer_changed(layer: PaintLayer)
 signal mesh_changed(mesh_name: String)
+
+## Fires whenever draw_mode is flipped (D key, or set_draw_mode() called
+## directly) - same "controller emits, UI listens" convention as
+## layer_changed/mesh_changed above.
+signal draw_mode_changed(enabled: bool)
+
+## Select mode's result - left-click while draw_mode is off resolves
+## whatever's under the cursor via select_at_cursor() and reports it here
+## instead of painting/erasing anything. `kind` is "object" (an
+## InteractableEntry) / "floor" / "underlay" (a TilePlacement) - matching
+## the vocabulary CreatorOutline.gd's own tree-item metadata already uses.
+## CreatorOutline.gd is the intended listener (selects + scrolls to the
+## matching tree item) - this script deliberately doesn't know that class
+## exists, same one-directional "controller emits, UI listens" convention.
+signal object_picked(kind: String, id: String)
+
+## Whether left-click paints/erases (true) or selects an object for the
+## outline tree (false, see object_picked above) - see set_draw_mode().
+## Starts OFF: requested 2026-09-10, painting used to be the permanent
+## default with no way to leave it.
+var draw_mode: bool = false
 
 var current_layer: PaintLayer = PaintLayer.FLOOR
 var current_level: int = 0
@@ -371,11 +401,27 @@ func locate_mesh(mesh_name: String) -> bool:
 	if not found:
 		return false
 
-	var grid := _grid_for_mesh(mesh_name)
+	_jump_camera_to(_grid_for_mesh(mesh_name), origin_cell)
+	return true
+
+
+## Jumps the camera straight to a specific placed object's origin cell -
+## the precise counterpart to locate_mesh() above, which only finds the
+## FIRST instance of a given mesh name and so can't distinguish between
+## several props sharing a mesh. Used by CreatorOutline.gd ("select in
+## the tree -> find it in the world"). Defaults to prop_grid since
+## interactables are always painted there regardless of
+## InteractableEntry.type (see LayeredMap.sync_prop_cell()) - pass grid
+## explicitly for a floor/underlay TilePlacement instead, which live on
+## their own separate GridMaps.
+func jump_to_cell(origin_cell: Vector3i, grid: GridMap = null) -> void:
+	_jump_camera_to(grid if grid != null else layered_map.prop_grid, origin_cell)
+
+
+func _jump_camera_to(grid: GridMap, origin_cell: Vector3i) -> void:
 	var world_pos: Vector3 = grid.to_global(grid.map_to_local(origin_cell))
 	if camera is FreeLookCamera:
 		(camera as FreeLookCamera).jump_to(world_pos)
-	return true
 
 
 ## Every mesh item name belonging to the CURRENT layer filter. All three
@@ -452,6 +498,18 @@ func cycle_layer() -> void:
 	select_layer((current_layer + 1) % 4 as PaintLayer)
 
 
+func set_draw_mode(enabled: bool) -> void:
+	if draw_mode == enabled:
+		return
+	draw_mode = enabled
+	print("Draw mode: %s" % ("ON" if draw_mode else "OFF"))
+	draw_mode_changed.emit(draw_mode)
+
+
+func toggle_draw_mode() -> void:
+	set_draw_mode(not draw_mode)
+
+
 func change_level(delta: int) -> void:
 	current_level += delta
 	print("Painting level: %d" % current_level)
@@ -499,9 +557,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				spawn_paint_mode = not spawn_paint_mode
 				# The spawn overlay itself stays visible all the time now
 				# (see _ready()) - P only toggles whether clicking edits it.
+			KEY_D:
+				toggle_draw_mode()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if spawn_paint_mode:
 			_toggle_spawn_cell_at_cursor()
+		elif not draw_mode:
+			select_at_cursor()
 		elif Input.is_key_pressed(KEY_SHIFT):
 			erase_at_cursor()
 		else:
@@ -667,8 +729,10 @@ func _update_ghost_mesh() -> void:
 
 func _update_ghost_transform() -> void:
 	# Confusing to see the normal mesh-paint preview while placing spawn
-	# markers instead - unrelated tool, unrelated hover target.
-	if spawn_paint_mode or not _has_hover or _ghost.mesh == null:
+	# markers instead - unrelated tool, unrelated hover target. Same
+	# reasoning for Select mode (draw_mode off) - a click wouldn't place
+	# anything there, so previewing a placement would be misleading.
+	if spawn_paint_mode or not draw_mode or not _has_hover or _ghost.mesh == null:
 		_ghost.visible = false
 		return
 	var grid := _target_grid()
@@ -864,9 +928,81 @@ func _mesh_name_at(cell: Vector3i) -> String:
 
 
 func erase_at_cursor() -> void:
-	if camera == null:
-		push_warning("erase_at_cursor: camera is null")
+	var hit := _raycast_hit_cell("erase_at_cursor")
+	if hit.is_empty():
 		return
+	var hit_grid: GridMap = hit["grid"]
+	var hit_cell: Vector3i = hit["cell"]
+
+	# GridMap only stores an item at a multi-cell placement's ORIGIN cell -
+	# every other cell it visually covers is empty as far as GridMap is
+	# concerned. The raycast can land on any of those covered cells, so
+	# translate back to the real origin before touching GridMap, using the
+	# same occupancy maps sync_prop_cell()/rebuild_floor_tiles() maintain.
+	var origin := _origin_for_hit(hit_grid, hit_cell)
+
+	print("erase_at_cursor: hit cell %s -> erasing origin %s on %s" % [hit_cell, origin, hit_grid.name])
+
+	hit_grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
+	_sync_after_edit(hit_grid, origin)
+
+
+## Select mode's counterpart to place_at_cursor()/erase_at_cursor() - left-
+## click while draw_mode is off resolves whatever's under the cursor and
+## reports it via object_picked() instead of painting/erasing anything.
+## Reuses the exact same raycast + origin-cell resolution as
+## erase_at_cursor() (see _raycast_hit_cell()/_origin_for_hit()) - the only
+## difference is what happens with the resolved origin cell: look up which
+## placed object/tile owns it and report that, rather than erasing it.
+## WALL placements are silently skipped, matching CreatorOutline.gd's own
+## exclusion (see that script's class doc) - wall painting isn't used in
+## real missions.
+func select_at_cursor() -> void:
+	var hit := _raycast_hit_cell("select_at_cursor")
+	if hit.is_empty():
+		return
+	var hit_grid: GridMap = hit["grid"]
+	var hit_cell: Vector3i = hit["cell"]
+	var origin := _origin_for_hit(hit_grid, hit_cell)
+
+	if hit_grid == layered_map.prop_grid:
+		for entry in layered_map.mission.interactables:
+			if entry.origin_cell == origin:
+				object_picked.emit("object", entry.id)
+				return
+	elif hit_grid == layered_map.underlay_grid:
+		for placement in layered_map.mission.underlay_placements:
+			if placement.origin_cell == origin:
+				object_picked.emit("underlay", placement.id)
+				return
+	elif hit_grid == layered_map.floor_grid:
+		for placement in layered_map.mission.floor_placements:
+			if placement.layer == TilePlacement.Layer.FLOOR and placement.origin_cell == origin:
+				object_picked.emit("floor", placement.id)
+				return
+	# hit_grid == wall_grid, or nothing matched at this origin - nothing to
+	# select, print()s already covered by _raycast_hit_cell()'s own diagnostics.
+
+
+func _origin_for_hit(hit_grid: GridMap, hit_cell: Vector3i) -> Vector3i:
+	if hit_grid == layered_map.prop_grid:
+		return _find_origin(layered_map.mission.occupied_cells, hit_cell)
+	if hit_grid == layered_map.underlay_grid:
+		return _find_origin(layered_map.mission.underlay_occupied_cells, hit_cell)
+	return _find_origin(layered_map.mission.floor_occupied_cells, hit_cell)
+
+
+## Raycasts from the current mouse position into the 3D scene and resolves
+## which GridMap cell was actually clicked - shared by erase_at_cursor()
+## and select_at_cursor() (Draw mode's erase, Select mode's pick). Returns
+## {"grid": GridMap, "cell": Vector3i}, or an empty Dictionary if the
+## raycast hit nothing / hit something that isn't a GridMap. `caller_tag`
+## is just for the diagnostic print()s, so they still read like they did
+## when this logic lived directly in erase_at_cursor().
+func _raycast_hit_cell(caller_tag: String) -> Dictionary:
+	if camera == null:
+		push_warning("%s: camera is null" % caller_tag)
+		return {}
 
 	var mouse_pos := get_viewport().get_mouse_position()
 	var ray_origin := camera.project_ray_origin(mouse_pos)
@@ -877,14 +1013,14 @@ func erase_at_cursor() -> void:
 	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
 	var result := space_state.intersect_ray(query)
 	if result.is_empty():
-		print("erase_at_cursor: raycast hit nothing")
-		return
+		print("%s: raycast hit nothing" % caller_tag)
+		return {}
 
 	var hit_grid = result.collider
-	print("erase_at_cursor: hit collider = %s (type: %s)" % [hit_grid, hit_grid.get_class() if hit_grid != null else "null"])
+	print("%s: hit collider = %s (type: %s)" % [caller_tag, hit_grid, hit_grid.get_class() if hit_grid != null else "null"])
 	if not (hit_grid is GridMap):
-		print("erase_at_cursor: hit something that isn't a GridMap - nothing to erase")
-		return
+		print("%s: hit something that isn't a GridMap" % caller_tag)
+		return {}
 
 	# result.position sits exactly ON the surface, right on a cell boundary
 	# - mapping that directly to a cell can round into the wrong neighbor.
@@ -900,25 +1036,9 @@ func erase_at_cursor() -> void:
 	# apart, the mismatch is in the collision shape/mesh's real-world
 	# position, not in our occupancy bookkeeping.
 	var gridmap_thinks_cell_is_at: Vector3 = hit_grid.to_global(hit_grid.map_to_local(hit_cell))
-	print("erase_at_cursor: raw hit world pos = %s | GridMap's world pos for %s = %s" % [result.position, hit_cell, gridmap_thinks_cell_is_at])
+	print("%s: raw hit world pos = %s | GridMap's world pos for %s = %s" % [caller_tag, result.position, hit_cell, gridmap_thinks_cell_is_at])
 
-	# GridMap only stores an item at a multi-cell placement's ORIGIN cell -
-	# every other cell it visually covers is empty as far as GridMap is
-	# concerned. The raycast can land on any of those covered cells, so
-	# translate back to the real origin before touching GridMap, using the
-	# same occupancy maps sync_prop_cell()/rebuild_floor_tiles() maintain.
-	var origin: Vector3i
-	if hit_grid == layered_map.prop_grid:
-		origin = _find_origin(layered_map.mission.occupied_cells, hit_cell)
-	elif hit_grid == layered_map.underlay_grid:
-		origin = _find_origin(layered_map.mission.underlay_occupied_cells, hit_cell)
-	else:
-		origin = _find_origin(layered_map.mission.floor_occupied_cells, hit_cell)
-
-	print("erase_at_cursor: hit cell %s -> erasing origin %s on %s" % [hit_cell, origin, hit_grid.name])
-
-	hit_grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
-	_sync_after_edit(hit_grid, origin)
+	return {"grid": hit_grid, "cell": hit_cell}
 
 
 ## Looks up hit_cell's origin in the given occupancy map. Falls back to

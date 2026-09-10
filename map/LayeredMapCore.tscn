@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bc6ah0nt6pvj" path="res://scripts/LayeredMap.gd" id="1_rak1w"]
 [ext_resource type="MeshLibrary" uid="uid://dxfr4yxvjvgaq" path="res://descent-meshes.tres" id="2_fneos"]
-[ext_resource type="Script" uid="uid://dwrybawwvnqw4" path="res://scripts/Tileplacement.gd" id="2_qgj7d"]
 [ext_resource type="Script" uid="uid://e1xsmf1lb660" path="res://scripts/InteractableEntry.gd" id="3_2us3w"]
 [ext_resource type="Script" uid="uid://blpbct2pir678" path="res://scripts/MonsterSpawn.gd" id="4_avu3l"]
 [ext_resource type="Script" uid="uid://dld1c2y0qdnt8" path="res://scripts/MissionData.gd" id="5_1rm0q"]

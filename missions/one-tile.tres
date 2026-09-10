@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="MissionData" format=3]
 
-[ext_resource type="Script" uid="uid://dwrybawwvnqw4" path="res://scripts/Tileplacement.gd" id="1_bmja8"]
+[ext_resource type="Script" uid="uid://d06ap7xosfbfb" path="res://scripts/TilePlacement.gd" id="1_bmja8"]
 [ext_resource type="Script" uid="uid://e1xsmf1lb660" path="res://scripts/InteractableEntry.gd" id="2_eyn0j"]
 [ext_resource type="Script" uid="uid://blpbct2pir678" path="res://scripts/MonsterSpawn.gd" id="3_if0a2"]
 [ext_resource type="Script" uid="uid://dld1c2y0qdnt8" path="res://scripts/MissionData.gd" id="4_y4suj"]

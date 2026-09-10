@@ -48,14 +48,28 @@ func _ready() -> void:
 
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
+	# Nothing else used to tell this palette "a placement changed, an
+	# item's availability may now be different" - painting the same mesh
+	# repeatedly (e.g. several floor tiles in a row without switching
+	# mesh) never called _rebuild_mesh_grid() at all, so a now-exhausted
+	# mesh stayed shown as available until something else (a layer
+	# switch, the checkbox) happened to force a rebuild. Fixed 2026-09-10.
+	layered_map.mission_objects_changed.connect(_queue_mesh_grid_rebuild)
 
 	_on_layer_changed(creator_controller.current_layer)
 
 
 func _build_ui() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
+	# Deliberately NOT self-anchoring (no set_anchors_and_offsets_preset()
+	# here) - this is a TabContainer tab child now (layout_mode = 2 in the
+	# .tscn), so TabContainer alone is responsible for this Control's
+	# rect. Self-anchoring here used to be harmless when this really was
+	# inert, but it turned out NOT to be inert - PRESET_RIGHT_WIDE spans
+	# full height from y=0, ignoring the tab bar's own height, which made
+	# this Floor/Wall/Prop/Underlay row render on top of (and eat clicks
+	# meant for) SidePanel's own Palette/Outline tab labels. Confirmed
+	# in-editor 2026-09-10 - see claude.md's "Hard-won lessons".
 	custom_minimum_size = Vector2(PANEL_WIDTH, 0)
-	offset_left = -PANEL_WIDTH
 
 	var background := PanelContainer.new()
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -96,19 +110,36 @@ func _on_layer_tab_pressed(layer_index: int) -> void:
 func _on_layer_changed(layer: CreatorController.PaintLayer) -> void:
 	for i in _layer_buttons.size():
 		_layer_buttons[i].button_pressed = (i == layer)
-	_rebuild_mesh_grid()
+	_queue_mesh_grid_rebuild()
 
 
 func _on_show_unavailable_toggled(pressed: bool) -> void:
 	_show_unavailable = pressed
-	_rebuild_mesh_grid()
+	_queue_mesh_grid_rebuild()
+
+
+var _mesh_grid_rebuild_queued: bool = false
+
+
+## Coalesces rapid repeated triggers (mission_objects_changed can fire once
+## per painted cell, e.g. dragging across several floor tiles in one
+## stroke) into a single deferred rebuild instead of one immediate rebuild
+## per call - same reasoning/pattern as CreatorOutline.gd's refresh(), see
+## that comment and claude.md's matching "hard-won lesson".
+func _queue_mesh_grid_rebuild() -> void:
+	if _mesh_grid_rebuild_queued:
+		return
+	_mesh_grid_rebuild_queued = true
+	_rebuild_mesh_grid.call_deferred()
 
 
 ## Full rebuild rather than a diff - the mesh list is small (a couple dozen
-## entries at most) and this only runs on a layer switch or the toggle
-## flipping, not every frame, so the simplicity is worth more than the
-## (negligible) perf cost.
+## entries at most), so the simplicity is worth more than the (negligible)
+## perf cost. Callers should go through _queue_mesh_grid_rebuild() above,
+## not call this directly, given mission_objects_changed can now trigger
+## it far more often than the original layer-switch/checkbox triggers did.
 func _rebuild_mesh_grid() -> void:
+	_mesh_grid_rebuild_queued = false
 	for child in _mesh_grid.get_children():
 		child.queue_free()
 	_mesh_buttons.clear()

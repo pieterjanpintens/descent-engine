@@ -10,6 +10,22 @@ enum Type {
 }
 
 @export var type: Type = Type.PROP
+
+## Stable identity for the Creator's outline tree (see CreatorOutline.gd) -
+## assigned once via MissionData.allocate_object_id() when the object is
+## first placed, never regenerated. Distinct from reference_name below:
+## this is an internal bookkeeping id nobody types by hand and nothing in
+## the Story layer reads, reference_name is the human-facing, optional,
+## Story-layer-facing one. LayeredMap.sync_prop_cell() must carry this
+## field over when an already-placed cell gets repainted (it otherwise
+## erases and recreates the entry from scratch) - see that function's own
+## comment.
+@export var id: String = ""
+
+## Empty = this object sits directly under the mission root in the
+## outline tree. Otherwise a MissionGroup's id. See CreatorOutline.gd.
+@export var parent_id: String = ""
+
 ## Optional, empty by default - lets the map designer give a specific
 ## instance a human-chosen identifier (e.g. "front_door") so OTHER
 ## props/triggers can reference its state in a Condition/Effect, e.g. a

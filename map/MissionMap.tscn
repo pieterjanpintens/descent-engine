@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://ljy27dceiepg" path="res://scripts/CreatorController.gd" id="6_a7isx"]
 [ext_resource type="Script" uid="uid://d1cyr63qnt1hr" path="res://scripts/CreatorSaveLoad.gd" id="7_iyoar"]
 [ext_resource type="Script" path="res://scripts/CreatorPalette.gd" id="8_palette"]
+[ext_resource type="Script" path="res://scripts/CreatorOutline.gd" id="9_outline"]
+[ext_resource type="Script" path="res://scripts/CreatorPropertiesPanel.gd" id="10_inspector"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -60,10 +62,32 @@ script = ExtResource("8_palette")
 creator_controller = NodePath("../../../../../CreatorController")
 layered_map = NodePath("../../../../../LayeredMap")
 
-[node name="Properties" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel" unique_id=555000201]
+[node name="Outline" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel" unique_id=555000201]
 layout_mode = 2
 
-[node name="PropertiesFields" type="VBoxContainer" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties"]
+[node name="Split" type="VSplitContainer" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OutlineTree" type="Tree" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("layered_map", "creator_controller")]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("9_outline")
+layered_map = NodePath("../../../../../../../LayeredMap")
+creator_controller = NodePath("../../../../../../../CreatorController")
+
+[node name="Inspector" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("creator_outline", "layered_map", "mission_fields")]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("10_inspector")
+creator_outline = NodePath("../OutlineTree")
+layered_map = NodePath("../../../../../../../LayeredMap")
+mission_fields = NodePath("PropertiesFields")
+
+[node name="PropertiesFields" type="VBoxContainer" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -74,31 +98,31 @@ offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
+[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 layout_mode = 2
 text = "Objective:"
 
-[node name="ObjectiveLineEdit" type="LineEdit" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
+[node name="ObjectiveLineEdit" type="LineEdit" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Final objective description"
 
-[node name="MinPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
+[node name="MinPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 layout_mode = 2
 text = "Min players:"
 
-[node name="MinPlayersSpinBox" type="SpinBox" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
+[node name="MinPlayersSpinBox" type="SpinBox" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 1
 max_value = 6
 value = 1
 
-[node name="MaxPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
+[node name="MaxPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 layout_mode = 2
 text = "Max players:"
 
-[node name="MaxPlayersSpinBox" type="SpinBox" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Properties/PropertiesFields"]
+[node name="MaxPlayersSpinBox" type="SpinBox" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 1
