@@ -14,7 +14,7 @@ extends Node
 ## like a crash).
 ## Delete this once the Creator UI does all of this for real.
 
-const SAVE_PATH := "res://missions/test_mission.tres"
+const SAVE_PATH := "user://missions/test_mission.tres"
 
 @export var layered_map: LayeredMap
 

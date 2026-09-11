@@ -13,7 +13,7 @@ extends PopupMenu
 ## Expected scene layout:
 ##   MenuBar (MenuBar)
 ##    |- File (PopupMenu, this script)
-##        |- MissionFileDialog (FileDialog, Access=Resources, marked as
+##        |- MissionFileDialog (FileDialog, Access=User Data, marked as
 ##            Unique Name %MissionFileDialog)
 ##   SidePanel/Outline/Split/Inspector/PropertiesFields
 ##    |- ObjectiveLineEdit (LineEdit, marked as Unique Name %ObjectiveLineEdit)
@@ -28,7 +28,7 @@ extends PopupMenu
 
 @export var layered_map: LayeredMap
 @export var operation_history: OperationHistory  ## records objective/player-count edits for undo/redo
-@export var missions_dir: String = "res://missions"
+@export var missions_dir: String = "user://missions"
 @export var menu_scene_path: String = "res://ui/MainMenu.tscn"  ## same default MissionPlayer.gd uses
 
 @onready var file_dialog: FileDialog = %MissionFileDialog

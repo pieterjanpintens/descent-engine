@@ -34,7 +34,8 @@ text = "Exit
 unique_name_in_owner = true
 title = "Open a File"
 file_mode = 0
-root_subfolder = "res://missions/"
+access = 1
+root_subfolder = "user://missions/"
 filters = PackedStringArray("*.tres")
 
 [connection signal="pressed" from="CenterContainer/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]

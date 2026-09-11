@@ -47,7 +47,8 @@ operation_history = NodePath("../Edit")
 
 [node name="MissionFileDialog" type="FileDialog" parent="CanvasLayer/MainLayout/MenuBar/File"]
 unique_name_in_owner = true
-root_subfolder = "res://missions/"
+access = 1
+root_subfolder = "user://missions/"
 filters = PackedStringArray("*.tres")
 
 [node name="Edit" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map")]

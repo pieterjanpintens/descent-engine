@@ -757,8 +757,13 @@ combat/monster AI (explicitly out of scope for the first working version).
   reused across opens, same pattern as `CreatorPropertiesPanel.gd`'s
   `PropertiesDialog`) - see that entry and `CreatorAutosave.gd`'s below.
   Holds a
-  child `FileDialog` (must be **Access = Resources**, not File System, to
-  get usable `res://` paths). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
+  child `FileDialog` (**Access = User Data**, not File System - not
+  Resources either, since 2026-09-11: `missions_dir` moved from
+  `res://missions` to `user://missions`, same read-only-in-an-exported-
+  build reasoning as `CreatorSettings`/`CreatorAutosave` below, just
+  applied to normal manual Save/Load - `res://` silently can't be written
+  to from the shipped `.exe`, so plain Save was broken there too, not
+  just the autosave system). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
   Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
   - those live in `SidePanel/Outline/Split/Inspector/PropertiesFields`
   (see `CreatorPropertiesPanel.gd`'s entry above), not this script's own
@@ -918,9 +923,21 @@ combat/monster AI (explicitly out of scope for the first working version).
 
 **App shell** (`ui/`, `player/`):
 
-- `MainMenu` — Play (opens a `FileDialog` over `res://missions/`, then loads
+- `MainMenu` — Play (opens a `FileDialog` over `user://missions/`, then loads
   `MissionPlayer.tscn` with the chosen path via `GameState`) / Editor (loads the
-  Creator scene) / Exit.
+  Creator scene) / Exit. The mission folder moved from `res://missions` to
+  `user://missions` 2026-09-11 - same `res://` is read-only in an exported
+  build reasoning as `CreatorSettings`/`CreatorAutosave` (see **Hard-won
+  lessons**), just applied to the Creator's own manual Save/Load this time,
+  not just the autosave system. Both this dialog and `CreatorSaveLoad.gd`'s
+  now use `FileDialog.access = ACCESS_USERDATA` (was the default
+  `ACCESS_RESOURCES`) with `root_subfolder = "user://missions/"` to match.
+  The old `res://missions/*.tres` dev/test fixtures (`one-tile.tres`,
+  `test-123.tres`, `test_mission.tres`, `underlays.tres`) were deleted
+  from the repo the same day, once `res://missions` was no longer where
+  anything actually looks — they were never shipped sample content, just
+  local save-testing artifacts from when the Creator wrote to `res://`
+  directly inside the editor.
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
   `%LayeredMap.apply_mission()`, shows mission name + counts in a label. Now runs
   the basic round loop (see **Story layer**'s `RoundCheckpoint.Checkpoint`):
@@ -1274,9 +1291,13 @@ These cost real debugging time — worth not re-learning them:
   and get intercepted by the editor even during a running scene — never bind in-game
   debug hotkeys to these. Similarly, `Tab` is `ui_focus_next` and stops reaching
   `_unhandled_input` once real `Control`/`Button` nodes exist in a scene.
-- `FileDialog.access` must be **`Resources`**, not `File System` — the latter returns
-  absolute OS paths that don't resolve the same way as `res://` paths for
-  `ResourceLoader`.
+- `FileDialog.access` must be **`Resources`** or **`User Data`** (whichever
+  matches the actual `res://`/`user://` path you're browsing -
+  `CreatorSaveLoad.gd`/`MainMenu.gd`'s mission dialogs use `User Data` +
+  `root_subfolder = "user://missions/"`, `CreatorSettingsDialog`'s backup
+  location field is a plain `user://`-prefixed `String`, not a `FileDialog`
+  at all), never `File System` — the latter returns absolute OS paths that
+  don't resolve the same way as `res://`/`user://` paths for `ResourceLoader`.
 - Cross-script type inference (`:=`) can fail for a method's return type when that
   method lives on a different custom `class_name` script — use explicit type
   annotations (`var x: int = ...`) as a reliable workaround.
