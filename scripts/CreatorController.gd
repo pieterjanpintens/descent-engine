@@ -78,6 +78,7 @@ extends Node3D
 @export var floor_occupancy_color: Color = Color(0.2, 0.6, 1.0, 0.9)
 @export var prop_occupancy_color: Color = Color(1.0, 0.4, 0.2, 0.9)
 @export var underlay_occupancy_color: Color = Color(0.7, 0.2, 1.0, 0.9)
+@export var selection_highlight_color: Color = Color(1.0, 1.0, 1.0, 0.9)
 
 
 
@@ -127,6 +128,12 @@ var _occupancy_overlay: MeshInstance3D
 var _occupancy_overlay_mesh: ImmediateMesh
 var show_occupancy_overlay: bool = false
 
+## The selected object/tile's outline - see highlight_footprint()/
+## clear_selection_highlight(), called by CreatorOutline.gd whenever
+## selection changes.
+var _selection_highlight: MeshInstance3D
+var _selection_highlight_mesh: ImmediateMesh
+
 var _tile_labels_container: Node3D
 var show_tile_labels: bool = false
 
@@ -152,6 +159,7 @@ func _ready() -> void:
 	_setup_grid_overlay()
 	_setup_origin_overlay()
 	_setup_occupancy_overlay()
+	_setup_selection_highlight()
 	_setup_tile_labels()
 	_setup_spawn_ghost()
 	if camera == null:
@@ -215,6 +223,20 @@ func _setup_origin_overlay() -> void:
 	_origin_overlay.material_override = material
 	_origin_overlay.visible = false
 	add_child(_origin_overlay)
+
+
+func _setup_selection_highlight() -> void:
+	_selection_highlight_mesh = ImmediateMesh.new()
+	_selection_highlight = MeshInstance3D.new()
+	_selection_highlight.mesh = _selection_highlight_mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = selection_highlight_color
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.disable_ambient_light = true
+	_selection_highlight.material_override = material
+	_selection_highlight.visible = false
+	add_child(_selection_highlight)
 
 
 ## Same idea as the normal mesh ghost preview, so spawn-paint mode "behaves
@@ -427,6 +449,78 @@ func _jump_camera_to(grid: GridMap, origin_cell: Vector3i) -> void:
 	var world_pos: Vector3 = grid.to_global(grid.map_to_local(origin_cell))
 	if camera is FreeLookCamera:
 		(camera as FreeLookCamera).jump_to(world_pos)
+
+
+## Draws a white outline around the actual SHAPE of a placed object/tile's
+## footprint (not a bounding box - the true perimeter, so an irregular
+## piece like "18a" reads correctly) - called by CreatorOutline.gd
+## whenever selection changes, requested 2026-09-10 ("a whitish ticker
+## line of the shape outline... is that feasible?"). `footprint` is cell
+## offsets from `origin_cell`, same convention as InteractableEntry.footprint/
+## FootprintRegistry.get_footprint() - the caller is responsible for
+## resolving it (InteractableEntry already stores its own, a TilePlacement
+## needs FootprintRegistry.get_footprint()+rotate_footprint() same as
+## LayeredMap.sync_prop_cell()/_write_tile_footprint() do).
+func highlight_footprint(origin_cell: Vector3i, footprint: Array[Vector3i], grid: GridMap) -> void:
+	var lift := Vector3(0, _selection_highlight_lift(grid), 0)
+
+	_selection_highlight_mesh.clear_surfaces()
+	_selection_highlight_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+	for edge in _footprint_boundary_edges(footprint):
+		var a: Vector3 = grid.to_global(grid.map_to_local(origin_cell + edge[0])) + lift
+		var b: Vector3 = grid.to_global(grid.map_to_local(origin_cell + edge[1])) + lift
+		_selection_highlight_mesh.surface_set_color(selection_highlight_color)
+		_selection_highlight_mesh.surface_add_vertex(a)
+		_selection_highlight_mesh.surface_set_color(selection_highlight_color)
+		_selection_highlight_mesh.surface_add_vertex(b)
+	_selection_highlight_mesh.surface_end()
+	_selection_highlight.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
+	_selection_highlight.visible = true
+
+
+func clear_selection_highlight() -> void:
+	_selection_highlight.visible = false
+
+
+## floor_grid/underlay_grid sit at floor level - lifting only 0.02 (like
+## prop_grid, already raised +floor_thickness by LayeredMap._ready()) would
+## bury the line under the floor mesh's own visible top surface. Mirrors
+## LayeredMap.get_tile_square_world_corners()'s identical lift for the
+## spawn overlay.
+func _selection_highlight_lift(grid: GridMap) -> float:
+	if grid == layered_map.floor_grid or grid == layered_map.underlay_grid:
+		return layered_map.floor_thickness + 0.02
+	return 0.02
+
+
+## Traces the OUTER PERIMETER of a footprint as a set of independent edges
+## (corner-to-corner, each expressed as a Vector3i cell offset so the
+## caller can resolve them via grid.map_to_local() the same way every
+## other overlay in this project does) - not one edge per cell (that would
+## draw internal grid lines too, like the occupancy overlay does
+## deliberately). An edge belongs on the boundary whenever the footprint
+## does NOT also contain the cell on the other side of it. Order doesn't
+## matter - PRIMITIVE_LINES draws independent segments, not a connected
+## loop.
+func _footprint_boundary_edges(footprint: Array[Vector3i]) -> Array:
+	var cell_set := {}
+	for offset in footprint:
+		cell_set[offset] = true
+
+	var edges: Array = []
+	for offset in footprint:
+		var x := offset.x
+		var y := offset.y
+		var z := offset.z
+		if not cell_set.has(Vector3i(x + 1, y, z)):
+			edges.append([Vector3i(x + 1, y, z), Vector3i(x + 1, y, z + 1)])
+		if not cell_set.has(Vector3i(x - 1, y, z)):
+			edges.append([Vector3i(x, y, z), Vector3i(x, y, z + 1)])
+		if not cell_set.has(Vector3i(x, y, z + 1)):
+			edges.append([Vector3i(x, y, z + 1), Vector3i(x + 1, y, z + 1)])
+		if not cell_set.has(Vector3i(x, y, z - 1)):
+			edges.append([Vector3i(x, y, z), Vector3i(x + 1, y, z)])
+	return edges
 
 
 ## Every mesh item name belonging to the CURRENT layer filter. All three

@@ -152,7 +152,6 @@ func sync_prop_cell(origin: Vector3i) -> void:
 	var mesh_name := prop_grid.mesh_library.get_item_name(item_id)
 	var orientation := prop_grid.get_cell_item_orientation(origin)
 	var basis := prop_grid.get_cell_item_basis(origin)
-	var defaults := FootprintRegistry.get_logical_defaults(mesh_name)
 	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
 
 	FootprintRegistry.mark_occupied(mission, origin, footprint)
@@ -162,18 +161,17 @@ func sync_prop_cell(origin: Vector3i) -> void:
 	entry.origin_cell = origin
 	entry.footprint = footprint
 	entry.orientation = orientation
-	entry.blocks_movement = not defaults.walkable
-	entry.blocks_los = defaults.blocks_los
 	# This function always erases-then-recreates rather than updating in
 	# place, so a repaint of an already-placed cell (correcting its mesh
 	# or orientation) would otherwise silently orphan its outline-tree
-	# identity, group membership, and any authored reference_name/props/
-	# actions. Carry those over from the entry that was just here;
-	# otherwise mint a fresh id for a genuinely new placement.
+	# identity, group membership, and any authored reference_name/
+	# visible/props/actions. Carry those over from the entry that was
+	# just here; otherwise mint a fresh id for a genuinely new placement.
 	if existing != null:
 		entry.id = existing.id
 		entry.parent_id = existing.parent_id
 		entry.reference_name = existing.reference_name
+		entry.visible = existing.visible
 		entry.props = existing.props
 		entry.actions = existing.actions
 	else:
@@ -248,14 +246,17 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 	# This function rebuilds EVERY placement from scratch on every single
 	# edit anywhere on the map (see the class doc's "full rebuild" note) -
 	# without this, a repainted tile would silently lose its outline-tree
-	# id/parent_id every time ANY floor/wall cell gets painted, not just
-	# itself. Carry the old entry's identity forward when this origin
-	# cell already had something; only mint a fresh id for a genuinely
-	# new placement. Mirrors sync_prop_cell()'s own field-carry-over fix.
+	# id/parent_id/reference_name/visible every time ANY floor/wall cell
+	# gets painted, not just itself. Carry the old entry's identity
+	# forward when this origin cell already had something; only mint a
+	# fresh id for a genuinely new placement. Mirrors sync_prop_cell()'s
+	# own field-carry-over fix.
 	var old: TilePlacement = old_by_key.get(_tile_placement_key(layer, origin))
 	if old != null:
 		placement.id = old.id
 		placement.parent_id = old.parent_id
+		placement.reference_name = old.reference_name
+		placement.visible = old.visible
 	else:
 		placement.id = mission.allocate_object_id()
 
@@ -312,6 +313,8 @@ func rebuild_underlay_tiles() -> void:
 		if old != null:
 			placement.id = old.id
 			placement.parent_id = old.parent_id
+			placement.reference_name = old.reference_name
+			placement.visible = old.visible
 		else:
 			placement.id = mission.allocate_object_id()
 

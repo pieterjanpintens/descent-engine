@@ -130,16 +130,16 @@ func is_walkable(cell: Vector3i) -> bool:
 	return not occupied_cells.has(cell)
 
 
+## InteractableEntry no longer carries its own blocks_los (removed
+## 2026-09-10, unused - is_walkable() below never referenced the
+## equivalent blocks_movement either, occupied_cells.has(cell) alone
+## already blocks movement regardless of a specific flag's value). Prop-
+## level LOS blocking can come back as a well-known InteractableEntry.props
+## key if a real need for it ever shows up - this just reads the floor/
+## wall TileEntry's own blocks_los for now.
 func blocks_los(cell: Vector3i) -> bool:
 	var tile := get_tile(cell)
-	if tile != null and tile.blocks_los:
-		return true
-	if occupied_cells.has(cell):
-		var owner_cell: Vector3i = occupied_cells[cell]
-		for entry in interactables:
-			if entry.origin_cell == owner_cell:
-				return entry.blocks_los
-	return false
+	return tile != null and tile.blocks_los
 
 
 func get_interactable_at(cell: Vector3i) -> InteractableEntry:

@@ -221,14 +221,14 @@ func _rebuild_tree() -> void:
 func _add_tile_item(placement: TilePlacement, tile_grid: String) -> void:
 	var parent_item: TreeItem = _id_to_item.get(placement.parent_id, _id_to_item[""])
 	var item := create_item(parent_item)
-	item.set_text(0, placement.mesh_item_name)
+	item.set_text(0, placement.reference_name if placement.reference_name != "" else placement.mesh_item_name)
 	item.set_metadata(0, {"type": SelectionType.TILE, "id": placement.id, "grid": tile_grid})
 	_id_to_item[placement.id] = item
 
 
 func _create_group_item(parent_item: TreeItem, group: MissionGroup) -> TreeItem:
 	var item := create_item(parent_item)
-	item.set_text(0, group.name if group.name != "" else "(unnamed group)")
+	item.set_text(0, group.reference_name if group.reference_name != "" else "(unnamed group)")
 	item.set_metadata(0, {"type": SelectionType.GROUP, "id": group.id})
 	# Only groups are inline-renamable (double-click, or "Rename Group" in
 	# the context menu below) - objects/root are not, see class doc.
@@ -255,18 +255,31 @@ func _notify_selection(meta: Dictionary, jump_camera: bool) -> void:
 	_selected_type = type
 	_selected_id = id
 	selected.emit(type, id)
-	if not jump_camera:
-		return
+
+	# Highlight always updates (a selected-but-not-jumped-to reselection,
+	# e.g. after a Tree rebuild, still needs its outline redrawn if the
+	# object's shape/position changed - a Move to... or an undo could
+	# change either). The camera jump alone stays gated on jump_camera -
+	# see this function's own callers for why (an actual click jumps, a
+	# rebuild-driven reselection or a world-click pick doesn't).
 	match type:
 		SelectionType.OBJECT:
 			var entry := _find_interactable_by_id(id)
 			if entry != null:
-				creator_controller.jump_to_cell(entry.origin_cell)
+				creator_controller.highlight_footprint(entry.origin_cell, entry.footprint, layered_map.prop_grid)
+				if jump_camera:
+					creator_controller.jump_to_cell(entry.origin_cell)
+				return
 		SelectionType.TILE:
 			var placement := _find_tile_by_id(id)
 			if placement != null:
 				var grid: GridMap = layered_map.floor_grid if meta.get("grid", "") == "floor" else layered_map.underlay_grid
-				creator_controller.jump_to_cell(placement.origin_cell, grid)
+				var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(placement.mesh_item_name), grid.get_cell_item_basis(placement.origin_cell))
+				creator_controller.highlight_footprint(placement.origin_cell, footprint, grid)
+				if jump_camera:
+					creator_controller.jump_to_cell(placement.origin_cell, grid)
+				return
+	creator_controller.clear_selection_highlight()
 
 
 ## Select mode's counterpart to the camera-jump in _notify_selection() -
@@ -299,9 +312,9 @@ func _on_item_edited() -> void:
 		return
 	var new_name: String = item.get_text(0).strip_edges()
 	operation_history.record("Rename group", func():
-		group.name = new_name if new_name != "" else "New Group"
+		group.reference_name = new_name if new_name != "" else "New Group"
 	)
-	item.set_text(0, group.name)  # normalize back if it was blanked out
+	item.set_text(0, group.reference_name)  # normalize back if it was blanked out
 	layered_map.notify_objects_changed()
 
 
@@ -372,7 +385,7 @@ func _add_move_to_submenu() -> void:
 	for group in layered_map.mission.groups:
 		if not _is_valid_move_target(group.id):
 			continue
-		_move_to_menu.add_item(group.name if group.name != "" else "(unnamed group)", _move_to_target_ids.size())
+		_move_to_menu.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)", _move_to_target_ids.size())
 		_move_to_target_ids.append(group.id)
 
 	_context_menu.add_submenu_node_item("Move to…", _move_to_menu)
@@ -417,7 +430,7 @@ func _create_group(parent_id: String) -> void:
 	operation_history.record("New group", func():
 		var group := MissionGroup.new()
 		group.id = mission.allocate_object_id()
-		group.name = "New Group"
+		group.reference_name = "New Group"
 		group.parent_id = parent_id
 		mission.groups.append(group)
 	)

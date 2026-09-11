@@ -1,5 +1,5 @@
 class_name MissionGroup
-extends Resource
+extends OutlineNode
 
 ## A purely organizational node in the Creator's outline tree (see
 ## CreatorOutline.gd) - groups things placed on the map (e.g. "everything
@@ -8,22 +8,16 @@ extends Resource
 ## object individually. Has no mesh/footprint of its own - a group's
 ## "location" is just whatever its members' locations happen to be.
 ##
+## Entirely OutlineNode fields, no fields of its own (see that script's
+## own comments) - still its own distinct class rather than just using
+## OutlineNode directly, so mission.groups: Array[MissionGroup] and the
+## outline tree's own SelectionType.GROUP checks (`is MissionGroup`, etc.)
+## stay meaningful.
+##
 ## `visible` is the one property meant to cascade to a group's members
-## (InteractableEntry already has its own per-object `props["visible"]` -
-## see that script's doc comment). Stored here now so authoring isn't
-## blocked, but nothing computes the cascade or reacts to it yet - the
-## Story layer has no runtime variable/trigger evaluator at all yet (see
-## claude.md's Story layer section), so wiring a group's visibility into
-## an actual Effect is future work, not this pass.
-
-@export var id: String = ""
-@export var name: String = ""
-
-## Empty = directly under the mission root. Otherwise another
-## MissionGroup's id - groups can nest inside groups, this falls straight
-## out of using a parent pointer instead of a group-owned children list
-## (see CreatorOutline.gd's doc comment for why parent pointers were
-## chosen).
-@export var parent_id: String = ""
-
-@export var visible: bool = true
+## (each member already has its own `visible` too, same field, same
+## reasoning). Stored here now so authoring isn't blocked, but nothing
+## computes the cascade or reacts to it yet - the Story layer has no
+## runtime variable/trigger evaluator at all yet (see claude.md's Story
+## layer section), so wiring a group's visibility into an actual Effect
+## is future work, not this pass.

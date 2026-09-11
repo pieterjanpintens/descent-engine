@@ -59,8 +59,8 @@ func _show_placeholder(text: String) -> void:
 func _describe_group(id: String) -> String:
 	for group in layered_map.mission.groups:
 		if group.id == id:
-			var display_name := group.name if group.name != "" else "(unnamed group)"
-			return "Group: %s\n\n(property editing coming later)" % display_name
+			var display_name := group.reference_name if group.reference_name != "" else "(unnamed group)"
+			return "Group: %s\nVisible: %s\n\n(property editing coming later)" % [display_name, group.visible]
 	return ""
 
 
@@ -69,15 +69,20 @@ func _describe_object(id: String) -> String:
 		if entry.id == id:
 			var display_name := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
 			var type_name: String = InteractableEntry.Type.keys()[entry.type]
-			return "Object: %s\nType: %s\nCell: %s\n\n(property editing coming later)" % [display_name, type_name, entry.origin_cell]
+			return "Object: %s\nType: %s\nCell: %s\nVisible: %s\n\n(property editing coming later)" % [display_name, type_name, entry.origin_cell, entry.visible]
 	return ""
 
 
 func _describe_tile(id: String) -> String:
 	for placement in layered_map.mission.floor_placements:
 		if placement.layer == TilePlacement.Layer.FLOOR and placement.id == id:
-			return "Floor tile: %s\nCell: %s\n\n(property editing coming later)" % [placement.mesh_item_name, placement.origin_cell]
+			return _describe_tile_placement("Floor tile", placement)
 	for placement in layered_map.mission.underlay_placements:
 		if placement.id == id:
-			return "Underlay: %s\nCell: %s\n\n(property editing coming later)" % [placement.mesh_item_name, placement.origin_cell]
+			return _describe_tile_placement("Underlay", placement)
 	return ""
+
+
+func _describe_tile_placement(label: String, placement: TilePlacement) -> String:
+	var display_name := placement.reference_name if placement.reference_name != "" else placement.mesh_item_name
+	return "%s: %s\nCell: %s\nVisible: %s\n\n(property editing coming later)" % [label, display_name, placement.origin_cell, placement.visible]

@@ -40,37 +40,73 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   (both default 1-6, the full `HeroCatalog` range - enforced by
   `EmbarkDialog`, authored via `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` in
   the Creator). Methods: `get_tile()`,
-  `is_walkable()`, `blocks_los()`, `get_interactable_at()`,
+  `is_walkable()`, `blocks_los()` (simplified 2026-09-10 to just the floor/
+  wall `TileEntry`'s own flag, once `InteractableEntry.blocks_los` was
+  removed as unused — see that entry below), `get_interactable_at()`,
   `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
   prop placements together for `ComponentInventory`).
-- `TileEntry` — mesh_item_name, walkable, blocks_los, region_id.
-- `TilePlacement` — layer (FLOOR/WALL/UNDERLAY enum), origin_cell, mesh_item_name,
-  orientation, `id`/`parent_id` (same outline-tree identity as
-  `InteractableEntry`'s, added 2026-09-10 — see **Creator outline tree**
-  below; only FLOOR and UNDERLAY placements actually appear in the tree,
+- `TileEntry` — mesh_item_name, walkable, blocks_los, region_id. Unrelated
+  to `OutlineNode` below despite the similar-sounding `blocks_los` name —
+  this is the flattened per-CELL floor/wall logical data, not a placed
+  object.
+- **`OutlineNode`** (new 2026-09-10, `scripts/OutlineNode.gd`) — shared
+  base class for everything that can appear as its own node in the
+  Creator's outline tree (see **Creator outline tree** below):
+  `InteractableEntry`, `TilePlacement`, and `MissionGroup` all
+  `extends OutlineNode` now instead of each separately declaring the same
+  four fields. Pulled out once all three ended up needing exactly the
+  same thing — GDScript supports `class_name X extends Y` for custom
+  Resource classes just as well as for built-in ones. Fields:
+  - `id` — stable outline-tree identity, assigned once via
+	`MissionData.allocate_object_id()` when first created, never
+	regenerated. A caller that reconstructs one of these from scratch
+	(e.g. `LayeredMap.sync_prop_cell()`/`rebuild_floor_tiles()`'s
+	erase-then-recreate pattern) must carry this over from whatever was
+	there before, or it silently orphans the node's identity/group
+	membership — see those functions' own comments.
+  - `parent_id` — empty = directly under the mission root in the outline
+	tree, else another node's `id` (in practice always a `MissionGroup`'s,
+	since only groups can be a parent — objects/tiles never are).
+  - `reference_name` — optional, human-facing identifier (e.g.
+	"front_door") so other props/triggers can reference this node's state
+	in a Condition/Effect (see **Story layer**) — and doubles as the
+	outline tree's display label when set, falling back to the node's own
+	mesh name (or "(unnamed group)" for a `MissionGroup`) when empty.
+  - `visible` — plain top-level bool (default true), not a dict key.
+	Moved out of `InteractableEntry.props` here 2026-09-10 once every
+	`OutlineNode` needed it, not just props with genuinely free-form extra
+	data. Not yet consumed by any evaluator/renderer — future work, see
+	**Story layer**.
+- `TilePlacement` — layer (FLOOR/WALL/UNDERLAY enum), origin_cell,
+  mesh_item_name, orientation, plus everything from `OutlineNode` above.
+  Only FLOOR and UNDERLAY placements actually appear in the outline tree,
   WALL is excluded — wall painting isn't used in real missions, see Open
-  items).
-- `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK), `id`
-  (stable outline-tree identity, assigned once via
-  `MissionData.allocate_object_id()` when first placed, never regenerated
-  — see **Creator outline tree** below), `parent_id` (empty = directly
-  under the mission root in the outline tree, else a `MissionGroup`'s
-  `id`), mesh_item_name,
-  origin_cell, footprint (Array[Vector3i], rotation-adjusted), orientation,
-  blocks_movement, blocks_los, props (free-form Dict — "visible"/"interactible"
-  bool keys are well-known, read by the runtime directly, both default true when
-  absent), `actions` (Array[PropAction] — see **Story layer**), `reference_name`
-  (optional human-chosen id, e.g. "front_door" — see **Story layer**; distinct
-  from `id` above — `reference_name` is the optional, human-facing,
-  Story-layer-facing one, `id` is internal bookkeeping nobody types by hand),
-  plus `link_from_cell`/`link_to_cell`/`link_bidirectional` for stairs
+  items.
+- `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK),
+  mesh_item_name, origin_cell, footprint (Array[Vector3i],
+  rotation-adjusted), orientation, plus everything from `OutlineNode`
+  above (`id`/`parent_id`/`reference_name`/`visible`). Also: `props`
+  (free-form Dict — "interactible" is the one well-known key left here,
+  bool, default true when absent, toggling whether `actions` can
+  currently be used; `blocks_movement`/`blocks_los` were removed
+  entirely 2026-09-10, unused — `MissionData.is_walkable()` never
+  actually read `blocks_movement`, `occupied_cells.has(cell)` alone
+  already blocks movement regardless of a specific flag's value; either
+  can come back as a `props` key later if a real need shows up), `actions`
+  (Array[PropAction] — see **Story layer**), plus
+  `link_from_cell`/`link_to_cell`/`link_bidirectional` for stairs
   (LEVEL_LINK type) — **not yet wired up to real stairs instances**, see
-  Open Items.
+  Open Items. This dict is deliberately Object-only — `TilePlacement`/
+  `MissionGroup` don't have one, `visible` graduating to `OutlineNode`
+  itself is what made that possible.
 - `MissionGroup` — a purely organizational node in the Creator's outline
-  tree, NOT a spatial/gameplay concept: `id`, `name`, `parent_id` (groups
-  can nest under groups), `visible` (the one property meant to cascade to
-  a group's members eventually — stored but not yet consumed by any
-  evaluator, see **Creator outline tree** below). `MissionData.groups`.
+  tree, NOT a spatial/gameplay concept. Entirely `OutlineNode` fields, no
+  fields of its own — still its own distinct class (not just
+  `OutlineNode` directly) so `MissionData.groups: Array[MissionGroup]` and
+  the outline tree's own `SelectionType.GROUP` checks stay meaningful.
+  `visible` is the one property meant to cascade to a group's members
+  eventually — stored but not yet consumed by any evaluator, see
+  **Creator outline tree** below.
 - `MonsterSpawn` — data model exists, unused so far (no authoring UI, no
   combat/monster AI yet — see Open Items).
 
@@ -378,6 +414,29 @@ combat/monster AI (explicitly out of scope for the first working version).
 	Mainly useful now that many floor tile faces share one generic material
 	(flagstone/grass/dirt/wood planks) and can no longer be told apart by looks
 	alone.
+  - **Selection highlight** (`highlight_footprint()`/
+	`clear_selection_highlight()`, called by `CreatorOutline.gd` — see
+	that script's own entry — requested 2026-09-10) — a white outline
+	around the actual SHAPE of whatever's currently selected, not a
+	bounding box: `_footprint_boundary_edges()` traces the true perimeter
+	of a multi-cell footprint (an edge belongs on the boundary whenever
+	the footprint does NOT also contain the cell on the other side of it
+	— the standard "outline a set of grid cells" trick), so an irregular
+	piece like `18a` reads correctly instead of just showing a rectangle
+	around it. Deliberately NOT one edge per cell the way the occupancy
+	overlay above draws (that's meant to show every individual cell,
+	internal lines and all) — this is meant to read as one clean shape.
+	Same `ImmediateMesh` + `MeshInstance3D` + flat unshaded material
+	pattern as every other overlay here, `PRIMITIVE_LINES` with the edges
+	in any order (independent segments, not a connected loop — no
+	ordering needed). Lifted above the surface it sits on to avoid
+	z-fighting — `floor_thickness + 0.02` for `floor_grid`/`underlay_grid`
+	(both sit at floor level, unlike `prop_grid` which
+	`LayeredMap._ready()` already raises `+floor_thickness`), `0.02`
+	otherwise — mirrors `LayeredMap.get_tile_square_world_corners()`'s
+	identical lift for the spawn overlay. Static for now, no
+	marching-ants animation — offered as a possible follow-on if a plain
+	outline ever feels too flat, not attempted here.
   - **Draw mode** (`draw_mode`, `D` key toggles, `draw_mode_changed(enabled)`
 	signal, requested 2026-09-10) — starts OFF (**Select mode**). In Draw
 	mode, Left-click/Shift+Left-click place/erase as below, and the
@@ -484,15 +543,17 @@ combat/monster AI (explicitly out of scope for the first working version).
 	rebuild fires on every single cell), and calling `Tree.clear()`/
 	`create_item()` too rapidly back-to-back turned out to intermittently
 	return null mid-rebuild — see the "hard-won lesson" below.
-  - Node labels: an object shows `reference_name` if set else
-	`mesh_item_name`; a floor/underlay tile always shows its
-	`mesh_item_name` (no `reference_name` equivalent exists for
-	`TilePlacement`, so these commonly repeat, e.g. several "1a" entries —
-	expected, same as an unnamed prop); a group shows its own `name`; the
-	always-present root item shows `mission.mission_name` (or "Untitled
-	Mission"). Pre-existing saved missions have interactables/floor/underlay
-	entries with `id == ""` — lazily adopted into the id system the first
-	time the tree sees them (`refresh()`'s migration step), so old missions
+  - Node labels: an object or tile shows `reference_name` if set else
+	`mesh_item_name` (both are `OutlineNode` fields now, see the data
+	layer section above — floor/underlay tiles didn't have
+	`reference_name` before 2026-09-10, so these commonly repeat when
+	unset, e.g. several "1a" entries — expected); a group shows its own
+	`reference_name` (falls back to "(unnamed group)", not a mesh name -
+	groups have none); the always-present root item shows
+	`mission.mission_name` (or "Untitled Mission"). Pre-existing saved
+	missions have interactables/floor/underlay entries with `id == ""` —
+	lazily adopted into the id system the first time the tree sees them
+	(`refresh()`'s migration step), so old missions
 	don't need a one-off conversion.
   - `SelectionType` has a fourth case, `TILE`, for floor/underlay entries
 	(distinct from `OBJECT`/`InteractableEntry`, since `TilePlacement` is a
@@ -514,6 +575,17 @@ combat/monster AI (explicitly out of scope for the first working version).
 	rebuild-driven reselection, only on an actual click, so painting
 	elsewhere on the map while an object happens to be selected doesn't
 	keep yanking the camera back to it.
+  - **Selection highlight** (requested 2026-09-10 — "a whitish ticker
+	line of the shape outline... is that feasible?", landed as a static
+	outline, no animation for v1): every selection change (tree click,
+	world click, or a rebuild-driven reselection - unlike the camera jump,
+	this is NOT gated on `jump_camera`, since the shape/position could
+	have changed even when nothing should re-jump the camera, e.g. after
+	an undo) calls `CreatorController.highlight_footprint(origin_cell,
+	footprint, grid)` for an OBJECT/TILE, or `clear_selection_highlight()`
+	for ROOT/GROUP (no spatial footprint to show). See
+	`CreatorController`'s own entry below for how the outline itself is
+	drawn.
   - **The reverse direction** (world → tree, not tree → world): also
 	listens to `CreatorController.object_picked` — a Select-mode left-click
 	in the 3D view (see `CreatorController`'s Draw mode entry above) picks
