@@ -97,6 +97,12 @@ signal mesh_changed(mesh_name: String)
 ## layer_changed/mesh_changed above.
 signal draw_mode_changed(enabled: bool)
 
+## Same idea for spawn_paint_mode (P key, or set_spawn_paint_mode()) -
+## CreatorPalette.gd's "Misc" tab / Player Start tool button (requested
+## 2026-09-10, replacing an earlier toolbar-button idea - see claude.md)
+## listens to this to stay in sync with the hotkey, same as draw_mode above.
+signal spawn_paint_mode_changed(enabled: bool)
+
 ## Select mode's result - left-click while draw_mode is off resolves
 ## whatever's under the cursor via select_at_cursor() and reports it here
 ## instead of painting/erasing anything. `kind` is "object" (an
@@ -106,6 +112,16 @@ signal draw_mode_changed(enabled: bool)
 ## matching tree item) - this script deliberately doesn't know that class
 ## exists, same one-directional "controller emits, UI listens" convention.
 signal object_picked(kind: String, id: String)
+
+## Fire whenever the matching debug overlay is toggled, from EITHER path
+## (hotkey or the new `View` menu, requested 2026-09-10 so `O`/`N` are no
+## longer "magic" keyboard-only toggles - the hotkeys still work, they
+## just now route through set_occupancy_overlay()/set_tile_labels() same
+## as the menu does, so neither path can drift out of sync with the
+## other - same "controller emits, UI listens" convention as
+## layer_changed/mesh_changed/draw_mode_changed above).
+signal occupancy_overlay_changed(enabled: bool)
+signal tile_labels_changed(enabled: bool)
 
 ## Whether left-click paints/erases (true) or selects an object for the
 ## outline tree (false, see object_picked above) - see set_draw_mode().
@@ -609,6 +625,30 @@ func toggle_draw_mode() -> void:
 	set_draw_mode(not draw_mode)
 
 
+func set_spawn_paint_mode(enabled: bool) -> void:
+	if spawn_paint_mode == enabled:
+		return
+	spawn_paint_mode = enabled
+	spawn_paint_mode_changed.emit(spawn_paint_mode)
+
+
+func set_occupancy_overlay(enabled: bool) -> void:
+	if show_occupancy_overlay == enabled:
+		return
+	show_occupancy_overlay = enabled
+	occupancy_overlay_changed.emit(enabled)
+
+
+func set_tile_labels(enabled: bool) -> void:
+	if show_tile_labels == enabled:
+		return
+	show_tile_labels = enabled
+	_tile_labels_container.visible = show_tile_labels
+	if show_tile_labels:
+		_rebuild_tile_labels()
+	tile_labels_changed.emit(enabled)
+
+
 func change_level(delta: int) -> void:
 	current_level += delta
 	print("Painting level: %d" % current_level)
@@ -656,15 +696,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_PAGEDOWN:
 				change_level(-1)
 			KEY_O:
-				print("show stuff")
-				show_occupancy_overlay = not show_occupancy_overlay
+				set_occupancy_overlay(not show_occupancy_overlay)
 			KEY_N:
-				show_tile_labels = not show_tile_labels
-				_tile_labels_container.visible = show_tile_labels
-				if show_tile_labels:
-					_rebuild_tile_labels()
+				set_tile_labels(not show_tile_labels)
 			KEY_P:
-				spawn_paint_mode = not spawn_paint_mode
+				set_spawn_paint_mode(not spawn_paint_mode)
 				# The spawn overlay itself stays visible all the time now
 				# (see _ready()) - P only toggles whether clicking edits it.
 			KEY_D:

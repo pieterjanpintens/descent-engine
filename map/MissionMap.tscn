@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorOutline.gd" id="9_outline"]
 [ext_resource type="Script" path="res://scripts/CreatorPropertiesPanel.gd" id="10_inspector"]
 [ext_resource type="Script" path="res://scripts/OperationHistory.gd" id="11_history"]
+[ext_resource type="Script" path="res://scripts/CreatorViewMenu.gd" id="12_viewmenu"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -47,6 +48,10 @@ filters = PackedStringArray("*.tres")
 [node name="Edit" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map")]
 script = ExtResource("11_history")
 layered_map = NodePath("../../../../LayeredMap")
+
+[node name="View" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("creator_controller")]
+script = ExtResource("12_viewmenu")
+creator_controller = NodePath("../../../../CreatorController")
 
 [node name="EditorArea" type="HBoxContainer" parent="CanvasLayer/MainLayout"]
 layout_mode = 2
@@ -87,12 +92,13 @@ layered_map = NodePath("../../../../../../../LayeredMap")
 creator_controller = NodePath("../../../../../../../CreatorController")
 operation_history = NodePath("../../../../../../../CanvasLayer/MainLayout/MenuBar/Edit")
 
-[node name="Inspector" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("creator_outline", "layered_map", "mission_fields")]
+[node name="Inspector" type="Control" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split" node_paths=PackedStringArray("creator_outline", "layered_map", "operation_history", "mission_fields")]
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("10_inspector")
 creator_outline = NodePath("../OutlineTree")
 layered_map = NodePath("../../../../../../../LayeredMap")
+operation_history = NodePath("../../../../../../../CanvasLayer/MainLayout/MenuBar/Edit")
 mission_fields = NodePath("PropertiesFields")
 
 [node name="PropertiesFields" type="VBoxContainer" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector"]

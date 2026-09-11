@@ -81,9 +81,18 @@ var _recording: bool = false
 
 
 func _ready() -> void:
-	add_item("Undo", _EditAction.UNDO)
+	# Inline text hints, not real set_item_accelerator() bindings (unlike
+	# CreatorSaveLoad.gd's New/Save/Load, requested 2026-09-10) - Ctrl+Z/
+	# Ctrl+Shift+Z are already handled manually in
+	# CreatorController._unhandled_input() (see that script's own comment
+	# for why - this is a PopupMenu, a Window-derived node, and its own
+	# _unhandled_input()/native-shortcut reliability while closed was
+	# uncertain enough to route around back when this was first built).
+	# Also binding a native accelerator here on top of that would risk
+	# undo()/redo() firing twice per keypress.
+	add_item("Undo (Ctrl+Z)", _EditAction.UNDO)
 	_undo_item_index = get_item_index(_EditAction.UNDO)
-	add_item("Redo", _EditAction.REDO)
+	add_item("Redo (Ctrl+Shift+Z)", _EditAction.REDO)
 	_redo_item_index = get_item_index(_EditAction.REDO)
 	id_pressed.connect(_on_id_pressed)
 	_update_menu_state()

@@ -344,8 +344,9 @@ combat/monster AI (explicitly out of scope for the first working version).
   see its own entry below).
 - `CreatorPalette.gd` (attached to `MissionMap.tscn`'s
   `CanvasLayer/MainLayout/EditorArea/SidePanel/Palette`) — the real palette UI: clickable layer tabs
-  (Floor/Wall/Prop/Underlay) plus a scrollable icon grid for whichever layer
-  is active, replacing blind `,`/`.` cycling as the primary way to pick a mesh
+  (Floor/Wall/Prop/Underlay, plus a 5th "Misc" tab - see below) plus a
+  scrollable icon grid for whichever mesh layer is active, replacing blind
+  `,`/`.` cycling as the primary way to pick a mesh
   (keyboard cycling still works side by side). Built entirely at runtime in
   `_ready()`/`_build_ui()` rather than hand-authored as child nodes in the
   `.tscn` — same pattern `CreatorController` already uses for its
@@ -379,6 +380,35 @@ combat/monster AI (explicitly out of scope for the first working version).
 	routed through a `call_deferred()`-coalescing `_queue_mesh_grid_rebuild()`
 	wrapper (same pattern/reasoning as `CreatorOutline.refresh()`) since
 	that signal can fire once per painted cell during a fast drag stroke.
+  - **"Misc" tab** (requested 2026-09-10, replacing an earlier "put D/P on
+	a second toolbar" idea) — a 5th tab button alongside the four mesh
+	layers, for tools that aren't mesh-library-backed at all and so don't
+	belong in the Floor/Wall/Prop/Underlay grid. Not a
+	`CreatorController.PaintLayer` — purely a `CreatorPalette` presentation
+	concept, `CreatorController` has no idea this tab exists. Clicking it
+	(`_on_misc_tab_pressed()`) hides the mesh grid/"Show unavailable"
+	checkbox, shows `_misc_container`, and turns `draw_mode` off — **bug
+	fix, 2026-09-10**: that last part was missing at first, so the green
+	mesh-placement ghost stayed visible after switching here (nothing had
+	told `CreatorController` the previously-selected mesh no longer
+	applies; `_update_ghost_transform()` already hides the ghost whenever
+	`draw_mode` is false, it just needed something to actually flip that
+	on this specific transition). Deliberately does NOT touch
+	`spawn_paint_mode` - Player Start lives IN this tab, so merely
+	switching here shouldn't turn its own tool off. `_misc_container` is a
+	plain `VBoxContainer` of tool entries — built that way specifically so
+	more can be appended later without restructuring anything, per the
+	user's own framing ("in the future we might need some similar things
+	like player start"). Holds
+	one entry so far: a **Player Start** toggle button
+	(`_on_player_start_tool_pressed()`), the discoverable counterpart to
+	the `P` hotkey (`spawn_paint_mode` — see `CreatorController`'s own
+	entry above) — clicking it calls `set_spawn_paint_mode(true)` and
+	`set_draw_mode(false)`, mirroring how picking a mesh/layer calls
+	`set_draw_mode(true)` and `set_spawn_paint_mode(false)`, so the two
+	tools stay mutually exclusive regardless of which one you engage from.
+	The button's own pressed state stays synced to `spawn_paint_mode_changed`
+	so it reflects reality even when toggled via the `P` hotkey instead.
   - **Two display modes**, via a "Show unavailable" checkbox: default hides any mesh
 	that's hit its `ComponentInventory` physical limit entirely (the palette only
 	shows what you can currently draw). Checked, it shows everything and greys out
@@ -469,11 +499,29 @@ combat/monster AI (explicitly out of scope for the first working version).
 	click before it ever reached a parent's `_gui_input()` anyway, so
 	that wouldn't actually fire for the buttons/checkbox inside it -
 	hooking the specific press handlers was the only approach that works.
+  - **`spawn_paint_mode`** (`P` key toggles, `spawn_paint_mode_changed(enabled)`
+	signal, same setter/signal treatment as `draw_mode` above) got the
+	exact same "housed where you'd actually use it" treatment 2026-09-10,
+	in place of an earlier idea to give both `D`/`P` their own toolbar row
+	— the user's call: `D` is fine left as just a hotkey + the Palette's
+	own click-to-engage behavior above (advanced users learn the hotkey,
+	everyone else discovers it by clicking a mesh), but `P` (Player Start)
+	isn't mesh-library-backed at all, so it doesn't belong among the
+	Floor/Wall/Prop/Underlay tabs - see `CreatorPalette.gd`'s own "Misc"
+	tab entry below for where it actually landed. `draw_mode` and
+	`spawn_paint_mode` are kept MUTUALLY EXCLUSIVE by the Palette's click
+	handlers (never by the hotkeys themselves) - picking a mesh/layer
+	turns Player Start off, picking Player Start turns Draw off - so
+	left-click's meaning is never ambiguous between the two tools.
   - Controls: `D` toggle Draw/Select mode, Left-click place (Draw mode) /
 	select (Select mode), Shift+Left-click erase (Draw mode only), `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
 	filter (Floor → Wall → Prop → Underlay), PageUp/PageDown change level, `O` toggle
-	occupancy overlay, `N` toggle tile name labels — one `Label3D` per placed
+	occupancy overlay (also `set_occupancy_overlay()`/`occupancy_overlay_changed`
+	signal, and a `View` menu checkbox — no longer keyboard-only "magic",
+	requested 2026-09-10, see `CreatorViewMenu.gd` below), `N` toggle tile
+	name labels (same treatment - `set_tile_labels()`/`tile_labels_changed`,
+	also in the `View` menu) — one `Label3D` per placed
 	piece showing a direction arrow plus its `mesh_item_name` (e.g. "↑ 18a"),
 	centered on the piece's actual footprint rather than pinned to its origin
 	cell — it reuses the same rotate/expand-footprint calculation
@@ -499,7 +547,10 @@ combat/monster AI (explicitly out of scope for the first working version).
 	cell would be toggled if clicked right now, via
 	`LayeredMap.get_tile_square_world_corners()` - the exact same method
 	the actually-placed overlay uses, so the preview can never show a
-	different square than the one that actually gets toggled.
+	different square than the one that actually gets toggled. Also
+	reachable from `CreatorPalette`'s "Misc" tab now (`Player Start`
+	button, requested 2026-09-10) - see that entry below and `draw_mode`'s
+	entry above for the mutual-exclusivity reasoning.
 - **Creator outline tree** (`CreatorOutline.gd`, attached to
   `SidePanel/Outline/Split/OutlineTree`, a `Tree`) — a scene-graph-style
   object browser: every placed `InteractableEntry` (prop/door/hazard/
@@ -621,17 +672,66 @@ combat/monster AI (explicitly out of scope for the first working version).
   (`PropertiesFields` — Objective/player-count, still fully owned/
   read-written by `CreatorSaveLoad.gd` at Save/Load/New time, completely
   unchanged, this script only ever toggles their visibility) when the
-  outline tree's ROOT is selected, and a minimal read-only placeholder
-  (name/type/cell) when an object or group is selected. This is
-  intentionally the ENTIRE scope of this pass's "properties panel" work —
-  real property editing for objects/groups is explicit future work, not
-  attempted here. Talks to `CreatorOutline` only through its `selected`
-  signal, same convention as above.
+  outline tree's ROOT is selected, and — **expanded 2026-09-10 from a
+  read-only summary to real editing** — an editable form (`Name:` LineEdit
+  + `Visible` CheckBox, plus a read-only Type/Mesh/Cell info line) for
+  `reference_name`/`visible` when an object, tile, or group is selected.
+  Feasible in one generic form rather than three per-type ones only
+  because those two fields now live on the shared `OutlineNode` base (see
+  the data layer section above) — `_resolve_node()` returns whichever
+  concrete `InteractableEntry`/`TilePlacement`/`MissionGroup` matches the
+  selected id, typed as `OutlineNode`, and the edit handlers
+  (`_on_name_committed()`/`_on_visible_toggled()`) write straight to it
+  with no type-specific branching. Both go through
+  `operation_history.record()` (undo/redo) then
+  `layered_map.notify_objects_changed()`, same pattern as everywhere else
+  - the name field commits on Enter/focus-lost rather than per keystroke,
+  same reasoning as `CreatorSaveLoad`'s objective field. The LineEdit's
+  placeholder text shows the actual fallback value (mesh name, or
+  "(unnamed group)") so it matches exactly what the outline tree would
+  display if left blank. Doesn't need its own `mission_objects_changed`
+  listener to stay in sync with edits from elsewhere (an undo/redo, the
+  tree's own inline group rename) - `CreatorOutline` already re-emits
+  `selected` for whatever's currently selected on every rebuild, not just
+  on an actual selection change, so this form's own `selected` listener
+  catches it for free. Talks to `CreatorOutline` only through its
+  `selected` signal, same convention as above.
+  - **`InteractableEntry.props`** (the free-form custom-property dict -
+	OBJECT only, `TilePlacement`/`MissionGroup` don't have one) gets its
+	own **"Custom Properties…" button** (OBJECT selections only) opening
+	`PropertiesDialog` (new, `scripts/PropertiesDialog.gd`, requested
+	2026-09-10 as a popup rather than embedded inline — "it will become
+	too clumsy otherwise" in a 260px-wide panel). One instance, created in
+	code (`PropertiesDialog.new()` in `_build_object_fields()` - not a
+	`.tscn` node, so `operation_history`/`layered_map` are assigned
+	directly rather than through `@export`/`NodePath`) and reused across
+	selections via `open_for(entry)`. Each existing key's row picks a
+	value widget from the property's CURRENT `typeof()` - `CheckBox` for
+	bool, `SpinBox` for int/float, `LineEdit` otherwise - so an
+	already-bool key like `"interactible"` can't get flattened into a
+	string by editing it here. Adding a NEW key opens a second, nested
+	`ConfirmationDialog` (built in the same script) asking for
+	name/type/default value up front, rather than an inline "type a key,
+	pick a type" row - keeps the main list simple and the add flow
+	focused on the one decision that actually needs asking. Every edit
+	(set/add/remove) goes through `operation_history.record()` then
+	`layered_map.notify_objects_changed()`, same pattern as everywhere
+	else in the Creator by now.
 - `CreatorSaveLoad.gd` — attached to `MenuBar/File`, a `PopupMenu` under the
   top-spanning `MenuBar` (`CanvasLayer/MainLayout/MenuBar`, see
   `MainLayout`'s entry above) - New/Save/Load/Back are menu items now
   (added via `add_item()` in `_ready()`, dispatched through one
-  `id_pressed` handler), not standalone Buttons in a toolbar row. Holds a
+  `id_pressed` handler), not standalone Buttons in a toolbar row.
+  New/Save/Load also carry REAL keyboard accelerators (Ctrl+N/Ctrl+S/
+  Ctrl+O, `add_item()`'s 3rd `accel` param, requested 2026-09-10) -
+  Godot's own `MenuBar` accelerator-forwarding makes these work globally
+  even while the menu is closed, not just a visual hint. Safe to bind
+  natively here specifically because none of these three keys are ALSO
+  handled manually anywhere else in the Creator (unlike Ctrl+Z or bare
+  `O`/`N`, which `CreatorController._unhandled_input()` already owns —
+  those stay inline-text-only hints instead, see `OperationHistory.gd`/
+  `CreatorViewMenu.gd` below, to avoid a keypress firing twice through
+  two separate bindings). Holds a
   child `FileDialog` (must be **Access = Resources**, not File System, to
   get usable `res://` paths). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
   Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
@@ -707,13 +807,32 @@ combat/monster AI (explicitly out of scope for the first working version).
 	lower-risk choice - it just calls `undo()`/`redo()` directly, same as
 	the Undo/Redo menu items' own `id_pressed` handler does. The menu
 	items themselves grey out via `set_item_disabled()` whenever there's
-	nothing to undo/redo.
+	nothing to undo/redo. Labels read "Undo (Ctrl+Z)"/"Redo
+	(Ctrl+Shift+Z)" (requested 2026-09-10, "show the hotkey") - plain
+	inline text, deliberately NOT a real `set_item_accelerator()` binding
+	the way `CreatorSaveLoad.gd`'s New/Save/Load got, since Ctrl+Z is
+	already bound manually above - a second, native binding on top of
+	that would risk firing twice per keypress.
   - **Unverified in-editor**, same caveat as everything else built this
 	session without the ability to launch Godot and see it rendered -
 	especially worth confirming: a paint stroke → undo reverts GridMap +
 	tree + palette together; rapid SpinBox clicks → one undo reverts all
 	of them; undoing past a group delete → members reattach to the group,
 	not left orphaned at root.
+- `CreatorViewMenu.gd` (attached to `MenuBar/View`, sibling of `File`/
+  `Edit`) — exposes `O`/`N` as checkable menu items ("Occupancy Overlay
+  (O)"/"Tile Name Labels (N)"), requested 2026-09-10 so they're no longer
+  keyboard-only "magic" toggles nobody would discover without reading this
+  file. The hotkeys still work exactly as before (still handled directly
+  in `CreatorController._unhandled_input()`) - both paths now route
+  through the same `CreatorController.set_occupancy_overlay()`/
+  `set_tile_labels()`, which emit `occupancy_overlay_changed`/
+  `tile_labels_changed` that this menu listens to, so the checkmark here
+  can never drift out of sync with whichever path actually toggled it.
+  Same reasoning as `OperationHistory.gd`'s entry above for why these are
+  inline-text hints rather than real accelerators - `O`/`N` are already
+  bound manually, a second native binding risks double-firing.
+  **Unverified in-editor.**
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
   move while dragging, scroll wheel to dolly, Shift to boost speed. Its
   `_input()` bails out on a right-click that's over a `Control`
@@ -825,8 +944,10 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
 - **`map/MissionMap.tscn`** (the Creator) — instances `LayeredMapCore` as `%LayeredMap`,
   plus `Camera3D` (FreeLookCamera), `DirectionalLight3D`, `DebugSync`,
   `CreatorController`, and a `CanvasLayer/MainLayout` shell: a top-spanning
-  `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`; Edit →
-  Undo/Redo, `OperationHistory.gd`, see **Creator tooling** below) above an
+  `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`, New/Save/Load
+  also bound to Ctrl+N/Ctrl+S/Ctrl+O; Edit → Undo/Redo, `OperationHistory.gd`;
+  View → Occupancy Overlay/Tile Name Labels, `CreatorViewMenu.gd` - see
+  **Creator tooling** below for all three) above an
   `EditorArea` splitting the 3D view's space (left, just an empty
   input-transparent spacer - the 3D content isn't a `Control`) from
   `SidePanel` (right, `Palette`/`Outline` tabs — `Outline` itself splits,
@@ -1245,17 +1366,19 @@ These cost real debugging time — worth not re-learning them:
 	(`CreatorOutline.gd`) plus group nodes for organizing placed objects -
 	see **Creator outline tree** above and `MissionGroup`/`InteractableEntry.
 	id`/`parent_id` in the data layer section. Still remaining: the actual
-	per-object PROPERTY EDITING content (editing
-	`InteractableEntry.reference_name`, `actions`/`PropAction`s, `props`
-	dict keys like visible/interactible - see **Story layer**) -
-	`CreatorPropertiesPanel.gd` currently shows only a read-only name/type/
-	cell summary for a selected object/group, real editing was explicitly
-	deferred by the user to a later pass ("modify their properties in a
-	later stage"); true drag-and-drop reparenting in the tree (a "Move
-	to…" context-menu item does the same job without it, see **Creator
-	outline tree** above); and wiring `MissionGroup.visible` into an actual
-	cascading effect once the Story layer's trigger/effect evaluator exists
-	(still doesn't - see **Story layer**).
+	per-object PROPERTY EDITING content - `reference_name`/`visible` are
+	now real editable fields, and `InteractableEntry.props` (the free-form
+	custom dict, including its one well-known `interactible` key) has a
+	full add/edit/remove UI via `PropertiesDialog` (`CreatorPropertiesPanel.gd`'s
+	"Custom Properties…" button, requested 2026-09-10, see that entry
+	above) - but `actions`/`PropAction`s (what a player can report doing
+	to a prop, and the effects that fire) still has no editing UI at all;
+	true drag-and-drop reparenting in the tree (a "Move to…"
+	context-menu item does the same job without it, see **Creator outline
+	tree** above); and wiring `MissionGroup.visible`/`InteractableEntry.
+	visible`/`TilePlacement.visible` into an actual cascading effect once
+	the Story layer's trigger/effect evaluator exists (still doesn't - see
+	**Story layer**).
 14. **Wall painting isn't actually used in real missions** (the user's own
 	words, 2026-09-10) - `WallGridMap`/`TilePlacement.Layer.WALL` and
 	everything that handles it (`CreatorController`'s Wall layer filter,

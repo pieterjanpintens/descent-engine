@@ -47,9 +47,17 @@ var _suppress_player_count_recording: bool = false
 
 
 func _ready() -> void:
-	add_item("New", FileAction.NEW)
-	add_item("Save", FileAction.SAVE)
-	add_item("Load", FileAction.LOAD)
+	# Real accelerators (not just inline text like the View menu's "(O)"/
+	# "(N)" hints) - requested 2026-09-10. Safe to bind globally through
+	# Godot's own MenuBar-accelerator system here specifically because
+	# Ctrl+N/Ctrl+S/Ctrl+O aren't ALSO handled anywhere else (unlike
+	# Ctrl+Z or bare O/N, which CreatorController._unhandled_input()
+	# already owns - giving those a SECOND, native binding risks firing
+	# twice per keypress, so those stay inline-text-only, see
+	# CreatorViewMenu.gd/OperationHistory.gd).
+	add_item("New", FileAction.NEW, KEY_MASK_CTRL | KEY_N)
+	add_item("Save", FileAction.SAVE, KEY_MASK_CTRL | KEY_S)
+	add_item("Load", FileAction.LOAD, KEY_MASK_CTRL | KEY_O)
 	add_separator()
 	add_item("Back to Menu", FileAction.BACK)
 	id_pressed.connect(_on_id_pressed)

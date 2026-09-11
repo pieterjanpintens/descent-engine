@@ -27,8 +27,24 @@ const PANEL_WIDTH := 260
 var _layer_buttons: Array[Button] = []
 var _mesh_buttons: Dictionary = {}  # mesh_item_name -> Button
 var _mesh_grid: GridContainer
+var _mesh_scroll: ScrollContainer  ## wraps _mesh_grid - hidden while the Misc tab is active
+var _show_unavailable_check: CheckBox  ## mesh-grid-specific - also hidden while the Misc tab is active
 var _selected_mesh_name: String = ""
 var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
+
+## "Misc" is a 5th tab alongside the four mesh layers, for tools that
+## aren't mesh-library-backed at all (currently just Player Start - see
+## _build_ui()) and so don't fit the Floor/Wall/Prop/Underlay grid.
+## Requested 2026-09-10, in place of an earlier "second toolbar" idea for
+## housing the P hotkey - the user's own reasoning: player-start isn't a
+## mesh, so it's "a bit of an odd duck" among the layer tabs, and future
+## similar non-mesh tools (whatever they turn out to be) should have
+## somewhere to live too, rather than each needing its own bespoke UI
+## surface. Not a CreatorController.PaintLayer - purely a CreatorPalette
+## presentation concept, CreatorController has no idea this tab exists.
+var _misc_button: Button
+var _misc_container: VBoxContainer
+var _player_start_button: Button
 
 ## false (default): meshes with no physical copies left simply aren't
 ## shown - matches the natural "the palette is what you can currently
@@ -49,6 +65,7 @@ func _ready() -> void:
 
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
+	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
 	# Nothing else used to tell this palette "a placement changed, an
 	# item's availability may now be different" - painting the same mesh
 	# repeatedly (e.g. several floor tiles in a row without switching
@@ -62,16 +79,19 @@ func _ready() -> void:
 		_side_panel.tab_changed.connect(_on_side_panel_tab_changed)
 
 	_on_layer_changed(creator_controller.current_layer)
+	_on_spawn_paint_mode_changed(creator_controller.spawn_paint_mode)
 
 
-## Draw mode only makes sense while the Palette is the active tab - it's
-## what picks WHAT gets painted. Switching to another tab (e.g. Outline,
-## to browse/select placed objects) turns it off - Select mode is what
-## naturally pairs with that workflow anyway (left-click picks an object
-## instead of painting one). Requested 2026-09-10.
+## Draw/spawn-paint mode only make sense while the Palette is the active
+## tab - they're what picks WHAT a click does. Switching to another tab
+## (e.g. Outline, to browse/select placed objects) turns both off -
+## Select mode is what naturally pairs with that workflow anyway
+## (left-click picks an object instead of painting/spawn-marking one).
+## Requested 2026-09-10.
 func _on_side_panel_tab_changed(tab_index: int) -> void:
 	if tab_index != _side_panel.get_tab_idx_from_control(self):
 		creator_controller.set_draw_mode(false)
+		creator_controller.set_spawn_paint_mode(false)
 
 
 func _build_ui() -> void:
@@ -104,35 +124,102 @@ func _build_ui() -> void:
 		tabs.add_child(btn)
 		_layer_buttons.append(btn)
 
-	var show_unavailable_check := CheckBox.new()
-	show_unavailable_check.text = "Show unavailable (click to locate)"
-	show_unavailable_check.toggled.connect(_on_show_unavailable_toggled)
-	vbox.add_child(show_unavailable_check)
+	_misc_button = Button.new()
+	_misc_button.text = "Misc"
+	_misc_button.toggle_mode = true
+	_misc_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_misc_button.pressed.connect(_on_misc_tab_pressed)
+	tabs.add_child(_misc_button)
 
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(scroll)
+	_show_unavailable_check = CheckBox.new()
+	_show_unavailable_check.text = "Show unavailable (click to locate)"
+	_show_unavailable_check.toggled.connect(_on_show_unavailable_toggled)
+	vbox.add_child(_show_unavailable_check)
+
+	_mesh_scroll = ScrollContainer.new()
+	_mesh_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(_mesh_scroll)
 
 	_mesh_grid = GridContainer.new()
 	_mesh_grid.columns = 3
-	scroll.add_child(_mesh_grid)
+	_mesh_scroll.add_child(_mesh_grid)
+
+	# Misc tab content - not a mesh grid at all, see this tab's own doc
+	# comment above. Currently just the one tool; built as a plain
+	# VBoxContainer of entries specifically so more can be appended here
+	# later without restructuring anything.
+	_misc_container = VBoxContainer.new()
+	_misc_container.visible = false
+	vbox.add_child(_misc_container)
+
+	_player_start_button = Button.new()
+	_player_start_button.text = "Player Start"
+	_player_start_button.toggle_mode = true
+	_player_start_button.pressed.connect(_on_player_start_tool_pressed)
+	_misc_container.add_child(_player_start_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -
 ## the reverse of _on_side_panel_tab_changed() turning draw mode off when
-## you leave the Palette entirely. Requested 2026-09-10. Deliberately NOT
-## on the "Show unavailable" checkbox (a display filter, not paint intent)
-## or _on_locate_mesh_button_pressed() (clicking an EXHAUSTED mesh to jump
-## to it - explicitly not something you can select to paint).
+## you leave the Palette entirely. Requested 2026-09-10. Also disengages
+## spawn-paint mode (the Misc tab's Player Start tool) - only one tool
+## should ever determine what a left-click does at a time, so picking a
+## mesh/layer here is just as much "not Player Start anymore" as it is
+## "now drawing". Deliberately NOT on the "Show unavailable" checkbox (a
+## display filter, not paint intent) or _on_locate_mesh_button_pressed()
+## (clicking an EXHAUSTED mesh to jump to it - explicitly not something
+## you can select to paint).
 func _on_layer_tab_pressed(layer_index: int) -> void:
 	creator_controller.set_draw_mode(true)
+	creator_controller.set_spawn_paint_mode(false)
 	creator_controller.select_layer(layer_index as CreatorController.PaintLayer)
 
 
+## Also resets the Misc tab's own pressed/visible state - picking a REAL
+## layer means Misc (if it happened to be active) no longer is.
 func _on_layer_changed(layer: CreatorController.PaintLayer) -> void:
 	for i in _layer_buttons.size():
 		_layer_buttons[i].button_pressed = (i == layer)
+	_misc_button.button_pressed = false
+	_show_unavailable_check.visible = true
+	_mesh_scroll.visible = true
+	_misc_container.visible = false
 	_queue_mesh_grid_rebuild()
+
+
+## Switches this panel to the Misc tab's tool list instead of the mesh
+## grid - see the "Misc" tab's own doc comment. Does turn draw_mode off
+## (bug fix, 2026-09-10: the mesh placement ghost was staying visible
+## after switching here, since nothing had told CreatorController the
+## previously-selected mesh no longer applies - _update_ghost_transform()
+## already hides it whenever draw_mode is false, it just needed something
+## to actually flip that). Deliberately does NOT touch spawn_paint_mode -
+## Player Start lives IN this tab, switching here shouldn't turn ITS own
+## tool off; that only happens by leaving the Palette entirely or picking
+## a mesh/layer (see _on_layer_tab_pressed()).
+func _on_misc_tab_pressed() -> void:
+	for btn in _layer_buttons:
+		btn.button_pressed = false
+	_misc_button.button_pressed = true
+	_show_unavailable_check.visible = false
+	_mesh_scroll.visible = false
+	_misc_container.visible = true
+	creator_controller.set_draw_mode(false)
+
+
+## Same "picking a tool is paint/mark intent" reasoning as
+## _on_layer_tab_pressed() above, mirrored: engages spawn-paint mode and
+## disengages draw mode (Player Start isn't "drawing" a mesh).
+func _on_player_start_tool_pressed() -> void:
+	creator_controller.set_spawn_paint_mode(true)
+	creator_controller.set_draw_mode(false)
+
+
+## Keeps the button's pressed state in sync regardless of which path
+## toggled spawn_paint_mode (this button, or the P hotkey) - same
+## "controller emits, UI listens" convention as _on_layer_changed() above.
+func _on_spawn_paint_mode_changed(enabled: bool) -> void:
+	_player_start_button.button_pressed = enabled
 
 
 func _on_show_unavailable_toggled(pressed: bool) -> void:
@@ -209,6 +296,7 @@ func _rebuild_mesh_grid() -> void:
 
 func _on_mesh_button_pressed(mesh_name: String) -> void:
 	creator_controller.set_draw_mode(true)  # see _on_layer_tab_pressed()'s comment
+	creator_controller.set_spawn_paint_mode(false)
 	creator_controller.select_mesh(mesh_name)
 
 
