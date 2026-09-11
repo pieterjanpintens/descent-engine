@@ -249,6 +249,33 @@ combat/monster AI (explicitly out of scope for the first working version).
   the actual physical component list.
 - `GameState` — trivial: holds `current_mission_path` to pass between scenes (menu →
   player) since `change_scene_to_file()` takes no parameters.
+- **`CreatorSettings`** (new 2026-09-10, renamed from `EditorSettings` the
+  same day after the autoload silently failed to register — Godot 4 has
+  its own **built-in engine class also called `EditorSettings`**, part of
+  the real editor's own settings/preferences API, and the custom autoload
+  collided with that global identifier. See the naming-collision note
+  under **Hard-won lessons** below) — persisted Creator preferences,
+  currently just the autosave/backup system (see `CreatorAutosave.gd`
+  under **Creator tooling** below). Six plain fields: `enabled` (bool,
+  **defaults to false** — an opt-in safety net shouldn't start writing
+  files before the user has actually opened the settings dialog once,
+  even though every other field has a live-with-it default),
+  `backup_location` (`String`, default `"user://missions/backup"`),
+  `copies`/`save_interval_minutes` (the frequent/shallow "recent" tier,
+  defaults 10/1), `checkpoint_copies`/`checkpoint_interval_minutes` (the
+  infrequent/deeper "checkpoint" tier, defaults 2/15). `load_settings()`/
+  `save_settings()` round-trip through a `ConfigFile` at
+  `user://configuration/editor-settings.cfg` — **not** `res://`, even
+  though the original request asked for `res://configuration/...`: this
+  project's Creator ships as an exported Windows `.exe` (see **CI /
+  Release** below), and `res://` is packed into a read-only `.pck` in an
+  exported build - writes there work from inside the Godot editor but
+  silently fail (or are undefined) from the actual shipped tool. `user://`
+  is Godot's dedicated writable-everywhere location for exactly this -
+  see `OfficialAssetOverrides`'s own entry above for the existing
+  precedent in this project. `save_settings()` emits `settings_changed`
+  so anything live (`CreatorAutosave.gd`) picks up new values immediately,
+  no scene reload needed.
 
 **Core logic** (`map/`, root of the reusable scene):
 
@@ -731,7 +758,11 @@ combat/monster AI (explicitly out of scope for the first working version).
   `O`/`N`, which `CreatorController._unhandled_input()` already owns —
   those stay inline-text-only hints instead, see `OperationHistory.gd`/
   `CreatorViewMenu.gd` below, to avoid a keypress firing twice through
-  two separate bindings). Holds a
+  two separate bindings). Also has a **"Settings…"** item (requested
+  2026-09-10) opening `CreatorSettingsDialog` (built once in `_ready()`,
+  reused across opens, same pattern as `CreatorPropertiesPanel.gd`'s
+  `PropertiesDialog`) - see that entry and `CreatorAutosave.gd`'s below.
+  Holds a
   child `FileDialog` (must be **Access = Resources**, not File System, to
   get usable `res://` paths). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
   Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
@@ -757,6 +788,52 @@ combat/monster AI (explicitly out of scope for the first working version).
   edge against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row
   overlapping the palette) is gone - moot now that there's no toolbar row
   to overlap anything, see Open item #12.
+- **`CreatorAutosave.gd`** (new node, sibling of `CreatorController`/
+  `DebugSync`) — two-tier autosave/backup driver, requested 2026-09-10
+  ("one of the most frustrating things in editors is that you can lose
+  data"). Settings come from the `CreatorSettings` autoload (see that
+  entry above); this script just drives two `Timer`s (built in code in
+  `_ready()`, same as every other dynamic node in this project) off them.
+  **STATELESS rotation**: rather than tracking a rotation index in memory
+  (confusing across app restarts), each backup is named
+  `<mission_name>_<tier>_<timestamp>.tres` (`tier`: `autosave`/
+  `checkpoint`; timestamp zero-padded `YYYYMMDD-HHMMSS`, hand-formatted
+  via `Time.get_datetime_dict_from_system()` rather than
+  `get_datetime_string_from_system()`'s default `HH:MM:SS` - a literal
+  `:` isn't valid in a Windows filename, and this project's Creator ships
+  as a Windows `.exe`). After writing a new one, the whole backup
+  directory is rescanned for files matching that mission+tier's own
+  prefix, sorted (zero-padding makes lexicographic sort == chronological
+  sort), and the oldest deleted until back at the configured count -
+  simple, self-healing, works the same on the first save of a session or
+  the fiftieth. Reuses `MissionIO.save_mission()` (already exists,
+  already verified round-trip correctness) for the actual write - no new
+  save logic, just a scheduled call to the same path a manual Save uses,
+  targeting a different file each time. `apply_settings()` (called once
+  at `_ready()`, and again whenever `CreatorSettings.settings_changed`
+  fires) is the ONE place "do nothing if not enabled" actually lives -
+  stops both `Timer`s entirely when disabled, rather than leaving them
+  running and skipping the save inside the callback, so disabled really
+  means no background ticking at all, not a checked-but-still-running one.
+- **`CreatorSettingsDialog.gd`** (new, `extends Window`, instantiated once
+  by `CreatorSaveLoad.gd`'s `_ready()`, opened via its "Settings…" menu
+  item) — the settings form: an Enabled checkbox, a Backup Location
+  `LineEdit`, and four `SpinBox`es (copies/interval-minutes × two tiers,
+  all `min_value = 1` matching the request's own "int > 0" constraint).
+  Same code-built-dialog pattern as `PropertiesDialog.gd`. `open()` reads
+  current `CreatorSettings` values into the form; the Save button writes
+  them back and calls `CreatorSettings.save_settings()` (which persists to
+  disk and emits `settings_changed` - `CreatorAutosave.gd` is the only
+  current listener, no direct coupling between the dialog and the
+  autosave driver). Closing via the window's own X button discards
+  whatever was typed, same as any other unsaved form - no separate
+  Cancel button needed.
+  - **Unverified in-editor**, same caveat as everything else built this
+	session - especially worth confirming: toggling `enabled` off in the
+	dialog actually stops both timers (no new files appear after Save);
+	rotation actually deletes the oldest file once over the configured
+	count, independently per tier; a mission with an empty `mission_name`
+	still autosaves under `untitled_*` without erroring.
 - **`OperationHistory.gd`** (attached to `MenuBar/Edit`, a `PopupMenu`
   sibling of `MenuBar/File`) — undo/redo for the Creator, requested
   2026-09-10 ("I think this means we need to store a stack of relevant
@@ -943,11 +1020,12 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   identical cell_size). Instanced by both of the below.
 - **`map/MissionMap.tscn`** (the Creator) — instances `LayeredMapCore` as `%LayeredMap`,
   plus `Camera3D` (FreeLookCamera), `DirectionalLight3D`, `DebugSync`,
-  `CreatorController`, and a `CanvasLayer/MainLayout` shell: a top-spanning
-  `MenuBar` (File → New/Save/Load/Back, `CreatorSaveLoad.gd`, New/Save/Load
-  also bound to Ctrl+N/Ctrl+S/Ctrl+O; Edit → Undo/Redo, `OperationHistory.gd`;
-  View → Occupancy Overlay/Tile Name Labels, `CreatorViewMenu.gd` - see
-  **Creator tooling** below for all three) above an
+  `CreatorController`, `CreatorAutosave` (two-tier backup timer, see
+  **Creator tooling** below), and a `CanvasLayer/MainLayout` shell: a top-spanning
+  `MenuBar` (File → New/Save/Load/Back/Settings…, `CreatorSaveLoad.gd`,
+  New/Save/Load also bound to Ctrl+N/Ctrl+S/Ctrl+O; Edit → Undo/Redo,
+  `OperationHistory.gd`; View → Occupancy Overlay/Tile Name Labels,
+  `CreatorViewMenu.gd` - see **Creator tooling** below for all four) above an
   `EditorArea` splitting the 3D view's space (left, just an empty
   input-transparent spacer - the 3D content isn't a `Control`) from
   `SidePanel` (right, `Palette`/`Outline` tabs — `Outline` itself splits,
@@ -1103,6 +1181,37 @@ appears locally, for a user who separately owns the official game and runs
 
 These cost real debugging time — worth not re-learning them:
 
+- **`res://` is read-only in an exported build; `user://` is the
+  writable-everywhere location for anything a running game/tool needs to
+  write itself** (settings, save files, backups, logs). Inside the Godot
+  editor `res://` maps to the real project folder and writes happily,
+  which makes this easy to get away with during development and only
+  fail once actually shipped - this project's Creator ships as an
+  exported Windows `.exe` (see **CI / Release** below), so anything it
+  writes at runtime (`CreatorSettings`'s settings file,
+  `CreatorAutosave.gd`'s backups) has to target `user://`, matching the
+  precedent `OfficialAssetOverrides` already set for the same reason. A
+  request that explicitly asks for `res://` for something the tool itself
+  will write at runtime is worth double-checking against this before
+  building it as asked.
+- **A custom autoload/class name can silently collide with a Godot
+  built-in of the same name.** The autosave settings autoload was
+  originally named `EditorSettings` — which is also the name of a
+  **built-in Godot 4 engine class** (the real editor's own preferences
+  singleton, part of the editor API). Registering a custom autoload under
+  that identifier in `project.godot` doesn't error at save/load time, but
+  the global name resolves ambiguously and the custom autoload doesn't
+  show up/work as expected ("EditorSettings seems to be something from
+  core, i dont see it appear" — caught by the user in-editor, not by
+  review). Fixed by renaming to `CreatorSettings` (and its dialog,
+  `EditorSettingsDialog` → `CreatorSettingsDialog`, for consistency, even
+  though only the autoload's own name actually collided). Before naming a
+  new autoload or `class_name`, worth a quick check against Godot's own
+  built-in class list, especially for generic-sounding names
+  (`EditorSettings`, `ProjectSettings`, `Input`, etc.) — this project's
+  existing autoloads/classes all use a `Creator`/`Mission`/project-specific
+  prefix precisely to avoid this category of clash, and this is the one
+  case that didn't follow that convention.
 - A `Container`-managed child (`layout_mode = 2`, e.g. a `TabContainer`
   tab) should **never also call `set_anchors_and_offsets_preset()`/set
   `offset_*` on itself** in code. It's tempting to assume the Container

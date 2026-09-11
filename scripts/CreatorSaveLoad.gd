@@ -36,7 +36,9 @@ extends PopupMenu
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
-enum FileAction { NEW, SAVE, LOAD, BACK }
+enum FileAction { NEW, SAVE, LOAD, SETTINGS, BACK }
+
+var _settings_dialog: CreatorSettingsDialog
 
 ## Guards _refresh_player_count_fields() below - setting a SpinBox's
 ## `value` from code fires `value_changed` exactly like a user click would,
@@ -59,8 +61,16 @@ func _ready() -> void:
 	add_item("Save", FileAction.SAVE, KEY_MASK_CTRL | KEY_S)
 	add_item("Load", FileAction.LOAD, KEY_MASK_CTRL | KEY_O)
 	add_separator()
+	add_item("Settings…", FileAction.SETTINGS)
+	add_separator()
 	add_item("Back to Menu", FileAction.BACK)
 	id_pressed.connect(_on_id_pressed)
+
+	# Autosave settings (requested 2026-09-10) - built once here and
+	# reused across opens, same pattern CreatorPropertiesPanel.gd uses for
+	# PropertiesDialog.
+	_settings_dialog = CreatorSettingsDialog.new()
+	add_child(_settings_dialog)
 
 	min_players_spin_box.value_changed.connect(_on_min_players_changed)
 	max_players_spin_box.value_changed.connect(_on_max_players_changed)
@@ -88,6 +98,8 @@ func _on_id_pressed(id: int) -> void:
 			_on_save_button_pressed()
 		FileAction.LOAD:
 			_on_load_button_pressed()
+		FileAction.SETTINGS:
+			_settings_dialog.open()
 		FileAction.BACK:
 			_on_back_button_pressed()
 

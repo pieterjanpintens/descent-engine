@@ -22,6 +22,7 @@ GameState="*uid://con3wwam8jgli"
 ComponentInventory="*uid://dupa0vtovmebg"
 OfficialAssetMap="*res://autoload/OfficialAssetMap.gd"
 OfficialAssetOverrides="*res://autoload/OfficialAssetOverrides.gd"
+CreatorSettings="*res://autoload/CreatorSettings.gd"
 
 [display]
 

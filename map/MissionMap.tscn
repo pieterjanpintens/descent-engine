@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorPropertiesPanel.gd" id="10_inspector"]
 [ext_resource type="Script" path="res://scripts/OperationHistory.gd" id="11_history"]
 [ext_resource type="Script" path="res://scripts/CreatorViewMenu.gd" id="12_viewmenu"]
+[ext_resource type="Script" path="res://scripts/CreatorAutosave.gd" id="13_autosave"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -21,6 +22,10 @@ layered_map = NodePath("../LayeredMap")
 script = ExtResource("6_a7isx")
 layered_map = NodePath("../LayeredMap")
 operation_history = NodePath("../CanvasLayer/MainLayout/MenuBar/Edit")
+
+[node name="CreatorAutosave" type="Node" parent="." node_paths=PackedStringArray("layered_map")]
+script = ExtResource("13_autosave")
+layered_map = NodePath("../LayeredMap")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1095084307]
 
