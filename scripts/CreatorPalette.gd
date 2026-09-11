@@ -20,7 +20,7 @@ extends Control
 @export var creator_controller: CreatorController
 @export var layered_map: LayeredMap
 
-const LAYER_NAMES: Array[String] = ["Floor", "Wall", "Prop", "Underlay"]
+const LAYER_NAMES: Array[String] = ["Floor", "Prop", "Underlay"]
 const ICON_SIZE := 64
 const PANEL_WIDTH := 260
 
@@ -32,9 +32,9 @@ var _show_unavailable_check: CheckBox  ## mesh-grid-specific - also hidden while
 var _selected_mesh_name: String = ""
 var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 
-## "Misc" is a 5th tab alongside the four mesh layers, for tools that
+## "Misc" is a 4th tab alongside the three mesh layers, for tools that
 ## aren't mesh-library-backed at all (currently just Player Start - see
-## _build_ui()) and so don't fit the Floor/Wall/Prop/Underlay grid.
+## _build_ui()) and so don't fit the Floor/Prop/Underlay grid.
 ## Requested 2026-09-10, in place of an earlier "second toolbar" idea for
 ## housing the P hotkey - the user's own reasoning: player-start isn't a
 ## mesh, so it's "a bit of an odd duck" among the layer tabs, and future
@@ -101,7 +101,7 @@ func _build_ui() -> void:
 	# rect. Self-anchoring here used to be harmless when this really was
 	# inert, but it turned out NOT to be inert - PRESET_RIGHT_WIDE spans
 	# full height from y=0, ignoring the tab bar's own height, which made
-	# this Floor/Wall/Prop/Underlay row render on top of (and eat clicks
+	# this Floor/Prop/Underlay row render on top of (and eat clicks
 	# meant for) SidePanel's own Palette/Outline tab labels. Confirmed
 	# in-editor 2026-09-10 - see claude.md's "Hard-won lessons".
 	custom_minimum_size = Vector2(PANEL_WIDTH, 0)

@@ -13,7 +13,7 @@ const OVERRIDE_DIR := "user://official_assets/"
 
 
 ## Call once at startup with the shared MeshLibrary (all four GridMaps -
-## floor/wall/prop/underlay - use the same one, so this only needs to run
+## floor/prop/underlay - use the same one, so this only needs to run
 ## once, not per-grid). Scans EVERY item's current texture (not just ones
 ## with some special name) since OfficialAssetMap matches by placeholder
 ## texture path - several floor tile faces share the exact same

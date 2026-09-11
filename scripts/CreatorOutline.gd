@@ -10,22 +10,15 @@ extends Tree
 ## (e.g. "everything in this room"), so a future effect can eventually
 ## target the whole set at once.
 ##
-## **WALL placements are deliberately excluded** - wall painting isn't
-## actually used in real missions (flagged by the user as a candidate for
-## removal later, not attempted here), so there's no point cluttering the
-## tree with them. They still get an id/parent_id assigned uniformly by
-## LayeredMap.rebuild_floor_tiles() (floor and wall share that one
-## function), this script just skips them when building tree items.
-##
 ## Floor/underlay tiles reuse the exact same id/parent_id/outline-tree
 ## machinery as interactables (see TilePlacement.id, LayeredMap.
 ## rebuild_floor_tiles()/rebuild_underlay_tiles()'s own identity-carry-over
 ## fix, mirroring sync_prop_cell()'s) even though those two functions do a
 ## full clear-and-rebuild rather than interactables' incremental single-
 ## cell sync - carrying an old placement's id/parent_id forward by
-## matching (layer, origin_cell) against the previous rebuild works just
-## as well as sync_prop_cell()'s per-cell carry-over, it just runs across
-## the whole layer at once instead of one cell at a time.
+## matching origin_cell against the previous rebuild works just as well
+## as sync_prop_cell()'s per-cell carry-over, it just runs across the
+## whole layer at once instead of one cell at a time.
 ##
 ## Built at runtime in _ready() - same reasoning as CreatorPalette/
 ## PlayerDialog/EmbarkDialog: content is dynamic (depends on the mission),
@@ -143,7 +136,7 @@ func _migrate_missing_ids() -> void:
 		if entry.id == "":
 			entry.id = mission.allocate_object_id()
 	for placement in mission.floor_placements:
-		if placement.layer == TilePlacement.Layer.FLOOR and placement.id == "":
+		if placement.id == "":
 			placement.id = mission.allocate_object_id()
 	for placement in mission.underlay_placements:
 		if placement.id == "":
@@ -194,10 +187,7 @@ func _rebuild_tree() -> void:
 		item.set_metadata(0, {"type": SelectionType.OBJECT, "id": entry.id})
 		_id_to_item[entry.id] = item
 
-	# WALL placements are deliberately skipped here - see class doc.
 	for placement in mission.floor_placements:
-		if placement.layer != TilePlacement.Layer.FLOOR:
-			continue
 		_add_tile_item(placement, "floor")
 
 	for placement in mission.underlay_placements:
@@ -332,11 +322,10 @@ func _find_group_by_id(id: String) -> MissionGroup:
 	return null
 
 
-## Searches FLOOR floor_placements + all of underlay_placements (WALL is
-## excluded from the tree entirely, see class doc, so never looked up here).
+## Searches floor_placements + all of underlay_placements.
 func _find_tile_by_id(id: String) -> TilePlacement:
 	for placement in layered_map.mission.floor_placements:
-		if placement.layer == TilePlacement.Layer.FLOOR and placement.id == id:
+		if placement.id == id:
 			return placement
 	for placement in layered_map.mission.underlay_placements:
 		if placement.id == id:

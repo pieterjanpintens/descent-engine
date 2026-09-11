@@ -10,7 +10,7 @@ extends Node
 ## Vector3i offsets. The origin cell itself (Vector3i.ZERO) should always be
 ## included in the list.
 ##
-## This same table is used across the floor, wall, underlay, and prop layers
+## This same table is used across the floor, underlay, and prop layers
 ## - floor tiles are multi-cell items exactly like stairs/bookshelves/hazard
 ## planes, just painted into a different GridMap.
 
@@ -544,7 +544,7 @@ const FOOTPRINTS: Dictionary = {
 	# never needs pivot correction. Origin is arbitrarily the "5-wide"
 	# corner - if it turns out rotated 90 from the physical paper piece,
 	# use the Creator's R key rather than re-deriving this list. These mesh
-	# names have no shared prefix (unlike wall_/tile faces), so get_layer()
+	# names have no shared prefix (unlike tile faces), so get_layer()
 	# below classifies them via an explicit MESH_LAYER entry instead.
 	"water": [
 		Vector3i(-4, 0, -3), Vector3i(-3, 0, -3), Vector3i(-2, 0, -3), Vector3i(-1, 0, -3), Vector3i(0, 0, -3),
@@ -576,7 +576,6 @@ const FOOTPRINTS: Dictionary = {
 ## logical flags from a mesh item's name. Keyed by prefix (checked with
 ## begins_with), first match wins - order matters.
 const LOGICAL_DEFAULTS: Array = [
-	{"prefix": "wall_", "walkable": false, "blocks_los": true},
 	{"prefix": "pillar_", "walkable": false, "blocks_los": true},
 	{"prefix": "door_", "walkable": true, "blocks_los": false},
 	{"prefix": "hazard_", "walkable": true, "blocks_los": false},
@@ -777,9 +776,9 @@ const MESH_LAYER: Dictionary = {
 	"spikes": "underlay",
 }
 
-## Returns "floor", "wall", "underlay", or "prop" for a mesh item name -
-## this is the SINGLE source of truth for which GridMap a mesh belongs in.
-## All four GridMaps share one MeshLibrary, so nothing else distinguishes
+## Returns "floor", "underlay", or "prop" for a mesh item name - this is
+## the SINGLE source of truth for which GridMap a mesh belongs in. All
+## three GridMaps share one MeshLibrary, so nothing else distinguishes
 ## "this is a floor tile" from "this is a pillar" except this classification
 ## - callers (CreatorController, LayeredMap) should always derive the
 ## destination grid from this rather than from separately-tracked UI state,
@@ -788,8 +787,6 @@ const MESH_LAYER: Dictionary = {
 func get_layer(mesh_item_name: String) -> String:
 	if MESH_LAYER.has(mesh_item_name):
 		return MESH_LAYER[mesh_item_name]
-	if mesh_item_name.begins_with("wall_"):
-		return "wall"
 	if _looks_like_tile_face(mesh_item_name):
 		return "floor"
 	# Most physical components in this game (pillars, stairs, tables,

@@ -676,7 +676,7 @@ mesh_item_name = "2b"
 
 [sub_resource type="Resource" id="Resource_hy271"]
 script = ExtResource("1_k3yb4")
-layer = 2
+layer = 1
 origin_cell = Vector3i(0, 0, 8)
 mesh_item_name = "acid"
 

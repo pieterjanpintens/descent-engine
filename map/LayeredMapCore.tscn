@@ -23,14 +23,6 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="WallGridMap" type="GridMap" parent="." unique_id=1875138720]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
-mesh_library = ExtResource("2_fneos")
-cell_size = Vector3(1.6, 3.6, 1.6)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-
 [node name="PropGridMap" type="GridMap" parent="." unique_id=1798530071]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh_library = ExtResource("2_fneos")

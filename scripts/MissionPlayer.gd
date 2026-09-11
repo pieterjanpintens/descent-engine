@@ -2,7 +2,7 @@ extends Node3D
 
 ## Root script for the Player scene. Expected scene layout:
 ##   MissionPlayer (Node3D, this script)
-##    |- LayeredMap (Node3D with LayeredMap.gd, same Floor/Wall/PropGridMap
+##    |- LayeredMap (Node3D with LayeredMap.gd, same Floor/PropGridMap
 ##    |   setup as the Creator - marked as Unique Name %LayeredMap)
 ##    |- UI (CanvasLayer or Control, containing at least a Label marked
 ##        %InfoLabel and a "Back" Button)

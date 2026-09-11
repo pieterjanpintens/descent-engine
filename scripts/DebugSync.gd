@@ -34,7 +34,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _clear_everything() -> void:
 	layered_map.floor_grid.clear()
-	layered_map.wall_grid.clear()
 	layered_map.prop_grid.clear()
 	layered_map.underlay_grid.clear()
 	layered_map.mission.tiles.clear()

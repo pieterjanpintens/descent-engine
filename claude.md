@@ -23,8 +23,8 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
 - `MissionData` — root resource. Fields: `mission_name`, `grid_size`, `cell_size`,
   `tiles` (Dict[Vector3i, TileEntry] — flattened per-cell walkable/LOS data),
   `floor_placements` (Array[TilePlacement] — raw paint records: origin+mesh+orientation,
-  needed to *repaint* the floor/wall GridMaps from saved data), `floor_occupied_cells`
-  (Dict[Vector3i, Vector3i] — every covered cell → its origin, floor/wall equivalent of
+  needed to *repaint* the floor GridMap from saved data), `floor_occupied_cells`
+  (Dict[Vector3i, Vector3i] — every covered cell → its origin, the floor equivalent of
   `occupied_cells`), `occupied_cells` (same but for props), `underlay_placements` /
   `underlay_occupied_cells` (floor-equivalent pair for the underlay hazard layer — kept
   as its OWN separate pair rather than folded into `floor_placements`/`tiles`, because
@@ -40,14 +40,14 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   (both default 1-6, the full `HeroCatalog` range - enforced by
   `EmbarkDialog`, authored via `%MinPlayersSpinBox`/`%MaxPlayersSpinBox` in
   the Creator). Methods: `get_tile()`,
-  `is_walkable()`, `blocks_los()` (simplified 2026-09-10 to just the floor/
-  wall `TileEntry`'s own flag, once `InteractableEntry.blocks_los` was
+  `is_walkable()`, `blocks_los()` (simplified 2026-09-10 to just the floor
+  `TileEntry`'s own flag, once `InteractableEntry.blocks_los` was
   removed as unused — see that entry below), `get_interactable_at()`,
   `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
   prop placements together for `ComponentInventory`).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id. Unrelated
   to `OutlineNode` below despite the similar-sounding `blocks_los` name —
-  this is the flattened per-CELL floor/wall logical data, not a placed
+  this is the flattened per-CELL floor logical data, not a placed
   object.
 - **`OutlineNode`** (new 2026-09-10, `scripts/OutlineNode.gd`) — shared
   base class for everything that can appear as its own node in the
@@ -77,11 +77,12 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
 	`OutlineNode` needed it, not just props with genuinely free-form extra
 	data. Not yet consumed by any evaluator/renderer — future work, see
 	**Story layer**.
-- `TilePlacement` — layer (FLOOR/WALL/UNDERLAY enum), origin_cell,
+- `TilePlacement` — layer (FLOOR/UNDERLAY enum), origin_cell,
   mesh_item_name, orientation, plus everything from `OutlineNode` above.
-  Only FLOOR and UNDERLAY placements actually appear in the outline tree,
-  WALL is excluded — wall painting isn't used in real missions, see Open
-  items.
+  Both FLOOR and UNDERLAY placements appear in the outline tree. A WALL
+  layer/`WallGridMap` existed earlier but was removed 2026-09-11 (Open
+  item #14, done) — the game has no wall concept, it was never used in
+  real missions.
 - `InteractableEntry` — type (PROP/DOOR/OBJECTIVE/HAZARD/LEVEL_LINK),
   mesh_item_name, origin_cell, footprint (Array[Vector3i],
   rotation-adjusted), orientation, plus everything from `OutlineNode`
@@ -229,12 +230,12 @@ combat/monster AI (explicitly out of scope for the first working version).
 	before expansion** (rotating after expansion rotates around the wrong pivot). The
 	single-step rotation includes a `-1` correction because it's rotating a *region*
 	(min-corner + extent), not a bare point.
-  - `get_layer(mesh_name)` → `"floor"`/`"wall"`/`"underlay"`/`"prop"` — the single
-	source of truth for which GridMap a mesh belongs in (all four GridMaps share
+  - `get_layer(mesh_name)` → `"floor"`/`"underlay"`/`"prop"` — the single
+	source of truth for which GridMap a mesh belongs in (all three GridMaps share
 	**one** MeshLibrary, so nothing else distinguishes them). Tile faces
 	auto-detected by name pattern (`^\d+[ab]$`); `water`/`acid`/`lava`/`spikes` are
 	explicit `MESH_LAYER` overrides routing to `"underlay"` (no shared naming
-	convention to auto-detect from, unlike `wall_`); everything else defaults to
+	convention to auto-detect from); everything else defaults to
 	`"prop"` unless overridden.
   - `LOGICAL_DEFAULTS` (prefix-based) / `LOGICAL_OVERRIDES` (exact-name) — auto-fill
 	walkable/blocks_los from mesh naming convention.
@@ -280,16 +281,16 @@ combat/monster AI (explicitly out of scope for the first working version).
 **Core logic** (`map/`, root of the reusable scene):
 
 - `LayeredMap.gd` — attached to `LayeredMapCore.tscn`'s root. Owns `floor_grid`/
-  `wall_grid`/`prop_grid`/`underlay_grid` (@onready refs to child GridMaps) and
+  `prop_grid`/`underlay_grid` (@onready refs to child GridMaps) and
   `mission`. `_ready()` positions the non-floor layers relative to floor: `prop_grid`
   sits `+floor_thickness` above (so props render on top of the floor surface);
   `underlay_grid` stays at the SAME Y as floor (`Vector3.ZERO`, not offset below it)
   — it's meant to show through exactly where the floor doesn't cover it, not sit
   hidden beneath. Two directions of sync:
-  - **Read** (painting → data): `sync_prop_cell(origin)`, `rebuild_floor_tiles()`
-	(floor + wall), and `rebuild_underlay_tiles()` walk the painted GridMap cells and
+  - **Read** (painting → data): `sync_prop_cell(origin)`, `rebuild_floor_tiles()`,
+	and `rebuild_underlay_tiles()` walk the painted GridMap cells and
 	populate `MissionData`. Underlay is a deliberately SEPARATE rebuild pass from
-	floor/wall (not a third case folded into `rebuild_floor_tiles()`) — see the
+	floor (not a third case folded into `rebuild_floor_tiles()`) — see the
 	`underlay_placements` note above for why.
 	- **Hard-won lesson, 2026-09-10**: `sync_prop_cell()` always erases
 	  whatever `InteractableEntry` was at that origin cell and constructs a
@@ -371,7 +372,7 @@ combat/monster AI (explicitly out of scope for the first working version).
   see its own entry below).
 - `CreatorPalette.gd` (attached to `MissionMap.tscn`'s
   `CanvasLayer/MainLayout/EditorArea/SidePanel/Palette`) — the real palette UI: clickable layer tabs
-  (Floor/Wall/Prop/Underlay, plus a 5th "Misc" tab - see below) plus a
+  (Floor/Prop/Underlay, plus a 4th "Misc" tab - see below) plus a
   scrollable icon grid for whichever mesh layer is active, replacing blind
   `,`/`.` cycling as the primary way to pick a mesh
   (keyboard cycling still works side by side). Built entirely at runtime in
@@ -408,9 +409,9 @@ combat/monster AI (explicitly out of scope for the first working version).
 	wrapper (same pattern/reasoning as `CreatorOutline.refresh()`) since
 	that signal can fire once per painted cell during a fast drag stroke.
   - **"Misc" tab** (requested 2026-09-10, replacing an earlier "put D/P on
-	a second toolbar" idea) — a 5th tab button alongside the four mesh
+	a second toolbar" idea) — a 4th tab button alongside the three mesh
 	layers, for tools that aren't mesh-library-backed at all and so don't
-	belong in the Floor/Wall/Prop/Underlay grid. Not a
+	belong in the Floor/Prop/Underlay grid. Not a
 	`CreatorController.PaintLayer` — purely a `CreatorPalette` presentation
 	concept, `CreatorController` has no idea this tab exists. Clicking it
 	(`_on_misc_tab_pressed()`) hides the mesh grid/"Show unavailable"
@@ -534,7 +535,7 @@ combat/monster AI (explicitly out of scope for the first working version).
 	own click-to-engage behavior above (advanced users learn the hotkey,
 	everyone else discovers it by clicking a mesh), but `P` (Player Start)
 	isn't mesh-library-backed at all, so it doesn't belong among the
-	Floor/Wall/Prop/Underlay tabs - see `CreatorPalette.gd`'s own "Misc"
+	Floor/Prop/Underlay tabs - see `CreatorPalette.gd`'s own "Misc"
 	tab entry below for where it actually landed. `draw_mode` and
 	`spawn_paint_mode` are kept MUTUALLY EXCLUSIVE by the Palette's click
 	handlers (never by the hotkeys themselves) - picking a mesh/layer
@@ -543,7 +544,7 @@ combat/monster AI (explicitly out of scope for the first working version).
   - Controls: `D` toggle Draw/Select mode, Left-click place (Draw mode) /
 	select (Select mode), Shift+Left-click erase (Draw mode only), `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
-	filter (Floor → Wall → Prop → Underlay), PageUp/PageDown change level, `O` toggle
+	filter (Floor → Prop → Underlay), PageUp/PageDown change level, `O` toggle
 	occupancy overlay (also `set_occupancy_overlay()`/`occupancy_overlay_changed`
 	signal, and a `View` menu checkbox — no longer keyboard-only "magic",
 	requested 2026-09-10, see `CreatorViewMenu.gd` below), `N` toggle tile
@@ -581,26 +582,19 @@ combat/monster AI (explicitly out of scope for the first working version).
 - **Creator outline tree** (`CreatorOutline.gd`, attached to
   `SidePanel/Outline/Split/OutlineTree`, a `Tree`) — a scene-graph-style
   object browser: every placed `InteractableEntry` (prop/door/hazard/
-  level-link) plus every FLOOR `TilePlacement` and every `underlay_placements`
+  level-link) plus every `floor_placements` and every `underlay_placements`
   entry (floor/underlay tiles joined 2026-09-10, at the user's own prompting
   — "they are pretty unique on their own" — each is its own distinct placed
   instance too), plus optional, purely organizational `MissionGroup` nodes
   the designer can create to group related objects (e.g. "everything in
   this room"), requested 2026-09-10 as the "select a placed object"
   prerequisite Open item #13 had been waiting on.
-  - **WALL placements are deliberately excluded** — the user has indicated
-	wall painting isn't actually used in real missions and flagged it as a
-	candidate for removal later (not attempted here, see Open items). Wall
-	`TilePlacement`s still get an `id` assigned (they share
-	`rebuild_floor_tiles()` with floor), this script just skips them when
-	building tree items — see `_find_tile_by_id()`/`_add_tile_item()`.
   - Floor/underlay tiles reuse the exact same `id`/`parent_id` machinery as
 	interactables even though `rebuild_floor_tiles()`/
 	`rebuild_underlay_tiles()` do a full clear-and-rebuild rather than
 	interactables' incremental single-cell sync (`sync_prop_cell()`) — both
 	rebuild functions now build a lookup of the PREVIOUS placements (keyed
-	by layer+origin_cell for floor/wall, origin_cell alone for underlay,
-	since it only has one `Layer` value) before clearing, and carry an old
+	by origin_cell) before clearing, and carry an old
 	placement's `id`/`parent_id` forward when the new rebuild finds a match
 	at the same key, only minting a fresh id when there's no match. Mirrors
 	`sync_prop_cell()`'s own field-carry-over fix (see that function's
@@ -1015,9 +1009,11 @@ combat/monster AI (explicitly out of scope for the first working version).
 Split into a minimal reusable piece plus two separate wrappers, specifically so
 Play mode doesn't inherit Creator-only tooling (this was a real bug that got fixed):
 
-- **`map/LayeredMapCore.tscn`** — just `LayeredMap.gd` + the four GridMaps
-  (FloorGridMap/WallGridMap/PropGridMap/UnderlayGridMap, sharing one MeshLibrary and
-  identical cell_size). Instanced by both of the below.
+- **`map/LayeredMapCore.tscn`** — just `LayeredMap.gd` + the three GridMaps
+  (FloorGridMap/PropGridMap/UnderlayGridMap, sharing one MeshLibrary and
+  identical cell_size). Instanced by both of the below. A `WallGridMap`
+  existed earlier but was removed 2026-09-11 (Open item #14, done) - the
+  game has no wall concept, it was never used in real missions.
 - **`map/MissionMap.tscn`** (the Creator) — instances `LayeredMapCore` as `%LayeredMap`,
   plus `Camera3D` (FreeLookCamera), `DirectionalLight3D`, `DebugSync`,
   `CreatorController`, `CreatorAutosave` (two-tier backup timer, see
@@ -1047,7 +1043,7 @@ Autoloads registered in Project Settings: `FootprintRegistry`, `GameState`,
 **Root-level source scenes** (`floors.tscn`, `pilars.tscn`, `stair.tscn`) — not part
 of the app itself and not referenced by any other scene or by Project Settings.
 These are the source scenes used to build/populate the shared `MeshLibrary` that all
-three GridMaps (Floor/Wall/Prop) consume — keep them around as the mesh-authoring
+three GridMaps (Floor/Prop/Underlay) consume — keep them around as the mesh-authoring
 source of truth, don't treat them as dead/orphaned files to delete.
 
 ## Tooling
@@ -1267,7 +1263,7 @@ These cost real debugging time — worth not re-learning them:
   to GDScript**. Use `GridMap.get_cell_item_basis(cell)` (read) and
   `GridMap.get_orthogonal_index_from_basis(basis)` (write) instead — both are instance
   methods on GridMap, so borrow any GridMap node purely for the calculation.
-- All four GridMaps (Floor/Wall/Prop/Underlay) intentionally **share one
+- All three GridMaps (Floor/Prop/Underlay) intentionally **share one
   MeshLibrary** — you cannot tell "this is a floor tile" from "this is a pillar" by
   which grid's library you query. `FootprintRegistry.get_layer()` is the actual
   source of truth.
@@ -1421,7 +1417,7 @@ These cost real debugging time — worth not re-learning them:
    way they cover the underlay hazards. **Unverified**: confirm in-editor that all
    8 override textures actually apply correctly across every tile face, not just
    the ones spot-checked so far.
-10. ~~Snap floor/wall/prop painting to tile-square granularity~~ — done.
+10. ~~Snap floor/prop painting to tile-square granularity~~ — done.
 	`CreatorController._update_hover()` now snaps `_hovered_cell` to the
 	far-corner fine cell of its containing tile-square
 	(`_snap_to_tile_square_far_corner()`, reusing
@@ -1488,12 +1484,21 @@ These cost real debugging time — worth not re-learning them:
 	visible`/`TilePlacement.visible` into an actual cascading effect once
 	the Story layer's trigger/effect evaluator exists (still doesn't - see
 	**Story layer**).
-14. **Wall painting isn't actually used in real missions** (the user's own
-	words, 2026-09-10) - `WallGridMap`/`TilePlacement.Layer.WALL` and
-	everything that handles it (`CreatorController`'s Wall layer filter,
-	`rebuild_floor_tiles()` painting both floor+wall in one pass,
-	`CreatorOutline.gd` explicitly skipping WALL when building the tree)
-	is a candidate for removal in a future pass - not attempted here, this
-	was flagged in passing while scoping the outline tree's floor/underlay
-	support (see **Creator outline tree** above), not something anyone has
-	asked to actually remove yet.
+14. ~~Wall painting isn't actually used in real missions~~ — done, removed
+	2026-09-11 (the user's own words, "the game has no such concept").
+	Removed entirely: `WallGridMap` (from `map/LayeredMapCore.tscn`),
+	`LayeredMap.wall_grid`, `CreatorController.PaintLayer.WALL` (and its
+	`_current_grid()`/`_grid_for_mesh()` branches), `CreatorPalette`'s
+	"Wall" tab, `TilePlacement.Layer.WALL` (enum renumbered to
+	`{ FLOOR, UNDERLAY }` — the two saved test missions with underlay
+	placements, `missions/underlays.tres` and `missions/test_mission.tres`,
+	had their `layer = 2` fields migrated to `layer = 1` to match), the
+	dead `wall_`-prefix handling in `FootprintRegistry`
+	(`LOGICAL_DEFAULTS`/`get_layer()` — no mesh asset ever actually used
+	that prefix), and `CreatorOutline.gd`'s WALL-skipping filter (now
+	moot - `floor_placements` only ever holds FLOOR entries). Also
+	simplified `LayeredMap.rebuild_floor_tiles()`/`apply_mission()`, which
+	used to key/branch on `(layer, origin_cell)` specifically to
+	distinguish floor from wall on a shared GridMap cell coordinate - now
+	keyed by `origin_cell` alone, same as `rebuild_underlay_tiles()`
+	already did.

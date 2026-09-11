@@ -1,15 +1,14 @@
 class_name LayeredMap
 extends Node3D
 
-## Attach to a scene containing four GridMap children named FloorGridMap,
-## WallGridMap, PropGridMap, and UnderlayGridMap - all sharing the same
-## MeshLibrary and cell_size. This node keeps the layers visually stacked and
-## exposes helpers to sync painted cells into a MissionData resource.
+## Attach to a scene containing three GridMap children named FloorGridMap,
+## PropGridMap, and UnderlayGridMap - all sharing the same MeshLibrary and
+## cell_size. This node keeps the layers visually stacked and exposes
+## helpers to sync painted cells into a MissionData resource.
 ##
 ## Scene layout expected:
 ## LayeredMap (this script)
 ##  |- FloorGridMap     (GridMap)
-##  |- WallGridMap      (GridMap)
 ##  |- PropGridMap      (GridMap)
 ##  |- UnderlayGridMap  (GridMap)
 
@@ -19,13 +18,12 @@ extends Node3D
 ## Fires whenever mission.interactables or mission.groups changes shape
 ## (an object placed/erased/repainted, or a group created/renamed/deleted/
 ## reparented) - CreatorOutline.gd listens to this to know when to rebuild
-## its tree. Deliberately NOT fired for floor/wall/underlay edits - those
+## its tree. Deliberately NOT fired for floor/underlay edits - those
 ## aren't part of the outline tree, see CreatorOutline.gd's own doc
 ## comment for why.
 signal mission_objects_changed
 
 @onready var floor_grid: GridMap = $FloorGridMap
-@onready var wall_grid: GridMap = $WallGridMap
 @onready var prop_grid: GridMap = $PropGridMap
 @onready var underlay_grid: GridMap = $UnderlayGridMap
 
@@ -35,11 +33,10 @@ var _spawn_overlay_mesh: ImmediateMesh
 
 func _ready() -> void:
 	# Only position differs between layers - cell_size and XZ cell
-	# coordinates must stay identical across all four or occupancy lookups
+	# coordinates must stay identical across all three or occupancy lookups
 	# (and the footprint registry) will target the wrong cells. Underlay
 	# stays at the SAME Y as floor (not offset below it) - it's meant to be
 	# visible exactly where the floor doesn't cover it, not hidden beneath.
-	wall_grid.position = Vector3.ZERO
 	prop_grid.position = Vector3(0, floor_thickness, 0)
 	underlay_grid.position = Vector3.ZERO
 
@@ -196,7 +193,7 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 	return null
 
 
-## Rebuilds TileEntry data for every cell covered by a painted floor/wall
+## Rebuilds TileEntry data for every cell covered by a painted floor
 ## piece, using naming-convention defaults. Floor tiles are irregular
 ## multi-cell shapes just like props - GridMap only tracks the origin cell
 ## each was painted at, so we expand each origin through its registered
@@ -204,32 +201,22 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 ## pass, or whenever you want to regenerate logical data from the visual
 ## layers.
 func rebuild_floor_tiles() -> void:
-	# Keyed by (layer, origin_cell) rather than origin_cell alone - floor
-	# and wall are separate GridMaps that can share the same numeric cell
-	# coordinate, and this function rebuilds both into one shared array.
-	var old_by_key: Dictionary = {}
+	var old_by_cell: Dictionary = {}
 	for placement in mission.floor_placements:
-		old_by_key[_tile_placement_key(placement.layer, placement.origin_cell)] = placement
+		old_by_cell[placement.origin_cell] = placement
 
 	mission.tiles.clear()
 	mission.floor_placements.clear()
 	mission.floor_occupied_cells.clear()
 
 	for origin in floor_grid.get_used_cells():
-		_write_tile_footprint(origin, floor_grid, TilePlacement.Layer.FLOOR, old_by_key)
-
-	# Wall layer cells override floor defaults where both are present.
-	for origin in wall_grid.get_used_cells():
-		_write_tile_footprint(origin, wall_grid, TilePlacement.Layer.WALL, old_by_key)
+		_write_tile_footprint(origin, old_by_cell)
 
 	mission_objects_changed.emit()
 
 
-func _tile_placement_key(layer: TilePlacement.Layer, origin_cell: Vector3i) -> String:
-	return "%d:%s" % [layer, origin_cell]
-
-
-func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement.Layer, old_by_key: Dictionary) -> void:
+func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary) -> void:
+	var grid := floor_grid
 	var item_id := grid.get_cell_item(origin)
 	var mesh_name := grid.mesh_library.get_item_name(item_id)
 	var orientation := grid.get_cell_item_orientation(origin)
@@ -238,20 +225,20 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
 
 	var placement := TilePlacement.new()
-	placement.layer = layer
+	placement.layer = TilePlacement.Layer.FLOOR
 	placement.origin_cell = origin
 	placement.mesh_item_name = mesh_name
 	placement.orientation = orientation
 
 	# This function rebuilds EVERY placement from scratch on every single
-	# edit anywhere on the map (see the class doc's "full rebuild" note) -
-	# without this, a repainted tile would silently lose its outline-tree
-	# id/parent_id/reference_name/visible every time ANY floor/wall cell
-	# gets painted, not just itself. Carry the old entry's identity
-	# forward when this origin cell already had something; only mint a
-	# fresh id for a genuinely new placement. Mirrors sync_prop_cell()'s
-	# own field-carry-over fix.
-	var old: TilePlacement = old_by_key.get(_tile_placement_key(layer, origin))
+	# edit anywhere on the floor layer (see the class doc's "full rebuild"
+	# note) - without this, a repainted tile would silently lose its
+	# outline-tree id/parent_id/reference_name/visible every time ANY
+	# floor cell gets painted, not just itself. Carry the old entry's
+	# identity forward when this origin cell already had something; only
+	# mint a fresh id for a genuinely new placement. Mirrors
+	# sync_prop_cell()'s own field-carry-over fix.
+	var old: TilePlacement = old_by_cell.get(origin)
 	if old != null:
 		placement.id = old.id
 		placement.parent_id = old.parent_id
@@ -278,14 +265,12 @@ func _write_tile_footprint(origin: Vector3i, grid: GridMap, layer: TilePlacement
 ## rather than folded into it, because underlay tiles physically coexist
 ## with whatever floor tile sits on the same cells (they're meant to peek
 ## through, not replace it). Writing them into mission.tiles the same way
-## floor/wall do would have one silently clobber the other's walkable/
+## floor does would have one silently clobber the other's walkable/
 ## blocks_los data depending on iteration order. Underlay currently carries
 ## no logical (walkable/blocks_los) data of its own - it's visual/hazard
 ## marker data only, tracked purely via underlay_placements/
 ## underlay_occupied_cells.
 func rebuild_underlay_tiles() -> void:
-	# Underlay has only one Layer value, so origin_cell alone is an
-	# unambiguous key here (unlike rebuild_floor_tiles()'s floor+wall case).
 	var old_by_cell: Dictionary = {}
 	for placement in mission.underlay_placements:
 		old_by_cell[placement.origin_cell] = placement
@@ -328,24 +313,22 @@ func rebuild_underlay_tiles() -> void:
 
 
 ## Reverse of sync_prop_cell()/rebuild_floor_tiles()/rebuild_underlay_tiles():
-## given a loaded MissionData, clears all four GridMaps and repaints them to
+## given a loaded MissionData, clears all three GridMaps and repaints them to
 ## match. Used by the Player to render a loaded mission, and reusable by the
 ## Creator later for "open an existing mission to keep editing."
 func apply_mission(mission_to_apply: MissionData) -> void:
 	floor_grid.clear()
-	wall_grid.clear()
 	prop_grid.clear()
 	underlay_grid.clear()
 
 	mission = mission_to_apply
 
 	for placement in mission.floor_placements:
-		var grid := floor_grid if placement.layer == TilePlacement.Layer.FLOOR else wall_grid
-		var item_id := find_item_id(grid, placement.mesh_item_name)
+		var item_id := find_item_id(floor_grid, placement.mesh_item_name)
 		if item_id == -1:
 			push_warning("No MeshLibrary item named '%s' - skipping floor placement at %s" % [placement.mesh_item_name, placement.origin_cell])
 			continue
-		grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
+		floor_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for placement in mission.underlay_placements:
 		var item_id := find_item_id(underlay_grid, placement.mesh_item_name)

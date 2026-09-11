@@ -109,24 +109,24 @@ mesh_item_name = "2b"
 
 [sub_resource type="Resource" id="Resource_unpv7"]
 script = ExtResource("1_b5846")
-layer = 2
+layer = 1
 origin_cell = Vector3i(0, 0, 8)
 mesh_item_name = "lava"
 
 [sub_resource type="Resource" id="Resource_w18ye"]
 script = ExtResource("1_b5846")
-layer = 2
+layer = 1
 mesh_item_name = "spikes"
 
 [sub_resource type="Resource" id="Resource_8l73s"]
 script = ExtResource("1_b5846")
-layer = 2
+layer = 1
 origin_cell = Vector3i(10, 0, 0)
 mesh_item_name = "water"
 
 [sub_resource type="Resource" id="Resource_gwa1e"]
 script = ExtResource("1_b5846")
-layer = 2
+layer = 1
 origin_cell = Vector3i(10, 0, 8)
 mesh_item_name = "acid"
 

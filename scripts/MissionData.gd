@@ -26,13 +26,13 @@ extends Resource
 ## coordinate itself. Value = TileEntry.
 @export var tiles: Dictionary = {}  # Dictionary[Vector3i, TileEntry]
 
-## Raw paint records for the floor/wall layers - one entry per origin cell
+## Raw paint records for the floor layer - one entry per origin cell
 ## painted, regardless of how many cells its footprint covers. Needed to
-## repaint FloorGridMap/WallGridMap when loading a mission; tiles alone
-## isn't enough (see TilePlacement).
+## repaint FloorGridMap when loading a mission; tiles alone isn't enough
+## (see TilePlacement).
 @export var floor_placements: Array[TilePlacement] = []
 
-## Floor/wall equivalent of occupied_cells: every cell a floor/wall piece
+## Floor equivalent of occupied_cells: every cell a floor piece
 ## covers -> the origin cell GridMap actually has the item painted at.
 ## GridMap only stores data at the origin cell of a multi-cell item -
 ## everything else it covers is, as far as GridMap itself is concerned,
@@ -47,10 +47,10 @@ extends Resource
 
 ## Underlay layer (water/acid/lava/spikes physical paper pieces that sit
 ## beneath the floor tiles) - a separate painted layer, NOT folded into
-## tiles/floor_placements. Unlike wall (which overrides floor's logical
-## defaults on the same cell), underlay coexists with whatever floor tile
-## sits above it, so it can't share TileEntry's single walkable/blocks_los
-## slot per cell without one silently clobbering the other.
+## tiles/floor_placements, since underlay coexists with whatever floor
+## tile sits above it (it's meant to peek through, not replace it), so it
+## can't share TileEntry's single walkable/blocks_los slot per cell
+## without one silently clobbering the other.
 @export var underlay_placements: Array[TilePlacement] = []
 @export var underlay_occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Vector3i]
 
@@ -87,7 +87,7 @@ extends Resource
 @export var custom_variables: Array[MissionVariable] = []
 
 
-## Returns { group_name: count } tallying every placed floor/wall/underlay/
+## Returns { group_name: count } tallying every placed floor/underlay/
 ## prop piece by its PHYSICAL component group (see ComponentInventory - both
 ## faces of a double-sided tile count as the same physical piece).
 func get_component_usage() -> Dictionary:
@@ -135,8 +135,8 @@ func is_walkable(cell: Vector3i) -> bool:
 ## equivalent blocks_movement either, occupied_cells.has(cell) alone
 ## already blocks movement regardless of a specific flag's value). Prop-
 ## level LOS blocking can come back as a well-known InteractableEntry.props
-## key if a real need for it ever shows up - this just reads the floor/
-## wall TileEntry's own blocks_los for now.
+## key if a real need for it ever shows up - this just reads the floor
+## TileEntry's own blocks_los for now.
 func blocks_los(cell: Vector3i) -> bool:
 	var tile := get_tile(cell)
 	return tile != null and tile.blocks_los

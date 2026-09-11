@@ -31,7 +31,7 @@ extends Node3D
 ##   , / .              - cycle selected mesh backward/forward within the
 ##                        current layer FILTER (see below)
 ##   R                  - rotate the selection 90 degrees before placing
-##   L                  - cycle which layer , / . browses: Floor -> Wall -> Prop -> Underlay
+##   L                  - cycle which layer , / . browses: Floor -> Prop -> Underlay
 ##   Page Up/Down       - move the painting level (Y) up/down
 ##   O                  - toggle occupancy overlay
 ##   N                  - toggle tile name labels (mesh_item_name at each origin cell -
@@ -82,7 +82,7 @@ extends Node3D
 
 
 
-enum PaintLayer { FLOOR, WALL, PROP, UNDERLAY }
+enum PaintLayer { FLOOR, PROP, UNDERLAY }
 
 ## Emitted whenever selection state actually changes, from whichever path
 ## caused it (keyboard cycling OR a future/present palette UI calling
@@ -165,7 +165,7 @@ var _has_hover: bool = false
 
 func _ready() -> void:
 	# Wait one frame so every node's own _ready() (including LayeredMap's
-	# @onready floor_grid/wall_grid/prop_grid) has definitely run first,
+	# @onready floor_grid/prop_grid) has definitely run first,
 	# regardless of sibling order in the scene tree - otherwise this only
 	# works by accident depending on where CreatorController happens to
 	# sit relative to LayeredMap.
@@ -277,7 +277,7 @@ func _setup_spawn_ghost() -> void:
 	add_child(_spawn_ghost)
 
 
-const PAINT_LAYER_NAMES: Array[String] = ["floor", "wall", "prop", "underlay"]
+const PAINT_LAYER_NAMES: Array[String] = ["floor", "prop", "underlay"]
 
 
 func _setup_occupancy_overlay() -> void:
@@ -301,7 +301,7 @@ func _setup_tile_labels() -> void:
 
 
 ## Shows the mesh_item_name (plus a direction arrow) of every placed
-## floor/wall/underlay/prop piece, centered on the piece's actual footprint,
+## floor/underlay/prop piece, centered on the piece's actual footprint,
 ## not just its origin cell - see _add_tile_label(). Mainly useful now that
 ## many floor tile faces share the same generic material (flagstone/grass/
 ## dirt/wood planks) and can no longer be told apart by looks alone.
@@ -315,8 +315,7 @@ func _rebuild_tile_labels() -> void:
 
 	var mission := layered_map.mission
 	for placement in mission.floor_placements:
-		var grid := layered_map.floor_grid if placement.layer == TilePlacement.Layer.FLOOR else layered_map.wall_grid
-		_add_tile_label(grid, placement.origin_cell, placement.mesh_item_name)
+		_add_tile_label(layered_map.floor_grid, placement.origin_cell, placement.mesh_item_name)
 	for placement in mission.underlay_placements:
 		_add_tile_label(layered_map.underlay_grid, placement.origin_cell, placement.mesh_item_name)
 	for entry in mission.interactables:
@@ -377,8 +376,6 @@ func _current_grid() -> GridMap:
 	match current_layer:
 		PaintLayer.FLOOR:
 			return layered_map.floor_grid
-		PaintLayer.WALL:
-			return layered_map.wall_grid
 		PaintLayer.PROP:
 			return layered_map.prop_grid
 		PaintLayer.UNDERLAY:
@@ -403,8 +400,6 @@ func _grid_for_mesh(mesh_name: String) -> GridMap:
 	match FootprintRegistry.get_layer(mesh_name):
 		"floor":
 			return layered_map.floor_grid
-		"wall":
-			return layered_map.wall_grid
 		"underlay":
 			return layered_map.underlay_grid
 		_:
@@ -434,7 +429,7 @@ func locate_mesh(mesh_name: String) -> bool:
 					origin_cell = placement.origin_cell
 					found = true
 					break
-		_:  # floor or wall - both live in floor_placements
+		_:  # floor
 			for placement in layered_map.mission.floor_placements:
 				if placement.mesh_item_name == mesh_name:
 					origin_cell = placement.origin_cell
@@ -817,7 +812,7 @@ func _update_hover() -> void:
 
 	# Intersect against a horizontal plane at the TARGET grid's CURRENT
 	# level, computed in that grid's own local space then converted to
-	# world space - keeps this correct even though FloorGridMap/WallGridMap/
+	# world space - keeps this correct even though FloorGridMap/
 	# PropGridMap sit at slightly different world Y offsets.
 	var grid_local_y: float = current_level * grid.cell_size.y
 	var world_point: Vector3 = grid.to_global(Vector3(0, grid_local_y, 0))
@@ -1106,9 +1101,6 @@ func erase_at_cursor() -> void:
 ## erase_at_cursor() (see _raycast_hit_cell()/_origin_for_hit()) - the only
 ## difference is what happens with the resolved origin cell: look up which
 ## placed object/tile owns it and report that, rather than erasing it.
-## WALL placements are silently skipped, matching CreatorOutline.gd's own
-## exclusion (see that script's class doc) - wall painting isn't used in
-## real missions.
 func select_at_cursor() -> void:
 	var hit := _raycast_hit_cell("select_at_cursor")
 	if hit.is_empty():
@@ -1129,11 +1121,11 @@ func select_at_cursor() -> void:
 				return
 	elif hit_grid == layered_map.floor_grid:
 		for placement in layered_map.mission.floor_placements:
-			if placement.layer == TilePlacement.Layer.FLOOR and placement.origin_cell == origin:
+			if placement.origin_cell == origin:
 				object_picked.emit("floor", placement.id)
 				return
-	# hit_grid == wall_grid, or nothing matched at this origin - nothing to
-	# select, print()s already covered by _raycast_hit_cell()'s own diagnostics.
+	# Nothing matched at this origin - nothing to select, print()s already
+	# covered by _raycast_hit_cell()'s own diagnostics.
 
 
 func _origin_for_hit(hit_grid: GridMap, hit_cell: Vector3i) -> Vector3i:
@@ -1213,7 +1205,7 @@ func _sync_after_edit(grid: GridMap, cell: Vector3i) -> void:
 		layered_map.sync_prop_cell(cell)
 	elif grid == layered_map.underlay_grid:
 		# Full rebuild is simplest/correct for now, same tradeoff as the
-		# floor/wall branch below.
+		# floor branch below.
 		layered_map.rebuild_underlay_tiles()
 	else:
 		# Full rebuild is simplest/correct for now. Once maps get large
