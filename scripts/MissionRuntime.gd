@@ -39,10 +39,11 @@ func _init(p_mission: MissionData) -> void:
 	mission = p_mission
 	for variable in mission.custom_variables:
 		var coerced: Variant = _coerce(variable.default_value, variable.type)
-		if coerced == null:
+		if typeof(coerced) == TYPE_NIL:
 			push_warning("MissionVariable '%s' default_value doesn't match its declared type - using a zero value" % variable.name)
 			coerced = _zero_value(variable.type)
 		_variables[variable.name] = coerced
+		print("MissionRuntime: seeded '%s' = %s (%s)" % [variable.name, coerced, MissionVariable.Type.keys()[variable.type]])
 
 	for root in mission.objectives:
 		_current_groups.append([root])
@@ -63,29 +64,33 @@ func set_variable(name: String, value: Variant) -> void:
 
 
 func evaluate_condition(condition: Condition) -> bool:
-	var declared: Variant = _declared_type(condition.variable_name)
-	if declared == null:
+	var declared: int = _declared_type(condition.variable_name)
+	if declared == -1:
 		push_warning("Condition references unknown variable '%s'" % condition.variable_name)
 		return false
-	var target: Variant = _coerce(condition.value, declared)
-	if target == null:
+	var target: Variant = _coerce(condition.value, declared as MissionVariable.Type)
+	if typeof(target) == TYPE_NIL:
 		push_warning("Condition value for '%s' doesn't match its declared type" % condition.variable_name)
 		return false
 	var current: Variant = _variables.get(condition.variable_name)
+	var result: bool
 	match condition.operator:
 		Condition.Operator.EQUALS:
-			return current == target
+			result = current == target
 		Condition.Operator.NOT_EQUALS:
-			return current != target
+			result = current != target
 		Condition.Operator.GREATER:
-			return current > target
+			result = current > target
 		Condition.Operator.GREATER_EQUAL:
-			return current >= target
+			result = current >= target
 		Condition.Operator.LESS:
-			return current < target
+			result = current < target
 		Condition.Operator.LESS_EQUAL:
-			return current <= target
-	return false
+			result = current <= target
+		_:
+			result = false
+	print("MissionRuntime.evaluate_condition: '%s' %s %s -> current=%s (%s) => %s" % [condition.variable_name, Condition.Operator.keys()[condition.operator], target, current, typeof(current), result])
+	return result
 
 
 ## Implicit AND across every entry - an empty array is vacuously true.
@@ -109,6 +114,7 @@ func first_available_action(entry: InteractableEntry) -> PropAction:
 	for action in entry.actions:
 		if evaluate_conditions(action.conditions):
 			return action
+	print("MissionRuntime.first_available_action: '%s' (%d action(s) authored) - none currently available" % [entry.reference_name if entry.reference_name != "" else entry.mesh_item_name, entry.actions.size()])
 	return null
 
 
@@ -145,15 +151,16 @@ func apply_effect(effect: Effect) -> void:
 	if BUILTIN_TYPES.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
 		return
-	var declared: Variant = _declared_type(effect.variable_name)
-	if declared == null:
+	var declared: int = _declared_type(effect.variable_name)
+	if declared == -1:
 		push_warning("Effect references unknown variable '%s' - skipped" % effect.variable_name)
 		return
-	var coerced: Variant = _coerce(effect.value, declared)
-	if coerced == null:
+	var coerced: Variant = _coerce(effect.value, declared as MissionVariable.Type)
+	if typeof(coerced) == TYPE_NIL:
 		push_warning("Effect value for '%s' doesn't match its declared type - skipped" % effect.variable_name)
 		return
 	_variables[effect.variable_name] = coerced
+	print("MissionRuntime.apply_effect: '%s' = %s" % [effect.variable_name, coerced])
 
 
 func apply_effects(effects: Array[Effect]) -> void:
@@ -204,6 +211,7 @@ func fire_event(event_id: String) -> MissionObjective:
 ## effects immediately - the event-driven half of the trigger system").
 ## Returns the same nullable MissionObjective fire_event() does.
 func fire_prop_action(action: PropAction) -> MissionObjective:
+	print("MissionRuntime.fire_prop_action: '%s' (action_id='%s', %d effect(s))" % [action.description, action.action_id, action.effects.size()])
 	apply_effects(action.effects)
 	return fire_event(action.action_id)
 
@@ -307,15 +315,22 @@ func _walk_for_cycles(node: MissionObjective, path: Array[MissionObjective]) -> 
 		_walk_for_cycles(child, extended)
 
 
-## MissionVariable.Type, or null if `name` isn't a declared custom variable
-## or a runtime built-in.
-func _declared_type(name: String) -> Variant:
+## MissionVariable.Type, or -1 if `name` isn't a declared custom variable
+## or a runtime built-in. Returns a plain `int` with a sentinel OUTSIDE the
+## valid 0-3 enum range, not `Variant`/`null` - `Type.BOOL` is 0, and
+## `declared == null` would need `0 == null` to reliably evaluate false
+## for a bare "not found" check to be safe. round_number/player_count are
+## both Type.INT (1), so this exact ambiguity was never actually exercised
+## until a real custom BOOL variable was declared for the first time
+## 2026-09-14 - fixed defensively to an unambiguous int sentinel rather
+## than confirming whether `0 == null` was ever actually the problem.
+func _declared_type(name: String) -> int:
 	if BUILTIN_TYPES.has(name):
-		return BUILTIN_TYPES[name]
+		return BUILTIN_TYPES[name] as int  # BUILTIN_TYPES is an untyped Dictionary literal - .[] returns Variant, needs an explicit cast to satisfy the -> int return type
 	for variable in mission.custom_variables:
 		if variable.name == name:
 			return variable.type
-	return null
+	return -1
 
 
 ## Returns `value` (coerced if needed) if it matches `type`, else null.

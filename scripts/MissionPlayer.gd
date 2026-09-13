@@ -33,11 +33,11 @@ extends Node3D
 ## _frame_camera_on_spawn_area()) - broader than FreeLookCamera.jump_to()'s
 ## own default (12.0), which otherwise leaves the camera sitting too close
 ## to actually see where the spawn area is relative to the rest of the map.
-const SPAWN_VIEW_MIN_DISTANCE: float = 20.0
+const SPAWN_VIEW_MIN_DISTANCE: float = 30.0
 ## How far past the spawn area's own bounding radius to pull the camera
 ## back - scales the view out further for a larger authored spawn area
 ## rather than using one fixed distance regardless of size.
-const SPAWN_VIEW_RADIUS_MULTIPLIER: float = 2.2
+const SPAWN_VIEW_RADIUS_MULTIPLIER: float = 3.0
 
 var mission: MissionData
 var current_round: int = 1

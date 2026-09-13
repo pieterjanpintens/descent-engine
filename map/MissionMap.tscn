@@ -130,6 +130,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Objectives…"
 
+[node name="VariablesButton" type="Button" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Variables…"
+
 [node name="MinPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 layout_mode = 2
 text = "Min players:"

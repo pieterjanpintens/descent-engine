@@ -164,7 +164,18 @@ no second list needed anywhere.
 
 **One variable registry, three ways to fill it**: `MissionVariable` (name +
 Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
-variable in `MissionData.custom_variables`; the runtime provides its own
+variable in `MissionData.custom_variables` - authored via
+`MissionVariablesDialog.gd` (new 2026-09-14, see **Creator tooling**
+below). **Without a declaration here, a `Condition`/`Effect` referencing
+that name is silently inert** - `MissionRuntime._declared_type()` returns
+null for an unknown name, so an `Effect` writing it gets skipped
+(`push_warning()`) and a `Condition` reading it always evaluates false.
+Confirmed as a real bug report 2026-09-14 ("I set up a conditional
+action, the effect fires but the condition never becomes true") - the
+Condition/Effect were both authored correctly, `key_retrieved` (the name
+being written/read) had just never been declared anywhere, because
+nothing in the Creator could do that until this dialog existed. The
+runtime provides its own
 built-ins (round_number, player_count, ...) using the same shape without
 being authored. A variable's value can come from: the runtime advancing it
 itself (round_number), an `Effect` writing it (a prop action fires), or a
@@ -333,7 +344,27 @@ evaluated identically by every `Condition`/`Effect`.
   `value` falls through this same path automatically - `typeof(null)`
   never matches any declared type, no special-casing needed) - else
   compares the live value against the (coerced) target via
-  `Condition.operator`.
+  `Condition.operator`. Now `print()`s every evaluation (variable,
+  operator, target, current value, result) - added 2026-09-14 while
+  chasing a real "conditional action never becomes available" report, see
+  `_declared_type()`'s own entry below for what that turned out to need
+  hardening against.
+- **`_declared_type(name) -> int`** (changed 2026-09-14 from `-> Variant`)
+  - `MissionVariable.Type`, or **`-1`** (was `null`) if `name` isn't
+  declared. `Type.BOOL` is enum value `0` - `round_number`/`player_count`
+  are both `Type.INT` (`1`), so a caller checking `declared == null`
+  had literally never been exercised against a `0` result until a real
+  custom `BOOL` variable was declared for the first time 2026-09-14 (once
+  `MissionVariablesDialog.gd` made that possible at all). Whether
+  `0 == null` actually misbehaves in this Godot version was never
+  conclusively confirmed - fixed defensively to an unambiguous int
+  sentinel rather than confirm-then-fix, given this project already hit
+  ONE real GDScript cross-type `==` bug this same day (see Hard-won
+  lessons: `PlayerDialog._on_button_pressed()`'s `int == String`). Same
+  defensive treatment applied to `_coerce()`'s own `null`-means-failure
+  return (a genuinely-coerced `false`/`0`/`""`/`0.0` is indistinguishable
+  from "failed" under `== null`) - every caller now checks
+  `typeof(x) == TYPE_NIL` instead.
 - `first_available_action(entry: InteractableEntry) -> PropAction` (new
   2026-09-14, nullable) - the first action in `entry.actions` (declared
   order - `PropAction` has no priority field) whose own `conditions`
@@ -485,12 +516,15 @@ beyond `ObjectivesDialog.gd`'s DAG editor (see **Creator tooling** below
 (new 2026-09-13, `Actions…` in `CreatorPropertiesPanel.gd` - see that
 entry below) - both cover their own inline condition/effect editors, but
 expect new UI surfaces still, e.g. a real
-`MissionTrigger` authoring list (nothing edits those yet at all), and a
-dropdown of known `custom_variables` names for a `Condition`/`Effect`'s
-`variable_name` field (currently a plain `LineEdit` in both places - the
-author has to already know/remember the exact variable name, matching
-error-prone free-text everywhere else in this project pending real
-tooling); "asked" questions specifically (nothing in the data model yet
+`MissionTrigger` authoring list (nothing edits those yet at all). Custom
+variables CAN now be declared - `MissionVariablesDialog.gd` (new
+2026-09-14, see **Creator tooling** below) - and a `Condition`/`Effect`'s
+`variable_name` field is a real dropdown now too (same day,
+`_build_variable_name_option()` in both `ObjectivesDialog.gd` and
+`PropActionsDialog.gd` - see those entries below), listing built-ins
+(`round_number`/`player_count`) plus every declared
+`MissionData.custom_variables` name - no more free-text typo risk for
+THIS field specifically; "asked" questions specifically (nothing in the data model yet
 marks a
 `MissionVariable` as table-answered - `PlayerDialog.ask_yes_no()`/
 `ask_count()` exist as the UI primitives, but nothing wires a question's
@@ -1227,7 +1261,10 @@ first working version).
 	exactly the same way `ObjectivesDialog`'s own effect rows do, see that
 	script's entry above), plus an "Add Action" button.
 	Each block's condition/effect rows and value-type editor
-	(`_build_condition_row()`/`_build_effect_row()`/`_build_value_editor()`)
+	(`_build_condition_row()`/`_build_effect_row()`/`_build_value_editor()`,
+	plus `_build_variable_name_option()`/`_known_variable_names()` -
+	`variable_name`'s dropdown, new 2026-09-14, see `ObjectivesDialog`'s
+	own entry for the full reasoning)
 	are its own copies of `ObjectivesDialog`'s
 	near-identical helpers rather than shared code - those are typed to a
 	`MissionObjective` holder there, and every dialog in this project
@@ -1339,9 +1376,13 @@ first working version).
 	`Condition`/`Effect.value` is a loosely-typed `Variant`, only checked
 	against its target variable's DECLARED type at evaluation time by
 	`MissionRuntime._coerce()`, not enforced here - `variable_name` is a
-	plain `LineEdit`, no dropdown of known `custom_variables` names yet,
-	see the Story layer's own "still not designed/built" note).
-	`_build_effect_row()` also gained a leading `Effect.Type` `OptionButton`
+	dropdown now (new 2026-09-14, `_build_variable_name_option()`/
+	`_known_variable_names()` - built-ins plus every declared
+	`MissionData.custom_variables` name, shared by both
+	`_build_condition_row()` and `_build_effect_row()` within this one
+	file; selects nothing/blank rather than silently picking the first
+	entry if the currently-set name isn't among them, e.g. authored before
+	the variable was declared). `_build_effect_row()` also gained a leading `Effect.Type` `OptionButton`
 	("Set Variable"/"Show Stage", new 2026-09-14) that toggles between the
 	variable_name+value widgets above and a group-picker `OptionButton`
 	(`mission.groups`, no "(root)" entry) writing `effect.target_group_id`
@@ -1367,6 +1408,36 @@ first working version).
 	behavior, the nested optional-objective editor, and the
 	condition/effect value-type editors haven't specifically been exercised
 	yet.
+- **`MissionVariablesDialog.gd`** (new 2026-09-14, `class_name
+  MissionVariablesDialog extends Window`) - editor for
+  `MissionData.custom_variables`, built specifically to close the gap
+  that caused a real "my conditional action never becomes available" bug
+  report (see **Story layer**'s "One variable registry" entry for the
+  full story) - before this dialog, nothing anywhere in the Creator could
+  actually DECLARE a `MissionVariable`, so any `Condition`/`Effect`
+  referencing an undeclared name was silently a no-op. Opened via
+  `CreatorSaveLoad.gd`'s **"Variables…" button** (`%VariablesButton`,
+  same `PropertiesFields` location as `%ObjectivesButton`, mission-level
+  not per-object). Same code-built, one-instance-reused-via-`open_for(mission)`
+  pattern as `ObjectivesDialog`/`PropActionsDialog` -
+  `operation_history`/`layered_map` assigned directly after `.new()`.
+  Flat scrollable list, one `PanelContainer` block per variable (Name
+  LineEdit, Type `OptionButton` [Bool/Int/Float/String], one matching
+  Default-value widget) - same shape as `PropActionsDialog`'s action
+  list. Unlike `_build_value_editor()`'s own internal type picker
+  elsewhere (a per-FIELD guess defaulted from `typeof(current_value)`),
+  this dialog's Type picker IS the variable's actual declared type, so
+  switching it also resets `default_value` to that type's zero value
+  (`false`/`0`/`0.0`/`""`) rather than leaving a stale mismatched value
+  sitting there - `_zero_default()` duplicates `MissionRuntime._zero_value()`'s
+  exact shape rather than reusing it (that lives on a live-playthrough
+  `MissionRuntime` instance, not a static utility this Creator-only
+  dialog has any business constructing one of just to reach a 4-line
+  helper). No duplicate-name or blank-name validation - matches this
+  project's existing "not yet validated in-editor" precedent for
+  `reference_name` uniqueness. **Unverified in-editor**, same caveat as
+  everything else built this session without the ability to launch Godot
+  and see it rendered.
 - `CreatorSaveLoad.gd` — attached to `MenuBar/File`, a `PopupMenu` under the
   top-spanning `MenuBar` (`CanvasLayer/MainLayout/MenuBar`, see
   `MainLayout`'s entry above) - New/Save/Load/Back are menu items now
@@ -1393,7 +1464,8 @@ first working version).
   applied to normal manual Save/Load - `res://` silently can't be written
   to from the shipped `.exe`, so plain Save was broken there too, not
   just the autosave system). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
-  Also owns `%ObjectivesButton` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
+  Also owns `%ObjectivesButton`, `%VariablesButton`, and
+  `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
   - those live in `SidePanel/Outline/Split/Inspector/PropertiesFields`
   (see `CreatorPropertiesPanel.gd`'s entry above), not this script's own
   node. **`%ObjectivesButton` replaced `%ObjectiveLineEdit` 2026-09-12**
@@ -1402,7 +1474,9 @@ first working version).
   synced or flush at Save time, since the dialog edits
   `layered_map.mission.objectives` directly and rebuilds itself fresh from
   the mission every time it's opened (same as `PropertiesDialog` editing
-  `InteractableEntry.props` directly). The player-count `SpinBox`es remain
+  `InteractableEntry.props` directly). **`%VariablesButton`** (new
+  2026-09-14, sibling of `%ObjectivesButton`) opens `MissionVariablesDialog`
+  the same way - see that script's own entry above. The player-count `SpinBox`es remain
   **live-synced** (2026-09-10, for undo/redo, see `OperationHistory.gd`
   below) - each wraps `operation_history.record()` on `value_changed`;
   `_apply_player_count_fields()` is still called once more at Save time as
@@ -1992,7 +2066,23 @@ These cost real debugging time — worth not re-learning them:
   sentinel, a specific enum value, ...) needs a `typeof()`/type guard
   first if the variable could ever hold a genuinely incompatible type -
   don't assume `==` degrades gracefully to `false` the way it does in
-  more dynamically-typed languages.
+  more dynamically-typed languages. **Follow-up, same day**: applied the
+  same defensive treatment to `MissionRuntime._declared_type()`/
+  `_coerce()`, which both used `null` as a "not found"/"failed" sentinel
+  compared via `== null` - but their SUCCESS values can legitimately be
+  `0`/`false`/`""`/`0.0` (a `MissionVariable.Type.BOOL` is enum value
+  `0`; `round_number`/`player_count`, the only types ever actually
+  exercised before `MissionVariablesDialog.gd` existed, are both
+  `Type.INT` = `1`, so `0` had literally never reached this comparison
+  before). Whether `0 == null`/`false == null` actually misbehaves here
+  was NOT conclusively confirmed (unlike the `int == String` case above,
+  which had a hard reproducible error) - fixed proactively rather than
+  root-cause-confirmed, given the same project had just hit one real
+  instance of this exact category of bug hours earlier.
+  `_declared_type()` now returns a plain `int` with `-1` as an
+  unambiguous "not found" sentinel (never a valid enum value) instead of
+  `Variant`/`null`; `_coerce()`'s callers check `typeof(x) == TYPE_NIL`
+  instead of `x == null`.
 - **`Node.add_child()` silently discards a colliding requested name and
   falls back to Godot's own auto-generated placeholder (`@ClassName@N`)
   instead of erroring or suffixing it** - and `queue_free()` being
@@ -2262,10 +2352,15 @@ These cost real debugging time — worth not re-learning them:
    description)~~ - `ObjectivesDialog.gd`'s DAG editor (2026-09-12, see
    **Creator tooling**) covers objectives/conditions/effects/optional
    objectives now, and `PropActionsDialog.gd` (2026-09-13, same section)
-   covers `InteractableEntry.actions`/`PropAction` editing. Still needed:
-   a real `MissionTrigger` authoring surface (nothing edits those at all
-   yet) and a `custom_variables` name dropdown for `Condition`/`Effect`
-   rows (currently plain free-text everywhere).
+   covers `InteractableEntry.actions`/`PropAction` editing.
+   ~~`MissionVariable` declarations have no authoring UI, so a
+   `Condition`/`Effect` referencing an undeclared name is silently
+   inert~~ - done 2026-09-14, `MissionVariablesDialog.gd` (see **Creator
+   tooling**), built specifically off a real bug report this exact gap
+   caused. Still needed: a real `MissionTrigger` authoring surface
+   (nothing edits those at all yet) and a `custom_variables` name dropdown
+   for `Condition`/`Effect` rows (currently plain free-text everywhere,
+   though at least checkable against `MissionVariablesDialog` now).
    The `exploration`/`interact`/`umbra` token props are placeable meshes
    with `actions`/behavior now authorable via `PropActionsDialog.gd`
    (nothing stops it now that the evaluator exists - still nobody has

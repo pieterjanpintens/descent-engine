@@ -421,6 +421,40 @@ func _label(text: String) -> Label:
 	return label
 
 
+## Built-in variable names (MissionRuntime.BUILTIN_TYPES) plus every
+## declared MissionData.custom_variables name - the full set a Condition/
+## Effect's variable_name can validly reference right now.
+func _known_variable_names() -> Array[String]:
+	var names: Array[String] = ["round_number", "player_count"]
+	for variable in _mission.custom_variables:
+		names.append(variable.name)
+	return names
+
+
+## A dropdown of _known_variable_names() (new 2026-09-14, replacing a
+## free-text LineEdit - "can we provide them in a dropdown... instead of
+## requiring a string") - shared by _build_condition_row()/
+## _build_effect_row() below, both in this same file (unlike the
+## cross-DIALOG "each script owns its own near-identical widget code"
+## convention elsewhere, sharing a helper within one file is fine).
+## Selects nothing (blank) if `current_name` isn't among them - e.g.
+## authored before the variable was declared, or a since-renamed/deleted
+## one - rather than silently picking the first entry and corrupting the
+## data; the underlying value stays whatever it was until the user
+## actively picks something from the dropdown.
+func _build_variable_name_option(current_name: String, on_commit: Callable) -> OptionButton:
+	var option := OptionButton.new()
+	var names := _known_variable_names()
+	for name in names:
+		option.add_item(name)
+	option.select(names.find(current_name))
+	option.item_selected.connect(func(index: int):
+		if index >= 0 and index < names.size():
+			on_commit.call(names[index])
+	)
+	return option
+
+
 ## `holder` is whatever MissionObjective actually owns this condition -
 ## the real node when called from the main panel, or an optional
 ## objective when called from _open_optional_editor(). `on_changed` lets
@@ -429,14 +463,10 @@ func _label(text: String) -> Label:
 func _build_condition_row(holder: MissionObjective, condition: Condition, on_changed: Callable) -> Control:
 	var row := HBoxContainer.new()
 
-	var var_edit := LineEdit.new()
-	var_edit.text = condition.variable_name
-	var_edit.custom_minimum_size = Vector2(90, 0)
-	var commit_var := func():
-		_commit_field("Edit condition variable", func(): condition.variable_name = var_edit.text)
-	var_edit.text_submitted.connect(func(_t): commit_var.call())
-	var_edit.focus_exited.connect(commit_var)
-	row.add_child(var_edit)
+	var var_option := _build_variable_name_option(condition.variable_name, func(new_name: String):
+		_commit_field("Edit condition variable", func(): condition.variable_name = new_name)
+	)
+	row.add_child(var_option)
 
 	var operator_option := OptionButton.new()
 	operator_option.add_item("=", Condition.Operator.EQUALS)
@@ -479,15 +509,10 @@ func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Cal
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
-	var var_edit := LineEdit.new()
-	var_edit.text = effect.variable_name
-	var_edit.placeholder_text = "variable name"
-	var_edit.custom_minimum_size = Vector2(90, 0)
-	var commit_var := func():
-		_commit_field("Edit effect variable", func(): effect.variable_name = var_edit.text)
-	var_edit.text_submitted.connect(func(_t): commit_var.call())
-	var_edit.focus_exited.connect(commit_var)
-	row.add_child(var_edit)
+	var var_option := _build_variable_name_option(effect.variable_name, func(new_name: String):
+		_commit_field("Edit effect variable", func(): effect.variable_name = new_name)
+	)
+	row.add_child(var_option)
 
 	var value_editor := _build_value_editor(effect.value, func(new_value): _commit_field("Edit effect value", func(): effect.value = new_value))
 	row.add_child(value_editor)
@@ -507,7 +532,7 @@ func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Cal
 
 	var update_visibility := func():
 		var is_show_stage: bool = type_option.get_selected_id() == Effect.Type.SHOW_STAGE
-		var_edit.visible = not is_show_stage
+		var_option.visible = not is_show_stage
 		value_editor.visible = not is_show_stage
 		group_option.visible = is_show_stage
 	update_visibility.call()
