@@ -44,7 +44,19 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   `TileEntry`'s own flag, once `InteractableEntry.blocks_los` was
   removed as unused — see that entry below), `get_interactable_at()`,
   `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
-  prop placements together for `ComponentInventory`).
+  prop placements together for `ComponentInventory`). New 2026-09-14, all
+  pure derived-view queries over current data (same category as the
+  above, no runtime state involved) — see **Story layer**'s "Show Stage"
+  entry for how they're used: `is_effectively_visible(node)` (a node's own
+  `visible` AND every ancestor `MissionGroup`'s, cycle-guarded ancestor
+  walk mirroring `CreatorOutline.is_valid_move_target()`'s own pattern),
+  `get_stage_requirements(group_id)` (returns
+  `{"floor"/"underlay"/"pillar"/"prop": {mesh_name: count}}` for
+  everything under a group recursively that's currently
+  `is_effectively_visible()` — pillars split out of `interactables` via
+  `FootprintRegistry.allows_fine_placement()`, the existing exact-name
+  check for `tall`/`mini`/`medium`), `find_starting_group_ids()` (which
+  group(s) cover `player_spawn_cells`, for the auto-revealed starting room).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id. Unrelated
   to `OutlineNode` below despite the similar-sounding `blocks_los` name —
   this is the flattened per-CELL floor logical data, not a placed
@@ -75,8 +87,10 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   - `visible` — plain top-level bool (default true), not a dict key.
 	Moved out of `InteractableEntry.props` here 2026-09-10 once every
 	`OutlineNode` needed it, not just props with genuinely free-form extra
-	data. Not yet consumed by any evaluator/renderer — future work, see
-	**Story layer**.
+	data. **Consumed for real 2026-09-14** by `MissionData.is_effectively_visible()`
+	(walks a node's own `visible` AND every ancestor `MissionGroup`'s
+	`visible`) and `LayeredMap`'s Player-only paint-skip — see **Story
+	layer**'s "Show Stage" entry and `LayeredMap.gd`'s own entry below.
 - `TilePlacement` — layer (FLOOR/UNDERLAY enum), origin_cell,
   mesh_item_name, orientation, plus everything from `OutlineNode` above.
   Both FLOOR and UNDERLAY placements appear in the outline tree. A WALL
@@ -105,9 +119,11 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   fields of its own — still its own distinct class (not just
   `OutlineNode` directly) so `MissionData.groups: Array[MissionGroup]` and
   the outline tree's own `SelectionType.GROUP` checks stay meaningful.
-  `visible` is the one property meant to cascade to a group's members
-  eventually — stored but not yet consumed by any evaluator, see
-  **Creator outline tree** below.
+  `visible` cascades to a group's members for real now (2026-09-14) - see
+  `OutlineNode`'s own entry above and **Story layer**'s "Show Stage"
+  entry - `visible` here specifically is what an ancestor-chain walk
+  checks at every level, so a group set invisible hides everything under
+  it (recursively) regardless of each individual member's own flag.
 - `MonsterSpawn` — data model exists, unused so far (no authoring UI, no
   combat/monster AI yet — see Open Items).
 
@@ -128,10 +144,23 @@ mostly hardcoded monster AI, not condition/effect driven. `NONE` means "not
 checkpoint-driven" - see event-driven triggers below.
 
 **One comparison primitive, shared everywhere**: `Condition` (variable_name +
-Operator enum + value) and `Effect` (variable_name + value, a SET). Both
+Operator enum + value) and `Effect` (variable_name + value, a SET -
+Condition's own read-side). Both
 deliberately basic for now - no AND/OR nesting, no cross-object queries, no
 increment/expression support. `conditions: Array[Condition]` anywhere in this
 system is an implicit AND across every entry.
+
+**`Effect` gained a second kind 2026-09-14**: `type` (`Effect.Type` enum
+`SET_VARIABLE`/`SHOW_STAGE`, defaults `SET_VARIABLE` - every existing
+saved `Effect` loads at this default, matching its old behavior exactly,
+purely additive). `SET_VARIABLE` is everything described above
+(`variable_name`+`value`). `SHOW_STAGE` instead carries `target_group_id`
+(a `MissionGroup.id`) and means "reveal this stage" - see **"Show Stage":
+board setup + group visibility** below. Both live in ONE `Effect` type
+rather than a separate effect class specifically so every existing
+`effects: Array[Effect]` list (`PropAction`, `MissionTrigger`,
+`MissionObjective`/its `optional_objectives`) gets Show Stage for free -
+no second list needed anywhere.
 
 **One variable registry, three ways to fill it**: `MissionVariable` (name +
 Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
@@ -152,6 +181,68 @@ EditorInspectorPlugin, more tooling than this needs right now.
 `effects: Array[Effect]`. What a player can report doing to a prop ("push" /
 "You can push this lever"). Firing one applies its effects immediately - the
 event-driven half of the trigger system below.
+
+`PropAction` also has `conditions: Array[Condition]` (new 2026-09-14,
+implicit AND, empty = always available - same convention as every other
+conditions list) gating whether this SPECIFIC action is currently
+OFFERED at all, e.g. a "search" action only while `chest.searched` is
+false. Separate mechanism from `InteractableEntry.props["interactible"]`
+(a manual whole-prop on/off switch) - both apply together.
+`MissionRuntime.first_available_action(entry) -> PropAction` (nullable) is
+a cheap EXISTENCE check (is there anything to interact with at all);
+`available_actions(entry) -> Array[PropAction]` returns the FULL
+candidate list, in declared order, for a real choice - `PlayerInteractionController`
+uses the first for its hover highlight and the second to build a
+`PlayerDialog.ask_choice()` picker (Cancel always included) once the drag
+is released, so a prop offering several simultaneously-available actions
+(e.g. a tree with "pick fruit" and "climb") actually lets the table
+choose which one, rather than always firing whichever happens to be
+first (see that script's own entry below).
+
+**"Show Stage": board setup + group visibility cascade** (new 2026-09-14) -
+an `Effect.Type.SHOW_STAGE` firing means "reveal this `MissionGroup` as
+part of play." Built to deliver on the "exploration" goal `MissionGroup.
+visible` was always meant for (rooms behind a door shouldn't be
+known/visible until discovered) - firing one does two things, in order:
+1. Shows the table a setup dialog listing the physical pieces the
+   revealed stage needs - floors, then pillars, then props, then hazards
+   (`MissionData.get_stage_requirements(group_id)`, `MissionPlayer.
+   _format_stage_pages()`, `PlayerDialog.ask_narrative()` - its first
+   real caller).
+2. Makes the group (and, by cascade, everything under it whose OWN
+   `visible` is also true) actually paintable -
+   `MissionData.is_effectively_visible(node)` walks a node's own
+   `visible` AND every ancestor group's `visible`; `LayeredMap`'s
+   Player-only paint pass (see that script's own entry below) skips
+   anything that isn't. GridMap has no per-cell hide, so "invisible"
+   really means "was never painted" - a reveal repaints.
+
+Used TWO ways, one mechanism either way:
+- **Automatically at game start**, for whichever group contains the
+  tile under a `player_spawn_cells` entry -
+  `MissionData.find_starting_group_ids()` (converts each spawn
+  tile-square to its near-corner fine cell, the same formula
+  `LayeredMap.get_tile_square_world_corners()` uses, looks it up in
+  `floor_occupied_cells`, resolves that placement's `parent_id`). A
+  mission with no groups authored, or whose spawn area isn't grouped,
+  contributes nothing - a silent no-op, no regression for missions that
+  don't use this.
+- **Authored**, like any other effect - attach a SHOW_STAGE `Effect` to a
+  `PropAction`'s or `MissionObjective`'s `effects` ("when this door
+  opens, reveal the next room"). `MissionRuntime` (a `RefCounted` with no
+  scene/UI access) can't itself show a dialog or touch `LayeredMap` when
+  one fires, so `apply_effect()` just queues the target group id
+  (`_pending_stage_reveals`, drained via `drain_pending_stage_reveals()`)
+  for `MissionPlayer` to act on afterward - see that script's and
+  `MissionRuntime`'s own entries below for the exact drain points.
+
+`MissionPlayer.show_stage(group_id)` is the actual orchestrator (flips
+`group.visible = true` FIRST so `is_effectively_visible()`'s ancestor
+walk sees this group - and its now-reachable descendants - correctly
+when computing requirements, shows the dialog, then
+`LayeredMap.repaint_visible_entries()`) - idempotent, a no-op if the
+group is already visible, so a duplicate detection result or a re-fired
+trigger can't show the setup dialog twice.
 
 **Referencing a specific instance** — `InteractableEntry.reference_name`
 (optional, e.g. "front_door") lets one prop's trigger react to another
@@ -243,10 +334,37 @@ evaluated identically by every `Condition`/`Effect`.
   never matches any declared type, no special-casing needed) - else
   compares the live value against the (coerced) target via
   `Condition.operator`.
-- `apply_effect()`/`apply_effects()` - same coercion/warning discipline as
-  conditions, plus one extra rule: writing a `BUILTIN_TYPES` key is
+- `first_available_action(entry: InteractableEntry) -> PropAction` (new
+  2026-09-14, nullable) - the first action in `entry.actions` (declared
+  order - `PropAction` has no priority field) whose own `conditions`
+  currently `evaluate_conditions()` true, or null if none do. Cheap
+  EXISTENCE check - `PlayerInteractionController._interactable_at()` uses
+  it to decide whether a prop is interactable at all, not which action
+  wins.
+- `available_actions(entry: InteractableEntry) -> Array[PropAction]` (new
+  2026-09-14) - every action in `entry.actions` whose `conditions`
+  currently hold, same order, for when the CALLER needs the full
+  candidate list rather than just "is there one" - the actual picker UI
+  (new 2026-09-14, a real multi-action choice at last - see
+  `PlayerInteractionController`'s own entry) reads this.
+- `apply_effect()`/`apply_effects()` - branches on `effect.type` FIRST
+  (new 2026-09-14, before any of the variable-name logic below, which
+  would otherwise misfire on a SHOW_STAGE effect's blank
+  `variable_name`): a SHOW_STAGE effect just appends `target_group_id` to
+  `_pending_stage_reveals` (this class has no scene/UI access to show a
+  dialog or touch `LayeredMap` itself - see **Story layer**'s "Show
+  Stage" entry) and returns. Everything else (a SET_VARIABLE effect, the
+  common case) keeps the SAME coercion/warning discipline as conditions,
+  plus one extra rule: writing a `BUILTIN_TYPES` key is
   rejected (`push_warning()` + skip) - `round_number`/`player_count` are
   runtime-owned, never author-writable via an `Effect`.
+- `drain_pending_stage_reveals() -> Array[String]` (new 2026-09-14) -
+  clears and returns `_pending_stage_reveals`. `MissionPlayer` calls this
+  right after anything that can apply effects (`evaluate_checkpoint()`
+  via `_advance_to()`, a fired `PropAction` via
+  `_on_objectives_progressed()`) and `await`s `show_stage()` for each -
+  same "return a value, let the caller decide" shape
+  `_check_current_objectives()` already uses for ending the game.
 - `evaluate_checkpoint(checkpoint) -> MissionObjective` (nullable) -
   gathers `mission.triggers` whose `checkpoint` matches (a plain `for`
   loop into an explicitly-typed local `Array[MissionTrigger]`, not
@@ -310,6 +428,14 @@ evaluated identically by every `Condition`/`Effect`.
   chapter" design, not necessarily a mistake. A DAG (not a strict tree) is
   wanted specifically so branches can converge - cheap structurally (see
   `children` above), this is just the authoring-mistake safety net.
+- **`get_current_objective_descriptions() -> Array[String]`** (new
+  2026-09-14) - flattens `_current_groups` (every candidate across every
+  watched group - already exactly the "what's live right now" traversal
+  frontier `_check_current_objectives()` maintains), collecting each
+  node's non-empty `description`. What `MissionPlayer.gd` shows the table
+  (see that script's own entry below) - reading this instead of
+  `mission.objectives` directly is what stops the Player from spoiling a
+  DAG branch/leaf nobody has actually reached yet.
 
 **`MissionPlayer.gd` now actually fires triggers/checks objectives at
 every checkpoint transition** (Player phase ↔ Darkness phase, round
@@ -317,7 +443,10 @@ counter, see that script's own entry above), replacing the five
 TODO-commented stubs that used to sit in `_run_darkness_and_loop()`. The
 old one-line `_set_checkpoint(checkpoint)` setter is now
 `_advance_to(checkpoint) -> bool` (async): updates `current_checkpoint`,
-calls `_runtime.evaluate_checkpoint(checkpoint)`, and if an objective
+calls `_runtime.evaluate_checkpoint(checkpoint)`, refreshes the objective
+label (`_refresh_objective_label()`, see below - a group can be replaced
+by its children without reaching a leaf, so this runs regardless of
+whether the game just ended), and if an objective
 fires, `await`s the shared `_handle_game_over(objective)` (factored out
 2026-09-12, see below) and returns `false` so every call site (`if not
 await _advance_to(X): return`) stops advancing the round loop rather than
@@ -366,9 +495,7 @@ marks a
 `MissionVariable` as table-answered - `PlayerDialog.ask_yes_no()`/
 `ask_count()` exist as the UI primitives, but nothing wires a question's
 answer into a variable automatically at some checkpoint, that needs the
-authoring UI above first); a picker UI for a prop with more than one
-`PropAction` (`PlayerInteractionController` currently just fires the
-first/only action, see that script's own entry below); player count (2-6,
+authoring UI above first); player count (2-6,
 not the physical box's 4 - all 6 playable characters should be usable,
 kept as a later difficulty-scaling input, not yet asked for anywhere) and
 action economy (3 actions/turn, 1 must be move - the app doesn't need to
@@ -460,11 +587,25 @@ first working version).
   `underlay_grid` stays at the SAME Y as floor (`Vector3.ZERO`, not offset below it)
   — it's meant to show through exactly where the floor doesn't cover it, not sit
   hidden beneath. Two directions of sync:
-  - **Read** (painting → data): `sync_prop_cell(origin)`, `rebuild_floor_tiles()`,
-	and `rebuild_underlay_tiles()` walk the painted GridMap cells and
-	populate `MissionData`. Underlay is a deliberately SEPARATE rebuild pass from
-	floor (not a third case folded into `rebuild_floor_tiles()`) — see the
-	`underlay_placements` note above for why.
+  - **Read** (painting → data): `sync_prop_cell(origin, new_parent_id: String = "")`,
+	`rebuild_floor_tiles(new_placement_parent_id: String = "")`, and
+	`rebuild_underlay_tiles(new_placement_parent_id: String = "")` walk the
+	painted GridMap cells and populate `MissionData`. Underlay is a
+	deliberately SEPARATE rebuild pass from floor (not a third case folded
+	into `rebuild_floor_tiles()`) — see the `underlay_placements` note
+	above for why. **`new_parent_id`/`new_placement_parent_id`** (new
+	2026-09-14) is `CreatorController.working_group_id` threaded through
+	from `_sync_after_edit()` — only ever consulted for a genuinely NEW
+	placement (no previous entry at that origin to carry `parent_id`
+	forward from, see the carry-over fix just below), so a designer's
+	current working group is what a freshly-drawn object/tile lands in
+	instead of always defaulting to the mission root. Safe under the
+	full-rebuild design because exactly one new origin cell appears per
+	rebuild call triggered by a single placement — every other origin
+	already matches something in that function's own `old_by_cell` lookup
+	and takes the carry-over branch instead. All existing callers
+	(`DebugSync.gd`, `erase_at_cursor()` — erasing never mints a new entry,
+	so the param is simply unused there) keep working via the `""` default.
 	- **Hard-won lesson, 2026-09-10**: `sync_prop_cell()` always erases
 	  whatever `InteractableEntry` was at that origin cell and constructs a
 	  brand-new one, even when "erasing" is really just a repaint (mesh or
@@ -484,10 +625,29 @@ first working version).
 	callers, like `CreatorOutline.gd`'s group CRUD, that mutate `groups`
 	directly without going through GridMap painting at all). The Creator
 	outline tree's only signal to listen to for "go rebuild".
-  - **Write** (data → painting): `apply_mission(mission)` clears and repaints all
-	four GridMaps from a loaded `MissionData` — used identically by both the Player
-	(to render a loaded mission) and the Creator (to open an existing mission for
-	continued editing).
+  - **Write** (data → painting): `apply_mission(mission, respect_visibility: bool = false)`
+	clears and repaints all four GridMaps from a loaded `MissionData` —
+	used identically by both the Player (to render a loaded mission) and
+	the Creator (to open an existing mission for continued editing). The
+	actual per-entry paint loop now lives in a separate `_paint_all()`
+	(new 2026-09-14, factored out so it can be re-run without re-clearing
+	first — see `repaint_visible_entries()` below). `respect_visibility`
+	defaults `false`, so every pre-existing call site (Creator,
+	`DebugSync.gd`) is unaffected — only `MissionPlayer._ready()` passes
+	`true`: GridMap has no per-cell hide, so making `MissionGroup.visible`
+	cascade for real (see **Story layer**'s "Show Stage" entry) means
+	`_paint_all()` simply never calls `set_cell_item()` for an entry that
+	isn't currently `MissionData.is_effectively_visible()` — "invisible"
+	means "never painted", not hidden after the fact. `_respect_visibility`
+	is the new instance var this gets stored in.
+  - `repaint_visible_entries()` (new 2026-09-14) — call after mutating a
+	group/node's `visible` elsewhere (`MissionPlayer.show_stage()`) so the
+	GridMaps catch up; a no-op unless `apply_mission()` was called with
+	`respect_visibility` (the Creator never needs this). Just re-runs the
+	WHOLE `_paint_all()` pass rather than diffing "what's newly visible" —
+	re-painting an already-correctly-painted cell is harmless
+	(`set_cell_item()` just sets the same item again), so a full rescan is
+	simplest-first correct with no per-entry "was this hidden" bookkeeping.
   - `find_item_id(grid, mesh_name)` — MeshLibrary name→id lookup (public, used by
 	`CreatorController` too).
   - `set_spawn_overlay_cells(cells)` / `set_spawn_overlay_visible(bool)` — the
@@ -509,9 +669,58 @@ first working version).
   emits `layer_changed`/`mesh_changed` signals whenever that state actually changes
   (from either keyboard input or `CreatorPalette` calling these same methods) — this
   is what keeps the two paths from ever drifting out of sync.
+  - **`working_group_id`** (new 2026-09-14, `set_working_group(group_id)` +
+	`signal working_group_changed(group_id)`, same plain-tool-state
+	convention as `draw_mode`/`spawn_paint_mode`) — the group any NEW
+	placement's `parent_id` gets set to (`""` = mission root, same as
+	before this feature existed), threaded through `place_at_cursor()` ->
+	`_sync_after_edit()` -> `LayeredMap`'s sync functions (see that
+	script's own entry above). Lets a designer focus on filling in one
+	room at a time without manually re-parenting every object afterward
+	via the outline tree's "Move to…" menu — the UI is the persistent
+	toolbar's "Working group:" dropdown (`CreatorToolbar.gd`, moved there
+	2026-09-14 from the Outline tab so it stays reachable while actually
+	drawing in the Palette tab - see **Creator tooling** below), not owned
+	here; this script only holds the state and fires the signal.
+  - **`show_unavailable_meshes`** (new 2026-09-14, `set_show_unavailable_meshes(enabled)`
+	+ `signal show_unavailable_meshes_changed(enabled)`, same convention) —
+	whether `CreatorPalette`'s mesh grid shows exhausted meshes (greyed out,
+	click-to-locate) or leaves them out entirely. Moved here from a private
+	`CreatorPalette` var so the toolbar checkbox that controls it
+	(`CreatorToolbar.gd`) and the palette that reads it stay decoupled -
+	same "controller emits, UI listens" reasoning as `working_group_id`
+	above.
+- **`CreatorToolbar.gd`** (new 2026-09-14, attached to `Toolbar`, a plain
+  `HBoxContainer` sibling of `MenuBar` under `MainLayout` — see
+  **Scene structure** below) — the Creator's persistent, always-visible
+  toolbar: a "Working group:" `Label` + `OptionButton` on the left, a
+  `Control` spacer (`size_flags_horizontal = SIZE_EXPAND_FILL`) pushing
+  the rest right, then a "Show unavailable (click to locate)" `CheckBox`.
+  Both controls used to live inside a specific `SidePanel` tab
+  (`CreatorOutline.gd`'s tree, `CreatorPalette`'s mesh grid respectively) -
+  moved out the same day they were added, once it became clear a designer
+  actually wants to reach both regardless of which tab happens to be
+  active (working group while drawing in the Palette tab; show-unavailable
+  while browsing the Outline tab). Built entirely in code in `_ready()`,
+  same pattern as every other dynamic Creator UI piece. Talks to
+  `CreatorController` ONLY through its public API/signals -
+  `working_group_id`/`set_working_group()`/`working_group_changed` and
+  `show_unavailable_meshes`/`set_show_unavailable_meshes()`/
+  `show_unavailable_meshes_changed` (both entries above) - same
+  "controller emits, UI listens" convention as `CreatorPalette`.
+  `_rebuild_working_group_option()` duplicates the same small "Root +
+  groups" list-building loop `CreatorOutline.gd`'s own near-identical
+  builders (the "Move to…" submenu, `CreatorPropertiesPanel.gd`'s
+  batch-move dropdown) already use, rather than sharing it - matches this
+  project's established convention of each UI piece owning its own
+  near-identical widget-building code. Coalesces `layered_map.
+  mission_objects_changed` (fires once per painted cell during a drag
+  stroke) into a single deferred rebuild, same pattern as `CreatorOutline.
+  gd`'s `refresh()`/`_do_refresh()`.
 - **`CanvasLayer/MainLayout`** (`MissionMap.tscn`) — the Creator's overall
   shell, a full-rect `VBoxContainer`: a top-spanning `MenuBar` (see
-  `CreatorSaveLoad.gd` below) stacked above an `EditorArea` `HBoxContainer`
+  `CreatorSaveLoad.gd` below), a persistent `Toolbar` (`CreatorToolbar.gd`,
+  see its own entry above) beneath it, then an `EditorArea` `HBoxContainer`
   holding the 3D view's space on the left and `SidePanel` on the right —
   the redesign requested 2026-09-10 to replace the ad-hoc toolbar row (see
   Open item #12). **Not a real `HSplitContainer`** — that only splits
@@ -610,7 +819,12 @@ first working version).
 	tools stay mutually exclusive regardless of which one you engage from.
 	The button's own pressed state stays synced to `spawn_paint_mode_changed`
 	so it reflects reality even when toggled via the `P` hotkey instead.
-  - **Two display modes**, via a "Show unavailable" checkbox: default hides any mesh
+  - **Two display modes**, via `CreatorController.show_unavailable_meshes`
+	(the checkbox itself moved to the persistent toolbar 2026-09-14 - see
+	`CreatorToolbar.gd` under **Creator tooling** - this palette just reacts
+	to the controller-owned state now, `creator_controller.show_unavailable_meshes_changed`
+	queues a mesh-grid rebuild the same way `mission_objects_changed` does):
+	default hides any mesh
 	that's hit its `ComponentInventory` physical limit entirely (the palette only
 	shows what you can currently draw). Checked, it shows everything and greys out
 	exhausted ones — clicking a greyed entry doesn't select it (there's nothing left
@@ -803,23 +1017,59 @@ first working version).
   - `SelectionType` has a fourth case, `TILE`, for floor/underlay entries
 	(distinct from `OBJECT`/`InteractableEntry`, since `TilePlacement` is a
 	different Resource with different fields — no `reference_name`/
-	`actions`/`props`). Selecting an item emits `selected(type, id)` —
-	`CreatorPropertiesPanel.gd` (below) is the only listener, same "talk
-	only through public API + signals" convention as `CreatorPalette`/
-	`CreatorController`. Selecting a placed OBJECT or TILE also jumps the
-	camera to it via `CreatorController.jump_to_cell(origin_cell, grid)`
-	(the precise, per-instance counterpart to `locate_mesh()`, which only
-	finds the first instance of a mesh name — not precise enough once
-	several props/tiles share a mesh; `grid` defaults to `prop_grid` for an
+	`actions`/`props`). Selecting emits `signal selection_changed(items: Array)`
+	(reworked 2026-09-14 from a singular `selected(type, id)` — see
+	**Multi-select** below) — `CreatorPropertiesPanel.gd` (below) is the
+	only listener, same "talk only through public API + signals" convention
+	as `CreatorPalette`/`CreatorController`. Selecting a single placed
+	OBJECT or TILE also jumps the camera to it via
+	`CreatorController.jump_to_cell(origin_cell, grid)` (the precise,
+	per-instance counterpart to `locate_mesh()`, which only finds the
+	first instance of a mesh name — not precise enough once several
+	props/tiles share a mesh; `grid` defaults to `prop_grid` for an
 	OBJECT, and is passed explicitly as `floor_grid`/`underlay_grid` for a
 	TILE, tagged in that tree item's own metadata at build time so no
 	re-lookup is needed) — the "find object back" half of this feature's
-	purpose. A rebuild re-selects whatever was selected before it, falling
-	back to root only if that item no longer exists (e.g. it just got
-	erased) — and deliberately does NOT re-jump the camera on a
-	rebuild-driven reselection, only on an actual click, so painting
-	elsewhere on the map while an object happens to be selected doesn't
-	keep yanking the camera back to it.
+	purpose. A rebuild re-selects EVERY id that was selected before it and
+	still exists (falls back to root only if NONE survived, e.g. everything
+	selected just got erased — see **Multi-select** below for why this
+	changed from reselecting just one item) — and deliberately does NOT
+	re-jump the camera on a rebuild-driven reselection, only on an actual
+	click, so painting elsewhere on the map while an object happens to be
+	selected doesn't keep yanking the camera back to it.
+  - **Multi-select** (new 2026-09-14, `select_mode = Tree.SELECT_MULTI` —
+	confirmed via the Godot 4 docs that this gives native ctrl+click-toggle/
+	shift+click-range selection for free, no custom input handling needed,
+	but changes which signal fires: `item_selected` is replaced by
+	`multi_selected(item, column, selected)`, firing once per toggled item,
+	with no direct "get the whole selection" property — enumerated via
+	`get_next_selected(from)` chaining from `null`) — added specifically so
+	several already-placed objects can be **batch-moved into a group at
+	once**, the "fix things after the fact" half of the working-group
+	feature below (drawing INTO the right group from the start is the
+	other half). `_selected_ids: Array[String]` tracks the FULL current
+	selection, recomputed from scratch via `_recompute_selected_ids()`
+	every time (matches this project's existing "simplest first, full
+	rebuild over incremental patching" convention) rather than patched
+	from each `multi_selected` toggle's own params. `_emit_selection_changed()`
+	is the one chokepoint that builds `items` from `_selected_ids` and
+	emits `selection_changed` — highlight/camera-jump only apply when
+	`items.size() == 1` (a multi-selection has no single "the" object to
+	outline or jump to; `_emit_selection_changed()` clears the highlight
+	instead). Right-click (context menu) and a 3D-world-click pick (see
+	"The reverse direction" below) both force a single-item selection
+	first via a small `_select_only(item)` helper (`deselect_all()` +
+	`item.select(0)`) — batch operations only ever happen through
+	`CreatorPropertiesPanel.gd`'s multi-select panel, never the per-item
+	context menu.
+	- **Confirmed in-editor bug, worked around, 2026-09-14**: a plain
+	  (no Ctrl/Shift) left-click doesn't reliably clear Tree's own prior
+	  SELECT_MULTI selection on its own — intermittently leaves a stale
+	  item selected alongside the newly-clicked one (keyboard nav, arrows
+	  + space, doesn't have this problem — the user's own comparison is
+	  what pinned it down to mouse clicks specifically). See **Hard-won
+	  lessons** below for the fix (`_on_left_click()`, a post-hoc
+	  `_select_only()` correction via `gui_input`).
   - **Selection highlight** (requested 2026-09-10 — "a whitish ticker
 	line of the shape outline... is that feasible?", landed as a static
 	outline, no animation for v1): every selection change (tree click,
@@ -846,12 +1096,30 @@ first working version).
 	children (groups, objects, AND floor/underlay tiles) to the deleted
 	group's own parent** rather than deleting them — a group is purely
 	organizational, deleting one should never silently destroy placed
-	objects. "Move to…" is guarded against creating a parent cycle (a
+	objects — and if the deleted group WAS the current working group,
+	`creator_controller.set_working_group(group.parent_id)` resets it to
+	the same place its children just got promoted to (not undo-tracked:
+	`working_group_id` is tool state on `CreatorController`, not
+	`MissionData`, so it was never part of the `operation_history`
+	snapshot to begin with). "Move to…" is guarded against creating a parent cycle (a
 	group can't be moved into its own descendant — objects/tiles are never
-	parents themselves, so this only matters for moving a group).
-	Group rename is inline-editable (double-click, or via the
+	parents themselves, so this only matters for moving a group) via
+	`is_valid_move_target(source_type, source_id, target_group_id)` —
+	made public and parameterized 2026-09-14 (was a private
+	`_is_valid_move_target(target_group_id)` reading instance state) so
+	`CreatorPropertiesPanel.gd`'s batch move (below) can reuse the exact
+	same cycle check per selected item, not just this single-target
+	context menu. Group rename is inline-editable (double-click, or via the
 	menu triggering `Tree.edit_selected()`), same native Tree UX as a file
 	explorer.
+  - **"Working group:" dropdown lived here briefly (2026-09-14), now lives
+	on the persistent toolbar** (`CreatorToolbar.gd`, see **Creator
+	tooling** below) — moved the same day it was added, once it became
+	clear a designer actually wants to change it while on the Palette tab
+	(where drawing happens), not the Outline tab. `_delete_group()` above
+	still resets `creator_controller.working_group_id` when it deletes the
+	current working group, since that state lives on `CreatorController`
+	regardless of which script's UI currently exposes it.
   - **Object/tile rename/delete are deliberately NOT available from this
 	tree** — rename borders on the property editing the user explicitly
 	deferred to a later pass ("modify their properties in a later stage"),
@@ -886,10 +1154,39 @@ first working version).
   display if left blank. Doesn't need its own `mission_objects_changed`
   listener to stay in sync with edits from elsewhere (an undo/redo, the
   tree's own inline group rename) - `CreatorOutline` already re-emits
-  `selected` for whatever's currently selected on every rebuild, not just
-  on an actual selection change, so this form's own `selected` listener
+  `selection_changed` for whatever's currently selected on every rebuild,
+  not just on an actual selection change, so this form's own listener
   catches it for free. Talks to `CreatorOutline` only through its
-  `selected` signal, same convention as above.
+  `selection_changed` signal, same convention as above.
+  - **Multi-select batch panel** (new 2026-09-14, `_multi_fields`, a THIRD
+	sibling of `mission_fields`/`_object_fields`) — shown whenever
+	`selection_changed` carries more than one item (`CreatorOutline.gd`'s
+	tree is `SELECT_MULTI` now, see that script's own entry above).
+	`_on_selection_changed(items)` is the new dispatcher, replacing the old
+	`_on_outline_selected(type, id)`: `items.size() > 1` ->
+	`_show_multi_selection()`, empty or a single ROOT item ->
+	`_show_root()`, else `_show_single()` (today's existing single-object
+	behavior, unchanged). Deliberately minimal per the request that
+	motivated it ("properties view can be frozen, only the add to group
+	action should be visible") — just a "N items selected" label, a
+	group-picker `OptionButton` (own independent copy of the same
+	"(none - root)" + `mission.groups` flat-list pattern
+	`CreatorOutline`'s working-group dropdown and "Move to…" submenu both
+	build too — kept as three separate small builders rather than one
+	shared helper, matching this project's existing convention of each
+	dialog owning its own near-identical widget-building code, e.g.
+	`PropertiesDialog`/`ObjectivesDialog`/`PropActionsDialog` each have
+	their own value-editor), and a "Move to Group" button. The button
+	resolves every selected item (skipping ROOT, and skipping — with a
+	`push_warning()` — any GROUP for which
+	`creator_outline.is_valid_move_target()` says the chosen target would
+	create a cycle) to its `OutlineNode` via the EXISTING `_resolve_node()`
+	(already generic across `InteractableEntry`/`TilePlacement`/
+	`MissionGroup` since `parent_id` lives on the shared `OutlineNode`
+	base), then does ONE `operation_history.record()` reparenting all of
+	them together — a single undo step for the whole batch, same "several
+	related edits, one Operation" reasoning `CreatorSaveLoad`'s
+	player-count fields already establish.
   - **`InteractableEntry.props`** (the free-form custom-property dict -
 	OBJECT only, `TilePlacement`/`MissionGroup` don't have one) gets its
 	own **"Custom Properties…" button** (OBJECT selections only) opening
@@ -922,10 +1219,16 @@ first working version).
 	directly after `.new()`, no `.tscn` node. Simpler than
 	`ObjectivesDialog`'s DAG editor since a `PropAction` has no
 	children/branching - just a flat scrollable list, one `PanelContainer`
-	block per action (Action id / Description LineEdits + a nested
-	Effects list with its own Add/Remove), plus an "Add Action" button.
-	Each block's effect row and value-type editor (`_build_effect_row()`/
-	`_build_value_editor()`) are its own copies of `ObjectivesDialog`'s
+	block per action (Action id / Description LineEdits, a Conditions
+	list new 2026-09-14 - see `PropAction.conditions`' own entry above,
+	gates whether this action is currently OFFERED to players at all -
+	and a nested Effects list with its own Add/Remove - each effect row's
+	leading `Effect.Type` picker toggles Set Variable vs. Show Stage
+	exactly the same way `ObjectivesDialog`'s own effect rows do, see that
+	script's entry above), plus an "Add Action" button.
+	Each block's condition/effect rows and value-type editor
+	(`_build_condition_row()`/`_build_effect_row()`/`_build_value_editor()`)
+	are its own copies of `ObjectivesDialog`'s
 	near-identical helpers rather than shared code - those are typed to a
 	`MissionObjective` holder there, and every dialog in this project
 	already owns its row-builder helpers independently (`PropertiesDialog`
@@ -1037,7 +1340,13 @@ first working version).
 	against its target variable's DECLARED type at evaluation time by
 	`MissionRuntime._coerce()`, not enforced here - `variable_name` is a
 	plain `LineEdit`, no dropdown of known `custom_variables` names yet,
-	see the Story layer's own "still not designed/built" note), and
+	see the Story layer's own "still not designed/built" note).
+	`_build_effect_row()` also gained a leading `Effect.Type` `OptionButton`
+	("Set Variable"/"Show Stage", new 2026-09-14) that toggles between the
+	variable_name+value widgets above and a group-picker `OptionButton`
+	(`mission.groups`, no "(root)" entry) writing `effect.target_group_id`
+	- same "build both widget groups, toggle `.visible`" trick
+	`_build_value_editor()` already uses for its own type picker. And
 	Optional Objectives as a list of rows each with an "Edit…" button
 	opening a small **nested** `Window` (`_open_optional_editor()` -
 	description + its own Conditions/Effects list, reusing the exact same
@@ -1258,26 +1567,78 @@ first working version).
   local save-testing artifacts from when the Creator wrote to `res://`
   directly inside the editor.
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
-  `%LayeredMap.apply_mission()`, shows mission name + counts in a label. Now runs
-  the basic round loop (see **Story layer**'s `RoundCheckpoint.Checkpoint`):
-  round 1 first shows the spawn area (if authored, see below) and waits for
-  confirmation, then Player phase → "All players done" button → walks every
-  remaining checkpoint (mostly no-ops, commented where a future
-  trigger/objective evaluation pass hooks in) → Darkness phase (a flat
-  `darkness_phase_duration` timed pause standing in for real world-effect
-  resolution + monster AI, neither built yet) → loops back to Player phase,
-  round incremented. `%DarknessOverlay` (a full-rect `ColorRect`,
-  `mouse_filter = IGNORE` so it darkens without blocking clicks) is the only
-  phase-change visual so far. Shows the mission's WIN `MissionObjective`'s
-  description if one was authored. Still **no actual movement/LOS/
-  player-position tracking** — the app never tracks real positions (see
-  **Story layer**), which is why "players spawn" is just a highlighted area
-  + a confirmation dialog, not anything the app verifies.
+  `%LayeredMap.apply_mission(mission, true)` (the `true` is new 2026-09-14 -
+  `respect_visibility`, see `LayeredMap.gd`'s own entry above), shows mission name + counts in a label. Runs
+  the basic round loop (see **Story layer**'s `RoundCheckpoint.Checkpoint`
+  and `MissionRuntime`): round 1 first shows the spawn area (if authored,
+  see below) and waits for confirmation, then Player phase → "All players
+  done" button → walks every remaining checkpoint, actually firing
+  triggers/checking objectives at each one via `_advance_to()` → Darkness
+  phase (a flat `darkness_phase_duration` timed pause standing in for real
+  world-effect resolution + monster AI, neither built yet) → loops back to
+  Player phase, round incremented. `%DarknessOverlay` (a full-rect
+  `ColorRect`, `mouse_filter = IGNORE` so it darkens without blocking
+  clicks) is the only phase-change visual so far.
+  `_refresh_objective_label()` (renamed 2026-09-14 from `_show_objective()`)
+  shows only the objective(s) `MissionRuntime.get_current_objective_descriptions()`
+  currently considers active, NOT `mission.objectives` (the DAG's static
+  roots) directly - reading the roots unconditionally used to spoil any
+  branch/leaf the players hadn't actually reached yet. Its first call
+  moved from early in `_ready()` (info-label section) to right after
+  `_runtime` is actually constructed, since it now needs the runtime to
+  exist; re-called from `_advance_to()` (every checkpoint transition) and
+  via `PlayerInteractionController.objectives_progressed` (every prop
+  action - handled by the new `_on_objectives_progressed()`, see that
+  script's own entry below), since either can advance
+  the DAG frontier mid-game, not just once at mission start.
+  **`show_stage(group_id)`** (new 2026-09-14) - the "Show Stage" effect's
+  actual orchestrator (see **Story layer**'s own entry for the full
+  design): no-ops if the group is unknown or already `visible` (so a
+  duplicate detection result or a re-fired trigger can't show the setup
+  dialog twice); otherwise flips `group.visible = true` FIRST (so
+  `MissionData.is_effectively_visible()`'s ancestor walk sees this group,
+  and its now-reachable descendants, correctly when
+  `_format_stage_pages(group, mission.get_stage_requirements(group_id))`
+  computes what to show), `await`s `dialog.ask_narrative()` with the
+  result (skipped if there's nothing to list), then
+  `layered_map.repaint_visible_entries()`. Called from THREE places, all
+  draining/awaiting the exact same way: `_ready()` (once, for
+  `mission.find_starting_group_ids()` - before players are placed, tell
+  them what the starting room needs, THEN show the "put players" dialog,
+  matching the request this was built from), `_advance_to()` (drains
+  `_runtime.drain_pending_stage_reveals()` right after
+  `evaluate_checkpoint()`, alongside the `_refresh_objective_label()`
+  call), and the new `_on_objectives_progressed()` (same drain, after a
+  fired `PropAction`). Still **no
+  actual movement/LOS/player-position tracking** — the app never tracks
+  real positions (see **Story layer**), which is why "players spawn" is
+  just a highlighted area + a confirmation dialog, not anything the app
+  verifies. **`_frame_camera_on_spawn_area()`** (new 2026-09-14, called
+  from `_show_spawn_area_and_confirm()` right after the yellow overlay
+  goes visible) - the scene's own starting `Camera3D` transform is just
+  wherever it happened to be left in the editor, which could easily leave
+  the spawn area out of frame, or sitting too close to actually tell
+  where it is relative to the rest of the map. Jumps
+  `camera` (`@onready var camera: FreeLookCamera = $Camera3D` - a direct
+  child of the root, no unique name needed) to the spawn cells' own
+  centroid via `FreeLookCamera.jump_to()` (already existed, reused
+  unchanged from the Creator's own "locate a placed instance" features),
+  with a distance scaled to the spawn area's bounding radius
+  (`SPAWN_VIEW_MIN_DISTANCE`/`SPAWN_VIEW_RADIUS_MULTIPLIER`) rather than
+  one fixed distance regardless of size - a small authored area doesn't
+  get an unnecessarily distant view, a large one still fits. Corner
+  positions come from `LayeredMap.get_tile_square_world_corners()`, the
+  same method the spawn overlay's own geometry is built from.
 - `PlayerDialog.gd` (`%Dialog` in `MissionPlayer.tscn`) — reusable async
   dialog, built at runtime (same reasoning as `CreatorPalette` - content/
   buttons vary per call): `ask_ok(text)`, `ask_yes_no(text) -> bool`,
   `ask_count(text, min, max) -> int`, `ask_narrative(pages) -> void`
-  (OK/NEXT/BACK through multiple pages). **Modal** while visible - the root
+  (OK/NEXT/BACK through multiple pages), `ask_choice(text, option_labels) -> int`
+  (new 2026-09-14, nullable-by-convention via `-1` - one button per
+  `option_labels` entry, result = that entry's index, plus a trailing
+  "Cancel" button, result `-1`, always present - reuses the exact same
+  `_set_buttons(specs)`/`_closed` mechanism every other `ask_*` method
+  does). **Modal** while visible - the root
   Control is a full-screen dim scrim (`mouse_filter = STOP`, deliberately
   relying on the same STOP-blocks-everything-behind-it mechanism
   `CreatorPalette`'s background bug worked through earlier this session,
@@ -1286,8 +1647,22 @@ first working version).
   (text + buttons) is a child centered near the top, not the root itself.
   This is the mechanism **Story layer**'s "asked" variables (things the app
   can't compute, only ask - "is a player on tile 2a") are meant to use once
-  the evaluator exists; not wired to variables yet, just the reusable UI
-  piece plus the one caller so far (`ask_ok` for spawn confirmation).
+  the evaluator exists; not wired to variables yet. `ask_narrative()` got
+  its first real caller 2026-09-14 - `MissionPlayer.show_stage()`'s
+  board-setup pages (see **Story layer**'s "Show Stage" entry).
+  `ask_choice()`'s first (and so far only) caller is
+  `PlayerInteractionController._offer_actions()`'s multi-action picker -
+  see that script's own entry below.
+  - **Confirmed bug, fixed same day**: `_on_button_pressed(result: Variant)`
+	(every button from every `ask_*()` call funnels through this one
+	handler) checked `result == "_next"`/`"_back"` (the `ask_narrative()`
+	page-nav sentinels) unconditionally - once `ask_choice()` started
+	passing `int` results (an option's index, or `-1` for Cancel),
+	comparing those against a `String` literal threw `Invalid operands
+	'int' and 'String' in operator '=='` at runtime rather than just
+	returning `false` - GDScript's `==` isn't defined for every
+	Variant type pair, see **Hard-won lessons** below. Fixed by guarding
+	both string comparisons behind `typeof(result) == TYPE_STRING` first.
 - `HeroCatalog.gd` — never instantiated, just a shared namespace (same
   pattern as `RoundCheckpoint`) for the placeholder party roster: `SLOT_COUNT`
   (6), `slot_name(i)`/`slot_color(i)`. No real hero names/art - Descent's own
@@ -1322,26 +1697,58 @@ first working version).
   0..N-1 in order (e.g. `[0, 2, 5]`), so drag state tracks the dock
   position and looks up the real slot for anything shown to the user.
   Dragging a portrait draws a `Line2D` toward the cursor, hovering an
-  `InteractableEntry` with a non-empty `actions` list AND
-  `props["interactible"]` not explicitly false highlights its footprint
+  `InteractableEntry` with `props["interactible"]` not explicitly false
+  AND at least one action whose own `conditions` currently hold (new
+  2026-09-14, see **Story layer**'s `PropAction` entry - previously just
+  checked `actions` non-empty) highlights its footprint
   cells (filled quads, same corner-math style as every other overlay in
-  this project). **Releasing over one now actually fires a `PropAction`**
-  (2026-09-11, via `mission_runtime.fire_prop_action()` - `mission_runtime`
+  this project) - `_resolve_action(entry)` (new 2026-09-14) is the cheap
+  EXISTENCE check `_interactable_at()`'s highlight test uses, wrapping
+  `MissionRuntime.first_available_action()` with a null-entry-safe,
+  mission_runtime-not-ready fallback (plain `entry.actions[0]` - shouldn't
+  normally happen once the game has actually started).
+  **Releasing over one now presents a real choice** (2026-09-14, replacing
+  the earlier "always fires `entry.actions[0]`" behavior once
+  `PropAction.conditions` made more than one simultaneously-available
+  action possible - "eg an action is only available if certain variable
+  is in place... interact with a tree that has actions: pick fruit,
+  climb... the choice must be presented after the drag, and cancel is
+  always an option"): `_end_drag()` resets all drag visuals FIRST (the
+  drag line/highlight shouldn't sit around under the modal picker - the
+  drag gesture itself is complete the moment the mouse releases,
+  choosing/firing is a separate follow-up step), then `await`s the new
+  `_offer_actions(hero_name, entry)`, which re-resolves the FULL candidate
+  list via `MissionRuntime.available_actions(entry)` (re-resolved rather
+  than trusting `_interactable_at()`'s last hover check, in case
+  conditions changed between hover and release) and presents every one of
+  them as a choice via `dialog.ask_choice()` (`PlayerDialog.gd`'s new
+  primitive - a real `dialog: PlayerDialog` export now, wired to `%Dialog`
+  in `MissionPlayer.tscn` alongside the existing `layered_map` one,
+  `mission_runtime` stays a plain post-construction `var` since it has no
+  scene node to NodePath to) - Cancel (`-1`) is always included alongside
+  them, picking it (or a zero-candidate entry, which
+  `_interactable_at()` already excludes from being a valid drop target)
+  does nothing. Firing then works exactly as before -
+  `mission_runtime.fire_prop_action()` (`mission_runtime`
   is a plain `var` assigned by `MissionPlayer._ready()` right after
   constructing its `MissionRuntime`, same "runtime-constructed object, no
   Inspector slot to `@export` through" pattern `PropertiesDialog`'s own
-  cross-references use) - always `entry.actions[0]`, the first/only action;
-  a real picker UI for a prop with more than one `PropAction` is
-  deliberately not attempted here, see **Story layer**'s "still not
-  designed/built" list. **Can end the game live** (2026-09-12, once
+  cross-references use). **Can end the game live** (2026-09-12, once
   `MissionObjective` became a DAG re-checked on every event, not just
   checkpoints - see **Story layer**): if `fire_prop_action()` returns a
   non-null `MissionObjective`, emits this script's own `signal
   game_over_requested(objective)`, which `MissionPlayer._ready()` connects
   to `_on_game_over_requested()` - a genuine signal here, safe unlike
   `MissionPlayer._advance_to()`'s deliberate avoidance of one, since
-  nothing below continues an internal loop after `_end_drag()` that would
-  need to wait on the connected handler finishing. Deliberately skips
+  nothing below continues an internal loop after `_offer_actions()` that
+  would need to wait on the connected handler finishing. Also emits a second,
+  unconditional `signal objectives_progressed` (new 2026-09-14) right
+  after every `fire_prop_action()` call regardless of outcome -
+  `MissionPlayer._refresh_objective_label()` listens (see that script's
+  own entry above) since a DAG group can be replaced by its children
+  (changing which objective is "active") without that resolving all the
+  way to a leaf, which `game_over_requested` alone wouldn't cover.
+  Deliberately skips
   Godot's built-in Control drag-and-drop
   (`_get_drag_data`/`_drop_data`) - the drop target is a 3D world position
   found by raycasting, not another Control, so manual mouse tracking (a
@@ -1372,8 +1779,11 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   `MenuBar` (File → New/Save/Load/Back/Settings…, `CreatorSaveLoad.gd`,
   New/Save/Load also bound to Ctrl+N/Ctrl+S/Ctrl+O; Edit → Undo/Redo,
   `OperationHistory.gd`; View → Occupancy Overlay/Tile Name Labels,
-  `CreatorViewMenu.gd` - see **Creator tooling** below for all four) above an
-  `EditorArea` splitting the 3D view's space (left, just an empty
+  `CreatorViewMenu.gd` - see **Creator tooling** below for all four), a
+  persistent `Toolbar` (`CreatorToolbar.gd`, new 2026-09-14 - "Working
+  group:" dropdown + "Show unavailable" checkbox, full width, see that
+  script's own entry under **Creator tooling**) beneath the menu bar, above
+  an `EditorArea` splitting the 3D view's space (left, just an empty
   input-transparent spacer - the 3D content isn't a `Control`) from
   `SidePanel` (right, `Palette`/`Outline` tabs — `Outline` itself splits,
   via a `VSplitContainer`, into the object-browser `Tree`
@@ -1539,6 +1949,50 @@ These cost real debugging time — worth not re-learning them:
   signal reaches your handler, no error prints anywhere. Confirmed
   in-editor 2026-09-12 in `ObjectivesDialog.gd` - fixed with a single
   `_graph.add_valid_connection_type(0, 0)` once, in `_ready()`.
+- **`Tree.select_mode = SELECT_MULTI`'s own native mouse click handling
+  doesn't reliably clear the previous selection on a plain (no Ctrl/Shift)
+  left-click** - confirmed in-editor 2026-09-14 in `CreatorOutline.gd`:
+  a plain click could intermittently leave a stale item selected
+  alongside the newly-clicked one, making `CreatorPropertiesPanel.gd`'s
+  "N items selected" batch panel appear for a selection the user never
+  actually made. Keyboard navigation (arrow keys + space) did NOT have
+  this problem - comparing the two symptoms (native click path acting up,
+  Tree's other native selection path behaving correctly) was what
+  actually pinned this down to mouse click handling specifically, rather
+  than a bug in this project's own `_recompute_selected_ids()` (which
+  just reads whatever Tree's `get_next_selected()` reports - garbage in,
+  garbage out). No Godot bug report was tracked down for this one (unlike
+  the `GraphEdit`/`_connection_layer` issue above, which has an upstream
+  issue number) - fixed defensively rather than by identifying the exact
+  root cause: `gui_input` fires AFTER Tree's own built-in click handling
+  has already run for the same event (the signal, not a virtual override
+  you can pre-empt), so a plain-click handler there can't prevent
+  whatever Tree just did, only correct it immediately after - call
+  `_select_only(item)` (`deselect_all()` + `item.select(0)`)
+  unconditionally on every plain click, leaving Ctrl/Shift-held clicks
+  untouched (that's the native toggle/range-select actually working).
+  General rule: don't assume a `SELECT_MULTI` Control's native mouse
+  click semantics exactly match its keyboard semantics - verify the
+  mouse path specifically (or just take explicit control of it, as here)
+  rather than trusting docs/convention for something this fiddly.
+- **GDScript's `==` throws a runtime error for some mismatched Variant
+  type pairs (e.g. `int == String`) instead of just returning `false`** -
+  confirmed in-editor 2026-09-14 in `PlayerDialog._on_button_pressed()`:
+  every button press from every `ask_*()` method funnels through this one
+  handler, which checked `result == "_next"`/`"_back"` (string sentinels
+  `ask_narrative()`'s own Next/Back buttons pass) unconditionally. That
+  was silently fine while every OTHER `ask_*()` method's results were
+  `null`/`bool` - but the moment `ask_choice()` (new the same day) started
+  passing `int` results (an option's index, or `-1` for Cancel), the very
+  next button press anywhere in the app hit `Invalid operands 'int' and
+  'String' in operator '=='` - a hard runtime error, not a false
+  comparison. Fixed by guarding the string comparisons behind
+  `typeof(result) == TYPE_STRING` first. General rule: a `Variant`-typed
+  equality check against a literal of one specific type (a string
+  sentinel, a specific enum value, ...) needs a `typeof()`/type guard
+  first if the variable could ever hold a genuinely incompatible type -
+  don't assume `==` degrades gracefully to `false` the way it does in
+  more dynamically-typed languages.
 - **`Node.add_child()` silently discards a colliding requested name and
   falls back to Godot's own auto-generated placeholder (`@ClassName@N`)
   instead of erroring or suffixing it** - and `queue_free()` being
@@ -1861,9 +2315,12 @@ These cost real debugging time — worth not re-learning them:
 	~~Dropping only `print()`s - nothing actually happens yet, needs the
 	trigger/effect evaluator~~ - done 2026-09-11, see **Story layer**'s
 	`MissionRuntime` entry and `PlayerInteractionController.gd`'s own entry
-	above (fires the dropped-on prop's first/only `PropAction`). Still
-	needed: a picker UI once a prop can offer more than one action (not
-	authored anywhere yet, so unverified in practice); the game's own
+	above. ~~a picker UI once a prop can offer more than one action~~ -
+	done 2026-09-14: `PropAction.conditions` gates which actions are even
+	offered, and dropping now always presents a `PlayerDialog.ask_choice()`
+	picker (Cancel always included) over whichever ones currently qualify -
+	see **Story layer**'s `PropAction` entry and this script's own above.
+	Still needed: the game's own
 	adjacency rule (interact only with what you're physically near), which
 	needs real player-position tracking that doesn't exist; hiding the
 	portrait dock during Darkness phase (currently stays up the whole
@@ -1897,16 +2354,29 @@ These cost real debugging time — worth not re-learning them:
 	above), and `actions`/`PropAction`s (what a player can report doing to
 	a prop, and the effects that fire) now has one too - `PropActionsDialog`
 	(new 2026-09-13, see **Creator tooling** below), opened via the same
-	panel's "Actions…" button, sibling of "Custom Properties…". Still
-	remaining: true drag-and-drop reparenting in the tree (a "Move to…"
-	context-menu item does the same job without it, see **Creator outline
-	tree** above); and wiring `MissionGroup.visible`/`InteractableEntry.
-	visible`/`TilePlacement.visible` into an actual cascading render-time
-	effect (hiding the actual GridMap/prop instance when `visible == false`)
-	- still not done; unrelated to whether the Story layer's evaluator
-	exists (it does now, see **Story layer**'s `MissionRuntime` entry) -
-	this is a `LayeredMap`/rendering concern, not something `MissionRuntime`
-	itself would touch.
+	panel's "Actions…" button, sibling of "Custom Properties…".
+	**Organizing objects INTO groups got a lot easier 2026-09-14** (the
+	prerequisite the exploration/visibility-cascade goal below was
+	actually blocked on): `CreatorController.working_group_id` auto-
+	parents newly-DRAWN objects/tiles into a designer-chosen group (the
+	persistent toolbar's "Working group:" dropdown, `CreatorToolbar.gd`),
+	and the outline tree's new
+	multi-select (`SELECT_MULTI`, ctrl+click/shift+click) + `CreatorPropertiesPanel.gd`'s
+	"N items selected" panel batch-moves several already-placed objects
+	into a group at once, in one undo step - see **Creator outline tree**
+	and that panel's own entries above. True drag-and-drop reparenting (a
+	"Move to…" context-menu item, and now the batch panel, do the same job
+	without it) is still a possible, lower-priority follow-on. **The
+	visibility cascade itself is done too, 2026-09-14** - `MissionGroup.visible`/
+	`InteractableEntry.visible`/`TilePlacement.visible` now feed
+	`MissionData.is_effectively_visible()`, consulted by `LayeredMap`'s
+	Player-only paint pass (`apply_mission(mission, respect_visibility)`) -
+	see **Story layer**'s "Show Stage" entry for the full mechanism (a new
+	`Effect.Type.SHOW_STAGE` reveals a group both in data and on screen,
+	fired automatically for the starting room and authorable via
+	`PropAction`/`MissionObjective` effects). This closes out the "rooms
+	behind a door aren't visible until discovered" exploration mechanic
+	this whole grouping-tooling pass was building toward.
 14. ~~Wall painting isn't actually used in real missions~~ — done, removed
 	2026-09-11 (the user's own words, "the game has no such concept").
 	Removed entirely: `WallGridMap` (from `map/LayeredMapCore.tscn`),

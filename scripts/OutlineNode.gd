@@ -46,9 +46,13 @@ extends Resource
 ## anything ELSE free-form still lives (see that script's own comment) -
 ## keeping this one out of that dict was a deliberate simplification
 ## (2026-09-10), moved from what used to be InteractableEntry's own
-## props["visible"] convention. Not yet consumed by any evaluator/renderer
-## - the Story layer has no runtime trigger/effect evaluator at all yet
-## (see claude.md's Story layer section), so wiring this into an actual
-## Effect, or a MissionGroup's own visible cascading to its members, is
-## future work, not this pass.
+## props["visible"] convention.
+##
+## Consumed for real 2026-09-14: MissionData.is_effectively_visible(node)
+## checks this AND every ancestor MissionGroup's own visible (walking
+## parent_id), and LayeredMap's Player-only paint pass
+## (apply_mission(..., respect_visibility)) skips anything that isn't -
+## GridMap has no per-cell hide, so "invisible" means "never painted."
+## Effect.Type.SHOW_STAGE is what flips a group's own visible to true as
+## part of play - see claude.md's Story layer section, "Show Stage".
 @export var visible: bool = true

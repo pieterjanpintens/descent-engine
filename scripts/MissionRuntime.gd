@@ -96,7 +96,52 @@ func evaluate_conditions(conditions: Array[Condition]) -> bool:
 	return true
 
 
+## Returns the first PropAction in `entry.actions` whose own `conditions`
+## currently hold (implicit AND, empty = always available), or null if
+## none do - including an empty `actions` list. "First" by declared
+## array order - PropAction has no priority field of its own (unlike
+## MissionTrigger/MissionObjective), since a multi-action picker UI
+## doesn't exist yet; array order is the only ordering that currently
+## means anything. PlayerInteractionController uses this to decide both
+## whether a prop is currently interactable at all, and which action
+## actually fires on drop.
+func first_available_action(entry: InteractableEntry) -> PropAction:
+	for action in entry.actions:
+		if evaluate_conditions(action.conditions):
+			return action
+	return null
+
+
+## Every action in `entry.actions` whose own `conditions` currently hold -
+## the full candidate list for a picker UI (see PlayerInteractionController.
+## _offer_actions()), unlike first_available_action() above which only
+## returns the first (cheaper existence check, used to decide whether a
+## prop is interactable at all). Order matches entry.actions' own
+## declared order.
+func available_actions(entry: InteractableEntry) -> Array[PropAction]:
+	var result: Array[PropAction] = []
+	for action in entry.actions:
+		if evaluate_conditions(action.conditions):
+			result.append(action)
+	return result
+
+
+## Queued Effect.Type.SHOW_STAGE targets from the most recent
+## apply_effect()/apply_effects() pass(es), drained by
+## drain_pending_stage_reveals() below. A RefCounted with no scene/UI
+## access (see this class's own doc) can't itself await a dialog or touch
+## LayeredMap when a Show Stage effect fires, so it just collects the
+## target group id for the caller (MissionPlayer) to act on afterward -
+## same "return a value, let the caller decide" shape
+## _check_current_objectives() already uses for ending the game.
+var _pending_stage_reveals: Array[String] = []
+
+
 func apply_effect(effect: Effect) -> void:
+	if effect.type == Effect.Type.SHOW_STAGE:
+		if effect.target_group_id != "":
+			_pending_stage_reveals.append(effect.target_group_id)
+		return
 	if BUILTIN_TYPES.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
 		return
@@ -114,6 +159,16 @@ func apply_effect(effect: Effect) -> void:
 func apply_effects(effects: Array[Effect]) -> void:
 	for effect in effects:
 		apply_effect(effect)
+
+
+## Clears and returns whatever Show Stage targets queued up since the last
+## drain - called by MissionPlayer right after anything that can apply
+## effects (a checkpoint transition, a fired PropAction), so it can await
+## show_stage() for each.
+func drain_pending_stage_reveals() -> Array[String]:
+	var reveals := _pending_stage_reveals
+	_pending_stage_reveals = []
+	return reveals
 
 
 ## Fires every checkpoint-driven trigger due at `checkpoint`, then checks
@@ -210,6 +265,23 @@ func _check_current_objectives() -> MissionObjective:
 			_current_groups[group_index] = node.children.duplicate()
 			break
 	return null
+
+
+## Every currently-active objective node's own description, one per
+## candidate across every watched group (see _current_groups above),
+## skipping blank ones - what MissionPlayer shows the table so it never
+## reveals a DAG branch/leaf that hasn't actually become reachable yet.
+## Showing every ROOT's description unconditionally (what MissionPlayer
+## used to do, reading mission.objectives directly) spoiled branches
+## nobody has reached - this reads the runtime's own traversal frontier
+## instead, which is already exactly the "what's live right now" set.
+func get_current_objective_descriptions() -> Array[String]:
+	var descriptions: Array[String] = []
+	for group in _current_groups:
+		for node in group:
+			if node.description != "":
+				descriptions.append(node.description)
+	return descriptions
 
 
 ## Load-time safety net for an accidentally-authored cycle - a DFS from

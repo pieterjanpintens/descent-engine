@@ -130,8 +130,13 @@ func get_tile_square_world_corners(cell: Vector3i) -> Array[Vector3]:
 
 ## Call after painting/moving/erasing a cell in PropGridMap (in-editor or
 ## from an in-game Creator tool) to keep MissionData's occupancy index and
-## interactables list in sync with what's actually painted.
-func sync_prop_cell(origin: Vector3i) -> void:
+## interactables list in sync with what's actually painted. `new_parent_id`
+## is CreatorController.working_group_id, threaded through so a genuinely
+## NEW placement (no previous entry to carry identity over from, see below)
+## lands directly in the designer's current working group instead of
+## always defaulting to the mission root - ignored entirely on a repaint,
+## which always carries the OLD entry's parent_id forward instead.
+func sync_prop_cell(origin: Vector3i, new_parent_id: String = "") -> void:
 	# Clear any existing entry at this origin first, using ITS stored
 	# footprint - never guess from the new state. Keep a reference to it
 	# (rather than just erasing) so its identity/authoring survives a
@@ -173,6 +178,7 @@ func sync_prop_cell(origin: Vector3i) -> void:
 		entry.actions = existing.actions
 	else:
 		entry.id = mission.allocate_object_id()
+		entry.parent_id = new_parent_id
 	mission.interactables.append(entry)
 	mission_objects_changed.emit()
 
@@ -200,7 +206,7 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 ## footprint to find every cell it actually covers. Run after a painting
 ## pass, or whenever you want to regenerate logical data from the visual
 ## layers.
-func rebuild_floor_tiles() -> void:
+func rebuild_floor_tiles(new_placement_parent_id: String = "") -> void:
 	var old_by_cell: Dictionary = {}
 	for placement in mission.floor_placements:
 		old_by_cell[placement.origin_cell] = placement
@@ -210,12 +216,16 @@ func rebuild_floor_tiles() -> void:
 	mission.floor_occupied_cells.clear()
 
 	for origin in floor_grid.get_used_cells():
-		_write_tile_footprint(origin, old_by_cell)
+		_write_tile_footprint(origin, old_by_cell, new_placement_parent_id)
 
 	mission_objects_changed.emit()
 
 
-func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary) -> void:
+## `new_placement_parent_id` (CreatorController.working_group_id) only ever
+## applies to the ONE origin cell that's genuinely new this call - see
+## rebuild_floor_tiles()'s own doc for why that's safe under a full-rebuild
+## design where every other origin already matches something in old_by_cell.
+func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary, new_placement_parent_id: String = "") -> void:
 	var grid := floor_grid
 	var item_id := grid.get_cell_item(origin)
 	var mesh_name := grid.mesh_library.get_item_name(item_id)
@@ -246,6 +256,7 @@ func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary) -> void:
 		placement.visible = old.visible
 	else:
 		placement.id = mission.allocate_object_id()
+		placement.parent_id = new_placement_parent_id
 
 	mission.floor_placements.append(placement)
 
@@ -270,7 +281,7 @@ func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary) -> void:
 ## no logical (walkable/blocks_los) data of its own - it's visual/hazard
 ## marker data only, tracked purely via underlay_placements/
 ## underlay_occupied_cells.
-func rebuild_underlay_tiles() -> void:
+func rebuild_underlay_tiles(new_placement_parent_id: String = "") -> void:
 	var old_by_cell: Dictionary = {}
 	for placement in mission.underlay_placements:
 		old_by_cell[placement.origin_cell] = placement
@@ -302,6 +313,7 @@ func rebuild_underlay_tiles() -> void:
 			placement.visible = old.visible
 		else:
 			placement.id = mission.allocate_object_id()
+			placement.parent_id = new_placement_parent_id
 
 		mission.underlay_placements.append(placement)
 
@@ -312,18 +324,53 @@ func rebuild_underlay_tiles() -> void:
 	mission_objects_changed.emit()
 
 
+## Whether the current mission's GridMaps were painted respecting
+## MissionData.is_effectively_visible() - set by apply_mission() below,
+## consulted by _paint_all()/repaint_visible_entries(). Player-only in
+## practice (see apply_mission()'s own doc); stays false for the Creator's
+## own calls, which must always show everything regardless of a group's
+## `visible` flag so a designer can edit a hidden room.
+var _respect_visibility: bool = false
+
+
 ## Reverse of sync_prop_cell()/rebuild_floor_tiles()/rebuild_underlay_tiles():
 ## given a loaded MissionData, clears all three GridMaps and repaints them to
 ## match. Used by the Player to render a loaded mission, and reusable by the
 ## Creator later for "open an existing mission to keep editing."
-func apply_mission(mission_to_apply: MissionData) -> void:
+##
+## `respect_visibility` (new 2026-09-14, default false - every existing
+## call site, Creator + DebugSync.gd, is unaffected) - true only for
+## MissionPlayer's own call: skips painting anything that isn't currently
+## MissionData.is_effectively_visible() (see that method - a group's
+## `visible` cascades to its members). GridMap has no per-cell hide, so
+## "invisible" here really means "never painted" - see
+## repaint_visible_entries() below for how a group gets revealed later.
+func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = false) -> void:
 	floor_grid.clear()
 	prop_grid.clear()
 	underlay_grid.clear()
 
 	mission = mission_to_apply
+	_respect_visibility = respect_visibility
+	_paint_all()
 
+	# A whole new mission's worth of interactables/groups just got swapped
+	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its
+	# tree from scratch here too, same as after a single sync_prop_cell()
+	# edit. Harmless no-op in the Player (nothing there listens).
+	mission_objects_changed.emit()
+
+
+## Paints every floor/underlay/prop placement - factored out of
+## apply_mission() so repaint_visible_entries() below can re-run the exact
+## same pass after a visibility change, without re-clearing the GridMaps
+## first. Skips an entry when _respect_visibility and it currently isn't
+## MissionData.is_effectively_visible() - everything else about this loop
+## is unchanged from before this feature existed.
+func _paint_all() -> void:
 	for placement in mission.floor_placements:
+		if _respect_visibility and not mission.is_effectively_visible(placement):
+			continue
 		var item_id := find_item_id(floor_grid, placement.mesh_item_name)
 		if item_id == -1:
 			push_warning("No MeshLibrary item named '%s' - skipping floor placement at %s" % [placement.mesh_item_name, placement.origin_cell])
@@ -331,6 +378,8 @@ func apply_mission(mission_to_apply: MissionData) -> void:
 		floor_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for placement in mission.underlay_placements:
+		if _respect_visibility and not mission.is_effectively_visible(placement):
+			continue
 		var item_id := find_item_id(underlay_grid, placement.mesh_item_name)
 		if item_id == -1:
 			push_warning("No MeshLibrary item named '%s' - skipping underlay placement at %s" % [placement.mesh_item_name, placement.origin_cell])
@@ -338,17 +387,27 @@ func apply_mission(mission_to_apply: MissionData) -> void:
 		underlay_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for entry in mission.interactables:
+		if _respect_visibility and not mission.is_effectively_visible(entry):
+			continue
 		var item_id := find_item_id(prop_grid, entry.mesh_item_name)
 		if item_id == -1:
 			push_warning("No MeshLibrary item named '%s' - skipping prop at %s" % [entry.mesh_item_name, entry.origin_cell])
 			continue
 		prop_grid.set_cell_item(entry.origin_cell, item_id, entry.orientation)
 
-	# A whole new mission's worth of interactables/groups just got swapped
-	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its
-	# tree from scratch here too, same as after a single sync_prop_cell()
-	# edit. Harmless no-op in the Player (nothing there listens).
-	mission_objects_changed.emit()
+
+## Call after mutating a MissionGroup/OutlineNode's `visible` field
+## elsewhere (see MissionPlayer.show_stage()) so the GridMaps catch up -
+## a no-op if apply_mission() wasn't called with respect_visibility in the
+## first place (the Creator never needs this). Re-runs the WHOLE paint
+## pass rather than diffing "what's newly visible" - re-painting an
+## already-correctly-painted cell is harmless (set_cell_item() just sets
+## the same item again), and a full rescan is simplest-first correct
+## without needing per-entry bookkeeping of what was previously skipped.
+func repaint_visible_entries() -> void:
+	if not _respect_visibility:
+		return
+	_paint_all()
 
 
 ## MeshLibrary only looks up items by numeric id, not name - this does the

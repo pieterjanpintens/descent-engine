@@ -57,10 +57,11 @@ color = Color(0, 0, 0, 0.5)
 unique_name_in_owner = true
 script = ExtResource("4_dialog")
 
-[node name="InteractionDock" type="Control" parent="CanvasLayer" unique_id=555000106 node_paths=PackedStringArray("layered_map")]
+[node name="InteractionDock" type="Control" parent="CanvasLayer" unique_id=555000106 node_paths=PackedStringArray("layered_map", "dialog")]
 unique_name_in_owner = true
 script = ExtResource("5_interact")
 layered_map = NodePath("../../LayeredMap")
+dialog = NodePath("../Dialog")
 
 [node name="Embark" type="Control" parent="CanvasLayer" unique_id=555000107]
 unique_name_in_owner = true

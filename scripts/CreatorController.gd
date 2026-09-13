@@ -103,6 +103,13 @@ signal draw_mode_changed(enabled: bool)
 ## listens to this to stay in sync with the hotkey, same as draw_mode above.
 signal spawn_paint_mode_changed(enabled: bool)
 
+## Same "controller emits, UI listens" convention as draw_mode_changed/
+## spawn_paint_mode_changed above - CreatorOutline.gd's "Working group:"
+## dropdown listens so it stays in sync regardless of what triggered a
+## change (a dropdown pick, or a reset when the current working group gets
+## deleted - see that script's _delete_group()).
+signal working_group_changed(group_id: String)
+
 ## Select mode's result - left-click while draw_mode is off resolves
 ## whatever's under the cursor via select_at_cursor() and reports it here
 ## instead of painting/erasing anything. `kind` is "object" (an
@@ -128,6 +135,23 @@ signal tile_labels_changed(enabled: bool)
 ## Starts OFF: requested 2026-09-10, painting used to be the permanent
 ## default with no way to leave it.
 var draw_mode: bool = false
+
+## The group any NEW placement's parent_id gets set to (empty = mission
+## root, same as before this feature existed) - lets a designer focus on
+## filling in one room at a time without manually re-parenting every
+## object afterward. See CreatorOutline.gd's "Working group:" dropdown,
+## the UI for this, and LayeredMap.sync_prop_cell()/rebuild_floor_tiles()/
+## rebuild_underlay_tiles(), which this actually gets threaded into.
+var working_group_id: String = ""
+
+## Whether CreatorPalette's mesh grid shows exhausted meshes (greyed out,
+## click-to-locate) or just leaves them out entirely - see CreatorPalette.
+## _rebuild_mesh_grid(). Lives here (not on CreatorPalette itself) so the
+## toolbar checkbox that controls it (CreatorToolbar.gd) and the palette
+## that reads it stay decoupled, same "controller emits, UI listens"
+## convention as draw_mode/working_group_id above.
+var show_unavailable_meshes: bool = false
+signal show_unavailable_meshes_changed(enabled: bool)
 
 var current_layer: PaintLayer = PaintLayer.FLOOR
 var current_level: int = 0
@@ -620,6 +644,20 @@ func toggle_draw_mode() -> void:
 	set_draw_mode(not draw_mode)
 
 
+func set_working_group(group_id: String) -> void:
+	if working_group_id == group_id:
+		return
+	working_group_id = group_id
+	working_group_changed.emit(group_id)
+
+
+func set_show_unavailable_meshes(enabled: bool) -> void:
+	if show_unavailable_meshes == enabled:
+		return
+	show_unavailable_meshes = enabled
+	show_unavailable_meshes_changed.emit(enabled)
+
+
 func set_spawn_paint_mode(enabled: bool) -> void:
 	if spawn_paint_mode == enabled:
 		return
@@ -1024,7 +1062,7 @@ func place_at_cursor() -> void:
 		return
 	operation_history.record("Paint", func():
 		grid.set_cell_item(_hovered_cell, item_id, _current_orientation())
-		_sync_after_edit(grid, _hovered_cell)
+		_sync_after_edit(grid, _hovered_cell, working_group_id)
 	)
 
 
@@ -1200,18 +1238,22 @@ func _find_origin(occupancy_map: Dictionary, hit_cell: Vector3i) -> Vector3i:
 	return hit_cell
 
 
-func _sync_after_edit(grid: GridMap, cell: Vector3i) -> void:
+## `new_parent_id` (CreatorController.working_group_id) is only ever
+## consulted by the sync functions below for a genuinely NEW placement -
+## erase_at_cursor()'s own call leaves this at its "" default, which is
+## harmless there since erasing never mints a new entry.
+func _sync_after_edit(grid: GridMap, cell: Vector3i, new_parent_id: String = "") -> void:
 	if grid == layered_map.prop_grid:
-		layered_map.sync_prop_cell(cell)
+		layered_map.sync_prop_cell(cell, new_parent_id)
 	elif grid == layered_map.underlay_grid:
 		# Full rebuild is simplest/correct for now, same tradeoff as the
 		# floor branch below.
-		layered_map.rebuild_underlay_tiles()
+		layered_map.rebuild_underlay_tiles(new_parent_id)
 	else:
 		# Full rebuild is simplest/correct for now. Once maps get large
 		# enough for this to matter for responsiveness, this is the place
 		# to swap in an incremental single-cell sync instead.
-		layered_map.rebuild_floor_tiles()
+		layered_map.rebuild_floor_tiles(new_parent_id)
 
 	if show_tile_labels:
 		_rebuild_tile_labels()

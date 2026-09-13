@@ -465,11 +465,23 @@ func _build_condition_row(holder: MissionObjective, condition: Condition, on_cha
 	return row
 
 
+## `type_option` (Set Variable/Show Stage) picks between two pre-built
+## widget groups shown one at a time - same "build all, toggle .visible"
+## trick _build_value_editor() below already uses for its own String/Bool/
+## Int/Float picker. Show Stage's group_option has no "(root)" entry -
+## showing a stage for the mission root doesn't mean anything.
 func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Callable) -> Control:
 	var row := HBoxContainer.new()
 
+	var type_option := OptionButton.new()
+	type_option.add_item("Set Variable", Effect.Type.SET_VARIABLE)
+	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
+	type_option.select(type_option.get_item_index(effect.type))
+	row.add_child(type_option)
+
 	var var_edit := LineEdit.new()
 	var_edit.text = effect.variable_name
+	var_edit.placeholder_text = "variable name"
 	var_edit.custom_minimum_size = Vector2(90, 0)
 	var commit_var := func():
 		_commit_field("Edit effect variable", func(): effect.variable_name = var_edit.text)
@@ -477,7 +489,33 @@ func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Cal
 	var_edit.focus_exited.connect(commit_var)
 	row.add_child(var_edit)
 
-	row.add_child(_build_value_editor(effect.value, func(new_value): _commit_field("Edit effect value", func(): effect.value = new_value)))
+	var value_editor := _build_value_editor(effect.value, func(new_value): _commit_field("Edit effect value", func(): effect.value = new_value))
+	row.add_child(value_editor)
+
+	var group_option := OptionButton.new()
+	var group_ids: Array[String] = []
+	for group in _mission.groups:
+		group_option.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)")
+		group_ids.append(group.id)
+	var initial_group_index := group_ids.find(effect.target_group_id)
+	group_option.select(initial_group_index)
+	group_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < group_ids.size():
+			_commit_field("Edit effect target stage", func(): effect.target_group_id = group_ids[index])
+	)
+	row.add_child(group_option)
+
+	var update_visibility := func():
+		var is_show_stage: bool = type_option.get_selected_id() == Effect.Type.SHOW_STAGE
+		var_edit.visible = not is_show_stage
+		value_editor.visible = not is_show_stage
+		group_option.visible = is_show_stage
+	update_visibility.call()
+	type_option.item_selected.connect(func(_index):
+		var new_type: int = type_option.get_selected_id()
+		_commit_field("Edit effect type", func(): effect.type = new_type)
+		update_visibility.call()
+	)
 
 	var remove_button := Button.new()
 	remove_button.text = "×"

@@ -173,3 +173,120 @@ func get_level_links_from(cell: Vector3i) -> Array[InteractableEntry]:
 		elif entry.link_bidirectional and entry.link_to_cell == cell:
 			links.append(entry)
 	return links
+
+
+## Whether `node` should actually be rendered right now - `node.visible`
+## AND every ancestor MissionGroup's own `visible`, walking `parent_id`.
+## Pure derived-view query, same category as get_interactable_at()/
+## get_component_usage() above - no runtime state involved, just what the
+## CURRENT data says. The one canonical implementation, reused by both
+## LayeredMap's Player-only paint-skip (see that script's
+## respect_visibility) and get_stage_requirements() below, so a "should
+## this actually show up" question is only ever answered one way.
+func is_effectively_visible(node: OutlineNode) -> bool:
+	if not node.visible:
+		return false
+	var walk := node.parent_id
+	var guard := groups.size() + 1  # defends against a corrupted/cyclic parent_id chain
+	while walk != "" and guard > 0:
+		var group := _find_group(walk)
+		if group == null:
+			break
+		if not group.visible:
+			return false
+		walk = group.parent_id
+		guard -= 1
+	return true
+
+
+## True if `node` sits under `group_id` anywhere in its parent_id ancestor
+## chain (not just a direct child) - so a stage's requirements/reveal
+## include nested subgroups' members too.
+func _belongs_to_group_or_descendant(node: OutlineNode, group_id: String) -> bool:
+	var walk := node.parent_id
+	var guard := groups.size() + 1
+	while walk != "" and guard > 0:
+		if walk == group_id:
+			return true
+		var group := _find_group(walk)
+		if group == null:
+			break
+		walk = group.parent_id
+		guard -= 1
+	return false
+
+
+func _find_group(group_id: String) -> MissionGroup:
+	for group in groups:
+		if group.id == group_id:
+			return group
+	return null
+
+
+## Everything a designer needs to physically place to build `group_id`
+## (recursively, including nested subgroups), bucketed by
+## floor/underlay/pillar/prop and counted by raw mesh_item_name - see
+## MissionPlayer.show_stage(), the caller. Only counts entries that are
+## currently is_effectively_visible() - a nested subgroup separately
+## marked hidden isn't listed yet, its own future Show Stage reveals it.
+## Pillars are split out of interactables via
+## FootprintRegistry.allows_fine_placement() - the existing exact-name
+## check for the pillar meshes (tall/mini/medium), reused rather than
+## re-derived. Counts by raw mesh name rather than ComponentInventory's
+## physical-group key - simpler, and every floor tile's placeholder
+## MAX_COUNTS caps it at 1 physical copy today anyway, so grouping
+## wouldn't currently change anything there; pillars (where counts > 1
+## genuinely matter) are already summed correctly by raw mesh name alone.
+func get_stage_requirements(group_id: String) -> Dictionary:
+	var result := {"floor": {}, "underlay": {}, "pillar": {}, "prop": {}}
+	for placement in floor_placements:
+		if _belongs_to_group_or_descendant(placement, group_id) and is_effectively_visible(placement):
+			var bucket: Dictionary = result["floor"]
+			bucket[placement.mesh_item_name] = bucket.get(placement.mesh_item_name, 0) + 1
+	for placement in underlay_placements:
+		if _belongs_to_group_or_descendant(placement, group_id) and is_effectively_visible(placement):
+			var bucket: Dictionary = result["underlay"]
+			bucket[placement.mesh_item_name] = bucket.get(placement.mesh_item_name, 0) + 1
+	for entry in interactables:
+		if not _belongs_to_group_or_descendant(entry, group_id) or not is_effectively_visible(entry):
+			continue
+		var bucket_name := "pillar" if FootprintRegistry.allows_fine_placement(entry.mesh_item_name) else "prop"
+		var bucket: Dictionary = result[bucket_name]
+		bucket[entry.mesh_item_name] = bucket.get(entry.mesh_item_name, 0) + 1
+	return result
+
+
+## Finds the placed floor entry directly under a spawn tile-square, and
+## returns the distinct MissionGroup ids covering `player_spawn_cells` -
+## "the group containing the tile that has the start position", used to
+## auto-reveal the starting room before round 1. Spawn cells are
+## TILE-SQUARE coordinates (see player_spawn_cells' own doc); converted to
+## their near-corner FINE cell with the exact same formula
+## LayeredMap.get_tile_square_world_corners() uses, then looked up in
+## floor_occupied_cells to find the covering placement. A spawn tile with
+## no floor placed under it, or one that isn't in any group (parent_id ==
+## ""), contributes nothing - "no stage to reveal" is a valid, silent
+## no-op. Normally resolves to exactly one group (the intended starting
+## room); more than one is returned as-is for the caller to loop over,
+## not specially handled here.
+func find_starting_group_ids() -> Array[String]:
+	var ids: Array[String] = []
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	for spawn_cell in player_spawn_cells:
+		var near_fine_cell := Vector3i(spawn_cell.x * cpt - cpt, spawn_cell.y, spawn_cell.z * cpt - cpt)
+		if not floor_occupied_cells.has(near_fine_cell):
+			continue
+		var origin: Vector3i = floor_occupied_cells[near_fine_cell]
+		var placement := _find_floor_placement_at(origin)
+		if placement == null or placement.parent_id == "":
+			continue
+		if not ids.has(placement.parent_id):
+			ids.append(placement.parent_id)
+	return ids
+
+
+func _find_floor_placement_at(origin_cell: Vector3i) -> TilePlacement:
+	for placement in floor_placements:
+		if placement.origin_cell == origin_cell:
+			return placement
+	return null

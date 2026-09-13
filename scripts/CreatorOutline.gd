@@ -27,12 +27,34 @@ extends Tree
 ## tradeoff CreatorPalette._rebuild_mesh_grid() already makes (the object
 ## count here is small, rebuilds aren't per-frame).
 ##
-## Selecting an item emits `selected` - CreatorPropertiesPanel.gd listens
-## and shows the right fields, same "talk only through public API +
+## Selecting an item emits `selection_changed` - CreatorPropertiesPanel.gd
+## listens and shows the right fields, same "talk only through public API +
 ## signals" convention CreatorPalette's own doc comment establishes for
-## CreatorController. Selecting a placed OBJECT (not a group, not root)
-## also jumps the camera to it via CreatorController.jump_to_cell() - the
-## "find object back" half of this feature's purpose.
+## CreatorController. Selecting a single placed OBJECT (not a group, not
+## root, and not part of a multi-selection) also jumps the camera to it via
+## CreatorController.jump_to_cell() - the "find object back" half of this
+## feature's purpose.
+##
+## **Multi-select** (2026-09-14, `select_mode = SELECT_MULTI` - native
+## ctrl+click-toggle/shift+click-range) exists specifically to batch-move
+## several already-placed objects into a group at once - see
+## CreatorPropertiesPanel.gd's "N items selected" panel.
+## `_selected_ids` tracks the FULL current selection (not just one item),
+## recomputed from Tree's own `get_next_selected()` chain rather than
+## patched incrementally from each `multi_selected` toggle - same
+## "recompute from scratch" simplicity already used for `_rebuild_tree()`.
+##
+## **Confirmed in-editor bug, worked around**: Tree's own native
+## SELECT_MULTI click handling does NOT reliably clear the prior selection
+## on a plain (no Ctrl/Shift) left-click - it can intermittently leave a
+## stale item selected alongside the newly-clicked one, even though
+## keyboard nav (arrows + space) behaves correctly. `_on_left_click()`
+## (via `gui_input`, which fires AFTER Tree's own built-in handling for the
+## same event) corrects this after the fact on every plain click -
+## `_select_only()` the clicked item, unconditionally - rather than
+## trusting the native behavior. Ctrl/Shift-held clicks are left
+## untouched, that's Tree's own native toggle/range-select working as
+## intended.
 ##
 ## Object rename/delete are deliberately NOT available from this tree -
 ## rename borders on the property editing the user explicitly deferred to
@@ -42,18 +64,28 @@ extends Tree
 ## GridMap presence at all), ARE fully managed here: create/rename/delete/
 ## move, via a right-click context menu - true drag-and-drop reparenting
 ## is a possible follow-on, not attempted here (see claude.md).
+##
+## `creator_controller.working_group_id` is READ/RESET here too (see
+## `_delete_group()` below - resets it if the deleted group was the
+## current working group) even though the "Working group:" dropdown UI
+## itself lives on the persistent toolbar now (`CreatorToolbar.gd`, moved
+## there 2026-09-14 so it stays reachable regardless of which SidePanel
+## tab is active) - this script still needs to keep that state consistent
+## whenever ITS OWN group-CRUD actions could orphan it.
 
 enum SelectionType { ROOT, OBJECT, GROUP, TILE }
 enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP }
 
-signal selected(type: SelectionType, id: String)
+signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
 
 @export var layered_map: LayeredMap
 @export var creator_controller: CreatorController
 @export var operation_history: OperationHistory  ## records group create/rename/delete/move for undo/redo
 
-var _selected_type: SelectionType = SelectionType.ROOT
-var _selected_id: String = ""
+## The FULL current selection, by id - "" (root) is a valid entry, same as
+## any other id. Recomputed from scratch (see _recompute_selected_ids())
+## rather than patched per multi_selected toggle.
+var _selected_ids: Array[String] = [""]
 var _suppress_item_selected: bool = false
 
 ## id -> TreeItem for everything currently in the tree ("" -> the root
@@ -76,8 +108,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	hide_root = false
-	select_mode = Tree.SELECT_SINGLE
-	item_selected.connect(_on_item_selected)
+	select_mode = Tree.SELECT_MULTI
+	multi_selected.connect(_on_multi_selected)
 	item_edited.connect(_on_item_edited)
 	gui_input.connect(_on_gui_input)
 
@@ -193,21 +225,33 @@ func _rebuild_tree() -> void:
 	for placement in mission.underlay_placements:
 		_add_tile_item(placement, "underlay")
 
-	# Re-select whatever was selected before this rebuild, if it still
-	# exists (falls back to root otherwise - e.g. the selected object was
-	# just erased). Deliberately does NOT jump the camera - that's only
-	# for an actual user click, see _on_item_selected().
-	var reselect_key: String = _selected_id if _id_to_item.has(_selected_id) else ""
-	var reselect_item: TreeItem = _id_to_item[reselect_key]
+	# Re-select whatever was selected before this rebuild - ALL of it, not
+	# just one item. Floor/underlay edits already fire mission_objects_changed
+	# (rebuilding this tree) on every painted cell, so without preserving
+	# the WHOLE multi-selection, painting anything else while mid-way
+	# through organizing a batch of objects into a group would silently
+	# collapse the selection back down to one item. Falls back to root only
+	# if NONE of the previous selection survived (e.g. everything selected
+	# just got erased).
 	_suppress_item_selected = true
-	reselect_item.select(0)
+	var survived := false
+	for id in _selected_ids:
+		var item: TreeItem = _id_to_item.get(id)
+		if item != null:
+			item.select(0)
+			survived = true
+	if not survived:
+		root_item.select(0)
 	_suppress_item_selected = false
-	_notify_selection(reselect_item.get_metadata(0), false)
+	_recompute_selected_ids()
+	# Deliberately does NOT jump the camera - that's only for an actual
+	# user click, see _on_multi_selected()/_on_gui_input().
+	_emit_selection_changed(false)
 
 
 ## `tile_grid` ("floor"/"underlay") is stored as metadata alongside
-## type/id so a later camera-jump (see _notify_selection()) knows which
-## GridMap to look the cell up on without re-searching both arrays.
+## type/id so a later camera-jump (see _emit_selection_changed()) knows
+## which GridMap to look the cell up on without re-searching both arrays.
 func _add_tile_item(placement: TilePlacement, tile_grid: String) -> void:
 	var parent_item: TreeItem = _id_to_item.get(placement.parent_id, _id_to_item[""])
 	var item := create_item(parent_item)
@@ -226,31 +270,61 @@ func _create_group_item(parent_item: TreeItem, group: MissionGroup) -> TreeItem:
 	return item
 
 
-func _on_item_selected() -> void:
+func _on_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
 	if _suppress_item_selected:
 		return
-	var item := get_selected()
-	if item == null:
+	_recompute_selected_ids()
+	_emit_selection_changed(true)
+
+
+## Rebuilds _selected_ids from Tree's own live selection state via
+## get_next_selected() - the standard way to enumerate a SELECT_MULTI
+## Tree's full selection (there's no single "current selection" property).
+## Recomputing from scratch rather than patching from each multi_selected
+## toggle's own (item, selected) params matches this project's existing
+## "simplest first, full rebuild over incremental patching" convention.
+func _recompute_selected_ids() -> void:
+	_selected_ids.clear()
+	var item := get_next_selected(null)
+	while item != null:
+		_selected_ids.append(item.get_metadata(0)["id"])
+		item = get_next_selected(item)
+
+
+## Forces a single-item selection - used by the right-click context menu
+## and the 3D-world-click pick, both of which mean "act on THIS one thing"
+## regardless of whatever multi-selection existed a moment ago.
+func _select_only(item: TreeItem) -> void:
+	_suppress_item_selected = true
+	deselect_all()
+	item.select(0)
+	_suppress_item_selected = false
+
+
+## The single chokepoint for telling the rest of the Creator what's
+## selected now - builds `items` from _selected_ids (each entry the same
+## metadata dict _rebuild_tree() stores per TreeItem, so only a TILE
+## selection carries the extra "grid" tag) and emits selection_changed.
+## Highlight/camera-jump only apply when exactly one item is selected - a
+## multi-selection has no single "the" object to outline or jump to.
+func _emit_selection_changed(jump_camera: bool) -> void:
+	var items: Array = []
+	for id in _selected_ids:
+		var item: TreeItem = _id_to_item.get(id)
+		if item != null:
+			items.append(item.get_metadata(0))
+	selection_changed.emit(items)
+
+	if items.size() != 1:
+		creator_controller.clear_selection_highlight()
 		return
-	_notify_selection(item.get_metadata(0), true)
 
-
-## Takes the clicked/reselected item's whole metadata dict (type/id, plus
-## "grid" for a TILE) rather than separate params, since only a TILE
-## selection needs the extra "grid" tag baked in at tree-build time (see
-## _add_tile_item()) to know which GridMap its cell lives on.
-func _notify_selection(meta: Dictionary, jump_camera: bool) -> void:
+	var meta: Dictionary = items[0]
 	var type: SelectionType = meta["type"]
 	var id: String = meta["id"]
-	_selected_type = type
-	_selected_id = id
-	selected.emit(type, id)
 
-	# Highlight always updates (a selected-but-not-jumped-to reselection,
-	# e.g. after a Tree rebuild, still needs its outline redrawn if the
-	# object's shape/position changed - a Move to... or an undo could
-	# change either). The camera jump alone stays gated on jump_camera -
-	# see this function's own callers for why (an actual click jumps, a
+	# The camera jump alone stays gated on jump_camera - see this
+	# function's own callers for why (an actual click jumps, a
 	# rebuild-driven reselection or a world-click pick doesn't).
 	match type:
 		SelectionType.OBJECT:
@@ -272,7 +346,7 @@ func _notify_selection(meta: Dictionary, jump_camera: bool) -> void:
 	creator_controller.clear_selection_highlight()
 
 
-## Select mode's counterpart to the camera-jump in _notify_selection() -
+## Select mode's counterpart to the camera-jump in _emit_selection_changed() -
 ## the user clicked an object/tile in the 3D world (see CreatorController.
 ## select_at_cursor(), Left-click while draw_mode is off) and this
 ## selects/scrolls to the matching tree item, WITHOUT jumping the camera
@@ -283,11 +357,10 @@ func _on_object_picked(_kind: String, id: String) -> void:
 	var item: TreeItem = _id_to_item.get(id, null)
 	if item == null:
 		return  # not in the tree (yet) - refresh() is deferred, see that comment
-	_suppress_item_selected = true
-	item.select(0)
-	_suppress_item_selected = false
+	_select_only(item)
 	scroll_to_item(item)
-	_notify_selection(item.get_metadata(0), false)
+	_recompute_selected_ids()
+	_emit_selection_changed(false)
 
 
 func _on_item_edited() -> void:
@@ -336,17 +409,52 @@ func _find_tile_by_id(id: String) -> TilePlacement:
 ## ---- Right-click context menu: group New/Rename/Delete/Move to... ----
 
 func _on_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_on_left_click(event)
+		return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT):
 		return
 	var item := get_item_at_position(event.position)
 	if item == null:
 		return
-	item.select(0)  # right-click also selects (and jumps the camera for an object), matching common tree/editor UX
+	# Right-click forces a single-item selection (matching common tree/
+	# editor UX) - it also selects and jumps the camera for an object,
+	# regardless of whatever multi-selection existed a moment ago. Batch
+	# operations belong in CreatorPropertiesPanel's multi-select panel, not
+	# this per-item context menu.
+	_select_only(item)
+	_recompute_selected_ids()
+	_emit_selection_changed(true)
 	var meta: Dictionary = item.get_metadata(0)
 	_context_target_type = meta["type"]
 	_context_target_id = meta["id"]
 	_populate_context_menu(_context_target_type)
 	_context_menu.popup(Rect2i(Vector2i(get_global_mouse_position()), Vector2i.ZERO))
+
+
+## A plain left-click (no Ctrl, no Shift) should always replace the WHOLE
+## selection with just the clicked item - confirmed in-editor 2026-09-14
+## that Tree's own native SELECT_MULTI click handling doesn't reliably do
+## this on its own (a plain click could intermittently leave a stale prior
+## selection in place alongside the newly-clicked item, even though
+## keyboard nav - arrows + space - behaves correctly; the user caught this
+## by comparing the two). This `gui_input` handler fires AFTER Tree's own
+## built-in click-to-select logic has already run for the same event (the
+## signal is emitted once the engine's internal handling is done, not
+## before), so this doesn't prevent whatever Tree just did - it corrects
+## it immediately after, same `_select_only()` used for right-click/
+## world-pick. Ctrl/Shift-held clicks are left alone entirely (toggle/
+## range-select, Tree's own native handling for those is what
+## multi-select exists for in the first place).
+func _on_left_click(event: InputEventMouseButton) -> void:
+	if event.ctrl_pressed or event.shift_pressed:
+		return
+	var item := get_item_at_position(event.position)
+	if item == null:
+		return
+	_select_only(item)
+	_recompute_selected_ids()
+	_emit_selection_changed(true)
 
 
 func _populate_context_menu(type: SelectionType) -> void:
@@ -372,7 +480,7 @@ func _add_move_to_submenu() -> void:
 	_move_to_target_ids.append("")
 
 	for group in layered_map.mission.groups:
-		if not _is_valid_move_target(group.id):
+		if not is_valid_move_target(_context_target_type, _context_target_id, group.id):
 			continue
 		_move_to_menu.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)", _move_to_target_ids.size())
 		_move_to_target_ids.append(group.id)
@@ -380,19 +488,22 @@ func _add_move_to_submenu() -> void:
 	_context_menu.add_submenu_node_item("Move to…", _move_to_menu)
 
 
-## An object can move under any group. A group can move under any group
-## except itself or one of its own descendants (that would create a
-## cycle) - walk the candidate target's own ancestor chain looking for
-## the group being moved.
-func _is_valid_move_target(target_group_id: String) -> bool:
-	if _context_target_type != SelectionType.GROUP:
+## An object/tile can move under any group. A group can move under any
+## group except itself or one of its own descendants (that would create a
+## cycle) - walk the candidate target's own ancestor chain looking for the
+## group being moved. Public (not just this script's own context-menu
+## "Move to..." use) - CreatorPropertiesPanel.gd's batch move reuses this
+## exact same guard per selected item, parameterized instead of reading
+## _context_target_type/_context_target_id instance state.
+func is_valid_move_target(source_type: SelectionType, source_id: String, target_group_id: String) -> bool:
+	if source_type != SelectionType.GROUP:
 		return true
-	if target_group_id == _context_target_id:
+	if target_group_id == source_id:
 		return false
 	var walk := target_group_id
 	var guard := layered_map.mission.groups.size() + 1  # defends against a corrupted/cyclic parent_id chain
 	while walk != "" and guard > 0:
-		if walk == _context_target_id:
+		if walk == source_id:
 			return false
 		var group := _find_group_by_id(walk)
 		if group == null:
@@ -458,6 +569,14 @@ func _delete_group(group_id: String) -> void:
 		mission.groups.erase(group)
 	)
 	layered_map.notify_objects_changed()
+
+	# Not undo-tracked (deliberately outside the record() closure above) -
+	# working_group_id is tool state on CreatorController, not MissionData,
+	# so it isn't part of the operation_history snapshot anyway. Promoted
+	# to the deleted group's own parent, same as its actual children just
+	# above, rather than reset all the way to root.
+	if creator_controller.working_group_id == group_id:
+		creator_controller.set_working_group(group.parent_id)
 
 
 func _on_move_to_menu_id_pressed(id: int) -> void:

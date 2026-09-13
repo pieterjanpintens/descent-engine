@@ -12,13 +12,17 @@ extends Control
 ##   1. UI + drag detection - the party set during EmbarkDialog (see
 ##      set_roster()) shown as a row of placeholder portraits, dragging one
 ##      draws a line toward the cursor.
-##   2. Interactable props (InteractableEntry with a non-empty `actions`,
-##      and props["interactible"] not explicitly false) highlight while a
-##      drag hovers over them.
-##   3. Releasing a drag over an interactable fires its FIRST action via
-##      MissionRuntime.fire_prop_action() (see mission_runtime below) - a
-##      real prop can only ever offer one action right now; disambiguating
-##      between several is deferred (no picker UI exists yet).
+##   2. Interactable props (InteractableEntry with props["interactible"]
+##      not explicitly false, AND at least one action whose own
+##      `conditions` currently hold - see MissionRuntime.
+##      first_available_action(), new 2026-09-14) highlight while a drag
+##      hovers over them.
+##   3. Releasing a drag over an interactable presents every CURRENTLY-
+##      AVAILABLE action (MissionRuntime.available_actions() - conditions
+##      gate which ones are even offered) as a choice via a
+##      PlayerDialog.ask_choice() picker (new 2026-09-14, see
+##      _offer_actions()) - Cancel is always included alongside them.
+##      Picking one fires it via MissionRuntime.fire_prop_action().
 ##
 ## Deliberately NOT using Godot's built-in Control drag-and-drop system
 ## (_get_drag_data/_drop_data) - the drop target here is a 3D world
@@ -34,8 +38,17 @@ extends Control
 ## _end_drag() that would need to wait on the connected handler finishing.
 signal game_over_requested(objective: MissionObjective)
 
+## Fired every time firing a PropAction runs the objectives evaluator,
+## regardless of outcome - a DAG group can be replaced by its children
+## (advancing which objective is "active") without that resolving all the
+## way to a leaf, so MissionPlayer needs to know to refresh its objective
+## label even when game_over_requested above doesn't fire. See
+## MissionRuntime.get_current_objective_descriptions().
+signal objectives_progressed
+
 @export var layered_map: LayeredMap
 @export var camera: Camera3D  ## leave unset to auto-grab the viewport's active camera
+@export var dialog: PlayerDialog  ## %Dialog - the action picker (see _offer_actions()) shows through this
 @export var highlight_color: Color = Color(0.3, 1.0, 1.0, 0.5)
 
 ## Assigned by MissionPlayer._ready() right after construction - a plain
@@ -176,25 +189,64 @@ func _update_hover_highlight(screen_pos: Vector2) -> void:
 	_rebuild_highlight()
 
 
+## Async now (new 2026-09-14) - releasing over an interactable no longer
+## fires immediately, it awaits _offer_actions()'s picker dialog first
+## (see that function). Drag visuals reset FIRST, before that await, so
+## the drag line/highlight don't sit around while the modal dialog is up -
+## the drag gesture itself is complete the moment the mouse is released,
+## the picker is a separate follow-up interaction. hero_name is captured
+## before _drag_dock_position resets. Called un-awaited from _input()
+## (an ordinary, non-async function) - a fine GDScript pattern, this just
+## runs as a background coroutine, nothing needs to wait on it.
 func _end_drag(screen_pos: Vector2) -> void:
 	var hero_name := HeroCatalog.slot_name(_roster[_drag_dock_position])
 	var entry := _interactable_at(screen_pos)
-	if entry != null:
-		var action: PropAction = entry.actions[0]  # first/only action - see class doc
-		var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
-		if mission_runtime != null:
-			var objective := mission_runtime.fire_prop_action(action)
-			if objective != null:
-				game_over_requested.emit(objective)
-		print("%s used '%s' on '%s' (%s)" % [hero_name, action.description, label, entry.mesh_item_name])
-	else:
-		print("%s: drag released on nothing interactable" % hero_name)
 
 	_dragging = false
 	_drag_dock_position = -1
 	_drag_line.visible = false
 	_hovered_entry = null
 	_rebuild_highlight()
+
+	if entry == null:
+		print("%s: drag released on nothing interactable" % hero_name)
+		return
+	await _offer_actions(hero_name, entry)
+
+
+## Presents every CURRENTLY-AVAILABLE action on `entry` (see
+## MissionRuntime.available_actions() - re-resolved here rather than
+## trusting whatever _interactable_at()'s last hover check found,
+## conditions could in principle have changed between then and release)
+## as a choice via dialog.ask_choice(), Cancel always included alongside
+## them (PlayerDialog.ask_choice()'s own doc - never omitted). Picking
+## Cancel (or dropping on a prop with zero available actions right now,
+## which _interactable_at() already excludes from being a valid drop
+## target in the first place) does nothing. Otherwise fires the chosen
+## action exactly like the old single-action _end_drag() body did.
+func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
+	if mission_runtime == null:
+		return
+	var actions := mission_runtime.available_actions(entry)
+	if actions.is_empty():
+		return
+	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
+
+	var option_labels: Array[String] = []
+	for action in actions:
+		option_labels.append(action.description if action.description != "" else action.action_id)
+	var choice: int = await dialog.ask_choice("%s: interact with '%s'" % [hero_name, label], option_labels)
+
+	if choice < 0 or choice >= actions.size():
+		print("%s: cancelled interacting with '%s'" % [hero_name, label])
+		return
+
+	var action := actions[choice]
+	var objective := mission_runtime.fire_prop_action(action)
+	objectives_progressed.emit()
+	if objective != null:
+		game_over_requested.emit(objective)
+	print("%s used '%s' on '%s' (%s)" % [hero_name, action.description, label, entry.mesh_item_name])
 
 
 ## Real physics raycast against the actual GridMap collision (same
@@ -203,10 +255,12 @@ func _end_drag(screen_pos: Vector2) -> void:
 ## editing level, which doesn't make sense here; we want whatever's
 ## actually there at whatever height it renders). Only the prop layer is
 ## interactable right now (InteractableEntry only covers props) - a mesh
-## needs a non-empty `actions` list AND props["interactible"] not
-## explicitly false to count (purely decorative props, and props
-## temporarily toggled off via that well-known key, aren't valid drag
-## targets).
+## needs props["interactible"] not explicitly false (purely decorative
+## props, and props temporarily toggled off via that well-known key,
+## aren't valid drag targets) AND at least one action whose own
+## `conditions` currently hold (see _resolve_action()) - an entry whose
+## every action is conditionally unavailable right now reads the same as
+## having no actions at all.
 func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
 	if camera == null or layered_map == null or layered_map.mission == null:
 		return null
@@ -230,9 +284,28 @@ func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
 	var hit_cell: Vector3i = hit_grid.local_to_map(local_pos)
 
 	var entry := layered_map.mission.get_interactable_at(hit_cell)
-	if entry == null or entry.actions.is_empty() or not entry.props.get("interactible", true):
+	if entry == null or not entry.props.get("interactible", true):
+		return null
+	if _resolve_action(entry) == null:
 		return null
 	return entry
+
+
+## Cheap existence check for _interactable_at() above - is THERE an
+## action here right now, not WHICH one (see _offer_actions() for the
+## full picker that actually fires one). The first (by declared order,
+## see MissionRuntime.first_available_action()'s own doc) whose
+## `conditions` currently hold. Falls back to the plain first/only action
+## if mission_runtime isn't set yet (shouldn't normally happen once the
+## game has actually started - see mission_runtime's own doc) rather than
+## conditions silently gating nothing. Returns null for a null entry so
+## _interactable_at() doesn't need to null-check separately first.
+func _resolve_action(entry: InteractableEntry) -> PropAction:
+	if entry == null or entry.actions.is_empty():
+		return null
+	if mission_runtime != null:
+		return mission_runtime.first_available_action(entry)
+	return entry.actions[0]
 
 
 func _setup_highlight_overlay() -> void:

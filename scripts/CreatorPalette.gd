@@ -28,7 +28,6 @@ var _layer_buttons: Array[Button] = []
 var _mesh_buttons: Dictionary = {}  # mesh_item_name -> Button
 var _mesh_grid: GridContainer
 var _mesh_scroll: ScrollContainer  ## wraps _mesh_grid - hidden while the Misc tab is active
-var _show_unavailable_check: CheckBox  ## mesh-grid-specific - also hidden while the Misc tab is active
 var _selected_mesh_name: String = ""
 var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 
@@ -46,14 +45,6 @@ var _misc_button: Button
 var _misc_container: VBoxContainer
 var _player_start_button: Button
 
-## false (default): meshes with no physical copies left simply aren't
-## shown - matches the natural "the palette is what you can currently
-## draw" flow. true: shows everything, greys out unavailable entries, and
-## repurposes clicking one of those into "jump to where it's already
-## placed" instead of selecting it (selecting it for painting wouldn't be
-## possible anyway once it's exhausted).
-var _show_unavailable: bool = false
-
 
 func _ready() -> void:
 	# Let CreatorController's own @onready/_ready (which resolves
@@ -66,12 +57,16 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
+	# "Show unavailable" moved to the persistent toolbar 2026-09-14 (see
+	# CreatorToolbar.gd) - this palette just reacts to the controller-owned
+	# state now instead of owning the checkbox itself.
+	creator_controller.show_unavailable_meshes_changed.connect(_queue_mesh_grid_rebuild.unbind(1))
 	# Nothing else used to tell this palette "a placement changed, an
 	# item's availability may now be different" - painting the same mesh
 	# repeatedly (e.g. several floor tiles in a row without switching
 	# mesh) never called _rebuild_mesh_grid() at all, so a now-exhausted
-	# mesh stayed shown as available until something else (a layer
-	# switch, the checkbox) happened to force a rebuild. Fixed 2026-09-10.
+	# mesh stayed shown as available until something else (a layer switch,
+	# toggling "Show unavailable") happened to force a rebuild. Fixed 2026-09-10.
 	layered_map.mission_objects_changed.connect(_queue_mesh_grid_rebuild)
 
 	_side_panel = get_parent() as TabContainer
@@ -131,11 +126,6 @@ func _build_ui() -> void:
 	_misc_button.pressed.connect(_on_misc_tab_pressed)
 	tabs.add_child(_misc_button)
 
-	_show_unavailable_check = CheckBox.new()
-	_show_unavailable_check.text = "Show unavailable (click to locate)"
-	_show_unavailable_check.toggled.connect(_on_show_unavailable_toggled)
-	vbox.add_child(_show_unavailable_check)
-
 	_mesh_scroll = ScrollContainer.new()
 	_mesh_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(_mesh_scroll)
@@ -165,8 +155,9 @@ func _build_ui() -> void:
 ## spawn-paint mode (the Misc tab's Player Start tool) - only one tool
 ## should ever determine what a left-click does at a time, so picking a
 ## mesh/layer here is just as much "not Player Start anymore" as it is
-## "now drawing". Deliberately NOT on the "Show unavailable" checkbox (a
-## display filter, not paint intent) or _on_locate_mesh_button_pressed()
+## "now drawing". Deliberately NOT on toggling "Show unavailable" (a
+## display filter, not paint intent, and lives on the toolbar now anyway -
+## see CreatorToolbar.gd) or _on_locate_mesh_button_pressed()
 ## (clicking an EXHAUSTED mesh to jump to it - explicitly not something
 ## you can select to paint).
 func _on_layer_tab_pressed(layer_index: int) -> void:
@@ -181,7 +172,6 @@ func _on_layer_changed(layer: CreatorController.PaintLayer) -> void:
 	for i in _layer_buttons.size():
 		_layer_buttons[i].button_pressed = (i == layer)
 	_misc_button.button_pressed = false
-	_show_unavailable_check.visible = true
 	_mesh_scroll.visible = true
 	_misc_container.visible = false
 	_queue_mesh_grid_rebuild()
@@ -201,7 +191,6 @@ func _on_misc_tab_pressed() -> void:
 	for btn in _layer_buttons:
 		btn.button_pressed = false
 	_misc_button.button_pressed = true
-	_show_unavailable_check.visible = false
 	_mesh_scroll.visible = false
 	_misc_container.visible = true
 	creator_controller.set_draw_mode(false)
@@ -220,11 +209,6 @@ func _on_player_start_tool_pressed() -> void:
 ## "controller emits, UI listens" convention as _on_layer_changed() above.
 func _on_spawn_paint_mode_changed(enabled: bool) -> void:
 	_player_start_button.button_pressed = enabled
-
-
-func _on_show_unavailable_toggled(pressed: bool) -> void:
-	_show_unavailable = pressed
-	_queue_mesh_grid_rebuild()
 
 
 var _mesh_grid_rebuild_queued: bool = false
@@ -259,7 +243,7 @@ func _rebuild_mesh_grid() -> void:
 
 	for mesh_name in creator_controller.get_available_mesh_names():
 		var available := creator_controller.is_mesh_available(mesh_name)
-		if not available and not _show_unavailable:
+		if not available and not creator_controller.show_unavailable_meshes:
 			continue  # can't be drawn right now - just leave it out entirely
 
 		var item_id := layered_map.find_item_id(layered_map.floor_grid, mesh_name)

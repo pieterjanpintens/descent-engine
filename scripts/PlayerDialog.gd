@@ -27,6 +27,7 @@ extends Control
 ##   var yes: bool = await dialog.ask_yes_no("Is a player on tile 2a?")
 ##   var n: int = await dialog.ask_count("How many successes did you roll?")
 ##   await dialog.ask_narrative(["Page one text...", "Page two text..."])
+##   var i: int = await dialog.ask_choice("Do what?", ["Pick fruit", "Climb"])  # -1 = Cancel
 
 const PANEL_WIDTH := 480.0
 
@@ -120,6 +121,26 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99) -> int:
 	return int(_count_input.value)
 
 
+## Offers `option_labels` as buttons (one per entry, in order - result is
+## that entry's index) plus a trailing "Cancel" button (result -1) -
+## Cancel is always present, never omitted, so the caller never has to
+## build its own "and let them back out" affordance. Used by
+## PlayerInteractionController's action picker (new 2026-09-14 - "which
+## of this prop's currently-available actions do you mean?").
+func ask_choice(text: String, option_labels: Array[String]) -> int:
+	_label.text = text
+	_count_input.visible = false
+	var specs: Array = []
+	for i in option_labels.size():
+		specs.append({"text": option_labels[i], "result": i})
+	specs.append({"text": "Cancel", "result": -1})
+	_set_buttons(specs)
+	visible = true
+	var result: int = await _closed
+	visible = false
+	return result
+
+
 func ask_narrative(pages: Array[String]) -> void:
 	_narrative_pages = pages
 	_narrative_index = 0
@@ -154,14 +175,22 @@ func _set_buttons(specs: Array) -> void:
 
 ## "_next"/"_back" are internal sentinels for ask_narrative() - they advance
 ## the page and rebuild buttons instead of resolving the await, unlike
-## every other result value (null/true/false), which closes the dialog.
+## every other result value (null/true/false/int - ask_choice()'s option
+## indices/-1 for Cancel), which closes the dialog. The typeof() guard is
+## required, not just style: GDScript's `==` throws "Invalid operands
+## 'int' and 'String'" (a runtime error, not a false result) when compared
+## against an incompatible Variant type pair like int vs String - which
+## ask_choice()'s int results hit the moment they reached the bare
+## `result == "_next"` check below, since every button (regardless of
+## which ask_*() call made it) funnels through this one handler.
 func _on_button_pressed(result: Variant) -> void:
-	if result == "_next":
-		_narrative_index += 1
-		_show_narrative_page()
-		return
-	if result == "_back":
-		_narrative_index -= 1
-		_show_narrative_page()
-		return
+	if typeof(result) == TYPE_STRING:
+		if result == "_next":
+			_narrative_index += 1
+			_show_narrative_page()
+			return
+		if result == "_back":
+			_narrative_index -= 1
+			_show_narrative_page()
+			return
 	_closed.emit(result)

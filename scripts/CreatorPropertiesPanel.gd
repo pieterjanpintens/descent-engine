@@ -14,16 +14,25 @@ extends Control
 ## full editing UI now too. Still a later pass: LEVEL_LINK's own
 ## link_from_cell/link_to_cell/link_bidirectional fields.
 ##
-## Talks to CreatorOutline ONLY through its public `selected` signal - see
-## CreatorPalette.gd's own doc comment for why (keeps this script and
-## CreatorOutline from ever drifting out of sync with each other's
-## internal state). Refreshing the form after some OTHER path edits the
-## same node (the tree's own inline group rename, an undo/redo, a
-## world-click pick) falls out of that same signal for free:
-## CreatorOutline re-emits `selected` for whatever's currently selected
-## every time it rebuilds (see that script's `_rebuild_tree()`), not just
-## on an actual selection change - so this form is never stale for more
-## than one rebuild.
+## Talks to CreatorOutline ONLY through its public `selection_changed`
+## signal - see CreatorPalette.gd's own doc comment for why (keeps this
+## script and CreatorOutline from ever drifting out of sync with each
+## other's internal state). Refreshing the form after some OTHER path edits
+## the same node (the tree's own inline group rename, an undo/redo, a
+## world-click pick) falls out of that same signal for free: CreatorOutline
+## re-emits `selection_changed` for whatever's currently selected every
+## time it rebuilds (see that script's `_rebuild_tree()`), not just on an
+## actual selection change - so this form is never stale for more than one
+## rebuild.
+##
+## **Multi-select** (2026-09-14, CreatorOutline's tree is SELECT_MULTI now)
+## adds a THIRD sibling state, `_multi_fields` - shown whenever
+## `selection_changed` carries more than one item. Deliberately minimal per
+## the request that motivated it ("properties view can be frozen, only the
+## add to group action should be visible"): a count label and a single
+## batch "Move to Group" action, nothing else - `mission_fields`/
+## `_object_fields` both hidden, no per-item editing while multiple things
+## are selected.
 
 @export var creator_outline: CreatorOutline
 @export var layered_map: LayeredMap
@@ -39,6 +48,19 @@ var _properties_dialog: PropertiesDialog
 var _actions_button: Button
 var _actions_dialog: PropActionsDialog
 
+## Multi-select batch panel (see class doc) - built once alongside
+## _object_fields/mission_fields, shown only while selection_changed
+## carries more than one item.
+var _multi_fields: VBoxContainer
+var _multi_count_label: Label
+var _multi_group_option: OptionButton
+var _multi_group_ids: Array[String] = []  # parallel to _multi_group_option's items, same pattern as CreatorOutline's own _working_group_ids/_move_to_target_ids
+
+## The current multi-selection's raw metadata dicts (CreatorOutline's own
+## per-item {type, id[, grid]} shape) - only meaningful while _multi_fields
+## is visible, read by the "Move to Group" button below.
+var _current_multi_selection: Array = []
+
 ## Whichever OutlineNode is currently shown (InteractableEntry/
 ## TilePlacement/MissionGroup all extend it) - null while ROOT is
 ## selected, since MissionData itself isn't one. Editing reference_name/
@@ -47,7 +69,7 @@ var _actions_dialog: PropActionsDialog
 ## OutlineNode was to not need type-specific edit logic here.
 var _current_node: OutlineNode
 
-## Guards the field-refresh path (_on_outline_selected() setting
+## Guards the field-refresh path (_show_single() setting
 ## _name_edit.text/_visible_check.button_pressed FROM data) from being
 ## mistaken for a user edit and looping back into a record() call.
 var _suppress_field_signals: bool = false
@@ -55,7 +77,8 @@ var _suppress_field_signals: bool = false
 
 func _ready() -> void:
 	_build_object_fields()
-	creator_outline.selected.connect(_on_outline_selected)
+	_build_multi_fields()
+	creator_outline.selection_changed.connect(_on_selection_changed)
 
 
 func _build_object_fields() -> void:
@@ -122,14 +145,53 @@ func _build_object_fields() -> void:
 	add_child(_actions_dialog)
 
 
-func _on_outline_selected(type: CreatorOutline.SelectionType, id: String) -> void:
-	if type == CreatorOutline.SelectionType.ROOT:
-		_current_node = null
-		mission_fields.visible = true
-		_object_fields.visible = false
-		return
+func _build_multi_fields() -> void:
+	_multi_fields = VBoxContainer.new()
+	_multi_fields.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_multi_fields.offset_left = 8.0
+	_multi_fields.offset_top = 8.0
+	_multi_fields.offset_right = -8.0
+	_multi_fields.offset_bottom = -8.0
+	_multi_fields.visible = false
+	add_child(_multi_fields)
 
+	_multi_count_label = Label.new()
+	_multi_count_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_multi_fields.add_child(_multi_count_label)
+
+	_multi_group_option = OptionButton.new()
+	_multi_fields.add_child(_multi_group_option)
+
+	var move_button := Button.new()
+	move_button.text = "Move to Group"
+	move_button.pressed.connect(_on_multi_move_button_pressed)
+	_multi_fields.add_child(move_button)
+
+
+func _on_selection_changed(items: Array) -> void:
+	if items.size() > 1:
+		_show_multi_selection(items)
+		return
+	if items.is_empty():
+		_show_root()
+		return
+	var meta: Dictionary = items[0]
+	if meta["type"] == CreatorOutline.SelectionType.ROOT:
+		_show_root()
+		return
+	_show_single(meta["type"], meta["id"])
+
+
+func _show_root() -> void:
+	_current_node = null
+	mission_fields.visible = true
+	_object_fields.visible = false
+	_multi_fields.visible = false
+
+
+func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	mission_fields.visible = false
+	_multi_fields.visible = false
 	_object_fields.visible = true
 	_current_node = _resolve_node(type, id)
 
@@ -154,6 +216,64 @@ func _on_outline_selected(type: CreatorOutline.SelectionType, id: String) -> voi
 	_name_edit.text = _current_node.reference_name
 	_visible_check.button_pressed = _current_node.visible
 	_suppress_field_signals = false
+
+
+## Deliberately minimal - see class doc's "properties view frozen, only the
+## add to group action visible" note. `_multi_group_option` doesn't filter
+## by is_valid_move_target() the way CreatorOutline's own "Move to..."
+## submenu does: with several different source items possibly selected at
+## once, a group valid for one might not be for another, and the button
+## handler below already skips/warns per-item instead - showing the full
+## list here keeps this simple (same "simplest first" tradeoff every other
+## per-type widget builder in this project already makes).
+func _show_multi_selection(items: Array) -> void:
+	mission_fields.visible = false
+	_object_fields.visible = false
+	_multi_fields.visible = true
+	_current_node = null
+	_current_multi_selection = items
+
+	_multi_count_label.text = "%d items selected" % items.size()
+
+	_multi_group_option.clear()
+	_multi_group_ids.clear()
+	_multi_group_option.add_item("(none - root)")
+	_multi_group_ids.append("")
+	for group in layered_map.mission.groups:
+		_multi_group_option.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)")
+		_multi_group_ids.append(group.id)
+
+
+func _on_multi_move_button_pressed() -> void:
+	var index := _multi_group_option.get_selected()
+	if index < 0 or index >= _multi_group_ids.size():
+		return
+	var target_group_id: String = _multi_group_ids[index]
+
+	var nodes: Array[OutlineNode] = []
+	for item in _current_multi_selection:
+		var type: CreatorOutline.SelectionType = item["type"]
+		var id: String = item["id"]
+		if type == CreatorOutline.SelectionType.ROOT:
+			continue
+		if not creator_outline.is_valid_move_target(type, id, target_group_id):
+			push_warning("Skipping move of '%s' - would create a group cycle" % id)
+			continue
+		var node := _resolve_node(type, id)
+		if node != null:
+			nodes.append(node)
+
+	if nodes.is_empty():
+		return
+
+	# ONE Operation for the whole batch, not one per item - same "several
+	# related edits, one undo step" reasoning CreatorSaveLoad's player-count
+	# fields already establish.
+	operation_history.record("Move %d item(s) to group" % nodes.size(), func():
+		for node in nodes:
+			node.parent_id = target_group_id
+	)
+	layered_map.notify_objects_changed()
 
 
 func _on_properties_button_pressed() -> void:

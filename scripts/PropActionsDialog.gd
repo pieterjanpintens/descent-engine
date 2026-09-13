@@ -10,16 +10,20 @@ extends Window
 ## @export/NodePath - nothing here needs scene wiring).
 ##
 ## Simpler than ObjectivesDialog.gd's DAG editor - a PropAction has no
-## children/branching, just an id/description and a flat effects list -
-## so this is a flat scrollable list of PropAction "blocks" (one
-## PanelContainer per action, grouping its own id/description/effects
-## together) rather than a graph canvas. Each block's effect rows and the
-## value-type editor duplicate ObjectivesDialog's own _build_effect_row()/
-## _build_value_editor() rather than sharing code with it - those are
-## typed to a MissionObjective holder there (holder.effects.erase()), and
-## every dialog in this project already owns its row-builder helpers
-## independently (PropertiesDialog has its own too) rather than factoring
-## a shared base class, so this follows the same convention.
+## children/branching, just an id/description/conditions/effects - so
+## this is a flat scrollable list of PropAction "blocks" (one
+## PanelContainer per action, grouping its own id/description/conditions/
+## effects together) rather than a graph canvas. `conditions` (new
+## 2026-09-14) gates whether this action is currently OFFERED to players
+## at all - see PropAction.conditions' own doc and MissionRuntime.
+## first_available_action(), the runtime consumer. Each block's condition/
+## effect rows and the value-type editor duplicate ObjectivesDialog's own
+## _build_condition_row()/_build_effect_row()/_build_value_editor() rather
+## than sharing code with it - those are typed to a MissionObjective
+## holder there, and every dialog in this project already owns its
+## row-builder helpers independently (PropertiesDialog has its own too)
+## rather than factoring a shared base class, so this follows the same
+## convention.
 ##
 ## Every edit goes through operation_history.record() then
 ## layered_map.notify_objects_changed(), same convention as every other
@@ -137,6 +141,21 @@ func _build_action_block(action: PropAction) -> Control:
 	box.add_child(desc_edit)
 
 	box.add_child(HSeparator.new())
+	var conditions_label := Label.new()
+	conditions_label.text = "Conditions (implicit AND - when is this action offered to players):"
+	box.add_child(conditions_label)
+	for condition in action.conditions:
+		box.add_child(_build_condition_row(action, condition))
+	var add_condition_button := Button.new()
+	add_condition_button.text = "Add Condition"
+	add_condition_button.pressed.connect(func():
+		var condition := Condition.new()
+		_commit_field("Add condition", func(): action.conditions.append(condition))
+		_rebuild_rows()
+	)
+	box.add_child(add_condition_button)
+
+	box.add_child(HSeparator.new())
 	var effects_label := Label.new()
 	effects_label.text = "Effects (applied immediately when this action fires):"
 	box.add_child(effects_label)
@@ -182,8 +201,66 @@ func _commit_field(label: String, mutate: Callable) -> void:
 	layered_map.notify_objects_changed()
 
 
+## Own copy of ObjectivesDialog's _build_condition_row() (typed to a
+## MissionObjective holder there) - same "each dialog owns its own
+## row-builder helpers" convention as _build_effect_row()/
+## _build_value_editor() below. Gates whether this ACTION is currently
+## offered to players (see PropAction.conditions' own doc) - distinct
+## from InteractableEntry.props["interactible"], a manual whole-prop
+## on/off switch that applies regardless of any action's conditions.
+func _build_condition_row(holder: PropAction, condition: Condition) -> Control:
+	var row := HBoxContainer.new()
+
+	var var_edit := LineEdit.new()
+	var_edit.text = condition.variable_name
+	var_edit.placeholder_text = "variable name"
+	var_edit.custom_minimum_size = Vector2(90, 0)
+	var commit_var := func():
+		_commit_field("Edit condition variable", func(): condition.variable_name = var_edit.text)
+	var_edit.text_submitted.connect(func(_t): commit_var.call())
+	var_edit.focus_exited.connect(commit_var)
+	row.add_child(var_edit)
+
+	var operator_option := OptionButton.new()
+	operator_option.add_item("=", Condition.Operator.EQUALS)
+	operator_option.add_item("!=", Condition.Operator.NOT_EQUALS)
+	operator_option.add_item(">", Condition.Operator.GREATER)
+	operator_option.add_item(">=", Condition.Operator.GREATER_EQUAL)
+	operator_option.add_item("<", Condition.Operator.LESS)
+	operator_option.add_item("<=", Condition.Operator.LESS_EQUAL)
+	operator_option.select(operator_option.get_item_index(condition.operator))
+	operator_option.item_selected.connect(func(_index):
+		var value: int = operator_option.get_selected_id()
+		_commit_field("Edit condition operator", func(): condition.operator = value)
+	)
+	row.add_child(operator_option)
+
+	row.add_child(_build_value_editor(condition.value, func(new_value): _commit_field("Edit condition value", func(): condition.value = new_value)))
+
+	var remove_button := Button.new()
+	remove_button.text = "×"
+	remove_button.pressed.connect(func():
+		_commit_field("Remove condition", func(): holder.conditions.erase(condition))
+		_rebuild_rows()
+	)
+	row.add_child(remove_button)
+
+	return row
+
+
+## `type_option` (Set Variable/Show Stage) picks between two pre-built
+## widget groups shown one at a time - same "build all, toggle .visible"
+## trick _build_value_editor() below already uses for its own String/Bool/
+## Int/Float picker. Show Stage's group_option has no "(root)" entry -
+## showing a stage for the mission root doesn't mean anything.
 func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
 	var row := HBoxContainer.new()
+
+	var type_option := OptionButton.new()
+	type_option.add_item("Set Variable", Effect.Type.SET_VARIABLE)
+	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
+	type_option.select(type_option.get_item_index(effect.type))
+	row.add_child(type_option)
 
 	var var_edit := LineEdit.new()
 	var_edit.text = effect.variable_name
@@ -195,7 +272,33 @@ func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
 	var_edit.focus_exited.connect(commit_var)
 	row.add_child(var_edit)
 
-	row.add_child(_build_value_editor(effect.value, func(new_value): _commit_field("Edit effect value", func(): effect.value = new_value)))
+	var value_editor := _build_value_editor(effect.value, func(new_value): _commit_field("Edit effect value", func(): effect.value = new_value))
+	row.add_child(value_editor)
+
+	var group_option := OptionButton.new()
+	var group_ids: Array[String] = []
+	for group in layered_map.mission.groups:
+		group_option.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)")
+		group_ids.append(group.id)
+	var initial_group_index := group_ids.find(effect.target_group_id)
+	group_option.select(initial_group_index)
+	group_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < group_ids.size():
+			_commit_field("Edit effect target stage", func(): effect.target_group_id = group_ids[index])
+	)
+	row.add_child(group_option)
+
+	var update_visibility := func():
+		var is_show_stage: bool = type_option.get_selected_id() == Effect.Type.SHOW_STAGE
+		var_edit.visible = not is_show_stage
+		value_editor.visible = not is_show_stage
+		group_option.visible = is_show_stage
+	update_visibility.call()
+	type_option.item_selected.connect(func(_index):
+		var new_type: int = type_option.get_selected_id()
+		_commit_field("Edit effect type", func(): effect.type = new_type)
+		update_visibility.call()
+	)
 
 	var remove_button := Button.new()
 	remove_button.text = "×"

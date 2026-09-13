@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/OperationHistory.gd" id="11_history"]
 [ext_resource type="Script" path="res://scripts/CreatorViewMenu.gd" id="12_viewmenu"]
 [ext_resource type="Script" path="res://scripts/CreatorAutosave.gd" id="13_autosave"]
+[ext_resource type="Script" path="res://scripts/CreatorToolbar.gd" id="14_toolbar"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -58,6 +59,12 @@ layered_map = NodePath("../../../../LayeredMap")
 [node name="View" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("creator_controller")]
 script = ExtResource("12_viewmenu")
 creator_controller = NodePath("../../../../CreatorController")
+
+[node name="Toolbar" type="HBoxContainer" parent="CanvasLayer/MainLayout" node_paths=PackedStringArray("creator_controller", "layered_map")]
+layout_mode = 2
+script = ExtResource("14_toolbar")
+creator_controller = NodePath("../../../CreatorController")
+layered_map = NodePath("../../../LayeredMap")
 
 [node name="EditorArea" type="HBoxContainer" parent="CanvasLayer/MainLayout"]
 layout_mode = 2
