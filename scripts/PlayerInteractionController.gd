@@ -233,15 +233,23 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
 
 	var option_labels: Array[String] = []
+	var option_disabled: Array[bool] = []
 	for action in actions:
 		option_labels.append(action.description if action.description != "" else action.action_id)
-	var choice: int = await dialog.ask_choice("%s: interact with '%s'" % [hero_name, label], option_labels)
+		option_disabled.append(action.single_shot and action.already_used)
+	var choice: int = await dialog.ask_choice("%s: interact with '%s'" % [hero_name, label], option_labels, option_disabled)
 
 	if choice < 0 or choice >= actions.size():
 		print("%s: cancelled interacting with '%s'" % [hero_name, label])
 		return
 
 	var action := actions[choice]
+	if action.single_shot and action.already_used:
+		# Shouldn't be reachable through a correctly-disabled button, but
+		# a used-up single-shot action must never actually fire again -
+		# cheap insurance rather than trusting the UI's disabled state alone.
+		print("%s: '%s' has already been used on '%s'" % [hero_name, action.description, label])
+		return
 	var objective := mission_runtime.fire_prop_action(action)
 	objectives_progressed.emit()
 	if objective != null:

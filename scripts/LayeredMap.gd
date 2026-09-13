@@ -183,6 +183,38 @@ func sync_prop_cell(origin: Vector3i, new_parent_id: String = "") -> void:
 	mission_objects_changed.emit()
 
 
+## Erases a placed prop or floor/underlay tile from its GridMap and
+## MissionData, by id - fired by an authored Effect.Type.REMOVE_OBJECT
+## (e.g. "opening this door removes it from the board", matching the
+## physical game's own rule that an opened door token comes off the board
+## entirely, or a floor tile collapsing into a pit). No-op if the id
+## doesn't resolve to anything currently placed (already removed, or
+## never existed). Props resync incrementally via the existing
+## sync_prop_cell() (same erase-then-resync sequence
+## CreatorController.erase_at_cursor() already uses - erasing the GridMap
+## cell FIRST is what makes sync_prop_cell() take its "cell already
+## erased" branch instead of the carry-over repaint branch); floor/
+## underlay tiles have no incremental single-cell sync (same as
+## CreatorController._sync_after_edit()'s existing routing), so those go
+## through a full rebuild instead.
+func remove_node(id: String) -> void:
+	var node := mission.find_node_by_id(id)
+	if node == null:
+		return
+	if node is InteractableEntry:
+		var entry := node as InteractableEntry
+		prop_grid.set_cell_item(entry.origin_cell, GridMap.INVALID_CELL_ITEM)
+		sync_prop_cell(entry.origin_cell)
+	elif node is TilePlacement:
+		var placement := node as TilePlacement
+		var grid := floor_grid if placement.layer == TilePlacement.Layer.FLOOR else underlay_grid
+		grid.set_cell_item(placement.origin_cell, GridMap.INVALID_CELL_ITEM)
+		if placement.layer == TilePlacement.Layer.FLOOR:
+			rebuild_floor_tiles()
+		else:
+			rebuild_underlay_tiles()
+
+
 ## For callers that mutate mission.groups/mission.interactables' parent_id
 ## directly (CreatorOutline.gd's group New/Rename/Delete/Move to... - none
 ## of that touches the GridMap the way sync_prop_cell() does, so there's

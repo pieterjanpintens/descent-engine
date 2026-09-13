@@ -140,6 +140,14 @@ func _build_action_block(action: PropAction) -> Control:
 	desc_edit.focus_exited.connect(commit_desc)
 	box.add_child(desc_edit)
 
+	var single_shot_check := CheckBox.new()
+	single_shot_check.text = "Single shot (becomes unavailable once used)"
+	single_shot_check.button_pressed = action.single_shot
+	single_shot_check.toggled.connect(func(pressed: bool):
+		_commit_field("Edit action single-shot", func(): action.single_shot = pressed)
+	)
+	box.add_child(single_shot_check)
+
 	box.add_child(HSeparator.new())
 	var conditions_label := Label.new()
 	conditions_label.text = "Conditions (implicit AND - when is this action offered to players):"
@@ -284,6 +292,7 @@ func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
 	var type_option := OptionButton.new()
 	type_option.add_item("Set Variable", Effect.Type.SET_VARIABLE)
 	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
+	type_option.add_item("Remove Object", Effect.Type.REMOVE_OBJECT)
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
@@ -308,11 +317,35 @@ func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
 	)
 	row.add_child(group_option)
 
+	## Every prop plus every floor/underlay tile - not groups, which have
+	## no GridMap presence to remove. The origin-cell suffix disambiguates
+	## entries sharing a mesh name (several "gate"s, or every plain "1a"
+	## floor tile) - genuinely needed here unlike the group picker above,
+	## since groups are already uniquely named.
+	var object_option := OptionButton.new()
+	var object_ids: Array[String] = []
+	var removable_nodes: Array = []
+	removable_nodes.append_array(layered_map.mission.interactables)
+	removable_nodes.append_array(layered_map.mission.floor_placements)
+	removable_nodes.append_array(layered_map.mission.underlay_placements)
+	for node in removable_nodes:
+		var label: String = node.reference_name if node.reference_name != "" else node.mesh_item_name
+		object_option.add_item("%s (%s)" % [label, node.origin_cell])
+		object_ids.append(node.id)
+	var initial_object_index := object_ids.find(effect.target_object_id)
+	object_option.select(initial_object_index)
+	object_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < object_ids.size():
+			_commit_field("Edit effect target object", func(): effect.target_object_id = object_ids[index])
+	)
+	row.add_child(object_option)
+
 	var update_visibility := func():
-		var is_show_stage: bool = type_option.get_selected_id() == Effect.Type.SHOW_STAGE
-		var_option.visible = not is_show_stage
-		value_editor.visible = not is_show_stage
-		group_option.visible = is_show_stage
+		var type: int = type_option.get_selected_id()
+		var_option.visible = type == Effect.Type.SET_VARIABLE
+		value_editor.visible = type == Effect.Type.SET_VARIABLE
+		group_option.visible = type == Effect.Type.SHOW_STAGE
+		object_option.visible = type == Effect.Type.REMOVE_OBJECT
 	update_visibility.call()
 	type_option.item_selected.connect(func(_index):
 		var new_type: int = type_option.get_selected_id()

@@ -112,7 +112,7 @@ func evaluate_conditions(conditions: Array[Condition]) -> bool:
 ## actually fires on drop.
 func first_available_action(entry: InteractableEntry) -> PropAction:
 	for action in entry.actions:
-		if evaluate_conditions(action.conditions):
+		if evaluate_conditions(action.conditions) and not (action.single_shot and action.already_used):
 			return action
 	print("MissionRuntime.first_available_action: '%s' (%d action(s) authored) - none currently available" % [entry.reference_name if entry.reference_name != "" else entry.mesh_item_name, entry.actions.size()])
 	return null
@@ -122,8 +122,12 @@ func first_available_action(entry: InteractableEntry) -> PropAction:
 ## the full candidate list for a picker UI (see PlayerInteractionController.
 ## _offer_actions()), unlike first_available_action() above which only
 ## returns the first (cheaper existence check, used to decide whether a
-## prop is interactable at all). Order matches entry.actions' own
-## declared order.
+## prop is interactable at all) AND additionally skips an exhausted
+## single-shot action. This list deliberately does NOT filter out an
+## exhausted single_shot action (single_shot and already_used) - the
+## picker is meant to still SHOW it, just disabled (see PropAction's own
+## doc), so the player can see it's been used rather than have it silently
+## vanish. Order matches entry.actions' own declared order.
 func available_actions(entry: InteractableEntry) -> Array[PropAction]:
 	var result: Array[PropAction] = []
 	for action in entry.actions:
@@ -142,11 +146,20 @@ func available_actions(entry: InteractableEntry) -> Array[PropAction]:
 ## _check_current_objectives() already uses for ending the game.
 var _pending_stage_reveals: Array[String] = []
 
+## Queued Effect.Type.REMOVE_OBJECT targets, same shape/reasoning as
+## _pending_stage_reveals above - drained by
+## drain_pending_object_removals() below.
+var _pending_object_removals: Array[String] = []
+
 
 func apply_effect(effect: Effect) -> void:
 	if effect.type == Effect.Type.SHOW_STAGE:
 		if effect.target_group_id != "":
 			_pending_stage_reveals.append(effect.target_group_id)
+		return
+	if effect.type == Effect.Type.REMOVE_OBJECT:
+		if effect.target_object_id != "":
+			_pending_object_removals.append(effect.target_object_id)
 		return
 	if BUILTIN_TYPES.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
@@ -176,6 +189,16 @@ func drain_pending_stage_reveals() -> Array[String]:
 	var reveals := _pending_stage_reveals
 	_pending_stage_reveals = []
 	return reveals
+
+
+## Clears and returns whatever Remove Object targets queued up since the
+## last drain - called by MissionPlayer right alongside
+## drain_pending_stage_reveals(), so it can call
+## LayeredMap.remove_node() for each.
+func drain_pending_object_removals() -> Array[String]:
+	var removals := _pending_object_removals
+	_pending_object_removals = []
+	return removals
 
 
 ## Fires every checkpoint-driven trigger due at `checkpoint`, then checks
@@ -213,6 +236,12 @@ func fire_event(event_id: String) -> MissionObjective:
 func fire_prop_action(action: PropAction) -> MissionObjective:
 	print("MissionRuntime.fire_prop_action: '%s' (action_id='%s', %d effect(s))" % [action.description, action.action_id, action.effects.size()])
 	apply_effects(action.effects)
+	if action.single_shot:
+		# Mutating the loaded PropAction resource instance directly is
+		# safe, same reasoning as MissionTrigger.already_fired -
+		# MissionIO.load_mission() already uses CACHE_MODE_IGNORE for a
+		# fresh instance never saved back.
+		action.already_used = true
 	return fire_event(action.action_id)
 
 

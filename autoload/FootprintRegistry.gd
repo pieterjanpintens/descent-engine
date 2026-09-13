@@ -830,18 +830,40 @@ func _looks_like_tile_face(mesh_item_name: String) -> bool:
 	return digits.is_valid_int()
 
 
-## Marks every cell of an already-rotated footprint as occupied by origin.
+## Marks every cell of an already-rotated footprint as occupied by origin,
+## alongside any other prop already occupying the same cell(s) - multiple
+## props CAN legitimately overlap (e.g. a gate inside an archway), so this
+## appends origin to that cell's owner list rather than overwriting
+## whatever was there before. See MissionData.occupied_cells/
+## resolve_prop_priority() for how a single "the" prop gets picked back
+## out of a cell with more than one owner. Reads through
+## MissionData.prop_owners_at() (not occupied_cells directly) so an old
+## mission's still-single-owner-format cells get migrated to the new
+## Array format on first touch - see that method's own doc.
 func mark_occupied(mission: MissionData, origin: Vector3i, footprint: Array[Vector3i]) -> void:
 	for offset in footprint:
 		var cell: Vector3i = origin + offset
-		mission.occupied_cells[cell] = origin
+		var owners := mission.prop_owners_at(cell)
+		if not owners.has(origin):
+			owners.append(origin)
+		mission.occupied_cells[cell] = owners
 
 
-## Clears every cell of an already-rotated footprint, but only if it's
-## still owned by origin (avoids clobbering a different item that
-## happens to overlap the same cells after edits).
+## Clears every cell of an already-rotated footprint that's owned by
+## origin, WITHOUT touching any other prop's claim on the same cell(s).
+## Confirmed 2026-09-13 as the actual root cause of a real "gate becomes
+## permanently unselectable once placed inside an archway" bug: the old
+## single-owner version only ever ERASED a cell, never restored a
+## previous owner, so deleting the prop that overwrote another's cells
+## left them simply empty instead of falling back to whatever else still
+## legitimately occupies them - this fixes that generically, not just for
+## gates/archways specifically.
 func clear_occupied(mission: MissionData, origin: Vector3i, footprint: Array[Vector3i]) -> void:
 	for offset in footprint:
 		var cell: Vector3i = origin + offset
-		if mission.occupied_cells.get(cell) == origin:
+		var owners := mission.prop_owners_at(cell)
+		owners.erase(origin)
+		if owners.is_empty():
 			mission.occupied_cells.erase(cell)
+		else:
+			mission.occupied_cells[cell] = owners

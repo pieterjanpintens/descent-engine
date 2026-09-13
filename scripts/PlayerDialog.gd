@@ -127,12 +127,19 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99) -> int:
 ## build its own "and let them back out" affordance. Used by
 ## PlayerInteractionController's action picker (new 2026-09-14 - "which
 ## of this prop's currently-available actions do you mean?").
-func ask_choice(text: String, option_labels: Array[String]) -> int:
+## `option_disabled` (new 2026-09-14, e.g. an exhausted single_shot
+## PropAction - see MissionRuntime.available_actions()/PropAction's own
+## doc) greys out that option's button rather than omitting it, so the
+## player can see it exists but can no longer be chosen. Defaults to all
+## enabled - a shorter (or empty) array than option_labels just leaves the
+## remaining ones enabled.
+func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = []) -> int:
 	_label.text = text
 	_count_input.visible = false
 	var specs: Array = []
 	for i in option_labels.size():
-		specs.append({"text": option_labels[i], "result": i})
+		var disabled: bool = option_disabled[i] if i < option_disabled.size() else false
+		specs.append({"text": option_labels[i], "result": i, "disabled": disabled})
 	specs.append({"text": "Cancel", "result": -1})
 	_set_buttons(specs)
 	visible = true
@@ -169,6 +176,7 @@ func _set_buttons(specs: Array) -> void:
 	for spec in specs:
 		var btn := Button.new()
 		btn.text = spec["text"]
+		btn.disabled = spec.get("disabled", false)
 		btn.pressed.connect(_on_button_pressed.bind(spec["result"]))
 		_button_row.add_child(btn)
 

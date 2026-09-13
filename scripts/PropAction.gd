@@ -20,6 +20,29 @@ extends Resource
 ## manual designer on/off switch for the WHOLE prop) - both apply
 ## together, conditions just add finer-grained, state-driven control per
 ## action.
+##
+## `single_shot`/`already_used` (new 2026-09-14) - same one_shot/
+## already_fired shape as MissionTrigger, but deliberately a SEPARATE gate
+## from `conditions` above rather than folded into it: `conditions` is
+## author-defined state ("is the chest already searched"), this is
+## intrinsic "has this specific action already fired" runtime bookkeeping,
+## same distinction MissionTrigger already draws between its own
+## `conditions` and `one_shot`/`already_fired`. Unlike `conditions` (which
+## removes an action from every candidate list the moment it stops
+## holding), an exhausted single-shot action still appears in
+## MissionRuntime.available_actions() - PlayerInteractionController's
+## picker shows it with its button disabled rather than hiding it, so the
+## player can see it's been used. MissionRuntime.first_available_action()
+## (the cheap existence check gating hover-highlight) DOES skip it, same
+## as an action whose conditions don't hold - if every action on a prop is
+## either condition-gated-off or an exhausted single-shot, the prop reads
+## as not currently interactable at all. Defaults `false` (unlike
+## MissionTrigger.one_shot's `true` default) - most prop actions (push,
+## search, talk) are naturally repeatable; single-shot is an opt-in for
+## the ones that aren't (e.g. opening a door that then removes itself via
+## Effect.Type.REMOVE_OBJECT).
+@export var single_shot: bool = false
+@export var already_used: bool = false
 
 @export var action_id: String = ""    ## short, stable id - e.g. "push"
 @export var description: String = "" ## shown to the player - e.g. "You can push this lever"

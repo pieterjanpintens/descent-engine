@@ -1168,10 +1168,32 @@ func select_at_cursor() -> void:
 
 func _origin_for_hit(hit_grid: GridMap, hit_cell: Vector3i) -> Vector3i:
 	if hit_grid == layered_map.prop_grid:
-		return _find_origin(layered_map.mission.occupied_cells, hit_cell)
+		return _find_prop_origin(hit_cell)
 	if hit_grid == layered_map.underlay_grid:
 		return _find_origin(layered_map.mission.underlay_occupied_cells, hit_cell)
 	return _find_origin(layered_map.mission.floor_occupied_cells, hit_cell)
+
+
+## Prop-layer counterpart to _find_origin() below - occupied_cells now
+## supports multiple overlapping owners per cell (e.g. a gate inside an
+## archway), so this can't reuse _find_origin()'s single-Vector3i-value
+## dictionary walk. Same X/Z-column-ignoring-Y fallback as _find_origin()
+## (for a mesh taller than one cell, e.g. "tall"), and defers to
+## MissionData.resolve_prop_priority() for picking one when several
+## overlap - the same rule get_interactable_at() uses, so Creator
+## select/erase always agrees with what the Player would resolve to.
+func _find_prop_origin(hit_cell: Vector3i) -> Vector3i:
+	var owners := layered_map.mission.prop_owners_at(hit_cell)
+	if owners.is_empty():
+		for key in layered_map.mission.occupied_cells.keys():
+			if key.x == hit_cell.x and key.z == hit_cell.z:
+				owners = layered_map.mission.prop_owners_at(key)
+				if not owners.is_empty():
+					break
+	if owners.is_empty():
+		print("Nothing found")
+		return hit_cell
+	return layered_map.mission.resolve_prop_priority(owners)
 
 
 ## Raycasts from the current mouse position into the 3D scene and resolves
@@ -1228,6 +1250,10 @@ func _raycast_hit_cell(caller_tag: String) -> Dictionary:
 ## needed because a mesh can render much taller than the single GridMap
 ## cell it's actually painted at (e.g. the "tall" pillar), so a raycast hit
 ## partway up it lands at a Y index that doesn't match the real placement.
+## Floor/underlay only now (single-owner-per-cell) - the prop layer has
+## its own _find_prop_origin() above, since occupied_cells' value shape
+## (an Array of overlapping owners, not one Vector3i) no longer fits this
+## generic dictionary walk.
 func _find_origin(occupancy_map: Dictionary, hit_cell: Vector3i) -> Vector3i:
 	if occupancy_map.has(hit_cell):
 		return occupancy_map[hit_cell]

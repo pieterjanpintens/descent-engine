@@ -40,10 +40,17 @@ extends Resource
 ## cell does GridMap need to actually be told to erase."
 @export var floor_occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Vector3i]
 
-## Multi-cell occupancy index. Key = any cell covered by a placed item,
-## Value = the "owner" cell where that item's GridMap entry actually lives.
-## Populated by FootprintRegistry.register_item(), consumed by movement/LOS.
-@export var occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Vector3i]
+## Multi-cell occupancy index. Key = any cell covered by a placed prop,
+## Value = an Array of every prop's origin cell whose footprint covers it
+## (usually one - multiple means an intentional overlap, e.g. a gate
+## inside an archway, confirmed 2026-09-13 as a real authored case, see
+## FootprintRegistry.mark_occupied()/clear_occupied()). Use
+## prop_owners_at()/resolve_prop_priority() below to resolve back down to
+## a single prop when exactly one is needed. Populated by
+## FootprintRegistry.mark_occupied()/clear_occupied(), consumed by
+## movement/LOS (is_walkable() below) and interaction
+## (get_interactable_at() below).
+@export var occupied_cells: Dictionary = {}  # Dictionary[Vector3i, Array] - Array[Vector3i]
 
 ## Underlay layer (water/acid/lava/spikes physical paper pieces that sit
 ## beneath the floor tiles) - a separate painted layer, NOT folded into
@@ -120,6 +127,27 @@ func allocate_object_id() -> String:
 	return result
 
 
+## Finds a placed prop or floor/underlay tile by its OutlineNode id -
+## resolves what Effect.Type.REMOVE_OBJECT targets (see
+## MissionRuntime.apply_effect()/LayeredMap.remove_node()), and what the
+## effect-authoring dropdown in ObjectivesDialog.gd/PropActionsDialog.gd
+## lists. Groups aren't included - they have no GridMap presence to
+## remove. ids are globally unique (allocate_object_id() is one shared
+## counter across every OutlineNode subtype, not per-collection), so
+## searching all three in sequence is unambiguous.
+func find_node_by_id(id: String) -> OutlineNode:
+	for entry in interactables:
+		if entry.id == id:
+			return entry
+	for placement in floor_placements:
+		if placement.id == id:
+			return placement
+	for placement in underlay_placements:
+		if placement.id == id:
+			return placement
+	return null
+
+
 func get_tile(cell: Vector3i) -> TileEntry:
 	return tiles.get(cell, null)
 
@@ -149,11 +177,73 @@ func blocks_los(cell: Vector3i) -> bool:
 
 
 func get_interactable_at(cell: Vector3i) -> InteractableEntry:
-	if not occupied_cells.has(cell):
+	var owners := prop_owners_at(cell)
+	if owners.is_empty():
 		return null
-	var owner_cell: Vector3i = occupied_cells[cell]
+	return _find_interactable_by_origin(resolve_prop_priority(owners))
+
+
+## Every prop origin whose footprint currently covers `cell` - empty if
+## nothing does. Order is placement order (see
+## FootprintRegistry.mark_occupied()), not priority - see
+## resolve_prop_priority() below for picking "the" one to act on.
+##
+## Also the ONE place that migrates a cell still in the OLD single-owner
+## format (a bare Vector3i, from a mission saved before the 2026-09-14
+## multi-owner occupancy rework) into the new Array format - confirmed as
+## a real bug 2026-09-14: any pre-existing mission file has occupied_cells
+## entries shaped the old way, so the very next edit that reached
+## FootprintRegistry.mark_occupied()/clear_occupied() crashed with
+## "Trying to assign value of type 'Vector3i' to a variable of type
+## 'Array'" the moment it tried to treat one as an Array. Both of those
+## functions route through this method now (rather than reading
+## occupied_cells directly) specifically so this migration only has to
+## live in one place.
+func prop_owners_at(cell: Vector3i) -> Array:
+	if not occupied_cells.has(cell):
+		return []
+	var value = occupied_cells[cell]
+	if value is Array:
+		return value
+	var migrated: Array = [value]
+	occupied_cells[cell] = migrated
+	return migrated
+
+
+## Picks the single "most specific" origin out of a non-empty list of
+## overlapping prop owners (see prop_owners_at()) - for every caller that
+## needs exactly one: get_interactable_at() above, Creator select/erase
+## raycast resolution (CreatorController._find_prop_origin()), and the
+## Player's own hover/drop hit-test (via get_interactable_at()).
+## Smallest footprint wins - a generic "more specific object wins over a
+## larger structural one" rule, not a gate/archway special case: this is
+## what makes a gate correctly win over the archway it sits inside (the
+## gate's footprint is a strict subset of the archway's), with zero
+## authoring needed on either prop. Ties (equal footprint size) break
+## toward whichever was placed most recently (last in `owners`) -
+## arbitrary but deterministic. Callers must check
+## prop_owners_at().is_empty() first; calling this with an empty array is
+## a caller bug, not defended against.
+func resolve_prop_priority(owners: Array) -> Vector3i:
+	var best: Vector3i = owners[0]
+	var best_size := _prop_footprint_size(best)
+	for i in range(1, owners.size()):
+		var candidate: Vector3i = owners[i]
+		var size := _prop_footprint_size(candidate)
+		if size <= best_size:
+			best = candidate
+			best_size = size
+	return best
+
+
+func _prop_footprint_size(origin: Vector3i) -> int:
+	var entry := _find_interactable_by_origin(origin)
+	return entry.footprint.size() if entry != null else 999999
+
+
+func _find_interactable_by_origin(origin: Vector3i) -> InteractableEntry:
 	for entry in interactables:
-		if entry.origin_cell == owner_cell:
+		if entry.origin_cell == origin:
 			return entry
 	return null
 

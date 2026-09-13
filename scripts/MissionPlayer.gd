@@ -266,6 +266,8 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	_refresh_objective_label()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
+	for removed_id in _runtime.drain_pending_object_removals():
+		layered_map.remove_node(removed_id)
 	if objective == null:
 		return true
 	await _handle_game_over(objective)
@@ -294,11 +296,13 @@ func _on_game_over_requested(objective: MissionObjective) -> void:
 
 
 ## A fired PropAction can advance the DAG frontier and/or queue a Show
-## Stage reveal without necessarily ending the game (game_over_requested
-## alone wouldn't cover either) - refreshes the objective label and drains
-## any pending stage reveals the same way _advance_to() does for the
-## checkpoint-driven path.
+## Stage reveal or a Remove Object removal without necessarily ending the
+## game (game_over_requested alone wouldn't cover any of those) -
+## refreshes the objective label and drains both pending queues the same
+## way _advance_to() does for the checkpoint-driven path.
 func _on_objectives_progressed() -> void:
 	_refresh_objective_label()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
+	for removed_id in _runtime.drain_pending_object_removals():
+		layered_map.remove_node(removed_id)

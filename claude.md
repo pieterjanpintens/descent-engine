@@ -24,8 +24,22 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   `tiles` (Dict[Vector3i, TileEntry] — flattened per-cell walkable/LOS data),
   `floor_placements` (Array[TilePlacement] — raw paint records: origin+mesh+orientation,
   needed to *repaint* the floor GridMap from saved data), `floor_occupied_cells`
-  (Dict[Vector3i, Vector3i] — every covered cell → its origin, the floor equivalent of
-  `occupied_cells`), `occupied_cells` (same but for props), `underlay_placements` /
+  (Dict[Vector3i, Vector3i] — every covered cell → its origin, single-owner —
+  floor tiles don't physically stack), `occupied_cells` (the prop equivalent,
+  but **multi-owner**: Dict[Vector3i, Array] — every covered cell → an Array
+  of every prop's origin cell whose footprint covers it, usually one entry
+  but more than one is a legitimate, supported overlap, e.g. a gate inside an
+  archway — see `FootprintRegistry.mark_occupied()`/`clear_occupied()` and
+  `get_interactable_at()`/`prop_owners_at()`/`resolve_prop_priority()` below
+  for how this is populated and resolved back to a single prop -
+  `prop_owners_at()` also transparently migrates a cell still in the OLD
+  single-owner format (a bare `Vector3i`, from a mission saved before
+  this rework - confirmed as a real bug the same day: the very next edit
+  that reached `mark_occupied()`/`clear_occupied()` on such a mission
+  crashed with `Trying to assign value of type 'Vector3i' to a variable
+  of type 'Array'`) into the new Array format on first touch, since both
+  functions read through it rather than `occupied_cells` directly),
+  `underlay_placements` /
   `underlay_occupied_cells` (floor-equivalent pair for the underlay hazard layer — kept
   as its OWN separate pair rather than folded into `floor_placements`/`tiles`, because
   an underlay hazard physically coexists with whatever floor tile sits on the same
@@ -42,7 +56,17 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   the Creator). Methods: `get_tile()`,
   `is_walkable()`, `blocks_los()` (simplified 2026-09-10 to just the floor
   `TileEntry`'s own flag, once `InteractableEntry.blocks_los` was
-  removed as unused — see that entry below), `get_interactable_at()`,
+  removed as unused — see that entry below), `get_interactable_at()`
+  (**reworked 2026-09-13** to resolve through `occupied_cells`' multi-owner
+  shape: `prop_owners_at(cell)` returns every prop origin covering a cell,
+  `resolve_prop_priority(owners)` picks the single "most specific" one —
+  smallest footprint wins, a generic "specific object over a large
+  structural one" heuristic requiring no authored priority field, confirmed
+  against the real gate-inside-archway case where the gate's footprint is a
+  strict subset of the archway's; ties break toward the most recently
+  placed. `CreatorController._find_prop_origin()` uses the same two methods
+  for raycast select/erase, so Creator and Player always agree on which
+  prop a shared cell resolves to),
   `get_level_links_from()`, `get_component_usage()` (tallies floor + underlay +
   prop placements together for `ComponentInventory`). New 2026-09-14, all
   pure derived-view queries over current data (same category as the
@@ -56,7 +80,16 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   `is_effectively_visible()` — pillars split out of `interactables` via
   `FootprintRegistry.allows_fine_placement()`, the existing exact-name
   check for `tall`/`mini`/`medium`), `find_starting_group_ids()` (which
-  group(s) cover `player_spawn_cells`, for the auto-revealed starting room).
+  group(s) cover `player_spawn_cells`, for the auto-revealed starting room),
+  `find_node_by_id(id)` (new 2026-09-14, returns whichever
+  `InteractableEntry`/`TilePlacement` has that `OutlineNode.id` - searches
+  `interactables`/`floor_placements`/`underlay_placements` in that order;
+  groups aren't included, they have no GridMap presence to remove; safe
+  to search all three since ids are globally unique -
+  `allocate_object_id()` is one shared counter across every `OutlineNode`
+  subtype, not per-collection - what `Effect.Type.REMOVE_OBJECT` resolves
+  through, see `MissionRuntime.apply_effect()`/`LayeredMap.remove_node()`
+  and **Story layer**'s `Effect` entry).
 - `TileEntry` — mesh_item_name, walkable, blocks_los, region_id. Unrelated
   to `OutlineNode` below despite the similar-sounding `blocks_los` name —
   this is the flattened per-CELL floor logical data, not a placed
@@ -150,17 +183,30 @@ deliberately basic for now - no AND/OR nesting, no cross-object queries, no
 increment/expression support. `conditions: Array[Condition]` anywhere in this
 system is an implicit AND across every entry.
 
-**`Effect` gained a second kind 2026-09-14**: `type` (`Effect.Type` enum
-`SET_VARIABLE`/`SHOW_STAGE`, defaults `SET_VARIABLE` - every existing
-saved `Effect` loads at this default, matching its old behavior exactly,
-purely additive). `SET_VARIABLE` is everything described above
-(`variable_name`+`value`). `SHOW_STAGE` instead carries `target_group_id`
-(a `MissionGroup.id`) and means "reveal this stage" - see **"Show Stage":
-board setup + group visibility** below. Both live in ONE `Effect` type
-rather than a separate effect class specifically so every existing
+**`Effect` gained a second kind 2026-09-14, then a third the same day**:
+`type` (`Effect.Type` enum `SET_VARIABLE`/`SHOW_STAGE`/`REMOVE_OBJECT`,
+defaults `SET_VARIABLE` - every existing saved `Effect` loads at this
+default, matching its old behavior exactly, purely additive). `SET_VARIABLE`
+is everything described above (`variable_name`+`value`). `SHOW_STAGE`
+instead carries `target_group_id` (a `MissionGroup.id`) and means "reveal
+this stage" - see **"Show Stage": board setup + group visibility** below.
+`REMOVE_OBJECT` carries `target_object_id` (an `InteractableEntry` or
+`TilePlacement`'s `id` - not a `MissionGroup`, which has no GridMap presence
+to remove) and means "erase this prop or floor/underlay tile from the
+board entirely" - requested for a door that should disappear once opened
+(matching the physical game's own rule - an opened door token comes off
+the board, rather than just being marked open), then immediately
+generalized ("in general we should have an effect to remove things") so it
+targets any placed prop or tile, picked by name, not a door/gate special
+case. See `MissionRuntime.apply_effect()`/`LayeredMap.remove_node()` below
+for how removal actually happens - same "runtime queues an id, the caller
+with scene access acts on it" split `SHOW_STAGE` already established, since
+`MissionRuntime` (a `RefCounted` with no scene/UI access) can't touch
+`LayeredMap` itself. All three live in ONE `Effect` type rather than
+separate effect classes specifically so every existing
 `effects: Array[Effect]` list (`PropAction`, `MissionTrigger`,
-`MissionObjective`/its `optional_objectives`) gets Show Stage for free -
-no second list needed anywhere.
+`MissionObjective`/its `optional_objectives`) gets Show Stage/Remove Object
+for free - no second/third list needed anywhere.
 
 **One variable registry, three ways to fill it**: `MissionVariable` (name +
 Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
@@ -209,6 +255,37 @@ is released, so a prop offering several simultaneously-available actions
 (e.g. a tree with "pick fruit" and "climb") actually lets the table
 choose which one, rather than always firing whichever happens to be
 first (see that script's own entry below).
+
+`PropAction` also has `single_shot`/`already_used` (new 2026-09-14, same
+one_shot/already_fired shape as `MissionTrigger`, but a deliberately
+SEPARATE gate from `conditions` above rather than folded into it -
+`conditions` is author-defined state, this is intrinsic "has this action
+already fired" runtime bookkeeping, same split `MissionTrigger` already
+draws). Requested so an action like "open door" can become permanently
+unavailable once used, without needing an author-managed variable just to
+fake that. `fire_prop_action()` sets `already_used = true` after firing,
+same "mutate the loaded resource directly" safety as
+`MissionTrigger.already_fired` (`MissionIO.load_mission()` uses
+`CACHE_MODE_IGNORE`, never saved back). `first_available_action()` (the
+existence check gating hover-highlight) skips an exhausted single-shot
+action, same as one whose `conditions` don't hold - but
+`available_actions()` (the picker's candidate list) deliberately does
+NOT: an exhausted single-shot action still appears there, so
+`PlayerInteractionController`'s `ask_choice()` picker can show it with its
+button disabled rather than silently removing it - "the UI must still
+show them, but the button must be disabled" was the exact request. Wired
+through `PlayerDialog.ask_choice()`'s new `option_disabled: Array[bool]`
+parameter (defaults all-enabled, so its one pre-existing caller and any
+future one that doesn't care both work unchanged) and
+`_set_buttons()`'s new `spec.get("disabled", false)` read - see
+`PlayerDialog.gd`'s own entry below. Defaults `single_shot = false`
+(unlike `MissionTrigger.one_shot`'s `true` default) - most prop actions
+(push, search, talk) are naturally repeatable, this is an opt-in for the
+ones that aren't. Authored via a "Single shot" `CheckBox` in
+`PropActionsDialog.gd`'s per-action block (see that script's own entry
+below) - `already_used` itself has no authoring UI, it's pure runtime
+state that's always `false` again the moment a mission is freshly loaded
+(Creator and Player never share a live `MissionData` instance).
 
 **"Show Stage": board setup + group visibility cascade** (new 2026-09-14) -
 an `Effect.Type.SHOW_STAGE` firing means "reveal this `MissionGroup` as
@@ -384,11 +461,15 @@ evaluated identically by every `Condition`/`Effect`.
   `variable_name`): a SHOW_STAGE effect just appends `target_group_id` to
   `_pending_stage_reveals` (this class has no scene/UI access to show a
   dialog or touch `LayeredMap` itself - see **Story layer**'s "Show
-  Stage" entry) and returns. Everything else (a SET_VARIABLE effect, the
-  common case) keeps the SAME coercion/warning discipline as conditions,
-  plus one extra rule: writing a `BUILTIN_TYPES` key is
-  rejected (`push_warning()` + skip) - `round_number`/`player_count` are
-  runtime-owned, never author-writable via an `Effect`.
+  Stage" entry) and returns; a REMOVE_OBJECT effect (new 2026-09-14, same
+  branch structure, checked right alongside SHOW_STAGE) just appends
+  `target_object_id` to `_pending_object_removals` and returns, for the
+  same reason - it can't call `LayeredMap.remove_node()` itself. Everything
+  else (a SET_VARIABLE effect, the common case) keeps the SAME coercion/
+  warning discipline as conditions, plus one extra rule: writing a
+  `BUILTIN_TYPES` key is rejected (`push_warning()` + skip) -
+  `round_number`/`player_count` are runtime-owned, never author-writable
+  via an `Effect`.
 - `drain_pending_stage_reveals() -> Array[String]` (new 2026-09-14) -
   clears and returns `_pending_stage_reveals`. `MissionPlayer` calls this
   right after anything that can apply effects (`evaluate_checkpoint()`
@@ -396,6 +477,12 @@ evaluated identically by every `Condition`/`Effect`.
   `_on_objectives_progressed()`) and `await`s `show_stage()` for each -
   same "return a value, let the caller decide" shape
   `_check_current_objectives()` already uses for ending the game.
+  `drain_pending_object_removals() -> Array[String]` (new 2026-09-14,
+  same day, identical shape) - clears and returns
+  `_pending_object_removals`; `MissionPlayer` calls this right alongside
+  the stage-reveal drain (same two call sites) and calls
+  `layered_map.remove_node()` for each - no `await` needed, unlike a
+  stage reveal there's no dialog to show.
 - `evaluate_checkpoint(checkpoint) -> MissionObjective` (nullable) -
   gathers `mission.triggers` whose `checkpoint` matches (a plain `for`
   loop into an explicitly-typed local `Array[MissionTrigger]`, not
@@ -573,7 +660,28 @@ first working version).
 	`"prop"` unless overridden.
   - `LOGICAL_DEFAULTS` (prefix-based) / `LOGICAL_OVERRIDES` (exact-name) — auto-fill
 	walkable/blocks_los from mesh naming convention.
-  - `mark_occupied()` / `clear_occupied()` — occupancy bookkeeping helpers.
+  - `mark_occupied()` / `clear_occupied()` — occupancy bookkeeping helpers,
+	writing to `MissionData.occupied_cells` (props only — `floor_occupied_cells`/
+	`underlay_occupied_cells` stay single-owner, untouched by this).
+	**Reworked 2026-09-13 to support overlapping props generically** (was:
+	single-owner-per-cell, last-write-wins on `mark_occupied()`, and
+	`clear_occupied()` only ever erased a cell's single owner rather than
+	restoring a previous one — confirmed as the root cause of a real bug
+	where placing an archway over a gate permanently shadowed the gate from
+	every cell-based lookup in both Creator and Player, and erasing the
+	archway afterward didn't bring the gate back either, since there was no
+	concept of "restore the previous owner"). Now each cell maps to an
+	Array of every prop origin currently covering it: `mark_occupied()`
+	appends (guarded against duplicates) instead of overwriting,
+	`clear_occupied()` removes only the clearing prop's own entry from each
+	cell's owner list (erasing the cell key entirely only once the list is
+	empty) — so two (or more) props can freely overlap, and erasing one
+	never disturbs another's claim on shared cells. See
+	`MissionData.occupied_cells`/`get_interactable_at()`/`prop_owners_at()`/
+	`resolve_prop_priority()` above for how a single "the" prop gets
+	resolved back out of a multi-owner cell, and
+	`CreatorController._find_prop_origin()` for the Creator-side raycast
+	counterpart.
 - `ComponentInventory` — tracks physical piece counts so the Creator can block designs
   that need more copies of a tile/pillar than physically exist. `MESH_TO_GROUP` groups
   both faces of a double-sided tile (`1a`/`1b`) into one shared count pool (they're one
@@ -682,6 +790,32 @@ first working version).
 	re-painting an already-correctly-painted cell is harmless
 	(`set_cell_item()` just sets the same item again), so a full rescan is
 	simplest-first correct with no per-entry "was this hidden" bookkeeping.
+  - `remove_node(id)` (new 2026-09-14) — the Player-runtime counterpart to
+	Creator's `erase_at_cursor()`: erases a placed prop or floor/underlay
+	tile from its GridMap and `MissionData`, by `OutlineNode.id`, resolved
+	via `MissionData.find_node_by_id()`. Fired by an authored
+	`Effect.Type.REMOVE_OBJECT` — see **Story layer**'s `Effect` entry and
+	`MissionRuntime.apply_effect()`'s own entry for the full mechanism. A
+	prop (`InteractableEntry`) resyncs incrementally via the existing
+	`sync_prop_cell()` (erase the GridMap cell first, THEN call it, so it
+	takes its own "cell already erased" branch instead of the carry-over
+	repaint branch — same sequence `erase_at_cursor()` already uses); a
+	floor/underlay tile (`TilePlacement`) has no incremental single-cell
+	sync (same as `CreatorController._sync_after_edit()`'s existing
+	routing for those two layers), so it goes through a full
+	`rebuild_floor_tiles()`/`rebuild_underlay_tiles()` instead — branches
+	on `node is InteractableEntry`/`is TilePlacement` (with an explicit
+	`as` cast either way, since GDScript doesn't narrow a variable's
+	static type after an `is` check — confirmed against this project's
+	own existing `CreatorPropertiesPanel.gd` precedent before assuming
+	it). Composes correctly with the same day's earlier overlapping-props
+	fix for free: erasing a door that shares cells with something else
+	(a gate under an archway) only clears the door's own
+	`occupied_cells` claim via `FootprintRegistry.clear_occupied()`.
+	Removing a floor tile makes that cell unwalkable
+	(`MissionData.is_walkable()` already returns false once
+	`get_tile(cell)` is null) — not a new rule, just newly reachable from
+	an effect instead of only a Creator-side erase.
   - `find_item_id(grid, mesh_name)` — MeshLibrary name→id lookup (public, used by
 	`CreatorController` too).
   - `set_spawn_overlay_cells(cells)` / `set_spawn_overlay_visible(bool)` — the
@@ -879,7 +1013,13 @@ first working version).
 	translates the hit cell back to the actual painted origin via
 	`occupied_cells`/`floor_occupied_cells`/`underlay_occupied_cells`, with a
 	column-fallback (match X/Z, ignore Y) for meshes taller than one cell (e.g. the
-	`tall` pillar).
+	`tall` pillar). Floor/underlay resolve through `_find_origin()` (single-owner
+	dictionary walk); props go through a separate `_find_prop_origin()`
+	(2026-09-13, once `occupied_cells` became multi-owner — see
+	`MissionData.occupied_cells`'s own entry above) which resolves an
+	overlapping cell via `MissionData.resolve_prop_priority()`, the same
+	smallest-footprint-wins rule the Player uses — so selecting/erasing a
+	gate sitting inside an archway now works correctly from either app.
   - Debug overlays, all toggleable: ghost preview, reference grid lines, world-origin
 	axis gizmo, an occupancy overlay (`O` key) that draws wireframe boxes of what
 	`floor_occupied_cells`/`occupied_cells`/`underlay_occupied_cells` actually think is
@@ -1253,13 +1393,16 @@ first working version).
 	directly after `.new()`, no `.tscn` node. Simpler than
 	`ObjectivesDialog`'s DAG editor since a `PropAction` has no
 	children/branching - just a flat scrollable list, one `PanelContainer`
-	block per action (Action id / Description LineEdits, a Conditions
+	block per action (Action id / Description LineEdits, a "Single shot"
+	`CheckBox` new 2026-09-14 writing `PropAction.single_shot` - see that
+	field's own entry above, `already_used` itself has no authoring UI
+	since it's pure runtime state - a Conditions
 	list new 2026-09-14 - see `PropAction.conditions`' own entry above,
 	gates whether this action is currently OFFERED to players at all -
 	and a nested Effects list with its own Add/Remove - each effect row's
-	leading `Effect.Type` picker toggles Set Variable vs. Show Stage
-	exactly the same way `ObjectivesDialog`'s own effect rows do, see that
-	script's entry above), plus an "Add Action" button.
+	leading `Effect.Type` picker toggles Set Variable / Show Stage /
+	Remove Object exactly the same way `ObjectivesDialog`'s own effect
+	rows do, see that script's entry above), plus an "Add Action" button.
 	Each block's condition/effect rows and value-type editor
 	(`_build_condition_row()`/`_build_effect_row()`/`_build_value_editor()`,
 	plus `_build_variable_name_option()`/`_known_variable_names()` -
@@ -1383,12 +1526,20 @@ first working version).
 	file; selects nothing/blank rather than silently picking the first
 	entry if the currently-set name isn't among them, e.g. authored before
 	the variable was declared). `_build_effect_row()` also gained a leading `Effect.Type` `OptionButton`
-	("Set Variable"/"Show Stage", new 2026-09-14) that toggles between the
-	variable_name+value widgets above and a group-picker `OptionButton`
-	(`mission.groups`, no "(root)" entry) writing `effect.target_group_id`
-	- same "build both widget groups, toggle `.visible`" trick
-	`_build_value_editor()` already uses for its own type picker. And
-	Optional Objectives as a list of rows each with an "Edit…" button
+	("Set Variable"/"Show Stage"/"Remove Object", the third new 2026-09-14
+	the same day as the type itself) that toggles between three widget
+	groups (same "build them all, toggle `.visible`" trick
+	`_build_value_editor()` already uses for its own type picker): the
+	variable_name+value widgets above for SET_VARIABLE, a group-picker
+	`OptionButton` (`mission.groups`, no "(root)" entry) writing
+	`effect.target_group_id` for SHOW_STAGE, and an object-picker
+	`OptionButton` (every entry in `mission.interactables` +
+	`floor_placements` + `underlay_placements`, labeled
+	`"<name> (<origin_cell>)"` - the cell disambiguates entries sharing a
+	mesh name, e.g. several "gate"s or every plain "1a" floor tile, unlike
+	the group picker which doesn't need it since groups are already
+	uniquely named) writing `effect.target_object_id` for REMOVE_OBJECT.
+	And Optional Objectives as a list of rows each with an "Edit…" button
 	opening a small **nested** `Window` (`_open_optional_editor()` -
 	description + its own Conditions/Effects list, reusing the exact same
 	row-builder helpers) - the "a dialog opens a smaller dialog" pattern
@@ -1683,7 +1834,11 @@ first working version).
   `_runtime.drain_pending_stage_reveals()` right after
   `evaluate_checkpoint()`, alongside the `_refresh_objective_label()`
   call), and the new `_on_objectives_progressed()` (same drain, after a
-  fired `PropAction`). Still **no
+  fired `PropAction`). Both of those same two call sites also drain
+  `_runtime.drain_pending_object_removals()` (new 2026-09-14, same day as
+  `Effect.Type.REMOVE_OBJECT` itself) right alongside the stage-reveal
+  drain, calling `layered_map.remove_node(id)` for each - no `await`
+  needed, unlike a stage reveal there's no dialog to show. Still **no
   actual movement/LOS/player-position tracking** — the app never tracks
   real positions (see **Story layer**), which is why "players spawn" is
   just a highlighted area + a confirmation dialog, not anything the app
@@ -1707,12 +1862,19 @@ first working version).
   dialog, built at runtime (same reasoning as `CreatorPalette` - content/
   buttons vary per call): `ask_ok(text)`, `ask_yes_no(text) -> bool`,
   `ask_count(text, min, max) -> int`, `ask_narrative(pages) -> void`
-  (OK/NEXT/BACK through multiple pages), `ask_choice(text, option_labels) -> int`
+  (OK/NEXT/BACK through multiple pages), `ask_choice(text, option_labels, option_disabled: Array[bool] = []) -> int`
   (new 2026-09-14, nullable-by-convention via `-1` - one button per
   `option_labels` entry, result = that entry's index, plus a trailing
   "Cancel" button, result `-1`, always present - reuses the exact same
   `_set_buttons(specs)`/`_closed` mechanism every other `ask_*` method
-  does). **Modal** while visible - the root
+  does). `option_disabled` (same day, second addition - an exhausted
+  `PropAction.single_shot` action, see that class's own entry above) greys
+  out that option's button instead of omitting it, so the player can see
+  it exists but can't be chosen again; a shorter (or empty, the default)
+  array just leaves the remaining options enabled. `_set_buttons(specs)`
+  reads a `spec.get("disabled", false)` key to drive this - every other
+  `ask_*` method's specs simply don't set that key, so they're unaffected.
+  **Modal** while visible - the root
   Control is a full-screen dim scrim (`mouse_filter = STOP`, deliberately
   relying on the same STOP-blocks-everything-behind-it mechanism
   `CreatorPalette`'s background bug worked through earlier this session,
@@ -2318,6 +2480,10 @@ These cost real debugging time — worth not re-learning them:
   mesh items present. `gate`/`archway` default to walkable/non-LOS-blocking
   (treated as openings); `tree` defaults to blocking movement + LOS like a pillar.
   These are naming-convention *defaults* only — unverified in-game.
+  **Gates in archways are a confirmed, supported real case** (a real mission
+  placed a gate inside an archway, footprints fully overlapping) — occupancy
+  now supports this generically for any overlapping props, not just this
+  pair, see `MissionData.occupied_cells`'s entry above.
 - Token props `exploration`/`interact`/`umbra` (1×1 each, `models/tokens.glb`) —
   shapes entered, mesh items present, official-asset-mapped (see **Official
   asset overrides** above). Currently just placed props (`"prop"` layer,
