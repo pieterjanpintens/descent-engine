@@ -175,33 +175,206 @@ fires first; matters when one trigger's effect writes a variable another's
 condition depends on), `one_shot`, `already_fired` (both carried over
 unchanged).
 
-**`MissionObjective`** (new, in `MissionData.objectives`) — win AND loss
-conditions in one list, deliberately: "round counter exceeded N" and "the
-final goal is achieved" are the same shape (checkpoint + conditions), just
-opposite `outcome` (WIN/LOSE enum). Evaluated in `priority` order at each
-objective's checkpoint (typically `AFTER_DARKNESS_PHASE`); first one whose
-conditions all hold ends the game with that outcome - the engine's own
-win/loss check is just another objective, not a special case.
+**`MissionObjective`** (reworked 2026-09-12 from a flat, checkpoint-keyed
+list into a **DAG** — `MissionData.objectives` now holds the DAG's ROOTS,
+plural roots allowed, e.g. a main quest tree plus an independent "all
+players died" LOSE fail-safe root that isn't nested under anything). A
+node has `conditions` (implicit AND, its own "achieved" check), `effects`
+(applied once when achieved), `priority` (tie-break among SIBLINGS - nodes
+sharing a `children` array, or among the mission's own roots), `children`
+(DAG edges - **may be shared**: two different parents' `children` can
+reference the exact same instance, since `Resource`s are reference types,
+letting branches converge back together), `optional_objectives` (side
+objectives valid only while this node is the active one - see
+`MissionRuntime` below for what "active" means), and `already_achieved`
+(runtime bookkeeping, mirrors `MissionTrigger.already_fired`).
+"Final objective" is no longer a separate flag - it's simply a node with
+an empty `children` array, and its `outcome` (WIN/LOSE) is only meaningful
+there. Reaching one for real actually ends the game - **not cosmetic**:
+failing a leaf (a paired LOSE-outcome sibling, or a round-limit baked
+straight into a leaf's own `conditions`) is how a branch is lost, not just
+won. `checkpoint` was **removed** from this class - see `MissionRuntime`'s
+continuous-re-check design below for why a per-node "only check me at this
+one checkpoint" restriction became redundant.
 
-**`MissionPlayer.gd` now walks the checkpoint loop** (Player phase ↔ Darkness
-phase, round counter, see that script's own entry above) - but it's still
-just the loop shell. Live variable values (round_number/player_count aren't
-actually exposed as variables yet, just a plain `current_round` int), and
-actually firing triggers/evaluating objectives at each checkpoint, are both
-still TODO-commented stubs in `_run_darkness_and_loop()`, not implemented.
+**Branch semantics, confirmed with the user during design**: exclusive,
+not concurrent. When a node's conditions resolve and it has children, ALL
+of them become "current" (watched) candidates, but the FIRST one (by
+`priority`) whose OWN conditions later hold wins, and its siblings are
+dropped entirely - no per-node "closed" flag needed, see `MissionRuntime.
+_check_current_objectives()`. An "and do this too before proceeding" need
+is already expressible via `Condition`'s own implicit-AND array on one
+node, so no separate join/concurrent-branch concept was added - explicitly
+rejected as unneeded complexity for what this project actually needs.
+Optional objectives are evaluated **before** the main objective's own
+check each tick, so a same-tick "also did the side thing" still counts
+right up to the moment the main objective closes it off - the classic
+example: main objective "find a way to the cellar", optional "steal a nice
+item" - once the cellar is found, the item is no longer stealable (the
+door traps the players), and this needs zero special "expiry" code: once
+traversal moves past a node, that node just stops being evaluated, so its
+optional objectives naturally become unreachable.
 
-**Still not designed/built**: the runtime variable registry itself (nothing
-holds MissionVariable values live yet - `MissionRuntime` or similar,
-distinct from `MissionData`); the evaluator that reads that registry to fire
-triggers/objectives; any authoring UI for actions/triggers/variables beyond
-the single objective-description field (`%ObjectiveLineEdit` in
-`CreatorSaveLoad.gd`) - expect new UI surfaces, e.g. a per-prop inspector, a
-real objectives list with conditions; player count (2-6, not the physical
-box's 4 - all 6 playable characters should be usable, kept as a later
-difficulty-scaling input, not yet asked for anywhere) and action economy (3
-actions/turn, 1 must be move - the app doesn't need to enforce this, the
-physical game already does, move is a "dummy action" the app can ignore);
-combat/monster AI (explicitly out of scope for the first working version).
+**`MissionRuntime` (new 2026-09-11, `scripts/MissionRuntime.gd`)** — the
+runtime container `MissionData`'s own class doc used to say didn't exist
+yet. `class_name MissionRuntime extends RefCounted` - the first *stateful*
+`RefCounted` in the project (`RoundCheckpoint`/`MissionIO` are both
+stateless namespaces); `Resource` would be wrong since this is explicitly
+ephemeral per-playthrough state, and it has no business as a Node in the
+scene tree. Constructed once by `MissionPlayer._ready()` from the loaded
+`MissionData`, never persisted/saved back. Holds every variable's live
+value in one flat `Dictionary` - both `MissionData.custom_variables`
+(seeded from `default_value` at construction, each coerced against its
+declared `type`, mismatches `push_warning()` + fall back to that type's
+zero value - the validation `MissionVariable.default_value`'s own doc
+promised but nothing implemented before this) and the built-ins
+`round_number`/`player_count` (kept in sync via `sync_builtins()`, called
+by `MissionPlayer` whenever round/roster changes) live in the same dict,
+evaluated identically by every `Condition`/`Effect`.
+- `evaluate_condition()`/`evaluate_conditions()` (implicit AND, empty →
+  true) - look up the variable's declared type (`_declared_type()`: a
+  small `BUILTIN_TYPES` const first, else linear search
+  `custom_variables`), coerce `Condition.value` against it
+  (`_coerce()` - exact `typeof()` match for BOOL/INT/STRING, FLOAT
+  additionally accepts and widens a plain `TYPE_INT` so typing `5` instead
+  of `5.0` into a float field doesn't spuriously warn), `push_warning()` +
+  `false` on an unknown variable or a genuine type mismatch (a null/unset
+  `value` falls through this same path automatically - `typeof(null)`
+  never matches any declared type, no special-casing needed) - else
+  compares the live value against the (coerced) target via
+  `Condition.operator`.
+- `apply_effect()`/`apply_effects()` - same coercion/warning discipline as
+  conditions, plus one extra rule: writing a `BUILTIN_TYPES` key is
+  rejected (`push_warning()` + skip) - `round_number`/`player_count` are
+  runtime-owned, never author-writable via an `Effect`.
+- `evaluate_checkpoint(checkpoint) -> MissionObjective` (nullable) -
+  gathers `mission.triggers` whose `checkpoint` matches (a plain `for`
+  loop into an explicitly-typed local `Array[MissionTrigger]`, not
+  `.filter()` - matches the existing manual-loop convention in
+  `MissionData.get_level_links_from()`, sidesteps relying on typed-array
+  `.filter()`'s return-typing), fires them via `_fire_triggers()`, then
+  returns `_check_current_objectives()` - triggers fire before objectives
+  are checked, so an objective can depend on a variable a trigger at the
+  same checkpoint just wrote.
+- `fire_event(event_id)` - same gather-and-fire, filtered by `event_id`
+  instead of checkpoint, THEN also calls `_check_current_objectives()` -
+  **overturned 2026-09-12**: objectives used to only ever be checked at a
+  checkpoint, never live on an event; that broke the moment "found the
+  item" needed to be something a player REPORTS (a `PropAction` firing),
+  not something that waits for the next round-loop checkpoint to be
+  noticed. `MissionTrigger`'s own event/checkpoint split is unaffected -
+  this change is objective-specific.
+- `fire_prop_action(action)` - `apply_effects(action.effects)` THEN
+  `fire_event(action.action_id)` (now also nullable-`MissionObjective`-
+  returning, propagated through this too) - both halves fire per
+  `PropAction`'s own doc ("firing one applies its effects immediately -
+  the event-driven half of the trigger system").
+- `_fire_triggers(candidates)` - sorts by `priority` ascending, then fires
+  **sequentially, not as a pre-filtered batch**: skip if `one_shot and
+  already_fired`, re-run `evaluate_conditions()` against the CURRENT live
+  `_variables` state for each trigger as you go (not a snapshot taken
+  before the loop) - this is exactly what `MissionTrigger.priority`'s own
+  doc comment is for ("matters when one trigger's effect writes a variable
+  another trigger's condition depends on") - only makes sense if
+  conditions are re-checked live as effects apply, in priority order. If
+  conditions hold: `apply_effects(trigger.effects)`, then
+  `trigger.already_fired = true` - mutating the loaded `MissionTrigger`
+  resource instance directly is safe, since `MissionIO.load_mission()`
+  already uses `CACHE_MODE_IGNORE` for a fresh instance never saved back.
+- **`_check_current_objectives() -> MissionObjective`** (nullable, new
+  2026-09-12, replaces the old flat `_check_objectives(checkpoint)`) - the
+  DAG traversal engine. `_current_groups: Array[Array[MissionObjective]]`
+  tracks which node(s) are "current": each entry is a set of mutually
+  exclusive candidates (starts as one singleton group per root in
+  `mission.objectives`, seeded in `_init()`). Per group, per tick: every
+  candidate's `optional_objectives` are checked FIRST (fire once, mark
+  `already_achieved`) for every candidate still in the group, not just the
+  eventual winner - a side objective stays completable for as long as its
+  node is still a live possibility. THEN each candidate's own `conditions`
+  are checked in `priority` order; the first to hold wins - its `effects`
+  apply, and the WHOLE group is replaced by its `children` (a fresh group
+  of new candidates) if any, or returned immediately as the game-ending
+  leaf if `children.is_empty()`. Losing siblings are never explicitly
+  "closed" - they simply stop being reachable once their group is
+  replaced, no per-node bookkeeping needed. Deliberately does **not**
+  recurse into a freshly-installed group the same tick (new candidates get
+  their first real evaluation on the NEXT call) - keeps this non-recursive
+  and incidentally makes an accidentally-authored cycle harmless (see
+  `_warn_on_cycles()` below).
+- **`_warn_on_cycles()`** (new 2026-09-12) - a DFS from every root at
+  construction time, `push_warning()` per back-edge found. Purely
+  informational, nothing is stripped: `_check_current_objectives()`'s
+  "don't recurse same tick" rule already means a cycle can't infinite-loop
+  at runtime - at worst it loops the player back through an earlier group
+  on some LATER tick, which might even be an intentional "retry this
+  chapter" design, not necessarily a mistake. A DAG (not a strict tree) is
+  wanted specifically so branches can converge - cheap structurally (see
+  `children` above), this is just the authoring-mistake safety net.
+
+**`MissionPlayer.gd` now actually fires triggers/checks objectives at
+every checkpoint transition** (Player phase ↔ Darkness phase, round
+counter, see that script's own entry above), replacing the five
+TODO-commented stubs that used to sit in `_run_darkness_and_loop()`. The
+old one-line `_set_checkpoint(checkpoint)` setter is now
+`_advance_to(checkpoint) -> bool` (async): updates `current_checkpoint`,
+calls `_runtime.evaluate_checkpoint(checkpoint)`, and if an objective
+fires, `await`s the shared `_handle_game_over(objective)` (factored out
+2026-09-12, see below) and returns `false` so every call site (`if not
+await _advance_to(X): return`) stops advancing the round loop rather than
+continuing underneath the still-open win/loss dialog. Deliberately **not**
+a signal (`objective_reached.emit()` + a connected async handler) -
+GDScript signal emission only runs a connected handler synchronously up to
+ITS first `await`, then returns control to the emitter regardless of
+whether the handler finished, so the round loop would keep advancing
+(incrementing `current_round`, re-entering Player phase) while the dialog
+was still on screen. The synchronous-computation + bool-returning-
+coroutine pattern isn't new here either - it's the same "caller awaits and
+branches on the return value" style `embark_dialog.ask_roster()`/
+`dialog.ask_yes_no()` already use throughout this file. `current_round`'s
+builtin variable is re-synced (`_runtime.sync_builtins()`) immediately
+after incrementing, so the next checkpoint's triggers/objectives see the
+updated value.
+
+**`_handle_game_over(objective)`** (factored out 2026-09-12) - disables
+the End Phase button, shows "Victory!"/"Defeat." + the objective's
+description via `dialog.ask_ok()`, then returns to the main menu. Shared
+by TWO call sites with deliberately DIFFERENT calling conventions:
+`_advance_to()` above (synchronous return-value-checked, to avoid the
+signal race described there) and the new
+`_on_game_over_requested(objective)` - connected in `_ready()` to
+`PlayerInteractionController.game_over_requested`, a genuine signal this
+time. **This asymmetry is intentional, not an inconsistency**: a signal is
+safe for the event-driven path specifically because nothing in
+`PlayerInteractionController` continues an internal loop after
+`_end_drag()` that would need to wait on the handler finishing, unlike
+`_run_darkness_and_loop()`'s round-advancing chain.
+
+**Still not designed/built**: any authoring UI for triggers/variables
+beyond `ObjectivesDialog.gd`'s DAG editor (see **Creator tooling** below
+- `Objectives…` in `CreatorSaveLoad.gd` replaced the old single-LineEdit
+`%ObjectiveLineEdit` 2026-09-12) and `PropActionsDialog.gd`'s action list
+(new 2026-09-13, `Actions…` in `CreatorPropertiesPanel.gd` - see that
+entry below) - both cover their own inline condition/effect editors, but
+expect new UI surfaces still, e.g. a real
+`MissionTrigger` authoring list (nothing edits those yet at all), and a
+dropdown of known `custom_variables` names for a `Condition`/`Effect`'s
+`variable_name` field (currently a plain `LineEdit` in both places - the
+author has to already know/remember the exact variable name, matching
+error-prone free-text everywhere else in this project pending real
+tooling); "asked" questions specifically (nothing in the data model yet
+marks a
+`MissionVariable` as table-answered - `PlayerDialog.ask_yes_no()`/
+`ask_count()` exist as the UI primitives, but nothing wires a question's
+answer into a variable automatically at some checkpoint, that needs the
+authoring UI above first); a picker UI for a prop with more than one
+`PropAction` (`PlayerInteractionController` currently just fires the
+first/only action, see that script's own entry below); player count (2-6,
+not the physical box's 4 - all 6 playable characters should be usable,
+kept as a later difficulty-scaling input, not yet asked for anywhere) and
+action economy (3 actions/turn, 1 must be move - the app doesn't need to
+enforce this, the physical game already does, move is a "dummy action"
+the app can ignore); combat/monster AI (explicitly out of scope for the
+first working version).
 
 **Autoloads** (`autoload/`):
 
@@ -738,6 +911,153 @@ combat/monster AI (explicitly out of scope for the first working version).
 	(set/add/remove) goes through `operation_history.record()` then
 	`layered_map.notify_objects_changed()`, same pattern as everywhere
 	else in the Creator by now.
+  - **`InteractableEntry.actions`** (`Array[PropAction]` - what a player
+	can report doing to this prop, e.g. "push" this lever, and the
+	`Effect`s that fire when they do, see **Story layer**'s `PropAction`
+	entry) gets its own **"Actions…" button** (new 2026-09-13, OBJECT
+	selections only, sibling of "Custom Properties…" above) opening
+	`PropActionsDialog` (new, `scripts/PropActionsDialog.gd`). Same
+	code-built, one-instance-reused-via-`open_for(entry)` pattern as
+	`PropertiesDialog` - `operation_history`/`layered_map` assigned
+	directly after `.new()`, no `.tscn` node. Simpler than
+	`ObjectivesDialog`'s DAG editor since a `PropAction` has no
+	children/branching - just a flat scrollable list, one `PanelContainer`
+	block per action (Action id / Description LineEdits + a nested
+	Effects list with its own Add/Remove), plus an "Add Action" button.
+	Each block's effect row and value-type editor (`_build_effect_row()`/
+	`_build_value_editor()`) are its own copies of `ObjectivesDialog`'s
+	near-identical helpers rather than shared code - those are typed to a
+	`MissionObjective` holder there, and every dialog in this project
+	already owns its row-builder helpers independently (`PropertiesDialog`
+	has its own too), so this follows that same convention rather than
+	introducing a shared base class for three call sites. Rebuilds the
+	whole row list on every add/remove via `queue_free()` (not immediate
+	`free()`) - deliberately matching `PropertiesDialog.gd`'s identically-
+	shaped row list rather than `ObjectivesDialog._rebuild_graph()`'s
+	immediate-`free()` pattern: that one was forced by a DIFFERENT bug
+	(`GraphEdit`'s internal children plus same-frame `add_child()` name
+	collisions, see **Hard-won lessons**) that doesn't apply to a plain,
+	unnamed `VBoxContainer` list - `queue_free()` is safe here specifically
+	because a remove button's own click handler is still on the call stack
+	when the rebuild it triggers frees that button's own ancestry.
+	**Unverified in-editor**, same caveat as everything else built this
+	session without the ability to launch Godot and see it rendered.
+- **`ObjectivesDialog.gd`** (new 2026-09-12, `class_name ObjectivesDialog
+  extends Window`) - the DAG editor for `MissionData.objectives`, opened
+  via `CreatorSaveLoad.gd`'s **"Objectives…"** button (`%ObjectivesButton`,
+  replacing the old single win-objective `%ObjectiveLineEdit` - see that
+  script's own entry below). Same "built entirely in code, one instance
+  created by the opener and reused via `open_for(mission)`" pattern as
+  `PropertiesDialog`/`CreatorSettingsDialog` - `operation_history`/
+  `layered_map` assigned directly, not `@export`/`NodePath`.
+  - **Layout**: an `HSplitContainer` - a `GraphEdit` canvas on the left (an
+	"Add Root Objective" button in its own `HBoxContainer` toolbar row above
+	it - a bare `Button` as a direct `VBoxContainer` child stretches to the
+	full container width and looks oversized, `SIZE_SHRINK_BEGIN` in an
+	`HBoxContainer` keeps it sized to its own content), a properties panel
+	(`ScrollContainer` > `VBoxContainer`) on the right showing whichever
+	node is currently selected - matches the "DAG editor + side properties
+	view, selection-driven" shape requested during design.
+  - **Graph population** (`_rebuild_graph()`): BFS from every root in
+	`mission.objectives`, visiting each unique `MissionObjective` once even
+	though it's a DAG (a node reachable from more than one parent still
+	only gets ONE `GraphNode` - `_node_by_name`/`_name_by_node`/
+	`_graph_node_by_objective` dictionaries map both directions, since
+	`GraphEdit`'s own signals only ever hand back node NAMES or the `Node`
+	itself, never the `MissionObjective` resource). Each `GraphNode` shows
+	a one-line summary (`_summary_text()` - "Leaf (WIN/LOSE)" or "Branch",
+	plus condition/optional counts) and has one slot with both an input and
+	output port always enabled, so any node can be dragged into a
+	connection either direction (a root's input just stays unused). A
+	never-before-opened node's `editor_position` is still `Vector2.ZERO`,
+	so it's placed at a fixed `(60, 80)` base margin plus a BFS-order
+	horizontal fan-out instead of literal `(0, 0)` - confirmed in-editor
+	that `GraphEdit` draws its own built-in zoom/minimap controls floating
+	over the canvas's top-left corner, so a node placed at the true origin
+	renders (and is clickable) underneath them; a real (even manually-
+	dragged-back-near-origin) position is left alone.
+  - **Confirmed in-editor bug, fixed**: `_rebuild_graph()`'s cleanup step
+	used to `queue_free()` every `Node` `GraphEdit.get_children()` returned
+	- but `GraphEdit.get_children()` incorrectly includes its own internal
+	`_connection_layer` node even with `include_internal` at its default
+	(a confirmed Godot engine bug, not a mistake on this project's part -
+	see godotengine/godot#91857 upstream). Freeing that layer left
+	`GraphEdit.gui_input()` hard-erroring on every subsequent click
+	("connections_layer is missing") and silently broke node dragging
+	entirely (while connection-dragging partially still worked, since it
+	apparently follows a different internal code path) - one bug
+	explaining two reported symptoms at once. Fixed by only freeing
+	children that are actually `is GraphElement` (what this dialog itself
+	ever adds), leaving `GraphEdit`'s own internal nodes alone - see the
+	Hard-won lessons entry below for the general rule this is an instance
+	of. **That fix used `queue_free()`, which turned out to be its own,
+	second bug** - `queue_free()` defers actual removal to end of frame,
+	so a SECOND `_rebuild_graph()` within the same frame (e.g. clicking
+	"Add Root Objective" twice) tried to `add_child()` a new `GraphNode`
+	under the same name as one still technically present (queued, not yet
+	gone), and Godot silently discarded the requested name in favor of its
+	own auto-generated placeholder instead of erroring - breaking every
+	later name-keyed lookup for that node with no error anywhere. Fixed by
+	switching to immediate `remove_child()` + `free()` - see Hard-won
+	lessons below for the general rule.
+  - **Connections ARE the DAG edges**: `GraphEdit.connection_request()`/
+	`disconnection_request()` resolve both ends back to `MissionObjective`s
+	via `_node_by_name`, `operation_history.record()` the
+	`children.append()`/`erase()`, then call `_graph.connect_node()`/
+	`disconnect_node()` to actually draw/remove it - `GraphEdit` never
+	auto-connects on its own, the request signals are just permission to
+	do so after validating (rejects a self-loop or an already-existing
+	edge). Requires `_graph.add_valid_connection_type(0, 0)` (called once
+	in `_ready()`) - `GraphEdit` won't even emit `connection_request`
+	for a port-type pair that isn't explicitly whitelisted, even when both
+	ports share the identical type (see Hard-won lessons below - a real
+	bug hit and fixed in-editor 2026-09-12, not a hypothetical).
+  - **Delete is a full node delete, not a single-edge removal** (edge-only
+	removal is what dragging a connection off already does) - a plain
+	"Delete Node" `Button` child on each `GraphNode` (confirmed in-editor
+	that `GraphNode.show_close`/`close_request` don't exist on this Godot
+	version - same manual "×"-button pattern used for every other remove
+	action in this dialog, instead of relying on a built-in close affordance)
+	removes the node from EVERY parent's `children` that references it
+	(and from `mission.objectives` if it was a root) in one
+	`operation_history` entry, then rebuilds the graph. Any subtree ONLY
+	reachable through the
+	deleted node simply won't appear in the rebuilt graph - nothing else
+	references it, so it's freed like any other unreferenced `Resource`,
+	no explicit cascade-delete needed.
+  - **Properties panel** (rebuilt per selection): Description (`LineEdit`),
+	Outcome (`OptionButton` WIN/LOSE, `disabled` whenever `children` isn't
+	empty - only meaningful on a leaf), Priority (`SpinBox`), then
+	Conditions and Effects as small inline list editors
+	(`_build_condition_row()`/`_build_effect_row()` + `_build_value_editor()`
+	- a type picker [String/Bool/Int/Float, defaulted from
+	`typeof(current_value)`] plus the one matching value widget, same
+	reasoning as `PropertiesDialog`'s own per-type widgets: a
+	`Condition`/`Effect.value` is a loosely-typed `Variant`, only checked
+	against its target variable's DECLARED type at evaluation time by
+	`MissionRuntime._coerce()`, not enforced here - `variable_name` is a
+	plain `LineEdit`, no dropdown of known `custom_variables` names yet,
+	see the Story layer's own "still not designed/built" note), and
+	Optional Objectives as a list of rows each with an "Edit…" button
+	opening a small **nested** `Window` (`_open_optional_editor()` -
+	description + its own Conditions/Effects list, reusing the exact same
+	row-builder helpers) - the "a dialog opens a smaller dialog" pattern
+	`PropertiesDialog`'s own Add-Property `ConfirmationDialog` already
+	established. Every edit goes through `_commit_field()` (a thin wrapper
+	around `operation_history.record()` + `layered_map.notify_objects_changed()`).
+  - **Canvas layout is NOT undo-tracked** - `editor_position` is pure
+	authoring metadata, saved directly to each node when the dialog closes
+	(`_on_close_requested()`), not wrapped in `operation_history.record()`,
+	so rearranging nodes doesn't clutter the undo stack.
+  - **Actively verified in-editor 2026-09-12** (unlike most of this
+	session's other work) - node dragging and connection-making both hit
+	real `GraphEdit` engine gotchas along the way (see Hard-won lessons:
+	the `_connection_layer`-in-`get_children()` bug and the
+	`add_valid_connection_type()` requirement), both since fixed. Still
+	worth a full pass once available: multi-parent (DAG-converging) delete
+	behavior, the nested optional-objective editor, and the
+	condition/effect value-type editors haven't specifically been exercised
+	yet.
 - `CreatorSaveLoad.gd` — attached to `MenuBar/File`, a `PopupMenu` under the
   top-spanning `MenuBar` (`CanvasLayer/MainLayout/MenuBar`, see
   `MainLayout`'s entry above) - New/Save/Load/Back are menu items now
@@ -764,26 +1084,25 @@ combat/monster AI (explicitly out of scope for the first working version).
   applied to normal manual Save/Load - `res://` silently can't be written
   to from the shipped `.exe`, so plain Save was broken there too, not
   just the autosave system). Reuses `MissionIO` + `LayeredMap.apply_mission()`.
-  Also owns `%ObjectiveLineEdit` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
+  Also owns `%ObjectivesButton` and `%MinPlayersSpinBox`/`%MaxPlayersSpinBox`
   - those live in `SidePanel/Outline/Split/Inspector/PropertiesFields`
   (see `CreatorPropertiesPanel.gd`'s entry above), not this script's own
-  node. **Live-synced as of 2026-09-10** (for undo/redo, see
-  `OperationHistory.gd` below) - previously documented as "only read/
-  written at Save/New/Load time, not live-synced", that changed because
-  meldable, undoable operations need a live write to react to. The
-  SpinBoxes write straight to `mission.min_players`/`max_players` on
-  `value_changed`, each wrapped in `operation_history.record()`; the
-  `LineEdit` commits on `text_submitted`/`focus_exited` (not per
-  keystroke - that would flood the undo stack one entry per character).
-  `_apply_objective_field()`/`_apply_player_count_fields()` are still
-  called once more at Save time as a harmless safety net (catches an
-  edit that never got committed - e.g. text typed but Enter never
-  pressed - before Save was clicked). A new `_on_mission_objects_changed()`
-  listens for `LayeredMap.mission_objects_changed` (Load/New, and now
-  undo/redo) to refresh these fields FROM the mission, replacing the old
-  explicit `_refresh_objective_field()`/`_refresh_player_count_fields()`
-  calls that used to sit directly in `_on_new_button_pressed()`/
-  `_load_from()`. The old `_ready()` that pinned the toolbar row's right
+  node. **`%ObjectivesButton` replaced `%ObjectiveLineEdit` 2026-09-12**
+  (see `ObjectivesDialog.gd`'s own entry below for the DAG editor it
+  opens) - unlike the old LineEdit, there's no local widget state to keep
+  synced or flush at Save time, since the dialog edits
+  `layered_map.mission.objectives` directly and rebuilds itself fresh from
+  the mission every time it's opened (same as `PropertiesDialog` editing
+  `InteractableEntry.props` directly). The player-count `SpinBox`es remain
+  **live-synced** (2026-09-10, for undo/redo, see `OperationHistory.gd`
+  below) - each wraps `operation_history.record()` on `value_changed`;
+  `_apply_player_count_fields()` is still called once more at Save time as
+  a harmless safety net (catches a value typed but never committed before
+  Save was clicked). `_on_mission_objects_changed()` (listens for
+  `LayeredMap.mission_objects_changed`, Load/New/undo/redo) now only
+  refreshes the player-count fields - the equivalent objective-field
+  refresh is gone along with the LineEdit it used to serve. The old
+  `_ready()` that pinned the toolbar row's right
   edge against `CreatorPalette.PANEL_WIDTH` (a stopgap for the row
   overlapping the palette) is gone - moot now that there's no toolbar row
   to overlap anything, see Open item #12.
@@ -1003,12 +1322,27 @@ combat/monster AI (explicitly out of scope for the first working version).
   0..N-1 in order (e.g. `[0, 2, 5]`), so drag state tracks the dock
   position and looks up the real slot for anything shown to the user.
   Dragging a portrait draws a `Line2D` toward the cursor, hovering an
-  `InteractableEntry` with a non-empty `actions` list highlights its
-  footprint cells (filled quads, same corner-math style as every other
-  overlay in this project), and releasing over one just `print()`s which
-  hero interacted with what - no `PropAction` actually fires yet, that needs
-  the trigger/effect evaluator (see **Story layer**), which doesn't exist.
-  Deliberately skips Godot's built-in Control drag-and-drop
+  `InteractableEntry` with a non-empty `actions` list AND
+  `props["interactible"]` not explicitly false highlights its footprint
+  cells (filled quads, same corner-math style as every other overlay in
+  this project). **Releasing over one now actually fires a `PropAction`**
+  (2026-09-11, via `mission_runtime.fire_prop_action()` - `mission_runtime`
+  is a plain `var` assigned by `MissionPlayer._ready()` right after
+  constructing its `MissionRuntime`, same "runtime-constructed object, no
+  Inspector slot to `@export` through" pattern `PropertiesDialog`'s own
+  cross-references use) - always `entry.actions[0]`, the first/only action;
+  a real picker UI for a prop with more than one `PropAction` is
+  deliberately not attempted here, see **Story layer**'s "still not
+  designed/built" list. **Can end the game live** (2026-09-12, once
+  `MissionObjective` became a DAG re-checked on every event, not just
+  checkpoints - see **Story layer**): if `fire_prop_action()` returns a
+  non-null `MissionObjective`, emits this script's own `signal
+  game_over_requested(objective)`, which `MissionPlayer._ready()` connects
+  to `_on_game_over_requested()` - a genuine signal here, safe unlike
+  `MissionPlayer._advance_to()`'s deliberate avoidance of one, since
+  nothing below continues an internal loop after `_end_drag()` that would
+  need to wait on the connected handler finishing. Deliberately skips
+  Godot's built-in Control drag-and-drop
   (`_get_drag_data`/`_drop_data`) - the drop target is a 3D world position
   found by raycasting, not another Control, so manual mouse tracking (a
   global `_input()` once a drag starts, not just `gui_input`) is simpler
@@ -1194,6 +1528,57 @@ appears locally, for a user who separately owns the official game and runs
 
 These cost real debugging time — worth not re-learning them:
 
+- **`GraphEdit` requires port-type pairs to be explicitly whitelisted via
+  `add_valid_connection_type(from_type, to_type)` before it will ever emit
+  `connection_request`** - even for two ports of the IDENTICAL type (e.g.
+  both `0`, the default `set_slot()` type used everywhere in this
+  project). Type compatibility is checked before the signal fires, not
+  after, so without registering a type pair a drag visually snaps to a
+  valid-looking target port (that's just `GraphEdit`'s own drag-preview
+  feedback, unconditional) but is silently discarded on release - no
+  signal reaches your handler, no error prints anywhere. Confirmed
+  in-editor 2026-09-12 in `ObjectivesDialog.gd` - fixed with a single
+  `_graph.add_valid_connection_type(0, 0)` once, in `_ready()`.
+- **`Node.add_child()` silently discards a colliding requested name and
+  falls back to Godot's own auto-generated placeholder (`@ClassName@N`)
+  instead of erroring or suffixing it** - and `queue_free()` being
+  DEFERRED (only actually removing the node at end of frame) is exactly
+  what creates that collision in any "clear everything, then re-add fresh
+  copies with the same computed names" rebuild pattern. Found 2026-09-13
+  in `ObjectivesDialog.gd`: `_rebuild_graph()` used to `queue_free()` the
+  old `GraphNode`s before re-adding new ones keyed by the same
+  `MissionObjective.id`-derived names - a SECOND rebuild within the same
+  frame (e.g. clicking "Add Root Objective" twice) re-added a node named
+  `"obj_obj_1"` while the OLD `"obj_obj_1"` was still technically present
+  (queued, not yet removed), so Godot silently renamed the NEW one to
+  `@GraphNode@642` instead - breaking every later name-keyed lookup
+  (`_node_by_name.get()` for that node) with no error anywhere, since
+  from `add_child()`'s perspective nothing went wrong. Manifested as
+  `connection_request` firing correctly but resolving one endpoint to
+  `null` and silently no-op'ing. Fixed by using immediate `remove_child()`
+  + `free()` instead of `queue_free()` when a rebuild is about to re-add
+  replacements under the same names in the same call. General rule: never
+  `queue_free()` something you're about to synchronously replace with a
+  same-named sibling - use immediate `free()` (after `remove_child()`) so
+  the old node is actually gone before the new one claims its name.
+- **`GraphEdit.get_children()` returns its own internal `_connection_layer`
+  node, even though internal children are supposed to be excluded by
+  default** - a confirmed upstream Godot engine bug
+  (godotengine/godot#91857), not something this project got wrong. Found
+  2026-09-12 in `ObjectivesDialog.gd`: `_rebuild_graph()`'s "clear
+  everything and rebuild" step used to `queue_free()` every child
+  `get_children()` returned, which destroyed that internal layer along
+  with the real `GraphNode`s - `GraphEdit.gui_input()` then hard-errored
+  on every subsequent click ("connections_layer is missing", a `<C++
+  Error>` pointing at `graph_edit.cpp`'s own `gui_input()`), which
+  manifested as node-dragging silently not working at all while
+  connection-dragging partially still did (apparently a different
+  internal code path). Fixed by filtering to `if child is GraphElement`
+  before freeing - the general rule: **never blindly clear/free every
+  child of a Godot container Control that manages its own internal
+  children** (`GraphEdit`, and plausibly others like `Tree`/`TabContainer`)
+  - filter by type/ownership to only touch nodes your own code actually
+  added.
 - **`res://` is read-only in an exported build; `user://` is the
   writable-everywhere location for anything a running game/tool needs to
   write itself** (settings, save files, backups, logs). Inside the Godot
@@ -1415,13 +1800,22 @@ These cost real debugging time — worth not re-learning them:
    the Godot editor and see it rendered); worth confirming the layout/icons/jump
    behavior actually work before trusting it.
 3. Monster spawns — data model exists, no authoring workflow, no combat/AI yet.
-   The story layer (triggers/objectives/variables/prop actions) has a designed
-   data model and `MissionPlayer.gd` now runs the round-loop shell (Player
-   phase ↔ Darkness phase, see **Story layer**) - but no variable registry, no
-   trigger/objective evaluator, and only one field of authoring UI (the
-   objective description) exist yet; those are the actual next step. The
-   `exploration`/`interact`/`umbra` token props are placeable meshes with no
-   behavior wired up until that evaluator exists.
+   ~~The story layer (triggers/objectives/variables/prop actions) has a
+   designed data model ... but no variable registry, no trigger/objective
+   evaluator~~ - the evaluator (`MissionRuntime`, see **Story layer**) is
+   done 2026-09-11 and wired into both the round loop and prop-action
+   reporting; ~~only one field of authoring UI exists (the objective
+   description)~~ - `ObjectivesDialog.gd`'s DAG editor (2026-09-12, see
+   **Creator tooling**) covers objectives/conditions/effects/optional
+   objectives now, and `PropActionsDialog.gd` (2026-09-13, same section)
+   covers `InteractableEntry.actions`/`PropAction` editing. Still needed:
+   a real `MissionTrigger` authoring surface (nothing edits those at all
+   yet) and a `custom_variables` name dropdown for `Condition`/`Effect`
+   rows (currently plain free-text everywhere).
+   The `exploration`/`interact`/`umbra` token props are placeable meshes
+   with `actions`/behavior now authorable via `PropActionsDialog.gd`
+   (nothing stops it now that the evaluator exists - still nobody has
+   actually authored any on a real token yet).
 4. Movement + line-of-sight in the Player — `MissionData.is_walkable()`/`blocks_los()`
    exist and are correct, but nothing calls them yet. The Player now runs the
    basic round loop (see **Story layer** and `MissionPlayer.gd`'s entry above)
@@ -1463,10 +1857,13 @@ These cost real debugging time — worth not re-learning them:
 	confirming placement across a few different tile shapes (not just
 	pillars) before trusting it fully.
 11. Player drag-to-interact (`PlayerInteractionController.gd`) - UI, hover
-	highlight, and drop-detection are in (see that script's entry above),
-	but dropping only `print()`s - nothing actually happens yet. Needs, in
-	rough order: the trigger/effect evaluator (see **Story layer**) so a
-	drop can actually fire a `PropAction`'s effects; the game's own
+	highlight, and drop-detection are in (see that script's entry above).
+	~~Dropping only `print()`s - nothing actually happens yet, needs the
+	trigger/effect evaluator~~ - done 2026-09-11, see **Story layer**'s
+	`MissionRuntime` entry and `PlayerInteractionController.gd`'s own entry
+	above (fires the dropped-on prop's first/only `PropAction`). Still
+	needed: a picker UI once a prop can offer more than one action (not
+	authored anywhere yet, so unverified in practice); the game's own
 	adjacency rule (interact only with what you're physically near), which
 	needs real player-position tracking that doesn't exist; hiding the
 	portrait dock during Darkness phase (currently stays up the whole
@@ -1497,14 +1894,19 @@ These cost real debugging time — worth not re-learning them:
 	custom dict, including its one well-known `interactible` key) has a
 	full add/edit/remove UI via `PropertiesDialog` (`CreatorPropertiesPanel.gd`'s
 	"Custom Properties…" button, requested 2026-09-10, see that entry
-	above) - but `actions`/`PropAction`s (what a player can report doing
-	to a prop, and the effects that fire) still has no editing UI at all;
-	true drag-and-drop reparenting in the tree (a "Move to…"
+	above), and `actions`/`PropAction`s (what a player can report doing to
+	a prop, and the effects that fire) now has one too - `PropActionsDialog`
+	(new 2026-09-13, see **Creator tooling** below), opened via the same
+	panel's "Actions…" button, sibling of "Custom Properties…". Still
+	remaining: true drag-and-drop reparenting in the tree (a "Move to…"
 	context-menu item does the same job without it, see **Creator outline
 	tree** above); and wiring `MissionGroup.visible`/`InteractableEntry.
-	visible`/`TilePlacement.visible` into an actual cascading effect once
-	the Story layer's trigger/effect evaluator exists (still doesn't - see
-	**Story layer**).
+	visible`/`TilePlacement.visible` into an actual cascading render-time
+	effect (hiding the actual GridMap/prop instance when `visible == false`)
+	- still not done; unrelated to whether the Story layer's evaluator
+	exists (it does now, see **Story layer**'s `MissionRuntime` entry) -
+	this is a `LayeredMap`/rendering concern, not something `MissionRuntime`
+	itself would touch.
 14. ~~Wall painting isn't actually used in real missions~~ — done, removed
 	2026-09-11 (the user's own words, "the game has no such concept").
 	Removed entirely: `WallGridMap` (from `map/LayeredMapCore.tscn`),

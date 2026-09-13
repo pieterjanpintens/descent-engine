@@ -78,7 +78,11 @@ extends Resource
 ## shown, round 1 just starts) - not every mission needs this authored yet.
 @export var player_spawn_cells: Array[Vector3i] = []
 
-## Win/loss conditions - see MissionObjective for why both share one list.
+## The ROOTS of a DAG of MissionObjective nodes - not necessarily WIN/LOSE
+## leaves themselves, see MissionObjective's own doc for the full design
+## (reworked 2026-09-12 from a flat list). Plural roots are fine - e.g. a
+## main quest tree plus an independent "all players died" LOSE fail-safe
+## that isn't nested under anything.
 @export var objectives: Array[MissionObjective] = []
 
 ## Custom variable declarations Condition/Effect can reference by name, on
@@ -104,10 +108,12 @@ func get_component_usage() -> Dictionary:
 	return usage
 
 
-## Mints a fresh, never-reused id for a new InteractableEntry or
-## MissionGroup - see CreatorOutline.gd/MissionGroup.gd. The one shared
-## allocator so object ids and group ids can never collide with each
-## other either (they live in the same outline-tree id namespace).
+## Mints a fresh, never-reused id - originally just for InteractableEntry/
+## MissionGroup (see CreatorOutline.gd), but a plain generic counter, not
+## type-restricted, so ObjectivesDialog.gd reuses it for new MissionObjective
+## nodes too. The one shared allocator so no two ids in this mission can
+## ever collide with each other, regardless of which kind of thing they
+## identify.
 func allocate_object_id() -> String:
 	var result := "obj_%d" % _next_object_id
 	_next_object_id += 1

@@ -9,9 +9,10 @@ extends Control
 ## of `reference_name`/`visible` - the two fields every selectable node
 ## shares via OutlineNode (see that script's own doc comment), now that
 ## the data model has one shared place to read/write them instead of
-## three separate per-type implementations. Deeper per-type property
-## editing (InteractableEntry.actions/props, LEVEL_LINK fields, ...) is
-## still a later pass.
+## three separate per-type implementations. InteractableEntry.props (see
+## PropertiesDialog.gd) and .actions (see PropActionsDialog.gd) both have
+## full editing UI now too. Still a later pass: LEVEL_LINK's own
+## link_from_cell/link_to_cell/link_bidirectional fields.
 ##
 ## Talks to CreatorOutline ONLY through its public `selected` signal - see
 ## CreatorPalette.gd's own doc comment for why (keeps this script and
@@ -35,6 +36,8 @@ var _name_edit: LineEdit
 var _visible_check: CheckBox
 var _properties_button: Button
 var _properties_dialog: PropertiesDialog
+var _actions_button: Button
+var _actions_dialog: PropActionsDialog
 
 ## Whichever OutlineNode is currently shown (InteractableEntry/
 ## TilePlacement/MissionGroup all extend it) - null while ROOT is
@@ -105,6 +108,19 @@ func _build_object_fields() -> void:
 	_properties_dialog.layered_map = layered_map
 	add_child(_properties_dialog)
 
+	# Object-only, same reasoning as "Custom Properties…" above - what a
+	# player can report doing to this prop (InteractableEntry.actions),
+	# see PropActionsDialog.gd.
+	_actions_button = Button.new()
+	_actions_button.text = "Actions…"
+	_actions_button.pressed.connect(_on_actions_button_pressed)
+	_object_fields.add_child(_actions_button)
+
+	_actions_dialog = PropActionsDialog.new()
+	_actions_dialog.operation_history = operation_history
+	_actions_dialog.layered_map = layered_map
+	add_child(_actions_dialog)
+
 
 func _on_outline_selected(type: CreatorOutline.SelectionType, id: String) -> void:
 	if type == CreatorOutline.SelectionType.ROOT:
@@ -124,6 +140,7 @@ func _on_outline_selected(type: CreatorOutline.SelectionType, id: String) -> voi
 		_name_edit.editable = false
 		_visible_check.disabled = true
 		_properties_button.visible = false
+		_actions_button.visible = false
 		return
 
 	_name_edit.editable = true
@@ -131,6 +148,7 @@ func _on_outline_selected(type: CreatorOutline.SelectionType, id: String) -> voi
 	_info_label.text = _describe(type)
 	_name_edit.placeholder_text = _fallback_name(type)
 	_properties_button.visible = type == CreatorOutline.SelectionType.OBJECT
+	_actions_button.visible = type == CreatorOutline.SelectionType.OBJECT
 
 	_suppress_field_signals = true
 	_name_edit.text = _current_node.reference_name
@@ -141,6 +159,11 @@ func _on_outline_selected(type: CreatorOutline.SelectionType, id: String) -> voi
 func _on_properties_button_pressed() -> void:
 	if _current_node is InteractableEntry:
 		_properties_dialog.open_for(_current_node as InteractableEntry)
+
+
+func _on_actions_button_pressed() -> void:
+	if _current_node is InteractableEntry:
+		_actions_dialog.open_for(_current_node as InteractableEntry)
 
 
 func _resolve_node(type: CreatorOutline.SelectionType, id: String) -> OutlineNode:

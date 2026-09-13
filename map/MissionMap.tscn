@@ -118,14 +118,10 @@ offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
-layout_mode = 2
-text = "Objective:"
-
-[node name="ObjectiveLineEdit" type="LineEdit" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
+[node name="ObjectivesButton" type="Button" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 unique_name_in_owner = true
 layout_mode = 2
-placeholder_text = "Final objective description"
+text = "Objectives…"
 
 [node name="MinPlayersLabel" type="Label" parent="CanvasLayer/MainLayout/EditorArea/SidePanel/Outline/Split/Inspector/PropertiesFields"]
 layout_mode = 2

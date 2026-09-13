@@ -16,7 +16,8 @@ extends PopupMenu
 ##        |- MissionFileDialog (FileDialog, Access=User Data, marked as
 ##            Unique Name %MissionFileDialog)
 ##   SidePanel/Outline/Split/Inspector/PropertiesFields
-##    |- ObjectiveLineEdit (LineEdit, marked as Unique Name %ObjectiveLineEdit)
+##    |- ObjectivesButton (Button, marked as Unique Name %ObjectivesButton) -
+##        opens ObjectivesDialog.gd, see that script for the DAG editor
 ##    |- MinPlayersSpinBox / MaxPlayersSpinBox (SpinBox, marked as Unique
 ##        Names %MinPlayersSpinBox / %MaxPlayersSpinBox)
 ##
@@ -32,13 +33,14 @@ extends PopupMenu
 @export var menu_scene_path: String = "res://ui/MainMenu.tscn"  ## same default MissionPlayer.gd uses
 
 @onready var file_dialog: FileDialog = %MissionFileDialog
-@onready var objective_line_edit: LineEdit = %ObjectiveLineEdit
+@onready var objectives_button: Button = %ObjectivesButton
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
 enum FileAction { NEW, SAVE, LOAD, SETTINGS, BACK }
 
 var _settings_dialog: CreatorSettingsDialog
+var _objectives_dialog: ObjectivesDialog
 
 ## Guards _refresh_player_count_fields() below - setting a SpinBox's
 ## `value` from code fires `value_changed` exactly like a user click would,
@@ -57,9 +59,12 @@ func _ready() -> void:
 	# already owns - giving those a SECOND, native binding risks firing
 	# twice per keypress, so those stay inline-text-only, see
 	# CreatorViewMenu.gd/OperationHistory.gd).
-	add_item("New", FileAction.NEW, KEY_MASK_CTRL | KEY_N)
-	add_item("Save", FileAction.SAVE, KEY_MASK_CTRL | KEY_S)
-	add_item("Load", FileAction.LOAD, KEY_MASK_CTRL | KEY_O)
+	# (KEY_MASK_CTRL | KEY_N) is a plain int after the bitwise OR - GDScript
+	# warns "Integer used when an enum value is expected" for add_item()'s
+	# Key-typed accel param without an explicit cast.
+	add_item("New", FileAction.NEW, (KEY_MASK_CTRL | KEY_N) as Key)
+	add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
+	add_item("Load", FileAction.LOAD, (KEY_MASK_CTRL | KEY_O) as Key)
 	add_separator()
 	add_item("Settings…", FileAction.SETTINGS)
 	add_separator()
@@ -72,10 +77,21 @@ func _ready() -> void:
 	_settings_dialog = CreatorSettingsDialog.new()
 	add_child(_settings_dialog)
 
+	# Objectives DAG editor (reworked 2026-09-12 from a single LineEdit) -
+	# built once here and reused across opens, same pattern as
+	# _settings_dialog above and CreatorPropertiesPanel.gd's PropertiesDialog.
+	# Edits go straight into layered_map.mission.objectives, so unlike the
+	# old LineEdit there's no local widget state to keep synced or flush at
+	# Save time - open_for() rebuilds the graph fresh from the mission every
+	# time it's opened.
+	_objectives_dialog = ObjectivesDialog.new()
+	_objectives_dialog.operation_history = operation_history
+	_objectives_dialog.layered_map = layered_map
+	add_child(_objectives_dialog)
+	objectives_button.pressed.connect(_on_objectives_button_pressed)
+
 	min_players_spin_box.value_changed.connect(_on_min_players_changed)
 	max_players_spin_box.value_changed.connect(_on_max_players_changed)
-	objective_line_edit.text_submitted.connect(_on_objective_committed)
-	objective_line_edit.focus_exited.connect(_on_objective_committed)
 
 	# apply_mission() (Load/New, and undo/redo via OperationHistory) swaps
 	# in a whole different MissionData and emits this - these fields need
@@ -86,8 +102,11 @@ func _ready() -> void:
 
 
 func _on_mission_objects_changed() -> void:
-	_refresh_objective_field()
 	_refresh_player_count_fields()
+
+
+func _on_objectives_button_pressed() -> void:
+	_objectives_dialog.open_for(layered_map.mission)
 
 
 func _on_id_pressed(id: int) -> void:
@@ -140,13 +159,14 @@ func _on_mission_file_dialog_file_selected(path: String) -> void:
 func _save_to(path: String) -> void:
 	if layered_map.mission.mission_name == "":
 		layered_map.mission.mission_name = path.get_file().get_basename()
-	# The objective/player-count fields are live-synced now (see
-	# _on_min_players_changed() etc. below) - by the time Save runs, the
-	# mission should already reflect whatever's in these widgets. Calling
-	# these again is a redundant but harmless safety net for the one edge
-	# case where it isn't: text typed into the objective field that never
-	# got committed (Enter / losing focus) before Save was clicked.
-	_apply_objective_field()
+	# Player-count fields are live-synced (see _on_min_players_changed()
+	# etc. below) - by the time Save runs, the mission should already
+	# reflect whatever's in these widgets. Calling this again is a
+	# redundant but harmless safety net for the one edge case where it
+	# isn't: a value typed but never committed before Save was clicked.
+	# Objectives no longer need an equivalent call - ObjectivesDialog edits
+	# layered_map.mission.objectives directly, there's no local widget
+	# state that could be sitting uncommitted.
 	_apply_player_count_fields()
 	MissionIO.save_mission(layered_map.mission, path)
 
@@ -159,47 +179,6 @@ func _load_from(path: String) -> void:
 	# _on_mission_objects_changed() above already turns into a field
 	# refresh - no need to call it explicitly here too.
 	layered_map.apply_mission(loaded)
-
-
-## Fires on Enter (text_submitted) or losing focus (focus_exited) -
-## committing per-KEYSTROKE would flood the undo stack with one operation
-## per character, so this waits for the user to actually finish an edit.
-## Doesn't check whether the text actually changed before recording - a
-## submit/focus-loss with no real change just records a no-op Operation,
-## harmless (it'll just meld with or get skipped by undo like any other).
-func _on_objective_committed() -> void:
-	operation_history.record("Edit objective", _apply_objective_field)
-
-
-## Only ONE objective field for now (the final win objective's
-## description) - just enough to show something in the Player, not a real
-## objectives/conditions editor yet (see claude.md's Story layer section).
-func _apply_objective_field() -> void:
-	var description := objective_line_edit.text
-	var win_objective := _find_win_objective()
-	if win_objective != null:
-		win_objective.description = description
-		return
-	if description == "":
-		return  # nothing typed, nothing to create
-	var objective := MissionObjective.new()
-	objective.id = "final_objective"
-	objective.outcome = MissionObjective.Outcome.WIN
-	objective.checkpoint = RoundCheckpoint.Checkpoint.AFTER_DARKNESS_PHASE
-	objective.description = description
-	layered_map.mission.objectives.append(objective)
-
-
-func _refresh_objective_field() -> void:
-	var win_objective := _find_win_objective()
-	objective_line_edit.text = win_objective.description if win_objective != null else ""
-
-
-func _find_win_objective() -> MissionObjective:
-	for objective in layered_map.mission.objectives:
-		if objective.outcome == MissionObjective.Outcome.WIN:
-			return objective
-	return null
 
 
 ## Live-synced (2026-09-10, for undo/redo - see OperationHistory.gd). Each

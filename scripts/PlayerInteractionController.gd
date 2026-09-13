@@ -12,20 +12,38 @@ extends Control
 ##   1. UI + drag detection - the party set during EmbarkDialog (see
 ##      set_roster()) shown as a row of placeholder portraits, dragging one
 ##      draws a line toward the cursor.
-##   2. Interactable props (InteractableEntry with a non-empty `actions`)
-##      highlight while a drag hovers over them.
-##   3. Releasing a drag over an interactable just prints debug info - no
-##      PropAction actually fires yet. That needs the trigger/effect
-##      evaluator, which doesn't exist yet either.
+##   2. Interactable props (InteractableEntry with a non-empty `actions`,
+##      and props["interactible"] not explicitly false) highlight while a
+##      drag hovers over them.
+##   3. Releasing a drag over an interactable fires its FIRST action via
+##      MissionRuntime.fire_prop_action() (see mission_runtime below) - a
+##      real prop can only ever offer one action right now; disambiguating
+##      between several is deferred (no picker UI exists yet).
 ##
 ## Deliberately NOT using Godot's built-in Control drag-and-drop system
 ## (_get_drag_data/_drop_data) - the drop target here is a 3D world
 ## position found by raycasting, not another Control, so manual mouse
 ## tracking is more direct than fighting that system to reach underneath it.
 
+## Fired when firing a PropAction resolves an objective node (see
+## MissionRuntime.fire_prop_action()) - MissionPlayer._ready() connects
+## this to its own _on_game_over_requested(), which shows the outcome and
+## returns to the menu. A genuine signal (unlike MissionPlayer._advance_to()'s
+## deliberate avoidance of one for the checkpoint-driven path) is safe here
+## specifically because nothing below continues an internal loop after
+## _end_drag() that would need to wait on the connected handler finishing.
+signal game_over_requested(objective: MissionObjective)
+
 @export var layered_map: LayeredMap
 @export var camera: Camera3D  ## leave unset to auto-grab the viewport's active camera
 @export var highlight_color: Color = Color(0.3, 1.0, 1.0, 0.5)
+
+## Assigned by MissionPlayer._ready() right after construction - a plain
+## var, not @export/NodePath, since MissionRuntime is built at runtime via
+## .new() and never placed in a .tscn (same pattern
+## CreatorPropertiesPanel._build_object_fields() uses for
+## PropertiesDialog.operation_history/.layered_map).
+var mission_runtime: MissionRuntime
 
 const PORTRAIT_SIZE := 56.0
 
@@ -162,9 +180,13 @@ func _end_drag(screen_pos: Vector2) -> void:
 	var hero_name := HeroCatalog.slot_name(_roster[_drag_dock_position])
 	var entry := _interactable_at(screen_pos)
 	if entry != null:
-		var action_ids: Array = entry.actions.map(func(a): return a.action_id)
+		var action: PropAction = entry.actions[0]  # first/only action - see class doc
 		var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
-		print("%s interacted with '%s' (%s) - actions: %s" % [hero_name, label, entry.mesh_item_name, action_ids])
+		if mission_runtime != null:
+			var objective := mission_runtime.fire_prop_action(action)
+			if objective != null:
+				game_over_requested.emit(objective)
+		print("%s used '%s' on '%s' (%s)" % [hero_name, action.description, label, entry.mesh_item_name])
 	else:
 		print("%s: drag released on nothing interactable" % hero_name)
 
@@ -181,8 +203,10 @@ func _end_drag(screen_pos: Vector2) -> void:
 ## editing level, which doesn't make sense here; we want whatever's
 ## actually there at whatever height it renders). Only the prop layer is
 ## interactable right now (InteractableEntry only covers props) - a mesh
-## needs a non-empty `actions` list to count, per this feature's scope
-## (purely decorative props aren't valid drag targets).
+## needs a non-empty `actions` list AND props["interactible"] not
+## explicitly false to count (purely decorative props, and props
+## temporarily toggled off via that well-known key, aren't valid drag
+## targets).
 func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
 	if camera == null or layered_map == null or layered_map.mission == null:
 		return null
@@ -206,7 +230,7 @@ func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
 	var hit_cell: Vector3i = hit_grid.local_to_map(local_pos)
 
 	var entry := layered_map.mission.get_interactable_at(hit_cell)
-	if entry == null or entry.actions.is_empty():
+	if entry == null or entry.actions.is_empty() or not entry.props.get("interactible", true):
 		return null
 	return entry
 
