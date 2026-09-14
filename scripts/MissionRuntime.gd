@@ -13,6 +13,16 @@ extends RefCounted
 ## kept in sync via sync_builtins()) live in the same dictionary, evaluated
 ## identically by Condition/Effect - matching MissionVariable's own doc
 ## ("built-ins ... use this same shape but aren't authored here").
+##
+## apply_effect()/apply_effects() genuinely AWAIT now (new 2026-09-14, for
+## Effect.Type.RUN_TEST - see that field group's own doc and _run_test()
+## below), which makes them, and everything that calls them, real GDScript
+## coroutines: _fire_triggers()/_check_current_objectives() ->
+## evaluate_checkpoint()/fire_event() -> fire_prop_action(). Every one of
+## those needed `await` added at its own call site once this rippled
+## through - Godot's parser hard-errors ("Function is a coroutine, so it
+## must be called with 'await'") on any call site that's missed, so this
+## is self-checking, not a silent-breakage risk.
 
 const BUILTIN_TYPES := {
 	"round_number": MissionVariable.Type.INT,
@@ -21,6 +31,19 @@ const BUILTIN_TYPES := {
 
 var mission: MissionData
 var _variables: Dictionary = {}  # String -> Variant
+
+## Assigned externally by MissionPlayer._ready() right after construction
+## (same "runtime-constructed object, plain var, no @export/NodePath"
+## pattern already used for interaction_dock.mission_runtime), NOT held
+## since this class's original construction. A deliberate, narrow
+## exception to "MissionRuntime has no scene/UI access" (true for
+## everything else here - see Effect.Type.SHOW_STAGE/REMOVE_OBJECT's own
+## "queue an id, let the caller act on it" pattern): a RUN_TEST effect
+## must ask a question and branch on the answer BEFORE the rest of its
+## effects list can be applied, which can't be deferred to "the caller
+## sorts it out afterward" the way Show Stage/Remove Object can - see
+## _run_test() below and this class's own doc for the full reasoning.
+var dialog: PlayerDialog
 
 ## Objectives-DAG traversal state - each entry is a set of mutually
 ## exclusive candidate MissionObjective nodes currently being watched.
@@ -152,7 +175,13 @@ var _pending_stage_reveals: Array[String] = []
 var _pending_object_removals: Array[String] = []
 
 
-func apply_effect(effect: Effect) -> void:
+## `hero_name` (new 2026-09-14, optional) is the acting player, threaded
+## through purely so a RUN_TEST effect's dialog prompt can address them by
+## name - blank when there's no acting player in context (e.g. a
+## checkpoint-driven MissionTrigger's effects). See this class's own doc
+## for why this function (and everything that calls it) is now a
+## coroutine.
+func apply_effect(effect: Effect, hero_name: String = "") -> void:
 	if effect.type == Effect.Type.SHOW_STAGE:
 		if effect.target_group_id != "":
 			_pending_stage_reveals.append(effect.target_group_id)
@@ -160,6 +189,9 @@ func apply_effect(effect: Effect) -> void:
 	if effect.type == Effect.Type.REMOVE_OBJECT:
 		if effect.target_object_id != "":
 			_pending_object_removals.append(effect.target_object_id)
+		return
+	if effect.type == Effect.Type.RUN_TEST:
+		await _run_test(effect, hero_name)
 		return
 	if BUILTIN_TYPES.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
@@ -176,9 +208,57 @@ func apply_effect(effect: Effect) -> void:
 	print("MissionRuntime.apply_effect: '%s' = %s" % [effect.variable_name, coerced])
 
 
-func apply_effects(effects: Array[Effect]) -> void:
+func apply_effects(effects: Array[Effect], hero_name: String = "") -> void:
 	for effect in effects:
-		apply_effect(effect)
+		await apply_effect(effect, hero_name)
+
+
+## Asks dialog.ask_count() for a raw successes roll - the required number
+## is NEVER included in the prompt ("how many successes?", not "do you
+## need 6?"), so the table can't game a retry with foreknowledge (see
+## Effect.required_successes' own doc). Then, independently: (a) if
+## accumulate_variable_name is set, adds the raw count to that declared
+## INT variable via _accumulate() below (case 2 - repeated tests toward a
+## larger cumulative total); (b) if pass_effects or fail_effects is
+## non-empty, compares the roll against required_successes and applies
+## whichever branch's effects, recursively through apply_effects() (a
+## branch can itself contain another RUN_TEST). A Test with both
+## pass_effects and fail_effects empty skips the comparison entirely -
+## purely accumulate-only.
+func _run_test(effect: Effect, hero_name: String) -> void:
+	if dialog == null:
+		push_warning("RUN_TEST effect fired but MissionRuntime.dialog isn't wired - skipped")
+		return
+	var attribute_label := PlayerAttribute.attribute_name(effect.test_attribute)
+	var prompt := "%s: perform a %s test - how many successes?" % [hero_name, attribute_label] if hero_name != "" else "Perform a %s test - how many successes?" % attribute_label
+	var successes: int = await dialog.ask_count(prompt, 0, 99)
+	print("MissionRuntime._run_test: %s -> %d successes" % [attribute_label, successes])
+
+	if effect.accumulate_variable_name != "":
+		_accumulate(effect.accumulate_variable_name, successes)
+
+	if not effect.pass_effects.is_empty() or not effect.fail_effects.is_empty():
+		if successes >= effect.required_successes:
+			await apply_effects(effect.pass_effects, hero_name)
+		else:
+			await apply_effects(effect.fail_effects, hero_name)
+
+
+## Adds `delta` to a declared INT variable - the operation a cumulative
+## test needs that SET_VARIABLE can't do (it only ever overwrites). Same
+## warn-and-skip discipline as apply_effect()'s SET_VARIABLE body: rejects
+## a built-in, an undeclared name, or a variable not declared INT.
+func _accumulate(variable_name: String, delta: int) -> void:
+	if BUILTIN_TYPES.has(variable_name):
+		push_warning("Test result cannot accumulate into built-in variable '%s' - skipped" % variable_name)
+		return
+	var declared: int = _declared_type(variable_name)
+	if declared != MissionVariable.Type.INT:
+		push_warning("Test result can only accumulate into an INT variable - '%s' isn't one - skipped" % variable_name)
+		return
+	var current: Variant = _variables.get(variable_name, 0)
+	_variables[variable_name] = (current if typeof(current) == TYPE_INT else 0) + delta
+	print("MissionRuntime._accumulate: '%s' += %d -> %s" % [variable_name, delta, _variables[variable_name]])
 
 
 ## Clears and returns whatever Show Stage targets queued up since the last
@@ -205,13 +285,15 @@ func drain_pending_object_removals() -> Array[String]:
 ## the currently-active objective node(s) - returns the first that just
 ## resolved as a leaf (or null). Triggers fire before objectives are
 ## checked so an objective can depend on a variable a trigger just wrote.
+## No hero_name to thread through - a checkpoint transition has no acting
+## player in context (unlike fire_prop_action() below).
 func evaluate_checkpoint(checkpoint: RoundCheckpoint.Checkpoint) -> MissionObjective:
 	var due: Array[MissionTrigger] = []
 	for trigger in mission.triggers:
 		if trigger.checkpoint == checkpoint:
 			due.append(trigger)
-	_fire_triggers(due)
-	return _check_current_objectives()
+	await _fire_triggers(due)
+	return await _check_current_objectives()
 
 
 ## Fires every event-driven trigger watching `event_id`, then checks the
@@ -219,30 +301,36 @@ func evaluate_checkpoint(checkpoint: RoundCheckpoint.Checkpoint) -> MissionObjec
 ## resolved as a leaf (or null). Objectives are re-checked on events too
 ## (not just checkpoints) since something like "found the item" is
 ## reported live via a PropAction, not observable only at the next
-## checkpoint boundary.
-func fire_event(event_id: String) -> MissionObjective:
+## checkpoint boundary. `hero_name` (new 2026-09-14) just passes through to
+## apply_effect() for a RUN_TEST's dialog prompt - see that function's own
+## doc.
+func fire_event(event_id: String, hero_name: String = "") -> MissionObjective:
 	var due: Array[MissionTrigger] = []
 	for trigger in mission.triggers:
 		if trigger.event_id == event_id:
 			due.append(trigger)
-	_fire_triggers(due)
-	return _check_current_objectives()
+	await _fire_triggers(due, hero_name)
+	return await _check_current_objectives(hero_name)
 
 
 ## Applies a PropAction's own effects, then fires the event-driven half -
 ## both halves fire per PropAction's own doc ("firing one applies its
 ## effects immediately - the event-driven half of the trigger system").
-## Returns the same nullable MissionObjective fire_event() does.
-func fire_prop_action(action: PropAction) -> MissionObjective:
+## Returns the same nullable MissionObjective fire_event() does. `hero_name`
+## (new 2026-09-14, required - its one caller, PlayerInteractionController.
+## _offer_actions(), always has one) is the player who performed the
+## action, threaded through purely so a RUN_TEST effect anywhere downstream
+## of this action can address them by name in its dialog prompt.
+func fire_prop_action(action: PropAction, hero_name: String) -> MissionObjective:
 	print("MissionRuntime.fire_prop_action: '%s' (action_id='%s', %d effect(s))" % [action.description, action.action_id, action.effects.size()])
-	apply_effects(action.effects)
+	await apply_effects(action.effects, hero_name)
 	if action.single_shot:
 		# Mutating the loaded PropAction resource instance directly is
 		# safe, same reasoning as MissionTrigger.already_fired -
 		# MissionIO.load_mission() already uses CACHE_MODE_IGNORE for a
 		# fresh instance never saved back.
 		action.already_used = true
-	return fire_event(action.action_id)
+	return await fire_event(action.action_id, hero_name)
 
 
 ## Sorted by priority ascending, then fired SEQUENTIALLY rather than as a
@@ -252,7 +340,7 @@ func fire_prop_action(action: PropAction) -> MissionObjective:
 ## comment is for - "matters when one trigger's effect writes a variable
 ## another trigger's condition depends on" only makes sense if effects from
 ## an earlier trigger in this same batch are visible to a later one.
-func _fire_triggers(candidates: Array[MissionTrigger]) -> void:
+func _fire_triggers(candidates: Array[MissionTrigger], hero_name: String = "") -> void:
 	var sorted: Array[MissionTrigger] = candidates.duplicate()
 	sorted.sort_custom(func(a, b): return a.priority < b.priority)
 	for trigger in sorted:
@@ -260,7 +348,7 @@ func _fire_triggers(candidates: Array[MissionTrigger]) -> void:
 			continue
 		if not evaluate_conditions(trigger.conditions):
 			continue
-		apply_effects(trigger.effects)
+		await apply_effects(trigger.effects, hero_name)
 		trigger.already_fired = true
 
 
@@ -280,7 +368,7 @@ func _fire_triggers(candidates: Array[MissionTrigger]) -> void:
 ## the same tick - new candidates get their first real evaluation on the
 ## NEXT call, keeping this non-recursive and incidentally making an
 ## accidentally-authored cycle harmless (see _warn_on_cycles()).
-func _check_current_objectives() -> MissionObjective:
+func _check_current_objectives(hero_name: String = "") -> MissionObjective:
 	for group_index in _current_groups.size():
 		var group: Array = _current_groups[group_index]
 		var sorted: Array = group.duplicate()
@@ -289,14 +377,14 @@ func _check_current_objectives() -> MissionObjective:
 		for node in sorted:
 			for optional in node.optional_objectives:
 				if not optional.already_achieved and evaluate_conditions(optional.conditions):
-					apply_effects(optional.effects)
+					await apply_effects(optional.effects, hero_name)
 					optional.already_achieved = true
 
 		for node in sorted:
 			if node.already_achieved or not evaluate_conditions(node.conditions):
 				continue
 			node.already_achieved = true
-			apply_effects(node.effects)
+			await apply_effects(node.effects, hero_name)
 			if node.children.is_empty():
 				return node
 			_current_groups[group_index] = node.children.duplicate()

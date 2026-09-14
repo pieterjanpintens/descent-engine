@@ -70,6 +70,7 @@ func _ready() -> void:
 
 	_runtime = MissionRuntime.new(mission)
 	_runtime.sync_builtins(current_round, player_roster.size())
+	_runtime.dialog = dialog
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)
@@ -262,7 +263,7 @@ func _run_darkness_and_loop() -> void:
 ## this file.
 func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	current_checkpoint = checkpoint
-	var objective := _runtime.evaluate_checkpoint(checkpoint)
+	var objective := await _runtime.evaluate_checkpoint(checkpoint)
 	_refresh_objective_label()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)

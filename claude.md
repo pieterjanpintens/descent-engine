@@ -183,10 +183,11 @@ deliberately basic for now - no AND/OR nesting, no cross-object queries, no
 increment/expression support. `conditions: Array[Condition]` anywhere in this
 system is an implicit AND across every entry.
 
-**`Effect` gained a second kind 2026-09-14, then a third the same day**:
-`type` (`Effect.Type` enum `SET_VARIABLE`/`SHOW_STAGE`/`REMOVE_OBJECT`,
-defaults `SET_VARIABLE` - every existing saved `Effect` loads at this
-default, matching its old behavior exactly, purely additive). `SET_VARIABLE`
+**`Effect` gained a second kind 2026-09-14, then a third, then a fourth,
+all the same day**: `type` (`Effect.Type` enum
+`SET_VARIABLE`/`SHOW_STAGE`/`REMOVE_OBJECT`/`RUN_TEST`, defaults
+`SET_VARIABLE` - every existing saved `Effect` loads at this default,
+matching its old behavior exactly, purely additive). `SET_VARIABLE`
 is everything described above (`variable_name`+`value`). `SHOW_STAGE`
 instead carries `target_group_id` (a `MissionGroup.id`) and means "reveal
 this stage" - see **"Show Stage": board setup + group visibility** below.
@@ -202,11 +203,18 @@ case. See `MissionRuntime.apply_effect()`/`LayeredMap.remove_node()` below
 for how removal actually happens - same "runtime queues an id, the caller
 with scene access acts on it" split `SHOW_STAGE` already established, since
 `MissionRuntime` (a `RefCounted` with no scene/UI access) can't touch
-`LayeredMap` itself. All three live in ONE `Effect` type rather than
-separate effect classes specifically so every existing
-`effects: Array[Effect]` list (`PropAction`, `MissionTrigger`,
-`MissionObjective`/its `optional_objectives`) gets Show Stage/Remove Object
-for free - no second/third list needed anywhere.
+`LayeredMap` itself. `RUN_TEST` is a "Test" - see that subsection below and
+`MissionRuntime._run_test()` for the full mechanism; unlike the other
+three, it's genuinely RECURSIVE (`pass_effects`/`fail_effects: Array[Effect]`
+live directly on `Effect` itself - the exact same self-referential shape
+`MissionObjective.children: Array[MissionObjective]` already proved safe in
+this codebase) and it's what forced `MissionRuntime`'s effect-application
+chain to become properly asynchronous, see that subsection for why. All
+four live in ONE `Effect` type rather than separate effect classes
+specifically so every existing `effects: Array[Effect]` list (`PropAction`,
+`MissionTrigger`, `MissionObjective`/its `optional_objectives`) gets Show
+Stage/Remove Object/Test for free - no second/third/fourth list needed
+anywhere.
 
 **One variable registry, three ways to fill it**: `MissionVariable` (name +
 Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
@@ -332,6 +340,96 @@ when computing requirements, shows the dialog, then
 group is already visible, so a duplicate detection result or a re-fired
 trigger can't show the setup dialog twice.
 
+**"Test": attribute rolls, pass/fail branching, cumulative totals** (new
+2026-09-14) - `Effect.Type.RUN_TEST`. The physical game resolves many
+situations by having a player roll a dice pool for one of four attributes
+(`PlayerAttribute.Attribute`: `INTELLIGENCE`/`WILL`/`AGILITY`/`STRENGTH`,
+`scripts/PlayerAttribute.gd` - never instantiated, same shared-enum-
+namespace pattern as `RoundCheckpoint`/`HeroCatalog`) and counting
+successes - the engine never computes a hero's actual dice pool or bonuses,
+it only asks for the already-calculated number and compares it, so the
+enum exists purely to label which attribute a Test is about. The user
+described three situations; two are built:
+1. **Event-driven** - after a `PropAction`/trigger fires, the acting player
+   rolls; the app knows `required_successes` internally but **NEVER tells
+   the player that number** ("we don't expose the required successes...
+   players can retry without knowledge") - `pass_effects`/`fail_effects`
+   (both `Array[Effect]`) each run their own list, only consulted at all if
+   at least one of them is non-empty.
+2. **Cumulative** - the same roll, but instead of branching,
+   `accumulate_variable_name` (optional, a declared INT variable) gets the
+   RAW rolled successes ADDED to it (not set) across repeated attempts -
+   e.g. 20 successes needed to put out a fire, spread over several tries.
+   Checking whether the running total has reached its target needs no new
+   mechanism - an ordinary `Condition` (`fire_progress >= 20`) already
+   does it; the only missing piece was the ADD operation itself, which the
+   user identified themselves as a genuine gap ("this operation is not
+   possible with what we have now") - see `MissionRuntime._accumulate()`.
+3. **Told-target / all-players negation** (e.g. "a pillar collapses, all
+   players take 8 damage, an agility test negates") - explicitly deferred
+   by the user ("we can ignore case 3 for now... it's a new kind of effect
+   we should add later") once it became clear it isn't really a Test at
+   all in this codebase's sense (no pass/fail branching, no hidden target -
+   the roll's raw number would need to feed an arithmetic formula against a
+   separately-applied numeric effect like damage, which doesn't exist yet
+   either) - see Open items for the TODO.
+
+**`pass_effects`/`fail_effects` make `Effect` genuinely recursive** (a
+Test's pass branch can itself contain another Test) - proven safe already
+via `MissionObjective.children`'s identical self-referential shape.
+
+**Architectural fork this forced**: every other `Effect` is either
+synchronous or "queue an id, let the caller (`MissionPlayer`, which HAS
+scene access) act on it afterward" (`SHOW_STAGE`/`REMOVE_OBJECT`'s
+`_pending_stage_reveals`/`_pending_object_removals`) - nothing downstream
+ever needed to branch on the outcome, so `MissionRuntime` (a `RefCounted`
+with no scene/UI access, by original design) never needed to itself await
+anything. A Test breaks that: it must ask a question, get an answer, and
+use it to decide which effects list to apply next, recursively - that
+can't be deferred to "the caller sorts it out later", the caller doesn't
+have enough context to re-enter a partially-applied effects list. So
+`apply_effect()`/`apply_effects()` genuinely `await` now, which makes
+them - and everything that calls them - real GDScript coroutines:
+`_fire_triggers()`/`_check_current_objectives()` ->
+`evaluate_checkpoint()`/`fire_event()` -> `fire_prop_action()`, each
+gaining an `await` at its own call site (confirmed via Godot's own
+documented behavior that a coroutine call site without `await` is a hard
+PARSE ERROR, not silent breakage, so this ripple is self-checking). Only
+TWO external call sites needed the same treatment:
+`MissionPlayer._advance_to()` and
+`PlayerInteractionController._offer_actions()`, both already inside
+functions that were themselves coroutines.
+
+**How `MissionRuntime` actually awaits a dialog without touching scene
+nodes it doesn't own**: tried and rejected an injected `Callable` first
+(`await some_callable.call(...)`) - research turned up real, documented
+Godot inconsistencies awaiting a coroutine through `Callable.call()` (can
+return an unusable `GDScriptFunctionState`), not something to build a core
+mechanism on. Landed on a plain `var dialog: PlayerDialog`, assigned by
+`MissionPlayer._ready()` right after construction (same "runtime-
+constructed object, plain var, no `@export`/NodePath" pattern already used
+for `interaction_dock.mission_runtime`), calling `await
+dialog.ask_count(...)` directly - the exact same proven pattern
+`MissionPlayer.show_stage()` already uses for `dialog.ask_narrative()`.
+**A deliberate, narrow exception to "`MissionRuntime` has no scene/UI
+access"** - Show Stage/Remove Object avoided touching the scene
+specifically because nothing needed to branch on their outcome; a Test
+can't use that trick, and the alternative is the less reliable option per
+Godot's own known limitations here.
+
+**`_run_test(effect, hero_name)`** - the actual mechanism: builds a prompt
+("`<hero>`: perform a `<attribute>` test - how many successes?" or, with no
+`hero_name` in context, just "Perform a `<attribute>` test - how many
+successes?" - NEVER interpolating `required_successes`), `await`s
+`dialog.ask_count(prompt, 0, 99)`, then independently: accumulates if
+`accumulate_variable_name` is set, and/or compares-and-branches if
+`pass_effects`/`fail_effects` isn't both empty. `hero_name` (new, optional,
+default `""`) threads all the way down from `fire_prop_action()` (its one
+real caller, `PlayerInteractionController._offer_actions()`, always has
+one) through every intermediate function purely so the prompt can address
+the acting player by name - blank when there's no acting player in context
+(a checkpoint-driven `MissionTrigger`'s effects, for instance).
+
 **Referencing a specific instance** — `InteractableEntry.reference_name`
 (optional, e.g. "front_door") lets one prop's trigger react to another
 named one's state ("if front_door is open, spawn a monster"). No special
@@ -455,21 +553,27 @@ evaluated identically by every `Condition`/`Effect`.
   candidate list rather than just "is there one" - the actual picker UI
   (new 2026-09-14, a real multi-action choice at last - see
   `PlayerInteractionController`'s own entry) reads this.
-- `apply_effect()`/`apply_effects()` - branches on `effect.type` FIRST
-  (new 2026-09-14, before any of the variable-name logic below, which
-  would otherwise misfire on a SHOW_STAGE effect's blank
-  `variable_name`): a SHOW_STAGE effect just appends `target_group_id` to
+- `apply_effect(effect, hero_name = "")`/`apply_effects(effects, hero_name = "")` -
+  branches on `effect.type` FIRST (new 2026-09-14, before any of the
+  variable-name logic below, which would otherwise misfire on a
+  SHOW_STAGE/REMOVE_OBJECT/RUN_TEST effect's blank `variable_name`): a
+  SHOW_STAGE effect just appends `target_group_id` to
   `_pending_stage_reveals` (this class has no scene/UI access to show a
   dialog or touch `LayeredMap` itself - see **Story layer**'s "Show
   Stage" entry) and returns; a REMOVE_OBJECT effect (new 2026-09-14, same
   branch structure, checked right alongside SHOW_STAGE) just appends
   `target_object_id` to `_pending_object_removals` and returns, for the
-  same reason - it can't call `LayeredMap.remove_node()` itself. Everything
-  else (a SET_VARIABLE effect, the common case) keeps the SAME coercion/
-  warning discipline as conditions, plus one extra rule: writing a
-  `BUILTIN_TYPES` key is rejected (`push_warning()` + skip) -
+  same reason - it can't call `LayeredMap.remove_node()` itself; a
+  RUN_TEST effect (same day, see **Story layer**'s "Test" entry for the
+  full mechanism) `await`s `_run_test(effect, hero_name)` - this is what
+  makes `apply_effect()`/`apply_effects()` (and everything that calls
+  them) genuinely asynchronous now, unlike the other three branches.
+  Everything else (a SET_VARIABLE effect, the common case) keeps the SAME
+  coercion/warning discipline as conditions, plus one extra rule: writing
+  a `BUILTIN_TYPES` key is rejected (`push_warning()` + skip) -
   `round_number`/`player_count` are runtime-owned, never author-writable
-  via an `Effect`.
+  via an `Effect`. `hero_name` (new, optional) threads through purely for
+  a nested RUN_TEST's dialog prompt - see **Story layer**'s "Test" entry.
 - `drain_pending_stage_reveals() -> Array[String]` (new 2026-09-14) -
   clears and returns `_pending_stage_reveals`. `MissionPlayer` calls this
   right after anything that can apply effects (`evaluate_checkpoint()`
@@ -483,29 +587,36 @@ evaluated identically by every `Condition`/`Effect`.
   the stage-reveal drain (same two call sites) and calls
   `layered_map.remove_node()` for each - no `await` needed, unlike a
   stage reveal there's no dialog to show.
-- `evaluate_checkpoint(checkpoint) -> MissionObjective` (nullable) -
+- `evaluate_checkpoint(checkpoint) -> MissionObjective` (nullable, now
+  `await`ed by its caller - see **Story layer**'s "Test" entry for why) -
   gathers `mission.triggers` whose `checkpoint` matches (a plain `for`
   loop into an explicitly-typed local `Array[MissionTrigger]`, not
   `.filter()` - matches the existing manual-loop convention in
   `MissionData.get_level_links_from()`, sidesteps relying on typed-array
-  `.filter()`'s return-typing), fires them via `_fire_triggers()`, then
-  returns `_check_current_objectives()` - triggers fire before objectives
+  `.filter()`'s return-typing), `await`s `_fire_triggers()`, then returns
+  `await _check_current_objectives()` - triggers fire before objectives
   are checked, so an objective can depend on a variable a trigger at the
-  same checkpoint just wrote.
-- `fire_event(event_id)` - same gather-and-fire, filtered by `event_id`
-  instead of checkpoint, THEN also calls `_check_current_objectives()` -
-  **overturned 2026-09-12**: objectives used to only ever be checked at a
-  checkpoint, never live on an event; that broke the moment "found the
-  item" needed to be something a player REPORTS (a `PropAction` firing),
-  not something that waits for the next round-loop checkpoint to be
-  noticed. `MissionTrigger`'s own event/checkpoint split is unaffected -
-  this change is objective-specific.
-- `fire_prop_action(action)` - `apply_effects(action.effects)` THEN
-  `fire_event(action.action_id)` (now also nullable-`MissionObjective`-
-  returning, propagated through this too) - both halves fire per
-  `PropAction`'s own doc ("firing one applies its effects immediately -
-  the event-driven half of the trigger system").
-- `_fire_triggers(candidates)` - sorts by `priority` ascending, then fires
+  same checkpoint just wrote. No `hero_name` to thread through - a
+  checkpoint transition has no acting player in context.
+- `fire_event(event_id, hero_name = "")` - same gather-and-fire, filtered
+  by `event_id` instead of checkpoint, THEN also calls
+  `_check_current_objectives()` - **overturned 2026-09-12**: objectives
+  used to only ever be checked at a checkpoint, never live on an event;
+  that broke the moment "found the item" needed to be something a player
+  REPORTS (a `PropAction` firing), not something that waits for the next
+  round-loop checkpoint to be noticed. `MissionTrigger`'s own event/
+  checkpoint split is unaffected - this change is objective-specific.
+  `hero_name` (new 2026-09-14) just passes through to both calls below it.
+- `fire_prop_action(action, hero_name)` - `await apply_effects(action.effects, hero_name)`
+  THEN `await fire_event(action.action_id, hero_name)` (now also
+  nullable-`MissionObjective`-returning, propagated through this too) -
+  both halves fire per `PropAction`'s own doc ("firing one applies its
+  effects immediately - the event-driven half of the trigger system").
+  `hero_name` (new 2026-09-14, REQUIRED - its one caller,
+  `PlayerInteractionController._offer_actions()`, always has one) is the
+  player who performed the action, threaded through purely so a RUN_TEST
+  effect anywhere downstream can address them by name.
+- `_fire_triggers(candidates, hero_name = "")` - sorts by `priority` ascending, then fires
   **sequentially, not as a pre-filtered batch**: skip if `one_shot and
   already_fired`, re-run `evaluate_conditions()` against the CURRENT live
   `_variables` state for each trigger as you go (not a snapshot taken
@@ -517,8 +628,11 @@ evaluated identically by every `Condition`/`Effect`.
   `trigger.already_fired = true` - mutating the loaded `MissionTrigger`
   resource instance directly is safe, since `MissionIO.load_mission()`
   already uses `CACHE_MODE_IGNORE` for a fresh instance never saved back.
-- **`_check_current_objectives() -> MissionObjective`** (nullable, new
-  2026-09-12, replaces the old flat `_check_objectives(checkpoint)`) - the
+- **`_check_current_objectives(hero_name = "") -> MissionObjective`**
+  (nullable, new 2026-09-12, replaces the old flat
+  `_check_objectives(checkpoint)`; `hero_name` new 2026-09-14, passed
+  through to `apply_effects()` for the same RUN_TEST-dialog-prompt reason
+  as everywhere else - see **Story layer**'s "Test" entry) - the
   DAG traversal engine. `_current_groups: Array[Array[MissionObjective]]`
   tracks which node(s) are "current": each entry is a set of mutually
   exclusive candidates (starts as one singleton group per root in
@@ -1401,8 +1515,12 @@ first working version).
 	gates whether this action is currently OFFERED to players at all -
 	and a nested Effects list with its own Add/Remove - each effect row's
 	leading `Effect.Type` picker toggles Set Variable / Show Stage /
-	Remove Object exactly the same way `ObjectivesDialog`'s own effect
-	rows do, see that script's entry above), plus an "Add Action" button.
+	Remove Object / Test exactly the same way `ObjectivesDialog`'s own
+	effect rows do (including the same `effects_list: Array[Effect]`
+	signature and nested "Edit Test…" window, `_test_editor`/
+	`_test_editor_container`/`_open_test_editor()` - own copy, not shared
+	code, same convention as everything else here), see that script's own
+	entry above), plus an "Add Action" button.
 	Each block's condition/effect rows and value-type editor
 	(`_build_condition_row()`/`_build_effect_row()`/`_build_value_editor()`,
 	plus `_build_variable_name_option()`/`_known_variable_names()` -
@@ -1526,20 +1644,41 @@ first working version).
 	file; selects nothing/blank rather than silently picking the first
 	entry if the currently-set name isn't among them, e.g. authored before
 	the variable was declared). `_build_effect_row()` also gained a leading `Effect.Type` `OptionButton`
-	("Set Variable"/"Show Stage"/"Remove Object", the third new 2026-09-14
-	the same day as the type itself) that toggles between three widget
-	groups (same "build them all, toggle `.visible`" trick
-	`_build_value_editor()` already uses for its own type picker): the
-	variable_name+value widgets above for SET_VARIABLE, a group-picker
-	`OptionButton` (`mission.groups`, no "(root)" entry) writing
-	`effect.target_group_id` for SHOW_STAGE, and an object-picker
-	`OptionButton` (every entry in `mission.interactables` +
+	("Set Variable"/"Show Stage"/"Remove Object"/"Test", the last two new
+	2026-09-14) that toggles between FOUR widget groups (same "build them
+	all, toggle `.visible`" trick `_build_value_editor()` already uses for
+	its own type picker): the variable_name+value widgets above for
+	SET_VARIABLE, a group-picker `OptionButton` (`mission.groups`, no
+	"(root)" entry) writing `effect.target_group_id` for SHOW_STAGE, an
+	object-picker `OptionButton` (every entry in `mission.interactables` +
 	`floor_placements` + `underlay_placements`, labeled
 	`"<name> (<origin_cell>)"` - the cell disambiguates entries sharing a
 	mesh name, e.g. several "gate"s or every plain "1a" floor tile, unlike
 	the group picker which doesn't need it since groups are already
-	uniquely named) writing `effect.target_object_id` for REMOVE_OBJECT.
-	And Optional Objectives as a list of rows each with an "Edit…" button
+	uniquely named) writing `effect.target_object_id` for REMOVE_OBJECT, and
+	an "Edit Test…" button for RUN_TEST (see below - its editor doesn't fit
+	one row the way the other three do). `_build_effect_row()`'s signature
+	changed the same day from a typed `holder: MissionObjective` (used only
+	for `holder.effects.erase(effect)`) to a plain `effects_list: Array[Effect]`
+	parameter - a bare array reference works identically whether it's an
+	objective's own `.effects`, an optional objective's `.effects`, or a
+	RUN_TEST effect's nested `.pass_effects`/`.fail_effects`, which is what
+	lets this same row-builder recurse into a Test's own branches.
+	**Nested "Edit Test…" window** (`_test_editor`/`_test_editor_container`,
+	built once via `_build_test_editor()`, repopulated via
+	`_open_test_editor(effect)` - same single-instance-reused pattern as
+	`_optional_editor` immediately below): an Attribute `OptionButton`
+	(Intelligence/Will/Agility/Strength) writing `effect.test_attribute`; a
+	Required Successes `SpinBox` (labeled "never shown to the player")
+	writing `effect.required_successes`; an Accumulate Variable dropdown
+	(`_build_variable_name_option()`'s underlying name list plus a leading
+	"(none)" entry, since accumulation is optional unlike a `Condition`/
+	`Effect`'s `variable_name`) writing `effect.accumulate_variable_name`;
+	and Pass Effects / Fail Effects, each its own list of
+	`_build_effect_row(effect.pass_effects, ...)`/`(effect.fail_effects, ...)`
+	rows plus an Add button - reusing the row-builder recursively, so a
+	Test's own branches can contain any effect type, including another
+	Test. And Optional Objectives as a list of rows each with an "Edit…" button
 	opening a small **nested** `Window` (`_open_optional_editor()` -
 	description + its own Conditions/Effects list, reusing the exact same
 	row-builder helpers) - the "a dialog opens a smaller dialog" pattern
@@ -1906,6 +2045,16 @@ first working version).
   overrides**), and there's no override mechanism for hero identity anyway.
   Shared between `EmbarkDialog` and `PlayerInteractionController` so both
   always agree on what slot N looks like.
+- `PlayerAttribute.gd` (new 2026-09-14) — same never-instantiated shared-
+  namespace pattern as `RoundCheckpoint`/`HeroCatalog`: the `Attribute` enum
+  (`INTELLIGENCE`/`WILL`/`AGILITY`/`STRENGTH`) a "Test" is rolled against -
+  see **Story layer**'s "Test" entry and `Effect.Type.RUN_TEST`. The engine
+  never computes a hero's actual dice pool or bonuses (some heroes have
+  positive/negative bonuses on different attributes, all baked into the
+  number the table reports), so this enum exists purely to label which
+  attribute a Test is about - `attribute_name(attribute) -> String` is the
+  one static helper, used to build dialog prompts and Creator dropdown
+  labels.
 - `EmbarkDialog.gd` (`%Embark` in `MissionPlayer.tscn`) — shown once right
   after a mission loads, before anything else (round 1, spawn confirmation,
   all of it) - the table picks which `HeroCatalog` slots are playing.
@@ -1965,7 +2114,11 @@ first working version).
   them, picking it (or a zero-candidate entry, which
   `_interactable_at()` already excludes from being a valid drop target)
   does nothing. Firing then works exactly as before -
-  `mission_runtime.fire_prop_action()` (`mission_runtime`
+  `await mission_runtime.fire_prop_action(action, hero_name)` (`await` new
+  2026-09-14, once `Effect.Type.RUN_TEST` made this a genuine coroutine -
+  see **Story layer**'s "Test" entry; `hero_name` threaded through the
+  same day so a RUN_TEST effect anywhere downstream can address the acting
+  player by name in its dialog prompt) - `mission_runtime`
   is a plain `var` assigned by `MissionPlayer._ready()` right after
   constructing its `MissionRuntime`, same "runtime-constructed object, no
   Inspector slot to `@export` through" pattern `PropertiesDialog`'s own
@@ -2656,3 +2809,17 @@ These cost real debugging time — worth not re-learning them:
 	distinguish floor from wall on a shared GridMap cell coordinate - now
 	keyed by `origin_cell` alone, same as `rebuild_underlay_tiles()`
 	already did.
+15. **A "told-target" / all-players negation effect** (new 2026-09-14,
+	explicitly deferred by the user the same day "Test" itself was built -
+	see **Story layer**'s "Test" entry, scenario 3) - e.g. "a pillar
+	collapses, all players take 8 damage, an agility test negates" (roll 6
+	successes, only take 2 damage). NOT a "Test" in this codebase's sense:
+	no pass/fail branching, and the required number IS told to the table
+	up front (the opposite of `Effect.Type.RUN_TEST`'s "never expose the
+	target" rule) - the roll's raw number instead needs to feed an
+	arithmetic formula against a separately-applied numeric effect (like
+	damage), and it applies independently per player in the roster, not
+	once. Blocked on damage not existing yet either way. Likely its own
+	`Effect.Type` once damage is designed, reusing `PlayerAttribute` but
+	otherwise a fundamentally different shape from `RUN_TEST` - not a
+	variant of it.

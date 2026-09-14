@@ -41,6 +41,13 @@ var _entry: InteractableEntry
 var _rows_container: VBoxContainer
 var _empty_label: Label
 
+## The nested "Edit Test…" window - single instance, built once in
+## _ready(), rebuilt-and-repopened via _open_test_editor() each time it's
+## opened (same "a dialog opens a smaller dialog" pattern ObjectivesDialog.
+## _optional_editor already establishes).
+var _test_editor: Window
+var _test_editor_container: VBoxContainer
+
 
 func _ready() -> void:
 	title = "Actions"
@@ -72,6 +79,25 @@ func _ready() -> void:
 	add_button.text = "Add Action"
 	add_button.pressed.connect(_on_add_action_pressed)
 	root.add_child(add_button)
+
+	_test_editor = Window.new()
+	_test_editor.title = "Test"
+	_test_editor.size = Vector2i(420, 480)
+	_test_editor.close_requested.connect(_test_editor.hide)
+	_test_editor.visible = false
+	add_child(_test_editor)
+
+	var test_scroll := ScrollContainer.new()
+	test_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	test_scroll.offset_left = 8
+	test_scroll.offset_top = 8
+	test_scroll.offset_right = -8
+	test_scroll.offset_bottom = -8
+	_test_editor.add_child(test_scroll)
+
+	_test_editor_container = VBoxContainer.new()
+	_test_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	test_scroll.add_child(_test_editor_container)
 
 
 ## Public - CreatorPropertiesPanel.gd calls this from its "Actions…" button.
@@ -168,7 +194,7 @@ func _build_action_block(action: PropAction) -> Control:
 	effects_label.text = "Effects (applied immediately when this action fires):"
 	box.add_child(effects_label)
 	for effect in action.effects:
-		box.add_child(_build_effect_row(action, effect))
+		box.add_child(_build_effect_row(action.effects, effect, _rebuild_rows))
 	var add_effect_button := Button.new()
 	add_effect_button.text = "Add Effect"
 	add_effect_button.pressed.connect(func():
@@ -281,18 +307,31 @@ func _build_condition_row(holder: PropAction, condition: Condition) -> Control:
 	return row
 
 
-## `type_option` (Set Variable/Show Stage) picks between two pre-built
-## widget groups shown one at a time - same "build all, toggle .visible"
-## trick _build_value_editor() below already uses for its own String/Bool/
-## Int/Float picker. Show Stage's group_option has no "(root)" entry -
-## showing a stage for the mission root doesn't mean anything.
-func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
+## `type_option` (Set Variable/Show Stage/Remove Object/Test) picks between
+## pre-built widget groups shown one at a time - same "build all, toggle
+## .visible" trick _build_value_editor() below already uses for its own
+## String/Bool/Int/Float picker. Show Stage's group_option has no "(root)"
+## entry - showing a stage for the mission root doesn't mean anything.
+## `effects_list` (new 2026-09-14, replacing a typed `holder: PropAction` -
+## the ONLY thing holder was ever used for was `holder.effects.erase(effect)`)
+## is the actual Array[Effect] this row's effect lives in - a plain array
+## reference works identically whether that's a PropAction's own `.effects`
+## or a RUN_TEST effect's nested `.pass_effects`/`.fail_effects`, which is
+## what lets this same row-builder recurse into a Test's own branches (see
+## the RUN_TEST widget group below and _open_test_editor()). `on_changed`
+## (new the same day) replaces a hardcoded _rebuild_rows() call so this
+## works identically from the top-level action block and from inside the
+## nested test editor - same shape as ObjectivesDialog's own
+## _build_effect_row(), which already needed exactly this for its nested
+## optional-objective editor.
+func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: Callable) -> Control:
 	var row := HBoxContainer.new()
 
 	var type_option := OptionButton.new()
 	type_option.add_item("Set Variable", Effect.Type.SET_VARIABLE)
 	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
 	type_option.add_item("Remove Object", Effect.Type.REMOVE_OBJECT)
+	type_option.add_item("Test", Effect.Type.RUN_TEST)
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
@@ -340,12 +379,23 @@ func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
 	)
 	row.add_child(object_option)
 
+	## RUN_TEST's full editor (attribute + threshold + accumulate variable +
+	## two nested effect lists) doesn't fit in one row - a compact button
+	## opens a small nested Window instead, same "a dialog opens a smaller
+	## dialog" pattern ObjectivesDialog._open_optional_editor() already
+	## establishes.
+	var test_button := Button.new()
+	test_button.text = "Edit Test…"
+	test_button.pressed.connect(func(): _open_test_editor(effect))
+	row.add_child(test_button)
+
 	var update_visibility := func():
 		var type: int = type_option.get_selected_id()
 		var_option.visible = type == Effect.Type.SET_VARIABLE
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
 		object_option.visible = type == Effect.Type.REMOVE_OBJECT
+		test_button.visible = type == Effect.Type.RUN_TEST
 	update_visibility.call()
 	type_option.item_selected.connect(func(_index):
 		var new_type: int = type_option.get_selected_id()
@@ -356,12 +406,99 @@ func _build_effect_row(holder: PropAction, effect: Effect) -> Control:
 	var remove_button := Button.new()
 	remove_button.text = "×"
 	remove_button.pressed.connect(func():
-		_commit_field("Remove effect", func(): holder.effects.erase(effect))
-		_rebuild_rows()
+		_commit_field("Remove effect", func(): effects_list.erase(effect))
+		on_changed.call()
 	)
 	row.add_child(remove_button)
 
 	return row
+
+
+## The nested "Edit Test…" window (single instance, built once in
+## _ready(), rebuilt-and-repopened on every open - same pattern as
+## ObjectivesDialog._open_optional_editor()). Attribute + Required
+## Successes + optional Accumulate Variable, then Pass/Fail Effects as two
+## nested lists reusing _build_effect_row() recursively - a branch can
+## contain any effect type, including another Test.
+func _open_test_editor(effect: Effect) -> void:
+	for child in _test_editor_container.get_children():
+		child.queue_free()
+
+	var attribute_row := HBoxContainer.new()
+	_test_editor_container.add_child(attribute_row)
+	attribute_row.add_child(_label("Attribute:"))
+	var attribute_option := OptionButton.new()
+	attribute_option.add_item("Intelligence", PlayerAttribute.Attribute.INTELLIGENCE)
+	attribute_option.add_item("Will", PlayerAttribute.Attribute.WILL)
+	attribute_option.add_item("Agility", PlayerAttribute.Attribute.AGILITY)
+	attribute_option.add_item("Strength", PlayerAttribute.Attribute.STRENGTH)
+	attribute_option.select(attribute_option.get_item_index(effect.test_attribute))
+	attribute_option.item_selected.connect(func(_index):
+		var new_attribute: int = attribute_option.get_selected_id()
+		_commit_field("Edit test attribute", func(): effect.test_attribute = new_attribute)
+	)
+	attribute_row.add_child(attribute_option)
+
+	var required_row := HBoxContainer.new()
+	_test_editor_container.add_child(required_row)
+	required_row.add_child(_label("Required successes (never shown to the player):"))
+	var required_spin := SpinBox.new()
+	required_spin.min_value = 0
+	required_spin.max_value = 99
+	required_spin.step = 1
+	required_spin.value = effect.required_successes
+	required_spin.value_changed.connect(func(new_value: float):
+		_commit_field("Edit test required successes", func(): effect.required_successes = int(new_value))
+	)
+	required_row.add_child(required_spin)
+
+	_test_editor_container.add_child(HSeparator.new())
+	_test_editor_container.add_child(_label("Accumulate raw successes into (optional - for a test repeated toward a larger total, e.g. 20 successes to put out a fire):"))
+	var accumulate_option := OptionButton.new()
+	accumulate_option.add_item("(none)")
+	var accumulate_names := _known_variable_names()
+	for name in accumulate_names:
+		accumulate_option.add_item(name)
+	accumulate_option.select(accumulate_names.find(effect.accumulate_variable_name) + 1 if effect.accumulate_variable_name != "" else 0)
+	accumulate_option.item_selected.connect(func(index: int):
+		var new_name := accumulate_names[index - 1] if index > 0 else ""
+		_commit_field("Edit test accumulate variable", func(): effect.accumulate_variable_name = new_name)
+	)
+	_test_editor_container.add_child(accumulate_option)
+
+	_test_editor_container.add_child(HSeparator.new())
+	_test_editor_container.add_child(_label("Pass Effects (roll met the required successes):"))
+	for pass_effect in effect.pass_effects:
+		_test_editor_container.add_child(_build_effect_row(effect.pass_effects, pass_effect, func(): _open_test_editor(effect)))
+	var add_pass_button := Button.new()
+	add_pass_button.text = "Add Pass Effect"
+	add_pass_button.pressed.connect(func():
+		var new_effect := Effect.new()
+		_commit_field("Add test pass effect", func(): effect.pass_effects.append(new_effect))
+		_open_test_editor(effect)
+	)
+	_test_editor_container.add_child(add_pass_button)
+
+	_test_editor_container.add_child(HSeparator.new())
+	_test_editor_container.add_child(_label("Fail Effects (roll fell short):"))
+	for fail_effect in effect.fail_effects:
+		_test_editor_container.add_child(_build_effect_row(effect.fail_effects, fail_effect, func(): _open_test_editor(effect)))
+	var add_fail_button := Button.new()
+	add_fail_button.text = "Add Fail Effect"
+	add_fail_button.pressed.connect(func():
+		var new_effect := Effect.new()
+		_commit_field("Add test fail effect", func(): effect.fail_effects.append(new_effect))
+		_open_test_editor(effect)
+	)
+	_test_editor_container.add_child(add_fail_button)
+
+	_test_editor.popup_centered()
+
+
+func _label(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	return label
 
 
 ## A type picker (String/Bool/Int/Float, defaulted from typeof(current_value)

@@ -41,6 +41,13 @@ var _graph_node_by_objective: Dictionary = {}  # MissionObjective -> GraphNode
 var _optional_editor: Window
 var _optional_editor_container: VBoxContainer
 
+## Same "a dialog opens a smaller dialog" pattern as _optional_editor
+## above, new 2026-09-14 for Effect.Type.RUN_TEST's nested editor (attribute
+## + threshold + accumulate variable + two nested effect lists - see
+## _open_test_editor()).
+var _test_editor: Window
+var _test_editor_container: VBoxContainer
+
 
 func _ready() -> void:
 	title = "Objectives"
@@ -99,6 +106,7 @@ func _ready() -> void:
 	scroll.add_child(_props_panel)
 
 	_build_optional_editor()
+	_build_test_editor()
 	_show_no_selection()
 
 
@@ -389,7 +397,7 @@ func _rebuild_properties_panel() -> void:
 	_props_panel.add_child(HSeparator.new())
 	_props_panel.add_child(_label("Effects (applied once when achieved):"))
 	for effect in objective.effects:
-		_props_panel.add_child(_build_effect_row(objective, effect, _rebuild_properties_panel))
+		_props_panel.add_child(_build_effect_row(objective.effects, effect, _rebuild_properties_panel))
 	var add_effect_button := Button.new()
 	add_effect_button.text = "Add Effect"
 	add_effect_button.pressed.connect(func():
@@ -495,18 +503,26 @@ func _build_condition_row(holder: MissionObjective, condition: Condition, on_cha
 	return row
 
 
-## `type_option` (Set Variable/Show Stage) picks between two pre-built
-## widget groups shown one at a time - same "build all, toggle .visible"
-## trick _build_value_editor() below already uses for its own String/Bool/
-## Int/Float picker. Show Stage's group_option has no "(root)" entry -
-## showing a stage for the mission root doesn't mean anything.
-func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Callable) -> Control:
+## `type_option` (Set Variable/Show Stage/Remove Object/Test) picks between
+## pre-built widget groups shown one at a time - same "build all, toggle
+## .visible" trick _build_value_editor() below already uses for its own
+## String/Bool/Int/Float picker. Show Stage's group_option has no "(root)"
+## entry - showing a stage for the mission root doesn't mean anything.
+## `effects_list` (new 2026-09-14, replacing a typed `holder: MissionObjective` -
+## the ONLY thing holder was ever used for was `holder.effects.erase(effect)`)
+## is the actual Array[Effect] this row's effect lives in - a plain array
+## reference works identically whether that's an objective's own `.effects`
+## or a RUN_TEST effect's nested `.pass_effects`/`.fail_effects`, which is
+## what lets this same row-builder recurse into a Test's own branches (see
+## the RUN_TEST widget group below and _open_test_editor()).
+func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: Callable) -> Control:
 	var row := HBoxContainer.new()
 
 	var type_option := OptionButton.new()
 	type_option.add_item("Set Variable", Effect.Type.SET_VARIABLE)
 	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
 	type_option.add_item("Remove Object", Effect.Type.REMOVE_OBJECT)
+	type_option.add_item("Test", Effect.Type.RUN_TEST)
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
@@ -554,12 +570,22 @@ func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Cal
 	)
 	row.add_child(object_option)
 
+	## RUN_TEST's full editor (attribute + threshold + accumulate variable +
+	## two nested effect lists) doesn't fit in one row - a compact button
+	## opens a small nested Window instead, same "a dialog opens a smaller
+	## dialog" pattern _open_optional_editor() already establishes.
+	var test_button := Button.new()
+	test_button.text = "Edit Test…"
+	test_button.pressed.connect(func(): _open_test_editor(effect))
+	row.add_child(test_button)
+
 	var update_visibility := func():
 		var type: int = type_option.get_selected_id()
 		var_option.visible = type == Effect.Type.SET_VARIABLE
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
 		object_option.visible = type == Effect.Type.REMOVE_OBJECT
+		test_button.visible = type == Effect.Type.RUN_TEST
 	update_visibility.call()
 	type_option.item_selected.connect(func(_index):
 		var new_type: int = type_option.get_selected_id()
@@ -570,7 +596,7 @@ func _build_effect_row(holder: MissionObjective, effect: Effect, on_changed: Cal
 	var remove_button := Button.new()
 	remove_button.text = "×"
 	remove_button.pressed.connect(func():
-		_commit_field("Remove effect", func(): holder.effects.erase(effect))
+		_commit_field("Remove effect", func(): effects_list.erase(effect))
 		on_changed.call()
 	)
 	row.add_child(remove_button)
@@ -727,7 +753,7 @@ func _open_optional_editor(parent_objective: MissionObjective, optional: Mission
 	_optional_editor_container.add_child(HSeparator.new())
 	_optional_editor_container.add_child(_label("Effects (applied once when achieved):"))
 	for effect in optional.effects:
-		_optional_editor_container.add_child(_build_effect_row(optional, effect, func(): _open_optional_editor(parent_objective, optional)))
+		_optional_editor_container.add_child(_build_effect_row(optional.effects, effect, func(): _open_optional_editor(parent_objective, optional)))
 	var add_effect_button := Button.new()
 	add_effect_button.text = "Add Effect"
 	add_effect_button.pressed.connect(func():
@@ -736,5 +762,107 @@ func _open_optional_editor(parent_objective: MissionObjective, optional: Mission
 		_open_optional_editor(parent_objective, optional)
 	)
 	_optional_editor_container.add_child(add_effect_button)
+
+
+## ---- Nested "edit one Test effect" dialog ----
+## Same "a dialog opens a smaller dialog" pattern as _optional_editor
+## above - Effect.Type.RUN_TEST's attribute/threshold/accumulate-variable/
+## two-nested-effect-list editor doesn't fit in one row, see
+## _build_effect_row()'s own "Edit Test…" button.
+
+func _build_test_editor() -> void:
+	_test_editor = Window.new()
+	_test_editor.title = "Test"
+	_test_editor.size = Vector2i(360, 480)
+	_test_editor.close_requested.connect(_test_editor.hide)
+	_test_editor.visible = false
+	add_child(_test_editor)
+
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 8
+	scroll.offset_top = 8
+	scroll.offset_right = -8
+	scroll.offset_bottom = -8
+	_test_editor.add_child(scroll)
+
+	_test_editor_container = VBoxContainer.new()
+	_test_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_test_editor_container)
+
+
+func _open_test_editor(effect: Effect) -> void:
+	for child in _test_editor_container.get_children():
+		child.queue_free()
+
+	var attribute_row := HBoxContainer.new()
+	_test_editor_container.add_child(attribute_row)
+	attribute_row.add_child(_label("Attribute:"))
+	var attribute_option := OptionButton.new()
+	attribute_option.add_item("Intelligence", PlayerAttribute.Attribute.INTELLIGENCE)
+	attribute_option.add_item("Will", PlayerAttribute.Attribute.WILL)
+	attribute_option.add_item("Agility", PlayerAttribute.Attribute.AGILITY)
+	attribute_option.add_item("Strength", PlayerAttribute.Attribute.STRENGTH)
+	attribute_option.select(attribute_option.get_item_index(effect.test_attribute))
+	attribute_option.item_selected.connect(func(_index):
+		var new_attribute: int = attribute_option.get_selected_id()
+		_commit_field("Edit test attribute", func(): effect.test_attribute = new_attribute)
+	)
+	attribute_row.add_child(attribute_option)
+
+	var required_row := HBoxContainer.new()
+	_test_editor_container.add_child(required_row)
+	required_row.add_child(_label("Required successes (never shown to the player):"))
+	var required_spin := SpinBox.new()
+	required_spin.min_value = 0
+	required_spin.max_value = 99
+	required_spin.step = 1
+	required_spin.value = effect.required_successes
+	required_spin.value_changed.connect(func(new_value: float):
+		_commit_field("Edit test required successes", func(): effect.required_successes = int(new_value))
+	)
+	required_row.add_child(required_spin)
+
+	_test_editor_container.add_child(HSeparator.new())
+	_test_editor_container.add_child(_label("Accumulate raw successes into (optional - for a test repeated toward a larger total, e.g. 20 successes to put out a fire):"))
+	var accumulate_option := OptionButton.new()
+	accumulate_option.add_item("(none)")
+	var accumulate_names := _known_variable_names()
+	for name in accumulate_names:
+		accumulate_option.add_item(name)
+	accumulate_option.select(accumulate_names.find(effect.accumulate_variable_name) + 1 if effect.accumulate_variable_name != "" else 0)
+	accumulate_option.item_selected.connect(func(index: int):
+		var new_name := accumulate_names[index - 1] if index > 0 else ""
+		_commit_field("Edit test accumulate variable", func(): effect.accumulate_variable_name = new_name)
+	)
+	_test_editor_container.add_child(accumulate_option)
+
+	_test_editor_container.add_child(HSeparator.new())
+	_test_editor_container.add_child(_label("Pass Effects (roll met the required successes):"))
+	for pass_effect in effect.pass_effects:
+		_test_editor_container.add_child(_build_effect_row(effect.pass_effects, pass_effect, func(): _open_test_editor(effect)))
+	var add_pass_button := Button.new()
+	add_pass_button.text = "Add Pass Effect"
+	add_pass_button.pressed.connect(func():
+		var new_effect := Effect.new()
+		_commit_field("Add test pass effect", func(): effect.pass_effects.append(new_effect))
+		_open_test_editor(effect)
+	)
+	_test_editor_container.add_child(add_pass_button)
+
+	_test_editor_container.add_child(HSeparator.new())
+	_test_editor_container.add_child(_label("Fail Effects (roll fell short):"))
+	for fail_effect in effect.fail_effects:
+		_test_editor_container.add_child(_build_effect_row(effect.fail_effects, fail_effect, func(): _open_test_editor(effect)))
+	var add_fail_button := Button.new()
+	add_fail_button.text = "Add Fail Effect"
+	add_fail_button.pressed.connect(func():
+		var new_effect := Effect.new()
+		_commit_field("Add test fail effect", func(): effect.fail_effects.append(new_effect))
+		_open_test_editor(effect)
+	)
+	_test_editor_container.add_child(add_fail_button)
+
+	_test_editor.popup_centered()
 
 	_optional_editor.popup_centered()
