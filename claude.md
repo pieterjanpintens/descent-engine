@@ -2310,18 +2310,42 @@ appears locally, for a user who separately owns the official game and runs
 
 - **Trigger**: pushing a tag matching `v*.*.*` (e.g. `v1.0.0`), or manually via the
   Actions tab (`workflow_dispatch`).
-- **Build**: runs in the `barichello/godot-ci:4.7.2` Docker image (bundles Godot
-  4.7.2 + matching export templates — keep this pinned version in sync with the
-  project's actual Godot minor version, `config/features` in `project.godot`).
-  Exports the `"Windows Desktop"` preset from `export_presets.cfg` headlessly, zips
-  the resulting `.exe`/`.pck`, and uploads it as a build artifact.
-- **Release**: a second job downloads that artifact and creates a GitHub Release
-  (via `softprops/action-gh-release`) with auto-generated release notes and the zip
-  attached. Uses the default `GITHUB_TOKEN` — no extra secrets needed.
-- Only Windows is exported currently, matching the only preset that exists in
-  `export_presets.cfg`. Adding Linux/Mac/Web presets later means adding a matching
-  `export-<platform>` job (same pattern as the existing `export-windows` job); the
-  `release` job already gathers artifacts generically and doesn't need to change.
+- **Build**: `export-windows` and `export-linux` (new 2026-09-15) both run in the
+  `barichello/godot-ci:4.7.2` Docker image (bundles Godot 4.7.2 + matching export
+  templates — keep this pinned version in sync with the project's actual Godot
+  minor version, `config/features` in `project.godot`), each exporting its own
+  preset from `export_presets.cfg` headlessly (`"Windows Desktop"` → `.exe`/`.pck`,
+  `"Linux"` → a `.x86_64` binary/`.pck`, both preset names case-sensitive and must
+  match `export_presets.cfg` exactly), zips the result, and uploads it as its own
+  named build artifact (`windows-build`/`linux-build`) — same job shape, just a
+  different preset name/output extension/artifact name each time.
+- **Release**: a third job (`needs: [export-windows, export-linux]`) downloads
+  every artifact into one `dist/` folder (`actions/download-artifact@v4` with
+  `path: dist` + `merge-multiple: true` — new 2026-09-15, replacing the old
+  single-named-artifact download once there was more than one to gather) and
+  creates a GitHub Release (via `softprops/action-gh-release`, `files: dist/*`)
+  with auto-generated release notes and every zip attached. Uses the default
+  `GITHUB_TOKEN` — no extra secrets needed. **If any `export-*` job fails, no
+  release is created at all** (`needs` requires every listed job to succeed) —
+  worth remembering before adding a new platform job: a broken/incomplete one
+  would silently block releases for every OTHER platform too, not just itself.
+- **macOS is NOT set up yet, and needs more than just a new job** (confirmed
+  2026-09-15, requested but deliberately not scaffolded broken): the pinned
+  `barichello/godot-ci` image explicitly does **not** support macOS export
+  (its own README: "Automating Xcode projects is doable but not trivial... it
+  will happen eventually") — unlike Windows/Linux, a macOS build needs an actual
+  `macos-latest` GitHub-hosted runner with Godot + the macOS export templates
+  downloaded directly (not the container image), producing an **unsigned** `.app`
+  (no Apple Developer account/codesigning set up — end users will see a Gatekeeper
+  "unidentified developer" warning, standard for an unsigned open-source hobby
+  build). It ALSO needs a `"macOS"` preset added to `export_presets.cfg` first —
+  deliberately left to be added via the Godot editor itself (Project → Export →
+  Add… → macOS) rather than hand-authored here: a macOS preset's option block is
+  ~150 lines (codesign/notarization/privacy-manifest fields alone), and getting
+  one byte-exact for this project's pinned 4.7.2 without being able to launch the
+  editor and verify it risks a broken preset silently blocking every platform's
+  release per the `needs:` note above. Once that preset exists, the CI job itself
+  is a small, well-understood addition — ask if this doc is stale.
 
 ## Hard-won Godot 4 / GDScript lessons
 
