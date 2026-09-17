@@ -235,6 +235,29 @@ func _commit_field(label: String, mutate: Callable) -> void:
 	layered_map.notify_objects_changed()
 
 
+## Swaps `item` with its neighbor `delta` slots away (-1 = up/earlier,
+## +1 = down/later) - a no-op if `item` is already at that end of the
+## array. Added 2026-09-17 so reordering a condition/effect doesn't mean
+## deleting everything just to re-add it in the right order ("its kinda
+## shitty having to delete all because you want to add something in the
+## beginning"). Takes a plain `Array` rather than a typed one - a typed
+## `Array[Condition]`/`Array[Effect]` is still a real Array object
+## underneath in GDScript, so passing it in untyped and mutating it in
+## place still affects the original caller's array. Own copy, not shared
+## with ObjectivesDialog.gd's identical helper - same "each dialog owns
+## its own row-builder helpers" convention as everything else here.
+func _move_in_array(array: Array, item, delta: int) -> bool:
+	var index := array.find(item)
+	if index == -1:
+		return false
+	var target := index + delta
+	if target < 0 or target >= array.size():
+		return false
+	array[index] = array[target]
+	array[target] = item
+	return true
+
+
 ## Built-in variable names (MissionRuntime.BUILTIN_TYPES) plus every
 ## declared MissionData.custom_variables name - own copy of
 ## ObjectivesDialog's identical helper (same file-local-sharing reasoning
@@ -296,6 +319,26 @@ func _build_condition_row(holder: PropAction, condition: Condition) -> Control:
 
 	row.add_child(_build_value_editor(condition.value, func(new_value): _commit_field("Edit condition value", func(): condition.value = new_value)))
 
+	var move_up_button := Button.new()
+	move_up_button.text = "↑"
+	move_up_button.tooltip_text = "Move up"
+	move_up_button.disabled = holder.conditions.find(condition) == 0
+	move_up_button.pressed.connect(func():
+		_commit_field("Reorder condition", func(): _move_in_array(holder.conditions, condition, -1))
+		_rebuild_rows()
+	)
+	row.add_child(move_up_button)
+
+	var move_down_button := Button.new()
+	move_down_button.text = "↓"
+	move_down_button.tooltip_text = "Move down"
+	move_down_button.disabled = holder.conditions.find(condition) == holder.conditions.size() - 1
+	move_down_button.pressed.connect(func():
+		_commit_field("Reorder condition", func(): _move_in_array(holder.conditions, condition, 1))
+		_rebuild_rows()
+	)
+	row.add_child(move_down_button)
+
 	var remove_button := Button.new()
 	remove_button.text = "×"
 	remove_button.pressed.connect(func():
@@ -332,6 +375,7 @@ func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: 
 	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
 	type_option.add_item("Remove Object", Effect.Type.REMOVE_OBJECT)
 	type_option.add_item("Test", Effect.Type.RUN_TEST)
+	type_option.add_item("Show Message", Effect.Type.SHOW_MESSAGE)
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
@@ -389,6 +433,20 @@ func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: 
 	test_button.pressed.connect(func(): _open_test_editor(effect))
 	row.add_child(test_button)
 
+	## SHOW_MESSAGE - a plain narrative popup (OK button, no branching), see
+	## Effect.gd's own doc. Just the message text - no separate editor
+	## needed the way RUN_TEST's does.
+	var message_edit := LineEdit.new()
+	message_edit.placeholder_text = "Message shown to the table, e.g. \"Donal gave you the key.\""
+	message_edit.text = effect.message
+	message_edit.text_submitted.connect(func(new_text: String):
+		_commit_field("Edit effect message", func(): effect.message = new_text)
+	)
+	message_edit.focus_exited.connect(func():
+		_commit_field("Edit effect message", func(): effect.message = message_edit.text)
+	)
+	row.add_child(message_edit)
+
 	var update_visibility := func():
 		var type: int = type_option.get_selected_id()
 		var_option.visible = type == Effect.Type.SET_VARIABLE
@@ -396,12 +454,33 @@ func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: 
 		group_option.visible = type == Effect.Type.SHOW_STAGE
 		object_option.visible = type == Effect.Type.REMOVE_OBJECT
 		test_button.visible = type == Effect.Type.RUN_TEST
+		message_edit.visible = type == Effect.Type.SHOW_MESSAGE
 	update_visibility.call()
 	type_option.item_selected.connect(func(_index):
 		var new_type: int = type_option.get_selected_id()
 		_commit_field("Edit effect type", func(): effect.type = new_type)
 		update_visibility.call()
 	)
+
+	var move_up_button := Button.new()
+	move_up_button.text = "↑"
+	move_up_button.tooltip_text = "Move up"
+	move_up_button.disabled = effects_list.find(effect) == 0
+	move_up_button.pressed.connect(func():
+		_commit_field("Reorder effect", func(): _move_in_array(effects_list, effect, -1))
+		on_changed.call()
+	)
+	row.add_child(move_up_button)
+
+	var move_down_button := Button.new()
+	move_down_button.text = "↓"
+	move_down_button.tooltip_text = "Move down"
+	move_down_button.disabled = effects_list.find(effect) == effects_list.size() - 1
+	move_down_button.pressed.connect(func():
+		_commit_field("Reorder effect", func(): _move_in_array(effects_list, effect, 1))
+		on_changed.call()
+	)
+	row.add_child(move_down_button)
 
 	var remove_button := Button.new()
 	remove_button.text = "×"

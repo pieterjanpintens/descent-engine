@@ -180,7 +180,10 @@ var _pending_object_removals: Array[String] = []
 ## name - blank when there's no acting player in context (e.g. a
 ## checkpoint-driven MissionTrigger's effects). See this class's own doc
 ## for why this function (and everything that calls it) is now a
-## coroutine.
+## coroutine. SHOW_MESSAGE (new 2026-09-17) reuses the same `dialog`
+## reference RUN_TEST already established - `await dialog.ask_ok(effect.message)`,
+## nothing else - a plain narrative popup with no branching, no variable
+## read/write.
 func apply_effect(effect: Effect, hero_name: String = "") -> void:
 	if effect.type == Effect.Type.SHOW_STAGE:
 		if effect.target_group_id != "":
@@ -192,6 +195,12 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		return
 	if effect.type == Effect.Type.RUN_TEST:
 		await _run_test(effect, hero_name)
+		return
+	if effect.type == Effect.Type.SHOW_MESSAGE:
+		if dialog == null:
+			push_warning("SHOW_MESSAGE effect fired but MissionRuntime.dialog isn't wired - skipped")
+			return
+		await dialog.ask_ok(effect.message)
 		return
 	if BUILTIN_TYPES.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)

@@ -209,12 +209,37 @@ three, it's genuinely RECURSIVE (`pass_effects`/`fail_effects: Array[Effect]`
 live directly on `Effect` itself - the exact same self-referential shape
 `MissionObjective.children: Array[MissionObjective]` already proved safe in
 this codebase) and it's what forced `MissionRuntime`'s effect-application
-chain to become properly asynchronous, see that subsection for why. All
-four live in ONE `Effect` type rather than separate effect classes
-specifically so every existing `effects: Array[Effect]` list (`PropAction`,
+chain to become properly asynchronous, see that subsection for why. A
+fifth kind, `SHOW_MESSAGE` (new 2026-09-17), was added later the same
+session - see its own entry right below this paragraph. All five live in
+ONE `Effect` type rather than separate effect classes specifically so
+every existing `effects: Array[Effect]` list (`PropAction`,
 `MissionTrigger`, `MissionObjective`/its `optional_objectives`) gets Show
-Stage/Remove Object/Test for free - no second/third/fourth list needed
-anywhere.
+Stage/Remove Object/Test/Show Message for free - no second/third/fourth/
+fifth list needed anywhere.
+
+**`SHOW_MESSAGE` (new 2026-09-17)** closes a real gap the others don't
+cover: a `PropAction` can already fire a `SET_VARIABLE` effect silently
+(e.g. talking to Donal sets `has_key = true`), but nothing ever told the
+table that happened - "the problem is that the players are not notified
+of this... we should add an effect that just pops up a dialog telling
+what happened... eg 'Donald gave you the key to the front door' with an
+ok button to close." Carries one field, `message: String` - the exact
+text shown. Deliberately the simplest possible new Effect kind: no
+branching, no variable read or write of its own, just
+`await dialog.ask_ok(effect.message)` in `MissionRuntime.apply_effect()`
+- reusing BOTH the already-existing `PlayerDialog.ask_ok()` primitive
+(built earlier for other purposes, never previously wired to an
+authorable effect) and the same `dialog: PlayerDialog` reference
+`RUN_TEST` already established as the one deliberate, narrow exception to
+"`MissionRuntime` has no scene/UI access" - see that field's own doc
+above for the full reasoning on why that exception exists. Authorable
+from both `ObjectivesDialog.gd` and `PropActionsDialog.gd`'s own
+`_build_effect_row()` copies - a "Show Message" entry in the existing
+`Effect.Type` picker toggling a plain message `LineEdit` (committed on
+Enter or focus-lost, same convention as every other single-line text
+field in this project), no new nested editor window needed the way
+`RUN_TEST`'s does.
 
 **One variable registry, three ways to fill it**: `MissionVariable` (name +
 Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
@@ -1655,15 +1680,39 @@ first working version).
 	`"<name> (<origin_cell>)"` - the cell disambiguates entries sharing a
 	mesh name, e.g. several "gate"s or every plain "1a" floor tile, unlike
 	the group picker which doesn't need it since groups are already
-	uniquely named) writing `effect.target_object_id` for REMOVE_OBJECT, and
-	an "Edit Test…" button for RUN_TEST (see below - its editor doesn't fit
-	one row the way the other three do). `_build_effect_row()`'s signature
+	uniquely named) writing `effect.target_object_id` for REMOVE_OBJECT, an
+	"Edit Test…" button for RUN_TEST (see below - its editor doesn't fit
+	one row the way the other three do), and (new 2026-09-17, see **Story
+	layer**'s own `SHOW_MESSAGE` entry) a plain message `LineEdit` writing
+	`effect.message` for SHOW_MESSAGE - the simplest of the five widget
+	groups, no separate editor needed. `_build_effect_row()`'s signature
 	changed the same day from a typed `holder: MissionObjective` (used only
 	for `holder.effects.erase(effect)`) to a plain `effects_list: Array[Effect]`
 	parameter - a bare array reference works identically whether it's an
 	objective's own `.effects`, an optional objective's `.effects`, or a
 	RUN_TEST effect's nested `.pass_effects`/`.fail_effects`, which is what
 	lets this same row-builder recurse into a Test's own branches.
+	**Reordering, new 2026-09-17** ("could we fix the UI so that effects
+	and conditions can easily be moved up and down... its kinda shitty
+	having to delete all because you want to add something in the
+	beginning") - `_build_condition_row()`/`_build_effect_row()` both
+	gained "↑"/"↓" buttons alongside the existing "×" remove button,
+	swapping the row's own Condition/Effect with its neighbor via a new
+	`_move_in_array(array, item, delta)` helper (own copy, same
+	convention as this dialog's other row-builder helpers -
+	`PropActionsDialog.gd` has an identical copy) - takes a plain `Array`
+	rather than a typed one, since a typed `Array[Condition]`/`Array[Effect]`
+	is still a real Array object underneath in GDScript, so mutating it
+	through an untyped parameter still affects the caller's actual array.
+	Each button disables itself when the item is already at that end (no
+	point offering a no-op move), recomputed correctly on every reorder
+	since the SAME `on_changed` callback that already rebuilds the row
+	list after add/remove runs after a move too - no separate refresh
+	path needed. This mattered because implicit-AND conditions and an
+	ordered effects list (priority-sensitive - see `MissionTrigger.priority`'s
+	own doc for why effect ORDER matters, e.g. one effect writing a
+	variable another reads) previously had no way to reorder at all short
+	of deleting and re-adding everything from scratch.
 	**Nested "Edit Test…" window** (`_test_editor`/`_test_editor_container`,
 	built once via `_build_test_editor()`, repopulated via
 	`_open_test_editor(effect)` - same single-instance-reused pattern as

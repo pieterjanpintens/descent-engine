@@ -19,16 +19,26 @@ extends Resource
 ## PlayerAttribute roll - see that field group's own doc below and
 ## MissionRuntime._run_test() for the full mechanism (this is the one Type
 ## that made MissionRuntime's effect-application chain genuinely
-## asynchronous - see that class's own doc). All four live in one Type
-## rather than separate effect classes so every existing effects list
-## (PropAction/MissionTrigger/MissionObjective) gains Show Stage/Remove
-## Object/Run Test for free, no second/third/fourth list to add anywhere.
+## asynchronous - see that class's own doc). SHOW_MESSAGE (new 2026-09-17)
+## just shows the table a plain narrative popup (OK button, no branching) -
+## requested for the exact gap it closes: a prop action can already SET a
+## variable silently (e.g. "talk to Donal" setting has_key = true), but
+## nothing ever told the PLAYERS that happened - "the players are not
+## notified of this... we should add an effect that just pops up a dialog
+## telling what happened." Reuses the exact same `dialog: PlayerDialog`
+## reference RUN_TEST already established as a deliberate, narrow exception
+## to "MissionRuntime has no scene/UI access" - see
+## MissionRuntime.apply_effect()'s own entry for the one line this adds.
+## All five live in one Type rather than separate effect classes so every
+## existing effects list (PropAction/MissionTrigger/MissionObjective) gains
+## all of them for free, no extra list to add anywhere.
 
 enum Type {
 	SET_VARIABLE,
 	SHOW_STAGE,
 	REMOVE_OBJECT,
 	RUN_TEST,
+	SHOW_MESSAGE,
 }
 
 @export var type: Type = Type.SET_VARIABLE
@@ -71,3 +81,9 @@ enum Type {
 ## a single pass/fail. Independent of pass_effects/fail_effects - a Test
 ## can accumulate, branch, both, or (pointlessly) neither.
 @export var accumulate_variable_name: String = ""
+
+## SHOW_MESSAGE only - the exact text shown to the table, e.g. "Donal gave
+## you the key to the front door." A plain OK-button popup
+## (`PlayerDialog.ask_ok()`, already existed for other purposes) - no
+## branching, no variable read/write of its own, purely narrative.
+@export var message: String = ""
