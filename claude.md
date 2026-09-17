@@ -2150,6 +2150,821 @@ first working version).
   The game's own rule ("only interact with what you're physically adjacent
   to") isn't enforced - that needs real player-position tracking, which
   doesn't exist. **Unverified in-editor.**
+- **`MonsterDisplay.gd`** (new 2026-09-15, `%MonsterDisplay` in
+  `MissionPlayer.tscn`) — a **temporary visual mockup**, not a real feature
+  yet: the first step toward "combat" (see Open items) is deciding what it
+  should even look like to switch the Player into a monster-facing view
+  while keeping every persistent UI element exactly as it is. Confirmed
+  feasible cheaply because `MissionPlayer.tscn`'s `CanvasLayer` (holding
+  `InteractionDock`/`Dialog`/labels/buttons) was ALREADY a sibling of the 3D
+  world content (`LayeredMap`/`Camera3D`/`DirectionalLight3D`), not nested
+  inside it — it renders independently on top regardless of what's in the
+  3D scene, so swapping "the scene" needed zero UI changes. `MonsterDisplay`
+  is a second, parallel Node3D sibling (`visible = false` by default),
+  building its own `camera: FreeLookCamera` (own `var`, not a scene node -
+  same right-click-drag/WASD navigation the world view already uses,
+  **changed 2026-09-16 from a fixed static-angle `Camera3D`** - "it's hard
+  to tell what's wrong" with a mesh's orientation/scale from one locked
+  angle, fair - `camera.jump_to(center, 8.0)` for the initial framing, NOT
+  a manual `position`/`look_at()`, specifically because `jump_to()` also
+  updates `FreeLookCamera`'s own internal `_yaw`/`_pitch` - skip that and
+  the first right-click-drag computes rotation from stale zeros and snaps
+  back, same gotcha that method's own doc already warns about) and a grid
+  of 4 "stands" (`REAL_MONSTERS` below) in `_ready()` (own "build dynamic
+  content in code" convention this project already uses everywhere) - each
+  stand is a flat dark box (a plastic-miniature-base stand-in) with a
+  figure on top. Reuses the scene's existing `DirectionalLight3D` (not
+  position-dependent, already lights this grid the same as `LayeredMap`) -
+  no dedicated light needed. The monster camera's own `_input()`/
+  `_unhandled_input()` are explicitly disabled right after creation (a
+  node's input processing defaults ON regardless of visibility - without
+  this, dragging in the WORLD view before "M" is ever pressed would
+  silently rotate this hidden camera too, so it'd already be facing
+  somewhere unexpected the first time it's actually shown).
+  `MissionPlayer._set_monster_display_visible(shown)` is the actual
+  swap: toggles `.visible` on `monster_display`/`layered_map` (mutually
+  exclusive), which `Camera3D` is `current`, AND (since both views now use
+  `FreeLookCamera`) `set_process_input()`/`set_process_unhandled_input()`
+  on BOTH cameras - whichever one isn't currently shown gets its input
+  paused (a `FreeLookCamera`'s `_input()` fires unconditionally regardless
+  of visibility, per this doc's own Hard-won lessons entry - no point
+  letting an off-screen one react to input, and per the note above,
+  actively harmful not to). Wired to a **TEMPORARY "M" key**
+  in `MissionPlayer._unhandled_input()` purely so this mockup can actually
+  be seen in a running Player - there's no real combat trigger to switch
+  views on its own yet, remove/replace once one exists. Nothing about
+  interaction (dragging a hero portrait onto a monster) is wired up yet -
+  this is visuals only, see Open items for what's still ahead.
+  **Real-asset proof of concept, 2026-09-16, extended from 1 -> 4 -> all 18
+  monster types the same day** (1 to confirm the approach, 4 to compare
+  orientation fixes across different meshes, then all 18 once
+  `import_monster_meshes.py` made re-running the whole pipeline cheap - see
+  **Mesh conversion** below): every stand now uses an actual extracted mesh
+  + texture instead of a cube - `REAL_MONSTERS` (a const Array of
+  `{name, folder, extra_rotation_degrees, pitch_correction_degrees}` dicts,
+  now one entry per monster type found under `assets/d3/enemies/` -
+  bandit/berserker/blood sister/centurion/doomcaller/dragon/fae/golem/
+  harbinger/legionnaire/mercenary/reanimate/salamander/specter/vampire/
+  wight/wolf/zealot) replaces the old single-monster constants,
+  `_build_real_figure()` is now the ONLY path every stand goes through
+  (branching on array index is gone), falling back to
+  `_build_placeholder_figure()` (the unchanged cube-building code, just
+  factored out under that name) if a monster's `.tres` is missing. `GRID_COLUMNS`
+  bumped `2 -> 5` (18 monsters at 5 wide -> 4 rows, roughly square) and the
+  camera's initial framing distance now scales with the grid's own
+  diagonal instead of a flat `8.0` (sized for the original 2x2 grid, would
+  have left most of an 18-monster grid out of frame). This array is now
+  the SINGLE SOURCE OF TRUTH for which monsters get extracted/converted at
+  all, not just which ones the grid shows - `import_monster_meshes.py`
+  (see **Mesh conversion** below and `tools/asset_import/README.md`) reads
+  it directly, so adding a monster here is the only step needed before
+  re-running that tool to fetch it. Sourced from each monster's own
+  `assets/d3/enemies/<folder>/prefabs/"<folder> plastic pool.prefab"` (the
+  3D-miniature-style mesh - each monster has this plus a flat/card-style
+  alternative, see **Official asset overrides** below) - `.obj`/`.png`
+  pairs land in `user://monster_assets/<folder>/` (never committed, same
+  as every other official asset) via the automated tool now, not by hand.
+  Auto-scales every mesh via its own `Mesh.get_aabb()` to
+  `TARGET_FIGURE_HEIGHT` (replacing an earlier single hand-picked scale
+  constant that made Centurion look oddly large next to a placeholder cube
+  - "the centaur is a bit different as it is bigger", confirmed real, not
+  imagined: nothing guarantees different monsters' source meshes share a
+  consistent scale) and lifts each by its own AABB's lowest point (not a
+  flat guess) so feet sit AT the base's top surface rather than floating/
+  sinking. `extra_rotation_degrees` (Y-axis yaw) defaults to 0 for every
+  monster now - see **Mesh conversion: Godot's own native importer, not a
+  hand-rolled parser** below for why an earlier version of this field
+  carried four DIFFERENT test values instead; the field itself stays, as
+  a genuine per-monster authoring knob (a specific model's own sculpted
+  facing direction) rather than something this rework needed to remove.
+  `_build_real_figure()` loads via a plain
+  `ResourceLoader.load("user://monster_assets/<folder>/mesh.tres")` - see
+  that section below for how the `.tres` gets there and why.
+  **`pitch_correction_degrees` (X-axis, new 2026-09-16, a SEPARATE bug from
+  everything in the "Mesh conversion" section below)**: after the native-
+  import rework fixed orientation/shading in general, the user reported 3
+  of 4 monsters "tipped over to the front (lying on their belly)," only
+  Zealot standing correctly. Diagnosed from data, not guessed - a headless
+  `Mesh.get_aabb()` dump of all 4 converted meshes showed Zealot's height
+  genuinely running along local Y (its largest dimension, as expected),
+  while Centurion/Doomcaller/Fae all have Y as their SMALLEST dimension
+  and Z as their largest - i.e. those three are lying face-down, with
+  their "height" baked along local Z instead of Y. **Not a coordinate-
+  system/handedness bug** (that class of bug was already ruled out and
+  fixed - see **Mesh conversion** below) - a per-monster AUTHORING
+  inconsistency in the original game's own Unity assets (each monster
+  prefab apparently bakes a different rest-pose rotation into its mesh
+  data), same category as this project's own pillar-mesh pivot quirk (see
+  `FootprintRegistry`'s calibration note under **Hard-won lessons**), just
+  a different axis and a different asset source. Fixed via
+  `figure.rotation_degrees.x = pitch_correction_degrees` (-90 for the
+  three affected monsters, 0 for Zealot - `Rx(-90)` maps local Z into
+  world Y, verified by hand against Godot's own rotation-matrix
+  convention). Since `Mesh.get_aabb()` reports LOCAL-space bounds,
+  unaffected by whatever rotation the `MeshInstance3D` node gets
+  afterward, `_build_real_figure()`'s scale/lift math now reads
+  `aabb.size.z`/`aabb.position.z` instead of `.y` whenever a monster's
+  `pitch_correction_degrees` is non-zero - using `.y` there would keep
+  computing a scale factor from the wrong (tiny, "depth while lying down")
+  axis even after the rotation fix. **Confirmed working in-editor** ("the
+  flipping seemed to have helped") - the data-derived -90 sign was right,
+  no monster came out upside-down.
+
+  **Horizontal centering (new 2026-09-16, same day, a separate follow-up
+  bug report - "model 2 is off center")**: fixing the pitch didn't fix
+  centering - a mesh whose own local origin isn't centered under its
+  geometry (on the two HORIZONTAL axes) sits visibly off to one side of
+  its stand, independent of the pitch/height fix above. `_build_real_figure()`
+  now computes a `pivot_local: Vector3` - the local-space point that
+  should map onto the stand's own origin: the AABB's CENTER on the two
+  horizontal axes, but its MIN on the height axis (exactly `height_min`
+  from above - swap which local axis counts as "up" under
+  `pitch_correction`, never swap min-vs-center). Rather than hand-deriving
+  a separate rotated-offset formula per case (the same trap that burned
+  time throughout the "Mesh conversion" saga below), this reads
+  `figure.basis` AFTER `.scale`/`.rotation_degrees` are both set on the
+  `MeshInstance3D` and multiplies `pivot_local` through it directly -
+  confirmed via a throwaway headless check (`Node3D.basis`, read after
+  setting scale then rotation_degrees, correctly composes both: a scale-2x
+  + `Rx(-90°)` node's `basis * Vector3(1,3,5)` produced the hand-computed
+  expected `(2, 10, -6)` exactly) that this correctly captures rotation
+  AND scale with no separate axis-swap logic to get wrong. Final position:
+  `origin + Vector3(0, BASE_SIZE.y, 0) - figure.basis * pivot_local`. Also
+  sanity-checked numerically against all 4 real converted meshes before
+  landing (small, finite offsets, Y positions all near `BASE_SIZE.y` as
+  expected - no NaN/blown-up values).
+
+  **Extended to all 18 monsters, same day, once `import_monster_meshes.py`
+  existed** (see **Mesh conversion** below) - re-running the pitch
+  diagnosis by hand for 14 more monsters one at a time wasn't going to
+  scale, so it was generalized into a `ratio = size.y / max(size.x, size.z)`
+  classifier instead of eyeballing each dump: `ratio < 0.85` -> `-90`,
+  otherwise `0` - the threshold sat well clear of every case already
+  confirmed correct in-editor on either side (Zealot 1.84; Centurion/
+  Doomcaller/Fae 0.73/0.60/0.49).
+
+  **The ratio heuristic turned out to be insufficient on its own, confirmed
+  2026-09-17**: Legionnaire (ratio 0.867), Salamander (1.159), and Vampire
+  (1.085) all scored "OK" - comfortably above the 0.85 cutoff, in
+  Salamander/Vampire's case not even close - yet were STILL lying
+  face-down in-editor. A large-enough horizontal bounding box doesn't
+  guarantee Y is genuinely the mesh's own height axis - it can just mean
+  the mesh is ALSO wide/deep as well as mis-oriented, which a single
+  Y-vs-max(X,Z) ratio can't distinguish from "correctly tall." All three
+  fixed to `-90` once the user reported them directly.
+
+  **Wolf went through THREE values before landing on the right one** -
+  worth recording in full, it's a clean example of narrowing in on a fix
+  with real data instead of guessing again each time. First tried `-90`
+  (the ratio heuristic's own guess, since Wolf's ratio of 0.675 fell well
+  under the 0.85 cutoff) - reported as still wrong. Second tried `+90`
+  ("needs the same rotation as Vampire/Salamander/Legionnaire but in the
+  other way around") - this uncovered a REAL, separate bug in
+  `_build_real_figure()` along the way: `height_min` (which local-Z
+  extreme counts as "feet") was computed as `aabb.position.z`
+  unconditionally whenever `pitch_correction != 0.0`, which only happens
+  to be correct for `-90`. `Rx(-90)` maps `world_y = +local_z` (so the
+  local Z MINIMUM is the lowest point), but `Rx(+90)` maps
+  `world_y = -local_z` (NEGATED - the local Z MAXIMUM becomes the lowest
+  point instead) - caught by hand-deriving the rotation matrix again
+  rather than assuming the existing `-90`-only logic would generalize,
+  fixed by branching on the SIGN of `pitch_correction`, not just whether
+  it's zero (this fix stays in the code even though nothing currently
+  uses `+90` - it's correctness insurance for the next monster that
+  does). **But `+90` was STILL wrong** - the user's next report gave an
+  exact, unambiguous symptom instead of just "still broken": "bottom part
+  pointing to -Z axis" (with the coordinate convention stated explicitly:
+  X=left/right, Y=up/down, Z=toward viewer). That's precise enough to
+  back-derive the actual fix BY HAND instead of guessing a third
+  direction: `Rx(90) * D_raw ≈ (0,0,-1)` (the reported symptom) only
+  holds if the RAW, uncorrected mesh's own local "down" is already
+  `≈(0,-1,0)` - meaning Wolf was CORRECTLY ORIENTED FROM THE START, and
+  `0` (no pitch correction at all) is the only value that doesn't rotate
+  an already-right mesh into a wrong one - confirmed by direct
+  computation (`Rx(0) * (0,-1,0) = (0,-1,0)`, exactly straight down), not
+  just inferred. Final value: `0.0`. Exactly the "elongated quadruped body
+  naturally longer than tall even when standing correctly" case flagged
+  as low-confidence in the very first diagnosis pass - the ratio
+  heuristic wasn't just less reliable for that shape, here it was
+  actively wrong, and the fix was to trust a precise report over the
+  heuristic entirely rather than split the difference.
+
+  **Dragon was dropped from the roster entirely** ("not a model we need")
+  - one line removed from `REAL_MONSTERS`, its now-unused `user://`
+  assets deleted too. **Every value currently in `REAL_MONSTERS` is either
+  visually confirmed, or was never flagged as wrong** - the borderline/
+  low-confidence framing from the first pass is gone now that real
+  feedback landed; nothing is a live open question anymore except
+  whatever the user hasn't actually looked at yet.
+
+  **Scaling reworked 2026-09-17, the last request in this whole saga**
+  ("all these monsters are more or less the same size in real live, but
+  they are not scaled like that, can you fix that?"). Every prior fix
+  scaled a mesh so its HEIGHT (Y, or the orientation-corrected equivalent)
+  matched a fixed target - mathematically guarantees identical HEIGHTS,
+  but leaves WIDTH/DEPTH completely unconstrained. Confirmed as the actual
+  root cause via direct computation, not guessed: with height-only
+  scaling, Wolf (a naturally wide/long quadruped) and Vampire (a slender
+  humanoid) land on the exact same forced height by construction, yet
+  Wolf's rendered width (0.945) and depth (1.483) came out meaningfully
+  bigger than Vampire's (0.648/1.084) - same height, genuinely different
+  overall bulk, exactly matching "the wolf is just a lot bigger than the
+  vampire." Fixed by switching to the mesh's OVERALL BOUNDING-BOX DIAGONAL
+  (`aabb.size.length()`, `sqrt(x²+y²+z²)`) as the scale reference instead
+  of a single axis - rotation-invariant (doesn't care which local axis
+  `pitch_correction` maps to "up", so unlike `height_min`'s positioning
+  math, no per-branch axis selection needed here) and captures TRUE
+  overall size regardless of whether a creature is naturally tall-thin or
+  short-wide, rather than forcing every body type into an identical
+  silhouette height while bulk drifts freely. `TARGET_FIGURE_HEIGHT`
+  (a `const`, `FIGURE_SIZE.y`) is now `target_figure_diagonal` (a plain
+  `var`, computed once in `_ready()` as `FIGURE_SIZE.length()`) - **not
+  left as a `const`**, confirmed via a real parse error
+  ("Assigned value... isn't a constant expression") that `Vector3.length()`
+  isn't constant-foldable in GDScript, unlike the plain `.y` access it
+  replaced.
+
+  **`size_units` (new the same day)**: mid-fix, the user supplied the
+  actual calibration fact needed to get the multiplier right, not just
+  the axis: "centaur is actually 2 times as big, so all monsters occupy
+  one game unit, centurion is 4 units square" - Centurion is a REAL,
+  intentional exception to "same size" in the game's own rules (2x linear
+  scale, a 2x2 = 4-square footprint), not mesh-scale noise to normalize
+  away like everything else in this saga turned out to be. Added as a new
+  `"size_units"` field on each `REAL_MONSTERS` entry (`1.0` default, `2.0`
+  for Centurion only) multiplying directly into the target diagonal -
+  everyone else stays exactly matched to each other, Centurion alone
+  renders at 2x. Verified numerically before landing: every `size_units:
+  1.0` monster (all 16 others, Wolf and Vampire included) renders at the
+  identical diagonal (`1.3115`), Centurion at exactly double (`2.6230`) -
+  not just no-NaN, the actual intended equalization confirmed directly.
+  Also threaded through the placeholder cube (`_build_placeholder_figure()`
+  now takes a `size_units` param, scales `FIGURE_SIZE` by it) and the
+  floating name label's vertical offset (a rough `FIGURE_SIZE.y * size_units`
+  approximation, not exact geometry - reasonable given labels are a minor
+  detail, but worth revisiting if a real design pass ever reaches this
+  view).
+
+  **Follow-up report, same day - "the centurion is not centered anymore"**:
+  worth recording since the actual math was NOT the bug, and re-verifying
+  that (rather than assuming the report meant a math error) is what found
+  the real cause. Direct computation of every AABB corner's world position
+  confirmed Centurion's mesh IS exactly centered on its stand's origin
+  (world X/Z center = `(0, -0)`, corner-to-corner) - the centering formula
+  itself was untouched by the scaling rework and stayed correct. The real
+  issue: `BASE_SIZE` (the stand/plinth) was deliberately left NOT scaling
+  with `size_units` when this section was first written (see the
+  now-superseded note this replaces) - a `size_units=2.0` figure standing
+  on a still-1-unit-sized base visibly dwarfs/overflows a base far too
+  small to contain it, which reads as "off center" to the eye even though
+  it never was mathematically. Fixed by scaling the base's FOOTPRINT
+  (X/Z) by `size_units` too in `_build_stand()` (thickness/Y stays
+  constant - only the game's own real "bigger monster, bigger footprint"
+  concept should scale, not how tall the plinth itself is). Re-verified
+  the grid-overlap risk this was originally deferred to avoid - a plain
+  Python re-implementation of the AABB overlap test confirmed NO pair of
+  stands overlaps anywhere in the current 17-monster/5-column grid (a
+  0.2-unit clearance on each side of Centurion specifically, its one
+  `size_units != 1` case) - not just assumed safe, actually checked
+  against every pair.
+
+## Base-disc color-tab gap detection
+
+New 2026-09-17, a genuinely different kind of feature from every fix
+above - not correcting a bug, but pulling a new piece of information
+(where the physical color-tab plastic piece slots into a monster's base)
+purely out of raw mesh geometry that was never explicitly labeled as such.
+Requested for a future combat feature (each monster miniature's real base
+has a small notch where a colored plastic piece clips in, to mark which
+player/color it belongs to) - the question asked first was just "can we
+detect this at all," answered with a feasibility check before any code
+was written into the actual project.
+
+**The feasibility check** (`models/original/_check_floor_gap.gd`, a
+throwaway script, deleted once answered - same one-off-script convention
+as every other diagnostic this session): extract a mesh's REAL vertex
+positions (not just `Mesh.get_aabb()` this time -
+`mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]`), rotate them by the same
+`pitch_correction`/`extra_rotation_degrees` the real figure gets, filter
+to whichever vertices sit within 2% of the rotated floor height, then look
+at their angular distribution around the XZ centroid. Tested on three
+different meshes covering both rotation cases (Centurion pitched, Zealot
+upright) and found a striking, consistent, non-coincidental result: the
+single largest angular span with NO floor vertices in it landed at
+essentially the same angle (Centurion 88°, Zealot 91°, Fae 89°, all from
+the local +X axis) despite being completely unrelated geometry - visually
+confirmed correct by the user ("indeed the indicator sits in the front to
+it checks out") against a generated diagram (3-panel top-down scatter,
+built from the exact same computed numbers rather than hand-transcribed,
+and visually verified in the browser tool before being shown, per this
+project's own "verify before delivering" habit).
+
+**`scripts/BaseGapDetector.gd`** (new, `class_name BaseGapDetector extends
+RefCounted`, never instantiated - a static-method utility, same pattern as
+`FootprintRegistry`'s math helpers) turns that feasibility check into a
+real, reusable detector: `detect_gap_quad(mesh, basis) -> Dictionary`.
+Goes one step further than the original diagnostic - rather than just
+reporting the gap's angular RANGE, it finds the actual GEOMETRY that
+covers it:
+1. Same floor-vertex/angle analysis as the feasibility check, but this
+   time keeping track of actual vertex INDICES, not just positions -
+   confirmed the converted meshes ARE indexed (`ARRAY_INDEX` non-null,
+   e.g. Centurion: 6637 vertices / 10974 triangles), not assumed.
+2. Identifies the two floor-level vertices immediately bordering the
+   detected gap (`outer_a`/`outer_b` in the returned Dictionary).
+3. Builds a full triangle-adjacency map from the index buffer (which
+   vertex indices share a triangle edge with which others), then for each
+   outer vertex, walks its neighbors to find whichever one sits a little
+   bit HIGHER once rotated (smallest y above the floor cutoff, i.e. the
+   very next point up the notch's back wall - not some unrelated point
+   further up the figure's own body) - these become `inner_a`/`inner_b`.
+   Searches EVERY vertex index at that same position, not just one - these
+   meshes have duplicate vertices at hard-edge normal seams (confirmed via
+   the earlier saga's own raw-data dumps), and the "real" wall-neighbor
+   connection could live on any one of them.
+4. Returns all 4 corners in the mesh's own UNTOUCHED LOCAL SPACE (not
+   rotated/scaled) - deliberately, so a caller can just parent a new node
+   built from these points directly onto the SAME `MeshInstance3D` the
+   real figure already uses and inherit its whole transform chain for
+   free, no separate position/rotation/scale bookkeeping needed.
+   Returns an empty Dictionary (never throws) if there aren't enough floor
+   vertices to trace a ring, or a boundary vertex has no higher neighbor -
+   same "return empty, let the caller skip gracefully" convention as a
+   missing mesh file elsewhere in this script.
+
+Verified against real data at each step, not just written and trusted:
+the outer-to-inner distance came out small and near-IDENTICAL on both
+sides of the gap for all three test monsters (e.g. Zealot: 0.049449 vs
+0.049432, a coincidence-defying match) - exactly what a real symmetric
+notch should produce. Then run across the FULL 17-monster roster
+end-to-end (mesh load -> detect -> build the actual `SurfaceTool` quad
+mesh, the same steps `MonsterDisplay._build_gap_marker()` performs) - 17/17
+produced a valid marker with no crashes.
+
+**Two follow-on ideas were tried the same day and BOTH reverted** - worth
+recording why, since the lesson (don't trust numeric "sanity" metrics over
+actual user-visible results) is more durable than either attempt itself:
+1. The user pointed out the base is actually an ANNULUS (hollow - an
+   outer rim wall + a separate inner platform), and that the simplest
+   "wall vertex" search (1-hop, smallest-y-above-floor) sometimes jumps
+   straight across the hollow gap to an inner-circle vertex instead of
+   climbing the outer wall - a real, correctly-diagnosed bug. The FIX
+   (radius-awareness, a widened height search, then a hop-limited BFS
+   after a first pass wandered sideways around the ring) was verified at
+   each step by numeric metrics (outer-to-inner distance, left/right
+   symmetry) that all looked like genuine improvements - but direct
+   follow-up feedback on the actual RENDERED result was still negative
+   ("it got a lot worse, are the vertices you use even connected to each
+   other? the height tolerance is to high and we dont use the outer
+   circle for many"). The numbers this session was using to "verify" each
+   version did NOT reliably predict what looked right on screen.
+2. Reframed the problem to avoid per-mesh detection entirely: since the
+   physical notch is the SAME real-world shape on every monster's base
+   ("the plastic notch is the same on all models"), one monster's result
+   (Wight's, picked as "looks best") was hardcoded and reused everywhere,
+   converted into an offset from each stand's own known feet-position via
+   the same scale/rotation/pivot-centering transform
+   `_build_real_figure()` uses. Verified to produce byte-identical marker
+   geometry across every `size_units == 1.0` monster (the correct,
+   intended behavior for a real standardized part) - but STILL judged
+   wrong once rendered ("its not a good approach").
+
+**Reverted back to the ORIGINAL, simplest per-mesh search** (1-hop,
+smallest-y-above-floor - `BaseGapDetector._find_wall_neighbor()`, and
+`MonsterDisplay._build_gap_marker(figure, mesh, index)` parented to
+`figure` again, called from `_build_real_figure()`), confirmed by the user
+to be the best-looking of everything tried so far, byte-identical to the
+version that first produced the "indeed the indicator sits in the front to
+it checks out" confirmation. The annulus limitation is real and still
+unfixed - logged as an explicit open TODO (see Open Items list) rather
+than another blind guess. Both reverted approaches' full reasoning stays
+in git history / this file's own edit history if a future attempt wants
+the detail; `BaseGapDetector.gd`'s own class doc carries a condensed
+version of the same story inline. The likely correct direction for a REAL
+fix, per the user's own framing ("the other is probably the correct way
+forward"): probably something closer to walking DOWN from a known-good
+inner-platform or upper reference point rather than climbing UP from the
+floor and guessing when to stop before crossing the hollow gap -
+deliberately not attempted now.
+
+**`FLOOR_TOLERANCE_PCT` tightened 0.02 -> 0.005, same day, a follow-up
+report on the reverted version above** ("the vertices are really close to
+the floor, they are fine for most but the reanimate is not ok, the vertex
+bottom right is not close enough to the floor there is one underneath").
+Confirmed by direct data dump, not guessed: Reanimate's genuine floor ring
+sits entirely under ~0.22% of the mesh's total height, but the loose 2%
+tolerance also let in a handful of unrelated vertices elsewhere on the
+mesh (a robe/leg point that happens to sit low, not part of the base disc
+at all) as high as 1.4-2.0% - and one of those false floor vertices
+happened to sit right at the angle where the real gap boundary should have
+been, so the gap search picked IT instead of the genuinely floor-level
+vertex sitting immediately next to it (confirmed by proximity: a real
+floor vertex only 0.010 units away, at 0.15% instead of 1.49%). Tightening
+to 0.005 (0.5%) excludes every false vertex found on Reanimate while
+keeping a wide margin above its highest genuine floor vertex (0.22%) -
+verified safe across the WHOLE roster before landing, not just Reanimate:
+every monster still has 37+ genuine floor vertices at this tolerance (the
+function only needs 5), and `detect_gap_quad()` re-run end-to-end still
+produces a valid quad for all 17, with Zealot's own result byte-identical
+to its previously-confirmed-good value (unaffected, as expected - the
+user's own report was specifically that this tolerance was fine "for
+most"). This is a narrower, more targeted fix than the two reverted
+annulus-fix attempts above - it only changes WHICH vertices count as
+"floor" at all, not how the wall-neighbor search walks from them, so it
+doesn't reintroduce the earlier rejected approach. At the time this
+tightening landed, the annulus limitation itself (Open Items #16, now
+resolved differently - see below) was still real and unfixed by this
+alone - it only removed one source of bad floor-vertex candidates, it
+didn't add the radius-awareness needed to stop the wall-neighbor search
+from ever crossing the hollow gap in the first place.
+
+**The wall-neighbor SEARCH itself was replaced entirely, same day, closing
+out Open Items #16 for real** ("make a polygon from them by creating two
+new vertices slightly above them... use the same x, z coordinate just make
+a small bump in Y"). Rather than another attempt at fixing the search (the
+two prior attempts both made things worse despite passing their own
+verification, per the saga above), `BaseGapDetector.detect_gap_quad()` now
+SYNTHESIZES `inner_a`/`inner_b` directly from `outer_a`/`outer_b` - same
+local X/Z, Y bumped up by a new `GAP_WALL_HEIGHT_PCT` constant (0.03,
+3% of the mesh's own total height, so it scales consistently across
+monsters of very different raw mesh scale - same reasoning as
+`FLOOR_TOLERANCE_PCT`). This sidesteps the annulus bug at the root rather
+than working around it: since the inner corners are never found by walking
+the mesh's own triangle adjacency, there's no longer anything for the
+search to accidentally jump across - the old adjacency-map/duplicate-
+vertex-matching machinery (`_add_adjacency()`/`_find_wall_neighbor()`/
+`DUPLICATE_EPSILON`) was deleted outright, not just bypassed. `detect_gap_quad()`
+gained an optional `wall_height_pct` parameter (defaulting to the constant)
+specifically so a height can be tried without editing the file - this is
+explicitly a VISUAL tuning knob, not something derived from mesh geometry,
+since the physical color-tab notch's real depth isn't recoverable from
+these meshes at all (the notch is empty space, not modeled geometry).
+Before picking 3% as the shipped default, a quick radial "unrolled ring"
+scatter (angle vs. height%, same generated-diagram-then-eyeball-it habit
+as the original feasibility check) was built for 4 representative monsters
+(Reanimate/Zealot/Centurion/Wight) to check for a natural rim-height
+signal - it showed a distinct dense edge-loop band around 5-9% on most of
+them, but that's very likely the base disc's own decorative rim/lip
+(consistent across the whole ring, not specific to the notch), not the
+notch depth itself - so it wasn't used to size the bump, and 3% was kept
+as a modest, easily-adjustable starting point instead. Verified the
+implementation itself is sound before landing: re-ran the full 17-monster
+roster at three candidate heights (1%/3%/5%) and confirmed every stand
+produces a correctly-lifted quad (positive height in rotated space, no
+NaN/empty results) at all three - the actual height is now purely a "does
+it look right in the Player" question for the user to answer, not
+something this environment can verify further on its own.
+
+**Two more follow-ups, same day, from actual visual review in the Player**
+("i would say double it, can we make it a a mesh by extruding it backward
+a bit?"):
+1. `GAP_WALL_HEIGHT_PCT` doubled from 0.03 to 0.06 - the first picked
+   value read too short once actually seen rendered, exactly the "adjust
+   the knob after looking at it" workflow this constant (and its optional
+   `wall_height_pct` override) was built for.
+2. `MonsterDisplay._build_gap_marker()` no longer builds a flat
+   zero-thickness 2-triangle quad - it extrudes the same 4 corners into a
+   genuine 6-face box (front + back + 4 side walls, via a new
+   `_add_quad_face()` helper that gives each face its own flat-shaded
+   normal). The extrude direction is the panel's own computed face normal
+   (from the front triangle's winding) - `BaseGapDetector` never promised
+   a specific outward/inward winding (see its own doc), so this doesn't
+   assume one either, it only needs SOME consistent direction to push a
+   back copy of the quad into, and the panel's own normal is the natural
+   choice. Depth is `GAP_MARKER_DEPTH_RATIO` (0.5) of the panel's OWN
+   height (outer-to-inner distance), not a fixed world-space number - same
+   "scale proportionally per-monster, not a flat constant" reasoning as
+   `GAP_WALL_HEIGHT_PCT`. Verified across the full 17-monster roster before
+   landing: every stand's marker mesh comes out with exactly 36 vertices
+   (6 faces x 6 verts, unshared so each face keeps its own flat normal),
+   no NaN vertices, and no degenerate (near-zero-length) face normals -
+   confirms the extrusion math holds up across meshes of very different
+   scale/orientation, not just the specific monster that prompted the
+   request. `CULL_DISABLED` is kept on the material even though a real
+   enclosed box no longer strictly needs it - cheap insurance against a
+   degenerate/inverted face on some future mesh's geometry, not load-
+   bearing the way it was for the old flat quad.
+
+**Two more direct-review adjustments, same day** ("extrude in the other
+direction, double the extrusion size"): `_build_gap_marker()`'s
+`back_offset` flipped from `-normal` to `+normal` (the extrude direction
+was never derived from which way is physically "into" the model -
+`BaseGapDetector` doesn't promise a specific winding, see its own doc - so
+there was never a "correct" sign to begin with, only whichever one reads
+right once rendered), and `GAP_MARKER_DEPTH_RATIO` doubled from 0.5 to
+1.0. Re-verified across a spot-check of 5 monsters (Bandit/Reanimate/
+Wolf/Zealot/Centurion, covering both pitch-correction cases and a range of
+mesh scales) that the extrusion still produces a sane 36-vertex box with
+no NaN/degenerate normals after both changes - the box's topology doesn't
+care which side `back_offset` points toward, `_add_quad_face()` computes
+each face's outward normal fresh from its own actual vertex positions
+either way.
+
+**Wall height switched from a per-mesh percentage to one shared world-space
+value, same day** ("ok the doomcaller height is fine, make that the height
+for all"). Every earlier version of the wall height (`GAP_WALL_HEIGHT_PCT`,
+0.03 then 0.06) was a fraction of EACH mesh's OWN raw height - correct in
+the abstract (it scales with the mesh), but once several monsters were
+compared side-by-side in the Player, a fixed percentage read inconsistently
+because monsters aren't all proportioned the same way (Doomcaller's
+6%-based result looked right; nothing established that every OTHER
+monster's own 6% would look equally right for its own body shape).
+Resolved by picking ONE monster's already-good-looking result (Doomcaller)
+and making its actual GAME-SPACE height the shared target for everyone,
+rather than trying to find a percentage that works for every body type at
+once:
+- `BaseGapDetector.detect_gap_quad()`'s third parameter changed from
+  `wall_height_pct` (a fraction of THIS mesh's height, with a default) to
+  `wall_height_local` (an absolute LOCAL-space length, no default - always
+  supplied by the caller now). The function itself doesn't compute a
+  percentage of anything anymore; it just bumps by exactly the length it's
+  given. **A real latent bug was found and fixed in the same edit**: the
+  local "up" direction (`basis.inverse() * Vector3.UP`) was never actually
+  a unit vector when `basis` carries a uniform scale (every real caller
+  passes `figure.basis`, which does) - the OLD code's correctness relied on
+  that non-unit length canceling out algebraically against the
+  percentage-of-(scaled)-height multiplication it was paired with. Once the
+  height term was replaced by a caller-supplied absolute value, that
+  cancellation no longer applied, which would have silently produced a bump
+  roughly `1/scale_factor` too small. Caught by working through the algebra
+  by hand rather than assuming the old formula would generalize (the same
+  "verify, don't assume" discipline this project's other rotation-math fixes
+  already follow) - fixed by explicitly `.normalized()`-ing the up vector,
+  which removes any dependency on whatever scale happens to be baked into
+  `basis`.
+- `MonsterDisplay.GAP_WALL_HEIGHT_WORLD` (0.05357) is the new shared
+  target, in game/world space - calculated once directly from Doomcaller's
+  PREVIOUS 6%-based result (raw mesh height x 0.06 x Doomcaller's own
+  scale_factor), not eyeballed. `_build_gap_marker()` now takes
+  `scale_factor` as a parameter (the same value `_build_real_figure()`
+  already computed for that monster) and converts the shared world target
+  back into this specific mesh's own local units via
+  `GAP_WALL_HEIGHT_WORLD / scale_factor` before calling
+  `detect_gap_quad()`.
+- Verified end-to-end across the full 17-monster roster before landing,
+  not just Doomcaller: every monster's marker - regardless of raw mesh
+  scale (`scale_factor` ranged from 0.37 to 59.7 across the roster) or
+  `size_units` (Centurion's footprint is 2x everyone else's, unrelated to
+  this) - renders the EXACT SAME world-space wall height, 0.053570, bit
+  for bit. This is a stronger, more direct guarantee than the percentage
+  approach ever gave: instead of hoping proportional scaling produces
+  similar-looking results, every monster now provably gets the identical
+  physical marker size.
+
+**`FLOOR_TOLERANCE_PCT` tightened a second time, same day, 0.005 -> 0.002**
+("the lower vertices of wight are not correct, can we check"). Investigated
+rather than guessed: a per-vertex dump of Wight's floor ring showed its two
+gap-boundary vertices sitting at 0.25-0.28% of the mesh's own height, while
+every OTHER vertex in the ring sat under 0.02% - the exact same class of
+bug already fixed for Reanimate, just smaller in magnitude, small enough
+to have snuck past the 0.5% tolerance the first fix landed on. Including
+those two elevated vertices in the ring narrowed the detected notch to
+67.7 degrees instead of a much more plausible ~81 degrees once excluded (a
+gap consistent with the ~62-83 degree range every other monster in the
+roster already shows at this tolerance).
+
+A fancier per-mesh statistical filter was tried FIRST and rejected: instead
+of one global percentage, exclude floor candidates whose height is a
+robust outlier relative to that mesh's OWN ring (median + MAD - median
+absolute deviation - so it adapts per-mesh rather than assuming one
+fraction fits every monster). It DID fix Wight, but it also nudged several
+already-good monsters' detected gap angle by a few degrees each as a side
+effect with no clear connection to the actual bug (Fae ~12 degrees,
+Doomcaller ~6 degrees plus a notable drop in its own floor-candidate
+count, 37 -> 23) - a smaller-scale but structurally identical version of
+the "looks like a real improvement, quietly breaks something you weren't
+testing" pattern this project's own annulus-fix saga already burned real
+time on. Given that lesson, a second, purely mechanical tightening of the
+SAME already-shipped, already-understood knob was preferred over a new
+mechanism with more moving parts - verified safer by actually re-running
+every candidate value (0.005/0.0023/0.002/0.0015/0.001) across the full
+17-monster roster before picking one: 0.002 is the tightest tolerance
+where every OTHER monster's gap angle and outer_a/outer_b heights stay
+stable or improve (move to an even lower, more genuinely-floor-level
+percentage - e.g. Reanimate's own outer_b dropped further, from 0.2152%
+to 0.0336%), while 0.0015 already destabilizes Vampire (gap jumps to 97.8
+degrees, floor count collapses to 14) and 0.001 breaks it outright (empty
+result, below the 5-vertex minimum). Re-verified `detect_gap_quad()`
+end-to-end across all 17 monsters at the new tolerance before landing -
+still 17/17 valid quads, and Zealot's own result came out byte-identical
+to its previously-confirmed-good value, confirming the tightening didn't
+disturb a case that was already correct.
+
+**A second, DIFFERENT bug on Wight surfaced right after that, same day, and
+the width-normalization fix it prompted was TRIED AND REVERTED** - worth
+recording in full, since it's another direct instance of this section's
+own recurring lesson (trust the rendered result over a numeric-looking
+justification). A screenshot showed Wight's marker spanning nearly the
+whole base and hanging below it. Investigated properly rather than guessed
+at: a top-down scatter plot of Wight's own floor ring (built the same
+"generate a diagram, actually look at it before touching code" way as the
+original feasibility check) confirmed the detected gap sits at the correct
+angular position (the same "front" location, ~90 degrees from local +X,
+already confirmed on every other monster) and is a GENUINE absence of
+floor-level vertices across that span, not a filtering bug - so tightening
+`FLOOR_TOLERANCE_PCT` further wouldn't have touched it. Checking the
+detected notch's WORLD-SPACE chord width across the full 17-monster roster
+then turned up what looked like solid supporting evidence for a fix: 16 of
+them clustered tightly between 0.259 and 0.361 world units, with Wight
+alone at 0.510 - a clear singular outlier - and its own next-largest
+candidate gaps were all much SMALLER than the good range (0.08-0.11)
+rather than a plausible middle value, so there wasn't an obviously better
+raw gap to fall back to either. Applying the same fix philosophy as
+`GAP_WALL_HEIGHT_WORLD` (a single shared `GAP_WIDTH_WORLD`, the 16-monster
+average, re-centering each detected gap's own midpoint/tangent onto a
+fixed width) DID make every monster converge on the identical numeric
+target, verified end-to-end across the roster before landing - but direct
+review in the Player found it made every monster's marker look WORSE, not
+just failing to fix Wight ("its still bad and all others look worse now").
+**Reverted in full**: `GAP_WIDTH_WORLD` removed, `_build_gap_marker()` back
+to using `detect_gap_quad()`'s own raw `outer_a`/`outer_b` directly, no
+width re-centering at all. Wight's real problem is still unresolved -
+whatever is actually wrong with its rendered marker isn't captured by
+either "the gap position is wrong" (ruled out - confirmed correct
+angularly) or "the width is inconsistent with other monsters" (ruled out
+as the actual fix - looked justified numerically, wasn't once rendered).
+This needs a real look at Wight's own base mesh (e.g. in Blender) or
+further live inspection in the Player, not another guess from this
+environment - logged as unresolved rather than patched over again.
+
+**`BaseGapDetector.detect_gap_quad()` was rewritten from scratch by the
+user, same day, replacing the whole angular-largest-gap algorithm above
+with a much simpler heuristic** - not an iteration on the old approach,
+a full swap: gather floor-level vertices (within a tolerance of rotated
+min Y, same idea as before), then just pick whichever floor vertex has
+the highest Z among `x < 0` (`outer_a`) and among `x > 0` (`outer_b`) -
+no angle sorting, no gap-width search, no adjacency at all. Landed with
+three real bugs, all found and fixed the same day from direct user
+reports rather than guessed at:
+1. **`max_z` started at `0.0` with no failure check** - for every
+   monster with `pitch_correction_degrees == 0` (Berserker/Blood
+   Sister/Golem/Specter/Wolf/Zealot, confirmed via direct roster-wide
+   data, not assumed), the ENTIRE floor ring sits at Z <= 0 in local
+   space, so the "find highest Z > 0" search found nothing on either
+   side, leaving both indices at `-1` - and `positions[-1]` is a SILENT
+   success in GDScript (negative array indexing resolves to the last
+   element), not an error, so it returned some totally unrelated vertex
+   as `outer_a`/`outer_b` instead of failing gracefully. This is what
+   produced the giant, badly-placed marker report. Fixed: `max_z` starts
+   at `-INF`, and `if gap_before_idx == -1 or gap_after_idx == -1: return
+   {}` guards the indexing.
+2. **The floor tolerance was a fixed absolute local-space number
+   (`0.01`)**, but this project's monster meshes vary in raw local scale
+   by ~150x (confirmed from each monster's own `scale_factor`
+   calibration elsewhere in this file) - `0.01` covered anywhere from
+   0.4% to 69% of a given mesh's own total height depending on which
+   monster it was. Fixed: `FLOOR_TOLERANCE_PCT`, a fraction of THIS
+   mesh's own height, same reasoning as the original algorithm's own
+   tolerance constant.
+3. **The `x</x>0` quadrant split was measured against the mesh's raw
+   local origin, not the floor ring's own center** - fixing bug #1 alone
+   stopped the crash but not the real problem: for the same 6
+   `pitch_correction == 0` monsters, this made the search pick whichever
+   floor vertex was merely LEAST far back (still Z<0), not anywhere near
+   the actual notch - confirmed by direct user report after rendering
+   ("i think that the ones that are fixed look bad"). Fixed by computing
+   the floor ring's own centroid (`cx`/`cz`, same average-of-floor-
+   vertices approach the original algorithm used for its own centroid)
+   and splitting/comparing against THAT instead of raw `(0,0)`.
+   **Verified this actually lands in the right place, not just "doesn't
+   crash"**: Zealot's `outer_a`/`outer_b` came out BYTE-IDENTICAL to its
+   own value from the very original angular-based algorithm, confirmed
+   correct by direct user review months earlier in this same saga
+   ("indeed the indicator sits in the front to it checks out") - and all
+   6 previously-broken monsters now produce a consistent ~0.72-unit
+   chord width, matching the same magnitude as every already-good large-
+   scale monster instead of the earlier hodgepodge of small/negative
+   values. All three fixes verified end-to-end across the full
+   17-monster roster before landing (0 empty, 0 NaN, 0 crashes each
+   time) - not just spot-checked on the monsters that prompted each fix.
+
+**The rewrite also silently undid the "extrude in the other direction"
+fix, same day** ("ok it looks good finally, but i think we lost the
+extrude in other direction part") - confirmed by direct computation, not
+just re-flipped and hoped: the rewritten `detect_gap_quad()` returns
+`outer_a`/`outer_b` in the OPPOSITE order from before (Zealot's new
+`outer_a` is the old `outer_b` and vice versa - `x < cx` vs `x > cx`
+labeling is an arbitrary, never-promised convention, and it happened to
+land the other way round after the rewrite). `MonsterDisplay._build_gap_marker()`'s
+extrude normal is computed as `(outer_b - outer_a).cross(...)`, which is
+linear in its first operand, so swapping which point is A and which is B
+exactly NEGATES the result - verified numerically (dot product between
+the old and new normals: exactly -1.0), not assumed. That silently
+reversed what the file's own `+normal` sign meant, undoing the earlier
+fix without anyone touching that line. Fixed by flipping the sign back to
+`-normal` in `MonsterDisplay.gd` (the rendering side, not
+`BaseGapDetector` - that script never promised a specific outer_a/outer_b
+handedness, so the fix belongs wherever the assumption about it actually
+lives). Re-verified across the full 17-monster roster after the fix: all
+17 still produce a sane 36-vertex box with no NaN/degenerate normals.
+
+## Mesh conversion: Godot's own native importer, not a hand-rolled parser
+
+`MonsterDisplay.gd`'s real monster meshes (Centurion/Zealot/Doomcaller/Fae,
+see that script's own entry above) went through a full rework 2026-09-16
+after a hand-rolled runtime OBJ parser (`ObjMeshLoader.gd`, now DELETED)
+proved impossible to get right by hand. Worth recording the actual saga,
+since it's a direct instance of this doc's own "check against a reference
+implementation instead of re-deriving coordinate math by hand" lesson (see
+Hard-won lessons below) - and because it took four sequential fix attempts,
+several explicitly contradicted by the user's own direct tests, before that
+lesson was actually applied:
+
+1. **Attempt 1**: negated Z on positions/normals + reversed triangle winding,
+   reasoned from "Unity is left-handed, Godot is right-handed." Partial
+   result ("2 monster is oriented correctly, i do think the normals are
+   flipped though") - root-caused by inspecting `UnityPy.export.MeshExporter
+   .export_mesh_obj()`'s own source directly: it ALREADY performs a complete
+   Unity -> right-handed conversion (negates X, already reverses winding) -
+   this fix double-applied on top of that, a wash for handedness while
+   accidentally canceling UnityPy's own correct winding fix back to a no-op.
+2. **Attempt 2**: reverted to fully literal loading, no transform at all.
+   Still wrong ("it still looks like shit, did you flip the polygons
+   normals?"). Verified empirically via a Python script (cross-product-
+   implied-normal vs explicit-normal agreement: 98.7% across 2000 triangles
+   on the RAW untouched file) that the geometry itself was never a winding/
+   normal-consistency problem.
+3. **Attempt 3**: axis remap `(x, y, z) -> (x, z, -y)`, derived from the
+   user's own clue about what BLENDER'S importer needs ("z is up and x is
+   forward"). A real, confirmed fact about Blender - but the wrong
+   explanation for what GODOT needed: **directly contradicted by the user's
+   own next test** - "if i import the model in godot it looks fine" (Godot's
+   native `res://` OBJ importer, same file, no adjustment at all).
+4. **The user's actual instruction, repeated and explicit** ("please flip
+   the normals as i asked 4 times already") settled positions back to fully
+   literal and normals to unconditionally negated - matching what the
+   Godot-native-import test had just proven for positions, while trusting
+   the user's own direct report for normals rather than re-deriving it.
+
+That fix worked for orientation, but the user's final verdict on the parser
+itself was blunt ("i dont know what your object loader does but its crap") -
+prompting the actual architectural fix, not another patch: **stop hand-
+rolling OBJ parsing at all, and let Godot's own native importer (already
+proven correct by the user's own test above) do the real conversion work.**
+A local Godot 4.7.2 CLI binary was found at
+`C:\Users\piete\godot\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe`
+(confirmed matching this project's CI-pinned version via `--version`), which
+can drive the editor's own import pipeline headlessly - documented via
+Godot's own command-line tutorial, not guessed:
+`godot --headless --path <project> --import` forces a full resource-import
+pass; `godot --path <project> -s <script.gd>` runs a `SceneTree`-extending
+GDScript headlessly (`_init()` as entry point, must call `quit()`).
+
+**First done as a manual one-off** (copy `.obj` files into a temp `res://`
+folder, run `--import` by hand, run a throwaway `convert.gd`, verify output,
+delete the temp folder) to prove the approach worked before investing in
+tooling - once confirmed (`mesh.tres` files 500KB-1MB each, correctly
+oriented once `pitch_correction_degrees` also landed, see
+`MonsterDisplay.gd`'s own entry above), **automated into a real,
+re-runnable tool the same day**: `tools/asset_import/import_monster_meshes.py`
++ `tools/asset_import/convert_staged_meshes.gd` (see
+`tools/asset_import/README.md`'s own "Monster meshes" section for full
+usage). The pipeline itself is unchanged, just no longer hand-run:
+1. `import_monster_meshes.py` reads which monsters to fetch straight from
+   `MonsterDisplay.REAL_MONSTERS` (never hand-duplicated - same
+   "read the source of truth" convention `import_official_assets.py`
+   already uses for `OfficialAssetMap.gd`'s `MAP` dict), finds each one's
+   "`<folder>` plastic pool.prefab" Mesh + diffuse Texture2D by CONTAINER
+   PATH (mesh/texture internal names aren't consistent across monsters -
+   e.g. Zealot's own mesh is literally named `"default"` - but every
+   plastic-pool asset's container path follows
+   `assets/d3/enemies/<folder>/prefabs/"<folder> plastic pool.prefab"`,
+   confirmed against the 4 monsters already wired in), and stages each
+   `.obj` into a TEMPORARY, gitignored `res://` location
+   (`models/original/monster_staging/<folder>/mesh.obj` - reusing the
+   existing `/models/original/` `.gitignore` entry, same "local reference
+   only, never committed" rule as every other official asset); textures
+   are saved straight to their FINAL
+   `user://monster_assets/<folder>/diffuse.png` in this same step, no
+   Godot needed for those (loaded via `Image.load_from_file()` at
+   runtime, same as `OfficialAssetOverrides`).
+2. The same Python script then shells out to a Godot executable PATH it's
+   given on the command line (subprocess, headless, twice): first
+   `--import` so the staged `.obj` files go through Godot's own native
+   import pipeline, then `-s res://tools/asset_import/convert_staged_meshes.gd`
+   - a PERMANENT, checked-in conversion script (replacing the deleted
+   one-off `convert.gd`) that scans the staging folder (rather than a
+   hardcoded monster list, since the Python step controls which folders
+   actually got staged) and, per folder, `load()`s the now-natively-
+   imported `.obj` and `ResourceSaver.save()`s it as
+   `user://monster_assets/<folder>/mesh.tres`.
+3. The Python script deletes the staging folder again once conversion
+   finishes - nothing from step 1 is left behind in the actual project
+   tree.
+4. `MonsterDisplay._build_real_figure()` just `ResourceLoader.load()`s the
+   resulting `.tres` directly - zero custom OBJ parsing left in the
+   runtime path.
+
+**Genuinely different from `tools/asset_import/`'s other two scripts**:
+this one needs a real local Godot 4.7.2 executable, not just Python -
+worth calling out explicitly in the README, since the other two are
+pure-Python/UnityPy tools with no such dependency. Verified end-to-end
+with a synthetic staged mesh (not just read over) before being considered
+done - confirmed `convert_staged_meshes.gd`'s directory-scan logic
+(`DirAccess.list_dir_begin()`/`get_next()`/`current_is_dir()`) actually
+finds and converts a staged folder, not merely written to look plausible.
+`ObjMeshLoader.gd` stays fully deleted (script + `.uid`) - nothing in the
+runtime path parses OBJ text at all anymore.
 
 ## Scene structure (post-refactor)
 
@@ -2183,7 +2998,11 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   `HSplitContainer`.
 - **`player/MissionPlayer.tscn`** — instances `LayeredMapCore` as `%LayeredMap`, plus
   its own separate `Camera3D`/`DirectionalLight3D`, and a `CanvasLayer` with an info
-  `Label` and a Back button. No editing tools at all.
+  `Label` and a Back button. No editing tools at all. Also a `%MonsterDisplay`
+  (new 2026-09-15, `MonsterDisplay.gd`, `visible = false` by default) - a second,
+  parallel 3D view sibling to `LayeredMap`/`Camera3D`, toggled with `CanvasLayer`
+  left completely untouched - see that script's own entry above for the full
+  mechanism (still a placeholder mockup, not real combat).
 - **`ui/MainMenu.tscn`** — the app's actual entry point (set as Project Settings →
   Main Scene).
 
@@ -2207,11 +3026,40 @@ not a one-shot batch command. See `tools/scan_extraction/README.md` for the actu
 workflow and known limitations (touching pieces, near-circular/zigzag shapes
 confusing the rotation fit).
 
-`tools/asset_import/` — a Python (UnityPy) importer that lets a user who owns the
-real "Descent: Legends of the Dark" companion app unlock its actual textures
-locally, without this project ever shipping or redistributing that copyrighted art
-— see **Official asset overrides** below for the full mechanism. Run it once
-pointed at your own game install; nothing it produces ever gets committed.
+`tools/asset_import/` — three tools that let a user who owns the real
+"Descent: Legends of the Dark" companion app unlock its actual art
+locally, without this project ever shipping or redistributing that
+copyrighted content — see **Official asset overrides** below for the full
+mechanism. All three are run once pointed at your own game install;
+nothing any of them produces ever gets committed. `import_official_assets.py`
+— the narrow one, pulls only the exact textures `OfficialAssetMap.gd`
+already has names for. `dump_all_assets.py` (new 2026-09-16) — the broad,
+exploratory one: dumps EVERY `Mesh` as `.obj` (no built-in Godot importer
+reads these at RUNTIME either, though the editor's own `res://` import
+pipeline does - see **Mesh conversion: Godot's own native importer, not a
+hand-rolled parser** below for how that gap actually gets bridged), every
+`Texture2D`/`Sprite` as `.png`, and a full manifest (type/name/container
+path) of every object of every type - built to go looking for monster
+meshes with nothing yet named/mapped for them (see Open item #3). Run
+against the real game once already: 214k objects scanned, 453 meshes/2139
+textures exported; monsters turned out to be cleanly organized under
+`assets/d3/enemies/<name>/prefabs/` (18 types found - bandit, berserker,
+blood sister, centurion, doomcaller, dragon, fae, golem, harbinger,
+legionnaire, mercenary, reanimate, salamander, specter, vampire, wight,
+wolf, zealot), each with a `"<name> flat.prefab"` (flat card/standee mesh)
+and a `"<name> plastic pool.prefab"` (the 3D-miniature-style mesh, sharing
+two `EnemyPlastic_LightBake`/`EnemyPlastic_NoLightBake` materials across
+all monsters) - see `MonsterDisplay.gd`'s own entry, now wired to all 18
+of them (not just the original 4-monster proof of concept).
+`import_monster_meshes.py` (new 2026-09-16, THIS one genuinely
+needs a real Godot 4.7.2 executable too, not just Python - see **Mesh
+conversion** below and `tools/asset_import/README.md`'s own "Monster
+meshes" section) — the automated, re-runnable replacement for the manual
+copy-.obj/run-`--import`/run-a-throwaway-script sequence that first proved
+this approach worked: reads which monsters to fetch straight from
+`MonsterDisplay.REAL_MONSTERS`, finds each one's mesh/texture by
+container path, and shells out to Godot itself (headless, twice) to
+produce the final `.tres` files `MonsterDisplay.gd` actually loads.
 
 `tools/footprint_extraction/` — derives `FootprintRegistry.FOOTPRINTS` entries
 directly from `models/floors.glb`'s mesh geometry instead of hand-typing ASCII
@@ -2351,6 +3199,48 @@ appears locally, for a user who separately owns the official game and runs
 
 These cost real debugging time — worth not re-learning them:
 
+- **A "the model looks rotated/wrong" report against imported mesh data
+  can have several unrelated root causes that look similar - don't keep
+  re-deriving coordinate math by hand, check against a REFERENCE
+  implementation instead, and know when to stop theorizing and just do
+  what's being asked.** Confirmed 2026-09-16 - see **Mesh conversion:
+  Godot's own native importer, not a hand-rolled parser** above for the
+  full saga and its actual resolution (the hand-rolled `ObjMeshLoader.gd`
+  parser this lesson was originally caught in has since been DELETED
+  entirely, once it became clear "check a reference implementation" meant
+  Godot's own native importer could just DO the real conversion, rather
+  than informing yet another hand-patch of the custom parser) - a real
+  rotated-monster report led to FOUR diagnoses in sequence, only the last
+  one landed. #1 - correctly knew "Unity is left-handed, Godot is right-
+  handed" and patched for it, but had NOT actually inspected what
+  `UnityPy`'s own OBJ exporter does internally - it already performs
+  that exact conversion itself, so the fix double-applied it (negating
+  two axes is a proper rotation, not a reflection - looked plausible,
+  fixed nothing, and broke the mesh's own already-correct winding on the
+  way). Actually reading the EXPORTER'S SOURCE (not its docstring) caught
+  this. #2 - reverting to loading the file completely literally still
+  looked wrong; direct computation (checking winding-implied normals
+  against the file's own explicit normals across 2000 triangles) proved
+  the geometry itself was never a handedness/winding problem. #3 - the
+  user reported what axis setting they needed in a completely independent
+  tool (Blender's OBJ importer, "Up: Z, Forward: X" instead of Blender's
+  own default) - a real, confirmed fact about what BLENDER needed, so it
+  got implemented as an axis remap - but turned out to be the wrong
+  explanation for what GODOT needed: the single most direct test
+  available (importing the SAME file through Godot's own native `res://`
+  OBJ importer, no adjustment) looked correct, directly contradicting
+  that remap. #4 - at that point continuing to theorize about
+  coordinates was no longer productive; the user asked directly to flip
+  the normals, so that's what happened - a plain negation, no further
+  coordinate-math justification attempted. General rules this leaves
+  behind: for this class of bug (import looks mirrored/rotated/inside-
+  out), prefer checking a known-working reference tool's required
+  settings or a library's actual source code over re-deriving cross-
+  product/handedness math from scratch more than once - each re-
+  derivation is a fresh chance to make the same kind of confident,
+  plausible-sounding, wrong guess; and once a user has asked for a
+  specific concrete change more than once, do that change rather than
+  continuing to investigate alternatives they didn't ask for.
 - **`GraphEdit` requires port-type pairs to be explicitly whitelisted via
   `add_valid_connection_type(from_type, to_type)` before it will ever emit
   `connection_request`** - even for two ports of the IDENTICAL type (e.g.
@@ -2687,6 +3577,102 @@ These cost real debugging time — worth not re-learning them:
    the Godot editor and see it rendered); worth confirming the layout/icons/jump
    behavior actually work before trusting it.
 3. Monster spawns — data model exists, no authoring workflow, no combat/AI yet.
+   **Combat exploration started 2026-09-15** - the first question was
+   whether the Player could switch to a monster-facing view without
+   disturbing the persistent UI at all; confirmed cheap (see
+   `MonsterDisplay.gd`'s own entry above) since `CanvasLayer` was already
+   a sibling of the 3D world content, not nested inside it. What exists so
+   far is a **pure visual mockup** - a hard-coded grid of 4 placeholder
+   cube "monsters" (base + figure, no real assets), toggled with a
+   temporary hotkey, no interaction wired up.
+   **Real monster art confirmed findable, same day** - "we might need to
+   dig into the assets of the original game again" turned into
+   `tools/asset_import/dump_all_assets.py` (see that tool's own entry
+   above): 18 monster types found, cleanly organized, each with a real
+   3D-miniature-style mesh. **The grid now wires all 18 to real meshes**
+   (started as 4 - Centurion/Zealot/Doomcaller/Fae - then automated and
+   expanded to the full roster the same day, see below), auto-scaled
+   per-mesh via each one's own bounding box rather than a hand-picked
+   constant (Centurion initially looked oddly large next to the others),
+   and viewed through a real `FreeLookCamera` instead of a fixed angle
+   (easier to tell what's actually wrong with a mesh by orbiting it - see
+   `MonsterDisplay.gd`'s own entry). **Handedness/shading resolved
+   2026-09-16** after a rocky path through a hand-rolled OBJ parser (four
+   sequential fix attempts, several contradicted by the user's own direct
+   tests - see **Mesh conversion: Godot's own native importer, not a
+   hand-rolled parser** above for the full saga) - the actual fix was
+   abandoning that parser entirely in favor of a one-off conversion
+   through Godot's own native `res://` OBJ importer, re-saved as a
+   portable `.tres` per monster, with zero per-monster YAW hacks
+   (`extra_rotation_degrees` defaults to 0 across the board). **A second,
+   unrelated orientation bug turned up right after that fix landed**: 3 of
+   4 monsters (Centurion/Doomcaller/Fae) were lying face-down, only Zealot
+   standing correctly - diagnosed via a headless `Mesh.get_aabb()` dump as
+   a per-monster AUTHORING inconsistency in the original game's Unity
+   assets, not a coordinate-system bug. Fixed via a new
+   `pitch_correction_degrees` (X-axis) field, **confirmed working
+   in-editor** on those 4 - see `MonsterDisplay.gd`'s own entry above for
+   the full diagnosis and fix. **A third bug, same day, follow-up report**
+   ("model 2 is off center") - fixing the pitch didn't fix horizontal
+   centering, a separate concern (a mesh's own local origin not being
+   centered under its geometry). Fixed via a `figure.basis`-based
+   world-space pivot offset (rotation AND scale composed correctly via
+   Godot's own `Basis`, not a hand-derived per-axis formula) - see that
+   same entry above.
+   **The pipeline itself got automated and the roster expanded to all 18
+   monster types found in the game, same day** ("can we also update our
+   importer python script... we want people to run that"):
+   `tools/asset_import/import_monster_meshes.py` +
+   `tools/asset_import/convert_staged_meshes.gd` replace the manual
+   copy/`--import`/one-off-script sequence entirely (see **Mesh
+   conversion** above and `tools/asset_import/README.md`'s "Monster
+   meshes" section) - run for real against the actual game install and
+   verified end-to-end (18/18 converted, sane non-NaN scale/position
+   values for every one). Initial `pitch_correction_degrees` values came
+   from generalizing the original 4's diagnosis into a
+   `ratio = size.y / max(size.x, size.z) < 0.85` threshold rather than
+   eyeballing 14 more dumps by hand - **that heuristic then got corrected
+   against real user feedback the same day** ("Legionnaire, Vampire and
+   Salamander are on their belly again... wolf needs the same rotation...
+   but in the other way around... dragon is not a model we need, remove
+   it") - three monsters the ratio had called "OK" were fixed to `-90`;
+   Wolf took three rounds (`-90` -> `+90` -> finally `0`, back-derived by
+   hand from a precise "bottom points to -Z" report once that got
+   specific enough to compute rather than guess - it was correctly
+   oriented all along, see `MonsterDisplay.gd`'s own entry above for the
+   full derivation), and along the way surfaced a real sign-dependent bug
+   in the vertical-lift math that stays fixed in the code regardless.
+   Dragon was dropped from the roster entirely (17 monsters now, not 18).
+   `MonsterDisplay.REAL_MONSTERS`
+   lists all of them (`GRID_COLUMNS` bumped `2 -> 5` to stay roughly
+   square, camera framing distance now scales with grid size). **Scaling
+   itself reworked the same day too, the last request in this saga** -
+   ("all these monsters are more or less the same size in real live, but
+   they are not scaled like that") every prior fix scaled to match HEIGHT
+   only, which left width/bulk totally unconstrained (confirmed as the
+   actual cause: Wolf and Vampire landed on the identical forced height
+   yet Wolf rendered visibly wider/deeper) - switched to scaling by the
+   mesh's OVERALL BOUNDING-BOX DIAGONAL instead (rotation-invariant, no
+   per-axis branching needed), plus a new per-monster `size_units` field
+   (`1.0` default, `2.0` for Centurion - "centurion is 4 units square,"
+   a REAL game-design fact, not scale noise) - see `MonsterDisplay.gd`'s
+   own entry above for the full diagnosis, and its "Scaling reworked" note
+   for the verified result (every 1-unit monster renders at an identical
+   diagonal, Centurion at exactly double). **Still
+   only the monsters the user has actually looked at are confirmed** -
+   whichever weren't specifically called out as broken could still have an
+   issue nobody's spotted yet; same iterative "check it, report what's
+   wrong, fix it" process as everything else in this saga. Still fully
+   open beyond that: reading
+   `MissionData.monster_spawns` instead of hard-coded data (no authoring
+   UI for it exists either),
+   deciding what triggers entering this view at all (a checkpoint? an
+   authored effect, the same "queue an id, `MissionPlayer` acts on it"
+   shape `SHOW_STAGE`/`REMOVE_OBJECT` already established?), and extending
+   `PlayerInteractionController`'s drag-and-drop so a drop target resolves
+   against whichever monster card/stand a drag ends over instead of (or
+   alongside) the 3D world raycast it does today - combat/monster AI
+   itself remains explicitly out of scope beyond that.
    ~~The story layer (triggers/objectives/variables/prop actions) has a
    designed data model ... but no variable registry, no trigger/objective
    evaluator~~ - the evaluator (`MissionRuntime`, see **Story layer**) is
@@ -2847,3 +3833,51 @@ These cost real debugging time — worth not re-learning them:
 	`Effect.Type` once damage is designed, reusing `PlayerAttribute` but
 	otherwise a fundamentally different shape from `RUN_TEST` - not a
 	variant of it.
+16. ~~`BaseGapDetector.gd`'s wall-vertex search doesn't correctly handle
+	the base's real shape~~ - **resolved 2026-09-17** by removing the
+	search entirely rather than fixing it (see **Base-disc color-tab gap
+	detection** above for the full saga): the base being an ANNULUS
+	(hollow, an outer rim wall + a separate inner platform) made any
+	mesh-adjacency-based search fundamentally fragile (it could always
+	jump across the hollow gap for a short-walled mesh), so
+	`detect_gap_quad()` now SYNTHESIZES the inner two corners directly
+	above the outer ones (same X/Z, `GAP_WALL_HEIGHT_PCT` of the mesh's
+	own height higher) instead of searching for them - there's no longer
+	any adjacency walk that could cross the gap at all. Still an open,
+	lower-priority follow-up: `GAP_WALL_HEIGHT_PCT` (0.03 default) is a
+	visual tuning knob, not derived from geometry - `detect_gap_quad()`'s
+	optional `wall_height_pct` parameter makes it easy to try other values,
+	but the actual "does this look right" call still needs the user's own
+	eyes on the rendered result in the Player, not another guess from this
+	environment.
+17. ~~Wight's gap marker is still visibly wrong, cause unidentified~~ -
+	**resolved 2026-09-17**, though not by finding Wight's own specific
+	root cause - the whole detection approach it was built on got
+	replaced the same day (see **Base-disc color-tab gap detection**
+	above): the user rewrote `detect_gap_quad()` from scratch with a
+	simpler quadrant/max-Z heuristic, which needed three real bugs fixed
+	(a silent `-1`-index fallback, an absolute-vs-percentage floor
+	tolerance, and a not-centered-on-the-ring's-own-centroid quadrant
+	split) plus one knock-on fix (the outer_a/outer_b labeling swap that
+	silently undid the earlier "extrude in the other direction" call) -
+	all confirmed by direct computation, not guessed, and all verified
+	end-to-end across the full 17-monster roster. Confirmed working by
+	direct review in the Player ("ok it looks good finally" / "ok it
+	looks better"), Wight included. See item #18 for the deliberately
+	deferred follow-up (an exact notch outline instead of this
+	still-approximate quadrant heuristic).
+18. **Calculate the exact outline of the notch, instead of approximating
+	it with a quadrant/max-Z heuristic** (new 2026-09-17, explicitly
+	deferred by the user - "ideally we somehow can calculate the exact
+	outline of the notch but for now this is more than good enough...
+	add that to our todo list as an optional improvement") - the current
+	`detect_gap_quad()` picks a single floor vertex per side (highest Z
+	relative to the floor ring's own centroid, split by X sign) and
+	`MonsterDisplay` synthesizes a fixed-size rectangular panel from those
+	two points; it doesn't trace the notch's own actual boundary/shape at
+	all. Good enough for the current test-marker purpose, but a truly
+	exact outline would need to actually walk the notch's real edge
+	geometry (something closer to the annulus-aware approaches tried and
+	reverted earlier in this same saga - see that section above for why
+	those didn't pan out) rather than approximating it with one
+	rectangle. Low priority, optional - not blocking anything.

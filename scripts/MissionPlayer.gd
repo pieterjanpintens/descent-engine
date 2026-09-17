@@ -28,6 +28,7 @@ extends Node3D
 @onready var embark_dialog: EmbarkDialog = %Embark
 @onready var interaction_dock: PlayerInteractionController = %InteractionDock
 @onready var camera: FreeLookCamera = $Camera3D  ## a direct child, not nested under CanvasLayer - no unique name needed, see _frame_camera_on_spawn_area()
+@onready var monster_display: MonsterDisplay = %MonsterDisplay
 
 ## Minimum jump_to() distance for framing the spawn area (see
 ## _frame_camera_on_spawn_area()) - broader than FreeLookCamera.jump_to()'s
@@ -133,6 +134,35 @@ func _frame_camera_on_spawn_area() -> void:
 		radius = max(radius, corner.distance_to(centroid))
 
 	camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, radius * SPAWN_VIEW_RADIUS_MULTIPLIER))
+
+
+## TEMPORARY - "M" toggles the monster display mockup on/off so it can
+## actually be seen in a running Player, since no real combat trigger
+## exists yet to switch views on its own (see MonsterDisplay.gd's own doc).
+## Remove/replace once something real drives this.
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
+		_set_monster_display_visible(not monster_display.visible)
+
+
+## Swaps which "scene" is rendered while leaving every CanvasLayer UI child
+## (InteractionDock, Dialog, labels, buttons, ...) completely untouched -
+## they already render independently on top regardless of what's in the 3D
+## scene behind them. Only one Camera3D should ever be `current` at a time;
+## also pauses whichever FreeLookCamera ISN'T currently shown (both the
+## world one and, since 2026-09-16, MonsterDisplay's own) so its _input()
+## doesn't react to right-click-drag while off-screen
+## (FreeLookCamera._input() fires unconditionally for every node that
+## defines it, per claude.md's own Hard-won lessons).
+func _set_monster_display_visible(shown: bool) -> void:
+	monster_display.visible = shown
+	layered_map.visible = not shown
+	monster_display.camera.current = shown
+	monster_display.camera.set_process_input(shown)
+	monster_display.camera.set_process_unhandled_input(shown)
+	camera.current = not shown
+	camera.set_process_input(not shown)
+	camera.set_process_unhandled_input(not shown)
 
 
 func _on_back_button_pressed() -> void:

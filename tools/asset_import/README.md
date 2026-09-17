@@ -53,6 +53,32 @@ texture, or (for Sprites) atlas lives in a different bundle file than the
 object itself. Slower and more memory-hungry than per-file loading, but this
 is a one-off local tool, not something run often.
 
+## Exploring everything (`dump_all_assets.py`)
+
+`import_official_assets.py` only ever pulls the handful of textures
+`OfficialAssetMap.gd` already has exact names for - useless for finding
+something nobody's named yet, like monster meshes for the in-progress
+combat work (see `claude.md`'s Open item #3). `dump_all_assets.py` is a
+broader, exploratory companion: point it at the same bundles folder and it
+dumps EVERYTHING it can - every `Mesh` as a `.obj` (confirmed against the
+actually-installed UnityPy's own `Mesh.export()` API, not guessed), every
+`Texture2D`/`Sprite` as a `.png`, and a full `manifest.tsv` (type, name,
+container path, id) covering every object of every type, exported or not -
+grep that first for anything monster-shaped before digging through meshes
+one file at a time.
+
+```
+python dump_all_assets.py "<path to game>\<Game>_Data\StreamingAssets\bundles"
+```
+
+Writes to `%APPDATA%\Godot\app_userdata\Descent-Engine\asset_dump\` by
+default (same outside-the-repo, never-committed location as
+`official_assets\` above) - pass a second argument to write somewhere else.
+Same one-environment-for-the-whole-folder loading as the importer above,
+for the same cross-bundle-reference reason - this one's slower still, since
+it processes every object instead of stopping once a short wanted-list is
+found.
+
 ## Extending the map
 
 Adding a new placeholder-texture-path entry to `OfficialAssetMap.gd`'s `MAP` dict
@@ -62,3 +88,50 @@ currently only handles single-surface meshes (verified true for everything match
 so far). Some meshes in `descent-meshes.tres` (the "medium"/"mini" pillars) do have
 multiple surfaces/materials - if a future entry needs one of those, that function
 needs extending to loop surfaces rather than just touching surface 0.
+
+## Monster meshes (`import_monster_meshes.py`)
+
+A third tool, for `MonsterDisplay.gd`'s real monster figures (see
+`claude.md`'s **Mesh conversion: Godot's own native importer, not a
+hand-rolled parser** section for the full backstory) - **this one is
+different from the two above: it also needs a real Godot 4.7.2 executable
+on your machine, not just Python.** A hand-rolled runtime `.obj` parser was
+tried first for monster meshes and consistently produced wrong
+orientation/shading no matter what coordinate-math theory got thrown at
+it, while Godot's own native `res://` OBJ importer gets it right on the
+first try - so this tool leans on that importer directly (by shelling out
+to it, headless, twice) instead of re-deriving its behavior by hand.
+
+```
+python import_monster_meshes.py "<path to game>\<Game>_Data\StreamingAssets\bundles" "<path to Godot 4.7.2 executable>"
+```
+
+Reads which monsters to extract straight from `MonsterDisplay.REAL_MONSTERS`
+(same "read the source of truth" convention as `import_official_assets.py`
+reading `OfficialAssetMap.gd`'s `MAP` dict) - re-run any time that array
+gains a new monster. For each one, finds its "`<folder>` plastic pool.prefab"
+Mesh + diffuse Texture2D by **container path** rather than internal object
+name (mesh/texture names aren't consistent across monsters - e.g. Zealot's
+own mesh is literally named `"default"` - but every plastic-pool asset's
+container path follows
+`assets/d3/enemies/<folder>/prefabs/"<folder> plastic pool.prefab"`,
+confirmed against the 4 monsters already wired in), stages each `.obj` into
+a temporary, already-gitignored folder inside the actual Godot project
+(`models/original/monster_staging/`), saves each texture straight to its
+final `user://monster_assets/<folder>/diffuse.png` (no Godot needed for
+textures - loaded via `Image.load_from_file()` at runtime, same as the
+floor/underlay override textures above), then runs the given Godot
+executable headless twice: once with `--import` (so the staged `.obj`
+files go through Godot's own native import pipeline), then once running
+`convert_staged_meshes.gd` (this same folder - a checked-in, permanent
+tool script, unlike the earlier one-off `convert.gd` this replaces) which
+loads each natively-imported mesh and re-saves it as a portable
+`user://monster_assets/<folder>/mesh.tres` - the ONLY thing
+`MonsterDisplay.gd` actually reads at runtime. The staging folder is
+deleted again once conversion finishes.
+
+On Windows, the final output lands at:
+
+```
+%APPDATA%\Godot\app_userdata\Descent-Engine\monster_assets\<folder>\{mesh.tres,diffuse.png}
+```
