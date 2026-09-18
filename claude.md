@@ -955,6 +955,37 @@ first working version).
 	(`MissionData.is_walkable()` already returns false once
 	`get_tile(cell)` is null) — not a new rule, just newly reachable from
 	an effect instead of only a Creator-side erase.
+  - `move_node(id, new_origin) -> bool` (new 2026-09-18) — the Creator-side
+	counterpart to `remove_node()` above, driving `CreatorController`'s new
+	Move mode (`M` key, see **Creator tooling** below). Relocates a placed
+	prop or floor/underlay tile to `new_origin`, PRESERVING its outline-
+	tree identity (id/parent_id/reference_name/visible/props/actions) —
+	mesh and orientation stay exactly as they were, only `origin_cell`
+	changes. Returns `false` (nothing touched) if `id` doesn't resolve, if
+	`new_origin` equals the current origin, or if `new_origin`'s GridMap
+	cell is already occupied by something else — deliberately conservative
+	(matches `place_at_cursor()`'s own existing looseness about NOT
+	checking full footprint-level collision, just origin-cell collision).
+	Props (`InteractableEntry`) are handled directly rather than through
+	`sync_prop_cell()` — that function always erases-then-recreates
+	whatever it finds at ONE cell (see its own doc above), which would
+	mint a FRESH id at the new origin and orphan the original's identity,
+	the exact bug class `sync_prop_cell()`'s own carry-over fix exists to
+	prevent. Mutating the SAME `InteractableEntry` object's `origin_cell`
+	in place (after `FootprintRegistry.clear_occupied()`/`mark_occupied()`
+	at the old/new cells respectively — the footprint's own relative
+	offsets don't change, only which origin they're anchored to)
+	sidesteps that entirely — nothing is erased/recreated, so there's
+	nothing to orphan. Floor/underlay (`TilePlacement`) take a different,
+	simpler route that needed no new carry-over logic at all: mutate the
+	placement's own `origin_cell` to the NEW cell BEFORE calling the
+	normal full-rebuild sync (`rebuild_floor_tiles()`/
+	`rebuild_underlay_tiles()`) — their `old_by_cell` lookup is built by
+	reading each placement's CURRENT `origin_cell` right before the
+	rebuild clears and rescans everything, so pointing that field at the
+	new cell first makes the EXISTING carry-over logic re-adopt this exact
+	placement under its new key for free, same object, same id, zero
+	duplicated logic.
   - `find_item_id(grid, mesh_name)` — MeshLibrary name→id lookup (public, used by
 	`CreatorController` too).
   - `set_spawn_overlay_cells(cells)` / `set_spawn_overlay_visible(bool)` — the
@@ -1024,6 +1055,35 @@ first working version).
   mission_objects_changed` (fires once per painted cell during a drag
   stroke) into a single deferred rebuild, same pattern as `CreatorOutline.
   gd`'s `refresh()`/`_do_refresh()`.
+- **`CreatorStatusBar.gd`** (new 2026-09-18, `extends Label`, a direct
+  `CanvasLayer` child in `MissionMap.tscn`, anchored to the bottom-left
+  corner rather than living inside `MainLayout`'s `VBoxContainer` flow —
+  it needs to float over the 3D viewport's own empty bottom-left corner,
+  not stack in the menu/toolbar column) — a small requested convenience:
+  shows the tile-square ("game unit") coordinate the mouse currently
+  hovers, e.g. `"Tile: (4, 0, -2)"`, blank when there's no hover (camera
+  missing, mesh library not loaded, or the hover raycast missed - same
+  conditions `CreatorController._update_hover()` already tracks via its
+  own `_has_hover`). **Deliberately NOT the raw fine GridMap cell** - the
+  first version showed that directly, corrected the same day ("print game
+  units not grid units") - `CreatorController.get_hovered_cell()` now
+  converts through `FootprintRegistry.fine_cell_to_tile_square()` (the
+  same conversion the spawn-cell paint mode already uses) before
+  returning, so a designer sees the unit they actually think/author in,
+  not GridMap's twice-as-fine internal resolution. Reads
+  `CreatorController.get_hovered_cell()`/`has_hover()` (two new one-line
+  getters wrapping the existing private `_hovered_cell`/`_has_hover` vars)
+  every `_process()` tick - **polled, not signaled**, deliberate departure
+  from this project's usual "controller emits, UI listens" signal
+  convention (`draw_mode_changed`, `working_group_changed`, ...): those are
+  discrete toggle events, this is a continuously-changing value while the
+  mouse moves, which reads more naturally as polled state - the same way
+  `CreatorController` itself recomputes `_hovered_cell` every `_process()`
+  tick rather than only on change. **Unverified in-editor** (registered
+  cleanly via a headless `--import` pass, same as every new `class_name`
+  this session, but not visually confirmed rendered/positioned correctly)
+  - worth a quick look to confirm the label sits clear of the toolbar/side
+  panel and doesn't get clipped.
 - **`CanvasLayer/MainLayout`** (`MissionMap.tscn`) — the Creator's overall
   shell, a full-rect `VBoxContainer`: a top-spanning `MenuBar` (see
   `CreatorSaveLoad.gd` below), a persistent `Toolbar` (`CreatorToolbar.gd`,
@@ -1236,15 +1296,24 @@ first working version).
 	everyone else discovers it by clicking a mesh), but `P` (Player Start)
 	isn't mesh-library-backed at all, so it doesn't belong among the
 	Floor/Prop/Underlay tabs - see `CreatorPalette.gd`'s own "Misc"
-	tab entry below for where it actually landed. `draw_mode` and
-	`spawn_paint_mode` are kept MUTUALLY EXCLUSIVE by the Palette's click
-	handlers (never by the hotkeys themselves) - picking a mesh/layer
-	turns Player Start off, picking Player Start turns Draw off - so
-	left-click's meaning is never ambiguous between the two tools.
+	tab entry below for where it actually landed. `draw_mode`,
+	`spawn_paint_mode`, and `move_mode` (new 2026-09-18, see that entry
+	below) are kept MUTUALLY EXCLUSIVE - **changed 2026-09-18** from being
+	the CALLER's responsibility (the Palette's click handlers explicitly
+	set both flags together, e.g. picking a mesh/layer turned Player Start
+	off) to being enforced INSIDE `set_draw_mode()`/`set_spawn_paint_mode()`/
+	`set_move_mode()` themselves (whichever one turns on turns the other
+	two off) - safe to assume a caller manages every combination stopped
+	holding once a THIRD overlapping tool-mode bool existed reachable from
+	a bare hotkey with no caller in the loop at all (`M`, same as `D`/`P`
+	always were). The Palette's own explicit calls still work unchanged
+	(now redundant, not wrong - the second call in each pair just becomes
+	a no-op).
   - Controls: `D` toggle Draw/Select mode, Left-click place (Draw mode) /
 	select (Select mode), Shift+Left-click erase (Draw mode only), `,`/`.` cycle mesh (not Tab —
 	conflicts with UI focus once real Buttons exist), `R` rotate, `L` cycle layer
-	filter (Floor → Prop → Underlay), PageUp/PageDown change level, `O` toggle
+	filter (Floor → Prop → Underlay), PageUp/PageDown change level, `M` toggle Move
+	mode (new 2026-09-18, see its own entry below), `O` toggle
 	occupancy overlay (also `set_occupancy_overlay()`/`occupancy_overlay_changed`
 	signal, and a `View` menu checkbox — no longer keyboard-only "magic",
 	requested 2026-09-10, see `CreatorViewMenu.gd` below), `N` toggle tile
@@ -1279,6 +1348,47 @@ first working version).
 	reachable from `CreatorPalette`'s "Misc" tab now (`Player Start`
 	button, requested 2026-09-10) - see that entry below and `draw_mode`'s
 	entry above for the mutual-exclusivity reasoning.
+  - **`move_mode`** (new 2026-09-18, `M` key or `set_move_mode()`/
+	`toggle_move_mode()`, `move_mode_changed` signal - same "controller
+	emits, UI listens" convention as `draw_mode`/`spawn_paint_mode` above)
+	- requested as "a 'move' mode... you must be able to select items and
+	drag them so they move over the grid." Left-click-**drag** an
+	already-placed prop/floor/underlay tile to relocate it, rather than
+	delete-and-repaint: mouse-down raycasts for whatever's under the
+	cursor (`_start_move_drag()`, reusing the exact same
+	raycast+origin-cell resolution `erase_at_cursor()`/`select_at_cursor()`
+	already use, factored out into a new shared `_resolve_placed_at(hit_grid,
+	origin) -> {"kind", "id"}` helper both `select_at_cursor()` and this
+	now call), remembers its kind/id/grid/mesh/orientation, and shows a
+	ghost preview of that SAME mesh (`_move_ghost`, a solid preview like
+	the normal draw-mode `_ghost`, not a flat quad like the spawn-cell
+	ghost) following the cursor every frame while held
+	(`_update_move_hover()`/`_update_move_ghost()`, driven from
+	`_process()` same as every other tool's overlay). Mouse-up
+	(`_finish_move_drag()`) commits the move via the new
+	`LayeredMap.move_node(id, new_cell)` (see that method's own entry
+	below), wrapped in `operation_history.record("Move", ...)` - a move is
+	one undo step, same as a paint/erase stroke. **The original is never
+	touched until release** - dragging is pure preview, exactly the same
+	"don't touch real data before a real click" discipline
+	`place_at_cursor()`'s own ghost already follows; a drag that ends over
+	an invalid or already-occupied target (`move_node()`'s own refusal
+	cases) just leaves everything exactly where it was, no partial state.
+	Hover/snapping during a drag reuses `_snap_to_tile_square_far_corner()`
+	(tile-square resolution, except pillars) exactly like normal
+	placement, keyed off the DRAGGED item's own mesh name rather than
+	whatever's currently selected for painting - and resolves against
+	`current_level` (the same `PageUp`/`PageDown`-controlled Y normal
+	placement uses), so changing level mid-drag doubles as a way to move
+	something between levels, free of any extra mechanism.
+	**Unverified in-editor** (registered/compiled cleanly via a headless
+	`--import` pass plus a `--check-only --script` spot-check confirming
+	no syntax errors before the known autoload-resolution wall - same
+	verification level as every other new Creator UI piece this session)
+	- worth a real drag-and-drop pass once available: picking up a
+	multi-cell footprint piece, moving something to a different level via
+	PageUp/PageDown mid-drag, and confirming a drop onto an occupied cell
+	correctly cancels rather than silently overwriting.
 - **Creator outline tree** (`CreatorOutline.gd`, attached to
   `SidePanel/Outline/Split/OutlineTree`, a `Tree`) — a scene-graph-style
   object browser: every placed `InteractableEntry` (prop/door/hazard/
@@ -3044,7 +3154,10 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   (`CreatorPropertiesPanel.gd`) below - a real drag-resizable split, since
   unlike `EditorArea` both panes here are plain 2D Controls) - see the `MainLayout`
   entry under **Creator tooling** above for why this isn't a real
-  `HSplitContainer`.
+  `HSplitContainer`. Also a `StatusBar` `Label` (`CreatorStatusBar.gd`, new
+  2026-09-18 - see **Creator tooling** above), a direct `CanvasLayer` child
+  (NOT inside `MainLayout`) anchored to the screen's bottom-left corner -
+  the current hovered cell's coordinates.
 - **`player/MissionPlayer.tscn`** — instances `LayeredMapCore` as `%LayeredMap`, plus
   its own separate `Camera3D`/`DirectionalLight3D`, and a `CanvasLayer` with an info
   `Label` and a Back button. No editing tools at all. Also a `%MonsterDisplay`

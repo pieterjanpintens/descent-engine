@@ -215,6 +215,81 @@ func remove_node(id: String) -> void:
 			rebuild_underlay_tiles()
 
 
+## Relocates an already-placed prop or floor/underlay tile to a new origin
+## cell, PRESERVING its outline-tree identity (id/parent_id/reference_name/
+## visible/props/actions) - CreatorController's Move mode (new 2026-09-18,
+## M key) is the one caller. Mesh/orientation are kept exactly as they
+## were; only origin_cell changes. Returns false (no-op, nothing touched)
+## if `id` doesn't resolve to anything currently placed, new_origin is the
+## same as the current origin, or new_origin's GridMap cell is already
+## occupied by something else (deliberately conservative - place_at_cursor()
+## itself never checks footprint-level collision beyond this either, see
+## FootprintRegistry's own doc, so this matches that same looseness rather
+## than inventing a stricter rule just for moves).
+##
+## Props (InteractableEntry) are handled directly rather than through
+## sync_prop_cell() - that function only ever looks at ONE cell at a time
+## and always erases-then-recreates whatever it finds there (see its own
+## doc), which would mint a FRESH id at the new origin and silently orphan
+## the original's identity, exactly the class of bug sync_prop_cell()'s own
+## carry-over fix was built to prevent in the first place. Mutating the
+## SAME InteractableEntry object's origin_cell in place sidesteps that
+## entirely - there's nothing to orphan since nothing is erased/recreated.
+##
+## Floor/underlay (TilePlacement) take a different, simpler route: mutate
+## the placement's own origin_cell to the NEW cell BEFORE calling the
+## normal full-rebuild sync (rebuild_floor_tiles()/rebuild_underlay_tiles()).
+## Their own old_by_cell carry-over lookup is built by reading each
+## placement's CURRENT origin_cell right before the rebuild clears and
+## rescans everything - pointing that field at the new cell first means the
+## existing carry-over logic picks this exact placement back up under its
+## new key with zero duplicated logic, the same object, same id.
+func move_node(id: String, new_origin: Vector3i) -> bool:
+	var node := mission.find_node_by_id(id)
+	if node == null:
+		return false
+
+	if node is InteractableEntry:
+		var entry := node as InteractableEntry
+		var old_origin := entry.origin_cell
+		if old_origin == new_origin:
+			return false
+		if prop_grid.get_cell_item(new_origin) != GridMap.INVALID_CELL_ITEM:
+			return false
+		var item_id := find_item_id(prop_grid, entry.mesh_item_name)
+		if item_id == -1:
+			return false
+		FootprintRegistry.clear_occupied(mission, old_origin, entry.footprint)
+		prop_grid.set_cell_item(old_origin, GridMap.INVALID_CELL_ITEM)
+		prop_grid.set_cell_item(new_origin, item_id, entry.orientation)
+		entry.origin_cell = new_origin
+		FootprintRegistry.mark_occupied(mission, new_origin, entry.footprint)
+		mission_objects_changed.emit()
+		return true
+
+	if node is TilePlacement:
+		var placement := node as TilePlacement
+		var old_origin := placement.origin_cell
+		if old_origin == new_origin:
+			return false
+		var grid := floor_grid if placement.layer == TilePlacement.Layer.FLOOR else underlay_grid
+		if grid.get_cell_item(new_origin) != GridMap.INVALID_CELL_ITEM:
+			return false
+		var item_id := find_item_id(grid, placement.mesh_item_name)
+		if item_id == -1:
+			return false
+		grid.set_cell_item(old_origin, GridMap.INVALID_CELL_ITEM)
+		grid.set_cell_item(new_origin, item_id, placement.orientation)
+		placement.origin_cell = new_origin  # see this function's own doc - lets the rebuild's own carry-over logic re-adopt this exact object
+		if placement.layer == TilePlacement.Layer.FLOOR:
+			rebuild_floor_tiles()
+		else:
+			rebuild_underlay_tiles()
+		return true
+
+	return false
+
+
 ## For callers that mutate mission.groups/mission.interactables' parent_id
 ## directly (CreatorOutline.gd's group New/Rename/Delete/Move to... - none
 ## of that touches the GridMap the way sync_prop_cell() does, so there's

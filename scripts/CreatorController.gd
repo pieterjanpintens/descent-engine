@@ -46,6 +46,17 @@ extends Node3D
 ##                        P only toggles whether clicking edits it. Hides the
 ##                        normal mesh ghost preview while active - unrelated tool,
 ##                        unrelated hover target, confusing to see both at once.
+##   M                  - toggle Move mode (new 2026-09-18, see move_mode below):
+##                        left-click-DRAG an already-placed object/floor/underlay
+##                        tile to relocate it - mouse-down picks it up
+##                        (_start_move_drag()), a ghost preview of the SAME mesh
+##                        follows the cursor while held, mouse-up commits the
+##                        move at wherever it's released (_finish_move_drag() ->
+##                        LayeredMap.move_node()). The original stays exactly
+##                        where it was until release - nothing is touched if the
+##                        drag ends over an invalid/occupied target. Mutually
+##                        exclusive with D/P - whichever of D/P/M turns on turns
+##                        the other two off (see set_move_mode()).
 ##
 ## NOTE: mesh cycling deliberately does NOT use Tab - Tab is Godot's
 ## built-in ui_focus_next action, and now that this scene has real Button
@@ -103,6 +114,10 @@ signal draw_mode_changed(enabled: bool)
 ## listens to this to stay in sync with the hotkey, same as draw_mode above.
 signal spawn_paint_mode_changed(enabled: bool)
 
+## Same idea for move_mode (M key, or set_move_mode() - new 2026-09-18) -
+## see move_mode's own doc below for what the mode actually does.
+signal move_mode_changed(enabled: bool)
+
 ## Same "controller emits, UI listens" convention as draw_mode_changed/
 ## spawn_paint_mode_changed above - CreatorOutline.gd's "Working group:"
 ## dropdown listens so it stays in sync regardless of what triggered a
@@ -135,6 +150,20 @@ signal tile_labels_changed(enabled: bool)
 ## Starts OFF: requested 2026-09-10, painting used to be the permanent
 ## default with no way to leave it.
 var draw_mode: bool = false
+
+## Whether left-click-drag picks up an already-placed object/floor/
+## underlay tile and moves it to wherever the mouse releases (new
+## 2026-09-18, M key or set_move_mode()) - see _start_move_drag()/
+## _finish_move_drag() for the actual drag mechanism. Mutually exclusive
+## with draw_mode/spawn_paint_mode, enforced INSIDE the three setters
+## themselves (set_draw_mode()/set_spawn_paint_mode()/set_move_mode() each
+## turn the other two off when switching itself on) - draw_mode/
+## spawn_paint_mode used to rely on every CALLER remembering to clear the
+## other one (see CreatorPalette.gd's click handlers), which stopped being
+## safe to assume once a THIRD overlapping tool-mode bool existed with no
+## caller managing all three at once (a bare hotkey, same as D/P always
+## were).
+var move_mode: bool = false
 
 ## The group any NEW placement's parent_id gets set to (empty = mission
 ## root, same as before this feature existed) - lets a designer focus on
@@ -186,6 +215,41 @@ var _spawn_ghost_mesh: ImmediateMesh
 var _hovered_cell: Vector3i = Vector3i.ZERO
 var _has_hover: bool = false
 
+## Move mode's own drag state - see _start_move_drag()/_finish_move_drag().
+## _move_dragging_id == "" means nothing is currently picked up (move_mode
+## can be on with nothing held yet - the drag only starts on mouse-down
+## over an existing placed object/tile). While dragging, the original stays
+## exactly where it is on the GridMap/in MissionData - only _move_ghost
+## (a preview, same idea as the normal draw-mode ghost) follows the mouse;
+## the real move only happens on release, via LayeredMap.move_node().
+var _move_dragging_kind: String = ""  # "object" / "floor" / "underlay" - object_picked()'s vocabulary
+var _move_dragging_id: String = ""  # OutlineNode.id of whatever's picked up
+var _move_drag_grid: GridMap = null
+var _move_drag_origin_cell: Vector3i = Vector3i.ZERO
+var _move_drag_mesh_name: String = ""
+var _move_hovered_cell: Vector3i = Vector3i.ZERO
+var _move_has_hover: bool = false
+var _move_ghost: MeshInstance3D
+
+
+## Read-only accessors for whatever's currently hovered - CreatorStatusBar.gd
+## polls these every frame (same "update every _process() tick" style
+## _update_hover() itself already uses, just read from a different class,
+## rather than a signal - a continuously-changing value while the mouse
+## moves reads more naturally as polled state than an event).
+##
+## Returns the tile-square ("game unit") coordinate, not the raw fine
+## GridMap cell - FootprintRegistry.fine_cell_to_tile_square() is the same
+## conversion CreatorController's own spawn-cell paint mode already uses to
+## show a designer something in the unit they actually think in, rather
+## than GridMap's twice-as-fine internal resolution.
+func get_hovered_cell() -> Vector3i:
+	return FootprintRegistry.fine_cell_to_tile_square(_hovered_cell)
+
+
+func has_hover() -> bool:
+	return _has_hover
+
 
 func _ready() -> void:
 	# Wait one frame so every node's own _ready() (including LayeredMap's
@@ -202,6 +266,7 @@ func _ready() -> void:
 	_setup_selection_highlight()
 	_setup_tile_labels()
 	_setup_spawn_ghost()
+	_setup_move_ghost()
 	if camera == null:
 		camera = get_viewport().get_camera_3d()
 
@@ -299,6 +364,23 @@ func _setup_spawn_ghost() -> void:
 	_spawn_ghost.material_override = material
 	_spawn_ghost.visible = false
 	add_child(_spawn_ghost)
+
+
+## Move mode's drag preview - unlike _spawn_ghost (a flat quad, since spawn
+## cells have no mesh of their own), this shows the ACTUAL mesh being
+## dragged, same solid-preview idea as the normal draw-mode _ghost - so
+## it's obvious what's being moved and how it's currently oriented. `.mesh`
+## gets set per-drag in _start_move_drag() (whatever the picked-up item's
+## MeshLibrary item is), not here.
+func _setup_move_ghost() -> void:
+	_move_ghost = MeshInstance3D.new()
+	var material := StandardMaterial3D.new()
+	material.albedo_color = ghost_color
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_move_ghost.material_override = material
+	_move_ghost.visible = false
+	add_child(_move_ghost)
 
 
 const PAINT_LAYER_NAMES: Array[String] = ["floor", "prop", "underlay"]
@@ -636,6 +718,9 @@ func set_draw_mode(enabled: bool) -> void:
 	if draw_mode == enabled:
 		return
 	draw_mode = enabled
+	if draw_mode:
+		set_spawn_paint_mode(false)
+		set_move_mode(false)
 	print("Draw mode: %s" % ("ON" if draw_mode else "OFF"))
 	draw_mode_changed.emit(draw_mode)
 
@@ -662,7 +747,42 @@ func set_spawn_paint_mode(enabled: bool) -> void:
 	if spawn_paint_mode == enabled:
 		return
 	spawn_paint_mode = enabled
+	if spawn_paint_mode:
+		set_draw_mode(false)
+		set_move_mode(false)
 	spawn_paint_mode_changed.emit(spawn_paint_mode)
+
+
+## See move_mode's own doc above - mutually exclusive with draw_mode/
+## spawn_paint_mode, enforced here and in their own setters (whichever one
+## turns on turns the other two off). Turning move_mode OFF mid-drag
+## cancels the drag (_cancel_move_drag()) rather than committing it - e.g.
+## the palette forcing draw_mode on elsewhere while a move is in progress
+## shouldn't silently relocate whatever was picked up.
+func set_move_mode(enabled: bool) -> void:
+	if move_mode == enabled:
+		return
+	move_mode = enabled
+	if move_mode:
+		set_draw_mode(false)
+		set_spawn_paint_mode(false)
+	else:
+		_cancel_move_drag()
+	print("Move mode: %s" % ("ON" if move_mode else "OFF"))
+	move_mode_changed.emit(move_mode)
+
+
+func toggle_move_mode() -> void:
+	set_move_mode(not move_mode)
+
+
+func _cancel_move_drag() -> void:
+	_move_dragging_kind = ""
+	_move_dragging_id = ""
+	_move_drag_grid = null
+	_move_drag_mesh_name = ""
+	_move_has_hover = false
+	_move_ghost.visible = false
 
 
 func set_occupancy_overlay(enabled: bool) -> void:
@@ -738,15 +858,22 @@ func _unhandled_input(event: InputEvent) -> void:
 				# (see _ready()) - P only toggles whether clicking edits it.
 			KEY_D:
 				toggle_draw_mode()
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if spawn_paint_mode:
-			_toggle_spawn_cell_at_cursor()
-		elif not draw_mode:
-			select_at_cursor()
-		elif Input.is_key_pressed(KEY_SHIFT):
-			erase_at_cursor()
-		else:
-			place_at_cursor()
+			KEY_M:
+				toggle_move_mode()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			if spawn_paint_mode:
+				_toggle_spawn_cell_at_cursor()
+			elif move_mode:
+				_start_move_drag()
+			elif not draw_mode:
+				select_at_cursor()
+			elif Input.is_key_pressed(KEY_SHIFT):
+				erase_at_cursor()
+			else:
+				place_at_cursor()
+		elif move_mode:
+			_finish_move_drag()
 
 
 func _process(_delta: float) -> void:
@@ -760,6 +887,11 @@ func _process(_delta: float) -> void:
 		_update_spawn_ghost()
 	else:
 		_spawn_ghost.visible = false
+	if move_mode:
+		_update_move_hover()
+		_update_move_ghost()
+	else:
+		_move_ghost.visible = false
 
 
 ## Separate from _update_hover() deliberately - spawn cells are always
@@ -833,6 +965,62 @@ func _toggle_spawn_cell_at_cursor() -> void:
 			cells.remove_at(index)
 		layered_map.set_spawn_overlay_cells(cells)
 	)
+
+
+## Only meaningful WHILE dragging (_move_dragging_id != "") - move mode
+## doesn't preview/raycast anything until you've actually picked something
+## up, same "nothing to show with no real target yet" reasoning as
+## place_at_cursor() having no ghost with no mesh selected. Raycasts
+## against a horizontal plane on _move_drag_grid specifically (the grid
+## the DRAGGED item lives on, not _target_grid() - irrelevant here, that
+## depends on whatever mesh happens to be selected for normal painting) at
+## Y = current_level, same PageUp/PageDown-driven level as normal
+## placement - lets a drag double as a way to move something to a
+## different level by changing current_level mid-drag. Snaps to
+## tile-square resolution for everything except pillars, same
+## _snap_to_tile_square_far_corner() convention _update_hover() itself
+## uses, keyed off the DRAGGED mesh's own name rather than the currently
+## selected paint mesh.
+func _update_move_hover() -> void:
+	_move_has_hover = false
+	if _move_dragging_id == "" or camera == null or _move_drag_grid == null:
+		return
+
+	var grid := _move_drag_grid
+	var mouse_pos := get_viewport().get_mouse_position()
+	var ray_origin := camera.project_ray_origin(mouse_pos)
+	var ray_dir := camera.project_ray_normal(mouse_pos)
+
+	var grid_local_y: float = current_level * grid.cell_size.y
+	var world_point: Vector3 = grid.to_global(Vector3(0, grid_local_y, 0))
+	var plane := Plane(Vector3.UP, world_point.y)
+
+	var hit = plane.intersects_ray(ray_origin, ray_dir)
+	if hit == null:
+		return
+
+	var local_point: Vector3 = grid.to_local(hit)
+	_move_hovered_cell = grid.local_to_map(local_point)
+	_move_hovered_cell.y = current_level
+	if not FootprintRegistry.allows_fine_placement(_move_drag_mesh_name):
+		_move_hovered_cell = _snap_to_tile_square_far_corner(_move_hovered_cell)
+	_move_has_hover = true
+
+
+## The dragged item's actual mesh, at whatever cell _update_move_hover()
+## just resolved, keeping the SAME orientation the original still has
+## (read live off the original's still-untouched GridMap cell,
+## _move_drag_origin_cell - it doesn't move until _finish_move_drag()
+## commits, so this stays valid for the whole drag).
+func _update_move_ghost() -> void:
+	if _move_dragging_id == "" or not _move_has_hover:
+		_move_ghost.visible = false
+		return
+	var grid := _move_drag_grid
+	var local_pos: Vector3 = grid.map_to_local(_move_hovered_cell)
+	var basis := grid.get_cell_item_basis(_move_drag_origin_cell)
+	_move_ghost.global_transform = grid.global_transform * Transform3D(basis, local_pos)
+	_move_ghost.visible = true
 
 
 func _update_hover() -> void:
@@ -1146,24 +1334,96 @@ func select_at_cursor() -> void:
 	var hit_grid: GridMap = hit["grid"]
 	var hit_cell: Vector3i = hit["cell"]
 	var origin := _origin_for_hit(hit_grid, hit_cell)
+	var resolved := _resolve_placed_at(hit_grid, origin)
+	if resolved["id"] != "":
+		object_picked.emit(resolved["kind"], resolved["id"])
+	# Nothing matched at this origin - nothing to select, print()s already
+	# covered by _raycast_hit_cell()'s own diagnostics.
 
+
+## Looks up which placed InteractableEntry/TilePlacement (if any) has its
+## origin_cell exactly at `origin` on `hit_grid` - factored out of
+## select_at_cursor() 2026-09-18 so _start_move_drag() (Move mode's own
+## "what did I just click on" resolution) can reuse the exact same lookup
+## instead of a second copy, since both are in this same class/file
+## already (unlike the cross-file "each dialog owns its own near-identical
+## helpers" convention used elsewhere in this project). Returns
+## {"kind": "", "id": ""} if nothing matches.
+func _resolve_placed_at(hit_grid: GridMap, origin: Vector3i) -> Dictionary:
 	if hit_grid == layered_map.prop_grid:
 		for entry in layered_map.mission.interactables:
 			if entry.origin_cell == origin:
-				object_picked.emit("object", entry.id)
-				return
+				return {"kind": "object", "id": entry.id}
 	elif hit_grid == layered_map.underlay_grid:
 		for placement in layered_map.mission.underlay_placements:
 			if placement.origin_cell == origin:
-				object_picked.emit("underlay", placement.id)
-				return
+				return {"kind": "underlay", "id": placement.id}
 	elif hit_grid == layered_map.floor_grid:
 		for placement in layered_map.mission.floor_placements:
 			if placement.origin_cell == origin:
-				object_picked.emit("floor", placement.id)
-				return
-	# Nothing matched at this origin - nothing to select, print()s already
-	# covered by _raycast_hit_cell()'s own diagnostics.
+				return {"kind": "floor", "id": placement.id}
+	return {"kind": "", "id": ""}
+
+
+## Move mode's mouse-down handler - resolves whatever's under the cursor
+## (same raycast+origin resolution erase_at_cursor()/select_at_cursor()
+## already use) and, if it hit something real, picks it up: remembers its
+## kind/id/grid/mesh and starts showing a drag ghost from then on (see
+## _update_move_hover()/_update_move_ghost(), driven from _process() while
+## move_mode is on). The actual GridMap/MissionData move doesn't happen
+## here - only on release, via _finish_move_drag() - so the original stays
+## exactly where it is throughout the drag, same "don't touch real data
+## until committed" spirit as the normal draw-mode ghost never touching
+## GridMap before an actual click.
+func _start_move_drag() -> void:
+	var hit := _raycast_hit_cell("_start_move_drag")
+	if hit.is_empty():
+		return
+	var hit_grid: GridMap = hit["grid"]
+	var hit_cell: Vector3i = hit["cell"]
+	var origin := _origin_for_hit(hit_grid, hit_cell)
+	var resolved := _resolve_placed_at(hit_grid, origin)
+	if resolved["id"] == "":
+		return  # nothing placed at the clicked cell - nothing to pick up
+
+	var item_id := hit_grid.get_cell_item(origin)
+	if item_id == GridMap.INVALID_CELL_ITEM:
+		return
+
+	_move_dragging_kind = resolved["kind"]
+	_move_dragging_id = resolved["id"]
+	_move_drag_grid = hit_grid
+	_move_drag_origin_cell = origin
+	_move_drag_mesh_name = hit_grid.mesh_library.get_item_name(item_id)
+	_move_ghost.mesh = hit_grid.mesh_library.get_item_mesh(item_id)
+	print("Move: picked up %s '%s' (id %s) at %s" % [_move_dragging_kind, _move_drag_mesh_name, _move_dragging_id, origin])
+
+
+## Move mode's mouse-up handler - commits whatever _start_move_drag()
+## picked up to wherever the mouse currently hovers, via
+## LayeredMap.move_node() (wrapped in operation_history.record(), same as
+## every other mutation in this file, so a move is a single undo step).
+## Silently cancels (leaves the original exactly where it was) if nothing
+## was actually being dragged, or the release didn't land on a valid
+## hover at all - move_node() itself is the one that refuses an occupied
+## target cell.
+func _finish_move_drag() -> void:
+	if _move_dragging_id == "":
+		return
+	var id := _move_dragging_id
+	var target := _move_hovered_cell
+	var has_target := _move_has_hover
+	_cancel_move_drag()  # clear drag state regardless of outcome below
+
+	if not has_target:
+		return
+
+	operation_history.record("Move", func():
+		if not layered_map.move_node(id, target):
+			print("Move: couldn't move to %s (target occupied, or not a real move)" % target)
+	)
+	if show_tile_labels:
+		_rebuild_tile_labels()
 
 
 func _origin_for_hit(hit_grid: GridMap, hit_cell: Vector3i) -> Vector3i:

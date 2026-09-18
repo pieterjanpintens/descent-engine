@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorViewMenu.gd" id="12_viewmenu"]
 [ext_resource type="Script" path="res://scripts/CreatorAutosave.gd" id="13_autosave"]
 [ext_resource type="Script" path="res://scripts/CreatorToolbar.gd" id="14_toolbar"]
+[ext_resource type="Script" path="res://scripts/CreatorStatusBar.gd" id="15_statusbar"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -29,6 +30,19 @@ script = ExtResource("13_autosave")
 layered_map = NodePath("../LayeredMap")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1095084307]
+
+[node name="StatusBar" type="Label" parent="CanvasLayer" node_paths=PackedStringArray("creator_controller")]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -28.0
+offset_right = 260.0
+offset_bottom = -8.0
+mouse_filter = 2
+script = ExtResource("15_statusbar")
+creator_controller = NodePath("../../CreatorController")
 
 [node name="MainLayout" type="VBoxContainer" parent="CanvasLayer"]
 anchors_preset = 15
