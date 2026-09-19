@@ -251,9 +251,11 @@ func refresh_monsters(monsters: Array) -> void:
 		child.free()
 	for i in monsters.size():
 		var monster: RuntimeMonster = monsters[i]
-		var info := find_monster(monster.folder)
+		var info := find_monster(monster.folder).duplicate()
 		if info.is_empty():
 			continue
+		info["name"] = monster.display_name()
+		info["extra"] = "HP %d · Level %d" % [monster.hitpoints, monster.level]
 		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)
 		_build_stand(origin, info, i, MonsterChip.color(monster.chip))
 	_frame_camera(monsters.size())
@@ -358,7 +360,7 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	# above no longer forces identical heights) so a genuinely bigger
 	# monster's name doesn't end up floating inside its own figure.
 	var label := Label3D.new()
-	label.text = monster["name"]
+	label.text = monster["name"] if not monster.has("extra") else "%s\n%s" % [monster["name"], monster["extra"]]
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = origin + Vector3(0, BASE_SIZE.y + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)

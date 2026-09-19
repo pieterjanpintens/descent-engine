@@ -468,6 +468,22 @@ chips exist. If none is valid the monster is NOT registered/placed and the
 dialog says "No colour chip left for: ...". `release_monster(id)` frees a
 chip (nothing calls it yet - no damage/death). `monsters_changed` makes the
 M monster view rebuild.
+
+**Monster properties (new 2026-09-19)** - `Effect.spawn_monsters` is now
+`Array[MonsterTemplate]` (was folder strings; no migration, nothing used it
+yet). `MonsterTemplate` (design time): `folder`, optional `custom_name`
+(blank = the generic type name, "Bandit"), `hitpoints` (int >= 0, default
+20), `level` (int >= 0, default 1) - more to follow. `register_monster(
+template)` copies them onto the `RuntimeMonster` (`custom_name`,
+`hitpoints`, `level`, `display_name()`), so they're inherited at play time.
+Authored in the "Monsters…" nested Window of both effect dialogs (per row:
+type, a summary label, a "Properties…" button, reorder, remove; "Add
+Monster" creates a default template). The properties themselves live in
+their own `MonsterPropertiesDialog` (name/HP/level, one instance per effect
+dialog, applies edits through that dialog's undo-tracked `_commit_field`) so
+more properties can be added without crowding the list rows. Shown as the display name in the spawn dialogs and, in
+the M monster view, as a floating label "Name / HP n · Level n" on each
+stand. **Unverified in-editor.**
 Authorable in both `ObjectivesDialog.gd`/`PropActionsDialog.gd` (own copies)
 via a "Spawn Monsters" type: a spawn picker plus a "Monsters…" button
 opening a lazily-built nested Window (monster dropdown per row, ↑/↓ by

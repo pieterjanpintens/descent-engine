@@ -193,12 +193,11 @@ enum MathOperator {
 @export var math_operand_b_literal: int = 0
 @export var math_operand_b_variable: String = ""
 
-## SPAWN_MONSTERS only - ORDERED list of monster type folders (the
-## lowercase `folder` key of MonsterDisplay.REAL_MONSTERS, e.g. "wolf",
-## "blood sister"; repeats allowed). The first monster goes on tile 1 of the
+## SPAWN_MONSTERS only - ORDERED list of MonsterTemplates (type folder +
+## optional name/hitpoints/level; repeats of a type allowed). The first monster goes on tile 1 of the
 ## target MonsterSpawn (target_object_id), the second on tile 2, and so on.
 ## Extras beyond the spawn's tile count are reported to the table as having
 ## no free spawn tile. A 2x2 monster (Centurion) uses its tile as its far
 ## corner and covers the three tiles toward -X/-Z, same convention as
 ## FootprintRegistry's footprints.
-@export var spawn_monsters: Array[String] = []
+@export var spawn_monsters: Array[MonsterTemplate] = []

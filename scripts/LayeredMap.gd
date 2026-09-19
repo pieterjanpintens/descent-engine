@@ -569,6 +569,12 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	# Load repaint it, since all three go through apply_mission().
 	if _monster_overlay != null and not respect_visibility:
 		refresh_monster_spawn_overlay()
+	# Same for the yellow player-start area - it was only ever drawn once
+	# at CreatorController._ready() and on toggle, so a Load/New/undo/redo
+	# (all apply_mission()) left the previous mission's area (or none)
+	# showing. The Player shows it itself, before round 1.
+	if _spawn_overlay != null and not respect_visibility:
+		set_spawn_overlay_cells(mission.player_spawn_cells)
 
 	# A whole new mission's worth of interactables/groups just got swapped
 	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its

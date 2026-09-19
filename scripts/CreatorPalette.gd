@@ -44,7 +44,6 @@ var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 var _misc_button: Button
 var _misc_container: VBoxContainer
 var _player_start_button: Button
-var _monster_spawn_button: Button
 var _active_spawn_option: OptionButton
 var _active_spawn_ids: Array[String] = []
 var _spawn_option_rebuild_queued: bool = false
@@ -61,7 +60,6 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
-	creator_controller.monster_spawn_paint_mode_changed.connect(_on_monster_spawn_paint_mode_changed)
 	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# "Show unavailable" moved to the persistent toolbar 2026-09-14 (see
 	# CreatorToolbar.gd) - this palette just reacts to the controller-owned
@@ -156,18 +154,22 @@ func _build_ui() -> void:
 	_player_start_button.pressed.connect(_on_player_start_tool_pressed)
 	_misc_container.add_child(_player_start_button)
 
-	_monster_spawn_button = Button.new()
-	_monster_spawn_button.text = "Monster Spawn"
-	_monster_spawn_button.toggle_mode = true
-	_monster_spawn_button.pressed.connect(_on_monster_spawn_tool_pressed)
-	_misc_container.add_child(_monster_spawn_button)
+	# No tool button: choosing a spawn in the dropdown below (or "New
+	# spawn") is what engages the monster spawn draw mode.
+	var monster_spawn_label := Label.new()
+	monster_spawn_label.text = "Monster Spawn"
+	_misc_container.add_child(monster_spawn_label)
 
 	# "Active spawn" - which MonsterSpawn the tool above draws into (see
 	# CreatorController.active_monster_spawn_id).
-	var spawn_row := HBoxContainer.new()
+	# Stacked (not side by side): the panel is only ~260px wide and a long
+	# "name (N tiles)" entry pushed a same-row "New spawn" button off screen.
+	var spawn_row := VBoxContainer.new()
 	_misc_container.add_child(spawn_row)
 	_active_spawn_option = OptionButton.new()
 	_active_spawn_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_active_spawn_option.clip_text = true
+	_active_spawn_option.fit_to_longest_item = false
 	_active_spawn_option.item_selected.connect(_on_active_spawn_selected)
 	spawn_row.add_child(_active_spawn_option)
 	var new_spawn_button := Button.new()
@@ -238,16 +240,6 @@ func _on_spawn_paint_mode_changed(enabled: bool) -> void:
 	_player_start_button.button_pressed = enabled
 
 
-## Monster Spawn tool (new 2026-09-19) - same shape as Player Start above;
-## the controller's setters keep it exclusive with every other tool.
-func _on_monster_spawn_tool_pressed() -> void:
-	creator_controller.set_monster_spawn_paint_mode(true)
-
-
-func _on_monster_spawn_paint_mode_changed(enabled: bool) -> void:
-	_monster_spawn_button.button_pressed = enabled
-
-
 func _on_new_spawn_pressed() -> void:
 	creator_controller.create_monster_spawn()
 	creator_controller.set_monster_spawn_paint_mode(true)
@@ -256,6 +248,7 @@ func _on_new_spawn_pressed() -> void:
 func _on_active_spawn_selected(index: int) -> void:
 	if index >= 0 and index < _active_spawn_ids.size():
 		creator_controller.set_active_monster_spawn(_active_spawn_ids[index])
+		creator_controller.set_monster_spawn_paint_mode(true)
 
 
 ## Coalesced (mission_objects_changed can fire once per painted cell), same

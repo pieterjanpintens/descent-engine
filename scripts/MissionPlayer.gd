@@ -151,8 +151,8 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	if spawn == null:
 		push_warning("SPAWN_MONSTERS references an unknown monster spawn '%s' - skipped" % request["spawn_id"])
 		return
-	var folders: Array = request["monsters"]
-	if folders.is_empty():
+	var templates: Array = request["monsters"]
+	if templates.is_empty():
 		return
 
 	# Register every spawned monster first (random colour chip, see
@@ -161,14 +161,13 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	# not registered/placed.
 	var spawned: Array[RuntimeMonster] = []
 	var no_chip: Array[String] = []
-	for folder in folders:
-		var info := MonsterDisplay.find_monster(folder)
-		if info.is_empty():
-			push_warning("SPAWN_MONSTERS lists unknown monster '%s' - skipped" % folder)
+	for template: MonsterTemplate in templates:
+		if MonsterDisplay.find_monster(template.folder).is_empty():
+			push_warning("SPAWN_MONSTERS lists unknown monster '%s' - skipped" % template.folder)
 			continue
-		var registered := _runtime.register_monster(folder)
+		var registered := _runtime.register_monster(template)
 		if registered == null:
-			no_chip.append(info["name"])
+			no_chip.append(template.custom_name if template.custom_name != "" else MonsterDisplay.find_monster(template.folder)["name"])
 			continue
 		spawned.append(registered)
 	if spawned.is_empty() and no_chip.is_empty():
@@ -178,7 +177,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	# chip colour.
 	var lines: Array[String] = ["Take these monsters out of the box:"]
 	for monster in spawned:
-		lines.append("%s - %s chip" % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
+		lines.append("%s - %s chip" % [monster.display_name(), MonsterChip.display_name(monster.chip)])
 	if not no_chip.is_empty():
 		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
 	await dialog.ask_ok("
@@ -198,9 +197,10 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	var unplaced: Array[String] = []
 	for i in spawned.size():
 		var monster := spawned[i]
-		var info := MonsterDisplay.find_monster(monster.folder)
+		var info := MonsterDisplay.find_monster(monster.folder).duplicate()
+		info["name"] = monster.display_name()
 		if i >= spawn.cells.size():
-			unplaced.append(info["name"])
+			unplaced.append(monster.display_name())
 			continue
 		var size_tiles := int(round(info.get("size_units", 1.0)))
 		var anchor := spawn.cells[i]

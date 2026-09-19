@@ -1390,6 +1390,21 @@ func _open_message_variables_editor(effect: Effect) -> void:
 	_message_variables_editor.popup_centered()
 
 
+## Shared-shape helper for the "Properties…" button on each monster row:
+## lazily builds the single MonsterPropertiesDialog and opens it for
+## `template`. `refresh` re-renders the row's summary label after an edit.
+var _monster_properties_dialog: MonsterPropertiesDialog
+
+
+func _open_monster_properties(template: MonsterTemplate, refresh: Callable) -> void:
+	if _monster_properties_dialog == null:
+		_monster_properties_dialog = MonsterPropertiesDialog.new()
+		add_child(_monster_properties_dialog)
+	_monster_properties_dialog.commit_field = _commit_field
+	_monster_properties_dialog.on_changed = refresh
+	_monster_properties_dialog.open_for(template)
+
+
 ## ---- Nested "edit one SPAWN_MONSTERS effect's monster list" dialog ----
 ## Built lazily on first use (single instance, reused). The list is ORDERED
 ## (entry 0 spawns on tile 1) and may repeat a monster, so like
@@ -1402,7 +1417,7 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 	if _spawn_monsters_editor == null:
 		_spawn_monsters_editor = Window.new()
 		_spawn_monsters_editor.title = "Spawn Monsters"
-		_spawn_monsters_editor.size = Vector2i(360, 360)
+		_spawn_monsters_editor.size = Vector2i(520, 360)
 		_spawn_monsters_editor.close_requested.connect(_spawn_monsters_editor.hide)
 		_spawn_monsters_editor.visible = false
 		add_child(_spawn_monsters_editor)
@@ -1420,29 +1435,42 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 	for child in _spawn_monsters_editor_container.get_children():
 		child.queue_free()
 
-	_spawn_monsters_editor_container.add_child(_label("Monsters in spawn-tile order (1st on tile 1, ...):"))
+	_spawn_monsters_editor_container.add_child(_label("Monsters in spawn-tile order (1st on tile 1, ...). Name, hitpoints, level: Properties…"))
 	for i in effect.spawn_monsters.size():
 		var index := i  # captured by value for this row's own closures below
+		var template: MonsterTemplate = effect.spawn_monsters[index]
 		var row := HBoxContainer.new()
 		row.add_child(_label("%d:" % (index + 1)))
 
 		var monster_option := OptionButton.new()
 		for monster_index in MonsterDisplay.REAL_MONSTERS.size():
 			monster_option.add_item(MonsterDisplay.REAL_MONSTERS[monster_index]["name"], monster_index)
-			if MonsterDisplay.REAL_MONSTERS[monster_index]["folder"] == effect.spawn_monsters[index]:
+			if MonsterDisplay.REAL_MONSTERS[monster_index]["folder"] == template.folder:
 				monster_option.select(monster_index)
 		monster_option.item_selected.connect(func(_selected: int):
 			var folder: String = MonsterDisplay.REAL_MONSTERS[monster_option.get_selected_id()]["folder"]
-			_commit_field("Edit spawned monster", func(): effect.spawn_monsters[index] = folder)
+			_commit_field("Edit spawned monster", func(): template.folder = folder)
 		)
 		row.add_child(monster_option)
+
+		var summary := Label.new()
+		summary.text = template.summary()
+		summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(summary)
+
+		var properties_button := Button.new()
+		properties_button.text = "Properties…"
+		properties_button.pressed.connect(func():
+			_open_monster_properties(template, func(): summary.text = template.summary())
+		)
+		row.add_child(properties_button)
 
 		var move_up_button := Button.new()
 		move_up_button.text = "↑"
 		move_up_button.disabled = index == 0
 		move_up_button.pressed.connect(func():
 			_commit_field("Reorder spawned monster", func():
-				var tmp: String = effect.spawn_monsters[index]
+				var tmp: MonsterTemplate = effect.spawn_monsters[index]
 				effect.spawn_monsters[index] = effect.spawn_monsters[index - 1]
 				effect.spawn_monsters[index - 1] = tmp
 			)
@@ -1455,7 +1483,7 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 		move_down_button.disabled = index == effect.spawn_monsters.size() - 1
 		move_down_button.pressed.connect(func():
 			_commit_field("Reorder spawned monster", func():
-				var tmp: String = effect.spawn_monsters[index]
+				var tmp: MonsterTemplate = effect.spawn_monsters[index]
 				effect.spawn_monsters[index] = effect.spawn_monsters[index + 1]
 				effect.spawn_monsters[index + 1] = tmp
 			)
@@ -1476,7 +1504,7 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 	var add_button := Button.new()
 	add_button.text = "Add Monster"
 	add_button.pressed.connect(func():
-		_commit_field("Add spawned monster", func(): effect.spawn_monsters.append(MonsterDisplay.REAL_MONSTERS[0]["folder"]))
+		_commit_field("Add spawned monster", func(): effect.spawn_monsters.append(MonsterTemplate.new()))
 		_open_spawn_monsters_editor(effect)
 	)
 	_spawn_monsters_editor_container.add_child(add_button)

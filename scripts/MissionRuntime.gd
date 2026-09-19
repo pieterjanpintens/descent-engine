@@ -195,14 +195,16 @@ var _next_monster_number: int = 1
 signal monsters_changed
 
 
-## Registers a newly spawned monster of `folder` with a random colour chip.
+## Registers a newly spawned monster from `template` (its properties are
+## inherited) with a random colour chip.
 ## Rules: a chip colour is never shared by two live monsters of the SAME
 ## type (two bandits can't both be yellow), and at most
 ## ComponentInventory.get_color_indicator_count() (4) monsters can hold a
 ## given colour at once, since that's how many physical chips exist.
 ## Returns null (and push_warning()s) if no valid colour is left, e.g. a
 ## fifth bandit or all four yellow chips in use.
-func register_monster(folder: String) -> RuntimeMonster:
+func register_monster(template: MonsterTemplate) -> RuntimeMonster:
+	var folder := template.folder
 	var candidates: Array[int] = []
 	for chip in MonsterChip.Chip.values():
 		var used_total := 0
@@ -223,6 +225,9 @@ func register_monster(folder: String) -> RuntimeMonster:
 	created.id = "monster_%d" % _next_monster_number
 	_next_monster_number += 1
 	created.folder = folder
+	created.custom_name = template.custom_name
+	created.hitpoints = template.hitpoints
+	created.level = template.level
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()
