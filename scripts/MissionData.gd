@@ -145,6 +145,9 @@ func find_node_by_id(id: String) -> OutlineNode:
 	for placement in underlay_placements:
 		if placement.id == id:
 			return placement
+	for spawn in monster_spawns:
+		if spawn.id == id:
+			return spawn
 	return null
 
 

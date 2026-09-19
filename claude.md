@@ -157,8 +157,27 @@ was renamed to `scripts/` once it held far more than data-resource classes.)
   entry - `visible` here specifically is what an ancestor-chain walk
   checks at every level, so a group set invisible hides everything under
   it (recursively) regardless of each individual member's own flag.
-- `MonsterSpawn` — data model exists, unused so far (no authoring UI, no
-  combat/monster AI yet — see Open Items).
+- **`MonsterSpawn`** (reworked 2026-09-19) - a spawn AREA, an `OutlineNode`
+  entity (id/parent_id/reference_name/visible) whose only own field is
+  `cells: Array[Vector3i]` - an ORDERED list of tile-square ("game unit")
+  cells. Tile N is `cells[N - 1]`: the number is just list position, so
+  deleting or reordering a tile renumbers the rest automatically and no
+  number is stored (an earlier version had one entity per drawn cell;
+  never used, no migration). The old unused fields (`monster_type`,
+  `facing`, ...) were removed. It appears in the Creator outline tree
+  (`SelectionType.MONSTER_SPAWN`, label = `reference_name` or "Monster
+  Spawn N (M tiles)"); selecting one highlights ALL its tiles, jumps the
+  camera to the first, and makes it the ACTIVE spawn (see
+  **`monster_spawn_paint_mode`**). Movable into groups (context menu +
+  batch), promoted to the parent on group delete, found by
+  `MissionData.find_node_by_id()`. `CreatorPropertiesPanel` shows an
+  ordered tile list with up/down (swap by index) and remove buttons -
+  the cheap alternative to redrawing tiles to insert one mid-list.
+  Not done: click-selecting a spawn tile in Select mode
+  (`select_at_cursor()` doesn't know the overlay), and no author-time
+  warning for a 2x2 monster whose footprint overlaps another used tile
+  (the Player just places the figures). **Unverified in-editor**
+  (headless `--import` clean only).
 
 ## Story layer
 
@@ -211,12 +230,15 @@ live directly on `Effect` itself - the exact same self-referential shape
 this codebase) and it's what forced `MissionRuntime`'s effect-application
 chain to become properly asynchronous, see that subsection for why. A
 fifth kind, `SHOW_MESSAGE` (new 2026-09-17), was added later the same
-session - see its own entry right below this paragraph. All five live in
+session - see its own entry right below this paragraph. A sixth,
+`MOVE_OBJECT`, and a seventh, `MATH` (both new 2026-09-18), were added the
+next session - see their own entries right after `SHOW_MESSAGE`'s below.
+All seven live in
 ONE `Effect` type rather than separate effect classes specifically so
 every existing `effects: Array[Effect]` list (`PropAction`,
 `MissionTrigger`, `MissionObjective`/its `optional_objectives`) gets Show
-Stage/Remove Object/Test/Show Message for free - no second/third/fourth/
-fifth list needed anywhere.
+Stage/Remove Object/Test/Show Message/Move Object/Math for free - no
+second/third/fourth/fifth/sixth/seventh list needed anywhere.
 
 **`SHOW_MESSAGE` (new 2026-09-17)** closes a real gap the others don't
 cover: a `PropAction` can already fire a `SET_VARIABLE` effect silently
@@ -226,9 +248,11 @@ of this... we should add an effect that just pops up a dialog telling
 what happened... eg 'Donald gave you the key to the front door' with an
 ok button to close." Carries one field, `message: String` - the exact
 text shown. Deliberately the simplest possible new Effect kind: no
-branching, no variable read or write of its own, just
-`await dialog.ask_ok(effect.message)` in `MissionRuntime.apply_effect()`
-- reusing BOTH the already-existing `PlayerDialog.ask_ok()` primitive
+branching, no variable write of its own, just
+`await dialog.ask_ok(...)` in `MissionRuntime.apply_effect()` (the text
+now passed through `_format_message()` first - see `message_variables`'
+own entry right below for why) - reusing BOTH the already-existing
+`PlayerDialog.ask_ok()` primitive
 (built earlier for other purposes, never previously wired to an
 authorable effect) and the same `dialog: PlayerDialog` reference
 `RUN_TEST` already established as the one deliberate, narrow exception to
@@ -238,8 +262,199 @@ from both `ObjectivesDialog.gd` and `PropActionsDialog.gd`'s own
 `_build_effect_row()` copies - a "Show Message" entry in the existing
 `Effect.Type` picker toggling a plain message `LineEdit` (committed on
 Enter or focus-lost, same convention as every other single-line text
-field in this project), no new nested editor window needed the way
-`RUN_TEST`'s does.
+field in this project). Originally no separate editor window at all -
+gained one anyway 2026-09-19 for `message_variables` alone, see that
+field's own entry right below; the message text itself still stays
+inline, only the growing variable list needed its own Window.
+
+**`message_variables` (new 2026-09-19)** - requested directly: "in our
+shown message dialog text we might want to reference variables... the
+text can contain $1, $2 etc that represent entries in the list... at
+runtime these must be replaced with the actual value of that variable."
+An ORDERED `Array[String]` of declared variable names (any type, any
+mix of built-in/custom - a message is narrative text, not a comparison,
+so there's no reason to restrict this the way `MATH`'s operand pickers
+restrict to INT) - the first entry is `$1`, the second `$2`, and so on.
+`MissionRuntime._format_message(template, variable_names)` (new the same
+day) does the actual substitution: a real `RegEx` (`\$(\d+)`, matching
+ANY run of digits) rather than naive string replacement, specifically so
+`$10`/`$11`/... substitute correctly instead of `$1` inside `$10`
+matching first and corrupting the digit that follows it - confirmed by
+direct headless computation across several cases (multi-digit indices,
+the same `$N` reused twice, no placeholders at all, a bare `$` with no
+digits after it left untouched), not assumed. **A `$N` with no
+corresponding list entry substitutes as NOTHING** (an empty string, not
+the literal `"$N"` text) - "if it references a position outside the
+list, just show nothing" - `push_warning()`s regardless, so the
+authoring mistake still surfaces to whoever's testing the mission, just
+not to the table. Each substituted value goes through plain `str()` - a
+bool/int/float/string all read naturally in narrative text with no
+special-casing needed. Authorable via a new "Variables…" button (visible
+alongside the inline message `LineEdit`, same `SHOW_MESSAGE`-only gate)
+opening a small nested `Window` - same "doesn't fit one row, open a
+small Window" reasoning as `RUN_TEST`'s own "Edit Test…" and the
+`Effect.conditions` "Conditions…" button - listing each `$N:` entry with
+a variable-name dropdown (the UNFILTERED `_build_variable_name_option()`,
+any type), reorder ↑/↓, and remove buttons, plus "Add Variable".
+**Reordering swaps by INDEX directly, NOT via the existing
+`_move_in_array()` helper** - that helper finds its target by VALUE
+(`array.find(item)`), which silently breaks for an `Array[String]` that
+can legitimately contain the same variable name more than once (unlike
+every other reorderable list in this project, which holds unique
+`Resource` object references) - `.find()` would always resolve to the
+FIRST matching entry regardless of which row's button was actually
+clicked, quietly reordering the wrong one. Own copies of the editor in
+both `ObjectivesDialog.gd`/`PropActionsDialog.gd`, same "each dialog
+owns its own row-builder helpers" convention as everything else here.
+
+**`MOVE_OBJECT` (new 2026-09-18)** - requested directly: "the input will
+be an object and new target coordinates." The Story-layer/runtime
+counterpart to `CreatorController`'s own interactive Move mode (`M` key,
+new the same session, see **Creator tooling** below) - that one is
+dragged live by a designer while building a mission; this one is
+AUTHORED ahead of time and fires during actual play (a trap tile that
+slides a prop, a trigger that repositions something once a puzzle
+solves). Reuses `target_object_id` - the SAME field `REMOVE_OBJECT`
+already has, since "which placed thing" is identical for both - plus a
+new `target_cell: Vector3i`, the destination. **Authored in TILE-SQUARE
+("game unit") coordinates**, not the finer GridMap `origin_cell`
+`InteractableEntry`/`TilePlacement` actually store internally - the same
+human-facing unit `CreatorStatusBar` (new the same session, see **Creator
+tooling** below) shows a designer while hovering in the Creator, so a
+coordinate read off that readout can be typed straight into this effect's
+three X/Y/Z `SpinBox`es with no unit conversion in the designer's own
+head. The actual conversion happens right before the move, via a new
+`FootprintRegistry.tile_square_to_fine_far_corner()` (the missing inverse
+of `fine_cell_to_tile_square()` - see that autoload's own entry above) -
+`MissionRuntime` itself never needs to know this conversion exists, it
+only ever queues/returns the raw authored tile-square `Vector3i`.
+
+Same "runtime queues, the caller with scene access acts on it" split
+`SHOW_STAGE`/`REMOVE_OBJECT` already established (`MissionRuntime` is a
+`RefCounted` with no scene/UI access, can't call
+`LayeredMap.move_node()` itself) - `apply_effect()` appends
+`{"id": target_object_id, "cell": target_cell}` to a new
+`_pending_object_moves: Array[Dictionary]` (a Dictionary rather than a
+bare id, unlike `_pending_object_removals`, since a move genuinely needs
+BOTH pieces of data), drained via the new
+`drain_pending_object_moves() -> Array[Dictionary]` - `MissionPlayer`
+drains it at the exact same two call sites as the other two queues
+(`_advance_to()`, `_on_objectives_progressed()`), converting each entry's
+tile-square `cell` to a real fine `origin_cell` via
+`FootprintRegistry.tile_square_to_fine_far_corner()` right before calling
+`layered_map.move_node(id, fine_cell)` (see that method's own entry
+above - it already preserves the moved node's outline-tree identity,
+built the same session for the Creator's own Move mode, so this effect
+gets that guarantee for free with zero new logic there).
+
+Authorable from both `ObjectivesDialog.gd` and `PropActionsDialog.gd`'s
+own `_build_effect_row()` copies - a "Move Object" entry in the existing
+`Effect.Type` picker, REUSING the same object-picker `OptionButton`
+`REMOVE_OBJECT` already built (both write `target_object_id`, so
+`object_option.visible` is now `true` for either type, not just
+`REMOVE_OBJECT` alone), plus three new `SpinBox`es (X/Y/Z, each
+committing on `value_changed` straight to `effect.target_cell` - unlike
+`SHOW_MESSAGE`'s text field there's no natural "focus lost"/"submitted"
+moment for a `SpinBox` trio, so this commits immediately per spin rather
+than batching all three).
+
+**One accepted limitation, documented rather than solved**: targeting a
+pillar (`tall`/`mini`/`medium`) with a tile-square coordinate lands it at
+that tile square's FAR CORNER specifically, not any other sub-tile
+position a pillar could otherwise legitimately occupy (pillars place at
+`CELLS_PER_TILE`-subdivided fine-cell resolution - see
+`FootprintRegistry.CELLS_PER_TILE`'s own doc for why) - a bare
+tile-square index can't disambiguate which of a tile square's several
+fine-cell corners was meant. Not expected to matter in practice (an
+authored "move this to storyline-relevant coordinate X" effect is far
+more likely to target a prop/door/tile than a structural pillar), and
+`tile_square_to_fine_far_corner()`'s own doc comment carries the same
+note for the next person who hits it.
+
+**`MATH` (new 2026-09-18)** - requested directly as a generalization of
+`SET_VARIABLE`'s plain assignment: "we can already assign a value to a
+property... make effects to do basic math: operator: plus, minus,
+multiply, divide, mod... allow the operands be value (int) or a other
+variable (if possible filtered to the ones of type int)." Computes
+`operand_a OP operand_b` and writes the result to `variable_name` - the
+SAME field `SET_VARIABLE` already uses for its own target ("which
+variable this effect writes" is identical for both, same reuse convention
+`target_object_id` already established across `REMOVE_OBJECT`/
+`MOVE_OBJECT`). `math_operator` is a small `Effect.MathOperator` enum
+(`ADD`/`SUBTRACT`/`MULTIPLY`/`DIVIDE`/`MODULO`). Each of the two operands
+is independently either a plain authored int constant
+(`math_operand_a_literal`/`math_operand_b_literal`) or a reference to
+another declared **INT** variable, read at evaluation time
+(`math_operand_a_variable`/`math_operand_b_variable`, gated by
+`math_operand_a_is_variable`/`math_operand_b_is_variable`) - "filtered to
+the ones of type int" is enforced in the Creator's own operand picker
+(`_known_int_variable_names()`, see `ObjectivesDialog.gd`'s own entry
+below), not just documented, so an author literally can't select a
+FLOAT/BOOL/STRING variable as a math operand in the first place.
+
+See `MissionRuntime._apply_math()`/`_resolve_math_operand()` for the full
+mechanism (both new the same day): resolves both operands first (bailing
+- `push_warning()`, no partial write - if either references an
+undeclared or non-INT variable), applies the operator via GDScript's own
+native `int` `/`/`%` (confirmed by direct headless computation, not
+assumed, that these truncate toward zero / take the dividend's sign,
+same as most C-family languages - `-15 / 4 == -3`, `-15 % 4 == -3`),
+guards division/modulo by zero explicitly (`push_warning()` + skip -
+GDScript's own `int / 0` would otherwise be a hard runtime error, not a
+graceful `INF`/`NaN` the way float division is), then writes the
+computed int result through the EXACT SAME declared-type coercion
+discipline `apply_effect()`'s own `SET_VARIABLE` body already uses
+(`_declared_type()` + `_coerce()` - rejects an undeclared or built-in
+target, but happily WIDENS an int result into a FLOAT-declared target,
+same as `_coerce()` already does for a plain authored float value).
+Reading a builtin (`round_number`/`player_count`) as an OPERAND is fine
+(both are declared `INT`) - only WRITING one is disallowed, same rule
+every other effect type already follows.
+
+Authorable from both `ObjectivesDialog.gd` and `PropActionsDialog.gd`'s
+own `_build_effect_row()` copies - a "Math" entry in the `Effect.Type`
+picker reveals a `math_box`: the existing `var_option` target-variable
+picker (reused, same as `SET_VARIABLE`'s), an operator `OptionButton`
+(`+`/`−`/`×`/`÷`/`mod`), and two operand mini-editors built by a new
+shared `_build_math_operand_editor(effect, prefix)` (own copy per file,
+`prefix` is `"math_operand_a_"` or `"math_operand_b_"` - ONE function
+handles both operands via `Object.get()`/`.set()` dynamic property
+access rather than two near-identical copies, since the three fields
+each operand reads/writes only differ by that prefix). Each operand's
+own mini-editor is a "Var" `CheckBox` toggling between a literal
+`SpinBox` and a variable `OptionButton` sourced from the new
+`_known_int_variable_names()` (own copy per file, same "own copy per
+dialog" convention as every other row-builder helper here - built-ins
+`round_number`/`player_count` plus every `custom_variables` entry
+whose `type == MissionVariable.Type.INT`, filtering out FLOAT/BOOL/
+STRING variables entirely from this ONE picker specifically, unlike
+`_known_variable_names()`'s unfiltered list every other variable
+dropdown in this project still uses).
+
+**`SPAWN_MONSTERS` (new 2026-09-19)** - an eighth `Effect.Type`: tells the
+table which monsters to take from the box and where to put them.
+`target_object_id` = a `MonsterSpawn` id (the same "which placed thing"
+field REMOVE_OBJECT/MOVE_OBJECT reuse), `spawn_monsters: Array[String]` =
+ordered monster `folder`s (repeats allowed; first monster -> tile 1 of the
+spawn, second -> tile 2, ...). Same "runtime queues, caller with scene
+access acts" split: `MissionRuntime.apply_effect()` appends
+`{"spawn_id", "monsters"}` to `_pending_monster_spawns`
+(`drain_pending_monster_spawns()`), and `MissionPlayer` drains it at the
+same two call sites as the other queues, `await`ing
+`_run_monster_spawn()`: **step 1** an `ask_ok` listing what to take out of
+the box ("2× Wolf"); **step 2** a standalone `MonsterDisplay` holder
+(`standalone = true`, `place_stand()`) puts the real monster stands on the
+map at their spawn tiles (so only the figures are shown, never the tile
+positions), the camera frames them, and a scrim-less `ask_ok(text, false)`
+("Place the monsters on the map as shown") waits for OK, then the holder is
+freed. The holder is scaled so a 1-unit base fills ~85% of a tile. **2x2
+monsters (Centurion, `size_units` 2)** use their tile as the FAR corner and
+cover the tiles toward -X/-Z (FootprintRegistry's footprint convention).
+Monsters beyond the spawn's tile count are listed as having no free tile.
+Authorable in both `ObjectivesDialog.gd`/`PropActionsDialog.gd` (own copies)
+via a "Spawn Monsters" type: a spawn picker plus a "Monsters…" button
+opening a lazily-built nested Window (monster dropdown per row, ↑/↓ by
+index, ×, Add Monster). **Unverified in-editor.**
 
 **One variable registry, three ways to fill it**: `MissionVariable` (name +
 Type enum [BOOL/INT/FLOAT/STRING] + default_value) declares a custom
@@ -480,7 +695,23 @@ unchanged).
 **`MissionObjective`** (reworked 2026-09-12 from a flat, checkpoint-keyed
 list into a **DAG** — `MissionData.objectives` now holds the DAG's ROOTS,
 plural roots allowed, e.g. a main quest tree plus an independent "all
-players died" LOSE fail-safe root that isn't nested under anything). A
+players died" LOSE fail-safe root that isn't nested under anything).
+**There is no separate "is this the first objective" flag** - being a
+root (an entry in `mission.objectives`) IS what makes a node active from
+round 1, per `MissionRuntime._init()`'s own seeding (one independently-
+watched group per root - see that method's own entry below). Root
+membership is an ENFORCED INVARIANT, not something authored directly -
+`ObjectivesDialog.gd`'s `_reconcile_root()` (new 2026-09-18, see that
+script's own entry under **Creator tooling**) keeps "no incoming
+connections" and "is a root" in permanent lock-step: connecting something
+into a node un-roots it automatically, disconnecting its last remaining
+parent re-roots it. Before this, a node could end up BOTH a root and
+reachable as someone's child (silently double-evaluated) if it was
+connected without ever being removed from `mission.objectives` - the
+Creator's own "Add Node" button (renamed from "Add Root Objective" the
+same day) is the only way to create a node at all, so every node starts
+as a root simply because it starts with no incoming connections yet, not
+because of anything special about the button. A
 node has `conditions` (implicit AND, its own "achieved" check), `effects`
 (applied once when achieved), `priority` (tie-break among SIBLINGS - nodes
 sharing a `children` array, or among the mission's own roots), `children`
@@ -579,7 +810,14 @@ evaluated identically by every `Condition`/`Effect`.
   (new 2026-09-14, a real multi-action choice at last - see
   `PlayerInteractionController`'s own entry) reads this.
 - `apply_effect(effect, hero_name = "")`/`apply_effects(effects, hero_name = "")` -
-  branches on `effect.type` FIRST (new 2026-09-14, before any of the
+  **checks `evaluate_conditions(effect.conditions)` FIRST, before anything
+  else (new 2026-09-18)** - an `Effect` whose own conditions don't
+  currently hold is skipped entirely, applying to all seven `Effect.Type`
+  kinds uniformly since this happens before the type branch below (see
+  `Effect.conditions`' own doc and **Story layer**'s `Effect` entry -
+  requested directly: "can we make effects also conditional... only
+  execute the effect if its condition holds"). THEN
+  branches on `effect.type` (new 2026-09-14, before any of the
   variable-name logic below, which would otherwise misfire on a
   SHOW_STAGE/REMOVE_OBJECT/RUN_TEST effect's blank `variable_name`): a
   SHOW_STAGE effect just appends `target_group_id` to
@@ -589,16 +827,57 @@ evaluated identically by every `Condition`/`Effect`.
   branch structure, checked right alongside SHOW_STAGE) just appends
   `target_object_id` to `_pending_object_removals` and returns, for the
   same reason - it can't call `LayeredMap.remove_node()` itself; a
+  MOVE_OBJECT effect (new 2026-09-18, same branch structure) appends
+  `{"id": target_object_id, "cell": target_cell}` to a new
+  `_pending_object_moves: Array[Dictionary]` and returns - see **Story
+  layer**'s `MOVE_OBJECT` entry for the full mechanism; a MATH effect
+  (same day) synchronously `_apply_math(effect)`s and returns - see that
+  method's own entry below and **Story layer**'s `MATH` entry for the
+  full mechanism; a
   RUN_TEST effect (same day, see **Story layer**'s "Test" entry for the
   full mechanism) `await`s `_run_test(effect, hero_name)` - this is what
   makes `apply_effect()`/`apply_effects()` (and everything that calls
-  them) genuinely asynchronous now, unlike the other three branches.
+  them) genuinely asynchronous now, unlike the other queued/synchronous
+  branches.
   Everything else (a SET_VARIABLE effect, the common case) keeps the SAME
   coercion/warning discipline as conditions, plus one extra rule: writing
   a `BUILTIN_TYPES` key is rejected (`push_warning()` + skip) -
   `round_number`/`player_count` are runtime-owned, never author-writable
   via an `Effect`. `hero_name` (new, optional) threads through purely for
   a nested RUN_TEST's dialog prompt - see **Story layer**'s "Test" entry.
+- `_apply_math(effect)`/`_resolve_math_operand(is_variable, literal_value, variable_name)`
+  (both new 2026-09-18) - `Effect.Type.MATH`'s own mechanism, see **Story
+  layer**'s `MATH` entry for the full authoring-side picture.
+  `_resolve_math_operand()` returns a plain literal int verbatim, or (if
+  `is_variable`) a declared **INT** variable's current value from
+  `_variables` - `null` (checked via `typeof(x) == TYPE_NIL`, same
+  established convention `_coerce()`/`_declared_type()` already use, see
+  **Hard-won lessons**' `int == String`/`0 == null` entries for why a
+  genuine `0` must never be confused with this failure sentinel) if the
+  name is undeclared or declared but not `INT`. `_apply_math()` resolves
+  both operands (bailing on either's failure), applies `math_operator`
+  via GDScript's own native `int` `/`/`%` (confirmed by direct headless
+  computation that these truncate toward zero, same as most C-family
+  languages - not assumed), explicitly guards `DIVIDE`/`MODULO` by zero
+  (`push_warning()` + skip - GDScript's own `int / 0` is a hard runtime
+  error, not a graceful `INF`), then writes the result through the EXACT
+  SAME `_declared_type()`/`_coerce()` discipline `apply_effect()`'s own
+  `SET_VARIABLE` body already uses (rejects an undeclared/built-in
+  target, widens an int result into a FLOAT-declared one same as
+  `_coerce()` already does for any other value).
+- `_format_message(template, variable_names) -> String` (new 2026-09-19) -
+  `Effect.Type.SHOW_MESSAGE`'s own `$1`/`$2`/... substitution, see
+  **Story layer**'s `message_variables` entry for the full authoring-side
+  picture. Walks every `\$(\d+)` match in `template` via a real `RegEx`
+  (confirmed by direct headless computation that this correctly handles
+  multi-digit indices like `$10` without `$1` matching first and
+  corrupting the following digit - not assumed) and substitutes each
+  with `str(_variables.get(variable_names[index]))` (plain `str()` - a
+  bool/int/float/string all read naturally in narrative text). An index
+  with no corresponding list entry becomes NOTHING (an empty string, not
+  the literal `$N` text - "if it references a position outside the list,
+  just show nothing") and `push_warning()`s, so the authoring mistake is
+  still visible to whoever's testing the mission, just not the table.
 - `drain_pending_stage_reveals() -> Array[String]` (new 2026-09-14) -
   clears and returns `_pending_stage_reveals`. `MissionPlayer` calls this
   right after anything that can apply effects (`evaluate_checkpoint()`
@@ -612,6 +891,13 @@ evaluated identically by every `Condition`/`Effect`.
   the stage-reveal drain (same two call sites) and calls
   `layered_map.remove_node()` for each - no `await` needed, unlike a
   stage reveal there's no dialog to show.
+  `drain_pending_object_moves() -> Array[Dictionary]` (new 2026-09-18,
+  same shape again) - clears and returns `_pending_object_moves`;
+  `MissionPlayer` drains it at the same two call sites, converting each
+  entry's still-AUTHORED tile-square `cell` to a real fine `origin_cell`
+  via `FootprintRegistry.tile_square_to_fine_far_corner()` right before
+  calling `layered_map.move_node(id, fine_cell)` - this class itself
+  never needs to know that conversion exists.
 - `evaluate_checkpoint(checkpoint) -> MissionObjective` (nullable, now
   `await`ed by its caller - see **Story layer**'s "Test" entry for why) -
   gathers `mission.triggers` whose `checkpoint` matches (a plain `for`
@@ -828,7 +1114,21 @@ first working version).
   `water`/`spikes` share one physical card (group `card_water_spikes`, max 4), and
   `lava`/`acid` share another (`card_lava_acid`, max 4) — these are **real, confirmed
   counts**, unlike the rest of `MAX_COUNTS` which is still placeholder numbers pending
-  the actual physical component list.
+  the actual physical component list. **`MONSTER_COUNTS`** (new 2026-09-19,
+  real counts from the physical box: Bandit 4, Berserker 4, Blood Sister 4,
+  Centurion 1, Doomcaller 2, Fae 2, Golem 2, Harbinger 4, Legionnaire 4,
+  Mercenary 4, Reanimate 4, Salamander 2, Specter 2, Vampire 2, Wight 4,
+  Wolf 3, Zealot 4) with `get_monster_count(folder)` (-1 = unlisted/
+  unlimited, same convention as `get_max_count()`) - keyed by
+  `MonsterDisplay.REAL_MONSTERS`' lowercase `folder` field, and kept
+  SEPARATE from `MAX_COUNTS` since monsters aren't MeshLibrary items, so
+  the mesh-name-keyed `get_group()`/`get_max_count()` don't apply. Data
+  only for now - nothing consumes it yet (no monster spawn authoring or
+  combat exists, see Open item #3). Alongside it,
+  **`COLOR_INDICATOR_COUNTS`**/`get_color_indicator_count(color)` (same
+  day): the physical clip-on color tabs that mark a monster's base notch
+  (see **Base-disc color-tab gap detection**) - 4 each of yellow, green,
+  purple, orange. Also data only.
 - `GameState` — trivial: holds `current_mission_path` to pass between scenes (menu →
   player) since `change_scene_to_file()` takes no parameters.
 - **`CreatorSettings`** (new 2026-09-10, renamed from `EditorSettings` the
@@ -1389,6 +1689,29 @@ first working version).
 	multi-cell footprint piece, moving something to a different level via
 	PageUp/PageDown mid-drag, and confirming a drop onto an occupied cell
 	correctly cancels rather than silently overwriting.
+  - **`monster_spawn_paint_mode`** (new 2026-09-19, reworked the same day,
+	"Monster Spawn" button in `CreatorPalette`'s Misc tab,
+	`monster_spawn_paint_mode_changed` signal, no hotkey) - draws
+	`MonsterSpawn` tiles. Reuses the player-start tool's hover/ghost
+	machinery; the ghost takes the ACTIVE spawn's colour. Which spawn a
+	click edits is `active_monster_spawn_id` (`set_active_monster_spawn()`
+	+ `active_monster_spawn_changed`; tool state, not undo-tracked, a stale
+	id after an undo just reads as none): the Palette's Misc tab has an
+	"Active spawn" dropdown (colour swatch + "name (N tiles)") plus a "New
+	spawn" button (`create_monster_spawn()`, one undo step, new spawn goes
+	in the current working group), and selecting a spawn in the outline
+	tree also activates it. `_toggle_monster_spawn_cell_at_cursor()`:
+	clicking a tile toggles it in the active spawn (append = next number,
+	remove = the rest renumber); a tile already owned by ANOTHER spawn is
+	refused (`push_warning`); with no active spawn one is created first.
+	Mutual exclusivity with draw/spawn/move is enforced in all four
+	setters. The overlay (`LayeredMap.refresh_monster_spawn_overlay()`) draws
+	every spawn's tiles in that spawn's colour
+	(`MONSTER_SPAWN_PALETTE`, by list index; active spawn more opaque)
+	with a `Label3D` tile number on each; it's rebuilt at `_ready()` and in
+	`apply_mission()` (Load/New/undo/redo) but **only when
+	`respect_visibility` is false**, so the Player never reveals spawn
+	tiles. **Unverified in-editor** (headless `--import` clean only).
 - **Creator outline tree** (`CreatorOutline.gd`, attached to
   `SidePanel/Outline/Split/OutlineTree`, a `Tree`) — a scene-graph-style
   object browser: every placed `InteractableEntry` (prop/door/hazard/
@@ -1676,6 +1999,36 @@ first working version).
 	unnamed `VBoxContainer` list - `queue_free()` is safe here specifically
 	because a remove button's own click handler is still on the call stack
 	when the rebuild it triggers frees that button's own ancestry.
+	**`Effect.conditions`/"Move Object"/"Conditions…" (new 2026-09-18)** -
+	this file's `_build_effect_row()`/`_build_condition_row()` got the
+	SAME additions as `ObjectivesDialog.gd`'s own copies the same day: a
+	"Move Object" `Effect.Type` entry (reusing the existing object-picker
+	`OptionButton` REMOVE_OBJECT already had, plus three new X/Y/Z
+	`SpinBox`es for `target_cell`), and a universal "Conditions…" button
+	on every effect row (always visible, any type) opening a fourth
+	single-instance-reused nested `Window`
+	(`_effect_conditions_editor`/`_open_effect_conditions_editor()`) for
+	`Effect.conditions` - see `ObjectivesDialog.gd`'s own entry below for
+	the full reasoning on both (own copies here, same "each dialog owns
+	its own row-builder helpers" convention as everything else in this
+	file). `_build_condition_row()` here took the same signature refactor
+	too (`holder: PropAction` -> `conditions_list: Array[Condition]` +
+	`on_changed: Callable`) - this file's copy didn't have the stray
+	`popup_centered()` bug `ObjectivesDialog.gd`'s own `_open_test_editor()`
+	turned out to have (see that entry), nothing to fix here.
+	**"Math" (new 2026-09-18, same session)** - a further same-shape
+	addition: a "Math" `Effect.Type` entry revealing a `math_box`
+	(operator `OptionButton` + two operand mini-editors, see
+	`ObjectivesDialog.gd`'s own `MATH`/`_build_math_operand_editor()`
+	entries for the full reasoning) - own copies of
+	`_known_int_variable_names()`/`_build_math_operand_editor()` here,
+	same convention as everything else in this file.
+	**"Variables…" (new 2026-09-19)** - a FIFTH nested editor,
+	`_message_variables_editor`/`_open_message_variables_editor()`, own
+	copy of `ObjectivesDialog.gd`'s identical addition for
+	`Effect.message_variables`' `$1`/`$2`/... list - see that script's own
+	entry for the full reasoning, including why reordering swaps by INDEX
+	rather than reusing `_move_in_array()`.
 	**Unverified in-editor**, same caveat as everything else built this
 	session without the ability to launch Godot and see it rendered.
 - **`ObjectivesDialog.gd`** (new 2026-09-12, `class_name ObjectivesDialog
@@ -1687,13 +2040,67 @@ first working version).
   `PropertiesDialog`/`CreatorSettingsDialog` - `operation_history`/
   `layered_map` assigned directly, not `@export`/`NodePath`.
   - **Layout**: an `HSplitContainer` - a `GraphEdit` canvas on the left (an
-	"Add Root Objective" button in its own `HBoxContainer` toolbar row above
+	"Add Node" button - **renamed 2026-09-18 from "Add Root Objective"**,
+	see the **root/non-root invariant** entry below for why - in its own
+	`HBoxContainer` toolbar row above
 	it - a bare `Button` as a direct `VBoxContainer` child stretches to the
 	full container width and looks oversized, `SIZE_SHRINK_BEGIN` in an
 	`HBoxContainer` keeps it sized to its own content), a properties panel
 	(`ScrollContainer` > `VBoxContainer`) on the right showing whichever
 	node is currently selected - matches the "DAG editor + side properties
 	view, selection-driven" shape requested during design.
+  - **Root/non-root invariant, enforced automatically (new 2026-09-18)** -
+	replaces a real design flaw the user caught: "there is no option to
+	indicate the first objective... design wise it is a bit flaky that you
+	need to add nodes as root and that they become unrooted when they are
+	connected." Landed as: **"Add Node"** (renamed from "Add Root
+	Objective" - `_on_add_node_pressed()`, was `_on_add_root_pressed()`)
+	still just appends to `mission.objectives` under the hood, since a
+	freshly-created node genuinely has no incoming connections yet and so
+	naturally starts as a root anyway - the name was only ever exposing an
+	implementation detail, not a real designer choice ("as there is no
+	button to create non root nodes I now understand why"). The actual
+	fix is `_reconcile_root(objective)`, called from inside
+	`_on_connection_request()`'s and `_on_disconnection_request()`'s own
+	`operation_history.record()` mutate `Callable`s (not after - `record()`
+	snapshots its "after" state the instant `mutate.call()` returns, so a
+	mutation made afterward would silently fall outside the undo
+	snapshot): connecting something INTO a node removes it from
+	`mission.objectives` if it was still there; disconnecting a node's
+	LAST remaining incoming edge adds it back, so it never goes silently
+	unreachable. Scans every node currently in the graph
+	(`_node_by_name.values()`) rather than just the edge's own two
+	endpoints, since a DIFFERENT node could also still connect into the
+	same target - it only stops "having incoming connections" once EVERY
+	parent is gone. **This also closes a real latent correctness bug**,
+	not just a UX gap: under the OLD behavior, a node that was still a
+	root AND reachable as someone's child would be evaluated TWICE by
+	`MissionRuntime` (once as its own independently-watched root group -
+	see `_init()`'s `for root in mission.objectives` seeding - once again
+	via its parent's own traversal). **Deliberately NOT applied on node
+	delete** (`_on_node_close_requested()`) - that function's "an orphaned
+	subtree simply disappears rather than getting re-rooted" is its own
+	pre-existing, documented, deliberate cascade-delete behavior;
+	reconciling roots there would silently turn it into "preserve every
+	orphan as its own new root" instead, a bigger behavior change than was
+	asked for. `_rebuild_graph()` also runs an equivalent one-time
+	migration pass over every node it just BFS'd (`visited`, since
+	`_node_by_name` isn't populated yet at that point) to retroactively
+	fix any PRE-EXISTING mission saved under the old behavior, the same
+	"lazily migrate on first touch" convention the outline tree's own
+	`id == ""` adoption already uses - silent, not
+	`operation_history`-tracked, matching that same precedent.
+  - **Root visual indicator** (new 2026-09-18, same request) -
+	`_summary_text()` now prefixes `"★ Root\n"` whenever
+	`_mission.objectives.has(objective)`, so a root reads as one at a
+	glance instead of only being distinguishable by "no arrow points into
+	it" (easy to miss with several roots on screen). Always reflects the
+	CURRENT enforced state (see the invariant entry above) - never
+	something that can drift stale, since both connect and disconnect
+	explicitly `_refresh_graph_node()` the target end of the edge
+	afterward (the SOURCE end was already refreshed for its own
+	Leaf/Branch status - this is the same call, now also covering the
+	target's possible root-status change).
   - **Graph population** (`_rebuild_graph()`): BFS from every root in
 	`mission.objectives`, visiting each unique `MissionObjective` once even
 	though it's a DAG (a node reachable from more than one parent still
@@ -1702,7 +2109,8 @@ first working version).
 	`GraphEdit`'s own signals only ever hand back node NAMES or the `Node`
 	itself, never the `MissionObjective` resource). Each `GraphNode` shows
 	a one-line summary (`_summary_text()` - "Leaf (WIN/LOSE)" or "Branch",
-	plus condition/optional counts) and has one slot with both an input and
+	plus condition/optional counts, plus the "★ Root" prefix above when
+	applicable) and has one slot with both an input and
 	output port always enabled, so any node can be dragged into a
 	connection either direction (a root's input just stays unused). A
 	never-before-opened node's `editor_position` is still `Vector2.ZERO`,
@@ -1844,6 +2252,79 @@ first working version).
 	`PropertiesDialog`'s own Add-Property `ConfirmationDialog` already
 	established. Every edit goes through `_commit_field()` (a thin wrapper
 	around `operation_history.record()` + `layered_map.notify_objects_changed()`).
+	**Confirmed bug, found and fixed 2026-09-18 while adding the feature
+	below**: `_open_test_editor()`'s body ended with BOTH
+	`_test_editor.popup_centered()` AND a stray, leftover
+	`_optional_editor.popup_centered()` right after it (no other `func`
+	line separated them, so both statements were genuinely part of the
+	same function) - almost certainly a copy-paste leftover from using
+	`_open_optional_editor()` as this function's own starting point,
+	never cleaned up. Every "Edit Test…" click was popping up the Optional
+	Objective editor window too, unconditionally. Fixed by deleting the
+	stray line - found incidentally while adding a THIRD nested editor
+	with the same `popup_centered()` shape (see the Conditions entry
+	right below) and reading this function's true end carefully rather
+	than assuming its boundary from the surrounding comments.
+	**Effect-level Conditions (new 2026-09-18)** - requested directly:
+	"can we make effects also conditional? Only execute the effect if its
+	condition holds. If no conditions specified we should execute." A new
+	`Effect.conditions: Array[Condition]` field (implicit AND, empty =
+	always fires, same convention as every other conditions list in this
+	project) applies UNIFORMLY to all six `Effect.Type` kinds, checked
+	once at the very top of `MissionRuntime.apply_effect()` before it
+	branches on `type` at all - see that method's own entry below.
+	Doesn't fit in the main effect row (six existing widget groups already
+	crowd it), so - same "doesn't fit one row, open a small nested Window"
+	shape as "Edit Test…" - every effect row now also has a "Conditions…"
+	button (**always visible**, unlike the type-gated widget groups,
+	since conditions apply regardless of type) opening a FOURTH nested
+	editor, `_effect_conditions_editor`/`_open_effect_conditions_editor(effect)`,
+	built the same single-instance-reused way as `_optional_editor`/
+	`_test_editor`. This needed `_build_condition_row()` itself refactored
+	first: its signature changed from a typed `holder: MissionObjective`
+	(used only for `holder.conditions.find()`/`.erase()`) to a plain
+	`conditions_list: Array[Condition]` parameter plus an `on_changed:
+	Callable` - the EXACT same refactor `_build_effect_row()`'s own
+	`effects_list` parameter already went through on 2026-09-14, for the
+	identical reason: a bare array reference works identically whether
+	it's an objective's own `.conditions`, an optional objective's
+	`.conditions`, or - now - an `Effect`'s own `.conditions`, which isn't
+	a `MissionObjective` at all. Both existing call sites (the main
+	properties panel, `_open_optional_editor()`) updated to pass
+	`.conditions` directly; the new editor is the third call site.
+	**"Math" (new 2026-09-18, same session, see **Story layer**'s own
+	`MATH` entry for the full authoring/runtime picture)** - a further
+	widget group in `_build_effect_row()`: a `math_box` (operator
+	`OptionButton` - `+`/`−`/`×`/`÷`/`mod` - plus two operand
+	mini-editors), visible only when `type == Effect.Type.MATH`, reusing
+	the existing `var_option` target-variable picker (now visible for
+	`SET_VARIABLE` OR `MATH`, both write `variable_name`). Two new
+	helpers: `_known_int_variable_names()` (like `_known_variable_names()`
+	but filtered to `MissionVariable.Type.INT` - built-ins
+	`round_number`/`player_count` plus any INT-typed `custom_variables`
+	entry - "filtered to the ones of type int" per the request), and
+	`_build_math_operand_editor(effect, prefix)` - ONE function for both
+	operand A and B (`prefix` is `"math_operand_a_"`/`"math_operand_b_"`)
+	via `Object.get()`/`.set()` dynamic property access rather than two
+	near-identical copies, since the three fields each operand reads/
+	writes only differ by that prefix - a "Var" `CheckBox` toggles between
+	a literal `SpinBox` and a variable `OptionButton` sourced from
+	`_known_int_variable_names()`.
+	**"Variables…" (new 2026-09-19, same session, see **Story layer**'s
+	`message_variables` entry for the full picture)** - a FIFTH nested
+	editor, `_message_variables_editor`/`_open_message_variables_editor()`,
+	opened by a button next to the SHOW_MESSAGE `message_edit` `LineEdit`
+	(the message text itself stays inline - only the growing `$1`/`$2`/...
+	variable list needed its own Window). Lists each `$N:` entry with a
+	variable dropdown (the unfiltered `_build_variable_name_option()` -
+	unlike `MATH`'s operands, any declared type is valid narrative text),
+	reorder ↑/↓, and a remove button, plus "Add Variable". Reordering
+	swaps by INDEX directly rather than reusing `_move_in_array()` - that
+	helper resolves its target by VALUE (`array.find(item)`), which
+	silently breaks for an `Array[String]` that can legitimately repeat
+	the same variable name (unlike every other reorderable list here,
+	which holds unique `Resource` references) - `.find()` would always
+	hit the FIRST matching entry regardless of which row was clicked.
   - **Canvas layout is NOT undo-tracked** - `editor_position` is pure
 	authoring metadata, saved directly to each node when the dialog closes
 	(`_on_close_requested()`), not wrapped in `operation_history.record()`,
@@ -2158,7 +2639,7 @@ first working version).
   same method the spawn overlay's own geometry is built from.
 - `PlayerDialog.gd` (`%Dialog` in `MissionPlayer.tscn`) — reusable async
   dialog, built at runtime (same reasoning as `CreatorPalette` - content/
-  buttons vary per call): `ask_ok(text)`, `ask_yes_no(text) -> bool`,
+  buttons vary per call): `ask_ok(text, dim = true)` (`dim = false` hides the scrim so the scene behind stays visible), `ask_yes_no(text) -> bool`,
   `ask_count(text, min, max) -> int`, `ask_narrative(pages) -> void`
   (OK/NEXT/BACK through multiple pages), `ask_choice(text, option_labels, option_disabled: Array[bool] = []) -> int`
   (new 2026-09-14, nullable-by-convention via `-1` - one button per

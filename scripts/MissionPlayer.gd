@@ -136,6 +136,80 @@ func _frame_camera_on_spawn_area() -> void:
 	camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, radius * SPAWN_VIEW_RADIUS_MULTIPLIER))
 
 
+## SPAWN_MONSTERS effect, in two steps: (1) tell the table which monsters
+## to take out of the box (grouped, e.g. "2x Wolf"), then (2) show those
+## monsters as figures on the map at their spawn tiles - monster N on tile
+## N of the MonsterSpawn, so the tile positions themselves are never
+## revealed, only the figures - with an OK button to confirm they've been
+## placed. A 2x2 monster (size_units 2, the Centurion) uses its tile as its
+## far corner and covers the tiles toward -X/-Z (FootprintRegistry's
+## footprint convention). Monsters beyond the spawn's tile count are listed
+## as having no free tile.
+func _run_monster_spawn(request: Dictionary) -> void:
+	var spawn := mission.find_node_by_id(request["spawn_id"]) as MonsterSpawn
+	if spawn == null:
+		push_warning("SPAWN_MONSTERS references an unknown monster spawn '%s' - skipped" % request["spawn_id"])
+		return
+	var folders: Array = request["monsters"]
+	if folders.is_empty():
+		return
+
+	# Step 1 - what to take out of the box, grouped by type in order of
+	# first appearance.
+	var counts := {}
+	for folder in folders:
+		counts[folder] = int(counts.get(folder, 0)) + 1
+	var lines: Array[String] = ["Take these monsters out of the box:"]
+	for folder in counts:
+		var info := MonsterDisplay.find_monster(folder)
+		lines.append("%d× %s" % [counts[folder], info.get("name", folder)])
+	await dialog.ask_ok("
+".join(lines))
+
+	# Step 2 - figures on the map.
+	var tile_corners := layered_map.get_tile_square_world_corners(Vector3i.ZERO)
+	var tile_size: float = tile_corners[0].distance_to(tile_corners[1])
+	var holder := MonsterDisplay.new()
+	holder.standalone = true
+	holder.scale = Vector3.ONE * (tile_size * 0.85 / MonsterDisplay.BASE_SIZE.x)
+	add_child(holder)
+
+	var placed_centers: Array[Vector3] = []
+	var unplaced: Array[String] = []
+	for i in folders.size():
+		var info := MonsterDisplay.find_monster(folders[i])
+		if info.is_empty():
+			push_warning("SPAWN_MONSTERS lists unknown monster '%s' - skipped" % folders[i])
+			continue
+		if i >= spawn.cells.size():
+			unplaced.append(info["name"])
+			continue
+		var size_tiles := int(round(info.get("size_units", 1.0)))
+		var anchor := spawn.cells[i]
+		var min_corners := layered_map.get_tile_square_world_corners(anchor - Vector3i(size_tiles - 1, 0, size_tiles - 1))
+		var max_corners := layered_map.get_tile_square_world_corners(anchor)
+		var center := (min_corners[0] + max_corners[2]) * 0.5
+		placed_centers.append(center)
+		holder.place_stand(center / holder.scale.x, info, i)
+
+	if not placed_centers.is_empty():
+		var centroid := Vector3.ZERO
+		for c in placed_centers:
+			centroid += c
+		centroid /= placed_centers.size()
+		var radius := 0.0
+		for c in placed_centers:
+			radius = max(radius, c.distance_to(centroid))
+		camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, (radius + tile_size) * SPAWN_VIEW_RADIUS_MULTIPLIER))
+
+	var place_text := "Place the monsters on the map as shown."
+	if not unplaced.is_empty():
+		place_text += "
+No free spawn tile for: %s - place them next to the others." % ", ".join(unplaced)
+	await dialog.ask_ok(place_text, false)
+	holder.queue_free()
+
+
 ## TEMPORARY - "M" toggles the monster display mockup on/off so it can
 ## actually be seen in a running Player, since no real combat trigger
 ## exists yet to switch views on its own (see MonsterDisplay.gd's own doc).
@@ -299,6 +373,10 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
 		layered_map.remove_node(removed_id)
+	for move in _runtime.drain_pending_object_moves():
+		layered_map.move_node(move["id"], FootprintRegistry.tile_square_to_fine_far_corner(move["cell"]))
+	for spawn_request in _runtime.drain_pending_monster_spawns():
+		await _run_monster_spawn(spawn_request)
 	if objective == null:
 		return true
 	await _handle_game_over(objective)
@@ -327,13 +405,18 @@ func _on_game_over_requested(objective: MissionObjective) -> void:
 
 
 ## A fired PropAction can advance the DAG frontier and/or queue a Show
-## Stage reveal or a Remove Object removal without necessarily ending the
-## game (game_over_requested alone wouldn't cover any of those) -
-## refreshes the objective label and drains both pending queues the same
-## way _advance_to() does for the checkpoint-driven path.
+## Stage reveal, a Remove Object removal, or a Move Object relocation
+## without necessarily ending the game (game_over_requested alone wouldn't
+## cover any of those) - refreshes the objective label and drains all
+## three pending queues the same way _advance_to() does for the
+## checkpoint-driven path.
 func _on_objectives_progressed() -> void:
 	_refresh_objective_label()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
 		layered_map.remove_node(removed_id)
+	for move in _runtime.drain_pending_object_moves():
+		layered_map.move_node(move["id"], FootprintRegistry.tile_square_to_fine_far_corner(move["cell"]))
+	for spawn_request in _runtime.drain_pending_monster_spawns():
+		await _run_monster_spawn(spawn_request)

@@ -44,6 +44,10 @@ var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 var _misc_button: Button
 var _misc_container: VBoxContainer
 var _player_start_button: Button
+var _monster_spawn_button: Button
+var _active_spawn_option: OptionButton
+var _active_spawn_ids: Array[String] = []
+var _spawn_option_rebuild_queued: bool = false
 
 
 func _ready() -> void:
@@ -57,6 +61,8 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
+	creator_controller.monster_spawn_paint_mode_changed.connect(_on_monster_spawn_paint_mode_changed)
+	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# "Show unavailable" moved to the persistent toolbar 2026-09-14 (see
 	# CreatorToolbar.gd) - this palette just reacts to the controller-owned
 	# state now instead of owning the checkbox itself.
@@ -68,6 +74,7 @@ func _ready() -> void:
 	# mesh stayed shown as available until something else (a layer switch,
 	# toggling "Show unavailable") happened to force a rebuild. Fixed 2026-09-10.
 	layered_map.mission_objects_changed.connect(_queue_mesh_grid_rebuild)
+	layered_map.mission_objects_changed.connect(_queue_spawn_option_rebuild)
 
 	_side_panel = get_parent() as TabContainer
 	if _side_panel != null:
@@ -87,6 +94,7 @@ func _on_side_panel_tab_changed(tab_index: int) -> void:
 	if tab_index != _side_panel.get_tab_idx_from_control(self):
 		creator_controller.set_draw_mode(false)
 		creator_controller.set_spawn_paint_mode(false)
+		creator_controller.set_monster_spawn_paint_mode(false)
 
 
 func _build_ui() -> void:
@@ -147,6 +155,25 @@ func _build_ui() -> void:
 	_player_start_button.toggle_mode = true
 	_player_start_button.pressed.connect(_on_player_start_tool_pressed)
 	_misc_container.add_child(_player_start_button)
+
+	_monster_spawn_button = Button.new()
+	_monster_spawn_button.text = "Monster Spawn"
+	_monster_spawn_button.toggle_mode = true
+	_monster_spawn_button.pressed.connect(_on_monster_spawn_tool_pressed)
+	_misc_container.add_child(_monster_spawn_button)
+
+	# "Active spawn" - which MonsterSpawn the tool above draws into (see
+	# CreatorController.active_monster_spawn_id).
+	var spawn_row := HBoxContainer.new()
+	_misc_container.add_child(spawn_row)
+	_active_spawn_option = OptionButton.new()
+	_active_spawn_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_active_spawn_option.item_selected.connect(_on_active_spawn_selected)
+	spawn_row.add_child(_active_spawn_option)
+	var new_spawn_button := Button.new()
+	new_spawn_button.text = "New spawn"
+	new_spawn_button.pressed.connect(_on_new_spawn_pressed)
+	spawn_row.add_child(new_spawn_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -
@@ -209,6 +236,60 @@ func _on_player_start_tool_pressed() -> void:
 ## "controller emits, UI listens" convention as _on_layer_changed() above.
 func _on_spawn_paint_mode_changed(enabled: bool) -> void:
 	_player_start_button.button_pressed = enabled
+
+
+## Monster Spawn tool (new 2026-09-19) - same shape as Player Start above;
+## the controller's setters keep it exclusive with every other tool.
+func _on_monster_spawn_tool_pressed() -> void:
+	creator_controller.set_monster_spawn_paint_mode(true)
+
+
+func _on_monster_spawn_paint_mode_changed(enabled: bool) -> void:
+	_monster_spawn_button.button_pressed = enabled
+
+
+func _on_new_spawn_pressed() -> void:
+	creator_controller.create_monster_spawn()
+	creator_controller.set_monster_spawn_paint_mode(true)
+
+
+func _on_active_spawn_selected(index: int) -> void:
+	if index >= 0 and index < _active_spawn_ids.size():
+		creator_controller.set_active_monster_spawn(_active_spawn_ids[index])
+
+
+## Coalesced (mission_objects_changed can fire once per painted cell), same
+## pattern as _queue_mesh_grid_rebuild().
+func _queue_spawn_option_rebuild() -> void:
+	if _spawn_option_rebuild_queued:
+		return
+	_spawn_option_rebuild_queued = true
+	_rebuild_active_spawn_option.call_deferred()
+
+
+func _rebuild_active_spawn_option() -> void:
+	_spawn_option_rebuild_queued = false
+	_active_spawn_option.clear()
+	_active_spawn_ids.clear()
+	var mission := creator_controller.layered_map.mission
+	if mission == null:
+		return
+	var selected := -1
+	for i in mission.monster_spawns.size():
+		var spawn: MonsterSpawn = mission.monster_spawns[i]
+		var label := spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d" % (i + 1)
+		_active_spawn_option.add_item("%s (%d tiles)" % [label, spawn.cells.size()])
+		_active_spawn_option.set_item_icon(i, _color_icon(LayeredMap.monster_spawn_color(i)))
+		_active_spawn_ids.append(spawn.id)
+		if spawn.id == creator_controller.active_monster_spawn_id:
+			selected = i
+	_active_spawn_option.selected = selected
+
+
+func _color_icon(color: Color) -> Texture2D:
+	var image := Image.create(12, 12, false, Image.FORMAT_RGBA8)
+	image.fill(color)
+	return ImageTexture.create_from_image(image)
 
 
 var _mesh_grid_rebuild_queued: bool = false

@@ -48,6 +48,17 @@ var _empty_label: Label
 var _test_editor: Window
 var _test_editor_container: VBoxContainer
 
+## Same pattern again, new 2026-09-18 for Effect.conditions (any Effect
+## type, not just RUN_TEST) - see _open_effect_conditions_editor().
+var _effect_conditions_editor: Window
+var _effect_conditions_editor_container: VBoxContainer
+
+## Same pattern again, new 2026-09-19 for Effect.Type.SHOW_MESSAGE's own
+## message_variables ($1/$2/... ordered list) - see
+## _open_message_variables_editor().
+var _message_variables_editor: Window
+var _message_variables_editor_container: VBoxContainer
+
 
 func _ready() -> void:
 	title = "Actions"
@@ -98,6 +109,44 @@ func _ready() -> void:
 	_test_editor_container = VBoxContainer.new()
 	_test_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	test_scroll.add_child(_test_editor_container)
+
+	_effect_conditions_editor = Window.new()
+	_effect_conditions_editor.title = "Effect Conditions"
+	_effect_conditions_editor.size = Vector2i(360, 320)
+	_effect_conditions_editor.close_requested.connect(_effect_conditions_editor.hide)
+	_effect_conditions_editor.visible = false
+	add_child(_effect_conditions_editor)
+
+	var conditions_scroll := ScrollContainer.new()
+	conditions_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	conditions_scroll.offset_left = 8
+	conditions_scroll.offset_top = 8
+	conditions_scroll.offset_right = -8
+	conditions_scroll.offset_bottom = -8
+	_effect_conditions_editor.add_child(conditions_scroll)
+
+	_effect_conditions_editor_container = VBoxContainer.new()
+	_effect_conditions_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	conditions_scroll.add_child(_effect_conditions_editor_container)
+
+	_message_variables_editor = Window.new()
+	_message_variables_editor.title = "Message Variables"
+	_message_variables_editor.size = Vector2i(360, 320)
+	_message_variables_editor.close_requested.connect(_message_variables_editor.hide)
+	_message_variables_editor.visible = false
+	add_child(_message_variables_editor)
+
+	var message_variables_scroll := ScrollContainer.new()
+	message_variables_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	message_variables_scroll.offset_left = 8
+	message_variables_scroll.offset_top = 8
+	message_variables_scroll.offset_right = -8
+	message_variables_scroll.offset_bottom = -8
+	_message_variables_editor.add_child(message_variables_scroll)
+
+	_message_variables_editor_container = VBoxContainer.new()
+	_message_variables_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	message_variables_scroll.add_child(_message_variables_editor_container)
 
 
 ## Public - CreatorPropertiesPanel.gd calls this from its "Actions…" button.
@@ -179,7 +228,7 @@ func _build_action_block(action: PropAction) -> Control:
 	conditions_label.text = "Conditions (implicit AND - when is this action offered to players):"
 	box.add_child(conditions_label)
 	for condition in action.conditions:
-		box.add_child(_build_condition_row(action, condition))
+		box.add_child(_build_condition_row(action.conditions, condition, _rebuild_rows))
 	var add_condition_button := Button.new()
 	add_condition_button.text = "Add Condition"
 	add_condition_button.pressed.connect(func():
@@ -288,14 +337,87 @@ func _build_variable_name_option(current_name: String, on_commit: Callable) -> O
 	return option
 
 
-## Own copy of ObjectivesDialog's _build_condition_row() (typed to a
-## MissionObjective holder there) - same "each dialog owns its own
-## row-builder helpers" convention as _build_effect_row()/
-## _build_value_editor() below. Gates whether this ACTION is currently
-## offered to players (see PropAction.conditions' own doc) - distinct
-## from InteractableEntry.props["interactible"], a manual whole-prop
-## on/off switch that applies regardless of any action's conditions.
-func _build_condition_row(holder: PropAction, condition: Condition) -> Control:
+## Same as _known_variable_names() but filtered to variables actually
+## declared INT - own copy of ObjectivesDialog's identical helper (same
+## file-local-sharing reasoning as _build_condition_row()'s own doc
+## comment above). Effect.Type.MATH's own operand pickers use this
+## instead of the unfiltered list - requested directly ("allow the
+## operands be value (int) or a other variable... filtered to the ones of
+## type int").
+func _known_int_variable_names() -> Array[String]:
+	var names: Array[String] = ["round_number", "player_count"]
+	for variable in layered_map.mission.custom_variables:
+		if variable.type == MissionVariable.Type.INT:
+			names.append(variable.name)
+	return names
+
+
+## Own copy of ObjectivesDialog's _build_math_operand_editor() - builds
+## one MATH operand's mini-editor (a "Var" CheckBox toggling literal-vs-
+## variable, plus whichever ONE matching widget). `prefix` is
+## "math_operand_a_" or "math_operand_b_" - reads/writes the three
+## matching Effect fields via Object.get()/set() (dynamic property access
+## by name) rather than two near-identical copies of this function.
+func _build_math_operand_editor(effect: Effect, prefix: String) -> Control:
+	var box := HBoxContainer.new()
+
+	var is_variable_check := CheckBox.new()
+	is_variable_check.text = "Var"
+	is_variable_check.button_pressed = effect.get(prefix + "is_variable")
+	box.add_child(is_variable_check)
+
+	var literal_spin := SpinBox.new()
+	literal_spin.min_value = -999999
+	literal_spin.max_value = 999999
+	literal_spin.step = 1
+	literal_spin.value = effect.get(prefix + "literal")
+	box.add_child(literal_spin)
+
+	var int_names := _known_int_variable_names()
+	var variable_option := OptionButton.new()
+	for name in int_names:
+		variable_option.add_item(name)
+	variable_option.select(int_names.find(effect.get(prefix + "variable")))
+	box.add_child(variable_option)
+
+	var update_visibility := func():
+		var is_var: bool = is_variable_check.button_pressed
+		literal_spin.visible = not is_var
+		variable_option.visible = is_var
+	update_visibility.call()
+
+	is_variable_check.toggled.connect(func(pressed: bool):
+		_commit_field("Edit math operand mode", func(): effect.set(prefix + "is_variable", pressed))
+		update_visibility.call()
+	)
+	literal_spin.value_changed.connect(func(new_value: float):
+		_commit_field("Edit math operand value", func(): effect.set(prefix + "literal", int(new_value)))
+	)
+	variable_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < int_names.size():
+			_commit_field("Edit math operand variable", func(): effect.set(prefix + "variable", int_names[index]))
+	)
+
+	return box
+
+
+## Own copy of ObjectivesDialog's _build_condition_row() - same "each
+## dialog owns its own row-builder helpers" convention as
+## _build_effect_row()/_build_value_editor() below. `conditions_list`
+## (changed 2026-09-18 from a typed `holder: PropAction` - the ONLY thing
+## holder was ever used for was `holder.conditions.find()`/`.erase()`,
+## same refactor _build_effect_row()'s own `effects_list` already went
+## through) - a plain array reference works identically whether it's a
+## PropAction's own `.conditions` (gating whether this ACTION is currently
+## offered to players, see PropAction.conditions' own doc - distinct from
+## InteractableEntry.props["interactible"], a manual whole-prop on/off
+## switch that applies regardless) or - new the same day - an `Effect`'s
+## own `.conditions` (see _open_effect_conditions_editor() below), which
+## isn't a PropAction at all. `on_changed` (new the same day, matching
+## _build_effect_row()'s own signature) lets each caller decide what to
+## rebuild after a remove/reorder - the outer action block vs. the nested
+## effect-conditions editor.
+func _build_condition_row(conditions_list: Array[Condition], condition: Condition, on_changed: Callable) -> Control:
 	var row := HBoxContainer.new()
 
 	var var_option := _build_variable_name_option(condition.variable_name, func(new_name: String):
@@ -322,28 +444,28 @@ func _build_condition_row(holder: PropAction, condition: Condition) -> Control:
 	var move_up_button := Button.new()
 	move_up_button.text = "↑"
 	move_up_button.tooltip_text = "Move up"
-	move_up_button.disabled = holder.conditions.find(condition) == 0
+	move_up_button.disabled = conditions_list.find(condition) == 0
 	move_up_button.pressed.connect(func():
-		_commit_field("Reorder condition", func(): _move_in_array(holder.conditions, condition, -1))
-		_rebuild_rows()
+		_commit_field("Reorder condition", func(): _move_in_array(conditions_list, condition, -1))
+		on_changed.call()
 	)
 	row.add_child(move_up_button)
 
 	var move_down_button := Button.new()
 	move_down_button.text = "↓"
 	move_down_button.tooltip_text = "Move down"
-	move_down_button.disabled = holder.conditions.find(condition) == holder.conditions.size() - 1
+	move_down_button.disabled = conditions_list.find(condition) == conditions_list.size() - 1
 	move_down_button.pressed.connect(func():
-		_commit_field("Reorder condition", func(): _move_in_array(holder.conditions, condition, 1))
-		_rebuild_rows()
+		_commit_field("Reorder condition", func(): _move_in_array(conditions_list, condition, 1))
+		on_changed.call()
 	)
 	row.add_child(move_down_button)
 
 	var remove_button := Button.new()
 	remove_button.text = "×"
 	remove_button.pressed.connect(func():
-		_commit_field("Remove condition", func(): holder.conditions.erase(condition))
-		_rebuild_rows()
+		_commit_field("Remove condition", func(): conditions_list.erase(condition))
+		on_changed.call()
 	)
 	row.add_child(remove_button)
 
@@ -376,6 +498,9 @@ func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: 
 	type_option.add_item("Remove Object", Effect.Type.REMOVE_OBJECT)
 	type_option.add_item("Test", Effect.Type.RUN_TEST)
 	type_option.add_item("Show Message", Effect.Type.SHOW_MESSAGE)
+	type_option.add_item("Move Object", Effect.Type.MOVE_OBJECT)
+	type_option.add_item("Math", Effect.Type.MATH)
+	type_option.add_item("Spawn Monsters", Effect.Type.SPAWN_MONSTERS)
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
@@ -434,10 +559,13 @@ func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: 
 	row.add_child(test_button)
 
 	## SHOW_MESSAGE - a plain narrative popup (OK button, no branching), see
-	## Effect.gd's own doc. Just the message text - no separate editor
-	## needed the way RUN_TEST's does.
+	## Effect.gd's own doc. The message text stays inline (the common case
+	## - most messages reference nothing) - only the ordered
+	## message_variables list (new 2026-09-19, $1/$2/... placeholders) gets
+	## its own nested editor, same "doesn't fit one row, open a small
+	## Window" reasoning as "Edit Test…"/"Conditions…" above.
 	var message_edit := LineEdit.new()
-	message_edit.placeholder_text = "Message shown to the table, e.g. \"Donal gave you the key.\""
+	message_edit.placeholder_text = "Message shown to the table, e.g. \"$1 gave you the key.\""
 	message_edit.text = effect.message
 	message_edit.text_submitted.connect(func(new_text: String):
 		_commit_field("Edit effect message", func(): effect.message = new_text)
@@ -447,20 +575,127 @@ func _build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: 
 	)
 	row.add_child(message_edit)
 
+	var message_variables_button := Button.new()
+	message_variables_button.text = "Variables…"
+	message_variables_button.tooltip_text = "The variables $1, $2, ... refer to in the message text"
+	message_variables_button.pressed.connect(func(): _open_message_variables_editor(effect))
+	row.add_child(message_variables_button)
+
+	## MOVE_OBJECT - a destination cell, authored in TILE-SQUARE ("game
+	## unit") coordinates, same unit CreatorStatusBar shows while hovering
+	## in the Creator (see Effect.target_cell's own doc for the full
+	## reasoning/conversion). Which OBJECT moves reuses the existing
+	## object_option picker above (same field, target_object_id, as
+	## REMOVE_OBJECT) - only the destination needs its own widgets here.
+	var move_cell_box := HBoxContainer.new()
+	var move_x_spin := SpinBox.new()
+	var move_y_spin := SpinBox.new()
+	var move_z_spin := SpinBox.new()
+	for spin in [move_x_spin, move_y_spin, move_z_spin]:
+		spin.min_value = -999
+		spin.max_value = 999
+		spin.step = 1
+	move_x_spin.value = effect.target_cell.x
+	move_y_spin.value = effect.target_cell.y
+	move_z_spin.value = effect.target_cell.z
+	var move_x_label := Label.new()
+	move_x_label.text = "X"
+	var move_y_label := Label.new()
+	move_y_label.text = "Y"
+	var move_z_label := Label.new()
+	move_z_label.text = "Z"
+	move_cell_box.add_child(move_x_label)
+	move_cell_box.add_child(move_x_spin)
+	move_cell_box.add_child(move_y_label)
+	move_cell_box.add_child(move_y_spin)
+	move_cell_box.add_child(move_z_label)
+	move_cell_box.add_child(move_z_spin)
+	var commit_move_cell := func():
+		_commit_field("Edit effect move target", func():
+			effect.target_cell = Vector3i(int(move_x_spin.value), int(move_y_spin.value), int(move_z_spin.value))
+		)
+	move_x_spin.value_changed.connect(func(_v): commit_move_cell.call())
+	move_y_spin.value_changed.connect(func(_v): commit_move_cell.call())
+	move_z_spin.value_changed.connect(func(_v): commit_move_cell.call())
+	row.add_child(move_cell_box)
+
+	## MATH - operand_a OP operand_b, written to variable_name (the SAME
+	## var_option picker above, reused - "which variable this writes" is
+	## identical to SET_VARIABLE's own target, see Effect.variable_name's
+	## own doc). Each operand is its own mini-editor
+	## (_build_math_operand_editor()) since either can independently be a
+	## literal or a variable reference.
+	var math_box := HBoxContainer.new()
+	math_box.add_child(_build_math_operand_editor(effect, "math_operand_a_"))
+	var math_operator_option := OptionButton.new()
+	math_operator_option.add_item("+", Effect.MathOperator.ADD)
+	math_operator_option.add_item("−", Effect.MathOperator.SUBTRACT)
+	math_operator_option.add_item("×", Effect.MathOperator.MULTIPLY)
+	math_operator_option.add_item("÷", Effect.MathOperator.DIVIDE)
+	math_operator_option.add_item("mod", Effect.MathOperator.MODULO)
+	math_operator_option.select(math_operator_option.get_item_index(effect.math_operator))
+	math_operator_option.item_selected.connect(func(_index):
+		var new_op: int = math_operator_option.get_selected_id()
+		_commit_field("Edit math operator", func(): effect.math_operator = new_op)
+	)
+	math_box.add_child(math_operator_option)
+	math_box.add_child(_build_math_operand_editor(effect, "math_operand_b_"))
+	row.add_child(math_box)
+
+	## SPAWN_MONSTERS - which MonsterSpawn (reusing target_object_id, same
+	## "which placed thing" field REMOVE_OBJECT/MOVE_OBJECT use - a
+	## MonsterSpawn resolves through MissionData.find_node_by_id() too) plus
+	## the ordered monster list, edited in its own small nested Window.
+	var spawn_option := OptionButton.new()
+	var spawn_ids: Array[String] = []
+	for spawn_index in layered_map.mission.monster_spawns.size():
+		var candidate: MonsterSpawn = layered_map.mission.monster_spawns[spawn_index]
+		var spawn_label := candidate.reference_name if candidate.reference_name != "" else "Monster Spawn %d" % (spawn_index + 1)
+		spawn_option.add_item("%s (%d tiles)" % [spawn_label, candidate.cells.size()])
+		spawn_ids.append(candidate.id)
+	spawn_option.select(spawn_ids.find(effect.target_object_id))
+	spawn_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < spawn_ids.size():
+			_commit_field("Edit effect monster spawn", func(): effect.target_object_id = spawn_ids[index])
+	)
+	row.add_child(spawn_option)
+
+	var spawn_monsters_button := Button.new()
+	spawn_monsters_button.text = "Monsters…"
+	spawn_monsters_button.tooltip_text = "Which monsters spawn, in tile order (first = tile 1)"
+	spawn_monsters_button.pressed.connect(func(): _open_spawn_monsters_editor(effect))
+	row.add_child(spawn_monsters_button)
+
 	var update_visibility := func():
 		var type: int = type_option.get_selected_id()
-		var_option.visible = type == Effect.Type.SET_VARIABLE
+		spawn_option.visible = type == Effect.Type.SPAWN_MONSTERS
+		spawn_monsters_button.visible = type == Effect.Type.SPAWN_MONSTERS
+		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
-		object_option.visible = type == Effect.Type.REMOVE_OBJECT
+		object_option.visible = type == Effect.Type.REMOVE_OBJECT or type == Effect.Type.MOVE_OBJECT
 		test_button.visible = type == Effect.Type.RUN_TEST
 		message_edit.visible = type == Effect.Type.SHOW_MESSAGE
+		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE
+		move_cell_box.visible = type == Effect.Type.MOVE_OBJECT
+		math_box.visible = type == Effect.Type.MATH
 	update_visibility.call()
 	type_option.item_selected.connect(func(_index):
 		var new_type: int = type_option.get_selected_id()
 		_commit_field("Edit effect type", func(): effect.type = new_type)
 		update_visibility.call()
 	)
+
+	## Effect.conditions (new 2026-09-18) applies to EVERY type, not just
+	## one widget group - so this button is always visible, unlike
+	## test_button/message_edit/etc. above which toggle with the type
+	## picker. Same "doesn't fit one row, open a small nested Window"
+	## reasoning as "Edit Test…" - see _open_effect_conditions_editor().
+	var conditions_button := Button.new()
+	conditions_button.text = "Conditions…"
+	conditions_button.tooltip_text = "Only execute this effect if these hold (empty = always)"
+	conditions_button.pressed.connect(func(): _open_effect_conditions_editor(effect))
+	row.add_child(conditions_button)
 
 	var move_up_button := Button.new()
 	move_up_button.text = "↑"
@@ -572,6 +807,195 @@ func _open_test_editor(effect: Effect) -> void:
 	_test_editor_container.add_child(add_fail_button)
 
 	_test_editor.popup_centered()
+
+
+## `effect` is whichever Effect the "Conditions…" button was clicked on -
+## any type, including one nested inside a RUN_TEST's own pass_effects/
+## fail_effects, since conditions apply uniformly regardless of type (see
+## MissionRuntime.apply_effect()'s own doc).
+func _open_effect_conditions_editor(effect: Effect) -> void:
+	for child in _effect_conditions_editor_container.get_children():
+		child.queue_free()
+
+	_effect_conditions_editor_container.add_child(_label("Implicit AND - empty means this effect always fires:"))
+	for condition in effect.conditions:
+		_effect_conditions_editor_container.add_child(_build_condition_row(effect.conditions, condition, func(): _open_effect_conditions_editor(effect)))
+	var add_condition_button := Button.new()
+	add_condition_button.text = "Add Condition"
+	add_condition_button.pressed.connect(func():
+		var condition := Condition.new()
+		_commit_field("Add effect condition", func(): effect.conditions.append(condition))
+		_open_effect_conditions_editor(effect)
+	)
+	_effect_conditions_editor_container.add_child(add_condition_button)
+
+	_effect_conditions_editor.popup_centered()
+
+
+## Own copy of ObjectivesDialog's _open_message_variables_editor() - see
+## that script's own doc comment for the full reasoning, including why
+## reordering swaps by INDEX rather than reusing _move_in_array() (which
+## finds its target by VALUE - wrong for an Array[String] that can
+## legitimately contain the same variable name more than once). `effect`
+## is whichever SHOW_MESSAGE Effect the "Variables…" button was clicked
+## on. A $N with no corresponding entry substitutes as nothing at
+## runtime, not literal "$N" - see MissionRuntime._format_message().
+func _open_message_variables_editor(effect: Effect) -> void:
+	for child in _message_variables_editor_container.get_children():
+		child.queue_free()
+
+	_message_variables_editor_container.add_child(_label("$1, $2, ... in the message text, in order - any declared variable, any type:"))
+	for i in effect.message_variables.size():
+		var index := i  # captured by value for this row's own closures below
+		var row := HBoxContainer.new()
+		row.add_child(_label("$%d:" % (index + 1)))
+
+		var var_option := _build_variable_name_option(effect.message_variables[index], func(new_name: String):
+			_commit_field("Edit message variable", func(): effect.message_variables[index] = new_name)
+		)
+		row.add_child(var_option)
+
+		var move_up_button := Button.new()
+		move_up_button.text = "↑"
+		move_up_button.tooltip_text = "Move up"
+		move_up_button.disabled = index == 0
+		move_up_button.pressed.connect(func():
+			_commit_field("Reorder message variable", func():
+				var tmp: String = effect.message_variables[index]
+				effect.message_variables[index] = effect.message_variables[index - 1]
+				effect.message_variables[index - 1] = tmp
+			)
+			_open_message_variables_editor(effect)
+		)
+		row.add_child(move_up_button)
+
+		var move_down_button := Button.new()
+		move_down_button.text = "↓"
+		move_down_button.tooltip_text = "Move down"
+		move_down_button.disabled = index == effect.message_variables.size() - 1
+		move_down_button.pressed.connect(func():
+			_commit_field("Reorder message variable", func():
+				var tmp: String = effect.message_variables[index]
+				effect.message_variables[index] = effect.message_variables[index + 1]
+				effect.message_variables[index + 1] = tmp
+			)
+			_open_message_variables_editor(effect)
+		)
+		row.add_child(move_down_button)
+
+		var remove_button := Button.new()
+		remove_button.text = "×"
+		remove_button.pressed.connect(func():
+			_commit_field("Remove message variable", func(): effect.message_variables.remove_at(index))
+			_open_message_variables_editor(effect)
+		)
+		row.add_child(remove_button)
+
+		_message_variables_editor_container.add_child(row)
+
+	var add_button := Button.new()
+	add_button.text = "Add Variable"
+	add_button.pressed.connect(func():
+		_commit_field("Add message variable", func(): effect.message_variables.append(""))
+		_open_message_variables_editor(effect)
+	)
+	_message_variables_editor_container.add_child(add_button)
+
+	_message_variables_editor.popup_centered()
+
+
+## ---- Nested "edit one SPAWN_MONSTERS effect's monster list" dialog ----
+## Built lazily on first use (single instance, reused). The list is ORDERED
+## (entry 0 spawns on tile 1) and may repeat a monster, so like
+## message_variables it reorders by INDEX, never by value.
+var _spawn_monsters_editor: Window
+var _spawn_monsters_editor_container: VBoxContainer
+
+
+func _open_spawn_monsters_editor(effect: Effect) -> void:
+	if _spawn_monsters_editor == null:
+		_spawn_monsters_editor = Window.new()
+		_spawn_monsters_editor.title = "Spawn Monsters"
+		_spawn_monsters_editor.size = Vector2i(360, 360)
+		_spawn_monsters_editor.close_requested.connect(_spawn_monsters_editor.hide)
+		_spawn_monsters_editor.visible = false
+		add_child(_spawn_monsters_editor)
+		var scroll := ScrollContainer.new()
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 8
+		scroll.offset_top = 8
+		scroll.offset_right = -8
+		scroll.offset_bottom = -8
+		_spawn_monsters_editor.add_child(scroll)
+		_spawn_monsters_editor_container = VBoxContainer.new()
+		_spawn_monsters_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(_spawn_monsters_editor_container)
+
+	for child in _spawn_monsters_editor_container.get_children():
+		child.queue_free()
+
+	_spawn_monsters_editor_container.add_child(_label("Monsters in spawn-tile order (1st on tile 1, ...):"))
+	for i in effect.spawn_monsters.size():
+		var index := i  # captured by value for this row's own closures below
+		var row := HBoxContainer.new()
+		row.add_child(_label("%d:" % (index + 1)))
+
+		var monster_option := OptionButton.new()
+		for monster_index in MonsterDisplay.REAL_MONSTERS.size():
+			monster_option.add_item(MonsterDisplay.REAL_MONSTERS[monster_index]["name"], monster_index)
+			if MonsterDisplay.REAL_MONSTERS[monster_index]["folder"] == effect.spawn_monsters[index]:
+				monster_option.select(monster_index)
+		monster_option.item_selected.connect(func(_selected: int):
+			var folder: String = MonsterDisplay.REAL_MONSTERS[monster_option.get_selected_id()]["folder"]
+			_commit_field("Edit spawned monster", func(): effect.spawn_monsters[index] = folder)
+		)
+		row.add_child(monster_option)
+
+		var move_up_button := Button.new()
+		move_up_button.text = "↑"
+		move_up_button.disabled = index == 0
+		move_up_button.pressed.connect(func():
+			_commit_field("Reorder spawned monster", func():
+				var tmp: String = effect.spawn_monsters[index]
+				effect.spawn_monsters[index] = effect.spawn_monsters[index - 1]
+				effect.spawn_monsters[index - 1] = tmp
+			)
+			_open_spawn_monsters_editor(effect)
+		)
+		row.add_child(move_up_button)
+
+		var move_down_button := Button.new()
+		move_down_button.text = "↓"
+		move_down_button.disabled = index == effect.spawn_monsters.size() - 1
+		move_down_button.pressed.connect(func():
+			_commit_field("Reorder spawned monster", func():
+				var tmp: String = effect.spawn_monsters[index]
+				effect.spawn_monsters[index] = effect.spawn_monsters[index + 1]
+				effect.spawn_monsters[index + 1] = tmp
+			)
+			_open_spawn_monsters_editor(effect)
+		)
+		row.add_child(move_down_button)
+
+		var remove_button := Button.new()
+		remove_button.text = "×"
+		remove_button.pressed.connect(func():
+			_commit_field("Remove spawned monster", func(): effect.spawn_monsters.remove_at(index))
+			_open_spawn_monsters_editor(effect)
+		)
+		row.add_child(remove_button)
+
+		_spawn_monsters_editor_container.add_child(row)
+
+	var add_button := Button.new()
+	add_button.text = "Add Monster"
+	add_button.pressed.connect(func():
+		_commit_field("Add spawned monster", func(): effect.spawn_monsters.append(MonsterDisplay.REAL_MONSTERS[0]["folder"]))
+		_open_spawn_monsters_editor(effect)
+	)
+	_spawn_monsters_editor_container.add_child(add_button)
+
+	_spawn_monsters_editor.popup_centered()
 
 
 func _label(text: String) -> Label:

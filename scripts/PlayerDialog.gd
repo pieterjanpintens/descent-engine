@@ -50,7 +50,8 @@ func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP  # the modal scrim - blocks everything behind it
 
-	var scrim := ColorRect.new()
+	_scrim = ColorRect.new()
+	var scrim := _scrim
 	scrim.color = Color(0, 0, 0, 0.35)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE  # self (the root) already blocks; this is purely visual
@@ -89,13 +90,22 @@ func _build_ui() -> void:
 	vbox.add_child(_button_row)
 
 
-func ask_ok(text: String) -> void:
+## The dim overlay behind the box - `ask_ok(text, false)` hides it so the
+## scene behind stays fully visible (used to show monster miniatures on the
+## map while telling the table where to put them). Reset to visible at the
+## end of every dimless ask.
+var _scrim: ColorRect
+
+
+func ask_ok(text: String, dim: bool = true) -> void:
+	_scrim.visible = dim
 	_label.text = text
 	_count_input.visible = false
 	_set_buttons([{"text": "OK", "result": null}])
 	visible = true
 	await _closed
 	visible = false
+	_scrim.visible = true
 
 
 func ask_yes_no(text: String) -> bool:

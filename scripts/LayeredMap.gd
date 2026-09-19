@@ -30,6 +30,36 @@ signal mission_objects_changed
 var _spawn_overlay: MeshInstance3D
 var _spawn_overlay_mesh: ImmediateMesh
 
+## Reddish counterpart to the yellow player-spawn overlay above, for
+## MissionData.monster_spawns (new 2026-09-19) - same tile-square cells,
+## same quad geometry, just its own mesh/color so both can show at once.
+var _monster_overlay: MeshInstance3D
+var _monster_overlay_mesh: ImmediateMesh
+const MONSTER_SPAWN_COLOR := Color(1.0, 0.2, 0.15, 0.5)
+
+## One colour per monster spawn (by its index in mission.monster_spawns,
+## wrapping) so several spawn areas can be told apart; the CreatorController's
+## active spawn draws at a higher alpha. Reddish/warm first, per the
+## original "make the color we draw with reddish" request.
+const MONSTER_SPAWN_PALETTE := [
+	Color(1.0, 0.2, 0.15),
+	Color(1.0, 0.55, 0.1),
+	Color(0.85, 0.15, 0.6),
+	Color(0.6, 0.3, 0.9),
+	Color(0.2, 0.6, 1.0),
+	Color(0.2, 0.8, 0.5),
+]
+
+## The spawn the Creator is currently drawing into (see
+## CreatorController.active_monster_spawn_id) - only affects overlay
+## brightness. Set by the controller before it calls
+## refresh_monster_spawn_overlay(); kept here so apply_mission()'s own
+## refresh (undo/redo/load) keeps the highlight.
+var monster_overlay_active_id: String = ""
+
+## Number labels for the monster spawn tiles (Creator only).
+var _monster_labels: Node3D
+
 
 func _ready() -> void:
 	# Only position differs between layers - cell_size and XZ cell
@@ -47,21 +77,95 @@ func _ready() -> void:
 	OfficialAssetOverrides.apply_overrides(floor_grid.mesh_library)
 
 	_setup_spawn_overlay()
+	_setup_monster_overlay()
 
 
 func _setup_spawn_overlay() -> void:
 	_spawn_overlay_mesh = ImmediateMesh.new()
-	_spawn_overlay = MeshInstance3D.new()
-	_spawn_overlay.mesh = _spawn_overlay_mesh
+	_spawn_overlay = _make_overlay_node(_spawn_overlay_mesh)
+
+
+func _setup_monster_overlay() -> void:
+	_monster_overlay_mesh = ImmediateMesh.new()
+	_monster_overlay = _make_overlay_node(_monster_overlay_mesh)
+
+
+func _make_overlay_node(overlay_mesh: ImmediateMesh) -> MeshInstance3D:
+	var node := MeshInstance3D.new()
+	node.mesh = overlay_mesh
 	var material := StandardMaterial3D.new()
 	material.vertex_color_use_as_albedo = true
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.disable_ambient_light = true
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_spawn_overlay.material_override = material
-	_spawn_overlay.visible = false
-	add_child(_spawn_overlay)
+	node.material_override = material
+	node.visible = false
+	add_child(node)
+	return node
+
+
+## Colour for the spawn at `index` in mission.monster_spawns.
+static func monster_spawn_color(index: int) -> Color:
+	return MONSTER_SPAWN_PALETTE[index % MONSTER_SPAWN_PALETTE.size()]
+
+
+## Colour the Creator's hover ghost should use for `spawn_id` (the default
+## red when it isn't found).
+func monster_spawn_color_for_id(spawn_id: String) -> Color:
+	for i in mission.monster_spawns.size():
+		if mission.monster_spawns[i].id == spawn_id:
+			var c := monster_spawn_color(i)
+			c.a = MONSTER_SPAWN_COLOR.a
+			return c
+	return MONSTER_SPAWN_COLOR
+
+
+## Rebuilds the monster spawn overlay from mission.monster_spawns: every
+## tile of every spawn as a quad in that spawn's colour (active spawn more
+## opaque) plus a Label3D with its tile number (position in the spawn's
+## `cells`). Empty mission list clears it. Creator only - apply_mission()
+## skips this when respect_visibility is on (the Player must not reveal
+## spawn tiles).
+func refresh_monster_spawn_overlay() -> void:
+	_monster_overlay_mesh.clear_surfaces()
+	if _monster_labels == null:
+		_monster_labels = Node3D.new()
+		add_child(_monster_labels)
+	for child in _monster_labels.get_children():
+		child.free()
+
+	var any := false
+	for spawn in mission.monster_spawns:
+		if not spawn.cells.is_empty():
+			any = true
+			break
+	if not any:
+		_monster_overlay.visible = false
+		return
+
+	_monster_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in mission.monster_spawns.size():
+		var spawn: MonsterSpawn = mission.monster_spawns[i]
+		var color := monster_spawn_color(i)
+		color.a = 0.6 if spawn.id == monster_overlay_active_id else 0.3
+		for n in spawn.cells.size():
+			var corners := get_tile_square_world_corners(spawn.cells[n])
+			for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+				_monster_overlay_mesh.surface_set_color(color)
+				_monster_overlay_mesh.surface_add_vertex(v)
+			var label := Label3D.new()
+			label.text = str(n + 1)
+			label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			label.no_depth_test = true
+			label.pixel_size = 0.02
+			label.modulate = Color.WHITE
+			label.outline_modulate = Color.BLACK
+			_monster_labels.add_child(label)
+			label.global_position = (corners[0] + corners[2]) * 0.5 + Vector3(0, 0.3, 0)
+	_monster_overlay_mesh.surface_end()
+	_monster_overlay.global_transform = Transform3D.IDENTITY
+	_monster_overlay.visible = true
 
 
 ## Yellow semi-transparent overlay marking a set of TILE-SQUARE ("game
@@ -460,6 +564,11 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	mission = mission_to_apply
 	_respect_visibility = respect_visibility
 	_paint_all()
+	# Creator-only marker (the Player passes respect_visibility = true and
+	# shouldn't reveal where monsters start) - also what makes undo/redo/
+	# Load repaint it, since all three go through apply_mission().
+	if _monster_overlay != null and not respect_visibility:
+		refresh_monster_spawn_overlay()
 
 	# A whole new mission's worth of interactables/groups just got swapped
 	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its

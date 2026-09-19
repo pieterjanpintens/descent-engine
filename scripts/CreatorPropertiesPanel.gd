@@ -46,6 +46,10 @@ var _visible_check: CheckBox
 var _properties_button: Button
 var _properties_dialog: PropertiesDialog
 var _actions_button: Button
+
+## MonsterSpawn only - the ordered tile list with reorder/remove buttons,
+## rebuilt by _rebuild_spawn_tiles() on every selection refresh.
+var _spawn_tiles_box: VBoxContainer
 var _actions_dialog: PropActionsDialog
 
 ## Multi-select batch panel (see class doc) - built once alongside
@@ -144,6 +148,10 @@ func _build_object_fields() -> void:
 	_actions_dialog.layered_map = layered_map
 	add_child(_actions_dialog)
 
+	_spawn_tiles_box = VBoxContainer.new()
+	_spawn_tiles_box.visible = false
+	_object_fields.add_child(_spawn_tiles_box)
+
 
 func _build_multi_fields() -> void:
 	_multi_fields = VBoxContainer.new()
@@ -203,6 +211,7 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 		_visible_check.disabled = true
 		_properties_button.visible = false
 		_actions_button.visible = false
+		_spawn_tiles_box.visible = false
 		return
 
 	_name_edit.editable = true
@@ -211,11 +220,72 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	_name_edit.placeholder_text = _fallback_name(type)
 	_properties_button.visible = type == CreatorOutline.SelectionType.OBJECT
 	_actions_button.visible = type == CreatorOutline.SelectionType.OBJECT
+	_rebuild_spawn_tiles(type)
 
 	_suppress_field_signals = true
 	_name_edit.text = _current_node.reference_name
 	_visible_check.button_pressed = _current_node.visible
 	_suppress_field_signals = false
+
+
+## MonsterSpawn's ordered tile list: "N: (x, y, z)" with up/down (renumbers
+## by swapping list positions - the cheap alternative to redrawing tiles to
+## insert one in the middle) and remove buttons. Swaps by INDEX, never by
+## value.
+func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
+	for child in _spawn_tiles_box.get_children():
+		child.queue_free()
+	_spawn_tiles_box.visible = type == CreatorOutline.SelectionType.MONSTER_SPAWN
+	if not _spawn_tiles_box.visible:
+		return
+	var spawn := _current_node as MonsterSpawn
+	var header := Label.new()
+	header.text = "Tiles (spawn order):"
+	_spawn_tiles_box.add_child(header)
+	for i in spawn.cells.size():
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		label.text = "%d: %s" % [i + 1, spawn.cells[i]]
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var up := Button.new()
+		up.text = "↑"
+		up.disabled = i == 0
+		up.pressed.connect(_on_spawn_tile_moved.bind(spawn, i, -1))
+		row.add_child(up)
+		var down := Button.new()
+		down.text = "↓"
+		down.disabled = i == spawn.cells.size() - 1
+		down.pressed.connect(_on_spawn_tile_moved.bind(spawn, i, 1))
+		row.add_child(down)
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(_on_spawn_tile_removed.bind(spawn, i))
+		row.add_child(remove)
+		_spawn_tiles_box.add_child(row)
+
+
+func _on_spawn_tile_moved(spawn: MonsterSpawn, index: int, delta: int) -> void:
+	var target := index + delta
+	if target < 0 or target >= spawn.cells.size():
+		return
+	operation_history.record("Reorder spawn tile", func():
+		var tmp := spawn.cells[index]
+		spawn.cells[index] = spawn.cells[target]
+		spawn.cells[target] = tmp
+	)
+	layered_map.refresh_monster_spawn_overlay()
+	layered_map.notify_objects_changed()
+
+
+func _on_spawn_tile_removed(spawn: MonsterSpawn, index: int) -> void:
+	if index < 0 or index >= spawn.cells.size():
+		return
+	operation_history.record("Remove spawn tile", func():
+		spawn.cells.remove_at(index)
+	)
+	layered_map.refresh_monster_spawn_overlay()
+	layered_map.notify_objects_changed()
 
 
 ## Deliberately minimal - see class doc's "properties view frozen, only the
@@ -303,6 +373,10 @@ func _resolve_node(type: CreatorOutline.SelectionType, id: String) -> OutlineNod
 			for placement in layered_map.mission.underlay_placements:
 				if placement.id == id:
 					return placement
+		CreatorOutline.SelectionType.MONSTER_SPAWN:
+			for spawn in layered_map.mission.monster_spawns:
+				if spawn.id == id:
+					return spawn
 	return null
 
 
@@ -315,6 +389,9 @@ func _describe(type: CreatorOutline.SelectionType) -> String:
 			var placement := _current_node as TilePlacement
 			var label := "Floor tile" if placement.layer == TilePlacement.Layer.FLOOR else "Underlay"
 			return "%s\nMesh: %s\nCell: %s" % [label, placement.mesh_item_name, placement.origin_cell]
+		CreatorOutline.SelectionType.MONSTER_SPAWN:
+			return "Monster Spawn
+%d tile(s)" % (_current_node as MonsterSpawn).cells.size()
 		_:  # GROUP - no mesh/cell/type to show
 			return "Group"
 
@@ -328,6 +405,8 @@ func _fallback_name(type: CreatorOutline.SelectionType) -> String:
 			return (_current_node as InteractableEntry).mesh_item_name
 		CreatorOutline.SelectionType.TILE:
 			return (_current_node as TilePlacement).mesh_item_name
+		CreatorOutline.SelectionType.MONSTER_SPAWN:
+			return "Monster Spawn"
 		_:
 			return "(unnamed group)"
 

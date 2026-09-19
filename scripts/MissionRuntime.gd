@@ -174,6 +174,19 @@ var _pending_stage_reveals: Array[String] = []
 ## drain_pending_object_removals() below.
 var _pending_object_removals: Array[String] = []
 
+## Queued Effect.Type.MOVE_OBJECT targets, same shape/reasoning as
+## _pending_object_removals above - a Dictionary (not a bare String) since
+## a move needs BOTH the object id AND its destination, drained by
+## drain_pending_object_moves() below. Keys: "id" (String), "cell"
+## (Vector3i, tile-square units - see Effect.target_cell's own doc).
+var _pending_object_moves: Array[Dictionary] = []
+
+## SPAWN_MONSTERS effects waiting for MissionPlayer to act on them (it has
+## the dialogs/scene access, this class doesn't) - see
+## drain_pending_monster_spawns(). Keys: "spawn_id" (String), "monsters"
+## (Array[String] of monster folders, in spawn-tile order).
+var _pending_monster_spawns: Array[Dictionary] = []
+
 
 ## `hero_name` (new 2026-09-14, optional) is the acting player, threaded
 ## through purely so a RUN_TEST effect's dialog prompt can address them by
@@ -181,10 +194,21 @@ var _pending_object_removals: Array[String] = []
 ## checkpoint-driven MissionTrigger's effects). See this class's own doc
 ## for why this function (and everything that calls it) is now a
 ## coroutine. SHOW_MESSAGE (new 2026-09-17) reuses the same `dialog`
-## reference RUN_TEST already established - `await dialog.ask_ok(effect.message)`,
-## nothing else - a plain narrative popup with no branching, no variable
-## read/write.
+## reference RUN_TEST already established - `await dialog.ask_ok(...)` a
+## plain narrative popup with no branching, no variable write of its own.
+## The text goes through `_format_message()` first (new 2026-09-19) to
+## substitute any `$1`/`$2`/... placeholders against `effect.message_variables`
+## - see that method's own doc for the full mechanism.
+##
+## `effect.conditions` (new 2026-09-18) is checked FIRST, before any
+## type branch below - an Effect whose own conditions don't currently
+## hold is skipped entirely, same evaluate_conditions() (implicit AND,
+## empty = always true) every other conditions list in this class already
+## uses. Checked here rather than per-branch so it applies uniformly to
+## all seven Effect.Type kinds for free, not just SET_VARIABLE.
 func apply_effect(effect: Effect, hero_name: String = "") -> void:
+	if not evaluate_conditions(effect.conditions):
+		return
 	if effect.type == Effect.Type.SHOW_STAGE:
 		if effect.target_group_id != "":
 			_pending_stage_reveals.append(effect.target_group_id)
@@ -193,14 +217,24 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		if effect.target_object_id != "":
 			_pending_object_removals.append(effect.target_object_id)
 		return
+	if effect.type == Effect.Type.MOVE_OBJECT:
+		if effect.target_object_id != "":
+			_pending_object_moves.append({"id": effect.target_object_id, "cell": effect.target_cell})
+		return
+	if effect.type == Effect.Type.MATH:
+		_apply_math(effect)
+		return
 	if effect.type == Effect.Type.RUN_TEST:
 		await _run_test(effect, hero_name)
+		return
+	if effect.type == Effect.Type.SPAWN_MONSTERS:
+		_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": effect.spawn_monsters.duplicate()})
 		return
 	if effect.type == Effect.Type.SHOW_MESSAGE:
 		if dialog == null:
 			push_warning("SHOW_MESSAGE effect fired but MissionRuntime.dialog isn't wired - skipped")
 			return
-		await dialog.ask_ok(effect.message)
+		await dialog.ask_ok(_format_message(effect.message, effect.message_variables))
 		return
 	if BUILTIN_TYPES.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
@@ -220,6 +254,42 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 func apply_effects(effects: Array[Effect], hero_name: String = "") -> void:
 	for effect in effects:
 		await apply_effect(effect, hero_name)
+
+
+## Effect.Type.SHOW_MESSAGE's own text-substitution mechanism (new
+## 2026-09-19) - requested directly: "in our shown message dialog text we
+## might want to reference variables... the text can contain $1, $2 etc
+## that represent entries in the list... at runtime these must be
+## replaced with the actual value of that variable." `template` is
+## `effect.message`, `variable_names` is `effect.message_variables` (1st
+## entry = $1, 2nd = $2, ...). Uses a real RegEx (`\$(\d+)`, matching ANY
+## run of digits, not just single-digit `$1`-`$9`) rather than naive
+## string replacement specifically so `$10`/`$11`/... substitute correctly
+## instead of `$1` inside `$10` matching first and corrupting the digit
+## that follows it. An index with no corresponding list entry (typo, or an
+## entry removed after the text was written) is replaced with NOTHING (an
+## empty string - requested directly: "if it references a position
+## outside the list, just show nothing") and `push_warning()`s, so the
+## authoring mistake is still visible to whoever's testing the mission,
+## just not to the table. Each substituted variable's value goes through
+## plain `str()` - a bool/int/float/string all read naturally in
+## narrative text with no special-casing needed.
+func _format_message(template: String, variable_names: Array[String]) -> String:
+	var regex := RegEx.new()
+	regex.compile("\\$(\\d+)")
+
+	var result := ""
+	var last_end := 0
+	for found in regex.search_all(template):
+		result += template.substr(last_end, found.get_start() - last_end)
+		var index: int = int(found.get_string(1)) - 1  # $1 -> list index 0
+		if index >= 0 and index < variable_names.size():
+			result += str(_variables.get(variable_names[index], "?"))
+		else:
+			push_warning("SHOW_MESSAGE references %s, but only %d variable(s) are listed - showing nothing" % [found.get_string(), variable_names.size()])
+		last_end = found.get_end()
+	result += template.substr(last_end)
+	return result
 
 
 ## Asks dialog.ask_count() for a raw successes roll - the required number
@@ -270,6 +340,83 @@ func _accumulate(variable_name: String, delta: int) -> void:
 	print("MissionRuntime._accumulate: '%s' += %d -> %s" % [variable_name, delta, _variables[variable_name]])
 
 
+## Effect.Type.MATH's own mechanism - resolves both operands (see
+## _resolve_math_operand() below), applies effect.math_operator, and
+## writes the result to effect.variable_name through the SAME
+## declared-type coercion discipline apply_effect()'s own SET_VARIABLE
+## body uses (a plain int result naturally coerces into an INT target
+## exactly, or a FLOAT target via _coerce()'s existing int-widening rule -
+## see that method's own doc). Bails (push_warning() + skip, never a
+## partial write) on either operand failing to resolve, a division/modulo
+## by zero, an undeclared/built-in target, or a target whose declared type
+## can't accept an int.
+func _apply_math(effect: Effect) -> void:
+	var a: Variant = _resolve_math_operand(effect.math_operand_a_is_variable, effect.math_operand_a_literal, effect.math_operand_a_variable)
+	if typeof(a) == TYPE_NIL:
+		return
+	var b: Variant = _resolve_math_operand(effect.math_operand_b_is_variable, effect.math_operand_b_literal, effect.math_operand_b_variable)
+	if typeof(b) == TYPE_NIL:
+		return
+
+	var result: int
+	match effect.math_operator:
+		Effect.MathOperator.ADD:
+			result = a + b
+		Effect.MathOperator.SUBTRACT:
+			result = a - b
+		Effect.MathOperator.MULTIPLY:
+			result = a * b
+		Effect.MathOperator.DIVIDE:
+			if b == 0:
+				push_warning("Math effect: division by zero writing '%s' - skipped" % effect.variable_name)
+				return
+			result = a / b
+		Effect.MathOperator.MODULO:
+			if b == 0:
+				push_warning("Math effect: modulo by zero writing '%s' - skipped" % effect.variable_name)
+				return
+			result = a % b
+		_:
+			push_warning("Math effect has an unrecognized operator - skipped")
+			return
+
+	if BUILTIN_TYPES.has(effect.variable_name):
+		push_warning("Math effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
+		return
+	var declared: int = _declared_type(effect.variable_name)
+	if declared == -1:
+		push_warning("Math effect references unknown variable '%s' - skipped" % effect.variable_name)
+		return
+	var coerced: Variant = _coerce(result, declared as MissionVariable.Type)
+	if typeof(coerced) == TYPE_NIL:
+		push_warning("Math effect result for '%s' doesn't match its declared type - skipped" % effect.variable_name)
+		return
+	_variables[effect.variable_name] = coerced
+	print("MissionRuntime._apply_math: '%s' = %s" % [effect.variable_name, coerced])
+
+
+## Resolves one MATH operand - `literal_value` verbatim if `is_variable`
+## is false, or (if true) a declared INT variable's CURRENT value from
+## `variable_name`. Returns null (TYPE_NIL) on failure - an undeclared
+## name, or one declared but not INT - so _apply_math() can bail the whole
+## effect the same "skip, never half-apply" way every other invalid-effect
+## path in this class already does (same null-means-failure,
+## typeof()==TYPE_NIL-checked-by-the-caller convention _coerce() itself
+## uses - see that method's own doc for why a genuine 0 result must never
+## be confused with failure here). Builtins (round_number/player_count)
+## are valid operand sources - only WRITING one is disallowed elsewhere in
+## this class, reading is fine.
+func _resolve_math_operand(is_variable: bool, literal_value: int, variable_name: String) -> Variant:
+	if not is_variable:
+		return literal_value
+	var declared: int = _declared_type(variable_name)
+	if declared != MissionVariable.Type.INT:
+		push_warning("Math effect operand '%s' isn't a declared INT variable - skipped" % variable_name)
+		return null
+	var current: Variant = _variables.get(variable_name, 0)
+	return current if typeof(current) == TYPE_INT else 0
+
+
 ## Clears and returns whatever Show Stage targets queued up since the last
 ## drain - called by MissionPlayer right after anything that can apply
 ## effects (a checkpoint transition, a fired PropAction), so it can await
@@ -288,6 +435,27 @@ func drain_pending_object_removals() -> Array[String]:
 	var removals := _pending_object_removals
 	_pending_object_removals = []
 	return removals
+
+
+## Clears and returns the SPAWN_MONSTERS effects queued since the last drain (new 2026-09-19) - MissionPlayer runs each via _run_monster_spawn().
+func drain_pending_monster_spawns() -> Array[Dictionary]:
+	var spawns := _pending_monster_spawns
+	_pending_monster_spawns = []
+	return spawns
+
+
+## Clears and returns whatever Move Object targets queued up since the
+## last drain - same call site/reasoning as the other two drains above.
+## Each entry is {"id": String, "cell": Vector3i} - `cell` is still in
+## AUTHORED tile-square units at this point (see Effect.target_cell's own
+## doc); MissionPlayer converts to a real fine origin_cell via
+## FootprintRegistry.tile_square_to_fine_far_corner() right before calling
+## LayeredMap.move_node(), so this class never needs to know that
+## conversion exists.
+func drain_pending_object_moves() -> Array[Dictionary]:
+	var moves := _pending_object_moves
+	_pending_object_moves = []
+	return moves
 
 
 ## Fires every checkpoint-driven trigger due at `checkpoint`, then checks

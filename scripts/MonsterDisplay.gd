@@ -232,11 +232,34 @@ var target_figure_diagonal: float
 
 var camera: FreeLookCamera
 
+## Set BEFORE add_child() to use this node as a plain holder for individual
+## stands placed via place_stand() (MissionPlayer's "place the monsters on
+## the map" step) instead of the roster-grid mockup: skips building the
+## camera/grid and the test-only base-gap markers.
+var standalone: bool = false
+
 
 func _ready() -> void:
 	target_figure_diagonal = FIGURE_SIZE.length()
+	if standalone:
+		return
 	_build_camera()
 	_build_grid()
+
+
+## Builds one monster stand (base + figure + name label) at `origin` in
+## this node's local space. `monster` is a MonsterDisplay.REAL_MONSTERS
+## entry; `index` only picks the placeholder-cube colour.
+func place_stand(origin: Vector3, monster: Dictionary, index: int = 0) -> void:
+	_build_stand(origin, monster, index)
+
+
+## The REAL_MONSTERS entry whose `folder` matches, or an empty Dictionary.
+static func find_monster(folder: String) -> Dictionary:
+	for monster in REAL_MONSTERS:
+		if monster["folder"] == folder:
+			return monster
+	return {}
 
 
 ## TEMPORARY - a plain fixed Camera3D made it hard to tell what was
@@ -461,7 +484,8 @@ func _build_real_figure(origin: Vector3, monster: Dictionary, index: int) -> voi
 	# is threaded through separately (not re-derived from figure.basis) so
 	# _build_gap_marker() can convert GAP_WALL_HEIGHT_WORLD back into this
 	# specific mesh's own local units - see that constant's own doc.
-	_build_gap_marker(figure, mesh, index, scale_factor)
+	if not standalone:
+		_build_gap_marker(figure, mesh, index, scale_factor)
 
 
 ## TEST ONLY - visually verifies BaseGapDetector.gd actually finds the

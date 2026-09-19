@@ -73,7 +73,7 @@ extends Tree
 ## tab is active) - this script still needs to keep that state consistent
 ## whenever ITS OWN group-CRUD actions could orphan it.
 
-enum SelectionType { ROOT, OBJECT, GROUP, TILE }
+enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN }
 enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP }
 
 signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
@@ -173,6 +173,9 @@ func _migrate_missing_ids() -> void:
 	for placement in mission.underlay_placements:
 		if placement.id == "":
 			placement.id = mission.allocate_object_id()
+	for spawn in mission.monster_spawns:
+		if spawn.id == "":
+			spawn.id = mission.allocate_object_id()
 
 
 func _rebuild_tree() -> void:
@@ -224,6 +227,14 @@ func _rebuild_tree() -> void:
 
 	for placement in mission.underlay_placements:
 		_add_tile_item(placement, "underlay")
+
+	for spawn_index in mission.monster_spawns.size():
+		var spawn: MonsterSpawn = mission.monster_spawns[spawn_index]
+		var spawn_parent: TreeItem = _id_to_item.get(spawn.parent_id, root_item)
+		var spawn_item := create_item(spawn_parent)
+		spawn_item.set_text(0, spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d (%d tiles)" % [spawn_index + 1, spawn.cells.size()])
+		spawn_item.set_metadata(0, {"type": SelectionType.MONSTER_SPAWN, "id": spawn.id})
+		_id_to_item[spawn.id] = spawn_item
 
 	# Re-select whatever was selected before this rebuild - ALL of it, not
 	# just one item. Floor/underlay edits already fire mission_objects_changed
@@ -343,6 +354,22 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 				if jump_camera:
 					creator_controller.jump_to_cell(placement.origin_cell, grid)
 				return
+		SelectionType.MONSTER_SPAWN:
+			var spawn := _find_spawn_by_id(id)
+			if spawn != null:
+				# Selecting a spawn also makes it the one the Monster Spawn
+				# tool draws into.
+				creator_controller.set_active_monster_spawn(spawn.id)
+				if not spawn.cells.is_empty():
+					var first := spawn.cells[0]
+					var fine_origin := FootprintRegistry.tile_square_to_fine_far_corner(first)
+					var offsets: Array[Vector3i] = []
+					for cell in spawn.cells:
+						offsets.append(cell - first)
+					creator_controller.highlight_footprint(fine_origin, FootprintRegistry.expand_footprint(offsets), layered_map.floor_grid)
+					if jump_camera:
+						creator_controller.jump_to_cell(fine_origin, layered_map.floor_grid)
+					return
 	creator_controller.clear_selection_highlight()
 
 
@@ -385,6 +412,13 @@ func _find_interactable_by_id(id: String) -> InteractableEntry:
 	for entry in layered_map.mission.interactables:
 		if entry.id == id:
 			return entry
+	return null
+
+
+func _find_spawn_by_id(id: String) -> MonsterSpawn:
+	for spawn in layered_map.mission.monster_spawns:
+		if spawn.id == id:
+			return spawn
 	return null
 
 
@@ -468,7 +502,7 @@ func _populate_context_menu(type: SelectionType) -> void:
 			_context_menu.add_item("Delete Group", _ContextAction.DELETE_GROUP)
 			_context_menu.add_separator()
 			_add_move_to_submenu()
-		SelectionType.OBJECT, SelectionType.TILE:
+		SelectionType.OBJECT, SelectionType.TILE, SelectionType.MONSTER_SPAWN:
 			_add_move_to_submenu()
 
 
@@ -566,6 +600,9 @@ func _delete_group(group_id: String) -> void:
 		for placement in mission.underlay_placements:
 			if placement.parent_id == group_id:
 				placement.parent_id = group.parent_id
+		for spawn in mission.monster_spawns:
+			if spawn.parent_id == group_id:
+				spawn.parent_id = group.parent_id
 		mission.groups.erase(group)
 	)
 	layered_map.notify_objects_changed()
@@ -590,6 +627,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 	var group: MissionGroup = null
 	var entry: InteractableEntry = null
 	var placement: TilePlacement = null
+	var spawn: MonsterSpawn = null
 	match _context_target_type:
 		SelectionType.GROUP:
 			group = _find_group_by_id(_context_target_id)
@@ -597,9 +635,11 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			entry = _find_interactable_by_id(_context_target_id)
 		SelectionType.TILE:
 			placement = _find_tile_by_id(_context_target_id)
+		SelectionType.MONSTER_SPAWN:
+			spawn = _find_spawn_by_id(_context_target_id)
 		_:
 			return
-	if group == null and entry == null and placement == null:
+	if group == null and entry == null and placement == null and spawn == null:
 		return
 
 	operation_history.record("Move to group", func():
@@ -609,5 +649,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			entry.parent_id = new_parent_id
 		elif placement != null:
 			placement.parent_id = new_parent_id
+		elif spawn != null:
+			spawn.parent_id = new_parent_id
 	)
 	layered_map.notify_objects_changed()

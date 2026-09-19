@@ -73,6 +73,58 @@ const MAX_COUNTS: Dictionary = {
 }
 
 
+## Physical miniature count per monster type, keyed by
+## MonsterDisplay.REAL_MONSTERS' `folder` field (lowercase, e.g.
+## "blood sister") - the same key that array and the asset-import tooling
+## already use. Kept separate from MAX_COUNTS above: monsters aren't
+## MeshLibrary items (nothing is painted/placed on a GridMap), so the
+## mesh-name-keyed get_max_count()/get_group() lookups don't apply to
+## them. Real counts from the physical box (new 2026-09-19); nothing
+## enforces these yet - no monster spawn authoring/combat exists to
+## consume them, see claude.md's Open item #3.
+const MONSTER_COUNTS: Dictionary = {
+	"bandit": 4,
+	"berserker": 4,
+	"blood sister": 4,
+	"centurion": 1,
+	"doomcaller": 2,
+	"fae": 2,
+	"golem": 2,
+	"harbinger": 4,
+	"legionnaire": 4,
+	"mercenary": 4,
+	"reanimate": 4,
+	"salamander": 2,
+	"specter": 2,
+	"vampire": 2,
+	"wight": 4,
+	"wolf": 3,
+	"zealot": 4,
+}
+
+
+## Physical monster color-tab indicators (the clip-on plastic pieces that
+## slot into the notch on a monster's base - see claude.md's "Base-disc
+## color-tab gap detection"), 4 of each of 4 colors (new 2026-09-19).
+## Keyed by lowercase color name. Data only, like MONSTER_COUNTS.
+const COLOR_INDICATOR_COUNTS: Dictionary = {
+	"yellow": 4,
+	"green": 4,
+	"purple": 4,
+	"orange": 4,
+}
+
+
+func get_color_indicator_count(color: String) -> int:
+	return COLOR_INDICATOR_COUNTS.get(color, -1)
+
+
+## Returns -1 if this monster folder isn't listed (treated as unlimited,
+## same convention as get_max_count()).
+func get_monster_count(folder: String) -> int:
+	return MONSTER_COUNTS.get(folder, -1)
+
+
 func get_group(mesh_item_name: String) -> String:
 	return MESH_TO_GROUP.get(mesh_item_name, mesh_item_name)
 

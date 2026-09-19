@@ -696,6 +696,31 @@ func fine_cell_to_tile_square(fine_cell: Vector3i) -> Vector3i:
 	)
 
 
+## The other direction of fine_cell_to_tile_square() above - a tile-square
+## coordinate's own FAR CORNER fine cell (the same corner
+## expand_footprint()'s far-corner convention anchors everything to, and
+## the exact math CreatorController._snap_to_tile_square_far_corner()
+## already duplicates for its own hover-snapping purposes). NOT a true
+## round-trip inverse of fine_cell_to_tile_square() for every fine cell in
+## that tile square (only its far corner one) - this is for the opposite
+## direction: an ALREADY-KNOWN tile-square index (e.g. authored by a
+## designer as a plain integer coordinate, like Effect.Type.MOVE_OBJECT's
+## target_cell) that needs converting to a real GridMap origin_cell, not a
+## raw raycast hover needing to be rounded down. Only meaningful for
+## non-pillar meshes (see allows_fine_placement()) - a pillar's real
+## origin_cell can legitimately sit at any of a tile-square's sub-cell
+## corners, which a bare tile-square index can't disambiguate; callers
+## authoring a pillar's coordinate this way will land it at this tile
+## square's far corner specifically, not wherever else within it a pillar
+## could otherwise be fine-placed.
+func tile_square_to_fine_far_corner(tile_square: Vector3i) -> Vector3i:
+	return Vector3i(
+		tile_square.x * CELLS_PER_TILE,
+		tile_square.y,
+		tile_square.z * CELLS_PER_TILE,
+	)
+
+
 ## Full convenience pipeline for the UNROTATED case: raw tile-square
 ## offsets, expanded to fine cells. Do NOT use this if you also need to
 ## rotate - call get_tile_square_footprint() -> rotate_footprint() ->

@@ -114,6 +114,11 @@ signal draw_mode_changed(enabled: bool)
 ## listens to this to stay in sync with the hotkey, same as draw_mode above.
 signal spawn_paint_mode_changed(enabled: bool)
 
+## Same idea for monster_spawn_paint_mode (new 2026-09-19) - draws
+## MissionData.monster_spawns cells, red instead of yellow.
+signal monster_spawn_paint_mode_changed(enabled: bool)
+signal active_monster_spawn_changed(id: String)
+
 ## Same idea for move_mode (M key, or set_move_mode() - new 2026-09-18) -
 ## see move_mode's own doc below for what the mode actually does.
 signal move_mode_changed(enabled: bool)
@@ -207,6 +212,14 @@ var _tile_labels_container: Node3D
 var show_tile_labels: bool = false
 
 var spawn_paint_mode: bool = false
+## Same tool as spawn_paint_mode (shares its hover/ghost), but each
+## left-click toggles a MonsterSpawn entry in mission.monster_spawns
+## (one per tile-square, `cell`) instead of a player_spawn_cells entry.
+## Mutually exclusive with draw/spawn/move - enforced in all four setters.
+var monster_spawn_paint_mode: bool = false
+## Which MonsterSpawn the monster spawn tool draws into, see
+## set_active_monster_spawn().
+var active_monster_spawn_id: String = ""
 var _spawn_hovered_cell: Vector3i = Vector3i.ZERO
 var _spawn_has_hover: bool = false
 var _spawn_ghost: MeshInstance3D
@@ -277,6 +290,7 @@ func _ready() -> void:
 	# mission with no spawn cells authored yet.
 	layered_map.set_spawn_overlay_cells(layered_map.mission.player_spawn_cells)
 	layered_map.set_spawn_overlay_visible(true)
+	layered_map.refresh_monster_spawn_overlay()
 
 
 ## Computes the real GridMap orientation index for each of the four flat
@@ -721,6 +735,7 @@ func set_draw_mode(enabled: bool) -> void:
 	if draw_mode:
 		set_spawn_paint_mode(false)
 		set_move_mode(false)
+		set_monster_spawn_paint_mode(false)
 	print("Draw mode: %s" % ("ON" if draw_mode else "OFF"))
 	draw_mode_changed.emit(draw_mode)
 
@@ -750,7 +765,19 @@ func set_spawn_paint_mode(enabled: bool) -> void:
 	if spawn_paint_mode:
 		set_draw_mode(false)
 		set_move_mode(false)
+		set_monster_spawn_paint_mode(false)
 	spawn_paint_mode_changed.emit(spawn_paint_mode)
+
+
+func set_monster_spawn_paint_mode(enabled: bool) -> void:
+	if monster_spawn_paint_mode == enabled:
+		return
+	monster_spawn_paint_mode = enabled
+	if monster_spawn_paint_mode:
+		set_draw_mode(false)
+		set_move_mode(false)
+		set_spawn_paint_mode(false)
+	monster_spawn_paint_mode_changed.emit(monster_spawn_paint_mode)
 
 
 ## See move_mode's own doc above - mutually exclusive with draw_mode/
@@ -766,6 +793,7 @@ func set_move_mode(enabled: bool) -> void:
 	if move_mode:
 		set_draw_mode(false)
 		set_spawn_paint_mode(false)
+		set_monster_spawn_paint_mode(false)
 	else:
 		_cancel_move_drag()
 	print("Move mode: %s" % ("ON" if move_mode else "OFF"))
@@ -864,6 +892,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.pressed:
 			if spawn_paint_mode:
 				_toggle_spawn_cell_at_cursor()
+			elif monster_spawn_paint_mode:
+				_toggle_monster_spawn_cell_at_cursor()
 			elif move_mode:
 				_start_move_drag()
 			elif not draw_mode:
@@ -882,7 +912,7 @@ func _process(_delta: float) -> void:
 	_update_grid_overlay()
 	_update_origin_overlay()
 	_update_occupancy_overlay()
-	if spawn_paint_mode:
+	if spawn_paint_mode or monster_spawn_paint_mode:
 		_update_spawn_hover()
 		_update_spawn_ghost()
 	else:
@@ -939,7 +969,7 @@ func _update_spawn_ghost() -> void:
 	_spawn_ghost_mesh.clear_surfaces()
 	_spawn_ghost_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
-		_spawn_ghost_mesh.surface_set_color(ghost_color)
+		_spawn_ghost_mesh.surface_set_color(layered_map.monster_spawn_color_for_id(active_monster_spawn_id) if monster_spawn_paint_mode else ghost_color)
 		_spawn_ghost_mesh.surface_add_vertex(v)
 	_spawn_ghost_mesh.surface_end()
 	_spawn_ghost.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
@@ -1021,6 +1051,73 @@ func _update_move_ghost() -> void:
 	var basis := grid.get_cell_item_basis(_move_drag_origin_cell)
 	_move_ghost.global_transform = grid.global_transform * Transform3D(basis, local_pos)
 	_move_ghost.visible = true
+
+
+## Monster-spawn counterpart to _toggle_spawn_cell_at_cursor() - same
+## tile-square snap, but toggles the cell in the ACTIVE MonsterSpawn's
+## ordered `cells` list (reworked 2026-09-19, see MonsterSpawn): a new tile
+## appends (becoming the next number), removing one renumbers the rest. A
+## cell that already belongs to a DIFFERENT spawn is refused - the overlay
+## colour shows whose it is. With no active spawn, one is created first so
+## the very first click just works.
+func _toggle_monster_spawn_cell_at_cursor() -> void:
+	if not _spawn_has_hover:
+		return
+	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
+	var spawns := layered_map.mission.monster_spawns
+
+	for spawn in spawns:
+		if spawn.id != active_monster_spawn_id and spawn.cells.has(tile_square):
+			push_warning("That tile already belongs to another monster spawn - select that spawn to edit it")
+			return
+
+	if _find_monster_spawn(active_monster_spawn_id) == null:
+		create_monster_spawn()
+
+	var target := _find_monster_spawn(active_monster_spawn_id)
+	operation_history.record("Toggle monster spawn tile", func():
+		var index := target.cells.find(tile_square)
+		if index == -1:
+			target.cells.append(tile_square)
+		else:
+			target.cells.remove_at(index)
+	)
+	layered_map.refresh_monster_spawn_overlay()
+	layered_map.notify_objects_changed()
+
+
+func _find_monster_spawn(id: String) -> MonsterSpawn:
+	for spawn in layered_map.mission.monster_spawns:
+		if spawn.id == id:
+			return spawn
+	return null
+
+
+## Creates an empty MonsterSpawn (in the current working group) and makes it
+## the active one. Returns its id. One undo step.
+func create_monster_spawn() -> String:
+	var spawn := MonsterSpawn.new()
+	operation_history.record("New monster spawn", func():
+		spawn.id = layered_map.mission.allocate_object_id()
+		spawn.parent_id = working_group_id
+		layered_map.mission.monster_spawns.append(spawn)
+	)
+	layered_map.notify_objects_changed()
+	set_active_monster_spawn(spawn.id)
+	return spawn.id
+
+
+## Which MonsterSpawn the Monster Spawn tool draws into (the Palette's
+## "Active spawn" dropdown, or selecting a spawn in the outline tree). Tool
+## state, not part of MissionData, so not undo-tracked; a stale id (e.g.
+## after an undo removed that spawn) just reads as "no active spawn".
+func set_active_monster_spawn(id: String) -> void:
+	if active_monster_spawn_id == id:
+		return
+	active_monster_spawn_id = id
+	layered_map.monster_overlay_active_id = id
+	layered_map.refresh_monster_spawn_overlay()
+	active_monster_spawn_changed.emit(id)
 
 
 func _update_hover() -> void:
