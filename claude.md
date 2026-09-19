@@ -1722,6 +1722,38 @@ first working version).
 	multi-cell footprint piece, moving something to a different level via
 	PageUp/PageDown mid-drag, and confirming a drop onto an occupied cell
 	correctly cancels rather than silently overwriting.
+  - **R rotates a placed piece (new 2026-09-19)**: `rotate_selection()` -
+	in Draw mode R still rotates the placement ghost; otherwise it calls
+	`rotate_selected_placed()`, which turns the piece selected in the
+	outline (`selected_placed_id`, set by `CreatorOutline` whenever exactly
+	one prop/tile is selected) a quarter turn: 1x1 pieces in place
+	(origin' = origin + shift(old) - shift(new)), other footprints around
+	their origin as before. One undo step, identity carried over via
+	`_carry_identity()`. **Unverified in-editor.**
+  - **In-place rotation of 1x1 pieces (new 2026-09-19)** - a piece's origin
+	cell is a pivot on the far corner of its tile, so rotating (`R`) used
+	to swing the mesh and its occupied cells around that corner into the
+	neighbouring tiles while the origin stayed put. For pieces whose
+	footprint is a single tile square (props like `tree`/tokens AND
+	pillars) `CreatorController` now shifts the origin by
+	`_origin_shift_1x1(mesh, basis)` (rotated footprint's lowest x/z minus
+	the unrotated one's, computed from `rotate_footprint(get_footprint())`,
+	no hand-derived offsets) so the piece rotates IN PLACE. Used by
+	`_placement_origin()` (ghost + `place_at_cursor()`) and
+	`_move_target_origin()` (Move mode ghost + drop). Occupancy math is
+	untouched - still origin + rotated footprint, just a different origin;
+	rotation 0 has shift 0, and saved missions keep their stored origins.
+	Verified headlessly for tree/tall/mini/medium/exploration: the occupied
+	cell set is identical at all four rotations. Re-placing the SAME mesh
+	over its own tile with another rotation now lands on a different origin
+	cell, so `place_at_cursor()` explicitly replaces the old piece and
+	copies its identity over (`_carry_identity()`: id/parent/name/visible/
+	props/actions). Larger footprints are NOT shifted (unsure yet).
+	The shift lives in `FootprintRegistry.origin_shift_1x1()` (shared): the
+	MOVE_OBJECT effect (`MissionPlayer._apply_object_move()`) applies it too,
+	so a rotated 1x1 piece lands IN the target tile-square (target far corner
+	minus the shift) instead of swinging into a neighbour.
+	**Unverified in-editor** - test placing/rotating/moving 1x1 pieces.
   - **`monster_spawn_paint_mode`** (new 2026-09-19, reworked the same day,
 	"Monster Spawn" button in `CreatorPalette`'s Misc tab,
 	`monster_spawn_paint_mode_changed` signal, no hotkey) - draws

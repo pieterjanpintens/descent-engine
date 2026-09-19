@@ -721,6 +721,32 @@ func tile_square_to_fine_far_corner(tile_square: Vector3i) -> Vector3i:
 	)
 
 
+## How far the origin cell must move (fine cells, x/z only) for a
+## single-tile-square piece (props, tokens, pillars) of `mesh_name`, rotated
+## by `basis`, to keep its near corner where the unrotated piece would be -
+## i.e. to rotate IN PLACE instead of swinging around its pivot corner.
+## Computed from the real rotated footprint. Zero for anything that isn't a
+## single tile square (unsure how larger shapes should behave) and for
+## rotation 0. Shared by CreatorController (placement/rotation/move mode)
+## and MissionPlayer (the Move Object effect).
+func origin_shift_1x1(mesh_name: String, basis: Basis) -> Vector3i:
+	if mesh_name == "" or get_tile_square_footprint(mesh_name).size() != 1:
+		return Vector3i.ZERO
+	var base := get_footprint(mesh_name)
+	var rotated := rotate_footprint(base, basis)
+	var base_min_x: int = base[0].x
+	var base_min_z: int = base[0].z
+	for offset in base:
+		base_min_x = mini(base_min_x, offset.x)
+		base_min_z = mini(base_min_z, offset.z)
+	var rot_min_x: int = rotated[0].x
+	var rot_min_z: int = rotated[0].z
+	for offset in rotated:
+		rot_min_x = mini(rot_min_x, offset.x)
+		rot_min_z = mini(rot_min_z, offset.z)
+	return Vector3i(rot_min_x - base_min_x, 0, rot_min_z - base_min_z)
+
+
 ## Full convenience pipeline for the UNROTATED case: raw tile-square
 ## offsets, expanded to fine cells. Do NOT use this if you also need to
 ## rotate - call get_tile_square_footprint() -> rotate_footprint() ->

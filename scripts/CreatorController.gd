@@ -835,8 +835,71 @@ func change_level(delta: int) -> void:
 	print("Painting level: %d" % current_level)
 
 
+## R: in Draw mode rotates the placement ghost (what the next placement
+## will use); otherwise rotates the SELECTED already-placed piece (see
+## rotate_selected_placed()).
 func rotate_selection() -> void:
-	current_quarter_turn = (current_quarter_turn + 1) % 4
+	if draw_mode:
+		current_quarter_turn = (current_quarter_turn + 1) % 4
+	else:
+		rotate_selected_placed()
+
+
+## The prop/floor/underlay currently selected in the outline tree (set by
+## CreatorOutline whenever exactly one such node is selected, "" otherwise) -
+## what R rotates outside Draw mode.
+var selected_placed_id: String = ""
+
+
+## Rotates the selected already-placed piece a quarter turn. 1x1 pieces
+## rotate IN PLACE (same origin shift as placement, see
+## _origin_shift_1x1()): origin' = origin + shift(old) - shift(new), which
+## keeps the near corner fixed. Other footprints keep their origin and
+## rotate around it like before. One undo step; the piece keeps its
+## identity (id/group/name/visibility/props/actions).
+func rotate_selected_placed() -> void:
+	if selected_placed_id == "" or layered_map.mission == null:
+		return
+	var node := layered_map.mission.find_node_by_id(selected_placed_id)
+	if not (node is InteractableEntry or node is TilePlacement):
+		return
+	var grid: GridMap
+	if node is InteractableEntry:
+		grid = layered_map.prop_grid
+	elif (node as TilePlacement).layer == TilePlacement.Layer.FLOOR:
+		grid = layered_map.floor_grid
+	else:
+		grid = layered_map.underlay_grid
+	var origin: Vector3i = node.get("origin_cell")
+	var mesh_name: String = str(node.get("mesh_item_name"))
+	var item_id := grid.get_cell_item(origin)
+	if item_id == GridMap.INVALID_CELL_ITEM:
+		return
+
+	var old_index := _quarter_turn_orientations.find(grid.get_cell_item_orientation(origin))
+	if old_index == -1:
+		old_index = 0
+	var new_index := (old_index + 1) % 4
+	var old_basis := Basis(Vector3.UP, deg_to_rad(90.0 * old_index))
+	var new_basis := Basis(Vector3.UP, deg_to_rad(90.0 * new_index))
+	var new_origin := origin + _origin_shift_1x1(mesh_name, old_basis) - _origin_shift_1x1(mesh_name, new_basis)
+	var new_orientation := _quarter_turn_orientations[new_index]
+	var carry: OutlineNode = node
+
+	operation_history.record("Rotate", func():
+		if new_origin != origin:
+			grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
+			if grid == layered_map.prop_grid:
+				layered_map.sync_prop_cell(origin)
+		grid.set_cell_item(new_origin, item_id, new_orientation)
+		_sync_after_edit(grid, new_origin)
+		if new_origin != origin:
+			var placed_id: String = _resolve_placed_at(grid, new_origin)["id"]
+			var placed := layered_map.mission.find_node_by_id(placed_id) if placed_id != "" else null
+			if placed != null:
+				_carry_identity(carry, placed)
+	)
+	layered_map.notify_objects_changed()
 
 
 func _current_mesh_name() -> String:
@@ -1011,6 +1074,13 @@ func _toggle_spawn_cell_at_cursor() -> void:
 ## _snap_to_tile_square_far_corner() convention _update_hover() itself
 ## uses, keyed off the DRAGGED mesh's own name rather than the currently
 ## selected paint mesh.
+## The origin a dragged piece would take at the current move hover -
+## shifted like _placement_origin() so a rotated 1x1 piece lands in the
+## tile that's pointed at, not swung around its pivot.
+func _move_target_origin(basis: Basis) -> Vector3i:
+	return _move_hovered_cell - _origin_shift_1x1(_move_drag_mesh_name, basis)
+
+
 func _update_move_hover() -> void:
 	_move_has_hover = false
 	if _move_dragging_id == "" or camera == null or _move_drag_grid == null:
@@ -1047,8 +1117,8 @@ func _update_move_ghost() -> void:
 		_move_ghost.visible = false
 		return
 	var grid := _move_drag_grid
-	var local_pos: Vector3 = grid.map_to_local(_move_hovered_cell)
 	var basis := grid.get_cell_item_basis(_move_drag_origin_cell)
+	var local_pos: Vector3 = grid.map_to_local(_move_target_origin(basis))
 	_move_ghost.global_transform = grid.global_transform * Transform3D(basis, local_pos)
 	_move_ghost.visible = true
 
@@ -1193,6 +1263,53 @@ func _update_ghost_mesh() -> void:
 	_ghost.mesh = grid.mesh_library.get_item_mesh(item_id) if item_id != -1 else null
 
 
+## ---- In-place rotation of 1x1 pieces (new 2026-09-19) ----
+## A piece's origin cell is a PIVOT on the far corner of its tile, so
+## rotating it used to swing the mesh (and its occupied cells) around that
+## corner into the neighbouring tiles. For 1x1 pieces (incl. pillars) the
+## origin is now shifted so the piece's near corner - the lowest x/z of its
+## rotated footprint - stays exactly where the unrotated piece would be:
+## it rotates IN PLACE. Occupancy is untouched in principle: it is still
+## origin + rotate_footprint(get_footprint(mesh)), just fed a different
+## origin. Anything that isn't a single tile-square footprint gets no shift.
+
+## How far the origin must move (fine cells, x/z only) for a piece of
+## `mesh_name` rotated by `basis` to keep its near corner in place.
+func _origin_shift_1x1(mesh_name: String, basis: Basis) -> Vector3i:
+	return FootprintRegistry.origin_shift_1x1(mesh_name, basis)
+
+
+## The origin cell a placement at the current hover would really use.
+func _placement_origin(mesh_name: String) -> Vector3i:
+	var basis := Basis(Vector3.UP, deg_to_rad(90.0 * current_quarter_turn))
+	return _hovered_cell - _origin_shift_1x1(mesh_name, basis)
+
+
+## The origin of whatever already occupies `cell` on `grid`, or null.
+func _existing_origin_at(grid: GridMap, cell: Vector3i) -> Variant:
+	var mission := layered_map.mission
+	if grid == layered_map.prop_grid:
+		var owners := mission.prop_owners_at(cell)
+		if owners.is_empty():
+			return null
+		return mission.resolve_prop_priority(owners)
+	var occupied: Dictionary = mission.underlay_occupied_cells if grid == layered_map.underlay_grid else mission.floor_occupied_cells
+	return occupied.get(cell, null)
+
+
+## Copies the authored identity (id/group/name/visibility, and a prop's
+## custom properties/actions) from a piece that was just replaced onto its
+## replacement, so re-placing a piece with another rotation doesn't lose it.
+func _carry_identity(from: OutlineNode, to: OutlineNode) -> void:
+	to.id = from.id
+	to.parent_id = from.parent_id
+	to.reference_name = from.reference_name
+	to.visible = from.visible
+	if from is InteractableEntry and to is InteractableEntry:
+		to.props = from.props
+		to.actions = from.actions
+
+
 func _update_ghost_transform() -> void:
 	# Confusing to see the normal mesh-paint preview while placing spawn
 	# markers instead - unrelated tool, unrelated hover target. Same
@@ -1202,7 +1319,7 @@ func _update_ghost_transform() -> void:
 		_ghost.visible = false
 		return
 	var grid := _target_grid()
-	var local_pos: Vector3 = grid.map_to_local(_hovered_cell)
+	var local_pos: Vector3 = grid.map_to_local(_placement_origin(_current_mesh_name()))
 	var rot_basis := Basis(Vector3.UP, deg_to_rad(90.0 * current_quarter_turn))
 	_ghost.global_transform = grid.global_transform * Transform3D(rot_basis, local_pos)
 	_ghost.visible = true
@@ -1340,15 +1457,49 @@ func place_at_cursor() -> void:
 	if item_id == -1:
 		push_warning("No MeshLibrary item named '%s' in this layer" % mesh_name)
 		return
-	if not _can_place(mesh_name, _hovered_cell):
+	var origin := _placement_origin(mesh_name)
+
+	# Re-placing the SAME mesh over its own tile with another rotation now
+	# lands on a different origin cell (see the in-place rotation notes
+	# above), so it would no longer overwrite the old piece by itself -
+	# find it and replace it explicitly, keeping its identity.
+	var replaced_origin = null
+	var carry: OutlineNode = null
+	var basis := Basis(Vector3.UP, deg_to_rad(90.0 * current_quarter_turn))
+	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
+	if not footprint.is_empty() and FootprintRegistry.get_tile_square_footprint(mesh_name).size() == 1:
+		var existing = _existing_origin_at(grid, origin + footprint[0])
+		if typeof(existing) == TYPE_VECTOR3I and existing != origin:
+			var existing_item := grid.get_cell_item(existing)
+			if existing_item != GridMap.INVALID_CELL_ITEM and grid.mesh_library.get_item_name(existing_item) == mesh_name:
+				replaced_origin = existing
+				var resolved := _resolve_placed_at(grid, existing)
+				if resolved["id"] != "":
+					carry = layered_map.mission.find_node_by_id(resolved["id"])
+
+	var limit_check_cell: Vector3i = origin
+	if replaced_origin != null:
+		limit_check_cell = replaced_origin
+	if not _can_place(mesh_name, limit_check_cell):
 		var group := ComponentInventory.get_group(mesh_name)
 		var max_count := ComponentInventory.get_max_count(mesh_name)
 		push_warning("Can't place '%s' - physical limit reached (%d available for '%s')" % [mesh_name, max_count, group])
 		return
 	operation_history.record("Paint", func():
-		grid.set_cell_item(_hovered_cell, item_id, _current_orientation())
-		_sync_after_edit(grid, _hovered_cell, working_group_id)
+		if replaced_origin != null:
+			grid.set_cell_item(replaced_origin, GridMap.INVALID_CELL_ITEM)
+			if grid == layered_map.prop_grid:
+				layered_map.sync_prop_cell(replaced_origin)
+		grid.set_cell_item(origin, item_id, _current_orientation())
+		_sync_after_edit(grid, origin, working_group_id)
+		if carry != null:
+			var placed_id: String = _resolve_placed_at(grid, origin)["id"]
+			var placed := layered_map.mission.find_node_by_id(placed_id) if placed_id != "" else null
+			if placed != null:
+				_carry_identity(carry, placed)
 	)
+	if carry != null:
+		layered_map.notify_objects_changed()
 
 
 ## True if there's at least one more physical copy of mesh_name available
@@ -1508,7 +1659,7 @@ func _finish_move_drag() -> void:
 	if _move_dragging_id == "":
 		return
 	var id := _move_dragging_id
-	var target := _move_hovered_cell
+	var target := _move_target_origin(_move_drag_grid.get_cell_item_basis(_move_drag_origin_cell))
 	var has_target := _move_has_hover
 	_cancel_move_drag()  # clear drag state regardless of outcome below
 

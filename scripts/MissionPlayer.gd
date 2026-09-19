@@ -137,6 +137,27 @@ func _frame_camera_on_spawn_area() -> void:
 	camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, radius * SPAWN_VIEW_RADIUS_MULTIPLIER))
 
 
+## MOVE_OBJECT: the authored target is a tile-square coordinate. For a
+## single-tile-square piece the origin cell is a pivot on the tile's far
+## corner, so a rotated piece's origin is shifted (see
+## FootprintRegistry.origin_shift_1x1()) - apply the same shift here so the
+## piece lands IN the target tile, exactly like placing/moving it in the
+## Creator does, rather than swinging into a neighbouring tile.
+func _apply_object_move(move: Dictionary) -> void:
+	var node := mission.find_node_by_id(move["id"])
+	if node == null:
+		push_warning("MOVE_OBJECT references an unknown object '%s' - skipped" % move["id"])
+		return
+	var target := FootprintRegistry.tile_square_to_fine_far_corner(move["cell"])
+	var origin: Vector3i = node.get("origin_cell")
+	var mesh_name: String = str(node.get("mesh_item_name"))
+	var grid: GridMap = layered_map.prop_grid
+	if node is TilePlacement:
+		grid = layered_map.floor_grid if (node as TilePlacement).layer == TilePlacement.Layer.FLOOR else layered_map.underlay_grid
+	var shift := FootprintRegistry.origin_shift_1x1(mesh_name, grid.get_cell_item_basis(origin))
+	layered_map.move_node(move["id"], target - shift)
+
+
 ## SPAWN_MONSTERS effect, in two steps: (1) tell the table which monsters
 ## to take out of the box (grouped, e.g. "2x Wolf"), then (2) show those
 ## monsters as figures on the map at their spawn tiles - monster N on tile
@@ -392,7 +413,7 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	for removed_id in _runtime.drain_pending_object_removals():
 		layered_map.remove_node(removed_id)
 	for move in _runtime.drain_pending_object_moves():
-		layered_map.move_node(move["id"], FootprintRegistry.tile_square_to_fine_far_corner(move["cell"]))
+		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
 		await _run_monster_spawn(spawn_request)
 	if objective == null:
@@ -435,6 +456,6 @@ func _on_objectives_progressed() -> void:
 	for removed_id in _runtime.drain_pending_object_removals():
 		layered_map.remove_node(removed_id)
 	for move in _runtime.drain_pending_object_moves():
-		layered_map.move_node(move["id"], FootprintRegistry.tile_square_to_fine_far_corner(move["cell"]))
+		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
 		await _run_monster_spawn(spawn_request)

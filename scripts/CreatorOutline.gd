@@ -326,6 +326,13 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 			items.append(item.get_metadata(0))
 	selection_changed.emit(items)
 
+	# Tell the controller which placed piece (if exactly one prop/tile) R
+	# should rotate.
+	var placed_id := ""
+	if items.size() == 1 and (items[0]["type"] == SelectionType.OBJECT or items[0]["type"] == SelectionType.TILE):
+		placed_id = items[0]["id"]
+	creator_controller.selected_placed_id = placed_id
+
 	if items.size() != 1:
 		creator_controller.clear_selection_highlight()
 		return
