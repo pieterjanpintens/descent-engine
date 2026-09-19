@@ -39,7 +39,11 @@ extends Control
 @export var operation_history: OperationHistory  ## records name/visible edits for undo/redo
 @export var mission_fields: Control  ## the existing PropertiesFields node
 
-var _object_fields: VBoxContainer
+## The single-selection form: a ScrollContainer (toggled visible/hidden like
+## the other panels) wrapping `_object_content` - the panel is short and the
+## fields (name, buttons, a monster spawn's tile list) overflowed it.
+var _object_fields: ScrollContainer
+var _object_content: VBoxContainer
 var _info_label: Label
 var _name_edit: LineEdit
 var _visible_check: CheckBox
@@ -86,7 +90,8 @@ func _ready() -> void:
 
 
 func _build_object_fields() -> void:
-	_object_fields = VBoxContainer.new()
+	_object_fields = ScrollContainer.new()
+	_object_fields.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_object_fields.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_object_fields.offset_left = 8.0
 	_object_fields.offset_top = 8.0
@@ -95,12 +100,16 @@ func _build_object_fields() -> void:
 	_object_fields.visible = false
 	add_child(_object_fields)
 
+	_object_content = VBoxContainer.new()
+	_object_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_object_fields.add_child(_object_content)
+
 	_info_label = Label.new()
 	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_object_fields.add_child(_info_label)
+	_object_content.add_child(_info_label)
 
 	var name_row := HBoxContainer.new()
-	_object_fields.add_child(name_row)
+	_object_content.add_child(name_row)
 	var name_label := Label.new()
 	name_label.text = "Name:"
 	name_row.add_child(name_label)
@@ -119,7 +128,7 @@ func _build_object_fields() -> void:
 	_visible_check = CheckBox.new()
 	_visible_check.text = "Visible"
 	_visible_check.toggled.connect(_on_visible_toggled)
-	_object_fields.add_child(_visible_check)
+	_object_content.add_child(_visible_check)
 
 	# Object-only (InteractableEntry.props doesn't exist on TilePlacement/
 	# MissionGroup) - a popup rather than inline rows here, requested
@@ -128,7 +137,7 @@ func _build_object_fields() -> void:
 	_properties_button = Button.new()
 	_properties_button.text = "Custom Properties…"
 	_properties_button.pressed.connect(_on_properties_button_pressed)
-	_object_fields.add_child(_properties_button)
+	_object_content.add_child(_properties_button)
 
 	_properties_dialog = PropertiesDialog.new()
 	_properties_dialog.operation_history = operation_history
@@ -141,7 +150,7 @@ func _build_object_fields() -> void:
 	_actions_button = Button.new()
 	_actions_button.text = "Actions…"
 	_actions_button.pressed.connect(_on_actions_button_pressed)
-	_object_fields.add_child(_actions_button)
+	_object_content.add_child(_actions_button)
 
 	_actions_dialog = PropActionsDialog.new()
 	_actions_dialog.operation_history = operation_history
@@ -150,7 +159,7 @@ func _build_object_fields() -> void:
 
 	_spawn_tiles_box = VBoxContainer.new()
 	_spawn_tiles_box.visible = false
-	_object_fields.add_child(_spawn_tiles_box)
+	_object_content.add_child(_spawn_tiles_box)
 
 
 func _build_multi_fields() -> void:
@@ -245,7 +254,7 @@ func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
 	for i in spawn.cells.size():
 		var row := HBoxContainer.new()
 		var label := Label.new()
-		label.text = "%d: %s" % [i + 1, spawn.cells[i]]
+		label.text = "%d: %s" % [i + 1, FootprintRegistry.format_game_position(FootprintRegistry.tile_square_to_game_position(spawn.cells[i]))]
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)
 		var up := Button.new()
@@ -384,14 +393,15 @@ func _describe(type: CreatorOutline.SelectionType) -> String:
 	match type:
 		CreatorOutline.SelectionType.OBJECT:
 			var entry := _current_node as InteractableEntry
-			return "Type: %s\nMesh: %s\nCell: %s" % [InteractableEntry.Type.keys()[entry.type], entry.mesh_item_name, entry.origin_cell]
+			return "Type: %s\nMesh: %s\nPosition: %s" % [InteractableEntry.Type.keys()[entry.type], entry.mesh_item_name, FootprintRegistry.format_game_position(FootprintRegistry.placed_game_position(entry.origin_cell, entry.footprint))]
 		CreatorOutline.SelectionType.TILE:
 			var placement := _current_node as TilePlacement
 			var label := "Floor tile" if placement.layer == TilePlacement.Layer.FLOOR else "Underlay"
-			return "%s\nMesh: %s\nCell: %s" % [label, placement.mesh_item_name, placement.origin_cell]
+			var grid: GridMap = layered_map.floor_grid if placement.layer == TilePlacement.Layer.FLOOR else layered_map.underlay_grid
+			var placement_footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(placement.mesh_item_name), grid.get_cell_item_basis(placement.origin_cell))
+			return "%s\nMesh: %s\nPosition: %s" % [label, placement.mesh_item_name, FootprintRegistry.format_game_position(FootprintRegistry.placed_game_position(placement.origin_cell, placement_footprint))]
 		CreatorOutline.SelectionType.MONSTER_SPAWN:
-			return "Monster Spawn
-%d tile(s)" % (_current_node as MonsterSpawn).cells.size()
+			return "Monster Spawn\n%d tile(s)" % (_current_node as MonsterSpawn).cells.size()
 		_:  # GROUP - no mesh/cell/type to show
 			return "Group"
 

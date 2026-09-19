@@ -34,6 +34,9 @@ extends Node3D
 ## _frame_camera_on_spawn_area()) - broader than FreeLookCamera.jump_to()'s
 ## own default (12.0), which otherwise leaves the camera sitting too close
 ## to actually see where the spawn area is relative to the rest of the map.
+## Size of the figures shown on the map when monsters spawn, relative to the
+## M-view stand size (see _run_monster_spawn()).
+const SPAWN_FIGURE_SCALE: float = 2.75
 const SPAWN_VIEW_MIN_DISTANCE: float = 30.0
 ## How far past the spawn area's own bounding radius to pull the camera
 ## back - scales the view out further for a larger authored spawn area
@@ -188,17 +191,18 @@ func _run_monster_spawn(request: Dictionary) -> void:
 			continue
 		var registered := _runtime.register_monster(template)
 		if registered == null:
-			no_chip.append(template.custom_name if template.custom_name != "" else MonsterDisplay.find_monster(template.folder)["name"])
+			no_chip.append(MonsterDisplay.find_monster(template.folder)["name"])
 			continue
 		spawned.append(registered)
 	if spawned.is_empty() and no_chip.is_empty():
 		return
 
 	# Step 1 - what to take out of the box, one line per monster with its
-	# chip colour.
+	# chip colour. Uses the generic TYPE name (Bandit, Zealot, ...) - custom
+	# names are story flavour and mean nothing for finding the miniature.
 	var lines: Array[String] = ["Take these monsters out of the box:"]
 	for monster in spawned:
-		lines.append("%s - %s chip" % [monster.display_name(), MonsterChip.display_name(monster.chip)])
+		lines.append("%s - %s chip" % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
 	if not no_chip.is_empty():
 		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
 	await dialog.ask_ok("
@@ -211,7 +215,10 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	var tile_size: float = tile_corners[0].distance_to(tile_corners[1])
 	var holder := MonsterDisplay.new()
 	holder.standalone = true
-	holder.scale = Vector3.ONE * (tile_size * 0.85 / MonsterDisplay.BASE_SIZE.x)
+	# Sized relative to the M-view stand (a 1-unit base = ~85% of a tile),
+	# at 275% of that so the figures - which have no plinth on the map -
+	# read clearly (1.5x and 4.5x were tried and judged too small/too big).
+	holder.scale = Vector3.ONE * (tile_size * 0.85 * SPAWN_FIGURE_SCALE / MonsterDisplay.BASE_SIZE.x)
 	add_child(holder)
 
 	var placed_centers: Array[Vector3] = []
@@ -221,7 +228,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		var info := MonsterDisplay.find_monster(monster.folder).duplicate()
 		info["name"] = monster.display_name()
 		if i >= spawn.cells.size():
-			unplaced.append(monster.display_name())
+			unplaced.append(MonsterDisplay.find_monster(monster.folder)["name"])
 			continue
 		var size_tiles := int(round(info.get("size_units", 1.0)))
 		var anchor := spawn.cells[i]

@@ -1722,6 +1722,17 @@ first working version).
 	multi-cell footprint piece, moving something to a different level via
 	PageUp/PageDown mid-drag, and confirming a drop onto an occupied cell
 	correctly cancels rather than silently overwriting.
+  - **Game positions (new 2026-09-19)** - the internal fine cell / 1-BASED
+	tile-square index means nothing to the game (the first tile read (1, 0,
+	1)). The status bar ("Position: (x, y, z)"), the outline properties
+	panel ("Position:" instead of "Cell:") and the monster spawn tile list
+	now show a **game position**: the first tile square starts at 0, 0, and
+	a piece's position is the near corner of the cells it really covers
+	(`FootprintRegistry.placed_game_position(origin, footprint)`), so it
+	doesn't change when rotated; half units only occur for pillars. Display
+	only - stored data is unchanged, and `Effect.target_cell` (Move Object)
+	is STILL a 1-based tile-square index (not yet aligned). **Unverified
+	in-editor.**
   - **R rotates a placed piece (new 2026-09-19)**: `rotate_selection()` -
 	in Draw mode R still rotates the placement ghost; otherwise it calls
 	`rotate_selected_placed()`, which turns the piece selected in the

@@ -260,6 +260,16 @@ func get_hovered_cell() -> Vector3i:
 	return FootprintRegistry.fine_cell_to_tile_square(_hovered_cell)
 
 
+## The hovered spot as a GAME POSITION (see FootprintRegistry's "Game
+## position" doc): the near corner of the pointed-at tile, or - while a
+## pillar is selected - the half-unit spot it would occupy.
+func get_hovered_game_position() -> Vector3:
+	var mesh_name := _current_mesh_name()
+	if mesh_name != "" and FootprintRegistry.allows_fine_placement(mesh_name):
+		return FootprintRegistry.placed_game_position(_hovered_cell, FootprintRegistry.get_footprint(mesh_name))
+	return FootprintRegistry.tile_square_to_game_position(FootprintRegistry.fine_cell_to_tile_square(_hovered_cell))
+
+
 func has_hover() -> bool:
 	return _has_hover
 

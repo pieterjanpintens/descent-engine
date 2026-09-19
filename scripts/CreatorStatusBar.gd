@@ -21,5 +21,4 @@ func _process(_delta: float) -> void:
 	if creator_controller == null or not creator_controller.has_hover():
 		text = ""
 		return
-	var cell := creator_controller.get_hovered_cell()
-	text = "Tile: (%d, %d, %d)" % [cell.x, cell.y, cell.z]
+	text = "Position: %s" % FootprintRegistry.format_game_position(creator_controller.get_hovered_game_position())

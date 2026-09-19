@@ -265,6 +265,12 @@ func refresh_monsters(monsters: Array) -> void:
 ## this node's local space. `monster` is a MonsterDisplay.REAL_MONSTERS
 ## entry; `index` only picks the placeholder-cube colour. `chip_color`
 ## (alpha 0 = none) draws the colour-chip marker on the base notch.
+## Height figures stand at above a stand's origin: the plinth's thickness in
+## the M-view grid, 0 for standalone (on-map) holders that have no plinth.
+func _base_height() -> float:
+	return 0.0 if standalone else BASE_SIZE.y
+
+
 func place_stand(origin: Vector3, monster: Dictionary, index: int = 0, chip_color: Color = Color(0, 0, 0, 0)) -> void:
 	_build_stand(origin, monster, index, chip_color)
 
@@ -342,15 +348,18 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	# though the underlying math never was. Thickness (Y) stays constant -
 	# only the game's own real footprint concept (bigger monster, bigger
 	# base) should scale, not how tall the plinth itself is.
-	var base := MeshInstance3D.new()
-	var base_mesh := BoxMesh.new()
-	base_mesh.size = Vector3(BASE_SIZE.x * size_units, BASE_SIZE.y, BASE_SIZE.z * size_units)
-	var base_material := StandardMaterial3D.new()
-	base_material.albedo_color = Color(0.15, 0.15, 0.15)
-	base_mesh.material = base_material
-	base.mesh = base_mesh
-	base.position = origin + Vector3(0, BASE_SIZE.y * 0.5, 0)
-	_stands_root.add_child(base)
+	# The plinth only makes sense in the M-view grid; standalone holders
+	# (figures placed on the real map) get no base, see _base_height().
+	if not standalone:
+		var base := MeshInstance3D.new()
+		var base_mesh := BoxMesh.new()
+		base_mesh.size = Vector3(BASE_SIZE.x * size_units, BASE_SIZE.y, BASE_SIZE.z * size_units)
+		var base_material := StandardMaterial3D.new()
+		base_material.albedo_color = Color(0.15, 0.15, 0.15)
+		base_mesh.material = base_material
+		base.mesh = base_mesh
+		base.position = origin + Vector3(0, BASE_SIZE.y * 0.5, 0)
+		_stands_root.add_child(base)
 
 	_build_real_figure(origin, monster, index, chip_color)
 
@@ -362,7 +371,7 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	var label := Label3D.new()
 	label.text = monster["name"] if not monster.has("extra") else "%s\n%s" % [monster["name"], monster["extra"]]
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.position = origin + Vector3(0, BASE_SIZE.y + FIGURE_SIZE.y * size_units + 0.3, 0)
+	label.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)
 
 
@@ -374,7 +383,7 @@ func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 
 	figure_material.albedo_color = Color.from_hsv(float(index) / REAL_MONSTERS.size(), 0.6, 0.85)
 	figure_mesh.material = figure_material
 	figure.mesh = figure_mesh
-	figure.position = origin + Vector3(0, BASE_SIZE.y + FIGURE_SIZE.y * size_units * 0.5, 0)
+	figure.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units * 0.5, 0)
 	_stands_root.add_child(figure)
 
 
@@ -475,7 +484,7 @@ func _build_real_figure(origin: Vector3, monster: Dictionary, index: int, chip_c
 			height_min,
 			aabb.position.z + aabb.size.z * 0.5,
 		)
-	figure.position = origin + Vector3(0, BASE_SIZE.y, 0) - figure.basis * pivot_local
+	figure.position = origin + Vector3(0, _base_height(), 0) - figure.basis * pivot_local
 
 	var material := StandardMaterial3D.new()
 	if FileAccess.file_exists(texture_path):

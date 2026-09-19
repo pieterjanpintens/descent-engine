@@ -721,6 +721,47 @@ func tile_square_to_fine_far_corner(tile_square: Vector3i) -> Vector3i:
 	)
 
 
+## ---- "Game position": the coordinate a designer sees ----
+## Internally everything is a GridMap fine cell or a 1-BASED tile-square
+## index (tile square 1 covers fine cells 0..CELLS_PER_TILE-1), which means
+## nothing to the game (the first tile used to read (1, 0, 1)). What the
+## Creator SHOWS is a plain position in game units: the first tile square
+## starts at (0, 0), and a piece's position is the NEAR corner of the cells
+## it actually covers, so it doesn't change when the piece is rotated. Half
+## units (0.5 = one fine cell) only occur for pillars, which sit at fine-cell
+## resolution. Y (the painting level) is passed through unchanged. Display
+## only - nothing is stored in this form, and Effect.target_cell (Move
+## Object) is still a 1-based tile-square index.
+
+## A 1-based tile-square index -> game position (its near corner).
+func tile_square_to_game_position(tile_square: Vector3i) -> Vector3:
+	return Vector3(tile_square.x - 1, tile_square.y, tile_square.z - 1)
+
+
+## Near corner of a placed piece's covered cells, in game units.
+## `footprint` = its rotation-adjusted fine offsets relative to `fine_origin`
+## (InteractableEntry.footprint, or rotate_footprint(get_footprint(mesh),
+## basis)).
+func placed_game_position(fine_origin: Vector3i, footprint: Array[Vector3i]) -> Vector3:
+	if footprint.is_empty():
+		return Vector3(float(fine_origin.x) / CELLS_PER_TILE, fine_origin.y, float(fine_origin.z) / CELLS_PER_TILE)
+	var min_x := footprint[0].x
+	var min_z := footprint[0].z
+	for offset in footprint:
+		min_x = mini(min_x, offset.x)
+		min_z = mini(min_z, offset.z)
+	return Vector3(
+		float(fine_origin.x + min_x) / CELLS_PER_TILE,
+		fine_origin.y,
+		float(fine_origin.z + min_z) / CELLS_PER_TILE,
+	)
+
+
+## "0", "0.5", "-1.5" - String.num() drops a trailing ".0".
+func format_game_position(position: Vector3) -> String:
+	return "(%s, %s, %s)" % [String.num(position.x), String.num(position.y), String.num(position.z)]
+
+
 ## How far the origin cell must move (fine cells, x/z only) for a
 ## single-tile-square piece (props, tokens, pillars) of `mesh_name`, rotated
 ## by `basis`, to keep its near corner where the unrotated piece would be -
