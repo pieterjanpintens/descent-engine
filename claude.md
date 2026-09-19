@@ -451,6 +451,23 @@ freed. The holder is scaled so a 1-unit base fills ~85% of a tile. **2x2
 monsters (Centurion, `size_units` 2)** use their tile as the FAR corner and
 cover the tiles toward -X/-Z (FootprintRegistry's footprint convention).
 Monsters beyond the spawn's tile count are listed as having no free tile.
+
+**Monster registry (new 2026-09-19)** - every monster a SPAWN_MONSTERS effect
+spawns is registered in `MissionRuntime.monsters` (`Array[RuntimeMonster]`:
+`id`, `folder`, `chip`; runtime-only state, never saved; position is
+deliberately NOT tracked - the original game doesn't track monster movement
+either, can be added later) via `register_monster(folder)`, called at the
+start of `MissionPlayer._run_monster_spawn()` so the "take from the box"
+dialog can say which chip goes on which figure ("Wolf - Yellow chip").
+`MonsterChip` (never instantiated) is the four-colour enum
+(yellow/green/orange/purple) + RGB values; the physical chip pool is
+`ComponentInventory.COLOR_INDICATOR_COUNTS` (4 each). **Colour rule**: a
+random colour, never shared by two live monsters of the SAME type (so at
+most 4 of one type alive), and never more live monsters on one colour than
+chips exist. If none is valid the monster is NOT registered/placed and the
+dialog says "No colour chip left for: ...". `release_monster(id)` frees a
+chip (nothing calls it yet - no damage/death). `monsters_changed` makes the
+M monster view rebuild.
 Authorable in both `ObjectivesDialog.gd`/`PropActionsDialog.gd` (own copies)
 via a "Spawn Monsters" type: a spawn picker plus a "Monsters…" button
 opening a lazily-built nested Window (monster dropdown per row, ↑/↓ by
@@ -2834,7 +2851,13 @@ first working version).
   be seen in a running Player - there's no real combat trigger to switch
   views on its own yet, remove/replace once one exists. Nothing about
   interaction (dragging a hero portrait onto a monster) is wired up yet -
-  this is visuals only, see Open items for what's still ahead.
+  **Reworked 2026-09-19: the M view now shows only the LIVE monsters**
+  (`refresh_monsters(MissionRuntime.monsters)`, one stand each in a grid,
+  camera re-framed on every rebuild; the old all-types roster test grid
+  and its per-index test chip colours are gone - the notch marker is the
+  monster's real chip colour, and `standalone` holders (the spawn-placement
+  step) only draw a marker when given a chip colour). Empty until something
+  spawns. this is visuals only, see Open items for what's still ahead.
   **Real-asset proof of concept, 2026-09-16, extended from 1 -> 4 -> all 18
   monster types the same day** (1 to confirm the approach, 4 to compare
   orientation fixes across different meshes, then all 18 once

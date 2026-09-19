@@ -72,6 +72,7 @@ func _ready() -> void:
 	_runtime = MissionRuntime.new(mission)
 	_runtime.sync_builtins(current_round, player_roster.size())
 	_runtime.dialog = dialog
+	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)
@@ -154,19 +155,38 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	if folders.is_empty():
 		return
 
-	# Step 1 - what to take out of the box, grouped by type in order of
-	# first appearance.
-	var counts := {}
+	# Register every spawned monster first (random colour chip, see
+	# MissionRuntime.register_monster()) - the dialogs below tell the table
+	# which chip goes on which figure. A monster with no valid chip left is
+	# not registered/placed.
+	var spawned: Array[RuntimeMonster] = []
+	var no_chip: Array[String] = []
 	for folder in folders:
-		counts[folder] = int(counts.get(folder, 0)) + 1
-	var lines: Array[String] = ["Take these monsters out of the box:"]
-	for folder in counts:
 		var info := MonsterDisplay.find_monster(folder)
-		lines.append("%d× %s" % [counts[folder], info.get("name", folder)])
+		if info.is_empty():
+			push_warning("SPAWN_MONSTERS lists unknown monster '%s' - skipped" % folder)
+			continue
+		var registered := _runtime.register_monster(folder)
+		if registered == null:
+			no_chip.append(info["name"])
+			continue
+		spawned.append(registered)
+	if spawned.is_empty() and no_chip.is_empty():
+		return
+
+	# Step 1 - what to take out of the box, one line per monster with its
+	# chip colour.
+	var lines: Array[String] = ["Take these monsters out of the box:"]
+	for monster in spawned:
+		lines.append("%s - %s chip" % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
+	if not no_chip.is_empty():
+		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
 	await dialog.ask_ok("
 ".join(lines))
+	if spawned.is_empty():
+		return
 
-	# Step 2 - figures on the map.
+	# Step 2 - figures (with their chips) on the map.
 	var tile_corners := layered_map.get_tile_square_world_corners(Vector3i.ZERO)
 	var tile_size: float = tile_corners[0].distance_to(tile_corners[1])
 	var holder := MonsterDisplay.new()
@@ -176,11 +196,9 @@ func _run_monster_spawn(request: Dictionary) -> void:
 
 	var placed_centers: Array[Vector3] = []
 	var unplaced: Array[String] = []
-	for i in folders.size():
-		var info := MonsterDisplay.find_monster(folders[i])
-		if info.is_empty():
-			push_warning("SPAWN_MONSTERS lists unknown monster '%s' - skipped" % folders[i])
-			continue
+	for i in spawned.size():
+		var monster := spawned[i]
+		var info := MonsterDisplay.find_monster(monster.folder)
 		if i >= spawn.cells.size():
 			unplaced.append(info["name"])
 			continue
@@ -190,7 +208,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		var max_corners := layered_map.get_tile_square_world_corners(anchor)
 		var center := (min_corners[0] + max_corners[2]) * 0.5
 		placed_centers.append(center)
-		holder.place_stand(center / holder.scale.x, info, i)
+		holder.place_stand(center / holder.scale.x, info, i, MonsterChip.color(monster.chip))
 
 	if not placed_centers.is_empty():
 		var centroid := Vector3.ZERO

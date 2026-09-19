@@ -55,19 +55,6 @@ const CELL_SPACING := 2.0
 const BASE_SIZE := Vector3(1.2, 0.15, 1.2)
 const FIGURE_SIZE := Vector3(0.6, 1.0, 0.6)  ## placeholder-cube size; its own diagonal is also the base target real meshes are auto-scaled to, see target_figure_diagonal below
 
-## TEST ONLY, new 2026-09-17 - the real game features exactly these four
-## player-color indicators (green/yellow/orange/purple), but nothing here
-## assigns them to a specific monster/player yet - `_build_gap_marker()`
-## just cycles through this list by grid index so the BaseGapDetector.gd
-## coverage can be checked visually across every stand at once, not
-## because monster N is meant to always get color N.
-const GAP_MARKER_TEST_COLORS := [
-	Color(0.25, 0.75, 0.25),  # green
-	Color(0.95, 0.85, 0.15),  # yellow
-	Color(0.95, 0.55, 0.1),   # orange
-	Color(0.55, 0.25, 0.75),  # purple
-]
-
 ## How deep to extrude the gap marker's flat quad into a real box, as a
 ## fraction of the panel's OWN height (outer-to-inner distance) rather than
 ## a fixed world-space number - keeps proportions consistent per-monster
@@ -239,19 +226,45 @@ var camera: FreeLookCamera
 var standalone: bool = false
 
 
+## Parent of every stand/figure/label, so refresh_monsters() can clear
+## them all without touching the camera.
+var _stands_root: Node3D
+
+
 func _ready() -> void:
 	target_figure_diagonal = FIGURE_SIZE.length()
+	_stands_root = Node3D.new()
+	add_child(_stands_root)
 	if standalone:
 		return
 	_build_camera()
-	_build_grid()
+	refresh_monsters([])
+
+
+## Rebuilds the M-key monster view from the live registry
+## (MissionRuntime.monsters, new 2026-09-19): one stand per registered
+## monster in a grid, each with its real colour chip on the base notch (the
+## old roster-of-every-type test grid is gone - this shows only monsters
+## that actually spawned). Also re-frames the camera on the grid.
+func refresh_monsters(monsters: Array) -> void:
+	for child in _stands_root.get_children():
+		child.free()
+	for i in monsters.size():
+		var monster: RuntimeMonster = monsters[i]
+		var info := find_monster(monster.folder)
+		if info.is_empty():
+			continue
+		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)
+		_build_stand(origin, info, i, MonsterChip.color(monster.chip))
+	_frame_camera(monsters.size())
 
 
 ## Builds one monster stand (base + figure + name label) at `origin` in
 ## this node's local space. `monster` is a MonsterDisplay.REAL_MONSTERS
-## entry; `index` only picks the placeholder-cube colour.
-func place_stand(origin: Vector3, monster: Dictionary, index: int = 0) -> void:
-	_build_stand(origin, monster, index)
+## entry; `index` only picks the placeholder-cube colour. `chip_color`
+## (alpha 0 = none) draws the colour-chip marker on the base notch.
+func place_stand(origin: Vector3, monster: Dictionary, index: int = 0, chip_color: Color = Color(0, 0, 0, 0)) -> void:
+	_build_stand(origin, monster, index, chip_color)
 
 
 ## The REAL_MONSTERS entry whose `folder` matches, or an empty Dictionary.
@@ -272,8 +285,23 @@ func _build_camera() -> void:
 	camera = FreeLookCamera.new()
 	add_child(camera)
 
-	var rows := ceili(float(REAL_MONSTERS.size()) / GRID_COLUMNS)
-	var grid_width := (GRID_COLUMNS - 1) * CELL_SPACING
+	# Starts hidden (visible = false in MissionPlayer.tscn), but a node's
+	# _input()/_unhandled_input() processing is ON by default regardless of
+	# visibility - without this, right-click-dragging in the WORLD view
+	# before "M" is ever pressed would ALSO silently rotate this (invisible,
+	# not yet current) camera. MissionPlayer._set_monster_display_visible()
+	# re-enables this while shown.
+	camera.set_process_input(false)
+	camera.set_process_unhandled_input(false)
+
+
+## Frames the camera on a grid of `count` stands (jump_to() rather than a
+## manual position, so FreeLookCamera's internal yaw/pitch stay in sync).
+## Called from refresh_monsters(), i.e. every time the registry changes.
+func _frame_camera(count: int) -> void:
+	var columns := mini(maxi(count, 1), GRID_COLUMNS)
+	var rows := ceili(float(maxi(count, 1)) / GRID_COLUMNS)
+	var grid_width := (columns - 1) * CELL_SPACING
 	var grid_depth := (rows - 1) * CELL_SPACING
 	var center := Vector3(grid_width * 0.5, 0, grid_depth * 0.5)
 
@@ -295,29 +323,11 @@ func _build_camera() -> void:
 	# comment already warns about.
 	camera.jump_to(center, distance)
 
-	# Starts hidden (visible = false in MissionPlayer.tscn), but a node's
-	# _input()/_unhandled_input() processing is ON by default regardless of
-	# visibility - without this, right-click-dragging in the WORLD view
-	# before "M" is ever pressed would ALSO silently rotate this (invisible,
-	# not yet current) camera, so it'd already be facing somewhere
-	# unexpected the first time it actually gets shown.
-	# MissionPlayer._set_monster_display_visible() re-enables this while shown.
-	camera.set_process_input(false)
-	camera.set_process_unhandled_input(false)
-
-
-func _build_grid() -> void:
-	for i in REAL_MONSTERS.size():
-		var column := i % GRID_COLUMNS
-		var row := i / GRID_COLUMNS
-		var origin := Vector3(column * CELL_SPACING, 0, row * CELL_SPACING)
-		_build_stand(origin, REAL_MONSTERS[i], i)
-
 
 ## One "stand" = a base (the plastic-base stand-in) plus a figure (the real
 ## extracted mesh, or a placeholder cube if its files are missing) sitting
 ## on top, plus a floating name label.
-func _build_stand(origin: Vector3, monster: Dictionary, index: int) -> void:
+func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: Color = Color(0, 0, 0, 0)) -> void:
 	var size_units: float = monster.get("size_units", 1.0)
 
 	# Base FOOTPRINT (X/Z) scales with size_units too, not just the figure
@@ -338,9 +348,9 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int) -> void:
 	base_mesh.material = base_material
 	base.mesh = base_mesh
 	base.position = origin + Vector3(0, BASE_SIZE.y * 0.5, 0)
-	add_child(base)
+	_stands_root.add_child(base)
 
-	_build_real_figure(origin, monster, index)
+	_build_real_figure(origin, monster, index, chip_color)
 
 	# Label offset scales with size_units too (a rough approximation, not
 	# exact geometry - the real per-monster rendered height now varies with
@@ -351,7 +361,7 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int) -> void:
 	label.text = monster["name"]
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = origin + Vector3(0, BASE_SIZE.y + FIGURE_SIZE.y * size_units + 0.3, 0)
-	add_child(label)
+	_stands_root.add_child(label)
 
 
 func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 1.0) -> void:
@@ -363,7 +373,7 @@ func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 
 	figure_mesh.material = figure_material
 	figure.mesh = figure_mesh
 	figure.position = origin + Vector3(0, BASE_SIZE.y + FIGURE_SIZE.y * size_units * 0.5, 0)
-	add_child(figure)
+	_stands_root.add_child(figure)
 
 
 ## Loads `monster`'s pre-converted mesh + texture from
@@ -389,7 +399,7 @@ func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 
 ## longer needs this axis selection, see target_figure_diagonal's own doc)
 ## has to read aabb.position.z instead of aabb.position.y for those
 ## meshes, or feet/head would swap places.
-func _build_real_figure(origin: Vector3, monster: Dictionary, index: int) -> void:
+func _build_real_figure(origin: Vector3, monster: Dictionary, index: int, chip_color: Color = Color(0, 0, 0, 0)) -> void:
 	var mesh_path := "user://monster_assets/%s/mesh.tres" % monster["folder"]
 	var texture_path := "user://monster_assets/%s/diffuse.png" % monster["folder"]
 
@@ -471,7 +481,7 @@ func _build_real_figure(origin: Vector3, monster: Dictionary, index: int) -> voi
 		if image != null:
 			material.albedo_texture = ImageTexture.create_from_image(image)
 	figure.material_override = material
-	add_child(figure)
+	_stands_root.add_child(figure)
 
 	# TEST ONLY - see BaseGapDetector.gd's own class doc for the full
 	# feasibility investigation this is built from, including the
@@ -484,8 +494,11 @@ func _build_real_figure(origin: Vector3, monster: Dictionary, index: int) -> voi
 	# is threaded through separately (not re-derived from figure.basis) so
 	# _build_gap_marker() can convert GAP_WALL_HEIGHT_WORLD back into this
 	# specific mesh's own local units - see that constant's own doc.
-	if not standalone:
-		_build_gap_marker(figure, mesh, index, scale_factor)
+	# The chip marker: the REAL colour when one was given (registered
+	# monsters), else - only in the old non-standalone mockup path - the
+	# per-index test colour. Standalone placement without a chip has none.
+	if chip_color.a > 0.0:
+		_build_gap_marker(figure, mesh, chip_color, scale_factor)
 
 
 ## TEST ONLY - visually verifies BaseGapDetector.gd actually finds the
@@ -554,7 +567,7 @@ func _build_real_figure(origin: Vector3, monster: Dictionary, index: int) -> voi
 ## own raw `outer_a`/`outer_b` directly - Wight's real problem (whatever it
 ## actually is) is still open, and needs a real look at its base mesh
 ## rather than another guess from this environment.
-func _build_gap_marker(figure: MeshInstance3D, mesh: Mesh, index: int, scale_factor: float) -> void:
+func _build_gap_marker(figure: MeshInstance3D, mesh: Mesh, marker_color: Color, scale_factor: float) -> void:
 	var wall_height_local: float = GAP_WALL_HEIGHT_WORLD / scale_factor if scale_factor > 0.0 else GAP_WALL_HEIGHT_WORLD
 	var quad := BaseGapDetector.detect_gap_quad(mesh, figure.basis, wall_height_local)
 	if quad.is_empty():
@@ -598,7 +611,7 @@ func _build_gap_marker(figure: MeshInstance3D, mesh: Mesh, index: int, scale_fac
 	var marker := MeshInstance3D.new()
 	marker.mesh = marker_mesh
 	var marker_material := StandardMaterial3D.new()
-	marker_material.albedo_color = GAP_MARKER_TEST_COLORS[index % GAP_MARKER_TEST_COLORS.size()]
+	marker_material.albedo_color = marker_color
 	# Unshaded (flat, ignores DirectionalLight3D) so the test color always
 	# reads the same regardless of lighting angle - a real solid box now
 	# has correct outward-facing normals on every face (see

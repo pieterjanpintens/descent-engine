@@ -187,6 +187,58 @@ var _pending_object_moves: Array[Dictionary] = []
 ## (Array[String] of monster folders, in spawn-tile order).
 var _pending_monster_spawns: Array[Dictionary] = []
 
+## Every live spawned monster (new 2026-09-19), registered by
+## register_monster(). Emits monsters_changed on any add/remove so the M
+## monster view can rebuild.
+var monsters: Array[RuntimeMonster] = []
+var _next_monster_number: int = 1
+signal monsters_changed
+
+
+## Registers a newly spawned monster of `folder` with a random colour chip.
+## Rules: a chip colour is never shared by two live monsters of the SAME
+## type (two bandits can't both be yellow), and at most
+## ComponentInventory.get_color_indicator_count() (4) monsters can hold a
+## given colour at once, since that's how many physical chips exist.
+## Returns null (and push_warning()s) if no valid colour is left, e.g. a
+## fifth bandit or all four yellow chips in use.
+func register_monster(folder: String) -> RuntimeMonster:
+	var candidates: Array[int] = []
+	for chip in MonsterChip.Chip.values():
+		var used_total := 0
+		var used_by_type := false
+		for monster in monsters:
+			if monster.chip == chip:
+				used_total += 1
+				if monster.folder == folder:
+					used_by_type = true
+		var limit := ComponentInventory.get_color_indicator_count(MonsterChip.key(chip))
+		if used_by_type or (limit >= 0 and used_total >= limit):
+			continue
+		candidates.append(chip)
+	if candidates.is_empty():
+		push_warning("No colour chip available for a new '%s' - not registered" % folder)
+		return null
+	var created := RuntimeMonster.new()
+	created.id = "monster_%d" % _next_monster_number
+	_next_monster_number += 1
+	created.folder = folder
+	created.chip = candidates[randi() % candidates.size()]
+	monsters.append(created)
+	monsters_changed.emit()
+	return created
+
+
+## Removes a monster from the registry, freeing its colour chip (nothing
+## calls this yet - there's no damage/death - but it's the release half of
+## register_monster()).
+func release_monster(monster_id: String) -> void:
+	for i in monsters.size():
+		if monsters[i].id == monster_id:
+			monsters.remove_at(i)
+			monsters_changed.emit()
+			return
+
 
 ## `hero_name` (new 2026-09-14, optional) is the acting player, threaded
 ## through purely so a RUN_TEST effect's dialog prompt can address them by
