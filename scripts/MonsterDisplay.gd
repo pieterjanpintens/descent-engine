@@ -230,6 +230,10 @@ var standalone: bool = false
 ## them all without touching the camera.
 var _stands_root: Node3D
 
+## One {"monster": RuntimeMonster, "box": AABB (local space)} per stand in the
+## M view, rebuilt by refresh_monsters(); what monster_at() tests against.
+var _stand_hits: Array = []
+
 
 func _ready() -> void:
 	target_figure_diagonal = FIGURE_SIZE.length()
@@ -249,6 +253,7 @@ func _ready() -> void:
 func refresh_monsters(monsters: Array) -> void:
 	for child in _stands_root.get_children():
 		child.free()
+	_stand_hits.clear()
 	for i in monsters.size():
 		var monster: RuntimeMonster = monsters[i]
 		var info := find_monster(monster.folder).duplicate()
@@ -258,7 +263,37 @@ func refresh_monsters(monsters: Array) -> void:
 		info["extra"] = "HP %d · Level %d" % [monster.hitpoints, monster.level]
 		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)
 		_build_stand(origin, info, i, MonsterChip.color(monster.chip))
+
+		# Pick box for monster_at(): a generous box over the stand (the
+		# figures have no collision shapes, and their real height varies
+		# with body proportions, see target_figure_diagonal).
+		var size_units: float = info.get("size_units", 1.0)
+		var half := BASE_SIZE.x * size_units * 0.5
+		var height := target_figure_diagonal * size_units + BASE_SIZE.y
+		_stand_hits.append({"monster": monster, "box": AABB(origin + Vector3(-half, 0, -half), Vector3(half * 2.0, height, half * 2.0))})
 	_frame_camera(monsters.size())
+
+
+## The live monster whose stand is under `screen_pos` as seen by this view's
+## camera (nearest wins), or null. Used to resolve a hero portrait being
+## dragged onto a monster (PlayerInteractionController) - combat's "attack".
+func monster_at(screen_pos: Vector2) -> RuntimeMonster:
+	if camera == null or not visible:
+		return null
+	var inverse := global_transform.affine_inverse()
+	var ray_from: Vector3 = inverse * camera.project_ray_origin(screen_pos)
+	var ray_dir: Vector3 = inverse.basis * camera.project_ray_normal(screen_pos)
+	var best: RuntimeMonster = null
+	var best_distance := INF
+	for hit in _stand_hits:
+		var point = (hit["box"] as AABB).intersects_ray(ray_from, ray_dir)
+		if point == null:
+			continue
+		var distance := ray_from.distance_to(point)
+		if distance < best_distance:
+			best_distance = distance
+			best = hit["monster"]
+	return best
 
 
 ## Builds one monster stand (base + figure + name label) at `origin` in

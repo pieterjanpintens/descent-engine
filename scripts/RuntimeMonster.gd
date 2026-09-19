@@ -12,6 +12,10 @@ var chip: int = MonsterChip.Chip.YELLOW  ## which colour chip is on its base
 var custom_name: String = ""  ## empty = generic type name
 var hitpoints: int = 20
 var level: int = 1
+var weaknesses: Array[int] = []  ## Vulnerability.Kind values
+var resistances: Array[int] = []
+var immunities: Array[int] = []
+var defense: int = 0  ## max of the random 0..defense roll subtracted from each hit
 
 
 ## The custom name if one was set, else the type's generic name ("Bandit").

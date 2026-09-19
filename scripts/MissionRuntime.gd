@@ -228,14 +228,62 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.custom_name = template.custom_name
 	created.hitpoints = template.hitpoints
 	created.level = template.level
+	created.defense = template.defense
+	created.weaknesses = template.weaknesses.duplicate()
+	created.resistances = template.resistances.duplicate()
+	created.immunities = template.immunities.duplicate()
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()
 	return created
 
 
-## Removes a monster from the registry, freeing its colour chip (nothing
-## calls this yet - there's no damage/death - but it's the release half of
+## Resolves one attack on `monster` with `weapon` (null = Weapon.placeholder()).
+## The table reports the final `successes` (dice, abilities and potions all
+## happen outside the engine). For each of the weapon's damage types: a
+## monster weakness to it adds +1 to the weapon's damage, a resistance
+## subtracts 1 (never below 0), and ANY immunity match makes the attack do 0.
+## Damage = successes x adjusted weapon damage; unless immune the engine then
+## rolls 0..monster.defense and subtracts it (never below 0), and the result
+## comes off the monster's hitpoints. A monster at 0 hitpoints or less is
+## defeated and released (chip freed, removed from the M view). Returns the
+## breakdown for display: {weapon_name, base_damage, weakness_bonus,
+## resistance_penalty, immune, weapon_damage, successes, damage, defense_roll,
+## dealt, hitpoints, defeated}.
+func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null) -> Dictionary:
+	if weapon == null:
+		weapon = Weapon.placeholder()
+	var bonus := 0
+	var penalty := 0
+	var immune := false
+	for kind in weapon.damage_types:
+		if monster.weaknesses.has(kind):
+			bonus += 1
+		if monster.resistances.has(kind):
+			penalty += 1
+		if monster.immunities.has(kind):
+			immune = true
+	var weapon_damage := maxi(weapon.damage + bonus - penalty, 0)
+	var damage := 0 if immune else successes * weapon_damage
+	var defense_roll := 0 if immune else randi_range(0, maxi(monster.defense, 0))
+	var dealt := maxi(damage - defense_roll, 0)
+	monster.hitpoints -= dealt
+	var defeated := monster.hitpoints <= 0
+	var result := {
+		"weapon_name": weapon.weapon_name, "base_damage": weapon.damage,
+		"weakness_bonus": bonus, "resistance_penalty": penalty, "immune": immune,
+		"weapon_damage": weapon_damage, "successes": successes, "damage": damage,
+		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated,
+	}
+	if defeated:
+		release_monster(monster.id)
+	else:
+		monsters_changed.emit()  # the M view shows HP
+	return result
+
+
+## Removes a monster from the registry, freeing its colour chip (called by
+## resolve_attack() when a monster is defeated; the release half of
 ## register_monster()).
 func release_monster(monster_id: String) -> void:
 	for i in monsters.size():

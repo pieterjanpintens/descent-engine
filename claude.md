@@ -469,6 +469,64 @@ dialog says "No colour chip left for: ...". `release_monster(id)` frees a
 chip (nothing calls it yet - no damage/death). `monsters_changed` makes the
 M monster view rebuild.
 
+**Weapons (new 2026-09-19)** - `Weapon` (Resource): `weapon_name`, `damage`
+(per success), `damage_types` (`Vulnerability.Kind` list), `weapon_range`
+(int >= 0, 0 = melee; not named `range`, a GDScript built-in) and `reach`
+(bool) - range/reach are data only, nothing reads them yet. `summary()` =
+one-line description for pickers. `WeaponCatalog` (never instantiated) lists
+the pickable weapons - generic invented placeholders (Sword 3 slash, Dagger,
+Mace, Warhammer, Spear w/ reach, Bow range 5, Sword of Light slash+lumos,
+Flame Staff), edit freely. **Embark**: after the party page,
+`EmbarkDialog.ask_loadouts(roster)` shows a second page where each hero
+picks TWO weapons (dropdowns, duplicates allowed; defaults = the first two
+catalog entries) and returns `{slot: Array[Weapon]}`, kept in
+`MissionPlayer.player_weapons` and handed to
+`PlayerInteractionController.hero_weapons`. When attacking, a hero with two
+weapons is asked "Which weapon?" (`ask_choice`, Cancel aborts) before the
+successes prompt. No weapon authoring UI, no equipment beyond this.
+**Unverified in-editor.**
+
+**Vulnerabilities (new 2026-09-19)** - `Vulnerability` (never instantiated,
+enum namespace like `MonsterChip`): `Kind` = physical PIERCE/SLASH/CRUSH +
+magic LUMOS (light)/AQUOS (water)/IGNOS (fire)/MORTOS (dead)/TERROS
+(earth)/ANEMOS (wind); helpers `is_physical()`/`is_magic()`/`all()`/
+`display_name()`. A monster has three lists of them - `weaknesses`,
+`resistances`, `immunities` (`Array[int]` of `Kind` values) on
+`MonsterTemplate`, copied onto `RuntimeMonster` by `register_monster()`.
+Authored as checkbox grids in `MonsterPropertiesDialog`. **Data only - combat
+doesn't read them yet**, and nothing stops the same kind being in more than
+one list. **Unverified in-editor.**
+
+**Combat, first step (new 2026-09-19)** - players attack monsters by
+dragging a hero portrait from the dock onto a monster in the M view.
+`PlayerInteractionController.monster_display` (plain var, assigned by
+`MissionPlayer._ready()`) tells it the M view is showing
+(`_monster_view_active()`): drags then skip the world raycast/highlight and
+`_end_drag()` resolves the drop with `MonsterDisplay.monster_at(screen_pos)`
+- a ray vs per-stand pick boxes (`_stand_hits`, rebuilt by
+`refresh_monsters()`; the figures have no collision shapes) returning the
+nearest `RuntimeMonster`. A hit calls `_attack_monster()`: an `ask_count`
+asks the table for its FINAL number of successes (dice, abilities and
+potions all happen outside the engine), then
+`MissionRuntime.resolve_attack(monster, successes, weapon = null)`.
+The `weapon` is one of the hero's two embark weapons (see **Weapons**
+below; `Weapon.placeholder()` = Sword/3/SLASH is only the null fallback).
+Per weapon damage type: a monster weakness to it = +1 weapon damage, a
+resistance = -1 (floored at 0), ANY immunity match = the attack does 0 (no
+defense roll). Then damage = successes x adjusted weapon damage; unless
+immune the engine rolls `randi_range(0,
+monster.defense)` and subtracts it (floored at 0); the result comes off
+`monster.hitpoints`; at <= 0 the monster is defeated and
+`release_monster()`d (chip freed, gone from the M view), else
+`monsters_changed` refreshes the M view's HP label. Returns a breakdown
+dictionary shown in a large dialog (`PlayerDialog.ask_ok(text, true, large =
+true)`; `_apply_panel_layout()`, `LARGE_MARGIN` 80px, 28pt text, layout
+restored afterwards). New monster property **`defense`** (int >= 0, default 0)
+on `MonsterTemplate` -> `RuntimeMonster`, editable in
+`MonsterPropertiesDialog`. No hover highlight over monsters, no weapons, and
+"defeated" is hitpoints <= 0 (the spec said "under 0" - ambiguous).
+**Unverified in-editor.**
+
 **Monster properties (new 2026-09-19)** - `Effect.spawn_monsters` is now
 `Array[MonsterTemplate]` (was folder strings; no migration, nothing used it
 yet). `MonsterTemplate` (design time): `folder`, optional `custom_name`

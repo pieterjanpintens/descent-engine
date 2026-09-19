@@ -24,12 +24,15 @@ extends Control
 ##
 ## Usage (all async - caller awaits the result):
 ##   await dialog.ask_ok("Place your figures in the highlighted area.")
+##   await dialog.ask_ok("Bandit is hit!", true, true)  # large: fills most of the screen
 ##   var yes: bool = await dialog.ask_yes_no("Is a player on tile 2a?")
 ##   var n: int = await dialog.ask_count("How many successes did you roll?")
 ##   await dialog.ask_narrative(["Page one text...", "Page two text..."])
 ##   var i: int = await dialog.ask_choice("Do what?", ["Pick fruit", "Climb"])  # -1 = Cancel
 
 const PANEL_WIDTH := 480.0
+const LARGE_MARGIN := 80.0  ## ask_ok(..., large = true): gap to every screen edge
+const LARGE_FONT_SIZE := 28
 
 signal _closed(result: Variant)
 
@@ -57,13 +60,10 @@ func _build_ui() -> void:
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE  # self (the root) already blocks; this is purely visual
 	add_child(scrim)
 
-	var panel := Control.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0)
-	panel.offset_left = -PANEL_WIDTH / 2.0
-	panel.offset_right = PANEL_WIDTH / 2.0
-	panel.offset_top = 16.0
+	_panel = Control.new()
+	var panel := _panel
 	add_child(panel)
+	_apply_panel_layout(false)
 
 	var background := PanelContainer.new()
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -97,8 +97,41 @@ func _build_ui() -> void:
 var _scrim: ColorRect
 
 
-func ask_ok(text: String, dim: bool = true) -> void:
+## The box holding the text + buttons; re-laid-out by _apply_panel_layout().
+var _panel: Control
+
+
+## Normal: a 480px box centered near the top. Large: fills most of the
+## screen (margins on every side), with bigger, vertically centered text -
+## used for moments that deserve the table's full attention (a hit).
+func _apply_panel_layout(large: bool) -> void:
+	if large:
+		_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_panel.custom_minimum_size = Vector2.ZERO
+		_panel.offset_left = LARGE_MARGIN
+		_panel.offset_right = -LARGE_MARGIN
+		_panel.offset_top = LARGE_MARGIN
+		_panel.offset_bottom = -LARGE_MARGIN
+	else:
+		_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+		_panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0)
+		_panel.offset_left = -PANEL_WIDTH / 2.0
+		_panel.offset_right = PANEL_WIDTH / 2.0
+		_panel.offset_top = 16.0
+		_panel.offset_bottom = 0.0
+	if _label == null:  # first call, from _build_ui(), before the label exists
+		return
+	_label.size_flags_vertical = Control.SIZE_EXPAND_FILL if large else Control.SIZE_FILL
+	_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER if large else VERTICAL_ALIGNMENT_TOP
+	if large:
+		_label.add_theme_font_size_override("font_size", LARGE_FONT_SIZE)
+	else:
+		_label.remove_theme_font_size_override("font_size")
+
+
+func ask_ok(text: String, dim: bool = true, large: bool = false) -> void:
 	_scrim.visible = dim
+	_apply_panel_layout(large)
 	_label.text = text
 	_count_input.visible = false
 	_set_buttons([{"text": "OK", "result": null}])
@@ -106,6 +139,8 @@ func ask_ok(text: String, dim: bool = true) -> void:
 	await _closed
 	visible = false
 	_scrim.visible = true
+	if large:
+		_apply_panel_layout(false)
 
 
 func ask_yes_no(text: String) -> bool:

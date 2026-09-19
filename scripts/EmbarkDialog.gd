@@ -30,6 +30,9 @@ signal _closed
 
 var _slot_buttons: Array[Button] = []
 var _start_button: Button
+var _party_panel: CenterContainer
+var _loadout_panel: CenterContainer
+var _loadout_rows: VBoxContainer
 var _min_players: int = 1
 var _max_players: int = HeroCatalog.SLOT_COUNT
 
@@ -49,13 +52,16 @@ func _build_ui() -> void:
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE  # self (the root) already blocks; this is purely visual
 	add_child(scrim)
 
-	var panel := Control.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(360, 0)
+	# A CenterContainer keeps each page's box truly centred whatever its size
+	# (a zero-size Control anchored at the centre grows right/down instead).
+	_party_panel = CenterContainer.new()
+	var panel := _party_panel
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(panel)
 
 	var background := PanelContainer.new()
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.custom_minimum_size = Vector2(360, 0)
 	panel.add_child(background)
 
 	var vbox := VBoxContainer.new()
@@ -90,6 +96,33 @@ func _build_ui() -> void:
 	_start_button.disabled = true
 	_start_button.pressed.connect(_on_start_pressed)
 	vbox.add_child(_start_button)
+
+	# Second page (ask_loadouts()): two weapons per chosen hero.
+	_loadout_panel = CenterContainer.new()
+	_loadout_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_loadout_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loadout_panel.visible = false
+	add_child(_loadout_panel)
+
+	var loadout_background := PanelContainer.new()
+	loadout_background.custom_minimum_size = Vector2(620, 0)
+	_loadout_panel.add_child(loadout_background)
+
+	var loadout_vbox := VBoxContainer.new()
+	loadout_background.add_child(loadout_vbox)
+
+	var loadout_title := Label.new()
+	loadout_title.text = "Choose two weapons per hero"
+	loadout_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loadout_vbox.add_child(loadout_title)
+
+	_loadout_rows = VBoxContainer.new()
+	loadout_vbox.add_child(_loadout_rows)
+
+	var loadout_start := Button.new()
+	loadout_start.text = "Start"
+	loadout_start.pressed.connect(_on_start_pressed)
+	loadout_vbox.add_child(loadout_start)
 
 
 func _on_slot_toggled(_pressed: bool) -> void:
@@ -126,6 +159,8 @@ func ask_roster(mission: MissionData) -> Array[int]:
 		btn.button_pressed = false
 		btn.disabled = false
 	_start_button.disabled = true
+	_party_panel.visible = true
+	_loadout_panel.visible = false
 
 	visible = true
 	await _closed
@@ -136,3 +171,44 @@ func ask_roster(mission: MissionData) -> Array[int]:
 		if _slot_buttons[i].button_pressed:
 			roster.append(i)
 	return roster
+
+
+## Second embark page: each hero in `roster` picks TWO weapons from
+## WeaponCatalog (the same weapon twice is allowed). Returns
+## {hero slot index: Array[Weapon]} (two entries each).
+func ask_loadouts(roster: Array[int]) -> Dictionary:
+	for child in _loadout_rows.get_children():
+		child.free()
+	var catalog := WeaponCatalog.all()
+	var pickers: Dictionary = {}
+	for slot in roster:
+		var row := HBoxContainer.new()
+		var name_label := Label.new()
+		name_label.text = HeroCatalog.slot_name(slot)
+		name_label.custom_minimum_size = Vector2(70, 0)
+		row.add_child(name_label)
+		var pair: Array[OptionButton] = []
+		for n in 2:
+			var picker := OptionButton.new()
+			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			for weapon in catalog:
+				picker.add_item(weapon.summary())
+			picker.select(mini(n, catalog.size() - 1))
+			row.add_child(picker)
+			pair.append(picker)
+		_loadout_rows.add_child(row)
+		pickers[slot] = pair
+
+	_party_panel.visible = false
+	_loadout_panel.visible = true
+	visible = true
+	await _closed
+	visible = false
+
+	var loadouts: Dictionary = {}
+	for slot in roster:
+		var chosen: Array[Weapon] = []
+		for picker in pickers[slot]:
+			chosen.append(catalog[picker.selected])
+		loadouts[slot] = chosen
+	return loadouts

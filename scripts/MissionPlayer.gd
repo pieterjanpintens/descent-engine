@@ -52,6 +52,8 @@ var _runtime: MissionRuntime
 ## PlayerInteractionController.set_roster(). Player count is just this
 ## array's size - there's no separate tracked count.
 var player_roster: Array[int] = []
+## {hero slot index: Array[Weapon]} - the two weapons each hero picked at embark.
+var player_weapons: Dictionary = {}
 
 
 func _ready() -> void:
@@ -70,13 +72,16 @@ func _ready() -> void:
 	# roster's size) and which character is player 1/2/3/... - equipment
 	# selection is explicitly deferred, see EmbarkDialog's own docstring.
 	player_roster = await embark_dialog.ask_roster(mission)
+	player_weapons = await embark_dialog.ask_loadouts(player_roster)
 	interaction_dock.set_roster(player_roster)
+	interaction_dock.hero_weapons = player_weapons
 
 	_runtime = MissionRuntime.new(mission)
 	_runtime.sync_builtins(current_round, player_roster.size())
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	interaction_dock.mission_runtime = _runtime
+	interaction_dock.monster_display = monster_display
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)
 	_refresh_objective_label()

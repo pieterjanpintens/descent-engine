@@ -12,10 +12,17 @@ extends Resource
 @export var custom_name: String = ""
 @export_range(0, 9999) var hitpoints: int = 20
 @export_range(0, 9999) var level: int = 1
+## Defense modifier: each hit the engine rolls 0..defense and subtracts it
+## from the damage (see MissionRuntime.resolve_attack()).
+@export_range(0, 9999) var defense: int = 0
+## Lists of Vulnerability.Kind values (not used by combat yet).
+@export var weaknesses: Array[int] = []
+@export var resistances: Array[int] = []
+@export var immunities: Array[int] = []
 
 
 ## One-line description for lists, e.g. "Rex - HP 20, Lv 1" (generic type
 ## name when no custom name is set).
 func summary() -> String:
 	var shown := custom_name if custom_name != "" else str(MonsterDisplay.find_monster(folder).get("name", folder))
-	return "%s - HP %d, Lv %d" % [shown, hitpoints, level]
+	return "%s - HP %d, Lv %d, Def %d" % [shown, hitpoints, level, defense]

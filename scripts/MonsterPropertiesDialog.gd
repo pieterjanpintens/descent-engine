@@ -21,11 +21,14 @@ var _title_label: Label
 var _name_edit: LineEdit
 var _hp_spin: SpinBox
 var _level_spin: SpinBox
+var _defense_spin: SpinBox
+## template property name -> CheckBox per Vulnerability.Kind (index = kind)
+var _vuln_boxes: Dictionary = {}
 
 
 func _ready() -> void:
 	title = "Monster Properties"
-	size = Vector2i(320, 220)
+	size = Vector2i(400, 600)
 	close_requested.connect(hide)
 	visible = false
 
@@ -67,6 +70,20 @@ func _ready() -> void:
 	)
 	vbox.add_child(_row("Level:", _level_spin))
 
+	_defense_spin = _make_spin()
+	_defense_spin.value_changed.connect(func(v: float):
+		if _suppress or _template == null:
+			return
+		var template := _template
+		commit_field.call("Edit monster defense", func(): template.defense = int(v))
+		on_changed.call()
+	)
+	vbox.add_child(_row("Defense:", _defense_spin))
+
+	_add_vulnerability_group(vbox, "Weaknesses", "weaknesses")
+	_add_vulnerability_group(vbox, "Resistances", "resistances")
+	_add_vulnerability_group(vbox, "Immunities", "immunities")
+
 
 func open_for(template: MonsterTemplate) -> void:
 	_template = template
@@ -75,8 +92,46 @@ func open_for(template: MonsterTemplate) -> void:
 	_name_edit.text = template.custom_name
 	_hp_spin.value = template.hitpoints
 	_level_spin.value = template.level
+	_defense_spin.value = template.defense
+	for prop in _vuln_boxes:
+		var selected: Array = template.get(prop)
+		for kind in Vulnerability.all():
+			(_vuln_boxes[prop][kind] as CheckBox).button_pressed = selected.has(kind)
 	_suppress = false
 	popup_centered()
+
+
+## A titled grid of one CheckBox per Vulnerability.Kind, editing the
+## template's `prop` list (weaknesses/resistances/immunities).
+func _add_vulnerability_group(parent: VBoxContainer, title_text: String, prop: String) -> void:
+	var title_label := Label.new()
+	title_label.text = title_text + ":"
+	parent.add_child(title_label)
+	var grid := GridContainer.new()
+	grid.columns = 3
+	parent.add_child(grid)
+	var boxes: Array[CheckBox] = []
+	for kind in Vulnerability.all():
+		var box := CheckBox.new()
+		box.text = Vulnerability.display_name(kind)
+		box.toggled.connect(func(_on: bool): _commit_vulnerabilities(prop))
+		grid.add_child(box)
+		boxes.append(box)
+	_vuln_boxes[prop] = boxes
+
+
+## Writes the ticked boxes of list `prop` back to the template as a NEW
+## array, inside the opener's undo-tracked commit.
+func _commit_vulnerabilities(prop: String) -> void:
+	if _suppress or _template == null:
+		return
+	var chosen: Array[int] = []
+	for kind in Vulnerability.all():
+		if (_vuln_boxes[prop][kind] as CheckBox).button_pressed:
+			chosen.append(kind)
+	var template := _template
+	commit_field.call("Edit monster " + prop, func(): template.set(prop, chosen))
+	on_changed.call()
 
 
 func _commit_name() -> void:

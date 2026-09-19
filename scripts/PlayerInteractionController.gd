@@ -58,6 +58,13 @@ signal objectives_progressed
 ## PropertiesDialog.operation_history/.layered_map).
 var mission_runtime: MissionRuntime
 
+## Assigned by MissionPlayer._ready() (same plain-var reasoning as above).
+## While it's visible (the M view) a drag targets its monsters, not the world.
+var monster_display: MonsterDisplay
+
+## {hero slot index: Array[Weapon]}, set by MissionPlayer after embark.
+var hero_weapons: Dictionary = {}
+
 const PORTRAIT_SIZE := 56.0
 
 var _row: HBoxContainer
@@ -181,7 +188,15 @@ func _update_drag_line(mouse_pos: Vector2) -> void:
 	_drag_line.points = PackedVector2Array([start, mouse_pos])
 
 
+## True while the M monster view is what's on screen - drags then target
+## monsters (attack) instead of world props.
+func _monster_view_active() -> bool:
+	return monster_display != null and monster_display.visible
+
+
 func _update_hover_highlight(screen_pos: Vector2) -> void:
+	if _monster_view_active():
+		return
 	var entry := _interactable_at(screen_pos)
 	if entry == _hovered_entry:
 		return
@@ -199,8 +214,11 @@ func _update_hover_highlight(screen_pos: Vector2) -> void:
 ## (an ordinary, non-async function) - a fine GDScript pattern, this just
 ## runs as a background coroutine, nothing needs to wait on it.
 func _end_drag(screen_pos: Vector2) -> void:
-	var hero_name := HeroCatalog.slot_name(_roster[_drag_dock_position])
-	var entry := _interactable_at(screen_pos)
+	var hero_slot: int = _roster[_drag_dock_position]
+	var hero_name := HeroCatalog.slot_name(hero_slot)
+	var monster_view := _monster_view_active()
+	var entry: InteractableEntry = null if monster_view else _interactable_at(screen_pos)
+	var monster: RuntimeMonster = monster_display.monster_at(screen_pos) if monster_view else null
 
 	_dragging = false
 	_drag_dock_position = -1
@@ -208,10 +226,58 @@ func _end_drag(screen_pos: Vector2) -> void:
 	_hovered_entry = null
 	_rebuild_highlight()
 
+	if monster_view:
+		if monster == null:
+			print("%s: drag released on no monster" % hero_name)
+			return
+		await _attack_monster(hero_name, hero_slot, monster)
+		return
 	if entry == null:
 		print("%s: drag released on nothing interactable" % hero_name)
 		return
 	await _offer_actions(hero_name, entry)
+
+
+## Combat: dragging a hero portrait onto a monster in the M view attacks it.
+## The table rolls its dice (and applies abilities/potions) outside the engine
+## and reports the final number of successes; MissionRuntime.resolve_attack()
+## does the rest (successes x weapon damage - random 0..defense, taken off
+## the monster's hitpoints) and a large dialog shows the breakdown.
+func _attack_monster(hero_name: String, hero_slot: int, monster: RuntimeMonster) -> void:
+	if mission_runtime == null:
+		return
+	var target := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	# One of the hero's two embark weapons (asked only when there is a choice).
+	var weapons: Array = hero_weapons.get(hero_slot, [])
+	var weapon: Weapon = null
+	if weapons.size() == 1:
+		weapon = weapons[0]
+	elif weapons.size() > 1:
+		var labels: Array[String] = []
+		for w: Weapon in weapons:
+			labels.append(w.summary())
+		var picked: int = await dialog.ask_choice("%s attacks %s.\nWhich weapon?" % [hero_name, target], labels)
+		if picked < 0:
+			return
+		weapon = weapons[picked]
+	var successes: int = await dialog.ask_count("%s attacks %s.\nHow many successes did you roll?" % [hero_name, target], 0, 99)
+	var r := mission_runtime.resolve_attack(monster, successes, weapon)
+
+	var text := "%s attacks %s\nwith the %s (damage %d)\n" % [hero_name, target, r["weapon_name"], r["base_damage"]]
+	if r["weakness_bonus"] > 0:
+		text += "\nWeakness: +%d damage" % r["weakness_bonus"]
+	if r["resistance_penalty"] > 0:
+		text += "\nResistance: -%d damage" % r["resistance_penalty"]
+	if r["immune"]:
+		text += "\nImmune! The attack does no damage.\n\n0 damage dealt"
+	else:
+		text += "\n%d successes x %d weapon damage = %d damage\nDefense roll: -%d\n\n%d damage dealt" % [
+			r["successes"], r["weapon_damage"], r["damage"], r["defense_roll"], r["dealt"]]
+	if r["defeated"]:
+		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
+	else:
+		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
+	await dialog.ask_ok(text, true, true)
 
 
 ## Presents every CURRENTLY-AVAILABLE action on `entry` (see
