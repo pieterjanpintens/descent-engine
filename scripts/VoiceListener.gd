@@ -31,10 +31,17 @@ extends Label
 ## The recognized text of a command.
 signal command_heard(text: String)
 
+## Voice control is usable (true) or not (false) - emitted at the end of
+## start(), and again after the in-game setup finishes, so the dialog hints can
+## follow it (MissionPlayer connects this).
+signal voice_ready(is_ready: bool)
+
 const CAPTURE_SCRIPT := "res://addons/godot_whisper/capture_stream_to_text.gd"
 const NATIVE_CLASS := "SpeechToText"  ## from the addon's GDExtension; CaptureStreamToText extends it
 const BUS_NAME := "Record"  ## the addon's default record_bus
-const MODEL_DIR := "res://addons/godot_whisper/models/"
+## Where models are looked for, first match wins per file name: user data (the
+## in-game setup, see VoiceInstaller) before a dev copy in the project.
+const MODEL_DIRS: Array[String] = ["user://whisper/models/", "res://addons/godot_whisper/models/"]
 ## Language-model preference, best first (substring of the file name). Small
 ## and fast beats big and accurate here: commands are a few words, and without
 ## GPU support (the addon only ships OpenCL) the large model takes seconds.
@@ -78,6 +85,7 @@ var _stt: Node  ## push-to-talk engine (native SpeechToText)
 var _mic_player: AudioStreamPlayer
 var _effect_capture: AudioEffectCapture
 var _device_picker: OptionButton
+var _setup_button: Button
 var _mode_check: CheckBox
 
 var _command_window_until_msec: int = 0
@@ -104,28 +112,66 @@ func _ready() -> void:
 	add_theme_constant_override("outline_size", 4)
 
 
-## Sets up the mic + the addon. Safe to call when the addon isn't installed -
-## it reports that in the status line and returns false.
+## Sets up the mic + the speech engine. Safe when nothing is installed: it then
+## offers the in-game setup (a download button, see VoiceInstaller) and returns
+## false. Emits voice_ready with the outcome.
 func start() -> bool:
-	if not ResourceLoader.exists(CAPTURE_SCRIPT):
-		_set_status("Voice off - Godot Whisper addon not found in res://addons/godot_whisper (typed commands still work)")
-		return false
-	if not ClassDB.class_exists(NATIVE_CLASS):
-		_set_status("Voice off - the Godot Whisper extension isn't loaded (restart Godot with the plugin enabled; on Windows check the .dll)")
-		return false
+	var ok := _start()
+	voice_ready.emit(ok)
+	return ok
+
+
+func _start() -> bool:
 	if not ProjectSettings.get_setting("audio/driver/enable_input", false):
 		_set_status("Voice off - enable Project Settings > Audio > Driver > Enable Input")
+		return false
+	# The native engine: registered at startup from res://addons if a dev copy
+	# exists, otherwise loaded from user data if the in-game setup ran.
+	if not ClassDB.class_exists(NATIVE_CLASS) and not VoiceInstaller.load_extension():
+		_offer_setup("Voice control isn't set up yet")
 		return false
 	_language_model = _load_model(false)
 	_vad_model = _load_model(true)
 	if _language_model == null:
-		_set_status("Voice off - download a Whisper model (Project > Tools > Whisper Models)")
+		_offer_setup("The speech model is missing")
 		return false
 
 	_setup_microphone()
 	_build_controls()
 	_start_engine()
 	return true
+
+
+## Shows a "Set up voice control" button (a click is the consent for the
+## download) plus why it is needed. No-op on platforms the installer can't serve.
+func _offer_setup(reason: String) -> void:
+	if not VoiceInstaller.is_supported_platform():
+		_set_status("Voice off - %s (setup isn't available on %s; typed commands still work)" % [reason, OS.get_name()])
+		return
+	_set_status("%s - typed commands still work" % reason)
+	if _setup_button != null:
+		return
+	_setup_button = Button.new()
+	_setup_button.text = "Set up voice control (downloads %s)" % VoiceInstaller.DOWNLOAD_SIZE_TEXT
+	_setup_button.position = Vector2(0, -34)
+	_setup_button.pressed.connect(_run_setup)
+	add_child(_setup_button)
+
+
+func _run_setup() -> void:
+	_setup_button.disabled = true
+	var installer := VoiceInstaller.new()
+	add_child(installer)
+	installer.progress.connect(_set_status)
+	var installed: bool = await installer.install()
+	installer.queue_free()
+	if installed:
+		_setup_button.queue_free()
+		_setup_button = null
+		start()
+	else:
+		_setup_button.text = "Retry voice setup"
+		_setup_button.disabled = false
 
 
 func _exit_tree() -> void:
@@ -159,6 +205,15 @@ func _start_push_to_talk() -> void:
 
 
 func _start_hands_free() -> void:
+	# The streaming node is a GDScript that ships in the addon folder; the
+	# in-game setup installs only the native engine, so hands-free needs a dev
+	# copy of the addon in res://addons.
+	if not ResourceLoader.exists(CAPTURE_SCRIPT):
+		push_to_talk = true
+		_mode_check.set_pressed_no_signal(true)
+		_start_push_to_talk()
+		_set_status("Hands-free needs the addon in res://addons - using push to talk")
+		return
 	var capture_script: GDScript = load(CAPTURE_SCRIPT)
 	_capture = capture_script.new()
 	_capture.set("record_bus", BUS_NAME)
@@ -365,36 +420,37 @@ func _setup_microphone() -> void:
 	_mic_player.play()
 
 
-## The addon's models sit in MODEL_DIR (imported as WhisperResource). The
-## Silero VAD one has "silero" in its name; every other .bin is a language
-## model, and of those the one matching the EARLIEST entry of
-## PREFERRED_MODELS wins (then any other, alphabetically) - so a small fast
-## model is used even while the big one is still in the folder. Returns null
-## if none found.
+## Models are looked for in MODEL_DIRS (imported as WhisperResource). The Silero
+## VAD one has "silero" in its name; every other .bin is a language model, and of
+## those the one matching the EARLIEST entry of PREFERRED_MODELS wins (then any
+## other, alphabetically) - so a small fast model is used even while a big one
+## is also present. Returns null if none found.
 func _load_model(vad: bool) -> Resource:
-	var dir := DirAccess.open(MODEL_DIR)
-	if dir == null:
+	var paths: Dictionary = {}  # file name -> directory it was found in (first dir wins)
+	for model_dir in MODEL_DIRS:
+		var dir := DirAccess.open(model_dir)
+		if dir == null:
+			continue
+		for file in dir.get_files():
+			# Imported/exported builds list "x.bin.import"/"x.bin.remap" too.
+			var name := file.trim_suffix(".import").trim_suffix(".remap")
+			if name.ends_with(".bin") and name.containsn("silero") == vad and not paths.has(name):
+				paths[name] = model_dir
+	if paths.is_empty():
 		return null
 	var names: Array[String] = []
-	for file in dir.get_files():
-		# Imported/exported builds list "x.bin.import"/"x.bin.remap" too.
-		var name := file.trim_suffix(".import").trim_suffix(".remap")
-		if name.ends_with(".bin") and name.containsn("silero") == vad and not names.has(name):
-			names.append(name)
-	if names.is_empty():
-		return null
+	names.assign(paths.keys())
 	names.sort()
+	var best := names[0]
 	if not vad:
 		var best_rank := PREFERRED_MODELS.size()
-		var best := names[0]
 		for name in names:
 			for rank in PREFERRED_MODELS.size():
 				if rank < best_rank and name.containsn(PREFERRED_MODELS[rank]):
 					best_rank = rank
 					best = name
 		print("Voice: language model = ", best, " (of ", names, ")")
-		return load(MODEL_DIR + best)
-	return load(MODEL_DIR + names[0])
+	return load(paths[best] + best)
 
 
 ## Hint text for Whisper: the wake phrase and example commands, which helps

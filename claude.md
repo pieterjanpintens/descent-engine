@@ -490,6 +490,27 @@ later mic/STT step only has to feed it text. Resolves from the registry, so
 it works from the world view too. **Unverified in-editor** (parser tested
 headlessly).
 
+**Voice setup from user data (new 2026-09-21)** - voice is deliberately NOT in
+releases (addon + models are ~1 GB and gitignored). `VoiceInstaller` (Node)
+downloads, on the player's click of "Set up voice control (about 265 MB)" in the
+Player, the speech engine (Godot Whisper v2.0.3 release zip from GitHub; only
+`godot_whisper.gdextension` + this platform's single-precision library are
+extracted) and the models (Whisper small.en q5_1 + Silero VAD, from Hugging
+Face, SHA-256 pinned, via `.part` files) into `user://whisper/`, then loads the
+extension at runtime with `GDExtensionManager.load_extension()` (no restart).
+Nothing is redistributed by us (upstream sources, both MIT). `VoiceListener.
+start()` now: needs `audio/driver/enable_input`, then the native `SpeechToText`
+class (res://addons copy OR `VoiceInstaller.load_extension()`), then models from
+`MODEL_DIRS` (user data first, then res://addons); if missing it shows the setup
+button and returns false. New `voice_ready(bool)` signal drives
+`dialog.voice_hints_enabled` (re-fired after setup). **Hands-free mode still
+needs the addon's GDScript (`CaptureStreamToText`) in res://addons**, so without
+it the listener falls back to push to talk. Windows/Linux only (macOS framework
+not handled). Tested: full install against a local HTTP server (checksums,
+extraction, runtime load). **Not verified in an exported build**, nor against the
+real GitHub/Hugging Face URLs (the pinned addon zip has no checksum; its entry
+layout is matched by name, not path).
+
 **Voice listening (new 2026-09-20, experiment branch)** - `VoiceListener` (a
 `Label`, doubles as the status line above the command box) feeds spoken text
 into the same `PlayerCommandRunner.run()` as the typed box. Audio/STT is the

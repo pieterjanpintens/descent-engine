@@ -128,7 +128,8 @@ func _ready() -> void:
 					names.append(weapon.weapon_name)
 		return names
 	voice_listener.context_prompt_provider = dialog.voice_prompt
-	dialog.voice_hints_enabled = voice_listener.start()  # hints only when a mic is listening
+	voice_listener.voice_ready.connect(func(ready: bool): dialog.voice_hints_enabled = ready)  # hints only when a mic is listening
+	voice_listener.start()
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)
 	_refresh_objective_label()
