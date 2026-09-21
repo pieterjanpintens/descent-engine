@@ -469,6 +469,224 @@ dialog says "No colour chip left for: ...". `release_monster(id)` frees a
 chip (nothing calls it yet - no damage/death). `monsters_changed` makes the
 M monster view rebuild.
 
+**Typed/voice commands (new 2026-09-20, branch `experiment/voice-commands`)** -
+step one of voice control ("hey DM, attack green bandit"): everything except
+the audio. `VoiceCommandParser` (static, pure text -> data, headless-testable)
+strips an optional wake phrase ("hey DM" and common mishearings), an optional
+"hero N" (digit or spoken number incl. homophones like "to"), the verb
+(attack/hit/strike/fight/kill/stab/slash, plurals and small slips ok), then
+reads a chip colour and monster name words, matching them against the LIVE
+monsters (`MissionRuntime.monsters`) with light fuzzy matching (edit distance
+1-2 for words of 4+ letters) - closed vocabulary, since speech recognition
+mishears. Returns `{error, verb, hero_slot (-1 = unspoken), monsters}`.
+`PlayerCommandRunner` (built by `MissionPlayer`) runs it: error -> `ask_ok`;
+several matching monsters -> "Which monster?"; no hero spoken -> the only
+hero or "Who attacks?"; then straight to `PlayerInteractionController.attack(slot,
+monster)` - **no yes/no confirmation** (removed 2026-09-21: voice control exists
+to avoid mouse clutter; a first version confirmed every command) - the same public call a portrait drag ends in (extracted from the
+old `_attack_monster`). Ignored while a dialog is open. `CommandInput` (a
+`LineEdit`, bottom-left of the Player) is the text stand-in for the mic; a
+later mic/STT step only has to feed it text. Resolves from the registry, so
+it works from the world view too. **Unverified in-editor** (parser tested
+headlessly).
+
+**Voice listening (new 2026-09-20, experiment branch)** - `VoiceListener` (a
+`Label`, doubles as the status line above the command box) feeds spoken text
+into the same `PlayerCommandRunner.run()` as the typed box. Audio/STT is the
+third-party **Godot Whisper** addon (MIT, appsinacup/godot-whisper -
+whisper.cpp + Silero VAD; node `CaptureStreamToText`, signal
+`transcribed_msg(is_complete, new_text)`), deliberately NOT vendored: install
+it via the Asset Library and download a Whisper model + the Silero VAD model
+in the editor (Project > Tools > Whisper Models, lands in
+`res://addons/godot_whisper/models/`, gitignored). **`CaptureStreamToText` is a
+GDScript class of the addon (`capture_stream_to_text.gd`, extending the native
+`SpeechToText` from its GDExtension), NOT a native class - `ClassDB` can't see
+it** (the first version checked `ClassDB.class_exists` and always reported the
+addon missing). `VoiceListener` checks `ResourceLoader.exists()` on the script
++ `ClassDB.class_exists("SpeechToText")` for the extension, then `load()`s the
+script and drives it via `set()`/`connect()` (also `status_changed`, shown in
+the status line), so the project compiles and runs without the addon. The
+language model `.bin` loads as a `WhisperResource`; without the Silero VAD
+model the addon still commits sentences (punctuation / window timeout) but
+slower. Verified headlessly: script loads, native class present, model loads
+as `WhisperResource`, `language_model`/`vad_model`/`record_bus`/
+`initial_prompt` exist. The addon itself is untracked (not committed).
+**Push to talk (2026-09-20, now the DEFAULT mode)** - a checkbox next to the
+device picker switches between it and the hands-free wake-word mode
+(`_start_engine()` rebuilds the engine). Hold `PTT_KEY` (V): `_unhandled_input`
+starts collecting the mic (`_process` drains the `AudioEffectCapture` into
+`_ptt_frames`; the buffer is cleared at key-down so nothing older leaks in),
+release sends it - `_transcribe_recording()` runs on a worker `Thread`
+(`resample` to 16 kHz then a single `transcribe` call on the addon's NATIVE
+`SpeechToText` node - MEASURED on real speech (a Windows-TTS clip of "Hey DM,
+hero two attack the green bandit", 3.9 s): small.en-q5_1 ~120-140 ms,
+large-v3-turbo-q5_0 ~400 ms, no first-call warm-up penalty, both transcribed
+it perfectly; an earlier "4.6 s" figure was a pure test TONE, which makes the
+decoder babble - not representative. Do NOT pass a reduced `audio_ctx` to
+`transcribe()`: it halves the time but made the large model return just "It"),
+and the text is emitted as `command_heard` with NO wake word needed
+(the parser still strips one if said). Recordings under 0.4 s or below
+`LOUD_PEAK` are dropped without asking Whisper (it echoes its prompt on
+silence - a pure tone came back as " DM"). No rolling window, so no
+contamination from earlier speech. Verified headlessly: `resample`/`transcribe`
+exist and work with the real model; key handling, threading and the UI are
+unverified in-editor. `_load_model()` prefers `PREFERRED_MODELS` (small.en,
+base.en, small, base) over whatever else is in the models folder, so the small
+model (`ggml-small.en-q5_1.bin`, 181 MiB, downloaded from
+huggingface.co/ggerganov/whisper.cpp, same source as the addon's own
+downloader) is used even with the large one still present. The addon's
+"Unsupported GPU" message (RTX 3070) is its OpenCL backend rejecting non-Adreno
+GPUs; it just falls back to CPU, which is plenty fast for command-length audio
+
+**Silent-mic diagnosis (2026-09-20)**: the addon reported "signal is silent
+from 'Default'" and Whisper printed "thank you"/echoed the prompt - it
+hallucinates on silence. Verified headlessly that a MUTED bus still feeds
+`AudioEffectCapture` at full level (peak ~0.7, same as unmuted), so the bus
+setup is not the cause - the OS/default input device is. Added: an input
+device `OptionButton` above the status (`AudioServer.get_input_device_list()`,
+switches live), a live mic-level meter in the status line
+(`input_level_changed`), a guard that drops transcripts unless the mic was
+audibly loud (`LOUD_PEAK`) within `SOUND_MEMORY_MSEC` (kills the silence
+hallucinations), and a sentence-style `initial_prompt` (the old
+"Colours: ..." list got echoed back) - `start()` then just shows "Voice off - ..." (also for a missing
+model or `audio/driver/enable_input`, now set to true in `project.godot`).
+`start()` builds a muted `Record` bus with an `AudioEffectCapture` fed by an
+`AudioStreamMicrophone`, sets the models, and passes an `initial_prompt` of
+the wake phrase + chip colours + monster names to bias recognition. Only
+COMPLETE sentences count; noise markers ("[BLANK_AUDIO]") are dropped. Wake
+logic: a sentence containing the wake phrase is a command
+(`VoiceCommandParser.has_wake_phrase`); a sentence that is ONLY the wake
+phrase (`is_wake_only`) opens an 8 s window where the next sentence is a
+command; everything else is ignored table chatter. No confirmation dialog
+follows a command. **Entirely unverified** - I can't run a mic, the
+addon's API here comes from its docs (property names `record_bus`,
+`language_model`, `vad_model`, `initial_prompt`), and whether a muted bus
+still feeds `AudioEffectCapture` needs a real test. No push-to-talk yet.
+
+**Voice combat, expanded (2026-09-21)** - single words are hard for Whisper
+("sword" alone was never heard; "attack John with sword" was), so combat is
+sentence-based. `VoiceCommandParser._parse_attack()` now also reads a WEAPON
+("attack John WITH the sword": everything after with/using/wielding ->
+`weapon_text`) and the ROLL ("I rolled three", "got a 4", "3 successes":
+`ROLL_WORDS` verbs rolled/got/scored/made/have/... or `SUCCESS_WORDS`, incl.
+"a"/"the" between -> `successes`, -1 if unspoken); both go to
+`PlayerInteractionController.attack(slot, monster, weapon_text, preset_successes)`
+which skips "Which weapon?" when `weapon_text` names one of the hero's weapons
+(`VoiceAnswerParser.match_choice()` on `weapon_name`) and skips "How many
+successes?" when a number was given - anything not clearly given is asked as
+before. The count dialog now asks for a SENTENCE ("I rolled three") but does
+not depend on the verb: `VoiceAnswerParser.parse_number()` takes the first
+number anywhere, and the homophones (to/too/for/won/ate) only count when there
+is no real number AND the reply is <= 3 words ("I rolled it for three" = 3, not
+4; "to" alone = 2). Recognition is primed with sentences: `PlayerDialog.
+voice_prompt()` ("I rolled three." / "I use the sword. ...") via
+`VoiceListener.context_prompt_provider`, plus `weapon_name_provider` ("Attack
+with the sword."). The choice hint also now suggests "use the <name>". The successes question
+now names the weapon in use ("... attacks X / with the Sword (damage 3, Slash)")
+because the weapon question is often skipped (one weapon, or it was spoken).
+
+**Voice for the rest of the mouse work (2026-09-21)** - three more commands
+in `VoiceCommandParser._system_command()` (verbs "end_phase" / "show_monsters" /
+"show_map", no target): "end phase" / "next phase" / "end turn" / "finish
+round" (`END_WORDS` + `PHASE_WORDS`, incl. Whisper's "face"); "show monsters" /
+"monster view" / "monsters" / "switch to the monsters"; "show map" / "world
+view" / "back to the map" / "board". `PlayerCommandRunner` calls two Callables
+set by `MissionPlayer` (it has the scene access): `_voice_end_phase()` presses
+the End Phase button itself (so it obeys the button's rules - disabled outside
+the player phase -> a "can't be ended right now" dialog) and
+`_set_monster_display_visible(bool)` (the M key's function). No confirmation
+for end phase (same "no mouse clutter" rule as attacks). The prompt hint got
+"End phase. Show monsters.". Compile-checked only.
+
+**Custom monster names by voice (2026-09-21)** - "attack Mieke" failed because
+speech recognition can't spell an unusual name and my fuzzy matching allows only
+1-2 edits ("Mikey" is 2 off). Two fixes: (1) `VoiceListener.
+monster_name_provider` (set by `MissionPlayer` to the live monsters' custom
+names) adds "Attack <name>." sentences to Whisper's prompt so it knows the
+spelling; (2) `VoiceCommandParser._parse_attack()` retries by SOUND when nothing
+matched: `_sounds_alike()` = same first letter + same consonant skeleton
+(`_consonant_key()`: ck/c/q->k, ph->f, vowels and y dropped, doubles collapsed;
+"mieke"/"mikey"/"micky"/"meeka" are all "mk"), key length >= 2 - a crude
+fallback that only runs when the normal matching found nothing.
+
+**Voice/typed interaction (2026-09-21)** - "hey DM, use the pile of dirt" /
+"interact with the pile of dirt" / "trigger the pile of dirt".
+`VoiceCommandParser.INTERACT_VERBS` = use / interact / trigger ONLY, on
+purpose: never open/search/touch, so level designers aren't forced to name
+actions to match a verb - WHICH action runs is chosen afterwards from the
+prop's own available actions (`PlayerInteractionController._offer_actions()`,
+the existing choice dialog, answerable by voice). `parse(text, monsters,
+interactables)` now returns `verb` "attack"|"interact" plus `objects`
+(`[{"entry", "label"}]` from `InteractionLabels.labelled()`); an object is
+picked by its spoken name - every spoken word must match a label word
+(`VoiceAnswerParser.word_matches()`: fuzzy, and spoken numbers match digit
+words: "exploration two" -> "exploration 2"; `front_door` is spoken "front
+door"), keeping only the matches with the fewest extra words so "exploration
+2" isn't confused with "exploration 20" while plain "exploration" matches every
+numbered token and the runner asks "Which one?". `PlayerCommandRunner` gained
+`labels` (refreshes them before parsing), `_run_interact()` and a shared
+`_pick_hero()` (spoken hero / only hero / asked), then calls the new public
+`PlayerInteractionController.interact(slot, entry)`. `VoiceListener.
+vocabulary_provider` (= `InteractionLabels.spoken_names`) works up to three
+object names into Whisper's prompt as command sentences so names like "pile of
+dirt" are recognised. Parser cases tested headlessly; the runner/dialog flow
+and real-mic recognition of custom names are unverified.
+
+**Interaction labels (2026-09-21)** - first half of voice control for
+interaction: `InteractionLabels` (a `Node3D` under `layered_map`, so it hides
+with the world in the M view; `MissionPlayer.interaction_labels`) floats a name
+`Label3D` over every prop a hero can interact with RIGHT NOW: `props
+["interactible"]` not false, `MissionData.is_effectively_visible()`, and
+`MissionRuntime.first_available_action()` non-null (so an exhausted single-shot
+action or unmet conditions = no label; a removed prop = no label; a moved prop's
+label follows). Text = `reference_name` else `mesh_item_name`; **duplicate names
+are numbered** ("exploration 1", "exploration 2") so each is speakable.
+`labelled()` -> `[{"entry", "label"}]` is what a voice command will resolve
+against (NOT built yet: "interact with exploration two" + choosing the action
+is the next step). Re-evaluated every `REFRESH_SEC` (0.3 s) by a `Timer`
+instead of hooking every state change (effects, removals, moves, stage reveals,
+round counter) - simple and can't miss a case. Labels are billboards with
+`no_depth_test` (readable behind tall props). **Size follows the camera
+distance** (`_process()`, per frame; the first version used `fixed_size`,
+which kept them huge next to a shrinking map when zoomed out - "zooming out is
+for an overview, losing label visibility is ok"): `pixel_size = PIXEL_SIZE *
+min(distance, FULL_SIZE_DISTANCE)`, i.e. a constant on-screen size (~27 px, the
+`PIXEL_SIZE`/`FONT_SIZE` knobs) up to `FULL_SIZE_DISTANCE` (25), then it stops
+growing in world terms so the text shrinks as you zoom out, fading out from
+`FADE_START_DISTANCE` (40) and hidden at `HIDE_DISTANCE` (70). Verified
+numerically headlessly (27 px at 5/15/25, 19 at 35, 15 at 45, 11 at 60, gone
+at 70) - the constants are tuning guesses, adjust after looking. Placed at the middle of the
+footprint `LABEL_LIFT` above the cell base (GridMap Center is OFF, so
+`map_to_local` is the corner). New `MissionRuntime.log_evaluations` (default
+true) gates the two per-check debug prints; the labels pass turns it off so
+the console isn't flooded. Verified headlessly in a scene (autoloads are
+unavailable in `-s` mode): available/duplicate/custom-name/not-interactible/no-
+actions/used-single-shot/hidden cases, label positions, follow-on-move,
+removal. **The on-screen size maths is checked numerically but not
+visually** - tune `PIXEL_SIZE`/the distance constants after a look.
+
+**Voice context (2026-09-21)** - speech is interpreted by what is on screen.
+`PlayerCommandRunner.run(text)`: while a `PlayerDialog` is open the speech is an
+ANSWER to it (`PlayerDialog.try_voice_answer(text)`), otherwise a command
+(`VoiceCommandParser`). The dialog tracks what it is asking (`_voice_kind`:
+ok / yes_no / count / choice / narrative, `_voice_options` = the option NAMES
+via `VoiceAnswerParser.option_name()`, i.e. the label minus " (damage 3,...)")
+and presses its own buttons: **ok** -> "ok/okay/continue/done...", **yes_no**
+-> yes/no words, **count** -> a number 0-99 as digits or words ("three",
+"twenty five", homophones "to"/"for", "I rolled four"; entered then OK'd; out
+of range -> hint), **choice** -> by name ("sword" beats "Sword of Light" - an
+exact/shorter name wins; identical names stay ambiguous), by ordinal/number
+("first", "second", "two", "last") or "cancel"/"never mind" (the trailing Cancel
+button), **narrative** -> "next"/"ok"/"back". A disabled option can't be
+picked. `VoiceAnswerParser` (static, pure text, headless-tested) holds the
+matching. When a mic is listening (`MissionPlayer` sets
+`dialog.voice_hints_enabled = voice_listener.start()`) a hint line under the
+buttons says what can be said ("Voice - Say a name or number - 1: Sword | 2:
+Sword of Light - or \"cancel\"") and, after a miss, why ("Didn't catch which
+option - ..."). The typed `CommandInput` answers dialogs the same way.
+Verified headlessly: the parser cases and a real dialog closing on spoken
+answers; unverified with a real mic/in the editor.
+
 **Weapons (new 2026-09-19)** - `Weapon` (Resource): `weapon_name`, `damage`
 (per success), `damage_types` (`Vulnerability.Kind` list), `weapon_range`
 (int >= 0, 0 = melee; not named `range`, a GDScript built-in) and `reach`

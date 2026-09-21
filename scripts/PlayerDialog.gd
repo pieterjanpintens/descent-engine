@@ -41,6 +41,17 @@ var _button_row: HBoxContainer
 var _count_input: SpinBox
 
 var _narrative_pages: Array[String] = []
+
+## Voice control context: what the open dialog is asking ("ok"/"yes_no"/
+## "count"/"choice"/"narrative", "" when closed), so speech can answer it - see
+## try_voice_answer(). MissionPlayer sets voice_hints_enabled when a microphone
+## is actually listening; the hint line under the buttons then tells the table
+## what can be said.
+var voice_hints_enabled: bool = false
+var _voice_kind: String = ""
+var _voice_options: Array[String] = []  ## "choice": the option NAMES, in button order
+var _hint_label: Label
+var _buttons: Array[Button] = []
 var _narrative_index: int = 0
 
 
@@ -89,6 +100,14 @@ func _build_ui() -> void:
 	_button_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(_button_row)
 
+	_hint_label = Label.new()
+	_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.add_theme_font_size_override("font_size", 13)
+	_hint_label.modulate = Color(1, 1, 1, 0.65)
+	_hint_label.visible = false
+	vbox.add_child(_hint_label)
+
 
 ## The dim overlay behind the box - `ask_ok(text, false)` hides it so the
 ## scene behind stays fully visible (used to show monster miniatures on the
@@ -135,6 +154,7 @@ func ask_ok(text: String, dim: bool = true, large: bool = false) -> void:
 	_label.text = text
 	_count_input.visible = false
 	_set_buttons([{"text": "OK", "result": null}])
+	_set_voice_context("ok")
 	visible = true
 	await _closed
 	visible = false
@@ -147,6 +167,7 @@ func ask_yes_no(text: String) -> bool:
 	_label.text = text
 	_count_input.visible = false
 	_set_buttons([{"text": "Yes", "result": true}, {"text": "No", "result": false}])
+	_set_voice_context("yes_no")
 	visible = true
 	var result: bool = await _closed
 	visible = false
@@ -160,6 +181,7 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99) -> int:
 	_count_input.value = min_value
 	_count_input.visible = true
 	_set_buttons([{"text": "OK", "result": null}])  # actual answer is read from _count_input below
+	_set_voice_context("count")
 	visible = true
 	await _closed
 	visible = false
@@ -187,6 +209,10 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 		specs.append({"text": option_labels[i], "result": i, "disabled": disabled})
 	specs.append({"text": "Cancel", "result": -1})
 	_set_buttons(specs)
+	var names: Array[String] = []
+	for label in option_labels:
+		names.append(VoiceAnswerParser.option_name(label))
+	_set_voice_context("choice", names)
 	visible = true
 	var result: int = await _closed
 	visible = false
@@ -198,6 +224,7 @@ func ask_narrative(pages: Array[String]) -> void:
 	_narrative_index = 0
 	_count_input.visible = false
 	_show_narrative_page()
+	_set_voice_context("narrative")
 	visible = true
 	await _closed
 	visible = false
@@ -218,12 +245,14 @@ func _show_narrative_page() -> void:
 func _set_buttons(specs: Array) -> void:
 	for child in _button_row.get_children():
 		child.queue_free()
+	_buttons.clear()
 	for spec in specs:
 		var btn := Button.new()
 		btn.text = spec["text"]
 		btn.disabled = spec.get("disabled", false)
 		btn.pressed.connect(_on_button_pressed.bind(spec["result"]))
 		_button_row.add_child(btn)
+		_buttons.append(btn)
 
 
 ## "_next"/"_back" are internal sentinels for ask_narrative() - they advance
@@ -246,4 +275,120 @@ func _on_button_pressed(result: Variant) -> void:
 			_narrative_index -= 1
 			_show_narrative_page()
 			return
+	_voice_kind = ""
+	_hint_label.visible = false
 	_closed.emit(result)
+
+
+# ---------------------------------------------------------------- voice answers
+
+func _set_voice_context(kind: String, options: Array[String] = []) -> void:
+	_voice_kind = kind
+	_voice_options = options
+	_show_voice_hint("")
+
+
+## The line under the buttons telling the table what it can say right now
+## (only when a microphone is listening). `problem` is prefixed when the last
+## spoken answer wasn't understood.
+func _show_voice_hint(problem: String) -> void:
+	if not voice_hints_enabled or _voice_kind == "":
+		_hint_label.visible = false
+		return
+	var hint := ""
+	match _voice_kind:
+		"ok":
+			hint = "Say \"ok\""
+		"yes_no":
+			hint = "Say \"yes\" or \"no\""
+		"count":
+			hint = "Say a sentence with the number, like \"I rolled three\" (%d to %d)" % [int(_count_input.min_value), int(_count_input.max_value)]
+		"narrative":
+			hint = "Say \"next\" or \"ok\" (or \"back\")"
+		"choice":
+			var parts: Array[String] = []
+			for i in _voice_options.size():
+				parts.append("%d: %s" % [i + 1, _voice_options[i]])
+			hint = "Say a sentence, like \"use the %s\", or a number - %s - or \"cancel\"" % [_voice_options[0].to_lower() if not _voice_options.is_empty() else "sword", " | ".join(parts)]
+	_hint_label.text = (problem + " - " if problem != "" else "") + "Voice - " + hint
+	_hint_label.visible = true
+
+
+## A sample of what can be said to the open dialog, phrased as sentences, for
+## the speech recogniser's prompt (single words are hard for it, sentences work
+## - "sword" alone was never heard, "attack John with sword" was). "" when no
+## dialog is open or nothing useful applies.
+func voice_prompt() -> String:
+	if not visible:
+		return ""
+	match _voice_kind:
+		"count":
+			return "I rolled three."
+		"choice":
+			var sentences: Array[String] = []
+			for i in mini(_voice_options.size(), 3):
+				sentences.append("I use the %s." % _voice_options[i].to_lower())
+			return " ".join(sentences)
+	return ""
+
+
+## Answers the open dialog from speech (see VoiceAnswerParser): presses the
+## button the words pick, entering the number first for a count question.
+## Returns true if an answer was applied. Called by PlayerCommandRunner
+## instead of treating the speech as a command whenever a dialog is open.
+func try_voice_answer(text: String) -> bool:
+	if not visible or _voice_kind == "":
+		return false
+	match _voice_kind:
+		"ok":
+			if VoiceAnswerParser.is_ok(text):
+				return _press(0)
+			_show_voice_hint("Didn't catch that")
+		"yes_no":
+			if VoiceAnswerParser.is_no(text):
+				return _press(1)
+			if VoiceAnswerParser.is_yes(text):
+				return _press(0)
+			_show_voice_hint("Didn't catch that")
+		"count":
+			var number := VoiceAnswerParser.parse_number(text)
+			if number < int(_count_input.min_value) or number > int(_count_input.max_value):
+				_show_voice_hint("Didn't catch a number in range")
+				return false
+			_count_input.value = number
+			return _press(0)
+		"narrative":
+			if VoiceAnswerParser.is_back(text):
+				return _press_text("Back")
+			if VoiceAnswerParser.is_ok(text):
+				return _press_text("Next") or _press_text("OK")
+			_show_voice_hint("Didn't catch that")
+		"choice":
+			var picked := VoiceAnswerParser.match_choice(text, _voice_options)
+			match picked:
+				VoiceAnswerParser.CHOICE_CANCEL:
+					return _press(_buttons.size() - 1)  # the trailing Cancel button
+				VoiceAnswerParser.CHOICE_NONE:
+					_show_voice_hint("Didn't catch which option")
+				VoiceAnswerParser.CHOICE_AMBIGUOUS:
+					_show_voice_hint("More than one matches - say a number")
+				_:
+					if _press(picked):
+						return true
+					_show_voice_hint("That option isn't available")
+	return false
+
+
+## Presses the button at `index` unless it's missing or disabled.
+func _press(index: int) -> bool:
+	if index < 0 or index >= _buttons.size() or _buttons[index].disabled:
+		return false
+	_buttons[index].pressed.emit()
+	return true
+
+
+func _press_text(button_text: String) -> bool:
+	for i in _buttons.size():
+		if _buttons[i].text == button_text:
+			return _press(i)
+	return false

@@ -15,6 +15,10 @@ run/main_scene="uid://b4b20wrtuq1a6"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
+[audio]
+
+driver/enable_input=true
+
 [autoload]
 
 FootprintRegistry="*uid://dgih1obkp15pl"

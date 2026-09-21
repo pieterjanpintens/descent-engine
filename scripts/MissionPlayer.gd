@@ -54,6 +54,8 @@ var _runtime: MissionRuntime
 var player_roster: Array[int] = []
 ## {hero slot index: Array[Weapon]} - the two weapons each hero picked at embark.
 var player_weapons: Dictionary = {}
+var _command_runner: PlayerCommandRunner
+var interaction_labels: InteractionLabels  ## names of the currently interactable props
 
 
 func _ready() -> void:
@@ -82,6 +84,51 @@ func _ready() -> void:
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
+
+	# Name labels over everything a hero can interact with right now (parented
+	# to layered_map, so they hide with the world in the M monster view).
+	interaction_labels = InteractionLabels.new()
+	interaction_labels.layered_map = layered_map
+	interaction_labels.runtime = _runtime
+	layered_map.add_child(interaction_labels)
+
+	# Typed commands ("attack green bandit") - the stand-in for voice control,
+	# see VoiceCommandParser/PlayerCommandRunner.
+	_command_runner = PlayerCommandRunner.new()
+	_command_runner.runtime = _runtime
+	_command_runner.dock = interaction_dock
+	_command_runner.dialog = dialog
+	_command_runner.roster = player_roster
+	_command_runner.labels = interaction_labels
+	_command_runner.end_phase = _voice_end_phase
+	_command_runner.set_monster_view = _set_monster_display_visible
+	var command_input := CommandInput.new()
+	dialog.get_parent().add_child(command_input)
+	dialog.get_parent().move_child(command_input, dialog.get_index())  # keep the modal dialog above it
+	command_input.command_entered.connect(_command_runner.run)
+
+	# Hands-free: "hey DM, attack green bandit" through the microphone (needs
+	# the Godot Whisper addon, see VoiceListener; otherwise just a status line).
+	var voice_listener := VoiceListener.new()
+	dialog.get_parent().add_child(voice_listener)
+	dialog.get_parent().move_child(voice_listener, dialog.get_index())
+	voice_listener.command_heard.connect(_command_runner.run)
+	voice_listener.vocabulary_provider = interaction_labels.spoken_names  # object names help recognition
+	voice_listener.monster_name_provider = func() -> Array:
+		var names: Array = []
+		for monster in _runtime.monsters:
+			if monster.custom_name != "" and not names.has(monster.custom_name):
+				names.append(monster.custom_name)
+		return names
+	voice_listener.weapon_name_provider = func() -> Array:
+		var names: Array = []
+		for weapons: Array in player_weapons.values():
+			for weapon: Weapon in weapons:
+				if not names.has(weapon.weapon_name):
+					names.append(weapon.weapon_name)
+		return names
+	voice_listener.context_prompt_provider = dialog.voice_prompt
+	dialog.voice_hints_enabled = voice_listener.start()  # hints only when a mic is listening
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)
 	_refresh_objective_label()
@@ -364,6 +411,15 @@ func _enter_player_phase() -> void:
 		phase_label.text = "Round %d - player phase" % current_round
 	darkness_overlay.visible = false
 	end_phase_button.disabled = false
+
+
+## "End phase" by voice: exactly a press of the End Phase button, so it obeys
+## the same rules (it's only enabled in the player phase).
+func _voice_end_phase() -> void:
+	if end_phase_button.disabled:
+		await dialog.ask_ok("The phase can't be ended right now.")
+		return
+	end_phase_button.pressed.emit()
 
 
 func _on_end_phase_button_pressed() -> void:

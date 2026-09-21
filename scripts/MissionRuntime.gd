@@ -30,6 +30,12 @@ const BUILTIN_TYPES := {
 }
 
 var mission: MissionData
+
+## The per-check debug prints (evaluate_condition / first_available_action) were
+## added while chasing a real bug; callers that check availability in bulk
+## (InteractionLabels, every few frames) switch this off for their pass so the
+## console isn't flooded. Everything else keeps the prints.
+var log_evaluations: bool = true
 var _variables: Dictionary = {}  # String -> Variant
 
 ## Assigned externally by MissionPlayer._ready() right after construction
@@ -112,7 +118,8 @@ func evaluate_condition(condition: Condition) -> bool:
 			result = current <= target
 		_:
 			result = false
-	print("MissionRuntime.evaluate_condition: '%s' %s %s -> current=%s (%s) => %s" % [condition.variable_name, Condition.Operator.keys()[condition.operator], target, current, typeof(current), result])
+	if log_evaluations:
+		print("MissionRuntime.evaluate_condition: '%s' %s %s -> current=%s (%s) => %s" % [condition.variable_name, Condition.Operator.keys()[condition.operator], target, current, typeof(current), result])
 	return result
 
 
@@ -137,7 +144,8 @@ func first_available_action(entry: InteractableEntry) -> PropAction:
 	for action in entry.actions:
 		if evaluate_conditions(action.conditions) and not (action.single_shot and action.already_used):
 			return action
-	print("MissionRuntime.first_available_action: '%s' (%d action(s) authored) - none currently available" % [entry.reference_name if entry.reference_name != "" else entry.mesh_item_name, entry.actions.size()])
+	if log_evaluations:
+		print("MissionRuntime.first_available_action: '%s' (%d action(s) authored) - none currently available" % [entry.reference_name if entry.reference_name != "" else entry.mesh_item_name, entry.actions.size()])
 	return null
 
 

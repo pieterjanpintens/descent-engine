@@ -230,7 +230,7 @@ func _end_drag(screen_pos: Vector2) -> void:
 		if monster == null:
 			print("%s: drag released on no monster" % hero_name)
 			return
-		await _attack_monster(hero_name, hero_slot, monster)
+		await attack(hero_slot, monster)
 		return
 	if entry == null:
 		print("%s: drag released on nothing interactable" % hero_name)
@@ -238,12 +238,26 @@ func _end_drag(screen_pos: Vector2) -> void:
 	await _offer_actions(hero_name, entry)
 
 
+## Public: a hero interacts with a prop - the same picker-then-fire flow a
+## portrait drag onto it ends in (_offer_actions()). Used by voice/typed
+## commands ("use the pile of dirt").
+func interact(hero_slot: int, entry: InteractableEntry) -> void:
+	await _offer_actions(HeroCatalog.slot_name(hero_slot), entry)
+
+
 ## Combat: dragging a hero portrait onto a monster in the M view attacks it.
 ## The table rolls its dice (and applies abilities/potions) outside the engine
 ## and reports the final number of successes; MissionRuntime.resolve_attack()
 ## does the rest (successes x weapon damage - random 0..defense, taken off
 ## the monster's hitpoints) and a large dialog shows the breakdown.
-func _attack_monster(hero_name: String, hero_slot: int, monster: RuntimeMonster) -> void:
+## Public: a portrait drag ends here, and so does a typed/spoken command
+## (PlayerCommandRunner) - both attack through this one call.
+## `weapon_text` / `successes` are answers already given by voice ("attack John
+## with the sword, I rolled three"): a weapon phrase that names one of the
+## hero's weapons skips the "Which weapon?" question, a number >= 0 skips the
+## "How many successes?" question. Anything not (clearly) given is asked as usual.
+func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", preset_successes: int = -1) -> void:
+	var hero_name := HeroCatalog.slot_name(hero_slot)
 	if mission_runtime == null:
 		return
 	var target := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
@@ -253,14 +267,27 @@ func _attack_monster(hero_name: String, hero_slot: int, monster: RuntimeMonster)
 	if weapons.size() == 1:
 		weapon = weapons[0]
 	elif weapons.size() > 1:
-		var labels: Array[String] = []
-		for w: Weapon in weapons:
-			labels.append(w.summary())
-		var picked: int = await dialog.ask_choice("%s attacks %s.\nWhich weapon?" % [hero_name, target], labels)
-		if picked < 0:
-			return
-		weapon = weapons[picked]
-	var successes: int = await dialog.ask_count("%s attacks %s.\nHow many successes did you roll?" % [hero_name, target], 0, 99)
+		var spoken := -1
+		if weapon_text != "":
+			var weapon_names: Array[String] = []
+			for w: Weapon in weapons:
+				weapon_names.append(w.weapon_name)
+			spoken = VoiceAnswerParser.match_choice(weapon_text, weapon_names)
+		if spoken >= 0:
+			weapon = weapons[spoken]
+		else:
+			var labels: Array[String] = []
+			for w: Weapon in weapons:
+				labels.append(w.summary())
+			var picked: int = await dialog.ask_choice("%s attacks %s.\nWhich weapon?" % [hero_name, target], labels)
+			if picked < 0:
+				return
+			weapon = weapons[picked]
+	# Show the weapon in use before asking for the roll - the weapon question is
+	# often skipped now (only one weapon, or it was spoken), so this is where the
+	# table sees which one it is.
+	var weapon_line := "" if weapon == null else "\nwith the %s" % weapon.summary()
+	var successes: int = preset_successes if preset_successes >= 0 else await dialog.ask_count("%s attacks %s%s.\nHow many successes did you roll?" % [hero_name, target, weapon_line], 0, 99)
 	var r := mission_runtime.resolve_attack(monster, successes, weapon)
 
 	var text := "%s attacks %s\nwith the %s (damage %d)\n" % [hero_name, target, r["weapon_name"], r["base_damage"]]

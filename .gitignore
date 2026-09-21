@@ -7,6 +7,16 @@
 # CLAUDE.md's "Official asset overrides" section.
 /models/original/
 
+# Godot Whisper addon (voice control, see VoiceListener.gd): third-party, ~100 MB
+# of native libraries plus multi-hundred-MB models - NOT committed. Install it
+# yourself (github.com/appsinacup/godot-whisper releases -> addons/godot_whisper/,
+# enable the plugin, download a model via Project > Tools > Whisper Models);
+# without it the game runs and voice control just reports "Voice off".
+/addons/godot_whisper/
+
+# Godot's hot-reload temp copies of native libraries
+/addons/godot-git-plugin/windows/~*
+
 # Python build artifacts (tools/ scripts)
 __pycache__/
 *.pyc
