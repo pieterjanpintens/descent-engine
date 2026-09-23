@@ -66,6 +66,10 @@ var monster_display: MonsterDisplay
 var hero_weapons: Dictionary = {}
 
 const PORTRAIT_SIZE := 96.0  ## was 56 - too small to read once these became real portrait images rather than a flat colour swatch; matches EmbarkDialog's own portrait cell size
+## Space reserved below the portrait row for the mic status line + CommandInput,
+## now stacked centered directly underneath it (see VoiceListener.gd's/
+## CommandInput.gd's own offsets, which occupy this same margin).
+const BOTTOM_MARGIN := 104.0
 
 var _row: HBoxContainer
 var _portraits: Array[Control] = []
@@ -101,8 +105,23 @@ func _build_ui() -> void:
 
 	_row = HBoxContainer.new()
 	_row.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_row.offset_top = -PORTRAIT_SIZE - 24.0
-	_row.offset_bottom = -24.0
+	# Confirmed bug, 2026-09-23: PRESET_CENTER_BOTTOM leaves grow_horizontal
+	# at its own default of GROW_DIRECTION_END, not BOTH - with offset_left/
+	# offset_right left at the preset's own 0/0 (a zero-width rect at the
+	# anchor point) and no explicit width set here, the row only grew
+	# RIGHTWARD as portraits were added, pinning its LEFT edge to screen
+	# centre instead of actually centering - confirmed with a headless test
+	# reading the row's real global rect (500px left margin vs. 80px right,
+	# not the ~renders-symmetric result the anchor math alone suggested).
+	# Forcing BOTH is what actually centers a content-sized (not explicitly
+	# offset) Control under a CENTER anchor.
+	_row.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	# Lifted clear of the mic status line + CommandInput, now stacked
+	# centered directly underneath (see VoiceListener.gd/CommandInput.gd's
+	# own offsets, which start right where this row's own bottom margin -
+	# BOTTOM_MARGIN below - ends).
+	_row.offset_top = -PORTRAIT_SIZE - BOTTOM_MARGIN
+	_row.offset_bottom = -BOTTOM_MARGIN
 	_row.add_theme_constant_override("separation", 12)
 	_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_row.mouse_filter = Control.MOUSE_FILTER_IGNORE

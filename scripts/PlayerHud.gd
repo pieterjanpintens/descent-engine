@@ -10,18 +10,24 @@ extends Control
 ## builds the pieces that didn't exist at all before.
 ##
 ## Per the user's own framing ("we can make mocks for all menu items, we
-## will implement them one by one"): every menu item is a pure mock - click
-## it and it just tells the table it isn't built yet, via PlayerDialog -
-## EXCEPT "Back to Menu" in the Gear menu, which is the one REAL item here:
-## it's MissionPlayer's pre-existing "leave the mission" action, simply
-## relocated out of its own standalone always-visible button (the mockup's
-## "the back to main menu is in the menu", not a separate button anymore).
-## The two top-right icon buttons are ALSO real, not mocks (new 2026-09-23,
-## the same day, follow-up request) - "Quest" switches to the map/world
-## view, "Threat" switches to the monster view, both via `show_map`/
-## `show_monsters` - the same swap the M key and the "show map"/"show
-## monsters" voice commands already drive (MissionPlayer.
-## _set_monster_display_visible()).
+## will implement them one by one"): every menu item started as a pure
+## mock - click it and it just tells the table it isn't built yet, via
+## PlayerDialog. Several are real now, added one at a time the same day:
+##  - "Back to Menu" (Gear menu) - MissionPlayer's pre-existing "leave the
+##    mission" action, relocated out of its own standalone always-visible
+##    button (the mockup's "the back to main menu is in the menu").
+##  - The two top-right icons - "Quest" switches to the map/world view,
+##    "Threat" switches to the monster view, both via `show_map`/
+##    `show_monsters` - the same swap the M key and the "show map"/"show
+##    monsters" voice commands already drive (MissionPlayer.
+##    _set_monster_display_visible()).
+##  - "Options" (Gear menu) opens `open_voice_settings` - VoiceSettingsDialog,
+##    the new home for everything about CONFIGURING voice control (see that
+##    script's own class doc).
+##  - "Rules Reference" (Gear menu) just opens the official rulebook PDF in
+##    the system browser (`OS.shell_open()`) - a link to Fantasy Flight's
+##    own hosted copy, nothing of theirs bundled or reproduced here.
+## Everything else in GEAR_ITEMS/PARTY_ITEMS is still a pure mock.
 ##
 ## Built entirely in code (same "dynamic content, no reason for static
 ## .tscn nodes" convention as CreatorToolbar/EmbarkDialog/PlayerDialog/...)
@@ -48,6 +54,19 @@ var back_to_menu: Callable
 ## script these two are real, not mocks - see the class doc above.
 var show_map: Callable
 var show_monsters: Callable
+## VoiceSettingsDialog.open - the Gear menu's "Options" item.
+var open_voice_settings: Callable
+
+## The official rulebook PDF, hosted by Fantasy Flight Games themselves -
+## opened in the system browser (OS.shell_open()) by "Rules Reference", not
+## fetched/embedded/redistributed by this project in any way.
+const RULES_REFERENCE_URL := "https://images-cdn.fantasyflightgames.com/filer_public/fb/fa/fbfa5691-0f11-4ef5-8a51-69cdcfe0ac7c/dle01_rulebook_web.pdf"
+
+## The "Threat"/"Quest" icons' dummy placeholders (a user's own official
+## "Button_EnemyView"/"Button_MapView" art replaces them if present - see
+## OfficialAssetMap.MAP).
+const THREAT_ICON_PATH := "res://models/hud_threat.png"
+const QUEST_ICON_PATH := "res://models/hud_quest.png"
 
 const GEAR_ITEMS: Array[String] = ["Line of Sight", "Options", "Rules Reference", "Save"]
 const PARTY_ITEMS: Array[String] = ["Quest Log", "Campaign Log", "Feats", "Heroes", "Inventory"]
@@ -81,16 +100,20 @@ func _build_top_right() -> void:
 	icons.add_theme_constant_override("separation", 8)
 	icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(icons)
-	icons.add_child(_round_icon_button("Quest", Color(0.2, 0.4, 0.65), _on_quest_pressed))
-	icons.add_child(_round_icon_button("Threat", Color(0.55, 0.22, 0.08), _on_threat_pressed))
+	icons.add_child(_round_icon_button("Quest", Color(0.2, 0.4, 0.65), _on_quest_pressed, QUEST_ICON_PATH))
+	icons.add_child(_round_icon_button("Threat", Color(0.55, 0.22, 0.08), _on_threat_pressed, THREAT_ICON_PATH))
 
 
-func _round_icon_button(label_text: String, color: Color, on_pressed: Callable) -> Button:
+## `icon_path` (new 2026-09-23, "Threat", then "Quest" the same day) swaps
+## the plain text label for a real texture - the shipped dummy placeholder,
+## or a user's own official art if present (OfficialAssetOverrides.
+## texture_for(), same override mechanism HeroCatalog.slot_portrait()
+## already uses - see that class's own doc). Left "" (nothing currently
+## does), a button keeps the flat-colour-circle-plus-text look every icon
+## here started with.
+func _round_icon_button(label_text: String, color: Color, on_pressed: Callable, icon_path: String = "") -> Button:
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
-	btn.text = label_text
-	btn.clip_text = true
-	btn.add_theme_font_size_override("font_size", 11)
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
 	style.set_corner_radius_all(int(ICON_SIZE / 2.0))  # square button, round corners -> reads as a circle
@@ -98,6 +121,13 @@ func _round_icon_button(label_text: String, color: Color, on_pressed: Callable) 
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)
 	btn.add_theme_stylebox_override("focus", style)
+	if icon_path != "":
+		btn.icon = OfficialAssetOverrides.texture_for(icon_path)
+		btn.expand_icon = true
+	else:
+		btn.text = label_text
+		btn.clip_text = true
+		btn.add_theme_font_size_override("font_size", 11)
 	btn.pressed.connect(on_pressed)
 	return btn
 
@@ -178,10 +208,15 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 		var btn := Button.new()
 		btn.text = item
 		btn.custom_minimum_size = Vector2(180, 36)
-		if item == "Back to Menu":
-			btn.pressed.connect(_on_back_to_menu_pressed)
-		else:
-			btn.pressed.connect(_on_mock_item_pressed.bind(item))
+		match item:
+			"Back to Menu":
+				btn.pressed.connect(_on_back_to_menu_pressed)
+			"Options":
+				btn.pressed.connect(_on_options_pressed)
+			"Rules Reference":
+				btn.pressed.connect(_on_rules_reference_pressed)
+			_:
+				btn.pressed.connect(_on_mock_item_pressed.bind(item))
 		menu.add_child(btn)
 	return menu
 
@@ -207,3 +242,14 @@ func _on_mock_item_pressed(item_name: String) -> void:
 	_party_menu.visible = false
 	if dialog != null:
 		await dialog.ask_ok("%s - not yet implemented." % item_name)
+
+
+func _on_options_pressed() -> void:
+	_gear_menu.visible = false
+	if open_voice_settings.is_valid():
+		open_voice_settings.call()
+
+
+func _on_rules_reference_pressed() -> void:
+	_gear_menu.visible = false
+	OS.shell_open(RULES_REFERENCE_URL)

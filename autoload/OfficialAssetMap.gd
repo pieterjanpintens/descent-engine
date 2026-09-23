@@ -48,6 +48,16 @@ const MAP: Dictionary = {
 	"res://models/heroes_vaerix.png": "Vaerix",
 	"res://models/heroes_kehli.png": "Kehli",
 	"res://models/heroes_syrus.png": "Syrus",
+	# PlayerHud's "Threat" (monster-view) icon button - same non-MeshLibrary
+	# case as the hero portraits above, resolved via
+	# OfficialAssetOverrides.texture_for() directly. Unlike the heroes, this
+	# name is genuinely unique in the game's own bundles (confirmed - only
+	# one object anywhere is named "Button_EnemyView"), so no container-path
+	# disambiguation is needed in the import script for this one.
+	"res://models/hud_threat.png": "Button_EnemyView",
+	# PlayerHud's "Quest" (map-view) icon button - same case as
+	# Button_EnemyView above, also confirmed unique.
+	"res://models/hud_quest.png": "Button_MapView",
 }
 
 

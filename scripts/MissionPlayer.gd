@@ -153,7 +153,21 @@ func _ready() -> void:
 		return names
 	voice_listener.context_prompt_provider = dialog.voice_prompt
 	voice_listener.dialog_open_provider = func() -> bool: return dialog.visible  # skip "hey DM" while answering a dialog
-	voice_listener.voice_ready.connect(func(ready: bool): dialog.voice_hints_enabled = ready)  # hints only when a mic is listening
+
+	# Voice SETUP UI (Enable checkbox, "Show voice hints", device/mode, the
+	# download button) now lives in its own dialog, opened from the Gear
+	# menu's "Options" - see VoiceSettingsDialog.gd's own class doc for the
+	# VoiceListener/dialog split. It now owns every write to
+	# dialog.voice_hints_enabled itself (combining is_enabled() with its own
+	# "Show voice hints" checkbox), so voice_ready connects to IT instead of
+	# writing to dialog directly here.
+	var voice_settings := VoiceSettingsDialog.new()
+	dialog.get_parent().add_child(voice_settings)
+	voice_settings.voice_listener = voice_listener
+	voice_settings.dialog = dialog
+	voice_listener.voice_ready.connect(func(_ready: bool): voice_settings._update_dialog_hints())
+	hud.open_voice_settings = voice_settings.open
+
 	voice_listener.start()
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)

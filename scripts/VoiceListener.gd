@@ -2,11 +2,17 @@ class_name VoiceListener
 extends Label
 
 ## Voice control: turns speech into command text for PlayerCommandRunner (via
-## command_heard) - exactly like the typed CommandInput. Doubles as its own
-## small status line, shown bottom-left above the command box, with an
-## input-device picker, a live mic-level meter and a mode checkbox.
+## command_heard) - exactly like the typed CommandInput. This script is now
+## JUST the mic capture/recognition engine + a small status line (a live
+## mic-level meter + what it last heard) - centered under the hero portraits,
+## above CommandInput. Everything about CONFIGURING it (an Enable checkbox,
+## the input-device picker, push-to-talk/hands-free mode, the in-game
+## download button) moved out to VoiceSettingsDialog.gd (new 2026-09-23,
+## opened from PlayerHud's Gear menu "Options") - see that script's own
+## class doc for the split and why: this label should stay put and minimal
+## even while its settings live in an occasional dialog elsewhere.
 ##
-## Two modes (checkbox), both on the addon's native SpeechToText node:
+## Two modes (checkbox in VoiceSettingsDialog), both on the addon's native SpeechToText node:
 ##  - PUSH TO TALK (default): hold PTT_KEY, speak, release. Audio is collected
 ##    only while the key is held and transcribed ONCE on release, so there is no
 ##    wake word and no hallucinated text from silence.
@@ -24,16 +30,18 @@ extends Label
 ## github.com/appsinacup/godot-whisper; whisper.cpp + Silero VAD). It is NOT
 ## part of this repo: install it and download a Whisper model (+ the Silero VAD
 ## model) via the editor's "Project -> Tools -> Whisper Models" into
-## res://addons/godot_whisper/models/ (or use the in-game setup, see
-## VoiceInstaller). Until then this node offers the setup and typed commands keep
-## working. Only the addon's native class is used, driven via set()/call(), so
-## this script compiles and runs without the addon.
+## res://addons/godot_whisper/models/, or click "Set up voice control" in
+## VoiceSettingsDialog (which drives VoiceInstaller). Until either has
+## happened is_available() stays false, this label stays hidden, and typed
+## commands keep working. Only the addon's native class is used, driven via
+## set()/call(), so this script compiles and runs without the addon.
 
 ## The recognized text of a command.
 signal command_heard(text: String)
 
-## Voice control is usable (true) or not (false) - emitted at the end of
-## start(), and again after the in-game setup finishes, so the dialog hints can
+## Voice control is usable (true) or not (false) - emitted whenever
+## is_enabled() actually changes (start(), VoiceSettingsDialog's Enable
+## checkbox, or a successful in-dialog install), so the dialog hints can
 ## follow it (MissionPlayer connects this).
 signal voice_ready(is_ready: bool)
 
@@ -84,14 +92,14 @@ var dialog_open_provider: Callable
 var push_to_talk: bool = true
 var wake_word_required: bool = true  ## hands-free only
 
+var _available: bool = false  ## engine + a model confirmed present - see is_available()
+var _enabled: bool = false  ## actively listening - see is_enabled()/set_enabled()
+
 var _language_model: Resource
 var _vad_model: Resource
 var _stt: Node  ## the speech engine (native SpeechToText)
 var _mic_player: AudioStreamPlayer
 var _effect_capture: AudioEffectCapture
-var _device_picker: OptionButton
-var _setup_button: Button
-var _mode_check: CheckBox
 
 var _command_window_until_msec: int = 0
 var _status: String = ""
@@ -107,78 +115,102 @@ var _thread: Thread
 
 
 func _ready() -> void:
-	# Just above CommandInput (bottom-left).
-	set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	offset_left = 12.0
-	offset_right = 12.0 + 520.0
-	offset_top = -76.0
-	offset_bottom = -48.0
+	# Centered under the hero portraits (see PlayerInteractionController's
+	# own BOTTOM_MARGIN), above CommandInput.
+	set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	offset_left = -260.0
+	offset_right = 260.0
+	offset_top = -96.0
+	offset_bottom = -68.0
+	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
 	add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	add_theme_constant_override("outline_size", 4)
+	visible = false  # only shown once actually enabled - see set_enabled()
+	push_to_talk = PlayerSettings.push_to_talk  # a saved preference now, not always the hardcoded default
 
 
-## Sets up the mic + the speech engine. Safe when nothing is installed: it then
-## offers the in-game setup (a download button, see VoiceInstaller) and returns
-## false. Emits voice_ready with the outcome.
+## True once the engine + a language model have been confirmed present
+## (regardless of whether voice is currently ENABLED - see is_enabled()) -
+## VoiceSettingsDialog's Enable checkbox is read-only/forced off unless this
+## is true. Checked fresh each call (audio input can't newly appear, but a
+## model can, right after an in-dialog install) - cheap, no caching needed.
+func is_available() -> bool:
+	_available = ProjectSettings.get_setting("audio/driver/enable_input", false) \
+		and (ClassDB.class_exists(NATIVE_CLASS) or VoiceInstaller.load_extension())
+	if _available:
+		_language_model = _load_model(false)
+		_vad_model = _load_model(true)
+		_available = _language_model != null
+	return _available
+
+
+## Actively capturing/listening right now.
+func is_enabled() -> bool:
+	return _enabled
+
+
+## Checks availability and, if available AND PlayerSettings.voice_enabled
+## (the saved "Enable voice" preference - defaults true, so voice still
+## defaults to ON for anyone who's never touched the checkbox), starts
+## listening. Called once by MissionPlayer after construction, and again by
+## VoiceSettingsDialog right after a successful in-dialog install (that one
+## deliberately ignores a saved `false` - installing IS turning it on).
+## Emits voice_ready either way (see that signal's own doc).
 func start() -> bool:
-	var ok := _start()
-	voice_ready.emit(ok)
-	return ok
+	set_enabled(is_available() and PlayerSettings.voice_enabled)
+	return _enabled
 
 
-func _start() -> bool:
-	if not ProjectSettings.get_setting("audio/driver/enable_input", false):
-		_set_status("Voice off - enable Project Settings > Audio > Driver > Enable Input")
-		return false
-	# The native engine: registered at startup from res://addons if a dev copy
-	# exists, otherwise loaded from user data if the in-game setup ran.
-	if not ClassDB.class_exists(NATIVE_CLASS) and not VoiceInstaller.load_extension():
-		_offer_setup("Voice control isn't set up yet")
-		return false
-	_language_model = _load_model(false)
-	_vad_model = _load_model(true)
-	if _language_model == null:
-		_offer_setup("The speech model is missing")
-		return false
-
-	_setup_microphone()
-	_build_controls()
-	_start_engine()
-	return true
-
-
-## Shows a "Set up voice control" button (a click is the consent for the
-## download) plus why it is needed. No-op on platforms the installer can't serve.
-func _offer_setup(reason: String) -> void:
-	if not VoiceInstaller.is_supported_platform():
-		_set_status("Voice off - %s (setup isn't available on %s; typed commands still work)" % [reason, OS.get_name()])
+## The master on/off switch - VoiceSettingsDialog's Enable checkbox drives
+## this directly. A no-op turning on when not is_available() (that
+## checkbox is read-only then, so this shouldn't normally be reached, but
+## nothing here relies on that). Hides this label and stops the engine/mic
+## capture entirely when turned off - "stop listening" really means stop,
+## not just stop reacting.
+func set_enabled(enabled: bool) -> void:
+	if enabled and not _available:
 		return
-	_set_status("%s - typed commands still work" % reason)
-	if _setup_button != null:
+	if enabled == _enabled:
 		return
-	_setup_button = Button.new()
-	_setup_button.text = "Set up voice control (downloads %s)" % VoiceInstaller.DOWNLOAD_SIZE_TEXT
-	_setup_button.position = Vector2(0, -34)
-	_setup_button.pressed.connect(_run_setup)
-	add_child(_setup_button)
-
-
-func _run_setup() -> void:
-	_setup_button.disabled = true
-	var installer := VoiceInstaller.new()
-	add_child(installer)
-	installer.progress.connect(_set_status)
-	var installed: bool = await installer.install()
-	installer.queue_free()
-	if installed:
-		_setup_button.queue_free()
-		_setup_button = null
-		start()
+	_enabled = enabled
+	if enabled:
+		if _mic_player == null:
+			_setup_microphone()
+		else:
+			_mic_player.play()
+		visible = true
+		_start_engine()
 	else:
-		_setup_button.text = "Retry voice setup"
-		_setup_button.disabled = false
+		_finish_thread()
+		if _stt != null:
+			_stt.queue_free()
+			_stt = null
+		if _mic_player != null:
+			_mic_player.stop()
+		visible = false
+		_status = ""
+		_level_text = ""
+		_refresh_text()  # _status/_level_text alone don't touch the Label's own .text - see _set_status()/_refresh_text()
+	voice_ready.emit(_enabled)
+
+
+## VoiceSettingsDialog's mode checkbox.
+func set_push_to_talk(value: bool) -> void:
+	push_to_talk = value
+	if _enabled:
+		_start_engine()
+
+
+## VoiceSettingsDialog's input-device picker.
+func set_input_device(device_name: String) -> void:
+	AudioServer.input_device = device_name
+	if _mic_player != null:
+		_mic_player.stop()
+		_mic_player.play()
+	if _enabled:
+		_set_status("Input device: %s" % device_name)
 
 
 func _exit_tree() -> void:
@@ -363,44 +395,6 @@ func _on_input_level(peak: float, _rms: float) -> void:
 	var bars := clampi(int(sqrt(peak) * 10.0), 0, 10)
 	_level_text = "  mic [%s%s]" % ["|".repeat(bars), ".".repeat(10 - bars)]
 	_refresh_text()
-
-
-## The input-device dropdown (the "Default" device is often silent or the wrong
-## microphone; picking one switches the microphone live) and the mode checkbox.
-func _build_controls() -> void:
-	var devices: PackedStringArray = AudioServer.get_input_device_list()
-	print("Voice: input devices = ", devices, ", current = ", AudioServer.input_device)
-	_device_picker = OptionButton.new()
-	_device_picker.position = Vector2(0, -34)
-	_device_picker.custom_minimum_size = Vector2(300, 0)
-	for device in devices:
-		_device_picker.add_item(device)
-	var current := devices.find(AudioServer.input_device)
-	if current != -1:
-		_device_picker.select(current)
-	_device_picker.item_selected.connect(_on_device_selected)
-	add_child(_device_picker)
-
-	_mode_check = CheckBox.new()
-	_mode_check.text = "Push to talk (hold %s)" % OS.get_keycode_string(PTT_KEY)
-	_mode_check.button_pressed = push_to_talk
-	_mode_check.position = Vector2(308, -34)
-	_mode_check.toggled.connect(_on_mode_toggled)
-	add_child(_mode_check)
-
-
-func _on_mode_toggled(pressed: bool) -> void:
-	push_to_talk = pressed
-	_start_engine()
-
-
-func _on_device_selected(index: int) -> void:
-	var device := _device_picker.get_item_text(index)
-	AudioServer.input_device = device
-	if _mic_player != null:
-		_mic_player.stop()
-		_mic_player.play()
-	_set_status("Input device: %s" % device)
 
 
 ## A muted "Record" bus with an AudioEffectCapture (what the speech engines

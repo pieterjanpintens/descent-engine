@@ -540,6 +540,175 @@ extraction, runtime load). **Not verified in an exported build**, nor against th
 real GitHub/Hugging Face URLs (the pinned addon zip has no checksum; its entry
 layout is matched by name, not path).
 
+**Voice split into a settings dialog + a minimal status line (new
+2026-09-23)** - `VoiceListener` used to build its own device picker/mode
+checkbox/download button right on its status Label; per direct request
+("put a dialog behind [the Options menu item]... move all the voice stuff
+there except for the micro and what it heard text box") that configuration
+UI moved to a new `VoiceSettingsDialog.gd`, opened from `PlayerHud`'s Gear
+menu "Options" (now real, not a mock - see that script's own entry below).
+`VoiceListener` itself lost `_build_controls()`/`_offer_setup()`/
+`_run_setup()`/`_device_picker`/`_mode_check`/`_setup_button` entirely and
+gained a small public surface the dialog drives instead:
+`is_available()` (engine + a model confirmed present - re-checked fresh
+each call, cheap, no caching needed beyond the `_available` field it also
+updates for `set_enabled()`'s own guard), `is_enabled()` (actively
+listening right now - distinct from "available": the checkbox can be
+unchecked even with models present, "even with the models downloaded you
+want to be able to turn if off"), `set_enabled(bool)` (the checkbox's
+actual driver - turning off `_finish_thread()`s, frees `_stt`, stops
+`_mic_player`, hides the label, and clears `_status`/`_level_text` **and
+calls `_refresh_text()`** - a real bug caught by a headless test: clearing
+those two fields alone doesn't touch the Label's own `.text`, which is
+only ever written by `_refresh_text()`/`_set_status()`, so the old status
+stayed visibly displayed even though the label was theoretically "cleared"
+- turning on lazily `_setup_microphone()`s once then just `_mic_player.
+play()`s again on later re-enables), `set_push_to_talk(bool)`/
+`set_input_device(String)` (restart the engine/mic only if currently
+enabled). `start()` (still MissionPlayer's one bootstrap call) is now just
+`set_enabled(is_available())` - voice still defaults to ON when set up,
+exactly as before, but a `VoiceSettingsDialog`-driven `false` genuinely
+means off, not "hidden but still capturing." `voice_ready` now fires from
+`set_enabled()` itself (whenever `_enabled` actually changes), so
+`dialog.voice_hints_enabled` - and by extension every voice caption
+`PlayerDialog` shows - already goes false the moment voice is disabled,
+with zero new plumbing needed for "hide all voice captions we added."
+Verified headlessly, and unusually for this session actually against the
+REAL installed engine+model (already present in this dev environment from
+earlier testing, not simulated) - `is_available()` legitimately true,
+`set_enabled(true)`/`(false)`/`(true)` again all behaved correctly
+end-to-end including the real Whisper model loading, and `VoiceSettingsDialog.
+_refresh()` correctly showed the Enable checkbox checked+enabled once
+available.
+
+**`VoiceSettingsDialog.gd`** (new 2026-09-23, `class_name VoiceSettingsDialog
+extends Control`) - the new home for CONFIGURING voice (see `VoiceListener`'s
+own entry above for the split): an Enable checkbox (`_on_enabled_toggled()` ->
+`voice_listener.set_enabled()` - unchecked and DISABLED, not just unchecked,
+whenever `is_available()` is false, matching "If the models are not present
+this box is checked off and read only" exactly), an input-device
+`OptionButton` (built fresh in `_refresh()`, same `AudioServer.
+get_input_device_list()` the old `_build_controls()` used), a push-to-talk/
+hands-free mode `CheckBox`, and the "Set up voice control" download button
+(moved here verbatim in spirit from `VoiceListener`'s old `_offer_setup()`/
+`_run_setup()` - runs `VoiceInstaller`, shows its progress in a status
+`Label`, and calls `voice_listener.start()` again on success so availability
+and the Enable checkbox both refresh). Built entirely in code, same modal
+scrim pattern as `PlayerDialog`/`EmbarkDialog` (see those scripts' own class
+docs), added as a plain child by `MissionPlayer._ready()` and opened via
+`open()` (not `await`-based like `PlayerDialog`'s `ask_*()` methods - nothing
+needs to block on a settings dialog closing, it's fire-and-forget). Every
+control's state is rebuilt fresh in `_refresh()` on every `open()` call, not
+cached, so a device plugged in or a download finished between opens is
+always reflected. **Not visually confirmed in-editor.**
+
+**Mic status line repositioned, CommandInput too, "for now" (new
+2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
+level meter + what it last heard - the ONE thing that stayed OUT of
+`VoiceSettingsDialog`, see that entry above) moved from bottom-left, above
+the command box, to centered directly under the hero portraits -
+`PORTRAIT_SIZE`/`Control.PRESET_CENTER_BOTTOM`, matching `PlayerInteractionController`'s
+own row. `CommandInput` (the typed-command stand-in) moved to sit
+centered under THAT, in the same stack - explicitly "for now," not a final
+call on where either belongs. `PlayerInteractionController._row` (the
+portrait row itself) gained a new `BOTTOM_MARGIN` const (104px, was a bare
+24px) so it sits high enough to leave room for both of these underneath it
+without overlapping - all three pieces' offsets are hand-coordinated
+against this one shared margin (see each script's own comments) since they're
+built by three separate scripts with no shared layout container.
+**Confirmed genuinely off-centre, same day, follow-up report** ("the heroes
+are not very centered") - `Control.set_anchors_and_offsets_preset(PRESET_CENTER_BOTTOM)`
+leaves `grow_horizontal` at its own default of `GROW_DIRECTION_END`, NOT
+`BOTH` - with `_row`'s own `offset_left`/`offset_right` left at the
+preset's `0`/`0` (a zero-width rect at the anchor point, since its actual
+width comes from its children, added after this call) and no explicit
+width set, the row only ever grew RIGHTWARD as portraits were added,
+pinning its LEFT edge to screen-centre instead of centring - confirmed
+with a headless test reading the row's real global rect (500px left
+margin vs. 80px right, not remotely symmetric, before the fix). Fixed
+with one explicit line, `_row.grow_horizontal = Control.GROW_DIRECTION_BOTH`,
+re-verified with the same test (290px both sides, `diff = 0.0`).
+**CommandInput hidden by default, Tab reveals it (new 2026-09-23,
+follow-up request - "it's more of a debug thing")** - `visible = false`
+in `_ready()`; `Tab` toggles show+focus / hide+unfocus, and submitting a
+command (`_on_submitted()`) hides it again afterward. Caught in
+`_input()`, deliberately NOT `_unhandled_input()` - claude.md's own
+Hard-won lessons already flags `Tab` as `ui_focus_next`, consumed by
+Godot's GUI focus dispatch before an `_unhandled_input()` handler would
+ever see it once real Controls exist in the scene (which the Player now
+has plenty of); `_input()` runs BEFORE that dispatch, so calling
+`set_input_as_handled()` there actually pre-empts it, and fires
+regardless of this control's own visibility (unlike `_gui_input()`,
+which only a visible/hit-testable Control ever receives). Trades away
+Tab's usual focus-navigation role within this scene (e.g. between
+`VoiceSettingsDialog`'s own fields) for this one repurposed global
+hotkey - acceptable for a small dialog reachable by mouse either way.
+
+**"Show voice hints" - a caption toggle independent of Enable Voice (new
+2026-09-23, follow-up request - "once people understand how it works
+they can remove the clutter")** - a second `CheckBox` in
+`VoiceSettingsDialog`, default ON, that hides `PlayerDialog`'s own
+"Voice - say X or Y" hint caption WITHOUT turning voice recognition
+itself off (unlike the Enable Voice checkbox, which stops listening
+entirely - see that entry above). Centralized in one place rather than
+split across two: `VoiceSettingsDialog` gained a `dialog: PlayerDialog`
+var (assigned by `MissionPlayer` alongside `voice_listener`) and is now
+the ONLY thing that ever writes `dialog.voice_hints_enabled` -
+`_update_dialog_hints()` ANDs `voice_listener.is_enabled()` with the new
+checkbox's own state, called from both `_on_hints_toggled()` and
+(via a `MissionPlayer`-wired lambda, since `VoiceSettingsDialog` doesn't
+exist as an object `voice_listener.voice_ready` could directly bind a
+plain method reference to at signal-connect time... actually it does,
+this is just wired as `voice_listener.voice_ready.connect(func(_ready):
+voice_settings._update_dialog_hints())`) `voice_ready` firing - covers
+every way `is_enabled()` can change (the checkbox, a fresh install)
+without `VoiceSettingsDialog` needing its own duplicate `voice_ready`
+listener logic. `MissionPlayer` no longer writes
+`dialog.voice_hints_enabled` directly at all. Verified headlessly against
+the real installed engine+model in this environment: enabled+hints-on,
+enabled+hints-off, and disabled+hints-on (still off, since `is_enabled()`
+now false) all produced the correct combined result, with the signal
+wiring connected exactly as `MissionPlayer` really connects it - the
+first version of this test skipped that wiring and consequently failed,
+which is itself a small confirmation that the test was actually
+exercising real logic, not just trivially passing.
+
+**A real texture for "Threat" too (new 2026-09-23, follow-up request -
+"lets also use the real texture for thread [threat]... same trick")** -
+same override mechanism as the hero portraits: a dummy placeholder
+(`models/hud_threat.png`, 256x256, same flat-colour-plus-ring-plus-text
+generated style) ships, and `OfficialAssetMap.MAP` maps it to
+`"Button_EnemyView"` - confirmed, unlike the hero portraits, to be a
+genuinely UNIQUE name in the game's own bundles (one Sprite object, no
+acti/actii-style collision), so `import_official_assets.py` needed no
+special-case container-path logic - the existing generic by-name
+matching (already reads every `OfficialAssetMap.MAP` value automatically)
+picks it up with zero script changes, confirmed by re-running its own
+`read_official_names_from_gd()`. `PlayerHud._round_icon_button()` gained
+an optional `icon_path` param: when given (Threat), it sets `btn.icon =
+OfficialAssetOverrides.texture_for(icon_path)` + `expand_icon = true`
+instead of the flat-colour-circle-plus-text look every icon here started
+with. Verified headlessly: Quest still had no icon at this point, Threat's
+icon loaded at the expected 256x256.
+
+**"Quest" got the same treatment minutes later, same day** -
+`-1208681132410346426_Button_MapView` (also confirmed unique, no
+disambiguation needed, same as `Button_EnemyView`) -> `models/hud_quest.png`
+(same generated style) -> a second `OfficialAssetMap.MAP` entry -> Quest's
+own `_round_icon_button()` call now passes the new `QUEST_ICON_PATH` too.
+Both icon buttons are real textures now, no icon-less button left in
+`PlayerHud`'s top-right cluster. `import_official_assets.py` was re-run for
+real against the actual game install right after (`19/19 official textures`,
+including both new HUD icons this time, confirmed `318x319` like every
+other Sprite-backed asset here) - `user://official_assets/` now has
+everything this project currently maps.
+
+**"Rules Reference" opens the real rulebook PDF (new 2026-09-23)** -
+`PlayerHud`'s Gear-menu "Rules Reference" item (previously a mock) now
+calls `OS.shell_open(RULES_REFERENCE_URL)` - Fantasy Flight Games' own
+publicly hosted PDF, opened in the system browser, nothing fetched,
+embedded, or redistributed by this project.
+
 **Voice listening (new 2026-09-20, experiment branch)** - `VoiceListener` (a
 `Label`, doubles as the status line above the command box) feeds spoken text
 into the same `PlayerCommandRunner.run()` as the typed box. Audio/STT is the
@@ -3150,7 +3319,15 @@ first working version).
 	`GEAR_ITEMS`, see the array-typing note below), which instead calls
 	the `back_to_menu: Callable` MissionPlayer wires to its own (unchanged)
 	`_on_back_button_pressed` - the one real, relocated piece of
-	functionality this pass moved rather than mocked.
+	functionality this pass moved rather than mocked. **"Options" and
+	"Rules Reference" are also real now, same-day follow-up requests** -
+	`_build_popup_menu()`'s per-item wiring is a `match` now, not a plain
+	if/else: `"Options"` -> `_on_options_pressed()` -> `open_voice_settings.
+	call()` (a `Callable` MissionPlayer wires to the new
+	`VoiceSettingsDialog.open` - see that script's own entry below), and
+	`"Rules Reference"` -> `_on_rules_reference_pressed()` -> `OS.
+	shell_open(RULES_REFERENCE_URL)`, Fantasy Flight's own hosted rulebook
+	PDF, opened in the system browser - nothing fetched/embedded here.
   - **The two `["Back to Menu"] + GEAR_ITEMS` build confirmed a real
 	GDScript typing gotcha**: `+` between an untyped array LITERAL and a
 	`const Array[String]` produces a plain untyped `Array`, not
