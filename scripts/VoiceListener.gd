@@ -6,27 +6,28 @@ extends Label
 ## small status line, shown bottom-left above the command box, with an
 ## input-device picker, a live mic-level meter and a mode checkbox.
 ##
-## Two modes (checkbox):
+## Two modes (checkbox), both on the addon's native SpeechToText node:
 ##  - PUSH TO TALK (default): hold PTT_KEY, speak, release. Audio is collected
 ##    only while the key is held and transcribed ONCE on release, so there is no
-##    wake word, no rolling-window contamination and no hallucinated text from
-##    silence. Uses the addon's native SpeechToText node directly.
-##  - HANDS-FREE: the addon's streaming CaptureStreamToText listens all the
-##    time; a sentence containing the wake phrase ("hey DM ...") is a command,
-##    a sentence that is ONLY the wake phrase opens a short window in which the
-##    next sentence is one, everything else is table chatter and is ignored.
+##    wake word and no hallucinated text from silence.
+##  - HANDS-FREE: our own simple listener - the microphone is watched for
+##    loudness, an utterance is cut out (a little pre-roll, ends after
+##    HANDS_FREE_SILENCE_SEC of quiet) and transcribed once, exactly like a
+##    push-to-talk recording. A sentence containing the wake phrase ("hey DM
+##    ...") is a command, a sentence that is ONLY the wake phrase opens a short
+##    window in which the next sentence is one, everything else is table
+##    chatter and is ignored. (Written instead of using the addon's streaming
+##    CaptureStreamToText GDScript, which isn't part of the user-data install.)
 ## PlayerCommandRunner runs the command straight away (no confirmation).
 ##
 ## The speech engine is the third-party Godot Whisper addon (MIT,
 ## github.com/appsinacup/godot-whisper; whisper.cpp + Silero VAD). It is NOT
 ## part of this repo: install it and download a Whisper model (+ the Silero VAD
 ## model) via the editor's "Project -> Tools -> Whisper Models" into
-## res://addons/godot_whisper/models/. Until then this node shows a "voice off"
-## line and typed commands keep working. `CaptureStreamToText` is a GDSCRIPT
-## class of the addon (extending the native `SpeechToText` from its
-## GDExtension), so ClassDB can't see it - it is found by loading its script,
-## and everything is driven via set()/call()/connect(), which lets this script
-## compile and run without the addon.
+## res://addons/godot_whisper/models/ (or use the in-game setup, see
+## VoiceInstaller). Until then this node offers the setup and typed commands keep
+## working. Only the addon's native class is used, driven via set()/call(), so
+## this script compiles and runs without the addon.
 
 ## The recognized text of a command.
 signal command_heard(text: String)
@@ -36,9 +37,8 @@ signal command_heard(text: String)
 ## follow it (MissionPlayer connects this).
 signal voice_ready(is_ready: bool)
 
-const CAPTURE_SCRIPT := "res://addons/godot_whisper/capture_stream_to_text.gd"
-const NATIVE_CLASS := "SpeechToText"  ## from the addon's GDExtension; CaptureStreamToText extends it
-const BUS_NAME := "Record"  ## the addon's default record_bus
+const NATIVE_CLASS := "SpeechToText"  ## from the addon's GDExtension
+const BUS_NAME := "Record"
 ## Where models are looked for, first match wins per file name: user data (the
 ## in-game setup, see VoiceInstaller) before a dev copy in the project.
 const MODEL_DIRS: Array[String] = ["user://whisper/models/", "res://addons/godot_whisper/models/"]
@@ -55,12 +55,12 @@ const PTT_MAX_SEC := 20.0
 
 ## Hands-free: after a bare "hey DM", how long the next sentence is the command.
 const COMMAND_WINDOW_SEC := 8.0
+## Hands-free utterance cutting: quiet this long ends an utterance; audio kept
+## from just before the first loud moment (so the first word isn't clipped).
+const HANDS_FREE_SILENCE_SEC := 0.8
+const HANDS_FREE_PRE_ROLL_SEC := 0.3
 ## Microphone peak (0..1) that counts as "someone made a sound".
 const LOUD_PEAK := 0.02
-## Whisper invents text ("thank you", or echoes its own prompt) when fed
-## silence, so in hands-free mode a transcript only counts if the mic was
-## audibly loud within this long before it (Whisper's window is ~5 s).
-const SOUND_MEMORY_MSEC := 6000
 
 ## Optional Callable returning Array[String] of object names currently on the
 ## board; they are worked into Whisper's prompt so words like "pile of dirt"
@@ -74,14 +74,19 @@ var monster_name_provider: Callable
 ## last so it weighs most ("I rolled three." while the successes are asked).
 var weapon_name_provider: Callable
 var context_prompt_provider: Callable
+## Optional Callable -> bool: true while a PlayerDialog is open and waiting for
+## an answer. While it's open, hands-free skips the "hey DM" wake check
+## entirely (see _on_hands_free_sentence) - the modal already makes it obvious
+## the table is expected to reply, so saying "yes"/"three"/a name straight
+## away shouldn't need the wake phrase first, unlike an unprompted command.
+var dialog_open_provider: Callable
 
 var push_to_talk: bool = true
 var wake_word_required: bool = true  ## hands-free only
 
 var _language_model: Resource
 var _vad_model: Resource
-var _capture: Node  ## hands-free engine (CaptureStreamToText)
-var _stt: Node  ## push-to-talk engine (native SpeechToText)
+var _stt: Node  ## the speech engine (native SpeechToText)
 var _mic_player: AudioStreamPlayer
 var _effect_capture: AudioEffectCapture
 var _device_picker: OptionButton
@@ -89,11 +94,13 @@ var _setup_button: Button
 var _mode_check: CheckBox
 
 var _command_window_until_msec: int = 0
-var _last_loud_msec: int = -1000000
 var _status: String = ""
 var _level_text: String = ""
 
-var _talking: bool = false
+var _talking: bool = false  ## push to talk: key held
+var _hf_speaking: bool = false  ## hands-free: inside an utterance
+var _hf_last_loud_msec: int = 0
+var _hf_pre_roll: PackedVector2Array = PackedVector2Array()
 var _ptt_frames: PackedVector2Array = PackedVector2Array()
 var _ptt_peak: float = 0.0  ## loudest sample of the current recording
 var _thread: Thread
@@ -181,64 +188,28 @@ func _exit_tree() -> void:
 ## (Re)builds the speech engine for the current mode.
 func _start_engine() -> void:
 	_finish_thread()
-	for engine in [_capture, _stt]:
-		if engine != null:
-			engine.queue_free()
-	_capture = null
-	_stt = null
+	if _stt != null:
+		_stt.queue_free()
 	_talking = false
+	_hf_speaking = false
+	_hf_pre_roll = PackedVector2Array()
 	_command_window_until_msec = 0
-	if push_to_talk:
-		_start_push_to_talk()
-	else:
-		_start_hands_free()
-
-
-func _start_push_to_talk() -> void:
 	_stt = ClassDB.instantiate(NATIVE_CLASS)
 	_stt.set("language_model", _language_model)
 	if _vad_model != null:
 		_stt.set("vad_model", _vad_model)
 	add_child(_stt)
 	_effect_capture.clear_buffer()
-	_set_status("Hold %s to talk" % OS.get_keycode_string(PTT_KEY))
-
-
-func _start_hands_free() -> void:
-	# The streaming node is a GDScript that ships in the addon folder; the
-	# in-game setup installs only the native engine, so hands-free needs a dev
-	# copy of the addon in res://addons.
-	if not ResourceLoader.exists(CAPTURE_SCRIPT):
-		push_to_talk = true
-		_mode_check.set_pressed_no_signal(true)
-		_start_push_to_talk()
-		_set_status("Hands-free needs the addon in res://addons - using push to talk")
-		return
-	var capture_script: GDScript = load(CAPTURE_SCRIPT)
-	_capture = capture_script.new()
-	_capture.set("record_bus", BUS_NAME)
-	_capture.set("language_model", _language_model)
-	if _vad_model != null:
-		_capture.set("vad_model", _vad_model)
-	_capture.set("initial_prompt", _vocabulary_prompt())
-	add_child(_capture)
-	_capture.connect("transcribed_msg", _on_transcribed)
-	# The addon reports its own problems here (no mic frames, bus missing...).
-	_capture.connect("status_changed", _on_addon_status)
-	_capture.connect("input_level_changed", _on_input_level)
-	_set_status("Starting voice control...")
-
-
-## Status/errors straight from the addon ("Waiting for audio input.", "No audio
-## frames received...", ...) - shown as-is so a silent mic is diagnosable.
-func _on_addon_status(message: String, is_error: bool) -> void:
-	_set_status(("Voice error: " if is_error else "Voice: ") + message)
+	if push_to_talk:
+		_set_status("Hold %s to talk" % OS.get_keycode_string(PTT_KEY))
+	else:
+		_set_status("Listening - say \"hey DM, ...\"")
 
 
 # ---------------------------------------------------------------- push to talk
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _stt == null:
+	if _stt == null or not push_to_talk:
 		return
 	if event is InputEventKey and event.keycode == PTT_KEY and not event.echo:
 		if event.pressed:
@@ -248,9 +219,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Push-to-talk only: drains the capture buffer every frame - into the
-## recording while the key is held, otherwise just to feed the level meter and
-## keep the buffer from overflowing.
+## Drains the capture buffer every frame: into the recording while the key is
+## held (push to talk) or while an utterance is going on (hands-free), otherwise
+## just to feed the level meter and keep the buffer from overflowing.
 func _process(_delta: float) -> void:
 	if _stt == null or _effect_capture == null:
 		return
@@ -262,12 +233,40 @@ func _process(_delta: float) -> void:
 	for frame in frames:
 		peak = maxf(peak, maxf(absf(frame.x), absf(frame.y)))
 	_on_input_level(peak, 0.0)
-	if _talking:
-		_ptt_peak = maxf(_ptt_peak, peak)
-		_ptt_frames.append_array(frames)
-		var mix_rate: float = ProjectSettings.get_setting("audio/driver/mix_rate")
-		if _ptt_frames.size() > PTT_MAX_SEC * mix_rate:
-			_stop_talking()
+	var mix_rate: float = ProjectSettings.get_setting("audio/driver/mix_rate")
+	if push_to_talk:
+		if _talking:
+			_ptt_peak = maxf(_ptt_peak, peak)
+			_ptt_frames.append_array(frames)
+			if _ptt_frames.size() > PTT_MAX_SEC * mix_rate:
+				_stop_talking()
+	else:
+		_hands_free_step(frames, peak, mix_rate)
+
+
+## Hands-free utterance cutting, see the class doc.
+func _hands_free_step(frames: PackedVector2Array, peak: float, mix_rate: float) -> void:
+	var now := Time.get_ticks_msec()
+	if not _hf_speaking:
+		_hf_pre_roll.append_array(frames)
+		var keep := int(HANDS_FREE_PRE_ROLL_SEC * mix_rate)
+		if _hf_pre_roll.size() > keep:
+			_hf_pre_roll = _hf_pre_roll.slice(_hf_pre_roll.size() - keep)
+		if peak > LOUD_PEAK and not (_thread != null and _thread.is_alive()):
+			_hf_speaking = true
+			_hf_last_loud_msec = now
+			_ptt_frames = _hf_pre_roll.duplicate()
+			_ptt_peak = peak
+			_hf_pre_roll = PackedVector2Array()
+		return
+	_ptt_frames.append_array(frames)
+	_ptt_peak = maxf(_ptt_peak, peak)
+	if peak > LOUD_PEAK:
+		_hf_last_loud_msec = now
+	var quiet_sec := (now - _hf_last_loud_msec) / 1000.0
+	if quiet_sec >= HANDS_FREE_SILENCE_SEC or _ptt_frames.size() > PTT_MAX_SEC * mix_rate:
+		_hf_speaking = false
+		_send_recording(false)
 
 
 func _start_talking() -> void:
@@ -287,13 +286,22 @@ func _stop_talking() -> void:
 	if not _talking:
 		return
 	_talking = false
+	_send_recording(true)
+
+
+## Sends the collected frames to Whisper (worker thread). `announce` = push to
+## talk, where the player wants feedback on a too-short/silent press; hands-free
+## silently drops noises.
+func _send_recording(announce: bool) -> void:
 	var mix_rate: float = ProjectSettings.get_setting("audio/driver/mix_rate")
 	if _ptt_frames.size() < PTT_MIN_SEC * mix_rate:
-		_set_status("Too short - hold %s while you speak" % OS.get_keycode_string(PTT_KEY))
+		if announce:
+			_set_status("Too short - hold %s while you speak" % OS.get_keycode_string(PTT_KEY))
 		return
 	if _ptt_peak < LOUD_PEAK:
 		# Whisper echoes its prompt back when fed silence - don't even ask it.
-		_set_status("Heard only silence - check the input device / mic level")
+		if announce:
+			_set_status("Heard only silence - check the input device / mic level")
 		return
 	_set_status("Thinking...")
 	_finish_thread()
@@ -317,11 +325,14 @@ func _transcribe_recording(frames: PackedVector2Array, prompt: String) -> void:
 
 func _on_recording_transcribed(text: String) -> void:
 	var heard := _strip_noise_markers(text)
-	if heard == "":
-		_set_status("Didn't catch anything - hold %s and try again" % OS.get_keycode_string(PTT_KEY))
+	if push_to_talk:
+		if heard == "":
+			_set_status("Didn't catch anything - hold %s and try again" % OS.get_keycode_string(PTT_KEY))
+			return
+		_set_status("Heard: %s" % heard)
+		command_heard.emit(heard)
 		return
-	_set_status("Heard: %s" % heard)
-	command_heard.emit(heard)
+	_on_hands_free_sentence(heard)
 
 
 func _finish_thread() -> void:
@@ -345,13 +356,10 @@ func _strip_noise_markers(message: String) -> String:
 
 # ---------------------------------------------------------------- shared setup
 
-## Live microphone level next to the status ("mic [|||.......]") and the time of
-## the last audible sound (see SOUND_MEMORY_MSEC). If this stays empty while you
+## Live microphone level next to the status ("mic [|||.......]"). If this stays empty while you
 ## talk, the selected input device (see the dropdown) or the OS mic permission
 ## is the problem, not the game.
 func _on_input_level(peak: float, _rms: float) -> void:
-	if peak > LOUD_PEAK:
-		_last_loud_msec = Time.get_ticks_msec()
 	var bars := clampi(int(sqrt(peak) * 10.0), 0, 10)
 	_level_text = "  mic [%s%s]" % ["|".repeat(bars), ".".repeat(10 - bars)]
 	_refresh_text()
@@ -392,11 +400,6 @@ func _on_device_selected(index: int) -> void:
 	if _mic_player != null:
 		_mic_player.stop()
 		_mic_player.play()
-	if _capture != null:
-		if _capture.has_method("set_input_device_name"):
-			_capture.call("set_input_device_name", device)
-		if _capture.has_method("restart_recording"):
-			_capture.call("restart_recording")
 	_set_status("Input device: %s" % device)
 
 
@@ -479,37 +482,26 @@ func _vocabulary_prompt() -> String:
 
 # ---------------------------------------------------------------- hands-free
 
-func _on_transcribed(is_complete: bool, new_text: String) -> void:
-	var heard := _clean(new_text)
+## One transcribed utterance in hands-free mode: only wake-phrase sentences (or
+## the sentence right after a bare "hey DM", or ANY sentence while a dialog is
+## open and dialog_open_provider says so) become commands.
+func _on_hands_free_sentence(heard: String) -> void:
 	if heard == "":
+		_set_status("Listening - say \"hey DM, ...\"")
 		return
-	if Time.get_ticks_msec() - _last_loud_msec > SOUND_MEMORY_MSEC:
-		# Nothing audible reached the mic - this is Whisper hallucinating on silence.
-		return
-	if not is_complete:
-		_set_status("Hearing: %s" % heard)
-		return
-
+	var dialog_open: bool = dialog_open_provider.is_valid() and dialog_open_provider.call()
 	var now := Time.get_ticks_msec()
-	if VoiceCommandParser.is_wake_only(heard):
+	if VoiceCommandParser.is_wake_only(heard) and not dialog_open:
 		_command_window_until_msec = now + int(COMMAND_WINDOW_SEC * 1000.0)
 		_set_status("Yes? (listening for a command)")
 		return
 	var in_window := now < _command_window_until_msec
-	if wake_word_required and not in_window and not VoiceCommandParser.has_wake_phrase(heard):
+	if wake_word_required and not dialog_open and not in_window and not VoiceCommandParser.has_wake_phrase(heard):
 		_set_status("(ignored) %s" % heard)
 		return
 	_command_window_until_msec = 0
 	_set_status("Heard: %s" % heard)
 	command_heard.emit(heard)
-
-
-## Whisper marks silence/noise as "[BLANK_AUDIO]", "(music)" etc. - drop those.
-func _clean(text: String) -> String:
-	var cleaned := text.strip_edges()
-	if cleaned.begins_with("[") or cleaned.begins_with("("):
-		return ""
-	return cleaned
 
 
 func _set_status(status: String) -> void:

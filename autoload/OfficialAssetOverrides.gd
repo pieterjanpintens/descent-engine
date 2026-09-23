@@ -62,6 +62,22 @@ func _apply_to_item(mesh_library: MeshLibrary, item_id: int) -> void:
 	mesh_library.set_item_mesh(item_id, mesh)
 
 
+## The general-purpose counterpart to apply_overrides()/_apply_to_item()
+## above, for a placeholder that ISN'T a MeshLibrary item's material - a
+## plain Texture2D used directly by a Control (e.g. HeroCatalog.
+## slot_portrait()'s hero portraits). Looks `placeholder_path` up in
+## OfficialAssetMap same as the mesh path does; if a user's own override file
+## exists locally, returns THAT, otherwise loads and returns the shipped
+## placeholder itself - the caller never needs to branch on which case it got.
+func texture_for(placeholder_path: String) -> Texture2D:
+	var official_name := OfficialAssetMap.get_official_name(placeholder_path)
+	if official_name != "":
+		var override_texture := _load_override_texture(official_name)
+		if override_texture != null:
+			return override_texture
+	return load(placeholder_path)
+
+
 func _load_override_texture(official_name: String) -> ImageTexture:
 	var path := OVERRIDE_DIR + official_name + ".png"
 	if not FileAccess.file_exists(path):

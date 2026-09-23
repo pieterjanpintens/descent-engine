@@ -24,6 +24,24 @@ assets (icon-atlas assets like the token textures - Unity packs these as a
 Sprite referencing a sub-rect of a shared atlas rather than a standalone
 Texture2D, but UnityPy's `.image` resolves either one the same way).
 
+Hero portraits (see HeroCatalog.gd) are matched by NAME + CONTAINER PATH,
+unlike everything else here, which is matched by name alone - fixed after
+confirming (by dumping the full manifest and comparing against portrait
+files the user had already picked by eye) that EVERY hero has at least two
+same-named Texture2D/Sprite objects sharing its bare name ("Chance"), one
+under an "acti/" container and one under "actii/" (the two acts each have
+their own portrait), so name-only matching could silently grab either
+act's art depending on Unity's own object iteration order - a real bug,
+not a hypothetical: Chance/Galaden's picked portraits are their Act II
+art, Brynn/Vaerix/Kehli/Syrus's are Act I (mixed, not "always act N" -
+whichever one the user actually looked at and preferred). See
+HERO_PORTRAIT_CONTAINERS below for the exact container path recorded per
+hero. A Texture2D and a Sprite sharing the identical container path render
+identical pixels (confirmed directly: Syrus's picked file IS the Sprite,
+not the Texture2D, at the same container - both exported to the same
+256x256 image) - so once the container path is pinned down, which of the
+two object TYPES actually matches first no longer matters.
+
 Loads the ENTIRE bundles folder into one UnityPy environment rather than
 one file at a time - required for assets whose material/texture (or, for
 Sprites, atlas) lives in a different bundle file than the object itself
@@ -45,6 +63,20 @@ import UnityPy
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSET_MAP_GD = os.path.join(SCRIPT_DIR, "..", "..", "autoload", "OfficialAssetMap.gd")
 OVERRIDE_DIR = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\official_assets")
+
+## Container path per hero portrait (see the class doc above for why this is
+## needed at all: the bare name alone is ambiguous between a hero's two
+## acts). Recorded by hand, once, from the actual dumped manifest - not
+## derivable from HeroCatalog.gd, which has no reason to know Unity's own
+## folder layout.
+HERO_PORTRAIT_CONTAINERS = {
+    "Chance": "assets/d3/heroes/chance/actii/chance.png",
+    "Galaden": "assets/d3/heroes/galaden/actii/galaden.png",
+    "Brynn": "assets/d3/heroes/brynn/acti/brynn.png",
+    "Vaerix": "assets/d3/heroes/vaerix/acti/vaerix.png",
+    "Kehli": "assets/d3/heroes/kehli/acti/kehli.png",
+    "Syrus": "assets/d3/heroes/syrus/actii/syrus.png",
+}
 
 
 def read_official_names_from_gd():
@@ -88,15 +120,24 @@ def main():
         except Exception:
             continue
         name = getattr(data, "m_Name", "")
-        if name in wanted and name not in found:
-            try:
-                image = data.image
-            except Exception:
-                continue
-            out_path = os.path.join(OVERRIDE_DIR, f"{name}.png")
-            image.save(out_path)
-            print(f"saved {out_path}")
-            found.add(name)
+        if name not in wanted or name in found:
+            continue
+        # Hero portraits also need the exact container path to match - see
+        # HERO_PORTRAIT_CONTAINERS's own doc for why the name alone is
+        # ambiguous for these (every other wanted name has none of this
+        # collision, confirmed against the full manifest, so they keep
+        # matching by name alone exactly as before).
+        wanted_container = HERO_PORTRAIT_CONTAINERS.get(name)
+        if wanted_container is not None and (getattr(obj, "container", "") or "") != wanted_container:
+            continue
+        try:
+            image = data.image
+        except Exception:
+            continue
+        out_path = os.path.join(OVERRIDE_DIR, f"{name}.png")
+        image.save(out_path)
+        print(f"saved {out_path}")
+        found.add(name)
 
     missing = wanted - found
     if missing:

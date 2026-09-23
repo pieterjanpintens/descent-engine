@@ -503,9 +503,38 @@ start()` now: needs `audio/driver/enable_input`, then the native `SpeechToText`
 class (res://addons copy OR `VoiceInstaller.load_extension()`), then models from
 `MODEL_DIRS` (user data first, then res://addons); if missing it shows the setup
 button and returns false. New `voice_ready(bool)` signal drives
-`dialog.voice_hints_enabled` (re-fired after setup). **Hands-free mode still
-needs the addon's GDScript (`CaptureStreamToText`) in res://addons**, so without
-it the listener falls back to push to talk. Windows/Linux only (macOS framework
+`dialog.voice_hints_enabled` (re-fired after setup). **Hands-free is our own
+code now (2026-09-21)**, no longer the addon's streaming `CaptureStreamToText`
+GDScript (not part of the user-data install): `VoiceListener._hands_free_step()`
+watches the mic level (`LOUD_PEAK`), cuts an utterance (0.3 s pre-roll, ends
+after `HANDS_FREE_SILENCE_SEC` = 0.8 s of quiet, max `PTT_MAX_SEC`), sends it
+through the same `_send_recording()`/worker-thread path as push to talk, and the
+result goes through the wake-phrase logic (`_on_hands_free_sentence()`). Both
+modes therefore need only the native `SpeechToText` class. The rolling-window
+partial results and VAD-based commit of the addon are gone (energy threshold
+only - a noisy room may need a higher `LOUD_PEAK`); an utterance that starts
+while the previous one is still being transcribed is skipped.
+
+**"Hey DM" no longer needed to answer an open dialog (2026-09-23)** - saying
+it before every reply ("yes", "three", a weapon name) was reported as
+annoying, and there's no real ambiguity to guard against while a modal
+`PlayerDialog` is up (see **Voice context** below - the table is already
+expected to answer it, that's what "modal" means). `VoiceListener.
+dialog_open_provider` (new, set by `MissionPlayer` to `func(): return dialog.
+visible` - the exact same `dialog.visible` check `PlayerCommandRunner.run()`
+already uses to route speech to `try_voice_answer()` instead of the command
+parser) is consulted by `_on_hands_free_sentence()`: while it's true, the
+wake-phrase gate is skipped entirely - any transcribed sentence goes straight
+through as a command/answer, no "hey DM" prefix and no reliance on the 8 s
+window. A bare "hey DM" said while a dialog happens to be open is no longer
+treated as opening a command window either (would be pointless - the very
+next sentence already goes through unconditionally) - it just falls through
+as ordinary (harmless, no-match) dialog-answer text. Outside a dialog,
+behavior is unchanged - an unprompted command still needs the wake phrase,
+same ambiguity-avoidance reasoning as before. Push to talk was never gated
+behind a wake word at all (holding the key is already unambiguous consent),
+so this only changes hands-free. **Compile-checked
+only; hands-free not tried with a real mic since this rewrite.** Windows/Linux only (macOS framework
 not handled). Tested: full install against a local HTTP server (checksums,
 extraction, runtime load). **Not verified in an exported build**, nor against the
 real GitHub/Hugging Face URLs (the pinned addon zip has no checksum; its entry
@@ -2945,7 +2974,11 @@ first working version).
   directly inside the editor.
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
   `%LayeredMap.apply_mission(mission, true)` (the `true` is new 2026-09-14 -
-  `respect_visibility`, see `LayeredMap.gd`'s own entry above), shows mission name + counts in a label. Runs
+  `respect_visibility`, see `LayeredMap.gd`'s own entry above). `%InfoLabel`
+  used to always show a debug overlay (mission name + tile/interactable/
+  underlay counts) - **removed 2026-09-23**, it now stays hidden and is only
+  ever shown (and only ever set) for the "Failed to load mission" error
+  case. Runs
   the basic round loop (see **Story layer**'s `RoundCheckpoint.Checkpoint`
   and `MissionRuntime`): round 1 first shows the spawn area (if authored,
   see below) and waits for confirmation, then Player phase → "All players
@@ -2956,6 +2989,78 @@ first working version).
   Player phase, round incremented. `%DarknessOverlay` (a full-rect
   `ColorRect`, `mouse_filter = IGNORE` so it darkens without blocking
   clicks) is the only phase-change visual so far.
+  **`%EndPhaseButton` hidden AND disabled until the first real Player phase
+  (new 2026-09-23)** - it used to be visible and enabled (Godot's own
+  `Button` defaults) from the moment the scene loaded, all through embark
+  and spawn placement - normally hidden from view behind those full-screen
+  modal scrims, but a real functional gap underneath: `_voice_end_phase()`
+  only checks `.disabled` before firing the button's `pressed` signal, so
+  the voice/typed "end phase" command could skip straight to darkness phase
+  before the table had even placed a figure, in whatever brief window
+  wasn't covered by a modal (e.g. a mission with no spawn cells authored,
+  where `_show_spawn_area_and_confirm()` shows no dialog at all). `_ready()`
+  now sets both `.visible = false` and `.disabled = true` up front;
+  `_enter_player_phase()` (the only place that used to just flip `.disabled`)
+  now sets both back to their normal values, same as it always has for
+  every LATER round's player phase too.
+  **First pass at a real HUD layout (new 2026-09-23)**, toward mockup
+  screenshots the user supplied (Quest/Threat icons top-right, a Gear/
+  Party icon pair bottom-left each popping a small stacked menu above
+  itself, End Phase bottom-right, portraits bottom-center - confirmed
+  with the user that End Phase stays bottom-RIGHT, matching the mockups,
+  not bottom-left as an earlier note of theirs suggested). The new pieces
+  (Quest/Threat, Gear/Party + their popup menus) are `PlayerHud.gd` (see
+  its own entry below) - a new `hud: PlayerHud`, built in `_ready()` and
+  added early (right after `apply_mission()`) so it's present under the
+  embark/spawn modal scrims like everything else already is. **A round
+  counter was tried the same day and then removed again, same-day
+  follow-up request** ("remove all round indicator") - both the mockup's
+  own top-right round card (`PlayerHud`'s short-lived `set_round()`/
+  `_round_value_label`) and the round number `%PhaseLabel` used to embed
+  in its own text ("Round %d - player phase", etc.) are gone; `phase_label`
+  still shows the phase itself ("Player phase", "Darkness phase...",
+  "Players spawn. Place your tokens, then play.") - only the round NUMBER
+  was the thing asked to go, not the phase status text around it.
+  `current_round` itself is untouched (still drives `round_number` via
+  `_runtime.sync_builtins()`) - only ever DISPLAYED nowhere now. The
+  EXISTING pieces (`%ObjectiveLabel`, `%PhaseLabel`, `%EndPhaseButton`)
+  stayed `MissionPlayer.tscn`'s own nodes, just repositioned/restyled there -
+  `%ObjectiveLabel` is now a `RichTextLabel` (was `Label`; `bbcode_enabled`,
+  `fit_content`, `scroll_active = false`) so `_refresh_objective_label()`
+  can show a two-tone header ("Current Objective:" in accent colour) +
+  body in one control (`[lb]`-escaping any literal `[` in a mission-
+  authored description, so it can't be misread as a BBCode tag).
+  **`%ObjectiveLabel` hidden until the spawn-placement dialog closes, same
+  day, follow-up request** ("hide the objective till after the players
+  spawn dialog") - same "hide until after embark + initial positioning"
+  treatment `%EndPhaseButton` already got above, applied here too:
+  `_ready()` sets `objective_label.visible = false` up front (right
+  alongside `end_phase_button`'s own hide), and `objective_label.visible =
+  true` is set right after `await _show_spawn_area_and_confirm()` returns
+  - correct either way that call behaves: it shows a real confirmation
+  dialog and awaits it when the mission has spawn cells authored, or is a
+  same-frame no-op when it doesn't (see that function's own doc) - the
+  objective reveals exactly when the table would first actually look at
+  the board either way. `_refresh_objective_label()`'s own first call
+  (right after `_runtime` is constructed, well before this point) is
+  unaffected - it still sets the text immediately, just onto a still-
+  hidden label, so there's nothing left to compute once the label
+  actually becomes visible.
+  `%EndPhaseButton` gets a flat red `StyleBoxFlat` theme (`_style_end_phase_button()`,
+  called once from `_ready()`) - including its own `disabled` style,
+  since a `StyleBoxFlat` override doesn't otherwise change the disabled
+  look, and this button is genuinely disabled/re-enabled across the round
+  loop (see the entry just above). **The old standalone `%BackButton` is
+  gone** - "the back to main menu is in the menu" - `MissionPlayer.
+  _on_back_button_pressed` (unchanged) is now wired as `hud.back_to_menu`,
+  called from the new Gear menu's "Back to Menu" item instead. Deliberately
+  NO copyrighted art anywhere in this pass (this project ships zero of
+  that, see **Official asset overrides**) - every new icon is a flat
+  coloured circle/square with plain text, same "generated placeholder, not
+  a real asset" approach `HeroCatalog`'s own dummy portraits use; the
+  fantasy parchment/stone-carved look in the reference screenshots is the
+  real shipped game's own UI art and was never a goal to literally
+  reproduce, only the LAYOUT (what exists, where, mocked vs. wired) was.
   `_refresh_objective_label()` (renamed 2026-09-14 from `_show_objective()`)
   shows only the objective(s) `MissionRuntime.get_current_objective_descriptions()`
   currently considers active, NOT `mission.objectives` (the DAG's static
@@ -3010,6 +3115,84 @@ first working version).
   get an unnecessarily distant view, a large one still fits. Corner
   positions come from `LayeredMap.get_tile_square_world_corners()`, the
   same method the spawn overlay's own geometry is built from.
+- **`PlayerHud.gd`** (new 2026-09-23, `class_name PlayerHud extends Control`)
+  — the new HUD chrome pieces from **`MissionPlayer.gd`**'s own "First pass
+  at a real HUD layout" entry above: two circular "Quest"/"Threat" icon
+  buttons top-right, and a Gear/Party icon pair bottom-left (a top-right
+  round-counter card was also built the same day, then removed again the
+  same day - see that entry's own note). Built entirely in code and added as a plain child by
+  `MissionPlayer._ready()` (same "runtime-constructed object, plain var,
+  no `@export`/`NodePath`" pattern `PropertiesDialog`/`ObjectivesDialog`
+  use) rather than a `.tscn` node, since its content is fully generated and
+  it needs `dialog`/`back_to_menu`/`show_map`/`show_monsters` wired in
+  right after construction.
+  - **The top-right "Quest"/"Threat" icons are view switches, not mocks
+	(new 2026-09-23, same day, follow-up request)** - "Quest" ->
+	`show_map.call()`, "Threat" -> `show_monsters.call()`, both `Callable`s
+	MissionPlayer wires to `_set_monster_display_visible.bind(false)`/
+	`.bind(true)` - the exact same swap the `M` key and the "show map"/
+	"show monsters" voice/typed commands already drive (see
+	`MissionPlayer._set_monster_display_visible()`'s own doc above).
+	`_round_icon_button()`'s signature changed to take an
+	`on_pressed: Callable` per button instead of always wiring the generic
+	mock handler, so these two are real while everything else built from
+	the same helper (nothing else currently is, but the helper itself no
+	longer assumes "mock" the way it originally did).
+  - **Every menu item is a pure mock EXCEPT "Back to Menu"** - per the
+	user's own framing ("we can make mocks for all menu items, we will
+	implement them one by one"): the Gear menu ("Back to Menu", "Line of
+	Sight", "Options", "Rules Reference", "Save") and Party menu ("Quest
+	Log", "Campaign Log", "Feats", "Heroes", "Inventory") are `GEAR_ITEMS`/
+	`PARTY_ITEMS` consts, each just a plain `Button`; clicking one calls
+	`_on_mock_item_pressed(item_name)`, which shows
+	`dialog.ask_ok("<item> - not yet implemented.")` and does nothing
+	else - EXCEPT `"Back to Menu"`, prepended separately (not part of
+	`GEAR_ITEMS`, see the array-typing note below), which instead calls
+	the `back_to_menu: Callable` MissionPlayer wires to its own (unchanged)
+	`_on_back_button_pressed` - the one real, relocated piece of
+	functionality this pass moved rather than mocked.
+  - **The two `["Back to Menu"] + GEAR_ITEMS` build confirmed a real
+	GDScript typing gotcha**: `+` between an untyped array LITERAL and a
+	`const Array[String]` produces a plain untyped `Array`, not
+	`Array[String]` - `_build_popup_menu(items: Array[String])` then hard
+	runtime-errors ("does not have the same element type as the expected
+	typed array argument"), caught by an actual headless scene test, not
+	just reasoned about. Fixed by building the typed array explicitly
+	(`var gear_items: Array[String] = ["Back to Menu"]; gear_items.
+	append_array(GEAR_ITEMS)`) instead of concatenating with `+`.
+  - **`_build_popup_menu(items) -> VBoxContainer`** is the one genuinely
+	reusable piece: a `VBoxContainer` pinned by its BOTTOM-left corner,
+	positioned just above the toggle-button row, starting empty
+	(`offset_top == offset_bottom`, zero height) and hidden. Setting
+	`grow_vertical = Control.GROW_DIRECTION_BEGIN` is what makes it
+	actually grow UPWARD as its buttons give it a real minimum size
+	(Godot's own default would grow it downward/both instead) - this is
+	the entire mechanism behind "a menu that stacks above the icon that
+	opened it," no manual height math needed anywhere.
+  - **Toggle behaviour**: `_on_gear_pressed()`/`_on_party_pressed()` each
+	close the OTHER menu first, then flip their own - mutually exclusive,
+	matching the mockup (only one popup showing at a time). No
+	click-outside-to-close in this first pass (a reasonable simplification
+	given everything behind it is a mock anyway) - clicking the SAME
+	toggle button again is the only way to close one without picking an
+	item.
+  - **No copyrighted art** - every icon is a flat coloured circle/square
+	`StyleBoxFlat` with a short plain-text label (`"Quest"`/`"Threat"`, a
+	gear/group Unicode glyph for the two toggle buttons) - same "generated
+	placeholder, not a real asset" approach `HeroCatalog`'s own dummy
+	portraits use (see that class's own entry above). The mockup's own
+	parchment/carved-stone art style is the real shipped game's UI art and
+	was never a goal to literally reproduce here - only the LAYOUT
+	(what exists, where, and which pieces are wired vs. mocked) was.
+  - Verified headlessly in a scene (not just compiled): both menus build
+	the expected item count, both start hidden, gear/party toggling is
+	mutually exclusive and
+	closes on a second press of the same button, `back_to_menu` actually
+	fires (and closes the menu) on "Back to Menu," a mock item press
+	with `dialog == null` is a safe no-op rather than an error, and
+	`_on_quest_pressed()`/`_on_threat_pressed()` invoke `show_map`/
+	`show_monsters` exactly once each (also a safe no-op when unset).
+	**Not visually confirmed in-editor.**
 - `PlayerDialog.gd` (`%Dialog` in `MissionPlayer.tscn`) — reusable async
   dialog, built at runtime (same reasoning as `CreatorPalette` - content/
   buttons vary per call): `ask_ok(text, dim = true)` (`dim = false` hides the scrim so the scene behind stays visible), `ask_yes_no(text) -> bool`,
@@ -3052,12 +3235,52 @@ first working version).
 	Variant type pair, see **Hard-won lessons** below. Fixed by guarding
 	both string comparisons behind `typeof(result) == TYPE_STRING` first.
 - `HeroCatalog.gd` — never instantiated, just a shared namespace (same
-  pattern as `RoundCheckpoint`) for the placeholder party roster: `SLOT_COUNT`
-  (6), `slot_name(i)`/`slot_color(i)`. No real hero names/art - Descent's own
-  are the original game's copyrighted content (see **Official asset
-  overrides**), and there's no override mechanism for hero identity anyway.
-  Shared between `EmbarkDialog` and `PlayerInteractionController` so both
-  always agree on what slot N looks like.
+  pattern as `RoundCheckpoint`) for the SLOT_COUNT (6) party roster:
+  `slot_name(i)`/`slot_color(i)`/`slot_portrait(i)` (new 2026-09-23, see
+  below). **Real hero names now** (`HERO_NAMES` = Chance/Galaden/Brynn/
+  Vaerix/Kehli/Syrus) - names alone aren't copyrighted content (just
+  labels), unlike the actual portrait art. Shared between `EmbarkDialog`
+  and `PlayerInteractionController` so both always agree on what slot N
+  looks like.
+  **Hero portraits, first UI-polish pass (new 2026-09-23)** - this project
+  now ships DUMMY placeholder portraits (`models/heroes_<name>.png`,
+  256x256 RGBA - matches the real official portraits' own size, generated
+  once via a throwaway Pillow script: each hero's `HeroCatalog.slot_color()`
+  hue as the background, a thin ring border, and the name in bold text -
+  "same size, just put the name on it") and swaps in a user's own official
+  portrait when present, same **Official asset overrides** mechanism every
+  other asset in this project already uses - never ships/redistributes the
+  real art. `slot_portrait(index) -> Texture2D` calls the new
+  `OfficialAssetOverrides.texture_for(placeholder_path)` (see that
+  autoload's own entry below) with `PORTRAIT_PATHS[index]`. `OfficialAssetMap.MAP`
+  gained the 6 `heroes_<name>.png -> <Name>` entries (the official Unity
+  asset's plain `m_Name`, confirmed by inspecting the game's own dump - no
+  prefix/suffix, unlike the floor/underlay names). `EmbarkDialog`'s party-
+  select grid and `PlayerInteractionController`'s portrait dock both now
+  show the actual portrait texture (a `TextureRect`, `STRETCH_KEEP_ASPECT_COVERED`)
+  instead of a flat colour swatch - see those scripts' own entries below for
+  the layout details (a border-only stylebox for EmbarkDialog's selection
+  state, since a flat `bg_color` style would just be painted over by the
+  portrait icon; an outlined name-caption `Label` overlay for the dock,
+  since real art has no text baked in the way the placeholder does).
+  **The dock portrait's flat colour background was removed entirely, same
+  day, follow-up request** ("remove the color behind the player... the new
+  image replaces it") - `_make_portrait()`'s `Panel` now uses a
+  `StyleBoxEmpty` instead of a `StyleBoxFlat` with `HeroCatalog.slot_color()`
+  as `bg_color` - the portrait texture already fully covers the panel, so
+  that colour was only ever visible as a stray tint/sliver around the
+  texture's edges, not an intentional fallback worth keeping.
+  **`PORTRAIT_SIZE` bumped 56 -> 96, same day, follow-up request** ("too
+  small") - now matches `EmbarkDialog`'s own portrait cell size; both
+  `_row`'s layout and `_make_portrait()`'s `custom_minimum_size` already
+  derived from the constant, so nothing else needed touching. Verified
+  headlessly in a scene (autoloads unavailable in `-s` script mode): every
+  slot's portrait loads at 256x256, `EmbarkDialog` builds all 6 buttons with
+  a non-null icon, `PlayerInteractionController._make_portrait()` returns a
+  `TextureRect` + `Label`, and dropping a fake file at
+  `user://official_assets/Chance.png` makes `slot_portrait(0)` return THAT
+  texture instead of the placeholder - the override path actually works,
+  not just compiles. **Not visually confirmed in-editor.**
 - `PlayerAttribute.gd` (new 2026-09-14) — same never-instantiated shared-
   namespace pattern as `RoundCheckpoint`/`HeroCatalog`: the `Attribute` enum
   (`INTELLIGENCE`/`WILL`/`AGILITY`/`STRENGTH`) a "Test" is rolled against -
@@ -3085,6 +3308,29 @@ first working version).
   mechanism as `PlayerDialog` (see that entry above), especially important
   here since nothing else in the Player scene should be reachable before a
   party even exists.
+  **Party-select grid now shows portraits (new 2026-09-23)** - each cell is a
+  `VBoxContainer` (toggle `Button` + a name `Label` below it), not a single
+  flat-colour toggle button - `btn.icon = HeroCatalog.slot_portrait(i)` +
+  `expand_icon = true` fills the button with the portrait, and selection
+  state is shown via `_slot_style()` (a border-only `StyleBoxFlat`, `normal`/
+  `disabled` invisible, `hover` a thin white border, `pressed` a
+  `HeroCatalog.slot_color()`-tinted border) since a flat `bg_color` style
+  (the old approach) would just be painted over by the portrait icon and
+  never show. **Confirmed left-aligned with dead whitespace down the right
+  side, same day** - the smaller 96px portrait cells (vs. the old 100x60
+  flat buttons) no longer fill `background`'s fixed 360px minimum width,
+  and `GridContainer`'s default `SIZE_FILL` just reports its own smaller
+  natural width rather than stretching/centering into the extra space, so
+  the grid sat flush left inside the `VBoxContainer`. Fixed with
+  `grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER`. Verified
+  headlessly (not just reasoned about): a scene test measured the grid's
+  actual global rect against its containing panel's - 32px on both sides,
+  not a left/right split. **Both page titles are bold, same day** -
+  `_bold_title(label)` (new) wraps the default theme font in a
+  `FontVariation` with `variation_embolden = 1.0` rather than bundling an
+  actual bold font file - Godot 4's own synthetic-bold knob, confirmed
+  working headlessly (the override resolves to a real `FontVariation` with
+  a non-null `base_font` even before the Label enters the tree).
 - `PlayerInteractionController.gd` (`%InteractionDock` in `MissionPlayer.tscn`)
   — drag-to-interact UI, matching the original companion app's own gesture:
   drag a hero portrait onto the world to interact with something. First pass
@@ -4020,7 +4266,10 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
   the current hovered cell's coordinates.
 - **`player/MissionPlayer.tscn`** — instances `LayeredMapCore` as `%LayeredMap`, plus
   its own separate `Camera3D`/`DirectionalLight3D`, and a `CanvasLayer` with an info
-  `Label` and a Back button. No editing tools at all. Also a `%MonsterDisplay`
+  `Label` (hidden except on a load failure, see `MissionPlayer.gd`'s own
+  entry above) and the new `PlayerHud.gd` chrome (also that same entry) -
+  no standalone Back button anymore, that's a Gear-menu item now. No
+  editing tools at all. Also a `%MonsterDisplay`
   (new 2026-09-15, `MonsterDisplay.gd`, `visible = false` by default) - a second,
   parallel 3D view sibling to `LayeredMap`/`Camera3D`, toggled with `CanvasLayer`
   left completely untouched - see that script's own entry above for the full
@@ -4055,7 +4304,31 @@ copyrighted content — see **Official asset overrides** below for the full
 mechanism. All three are run once pointed at your own game install;
 nothing any of them produces ever gets committed. `import_official_assets.py`
 — the narrow one, pulls only the exact textures `OfficialAssetMap.gd`
-already has names for. `dump_all_assets.py` (new 2026-09-16) — the broad,
+already has names for. **Hero portraits needed a real fix here, 2026-09-23**
+(not just new map entries) - every hero has AT LEAST two Texture2D/Sprite
+objects sharing its bare name ("Chance"), one per game act
+(`assets/d3/heroes/<name>/acti/<name>.png` and `.../actii/<name>.png`), so
+matching by name alone (fine for every other entry - floor/underlay/token
+names are genuinely unique) could silently grab either act's art depending
+on Unity's own object iteration order. Confirmed as a real bug, not a
+hypothetical, by dumping the full manifest and cross-checking against the
+6 portrait files a human had already picked by eye: the picks are a genuine
+MIX, not "always act N" (Chance/Galaden are Act II, Brynn/Vaerix/Kehli/Syrus
+are Act I). Fixed with a new `HERO_PORTRAIT_CONTAINERS` dict (hand-recorded
+per hero, once, from the dumped manifest - not derivable from `HeroCatalog.gd`,
+which has no reason to know Unity's own folder layout) requiring an exact
+CONTAINER PATH match in addition to the name, for these 6 names only -
+every other wanted name keeps matching by name alone, unchanged. Verified
+against the actual dumped manifest (not just reasoned about): re-running the
+fixed matching logic on all 6 heroes reproduces the exact hand-picked file
+for 3, and for the other 3 (where two same-container objects - a Texture2D
+AND a Sprite - both legitimately match, so which one wins is still
+iteration-order dependent) confirmed BYTE-IDENTICAL pixels between the
+object the fix would grab and the one originally hand-picked (a Texture2D
+and a Sprite sharing one container render identically - Syrus's own
+hand-picked file IS the Sprite, not the Texture2D, confirmed the same way) -
+so the fix is correct regardless of which same-container duplicate the
+Unity iteration order happens to hit. `dump_all_assets.py` (new 2026-09-16) — the broad,
 exploratory one: dumps EVERY `Mesh` as `.obj` (no built-in Godot importer
 reads these at RUNTIME either, though the editor's own `res://` import
 pipeline does - see **Mesh conversion: Godot's own native importer, not a
@@ -4162,6 +4435,17 @@ appears locally, for a user who separately owns the official game and runs
 	original sculpts, not part of this system, but proof the assumption doesn't
 	hold everywhere). If a future mapped texture turns out to be used on a
 	multi-surface item, this needs to loop surfaces instead of hardcoding index 0.
+  - **`texture_for(placeholder_path) -> Texture2D`** (new 2026-09-23) - the
+	general-purpose counterpart to `apply_overrides()`/`_apply_to_item()`
+	above, for a placeholder that ISN'T a MeshLibrary item's material - a
+	plain `Texture2D` a `Control` uses directly (its first caller,
+	`HeroCatalog.slot_portrait()` - see that class's own entry above). Same
+	`OfficialAssetMap` lookup + `user://official_assets/<OfficialName>.png`
+	check as the mesh path, reusing the same private `_load_override_texture()`
+	helper, but returns the loaded SHIPPED placeholder itself (`load(placeholder_path)`)
+	when there's no override, rather than leaving something untouched -
+	there's no existing material to leave alone here, the caller needs an
+	actual texture back either way.
 - Props like `gate`/`archway`/`tree` and the pillars/`stair` are the user's own
   original sculpted models (not derived from the official game at all), so they're
   intentionally absent from `OfficialAssetMap` — there's no "official" version to

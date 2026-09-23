@@ -42,6 +42,34 @@ func _ready() -> void:
 	visible = false
 
 
+## A transparent (or `color`-bordered, for selected/hover) stylebox for a
+## portrait button - a flat bg_color style would just get painted OVER by
+## the portrait icon, so selection state instead reads as a border around
+## the square portrait (border_width 0 = invisible, just an empty box so
+## normal/disabled don't shift the button's size against pressed/hover's).
+## Makes a page's title Label bold without needing a bundled bold font file -
+## FontVariation.variation_embolden synthesizes bold from the default theme
+## font (embolden 1.0 = a normal, clearly-bold weight; Godot 4's own
+## documented range is roughly -2..2, negative thins it instead). Same
+## instance-per-call approach as every other theme override in this project
+## (each Label gets its own, nothing shared/cached - these are only built
+## once per dialog anyway).
+func _bold_title(label: Label) -> void:
+	var bold_font := FontVariation.new()
+	bold_font.base_font = label.get_theme_font("font")
+	bold_font.variation_embolden = 1.0
+	label.add_theme_font_override("font", bold_font)
+
+
+func _slot_style(color: Color, border_width: int = 2) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color.TRANSPARENT
+	style.set_corner_radius_all(6)
+	style.set_border_width_all(border_width if color.a > 0.0 else 0)
+	style.border_color = color
+	return style
+
+
 func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP  # the modal scrim - blocks everything behind it
@@ -71,24 +99,43 @@ func _build_ui() -> void:
 	title.text = "Choose your party"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_bold_title(title)
 	vbox.add_child(title)
 
 	var grid := GridContainer.new()
 	grid.columns = 3
+	# The grid's own natural width (3 portrait cells + separation) is less
+	# than `background`'s fixed 360px minimum (sized for the old, wider flat
+	# buttons) - left as SIZE_FILL (VBoxContainer's default), the grid still
+	# reports that smaller width and sits left-aligned, showing as dead
+	# whitespace down the right side. SHRINK_CENTER centers it instead.
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	vbox.add_child(grid)
 
 	for i in HeroCatalog.SLOT_COUNT:
+		# A cell = the portrait (a toggle button, so selection still gets the
+		# usual pressed/hover/disabled affordances) + a name caption below it -
+		# see _slot_style() for why selection needs its own border stylebox
+		# now that the button's face is a portrait image, not a flat colour.
+		var cell := VBoxContainer.new()
 		var btn := Button.new()
 		btn.toggle_mode = true
-		btn.text = HeroCatalog.slot_name(i)
-		btn.custom_minimum_size = Vector2(100, 60)
-		var style := StyleBoxFlat.new()
-		style.bg_color = HeroCatalog.slot_color(i)
-		style.set_corner_radius_all(6)
-		btn.add_theme_stylebox_override("normal", style)
-		btn.add_theme_stylebox_override("hover", style)
+		btn.custom_minimum_size = Vector2(96, 96)
+		btn.icon = HeroCatalog.slot_portrait(i)
+		btn.expand_icon = true
+		btn.add_theme_stylebox_override("normal", _slot_style(Color.TRANSPARENT))
+		btn.add_theme_stylebox_override("hover", _slot_style(Color(1, 1, 1, 0.6)))
+		btn.add_theme_stylebox_override("pressed", _slot_style(HeroCatalog.slot_color(i), 4))
+		btn.add_theme_stylebox_override("disabled", _slot_style(Color.TRANSPARENT))
 		btn.toggled.connect(_on_slot_toggled)
-		grid.add_child(btn)
+		cell.add_child(btn)
+
+		var name_label := Label.new()
+		name_label.text = HeroCatalog.slot_name(i)
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cell.add_child(name_label)
+
+		grid.add_child(cell)
 		_slot_buttons.append(btn)
 
 	_start_button = Button.new()
@@ -114,6 +161,7 @@ func _build_ui() -> void:
 	var loadout_title := Label.new()
 	loadout_title.text = "Choose two weapons per hero"
 	loadout_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_bold_title(loadout_title)
 	loadout_vbox.add_child(loadout_title)
 
 	_loadout_rows = VBoxContainer.new()

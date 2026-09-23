@@ -20,9 +20,10 @@ extends Node3D
 
 @onready var layered_map: LayeredMap = %LayeredMap
 @onready var info_label: Label = %InfoLabel
-@onready var objective_label: Label = %ObjectiveLabel
+@onready var objective_label: RichTextLabel = %ObjectiveLabel  ## RichTextLabel (was Label) - _refresh_objective_label() needs two-colour BBCode text, see PlayerHud.gd's own class doc for the surrounding layout this is part of
 @onready var phase_label: Label = %PhaseLabel
 @onready var end_phase_button: Button = %EndPhaseButton
+var hud: PlayerHud
 @onready var darkness_overlay: ColorRect = %DarknessOverlay
 @onready var dialog: PlayerDialog = %Dialog
 @onready var embark_dialog: EmbarkDialog = %Embark
@@ -59,15 +60,38 @@ var interaction_labels: InteractionLabels  ## names of the currently interactabl
 
 
 func _ready() -> void:
+	info_label.visible = false  # was a debug overlay (tile/interactable/underlay counts) - kept only for the load-failure message below
+	# Genuinely disabled, not just hidden - until _enter_player_phase() first
+	# runs (after embark + initial player positioning), so neither a click
+	# nor the voice/typed "end phase" command (_voice_end_phase(), which
+	# only checks .disabled) can skip straight to darkness phase before the
+	# table has even placed their figures.
+	end_phase_button.visible = false
+	end_phase_button.disabled = true
+	objective_label.visible = false  # shown again once _show_spawn_area_and_confirm() closes, below
+
 	mission = MissionIO.load_mission(GameState.current_mission_path)
 	if mission == null:
 		info_label.text = "Failed to load mission: %s" % GameState.current_mission_path
+		info_label.visible = true
 		return
 
 	layered_map.apply_mission(mission, true)
+	_style_end_phase_button()
 
-	var display_name := mission.mission_name if mission.mission_name != "" else GameState.current_mission_path.get_file()
-	info_label.text = "%s  (tiles=%d, interactables=%d, underlays=%d)" % [display_name, mission.tiles.size(), mission.interactables.size(), mission.underlay_placements.size()]
+	# New HUD chrome (Quest/Threat icons top-right, Gear/Party menus
+	# bottom-left - see PlayerHud.gd's own class doc) - added early so
+	# it's present under the embark/spawn modal scrims exactly like every
+	# other CanvasLayer child already is, not gated behind player phase the
+	# way EndPhaseButton is above (nothing here can skip a phase early, so
+	# there's no equivalent risk to guard against).
+	hud = PlayerHud.new()
+	dialog.get_parent().add_child(hud)
+	dialog.get_parent().move_child(hud, 0)
+	hud.dialog = dialog
+	hud.back_to_menu = _on_back_button_pressed
+	hud.show_map = _set_monster_display_visible.bind(false)
+	hud.show_monsters = _set_monster_display_visible.bind(true)
 
 	# Embark comes before anything else - the table picks its party before
 	# there's any board state to interact with. Defines player count (the
@@ -128,6 +152,7 @@ func _ready() -> void:
 					names.append(weapon.weapon_name)
 		return names
 	voice_listener.context_prompt_provider = dialog.voice_prompt
+	voice_listener.dialog_open_provider = func() -> bool: return dialog.visible  # skip "hey DM" while answering a dialog
 	voice_listener.voice_ready.connect(func(ready: bool): dialog.voice_hints_enabled = ready)  # hints only when a mic is listening
 	voice_listener.start()
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
@@ -151,6 +176,7 @@ func _ready() -> void:
 	if not await _advance_to(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE):
 		return
 	await _show_spawn_area_and_confirm()
+	objective_label.visible = true
 	await _enter_player_phase()
 
 
@@ -342,6 +368,30 @@ func _on_back_button_pressed() -> void:
 	get_tree().change_scene_to_file(menu_scene_path)
 
 
+## A plain flat red theme for the "End Phase" button (no real art - see
+## PlayerHud.gd's own class doc for why nothing here uses copyrighted game
+## assets), called once from _ready(). `disabled` gets its own dimmer style
+## since Godot's default StyleBoxFlat override doesn't otherwise change look
+## on disabled - without this the button would look identically pressable
+## while genuinely disabled (see _ready()'s own hiding/disabling of it).
+func _style_end_phase_button() -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.55, 0.12, 0.1)
+	normal.set_corner_radius_all(6)
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = Color(0.68, 0.16, 0.12)
+	hover.set_corner_radius_all(6)
+	var disabled := StyleBoxFlat.new()
+	disabled.bg_color = Color(0.3, 0.28, 0.27)
+	disabled.set_corner_radius_all(6)
+	end_phase_button.add_theme_stylebox_override("normal", normal)
+	end_phase_button.add_theme_stylebox_override("hover", hover)
+	end_phase_button.add_theme_stylebox_override("pressed", hover)
+	end_phase_button.add_theme_stylebox_override("disabled", disabled)
+	end_phase_button.add_theme_color_override("font_color", Color.WHITE)
+	end_phase_button.add_theme_color_override("font_color_disabled", Color(0.7, 0.68, 0.65))
+
+
 ## Shows only the CURRENTLY ACTIVE objective node(s)' descriptions, via
 ## MissionRuntime.get_current_objective_descriptions() - NOT mission's full
 ## DAG. Used to read mission.objectives (the DAG's static roots) directly
@@ -352,7 +402,13 @@ func _on_back_button_pressed() -> void:
 ## advance the DAG frontier mid-game, not just once at mission start.
 func _refresh_objective_label() -> void:
 	var descriptions := _runtime.get_current_objective_descriptions()
-	objective_label.text = "Objective: %s" % ", ".join(descriptions) if not descriptions.is_empty() else ""
+	if descriptions.is_empty():
+		objective_label.text = ""
+		return
+	# [lb] escapes a literal "[" - a mission-authored description could
+	# otherwise contain one and get misread as a BBCode tag.
+	var body := ", ".join(descriptions).replace("[", "[lb]")
+	objective_label.text = "[color=#8ecae6][b]Current Objective:[/b][/color]\n%s" % body
 
 
 ## Reveals a MissionGroup as part of play - the "Show Stage" effect (see
@@ -407,10 +463,11 @@ func _enter_player_phase() -> void:
 	if not await _advance_to(RoundCheckpoint.Checkpoint.PLAYER_PHASE):
 		return
 	if current_round == 1:
-		phase_label.text = "Round 1 - players spawn. Place your tokens, then play."
+		phase_label.text = "Players spawn. Place your tokens, then play."
 	else:
-		phase_label.text = "Round %d - player phase" % current_round
+		phase_label.text = "Player phase"
 	darkness_overlay.visible = false
+	end_phase_button.visible = true
 	end_phase_button.disabled = false
 
 
@@ -443,7 +500,7 @@ func _run_darkness_and_loop() -> void:
 
 	if not await _advance_to(RoundCheckpoint.Checkpoint.DARKNESS_PHASE):
 		return
-	phase_label.text = "Round %d - darkness phase..." % current_round
+	phase_label.text = "Darkness phase..."
 	darkness_overlay.visible = true
 	# Stand-in for real world-effect resolution + monster AI - just proves
 	# the phase transition and UI change work before either exists.

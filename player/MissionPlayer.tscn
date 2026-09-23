@@ -21,29 +21,38 @@ unique_name_in_owner = true
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="BackButton" type="Button" parent="CanvasLayer" unique_id=239467295]
-offset_right = 8.0
-offset_bottom = 8.0
-text = "Back to Menu"
-
-[node name="ObjectiveLabel" type="Label" parent="CanvasLayer" unique_id=555000101]
+[node name="ObjectiveLabel" type="RichTextLabel" parent="CanvasLayer" unique_id=555000101]
 unique_name_in_owner = true
-offset_top = 24.0
-offset_right = 40.0
-offset_bottom = 47.0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 620.0
+offset_bottom = 82.0
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
 [node name="PhaseLabel" type="Label" parent="CanvasLayer" unique_id=555000102]
 unique_name_in_owner = true
-offset_top = 48.0
-offset_right = 40.0
-offset_bottom = 71.0
+offset_left = 16.0
+offset_top = 86.0
+offset_right = 620.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 0.85)
 
 [node name="EndPhaseButton" type="Button" parent="CanvasLayer" unique_id=555000103]
 unique_name_in_owner = true
-offset_top = 72.0
-offset_right = 8.0
-offset_bottom = 80.0
-text = "All players done - go to darkness"
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -56.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "End Phase"
 
 [node name="DarknessOverlay" type="ColorRect" parent="CanvasLayer" unique_id=555000104]
 unique_name_in_owner = true
@@ -87,5 +96,4 @@ script = ExtResource("3_gd8vj")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6751664, 0)
 sky_mode = 1
 
-[connection signal="pressed" from="CanvasLayer/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/EndPhaseButton" to="." method="_on_end_phase_button_pressed"]

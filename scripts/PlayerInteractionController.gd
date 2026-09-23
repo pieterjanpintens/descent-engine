@@ -65,7 +65,7 @@ var monster_display: MonsterDisplay
 ## {hero slot index: Array[Weapon]}, set by MissionPlayer after embark.
 var hero_weapons: Dictionary = {}
 
-const PORTRAIT_SIZE := 56.0
+const PORTRAIT_SIZE := 96.0  ## was 56 - too small to read once these became real portrait images rather than a flat colour swatch; matches EmbarkDialog's own portrait cell size
 
 var _row: HBoxContainer
 var _portraits: Array[Control] = []
@@ -134,26 +134,36 @@ func set_roster(roster: Array[int]) -> void:
 		_portraits.append(portrait)
 
 
-## Placeholder only - a flat color swatch + name label, same "safe dummy"
-## style used elsewhere in this project (no real hero portrait art). Uses
-## HeroCatalog so this always matches whatever EmbarkDialog showed for the
-## same slot.
+## HeroCatalog.slot_portrait() - the shipped dummy placeholder art, or a
+## user's own official portrait if OfficialAssetOverrides finds one locally
+## (see HeroCatalog.gd's own class doc). A name caption still overlays the
+## bottom (readable with an outline, same convention InteractionLabels/
+## CreatorController's own overlay labels use), since the REAL art has no
+## text baked in the way the dummy placeholders do. Uses HeroCatalog so this
+## always matches whatever EmbarkDialog showed for the same slot.
 func _make_portrait(hero_slot: int, dock_position: int) -> Control:
 	var portrait := Panel.new()
 	portrait.custom_minimum_size = Vector2(PORTRAIT_SIZE, PORTRAIT_SIZE)
 	portrait.mouse_filter = Control.MOUSE_FILTER_STOP
+	portrait.clip_contents = true  # a non-square portrait shouldn't spill past the panel's own rect
+	portrait.add_theme_stylebox_override("panel", StyleBoxEmpty.new())  # the portrait texture (below) covers the whole panel now - no flat colour needed/visible behind it
 
-	var style := StyleBoxFlat.new()
-	style.bg_color = HeroCatalog.slot_color(hero_slot)
-	style.set_corner_radius_all(8)
-	portrait.add_theme_stylebox_override("panel", style)
+	var texture_rect := TextureRect.new()
+	texture_rect.texture = HeroCatalog.slot_portrait(hero_slot)
+	texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	texture_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait.add_child(texture_rect)
 
 	var label := Label.new()
 	label.text = HeroCatalog.slot_name(hero_slot)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 5)
+	label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	portrait.add_child(label)
 
 	portrait.gui_input.connect(_on_portrait_gui_input.bind(dock_position))

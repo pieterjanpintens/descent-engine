@@ -35,6 +35,19 @@ const MAP: Dictionary = {
 	"res://models/tokens_Exploration.png": "Token_Explore",
 	"res://models/tokens_Interact.png": "Token_Interact",
 	"res://models/tokens_Umbra.png": "Token_Umbra",
+	# Hero portraits (see HeroCatalog.gd) - unlike everything else above,
+	# these aren't MeshLibrary materials (OfficialAssetOverrides.apply_overrides()
+	# doesn't touch them at all), so HeroCatalog.slot_portrait() calls the new
+	# OfficialAssetOverrides.texture_for() directly instead. Official names
+	# confirmed by inspecting the game's own bundles (dump_all_assets.py) -
+	# these ARE the Unity object's plain m_Name, no prefix/suffix, unlike the
+	# floor/underlay names above.
+	"res://models/heroes_chance.png": "Chance",
+	"res://models/heroes_galaden.png": "Galaden",
+	"res://models/heroes_brynn.png": "Brynn",
+	"res://models/heroes_vaerix.png": "Vaerix",
+	"res://models/heroes_kehli.png": "Kehli",
+	"res://models/heroes_syrus.png": "Syrus",
 }
 
 
