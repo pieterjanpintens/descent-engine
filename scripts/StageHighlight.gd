@@ -33,7 +33,7 @@ func show_pieces(pieces: Array, with_labels: bool) -> void:
 	var cells_of := _cells_of(pieces)
 	var grid := layered_map.floor_grid
 	var cs := grid.cell_size
-	var y := layered_map.floor_thickness + LIFT
+	var lift := layered_map.floor_thickness + LIFT  # above the surface of the piece's OWN level
 	var w := LINE_WIDTH
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -47,11 +47,11 @@ func show_pieces(pieces: Array, with_labels: bool) -> void:
 		var sum := Vector3.ZERO
 		for c: Vector3i in cells:
 			var o: Vector3 = grid.map_to_local(c)
-			sum += o + Vector3(cs.x / 2.0, 0, cs.z / 2.0)
+			sum += o + Vector3(cs.x / 2.0, lift, cs.z / 2.0)
 			for side in [Vector3i(-1, 0, 0), Vector3i(1, 0, 0), Vector3i(0, 0, -1), Vector3i(0, 0, 1)]:
 				if set.has(c + side):
 					continue
-				_add_edge(st, o, cs, side, y, w)
+				_add_edge(st, o, cs, side, o.y + lift, w)
 		if with_labels and piece["bucket"] == "floor":
 			var label := Label3D.new()
 			label.text = str(piece["mesh"])
@@ -63,7 +63,7 @@ func show_pieces(pieces: Array, with_labels: bool) -> void:
 			label.rotation_degrees.x = -90
 			add_child(label)
 			var center: Vector3 = sum / cells.size()
-			label.global_position = grid.to_global(Vector3(center.x, y + 0.01, center.z))
+			label.global_position = grid.to_global(Vector3(center.x, center.y + 0.01, center.z))
 			_nodes.append(label)
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

@@ -637,6 +637,8 @@ only.
 
 **Stage page highlights (2026-09-25)** - `StageHighlight` (`scripts/StageHighlight.gd`, child of `layered_map`, built by `MissionPlayer`) draws a white outline (thin quads along the true perimeter of each piece's occupied cells, found via the mission's occupancy dicts) around the pieces the current stage-setup page is about, and for floor pages a flat name label (tile name) at each tile's centre. Driven by `show_stage()`'s `on_page` callback; cleared on every page change and when the dialog closes, so labels only exist while their page is open. Verified headlessly on a 4x5 cell block (perimeter geometry = 18 edges); not seen in the running Player.
 
+**Stage setup by level (2026-09-25, branch `experiment/stage-levels`)** - `show_stage()` now builds one page per (level, kind): lowest level first (level = the pieces' `origin_cell.y`), and within a level overlays -> floor tiles -> pillars -> props; page titles say "Level N - ..." when the stage spans more than one level. `_stage_pieces()` entries gained `level`. `StageHighlight` draws outlines and labels at each cell's OWN height (`map_to_local(cell).y` + floor_thickness + lift) instead of a fixed level-0 height, so a level-1 floor's label sits on top of that floor. Compile-checked only.
+
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
 level meter + what it last heard - the ONE thing that stayed OUT of

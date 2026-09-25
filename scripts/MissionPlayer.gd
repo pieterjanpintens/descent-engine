@@ -482,41 +482,54 @@ func show_stage(group_id: String) -> void:
 	var before := _visible_nodes()
 	group.visible = true
 	var new_pieces := _stage_pieces(before)
-	# Reveal piece by piece while the table is told how to set them up:
-	# overlays (hazards) first, then floor tiles, then pillars, then props.
+	# Reveal piece by piece while the table is told how to set them up, one
+	# level at a time (lowest first); within a level: overlays (underlays),
+	# then floor tiles, then pillars, then props. One page per (level, kind).
 	var order := ["underlay", "floor", "pillar", "prop"]
 	var bucket_labels := {"underlay": "Overlays", "floor": "Floor tiles", "pillar": "Pillars", "prop": "Props"}
 	var stage_name := group.reference_name if group.reference_name != "" else "a new area"
+	var levels: Array[int] = []
+	for piece in new_pieces:
+		if not levels.has(piece["level"]):
+			levels.append(piece["level"])
+	levels.sort()
 	var pages: Array[String] = []
-	var page_buckets: Array[String] = []
-	for bucket in order:
-		var counts: Dictionary = {}
-		for piece in new_pieces:
-			if piece["bucket"] == bucket:
-				counts[piece["mesh"]] = counts.get(piece["mesh"], 0) + 1
-		if counts.is_empty():
-			continue
-		var lines: Array[String] = []
-		for mesh_name in counts:
-			# Floor tiles are unique pieces - no "1x" prefix.
-			lines.append(str(mesh_name) if bucket == "floor" else "%dx %s" % [counts[mesh_name], mesh_name])
-		pages.append("Setting up '%s'\n%s - place these as shown:\n%s" % [stage_name, bucket_labels[bucket], "\n".join(lines)])
-		page_buckets.append(bucket)
+	var page_keys: Array[Dictionary] = []  # {level, bucket} per page
+	for level in levels:
+		for bucket in order:
+			var counts: Dictionary = {}
+			for piece in new_pieces:
+				if piece["level"] == level and piece["bucket"] == bucket:
+					counts[piece["mesh"]] = counts.get(piece["mesh"], 0) + 1
+			if counts.is_empty():
+				continue
+			var lines: Array[String] = []
+			for mesh_name in counts:
+				# Floor tiles are unique pieces - no "1x" prefix.
+				lines.append(str(mesh_name) if bucket == "floor" else "%dx %s" % [counts[mesh_name], mesh_name])
+			var level_text := "Level %d - " % level if levels.size() > 1 else ""
+			pages.append("Setting up '%s'"\n%s%s - place these as shown:"\n%s" % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
+			page_keys.append({"level": level, "bucket": bucket})
 
 	if not pages.is_empty():
+		# Page index of a piece (its level + kind); pieces on later pages stay held back.
+		var page_of := func(piece: Dictionary) -> int:
+			for i in page_keys.size():
+				if page_keys[i]["level"] == piece["level"] and page_keys[i]["bucket"] == piece["bucket"]:
+					return i
+			return -1
 		var show_upto := func(index: int) -> void:
-			# Held back: every new piece whose bucket comes on a later page.
 			layered_map.held_back.clear()
-			for piece in new_pieces:
-				if page_buckets.find(piece["bucket"]) > index:
-					layered_map.held_back[piece["node"]] = true
-			layered_map.repaint_visible_entries()
-			# Outline what this page is about (floor tiles also get their name).
 			var shown: Array = []
 			for piece in new_pieces:
-				if piece["bucket"] == page_buckets[index]:
+				var page: int = page_of.call(piece)
+				if page > index:
+					layered_map.held_back[piece["node"]] = true
+				elif page == index:
 					shown.append(piece)
-			stage_highlight.show_pieces(shown, page_buckets[index] == "floor")
+			layered_map.repaint_visible_entries()
+			# Outline what this page is about (floor tiles also get their name).
+			stage_highlight.show_pieces(shown, page_keys[index]["bucket"] == "floor")
 		await dialog.ask_narrative(pages, "Setting up %s" % stage_name, false, show_upto)
 	stage_highlight.clear()
 	layered_map.held_back.clear()
@@ -539,7 +552,7 @@ func _visible_nodes() -> Dictionary:
 
 
 ## The nodes that became visible since `before` (a _visible_nodes() snapshot),
-## as {node, bucket, mesh} - bucket "underlay"/"floor"/"pillar"/"prop".
+## as {node, bucket, mesh, level} - bucket "underlay"/"floor"/"pillar"/"prop".
 func _stage_pieces(before: Dictionary) -> Array[Dictionary]:
 	var pieces: Array[Dictionary] = []
 	for n in _visible_nodes():
@@ -550,7 +563,7 @@ func _stage_pieces(before: Dictionary) -> Array[Dictionary]:
 			bucket = "underlay" if mission.underlay_placements.has(n) else "floor"
 		elif FootprintRegistry.allows_fine_placement(n.mesh_item_name):
 			bucket = "pillar"
-		pieces.append({"node": n, "bucket": bucket, "mesh": n.mesh_item_name})
+		pieces.append({"node": n, "bucket": bucket, "mesh": n.mesh_item_name, "level": n.origin_cell.y})
 	return pieces
 
 
