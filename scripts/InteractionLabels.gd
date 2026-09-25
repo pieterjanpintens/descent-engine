@@ -90,8 +90,8 @@ func refresh() -> void:
 	for entry in mission.interactables:
 		if entry.id == "" or not entry.props.get("interactible", true):
 			continue
-		if not mission.is_effectively_visible(entry):
-			continue
+		if not mission.is_effectively_visible(entry) or layered_map.held_back.has(entry):
+			continue  # hidden, or a stage piece not revealed yet (see MissionPlayer.show_stage())
 		if runtime.first_available_action(entry) == null:
 			continue
 		entries.append(entry)

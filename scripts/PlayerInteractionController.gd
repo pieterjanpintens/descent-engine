@@ -69,7 +69,7 @@ const PORTRAIT_SIZE := 96.0  ## was 56 - too small to read once these became rea
 ## Space reserved below the portrait row for the mic status line + CommandInput,
 ## now stacked centered directly underneath it (see VoiceListener.gd's/
 ## CommandInput.gd's own offsets, which occupy this same margin).
-const BOTTOM_MARGIN := 104.0
+const BOTTOM_MARGIN := 12.0
 
 var _row: HBoxContainer
 var _portraits: Array[Control] = []
@@ -191,6 +191,8 @@ func _make_portrait(hero_slot: int, dock_position: int) -> Control:
 
 func _on_portrait_gui_input(event: InputEvent, dock_position: int) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if dialog != null and dialog.visible:
+			return  # a placement dialog leaves the screen clickable - no interacting yet
 		_dragging = true
 		_drag_dock_position = dock_position
 		_drag_line.visible = true
@@ -333,7 +335,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
 	else:
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
-	await dialog.ask_ok(text, true, true)
+	await dialog.ask_ok(text, true, true, "Attack")
 
 
 ## Presents every CURRENTLY-AVAILABLE action on `entry` (see

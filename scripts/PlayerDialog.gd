@@ -48,6 +48,9 @@ var _narrative_pages: Array[String] = []
 ## is actually listening; the hint line under the buttons then tells the table
 ## what can be said.
 var voice_hints_enabled: bool = false
+## Quest log recorder (Journal.gd), set by MissionPlayer. ask_ok()/ask_narrative()
+## record their text into it when given a non-empty `log_title`.
+var journal: Journal
 var _voice_kind: String = ""
 var _voice_options: Array[String] = []  ## "choice": the option NAMES, in button order
 var _hint_label: Label
@@ -148,8 +151,10 @@ func _apply_panel_layout(large: bool) -> void:
 		_label.remove_theme_font_size_override("font_size")
 
 
-func ask_ok(text: String, dim: bool = true, large: bool = false) -> void:
-	_scrim.visible = dim
+func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: String = "") -> void:
+	_set_modal(dim)
+	if log_title != "" and journal != null:
+		journal.add(log_title, [text])
 	_apply_panel_layout(large)
 	_label.text = text
 	_count_input.visible = false
@@ -158,9 +163,17 @@ func ask_ok(text: String, dim: bool = true, large: bool = false) -> void:
 	visible = true
 	await _closed
 	visible = false
-	_scrim.visible = true
+	_set_modal(true)
 	if large:
 		_apply_panel_layout(false)
+
+
+## dim = false is the "placement" look: no scrim AND the rest of the screen
+## stays interactive (only the dialog box itself blocks clicks), so the table
+## can still move the camera while being told where to put things.
+func _set_modal(dim: bool) -> void:
+	_scrim.visible = dim
+	mouse_filter = Control.MOUSE_FILTER_STOP if dim else Control.MOUSE_FILTER_IGNORE
 
 
 func ask_yes_no(text: String) -> bool:
@@ -219,7 +232,13 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 	return result
 
 
-func ask_narrative(pages: Array[String]) -> void:
+## `on_page` (optional) is called with the page index every time a page is
+## shown (also when going Back) - lets the caller sync the scene to the page.
+func ask_narrative(pages: Array[String], log_title: String = "", dim: bool = true, on_page: Callable = Callable()) -> void:
+	_narrative_page_callback = on_page
+	_set_modal(dim)
+	if log_title != "" and journal != null:
+		journal.add(log_title, pages)
 	_narrative_pages = pages
 	_narrative_index = 0
 	_count_input.visible = false
@@ -228,9 +247,16 @@ func ask_narrative(pages: Array[String]) -> void:
 	visible = true
 	await _closed
 	visible = false
+	_set_modal(true)
+	_narrative_page_callback = Callable()
+
+
+var _narrative_page_callback: Callable
 
 
 func _show_narrative_page() -> void:
+	if _narrative_page_callback.is_valid():
+		_narrative_page_callback.call(_narrative_index)
 	_label.text = _narrative_pages[_narrative_index]
 	var specs: Array = []
 	if _narrative_index > 0:

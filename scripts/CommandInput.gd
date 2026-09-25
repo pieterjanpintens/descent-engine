@@ -27,11 +27,11 @@ func _ready() -> void:
 	# Centered under the portrait dock, below the mic status line (see
 	# VoiceListener.gd) - moved here from bottom-left 2026-09-23, "for now"
 	# (a placeholder spot, not a final call on where this belongs).
-	set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)  # top center, right below the mic status line
 	offset_left = -160.0
 	offset_right = 160.0
-	offset_top = -56.0
-	offset_bottom = -24.0
+	offset_top = 62.0
+	offset_bottom = 94.0
 	visible = false
 	text_submitted.connect(_on_submitted)
 

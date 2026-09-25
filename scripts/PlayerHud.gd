@@ -56,6 +56,10 @@ var show_map: Callable
 var show_monsters: Callable
 ## VoiceSettingsDialog.open - the Gear menu's "Options" item.
 var open_voice_settings: Callable
+## QuestLogDialog.open - the Party menu's "Quest Log" item.
+var open_quest_log: Callable
+## MissionPlayer's line-of-sight toggle; returns the new on/off state.
+var toggle_line_of_sight: Callable
 
 ## The official rulebook PDF, hosted by Fantasy Flight Games themselves -
 ## opened in the system browser (OS.shell_open()) by "Rules Reference", not
@@ -75,6 +79,7 @@ const ICON_SIZE := 64.0
 const TOGGLE_SIZE := 48.0
 const MARGIN := 12.0
 
+var _view_buttons: Control  ## the top-right Quest/Threat icons
 var _gear_button: Button
 var _party_button: Button
 var _gear_menu: VBoxContainer
@@ -90,8 +95,15 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- top-right
 
+## Hidden during hero/weapon selection (MissionPlayer._ready()).
+func set_view_buttons_visible(shown: bool) -> void:
+	if _view_buttons != null:
+		_view_buttons.visible = shown
+
+
 func _build_top_right() -> void:
 	var icons := HBoxContainer.new()
+	_view_buttons = icons
 	icons.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	icons.offset_left = -(MARGIN + ICON_SIZE * 2 + 8.0)
 	icons.offset_top = MARGIN
@@ -215,6 +227,10 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 				btn.pressed.connect(_on_options_pressed)
 			"Rules Reference":
 				btn.pressed.connect(_on_rules_reference_pressed)
+			"Quest Log":
+				btn.pressed.connect(_on_quest_log_pressed)
+			"Line of Sight":
+				btn.pressed.connect(_on_line_of_sight_pressed.bind(btn))
 			_:
 				btn.pressed.connect(_on_mock_item_pressed.bind(item))
 		menu.add_child(btn)
@@ -248,6 +264,19 @@ func _on_options_pressed() -> void:
 	_gear_menu.visible = false
 	if open_voice_settings.is_valid():
 		open_voice_settings.call()
+
+
+func _on_line_of_sight_pressed(btn: Button) -> void:
+	_gear_menu.visible = false
+	if toggle_line_of_sight.is_valid():
+		var on: bool = toggle_line_of_sight.call()
+		btn.text = "Line of Sight (on)" if on else "Line of Sight"
+
+
+func _on_quest_log_pressed() -> void:
+	_party_menu.visible = false
+	if open_quest_log.is_valid():
+		open_quest_log.call()
 
 
 func _on_rules_reference_pressed() -> void:

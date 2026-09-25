@@ -56,6 +56,9 @@ var player_roster: Array[int] = []
 ## {hero slot index: Array[Weapon]} - the two weapons each hero picked at embark.
 var player_weapons: Dictionary = {}
 var _command_runner: PlayerCommandRunner
+var los_mode: LineOfSightMode
+var stage_highlight: StageHighlight
+var journal := Journal.new()  ## quest log replay, see Journal.gd
 var interaction_labels: InteractionLabels  ## names of the currently interactable props
 
 
@@ -77,6 +80,8 @@ func _ready() -> void:
 		return
 
 	layered_map.apply_mission(mission, true)
+	_add_ground_floor()
+	_add_bounding_box()
 	_style_end_phase_button()
 
 	# New HUD chrome (Quest/Threat icons top-right, Gear/Party menus
@@ -92,13 +97,25 @@ func _ready() -> void:
 	hud.back_to_menu = _on_back_button_pressed
 	hud.show_map = _set_monster_display_visible.bind(false)
 	hud.show_monsters = _set_monster_display_visible.bind(true)
+	journal.round_provider = func() -> int: return current_round
+	dialog.journal = journal
+	var quest_log := QuestLogDialog.new()
+	dialog.get_parent().add_child(quest_log)
+	quest_log.journal = journal
+	quest_log.objectives_provider = func() -> Array: return _runtime.get_current_objective_descriptions() if _runtime != null else []
+	hud.open_quest_log = quest_log.open
 
 	# Embark comes before anything else - the table picks its party before
 	# there's any board state to interact with. Defines player count (the
 	# roster's size) and which character is player 1/2/3/... - equipment
 	# selection is explicitly deferred, see EmbarkDialog's own docstring.
+	# Hero/weapon selection: nothing but the dialog - no ground, no view buttons.
+	_set_ground_decor_visible(false)
+	hud.set_view_buttons_visible(false)
 	player_roster = await embark_dialog.ask_roster(mission)
 	player_weapons = await embark_dialog.ask_loadouts(player_roster)
+	_set_ground_decor_visible(true)
+	hud.set_view_buttons_visible(true)
 	interaction_dock.set_roster(player_roster)
 	interaction_dock.hero_weapons = player_weapons
 
@@ -115,6 +132,19 @@ func _ready() -> void:
 	interaction_labels.layered_map = layered_map
 	interaction_labels.runtime = _runtime
 	layered_map.add_child(interaction_labels)
+
+	stage_highlight = StageHighlight.new()
+	stage_highlight.layered_map = layered_map
+	stage_highlight.mission = mission
+	layered_map.add_child(stage_highlight)
+
+	los_mode = LineOfSightMode.new()
+	los_mode.layered_map = layered_map
+	los_mode.mission = mission
+	layered_map.add_child(los_mode)
+	hud.toggle_line_of_sight = func() -> bool:
+		los_mode.set_active(not los_mode.active)
+		return los_mode.active
 
 	# Typed commands ("attack green bandit") - the stand-in for voice control,
 	# see VoiceCommandParser/PlayerCommandRunner.
@@ -202,7 +232,7 @@ func _show_spawn_area_and_confirm() -> void:
 	layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
 	layered_map.set_spawn_overlay_visible(true)
 	_frame_camera_on_spawn_area()
-	await dialog.ask_ok("Place your player figures in the highlighted area, then confirm.")
+	await dialog.ask_ok("Place your player figures in the highlighted area, then confirm.", false)
 	layered_map.set_spawn_overlay_visible(false)
 
 
@@ -230,7 +260,8 @@ func _frame_camera_on_spawn_area() -> void:
 	for corner in corners:
 		radius = max(radius, corner.distance_to(centroid))
 
-	camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, radius * SPAWN_VIEW_RADIUS_MULTIPLIER))
+	if PlayerSettings.auto_camera_to_spawns:
+		camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, radius * SPAWN_VIEW_RADIUS_MULTIPLIER))
 
 
 ## MOVE_OBJECT: the authored target is a tile-square coordinate. For a
@@ -299,7 +330,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	if not no_chip.is_empty():
 		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
 	await dialog.ask_ok("
-".join(lines))
+".join(lines), true, false, "Monsters appear")
 	if spawned.is_empty():
 		return
 
@@ -339,7 +370,8 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		var radius := 0.0
 		for c in placed_centers:
 			radius = max(radius, c.distance_to(centroid))
-		camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, (radius + tile_size) * SPAWN_VIEW_RADIUS_MULTIPLIER))
+		if PlayerSettings.auto_camera_to_spawns:
+			camera.jump_to(centroid, max(SPAWN_VIEW_MIN_DISTANCE, (radius + tile_size) * SPAWN_VIEW_RADIUS_MULTIPLIER))
 
 	var place_text := "Place the monsters on the map as shown."
 	if not unplaced.is_empty():
@@ -414,6 +446,9 @@ func _style_end_phase_button() -> void:
 ## every checkpoint transition (_advance_to()) and every prop action
 ## (PlayerInteractionController.objectives_progressed) since either can
 ## advance the DAG frontier mid-game, not just once at mission start.
+var _last_objective_text := ""
+
+
 func _refresh_objective_label() -> void:
 	var descriptions := _runtime.get_current_objective_descriptions()
 	if descriptions.is_empty():
@@ -421,7 +456,11 @@ func _refresh_objective_label() -> void:
 		return
 	# [lb] escapes a literal "[" - a mission-authored description could
 	# otherwise contain one and get misread as a BBCode tag.
-	var body := ", ".join(descriptions).replace("[", "[lb]")
+	var plain := ", ".join(descriptions)
+	if plain != _last_objective_text:
+		_last_objective_text = plain
+		journal.add("Objective", [plain])
+	var body := plain.replace("[", "[lb]")
 	objective_label.text = "[color=#8ecae6][b]Current Objective:[/b][/color]\n%s" % body
 
 
@@ -440,11 +479,79 @@ func show_stage(group_id: String) -> void:
 	# Flip FIRST - MissionData.is_effectively_visible()'s ancestor walk
 	# needs to see this group as visible when get_stage_requirements()
 	# below checks this group's own (now-reachable) descendants.
+	var before := _visible_nodes()
 	group.visible = true
-	var pages := _format_stage_pages(group, mission.get_stage_requirements(group_id))
+	var new_pieces := _stage_pieces(before)
+	# Reveal piece by piece while the table is told how to set them up:
+	# overlays (hazards) first, then floor tiles, then pillars, then props.
+	var order := ["underlay", "floor", "pillar", "prop"]
+	var bucket_labels := {"underlay": "Overlays", "floor": "Floor tiles", "pillar": "Pillars", "prop": "Props"}
+	var stage_name := group.reference_name if group.reference_name != "" else "a new area"
+	var pages: Array[String] = []
+	var page_buckets: Array[String] = []
+	for bucket in order:
+		var counts: Dictionary = {}
+		for piece in new_pieces:
+			if piece["bucket"] == bucket:
+				counts[piece["mesh"]] = counts.get(piece["mesh"], 0) + 1
+		if counts.is_empty():
+			continue
+		var lines: Array[String] = []
+		for mesh_name in counts:
+			# Floor tiles are unique pieces - no "1x" prefix.
+			lines.append(str(mesh_name) if bucket == "floor" else "%dx %s" % [counts[mesh_name], mesh_name])
+		pages.append("Setting up '%s'\n%s - place these as shown:\n%s" % [stage_name, bucket_labels[bucket], "\n".join(lines)])
+		page_buckets.append(bucket)
+
 	if not pages.is_empty():
-		await dialog.ask_narrative(pages)
+		var show_upto := func(index: int) -> void:
+			# Held back: every new piece whose bucket comes on a later page.
+			layered_map.held_back.clear()
+			for piece in new_pieces:
+				if page_buckets.find(piece["bucket"]) > index:
+					layered_map.held_back[piece["node"]] = true
+			layered_map.repaint_visible_entries()
+			# Outline what this page is about (floor tiles also get their name).
+			var shown: Array = []
+			for piece in new_pieces:
+				if piece["bucket"] == page_buckets[index]:
+					shown.append(piece)
+			stage_highlight.show_pieces(shown, page_buckets[index] == "floor")
+		await dialog.ask_narrative(pages, "Setting up %s" % stage_name, false, show_upto)
+	stage_highlight.clear()
+	layered_map.held_back.clear()
 	layered_map.repaint_visible_entries()
+
+
+## Every currently visible floor/underlay/prop node -> true (the node is the key).
+func _visible_nodes() -> Dictionary:
+	var result := {}
+	for n in mission.floor_placements:
+		if mission.is_effectively_visible(n):
+			result[n] = true
+	for n in mission.underlay_placements:
+		if mission.is_effectively_visible(n):
+			result[n] = true
+	for n in mission.interactables:
+		if mission.is_effectively_visible(n):
+			result[n] = true
+	return result
+
+
+## The nodes that became visible since `before` (a _visible_nodes() snapshot),
+## as {node, bucket, mesh} - bucket "underlay"/"floor"/"pillar"/"prop".
+func _stage_pieces(before: Dictionary) -> Array[Dictionary]:
+	var pieces: Array[Dictionary] = []
+	for n in _visible_nodes():
+		if before.has(n):
+			continue
+		var bucket := "prop"
+		if n is TilePlacement:
+			bucket = "underlay" if mission.underlay_placements.has(n) else "floor"
+		elif FootprintRegistry.allows_fine_placement(n.mesh_item_name):
+			bucket = "pillar"
+		pieces.append({"node": n, "bucket": bucket, "mesh": n.mesh_item_name})
+	return pieces
 
 
 func _find_group(group_id: String) -> MissionGroup:
@@ -454,23 +561,128 @@ func _find_group(group_id: String) -> MissionGroup:
 	return null
 
 
-## One narrative page per non-empty requirement bucket, floor -> pillar ->
-## prop -> hazard order (see MissionData.get_stage_requirements()) -
-## dialog.ask_narrative() (PlayerDialog.gd) already exists for exactly
-## this and has never had a real caller until now.
-func _format_stage_pages(group: MissionGroup, requirements: Dictionary) -> Array[String]:
-	var stage_name := group.reference_name if group.reference_name != "" else "(unnamed group)"
-	var bucket_labels := {"floor": "Floor tiles", "pillar": "Pillars", "prop": "Props", "underlay": "Hazards"}
-	var pages: Array[String] = []
-	for bucket_key in ["floor", "pillar", "prop", "underlay"]:
-		var bucket: Dictionary = requirements.get(bucket_key, {})
-		if bucket.is_empty():
-			continue
-		var lines: Array[String] = []
-		for mesh_name in bucket:
-			lines.append("%dx %s" % [bucket[mesh_name], mesh_name])
-		pages.append("Setting up '%s'\n%s needed:\n%s" % [stage_name, bucket_labels[bucket_key], "\n".join(lines)])
-	return pages
+## Side of the ground plane (world units) - "really big", so no edge is
+## ever visible from any camera position.
+const GROUND_SIZE := 2000.0
+## Tiles of the texture across the plane (~4 units each).
+const GROUND_TEXTURE_REPEAT := 500.0
+## Just below the floor-level plane, so underlay hazards (drawn at floor level) still show.
+const GROUND_Y := -0.05
+
+
+## A huge, subtle cracked-concrete ground under the whole map. Child of
+## layered_map so it hides with the world in the monster view. Texture:
+## ambientCG "Concrete036" (CC0, https://ambientcg.com/a/Concrete036).
+## Ground plane + bounding box (+ label), hidden while the table picks
+## heroes/weapons (see _ready()).
+var _ground_decor: Array[Node3D] = []
+
+
+func _set_ground_decor_visible(shown: bool) -> void:
+	for n in _ground_decor:
+		n.visible = shown
+
+
+func _add_ground_floor() -> void:
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(GROUND_SIZE, GROUND_SIZE)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = load("res://models/floor_concrete.jpg")
+	mat.albedo_color = Color(1, 1, 1)
+	mat.uv1_scale = Vector3(GROUND_TEXTURE_REPEAT, GROUND_TEXTURE_REPEAT, 1.0)
+	mat.texture_repeat = true
+	mat.roughness = 1.0
+	plane.material = mat
+	var ground := MeshInstance3D.new()
+	ground.mesh = plane
+	ground.position.y = GROUND_Y
+	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	layered_map.add_child(ground)
+	_ground_decor.append(ground)
+
+
+## Thickness (world units) of the bounding-box outline strips.
+const BOUNDS_LINE_WIDTH := 0.06
+## Start camera distance = half the area's diagonal x this.
+const BOUNDS_VIEW_MULTIPLIER := 1.6
+
+
+## A very light rectangle around the smallest tile-square area that holds
+## everything in the mission (floors, underlays, props - including stages not
+## revealed yet), so the table knows how much room to leave when building the
+## map with physical pieces. Also labelled with its size in tiles.
+func _add_bounding_box() -> void:
+	var cells: Array = []
+	cells.append_array(mission.floor_occupied_cells.keys())
+	cells.append_array(mission.underlay_occupied_cells.keys())
+	cells.append_array(mission.occupied_cells.keys())
+	if cells.is_empty():
+		return
+	var min_x := 1 << 30
+	var min_z := 1 << 30
+	var max_x := -(1 << 30)
+	var max_z := -(1 << 30)
+	for c: Vector3i in cells:
+		min_x = mini(min_x, c.x)
+		min_z = mini(min_z, c.z)
+		max_x = maxi(max_x, c.x)
+		max_z = maxi(max_z, c.z)
+	# Snap outward to whole tile squares (fine cell c covers [c, c+1) of them).
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var tile_min_x := floori(float(min_x) / cpt)
+	var tile_min_z := floori(float(min_z) / cpt)
+	var tile_max_x := floori(float(max_x) / cpt) + 1
+	var tile_max_z := floori(float(max_z) / cpt) + 1
+	var grid: GridMap = layered_map.floor_grid
+	var origin: Vector3 = grid.map_to_local(Vector3i(tile_min_x * cpt, 0, tile_min_z * cpt))
+	var tile_size := Vector2(cpt * grid.cell_size.x, cpt * grid.cell_size.z)
+	var size := Vector2((tile_max_x - tile_min_x) * tile_size.x, (tile_max_z - tile_min_z) * tile_size.y)
+
+	# Start zoomed out on the whole game area.
+	var center := Vector3(origin.x + size.x / 2.0, 0.0, origin.z + size.y / 2.0)
+	camera.jump_to(grid.to_global(center), maxf(size.length() * 0.5 * BOUNDS_VIEW_MULTIPLIER, 8.0))
+
+	var w := BOUNDS_LINE_WIDTH
+	var y := 0.01
+	var x0 := origin.x
+	var z0 := origin.z
+	var x1 := origin.x + size.x
+	var z1 := origin.z + size.y
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Four strips just outside the area, so tiles never cover them.
+	for r in [
+		Rect2(x0 - w, z0 - w, size.x + 2 * w, w),
+		Rect2(x0 - w, z1, size.x + 2 * w, w),
+		Rect2(x0 - w, z0, w, size.y),
+		Rect2(x1, z0, w, size.y),
+	]:
+		var a := Vector3(r.position.x, y, r.position.y)
+		var b := Vector3(r.end.x, y, r.position.y)
+		var c := Vector3(r.end.x, y, r.end.y)
+		var d := Vector3(r.position.x, y, r.end.y)
+		for v in [a, b, c, a, c, d]:
+			st.add_vertex(v)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1, 1, 1, 0.35)
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var box := MeshInstance3D.new()
+	box.mesh = st.commit()
+	box.material_override = mat
+	box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	grid.add_child(box)
+	_ground_decor.append(box)
+
+	var label := Label3D.new()
+	label.text = "%d x %d tiles" % [tile_max_x - tile_min_x, tile_max_z - tile_min_z]
+	label.modulate = Color(1, 1, 1, 0.5)
+	label.rotation_degrees.x = -90
+	label.pixel_size = 0.01
+	label.position = Vector3(x0 + size.x / 2.0, y, z1 + 0.5)
+	grid.add_child(label)
+	_ground_decor.append(label)
 
 
 func _enter_player_phase() -> void:
@@ -572,7 +784,7 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 func _handle_game_over(objective: MissionObjective) -> void:
 	end_phase_button.disabled = true
 	var outcome_text := "Victory!" if objective.outcome == MissionObjective.Outcome.WIN else "Defeat."
-	await dialog.ask_ok("%s\n%s" % [outcome_text, objective.description])
+	await dialog.ask_ok("%s\n%s" % [outcome_text, objective.description], true, false, outcome_text.trim_suffix("!").trim_suffix("."))
 	get_tree().change_scene_to_file(menu_scene_path)
 
 

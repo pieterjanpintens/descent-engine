@@ -114,20 +114,65 @@ var _ptt_peak: float = 0.0  ## loudest sample of the current recording
 var _thread: Thread
 
 
+## The status line is a debug aid, so it "flaps" in and out: collapsed
+## (slid up off-screen, only the small handle showing) by default, click the
+## handle to slide it down.
+const SHOWN_TOP := 12.0
+const STATUS_HEIGHT := 28.0
+const HIDDEN_TOP := -STATUS_HEIGHT - 4.0
+const FLAP_SECONDS := 0.2
+var _flap_open := false
+var _flap_handle: Button
+var _flap_tween: Tween
+
+
+func _build_flap() -> void:
+	_flap_handle = Button.new()
+	_flap_handle.text = "🎤"
+	_flap_handle.flat = true
+	_flap_handle.focus_mode = Control.FOCUS_NONE
+	_flap_handle.add_theme_font_size_override("font_size", 12)
+	_flap_handle.custom_minimum_size = Vector2(40, 18)
+	_flap_handle.mouse_filter = Control.MOUSE_FILTER_STOP
+	_flap_handle.tooltip_text = "Show/hide the voice status"
+	_flap_handle.pressed.connect(_toggle_flap)
+	add_child(_flap_handle)
+	_flap_handle.position = Vector2(260.0 - 20.0, STATUS_HEIGHT)  # centred just below the label
+	_set_flap(false, false)
+
+
+func _toggle_flap() -> void:
+	_set_flap(not _flap_open, true)
+
+
+func _set_flap(open: bool, animate: bool) -> void:
+	_flap_open = open
+	var top := SHOWN_TOP if open else HIDDEN_TOP
+	if _flap_tween != null:
+		_flap_tween.kill()
+	if not animate:
+		offset_top = top
+		offset_bottom = top + STATUS_HEIGHT
+		return
+	_flap_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_flap_tween.tween_property(self, "offset_top", top, FLAP_SECONDS)
+	_flap_tween.tween_property(self, "offset_bottom", top + STATUS_HEIGHT, FLAP_SECONDS)
+
+
 func _ready() -> void:
-	# Centered under the hero portraits (see PlayerInteractionController's
-	# own BOTTOM_MARGIN), above CommandInput.
-	set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	# Top center of the screen (CommandInput sits right below it).
+	set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	offset_left = -260.0
 	offset_right = 260.0
-	offset_top = -96.0
-	offset_bottom = -68.0
+	offset_top = SHOWN_TOP
+	offset_bottom = SHOWN_TOP + STATUS_HEIGHT
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
 	add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	add_theme_constant_override("outline_size", 4)
 	visible = false  # only shown once actually enabled - see set_enabled()
+	_build_flap()
 	push_to_talk = PlayerSettings.push_to_talk  # a saved preference now, not always the hardcoded default
 
 
@@ -402,6 +447,9 @@ func _on_input_level(peak: float, _rms: float) -> void:
 ## muted bus still feeds the capture effect at full level). Reuses a bus named
 ## "Record" if the project already has one.
 func _setup_microphone() -> void:
+	# Apply the saved input device, if it's still plugged in.
+	if PlayerSettings.input_device != "" and PlayerSettings.input_device in AudioServer.get_input_device_list():
+		AudioServer.input_device = PlayerSettings.input_device
 	var bus := AudioServer.get_bus_index(BUS_NAME)
 	if bus == -1:
 		AudioServer.add_bus()

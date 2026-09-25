@@ -22,6 +22,7 @@ extends Node
 
 const SETTINGS_PATH := "user://configuration/player-settings.cfg"
 const _SECTION := "voice"
+const _GAMEPLAY := "gameplay"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -31,6 +32,8 @@ var show_voice_hints: bool = true
 ## non-empty AND still a real device on this machine, see its own
 ## _setup_microphone().
 var input_device: String = ""
+## Gameplay: jump the camera to the player spawn area / newly spawned monsters.
+var auto_camera_to_spawns: bool = true
 
 
 func _ready() -> void:
@@ -48,6 +51,7 @@ func load_settings() -> void:
 	push_to_talk = config.get_value(_SECTION, "push_to_talk", push_to_talk)
 	show_voice_hints = config.get_value(_SECTION, "show_voice_hints", show_voice_hints)
 	input_device = config.get_value(_SECTION, "input_device", input_device)
+	auto_camera_to_spawns = config.get_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
 
 
 func save_settings() -> void:
@@ -56,6 +60,7 @@ func save_settings() -> void:
 	config.set_value(_SECTION, "push_to_talk", push_to_talk)
 	config.set_value(_SECTION, "show_voice_hints", show_voice_hints)
 	config.set_value(_SECTION, "input_device", input_device)
+	config.set_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

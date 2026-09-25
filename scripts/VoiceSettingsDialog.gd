@@ -64,6 +64,21 @@ func _ready() -> void:
 
 	vbox.add_child(HSeparator.new())
 
+	var gameplay_title := Label.new()
+	gameplay_title.text = "Gameplay"
+	_bold(gameplay_title)
+	vbox.add_child(gameplay_title)
+
+	var camera_check := CheckBox.new()
+	camera_check.text = "Move camera to player and monster spawns"
+	camera_check.button_pressed = PlayerSettings.auto_camera_to_spawns
+	camera_check.toggled.connect(func(pressed: bool):
+		PlayerSettings.auto_camera_to_spawns = pressed
+		PlayerSettings.save_settings())
+	vbox.add_child(camera_check)
+
+	vbox.add_child(HSeparator.new())
+
 	var voice_title := Label.new()
 	voice_title.text = "Voice"
 	_bold(voice_title)
@@ -76,7 +91,7 @@ func _ready() -> void:
 
 	_hints_check = CheckBox.new()
 	_hints_check.text = "Show voice hints"
-	_hints_check.button_pressed = true  # on by default - "once people understand how it works they can remove the clutter"
+	_hints_check.button_pressed = PlayerSettings.show_voice_hints  # default on - "once people understand how it works they can remove the clutter"
 	_hints_check.toggled.connect(_on_hints_toggled)
 	vbox.add_child(_hints_check)
 
@@ -117,7 +132,10 @@ func open() -> void:
 ## change between opens (a device plugged in, a download finished).
 func _refresh() -> void:
 	var available := voice_listener.is_available()
-	_enabled_check.button_pressed = available and voice_listener.is_enabled()
+	# *_no_signal: refreshing the widgets must not run the handlers below,
+	# which persist - an unavailable engine would otherwise overwrite the
+	# saved voice_enabled with false.
+	_enabled_check.set_pressed_no_signal(available and voice_listener.is_enabled())
 	_enabled_check.disabled = not available
 
 	_device_picker.clear()
@@ -129,7 +147,7 @@ func _refresh() -> void:
 		_device_picker.select(current)
 
 	_mode_check.text = "Push to talk (hold %s)" % OS.get_keycode_string(VoiceListener.PTT_KEY)
-	_mode_check.button_pressed = voice_listener.push_to_talk
+	_mode_check.set_pressed_no_signal(voice_listener.push_to_talk)
 
 	if available:
 		_setup_button.visible = false
@@ -145,6 +163,8 @@ func _refresh() -> void:
 
 
 func _on_enabled_toggled(pressed: bool) -> void:
+	PlayerSettings.voice_enabled = pressed
+	PlayerSettings.save_settings()
 	voice_listener.set_enabled(pressed)
 	# set_enabled() emits voice_ready, which _update_dialog_hints() (below,
 	# connected in _ready()) already reacts to - no separate call needed here.
@@ -153,7 +173,9 @@ func _on_enabled_toggled(pressed: bool) -> void:
 ## "Show voice hints" - independent of "Enable voice": lets someone who
 ## already knows the commands hide PlayerDialog's own "Voice - say X or
 ## Y" caption line without turning voice control itself off.
-func _on_hints_toggled(_pressed: bool) -> void:
+func _on_hints_toggled(pressed: bool) -> void:
+	PlayerSettings.show_voice_hints = pressed
+	PlayerSettings.save_settings()
 	_update_dialog_hints()
 
 
@@ -168,11 +190,16 @@ func _update_dialog_hints() -> void:
 
 
 func _on_mode_toggled(pressed: bool) -> void:
+	PlayerSettings.push_to_talk = pressed
+	PlayerSettings.save_settings()
 	voice_listener.set_push_to_talk(pressed)
 
 
 func _on_device_selected(index: int) -> void:
-	voice_listener.set_input_device(_device_picker.get_item_text(index))
+	var device := _device_picker.get_item_text(index)
+	PlayerSettings.input_device = device
+	PlayerSettings.save_settings()
+	voice_listener.set_input_device(device)
 
 
 func _on_setup_pressed() -> void:
@@ -183,7 +210,9 @@ func _on_setup_pressed() -> void:
 	var installed: bool = await installer.install()
 	installer.queue_free()
 	if installed:
-		voice_listener.start()  # re-checks availability and enables by default
+		PlayerSettings.voice_enabled = true  # a fresh install means the player wants it on
+		PlayerSettings.save_settings()
+		voice_listener.start()  # re-checks availability and enables
 	else:
 		_setup_button.disabled = false
 	_refresh()

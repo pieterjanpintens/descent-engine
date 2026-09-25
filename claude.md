@@ -602,6 +602,41 @@ control's state is rebuilt fresh in `_refresh()` on every `open()` call, not
 cached, so a device plugged in or a download finished between opens is
 always reflected. **Not visually confirmed in-editor.**
 
+**Player options persist (new 2026-09-25)** - nothing was stored before; every
+voice setting reset to its default on each Player load. New `PlayerSettings`
+autoload (`autoload/PlayerSettings.gd`, ConfigFile at
+`user://configuration/player-settings.cfg`, section `voice`: `voice_enabled`,
+`push_to_talk`, `show_voice_hints`, `input_device`; same pattern as
+`CreatorSettings`). `VoiceSettingsDialog` saves immediately on every change
+and refreshes its widgets with `set_pressed_no_signal()` so merely opening it
+(e.g. with no engine installed) can't overwrite the saved values.
+`VoiceListener.start()` honours saved `voice_enabled`, `_ready()` loads
+`push_to_talk`, `_setup_microphone()` applies the saved input device if still
+present; a finished voice install sets `voice_enabled = true`. Compile-checked
+only.
+
+**Ground floor + stage list tweak (new 2026-09-25)** - `MissionPlayer._add_ground_floor()` adds a 2000x2000 `PlaneMesh` (child of `layered_map`, so it hides in the monster view) at y -0.05 under the map, textured with `models/floor_concrete.jpg` (ambientCG "Concrete036", CC0, redistributable; 2K, tiled every ~4 units, brightened (gamma 0.6) in the file, albedo x1.0). Constants `GROUND_*` tune it. The stage-setup dialog lists floor tiles without the "1x" prefix (they're unique). Compile-checked only, not seen visually.
+
+**Level bounding box (new 2026-09-25)** - `MissionPlayer._add_bounding_box()` draws a very light (35% white) outline on the ground around the smallest tile-square rectangle covering every floor/underlay/prop cell of the mission (all stages, revealed or not), plus a faint "W x H tiles" label, so the table can leave room when building the physical map. Child of `floor_grid`, thin strips just outside the area. Compile-checked only, not seen visually.
+
+**Quest log (new 2026-09-25)** - a replay of what the table was told, nothing authored. `Journal` (`scripts/Journal.gd`, runtime-only `RefCounted`, entries are plain `{round, title, pages}` dicts so Save can serialise them later) is owned by `MissionPlayer` and handed to `PlayerDialog.journal`. `PlayerDialog.ask_ok(..., log_title)`/`ask_narrative(pages, log_title)` record their text when `log_title` is non-empty, so logging is opt-in per caller (voice prompts, "Which weapon?", mock dialogs are not logged; never log hidden info such as a Test's required successes). Currently logged: Show Message effects ("Message"), stage setup ("Setting up <group>"), monster spawn list ("Monsters appear"), attack results ("Attack"), win/lose, and every change of the current objective ("Objective", from `_refresh_objective_label()`). `QuestLogDialog` (modal, opened from the Party menu's "Quest Log" via `PlayerHud.open_quest_log`) shows current objectives, then entries newest-first; click one to re-read it (read-only - "back" means re-read, not re-decide). Verified headlessly (list + entry text); logging hooks compile-checked only. Not built yet: a Back/Next "wizard" for multi-step flows (weapon -> successes).
+
+**Layout change (2026-09-25)**: the mic/heard status line (`VoiceListener`) is now top-center (offset 12..40) with the Tab-revealed `CommandInput` right below it (44..76); the hero portrait row sits at the very bottom (`PlayerInteractionController.BOTTOM_MARGIN` 104 -> 12). This supersedes the 'under the portraits' placement described in the next paragraph. Compile-checked only.
+
+**Camera stays usable during placement dialogs (2026-09-25)** - `PlayerDialog._set_modal(dim)`: with `dim = false` the scrim is hidden AND the root stops blocking the mouse (only the dialog box itself does), so the camera can still be moved. `ask_ok(..., dim=false)` already existed (monster placement); now also used for player placement, and `ask_narrative(pages, log_title, dim)` gained `dim` (used for the stage/tile/prop setup pages). Portrait drags are ignored while any dialog is visible. Compile-checked only.
+
+**Embark screens are bare (2026-09-25)** - while heroes/weapons are being picked, `MissionPlayer` hides the ground plane, bounding box and label (`_ground_decor`) and the HUD's top-right Quest/Threat buttons (`PlayerHud.set_view_buttons_visible()`), restoring them afterwards. The map tiles themselves are untouched. Compile-checked only.
+
+**Line of sight, first step (2026-09-25)** - the Gear menu's "Line of Sight" now toggles `LineOfSightMode` (`scripts/LineOfSightMode.gd`, child of `layered_map`, built by `MissionPlayer`; the menu item reads "Line of Sight (on)" while active). While active a left click on a floor tile square (ray vs the floor plane -> fine cell -> `fine_cell_to_tile_square`) shows a flat `Label3D` on every reachable floor tile square with its shortest horizontal/vertical route length (BFS over squares of currently visible floor AND underlay (hazard) placements - both are walkable terrain, so it walks around holes; the clicked square shows an "X"): 1 green, 2 yellow, 3-4 orange, 5+ red. Clicking a non-floor spot does nothing; toggling off clears the labels. NOT considered yet: blocking props, real sight lines, stairs/levels (squares keyed by x,z only). Compile-checked only, not seen in a running Player.
+
+**Mic status "flaps" in/out (2026-09-25)** - the `VoiceListener` status line is a debug aid, so it starts slid up off-screen with only a small mic handle button (child of the label, below it) showing at the top-center edge; clicking the handle tweens it down/up (`_set_flap()`, 0.2 s). Not persisted. `CommandInput` moved to 62..94 so it clears the open handle. Compile-checked only.
+
+**Stage setup reveals piece by piece (2026-09-25)** - `MissionPlayer.show_stage()` no longer lists everything on paged text then paints it all: it diffs the visible nodes before/after flipping the group (`_visible_nodes()`/`_stage_pieces()`), holds every new piece back (`LayeredMap.held_back`, honoured by `_paint_all()`; `repaint_visible_entries()` now clears the grids first so held-back pieces can vanish again) and reveals them page by page in the order overlays (underlays) -> floor tiles -> pillars -> props, so the map shows exactly what the page is telling the table to place. `ask_narrative(pages, log_title, dim, on_page)` gained an `on_page(index)` callback (also fires on Back) that re-syncs what's held back. The dialog is dimless so the map is visible and the camera stays movable. Supersedes `_format_stage_pages()`/`get_stage_requirements()` for this flow (the latter is still on MissionData). Compile-checked only; the camera isn't re-framed on the new area.
+
+**Camera + labels (2026-09-25)** - the camera now starts zoomed out on the whole game area (`_add_bounding_box()` calls `camera.jump_to()` on the outline's centre, distance = half diagonal x `BOUNDS_VIEW_MULTIPLIER`). New persisted option `PlayerSettings.auto_camera_to_spawns` (default true, config section `gameplay`), checkbox under "Gameplay" in the Options dialog: when off, the camera is NOT moved to the player spawn area nor to newly spawned monsters. Interaction labels (`InteractionLabels`) skip pieces that are `LayeredMap.held_back` so a stage's prop labels appear only when the prop itself is revealed. Compile-checked only.
+
+**Stage page highlights (2026-09-25)** - `StageHighlight` (`scripts/StageHighlight.gd`, child of `layered_map`, built by `MissionPlayer`) draws a white outline (thin quads along the true perimeter of each piece's occupied cells, found via the mission's occupancy dicts) around the pieces the current stage-setup page is about, and for floor pages a flat name label (tile name) at each tile's centre. Driven by `show_stage()`'s `on_page` callback; cleared on every page change and when the dialog closes, so labels only exist while their page is open. Verified headlessly on a 4x5 cell block (perimeter geometry = 18 edges); not seen in the running Player.
+
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
 level meter + what it last heard - the ONE thing that stayed OUT of

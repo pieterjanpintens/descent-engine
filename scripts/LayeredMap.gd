@@ -542,6 +542,10 @@ func rebuild_underlay_tiles(new_placement_parent_id: String = "") -> void:
 ## own calls, which must always show everything regardless of a group's
 ## `visible` flag so a designer can edit a hidden room.
 var _respect_visibility: bool = false
+## Placement/prop nodes temporarily NOT painted even though visible (keys are
+## the nodes themselves) - used to reveal a stage piece by piece while the
+## table is told how to set it up (MissionPlayer.show_stage()).
+var held_back: Dictionary = {}
 
 
 ## Reverse of sync_prop_cell()/rebuild_floor_tiles()/rebuild_underlay_tiles():
@@ -591,7 +595,7 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 ## is unchanged from before this feature existed.
 func _paint_all() -> void:
 	for placement in mission.floor_placements:
-		if _respect_visibility and not mission.is_effectively_visible(placement):
+		if _respect_visibility and (held_back.has(placement) or not mission.is_effectively_visible(placement)):
 			continue
 		var item_id := find_item_id(floor_grid, placement.mesh_item_name)
 		if item_id == -1:
@@ -600,7 +604,7 @@ func _paint_all() -> void:
 		floor_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for placement in mission.underlay_placements:
-		if _respect_visibility and not mission.is_effectively_visible(placement):
+		if _respect_visibility and (held_back.has(placement) or not mission.is_effectively_visible(placement)):
 			continue
 		var item_id := find_item_id(underlay_grid, placement.mesh_item_name)
 		if item_id == -1:
@@ -609,7 +613,7 @@ func _paint_all() -> void:
 		underlay_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for entry in mission.interactables:
-		if _respect_visibility and not mission.is_effectively_visible(entry):
+		if _respect_visibility and (held_back.has(entry) or not mission.is_effectively_visible(entry)):
 			continue
 		var item_id := find_item_id(prop_grid, entry.mesh_item_name)
 		if item_id == -1:
@@ -629,6 +633,10 @@ func _paint_all() -> void:
 func repaint_visible_entries() -> void:
 	if not _respect_visibility:
 		return
+	# Cleared first so a piece that was held back AFTER being painted disappears again.
+	floor_grid.clear()
+	underlay_grid.clear()
+	prop_grid.clear()
 	_paint_all()
 
 
