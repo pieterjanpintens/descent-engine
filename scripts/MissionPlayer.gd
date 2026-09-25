@@ -508,7 +508,7 @@ func show_stage(group_id: String) -> void:
 				# Floor tiles are unique pieces - no "1x" prefix.
 				lines.append(str(mesh_name) if bucket == "floor" else "%dx %s" % [counts[mesh_name], mesh_name])
 			var level_text := "Level %d - " % level if levels.size() > 1 else ""
-			pages.append("Setting up '%s'"\n%s%s - place these as shown:"\n%s" % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
+			pages.append("Setting up '%s'\n%s%s - place these as shown:\n%s" % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
 			page_keys.append({"level": level, "bucket": bucket})
 
 	if not pages.is_empty():
