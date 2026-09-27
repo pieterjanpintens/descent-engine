@@ -639,6 +639,160 @@ only.
 
 **Stage setup by level (2026-09-25, branch `experiment/stage-levels`)** - `show_stage()` now builds one page per (level, kind): lowest level first (level = the pieces' `origin_cell.y`), and within a level overlays -> floor tiles -> pillars -> props; page titles say "Level N - ..." when the stage spans more than one level. `_stage_pieces()` entries gained `level`. `StageHighlight` draws outlines and labels at each cell's OWN height (`map_to_local(cell).y` + floor_thickness + lift) instead of a fixed level-0 height, so a level-1 floor's label sits on top of that floor. Compile-checked only.
 
+**Monster view floor (2026-09-26)** - the M monster view gets the same huge concrete floor as the world map (`GroundFloor.create(y)`, `scripts/GroundFloor.gd`, now shared by `MissionPlayer._add_ground_floor()` and `MonsterDisplay._ready()`), and the dark box plinths under the figures are gone (`_base_height()` is 0, figures stand directly on the floor at y 0; the floor is at -0.01). Compile-checked only, not seen visually.
+
+**Combat croptops (2026-09-26)** - the "how many successes" dialog (`PlayerDialog.ask_count(..., left_image, right_image)`, same optional images on `ask_ok`) now shows the attacking hero's croptop on the left and the attacked monster's on the right. Findings in the game's bundles: the ONLY `_Crop` textures are 24 hero ones (`assets/d3/heroes/<hero>/acti|actii/<hero>_crop.png`, Texture2D 256x85 + a trimmed Sprite each); there is NO monster `_CROP` - the equivalent is each monster's `..._tab.png` (256x121, `assets/d3/enemies/<folder>/<folder>_tab.png`), used instead. Hero weapon mapping (assumed from what the images show): Weapon 1 = acti, Weapon 2 = actii. Dummy placeholders (generated, hero colour + name, same sizes) ship in `models/crops/` (`hero_<name>_weapon<1|2>.png`, `monster_<folder_with_underscores>.png`), mapped in `OfficialAssetMap` to `<Hero>_Weapon<N>_Crop` / `<Monster>_Tab`; `HeroCatalog.slot_crop(slot, weapon_index)` and `MonsterDisplay.crop_texture(folder)` load them via `texture_for()` (user override wins). `import_official_assets.py` gained `source_for()` (alias + container + Texture2D pin for these names); re-run for real: 48/48 textures. **Weapons**: the loadout screen stays - each hero picks TWO weapons and the pick POSITION is hard-wired to the croptop (first picker = "Weapon 1", second = "Weapon 2", whichever weapon is chosen), so the image is consistent; the attack flow uses the weapon's index in the hero's list. `WeaponCatalog.for_hero(slot)` is the seam for a future predefined per-hero weapon set (currently the whole catalog; `EmbarkDialog.ask_loadouts()` uses it). Verified headlessly (textures load at 256x85/256x121, dialog image row); not seen in the running Player.
+
+**Full-screen combat view (2026-09-26)** - `CombatView` (`scripts/CombatView.gd`) mimics the real game's attack screen: hero croptop left / monster croptop right on a blue->red gradient, weapon-name plaque top-left, monster HP (heart) + defense (shield) and name top-right, centre info box + big successes picker (arrows, disc, "Successes" label) + Confirm/Cancel, "Damage Type" bottom-left (the weapon's damage types as labelled boxes), "Weakness"/"Resistance"/"Immunity" bottom-right. `PlayerDialog.ask_attack(cfg)` shows it (returns -1 on cancel; the hidden `_count_input` stays the source of truth so typed and voice answers - "I rolled four" - work exactly like `ask_count()`); `PlayerInteractionController.attack()` uses it when the successes weren't already spoken. **Monster properties stay hidden until discovered**: each weakness/resistance/immunity is a red "?" box (one per entry, so the count is visible) until an attack with a matching damage type has hit it - `MissionRuntime.resolve_attack()` records that in `RuntimeMonster.known_weaknesses/known_resistances/known_immunities` (persistent for that monster). The hero portrait bar (`PlayerInteractionController`, `visible = false` while `ask_attack()` is up) is hidden during the combat view. **Combat view polish (2026-09-27)** - the "Successes" caption under the picker disc was removed (implied by context). The top-left plaque now shows hero name / weapon name / base damage stacked (`configure()` reads `hero_name`/`weapon_name`/`base_damage`). The info box is now for a MONSTER ABILITY/effect only (`cfg["ability_text"]`, optional, hidden entirely when empty - no monster abilities are authorable yet) rather than a description of the attack; `PlayerInteractionController.attack()` no longer builds a "X attacks Y..." string for it. Confirm/Cancel (+ the voice hint label) moved out of the centre column to their own bottom-anchored group between the Damage Type and Weakness/Resistance/Immunity columns, so they sit at a fixed spot regardless of the (optional) info box's height. Compile-checked / built headlessly; not seen rendered.
+
+**Damage-type icons (2026-09-26)**: the text boxes are replaced by icons (`Vulnerability.icon(kind)`, kind < 0 = the red "?" `Icons_Unknown`, used for undiscovered weaknesses/resistances/immunities). Dummy placeholders ship in `models/icons/damage_<kind>.png` (labelled diamonds, same sizes as the real sprites) mapped in `OfficialAssetMap` to the game's `Icons_Pierce/Slash/Crush/Lumos/Aquos/Ignos/Mortos/Terros/Anemos/Unknown` (found under `assets/d3/glossaryterms/damage/mainterms/damage types/`, Sprites; fetched by the normal import script - 58/58 now). The game ALSO has `Icons_Fortunos/Toxos/Umbros/Vigos`, which our `Vulnerability.Kind` doesn't have. Rest of the view is still Placeholder look (flat colours, no game art, glyph stand-ins for icons; the croptops are the wide crop images, not the game's full-body art). Verified headlessly (builds, arrows, voice answer confirms, property sections/"?" counts); layout not seen rendered.
+
+**Save/Load games (2026-09-27)** - "dumping the game state is enough": no
+separate action-log/event-tracking mechanism was built, because most of a
+Player session's progress is ALREADY tracked, for free, by how this codebase
+already works - every MissionData the Player uses is mutated IN PLACE all
+through play (a fired MissionTrigger's `already_fired`, a used PropAction's
+`already_used`, a reached MissionObjective's `already_achieved`, a
+MissionGroup's `visible` once revealed, a removed/moved prop/tile's own
+entry - see each field's own doc). So a save just embeds the LIVE mission
+resource as-is (`SaveGame.mission`, a real sub-resource, not a path) and all
+of that comes along automatically through the ordinary ResourceSaver/
+ResourceLoader round trip `MissionIO.save_mission()`/`load_mission()`
+already use for a mission file itself.
+
+**`SaveGame`** (`scripts/SaveGame.gd`, a plain `Resource`) only adds what
+genuinely lives OUTSIDE the mission: `current_round`/`current_checkpoint`
+(the checkpoint stored as a plain int, not the enum type, to keep this
+resource simple), `player_roster`/`player_weapons` (the chosen party -
+`Weapon` is already a `Resource`, embeds directly), `runtime_variables`
+(`MissionRuntime.get_variables_state()`/`load_variables_state()` - a plain
+copy of its `_variables` dict, custom values + builtins), `monsters` (the
+live monster registry - see RuntimeMonster's own entry below for why this
+is `Array[Dictionary]` not `Array[RuntimeMonster]`), `current_objective_ids`
+(which DAG branch is currently active - see below), and `journal_entries` -
+literally `Journal.entries` copied verbatim, since the quest log was
+ALREADY nothing more than a plain replay list (`{round, title, pages}`
+dicts, see that class's own entry above) - no second mechanism needed, "do
+we already have that in a list" was exactly the right question.
+`MissionIO.save_game()`/`load_game()` mirror `save_mission()`/`load_mission()`
+exactly (same mkdir-if-missing, same `CACHE_MODE_IGNORE` reasoning).
+
+**`RuntimeMonster` gained `to_dict()`/`from_dict()`** (2026-09-27) - it's
+`RefCounted`, not a `Resource`, so it can't be embedded directly in a
+`Resource`'s exported field the way `Weapon`/`MissionData` can; a save
+carries a plain `Dictionary` per monster instead (`_int_array()` copies a
+save's untyped-Array-back-from-disk values into a real `Array[int]`, since
+nothing guarantees Godot preserves `Array[int]` typing through a generic
+`Dictionary` value on a round trip).
+
+**`MissionRuntime.restore_monsters(dicts)`** (2026-09-27) replaces the live
+registry wholesale and RE-DERIVES `_next_monster_number` from the restored
+ids (`"monster_N"`, taking the max `N + 1`) rather than adding a separate
+save field for it - a monster spawned after loading can never collide with
+one that already existed. Fires `monsters_changed` so the M view picks it
+up. **`get_current_objective_ids()`/`load_current_objective_ids()`**
+(2026-09-27) convert `_current_groups` (the DAG traversal frontier - which
+node(s) are currently "current" candidates) to/from `MissionObjective.id`
+strings, since a save can't embed direct object references across a
+reload the way live memory can (a fresh `MissionData` load produces
+entirely new `MissionObjective` instances) - resolved back via the new
+**`MissionData.find_objective_by_id(id)`** (a cycle-guarded BFS from every
+root, same traversal shape `ObjectivesDialog.gd`'s own `_rebuild_graph()`
+already uses for this DAG). A group that resolves to nothing (e.g.
+authoring changed since the save) is dropped rather than left empty; if
+everything drops, the roots-only seeding `_init()` already did is left in
+place instead of being cleared to nothing.
+
+**`MissionPlayer._ready()` branches on `GameState.load_save_path`** (new,
+alongside the existing `current_mission_path` - consumed/cleared the moment
+it's read, same one-shot handoff shape) instead of always loading a fresh
+mission and running Embark: when resuming, `player_roster`/`player_weapons`/
+`current_round`/`current_checkpoint` come from the save, `MissionRuntime`'s
+variables/monsters/objective-frontier are restored right after construction,
+`journal.entries` is restored, and the flow skips straight to
+`_show_player_phase_ui()` (see its own entry right below) - the starting-group
+reveal loop and the fresh-game `BEFORE_PLAYER_PHASE`/`PLAYER_PHASE` checkpoint
+fires are skipped (both already fired earlier THIS round, before the save
+happened; refiring either would double-fire its triggers for the same round
+transition).
+
+**`_enter_player_phase()` split into checkpoint-firing + UI, same day,
+closing out a real limitation rather than just gating around it** - it used
+to do both `await _advance_to(PLAYER_PHASE)` AND the "table can now act"
+screen state (phase label, hide the darkness overlay, enable End Phase) in
+one function, which was the ONLY way to reach that screen state - so a
+resumed save had no way to show it without ALSO refiring the `PLAYER_PHASE`
+checkpoint a second time for a round transition that had already happened.
+The user's first suggestion was "disable the Save button unless at a safe
+point" - investigating what a real safe point would even mean under the OLD
+code found there wasn't one: `current_checkpoint` stays `PLAYER_PHASE` for
+the entire round while the table acts, so ANY resume during that whole
+window would have hit the refire, not just some narrow moment within it -
+gating the button couldn't have found a safe window to allow, it would have
+meant disabling Save for nearly the whole game. The actual fix instead:
+`_show_player_phase_ui()` (new) is just the checkpoint-independent screen
+state; `_enter_player_phase()` is now `_advance_to(PLAYER_PHASE)` +
+`_show_player_phase_ui()`, and resume calls `_show_player_phase_ui()`
+directly - removing the double-fire risk outright rather than narrowing it.
+
+**A DIFFERENT, genuine safe-point need was found in the same
+investigation and IS worth gating on**: resume unconditionally jumps
+straight back into Player phase for the saved round - it has no way to
+resume mid-Darkness-phase or mid-checkpoint-transition. Saving during any
+checkpoint other than `PLAYER_PHASE` (`AFTER_PLAYER_PHASE`/
+`BEFORE_DARKNESS_PHASE`/`DARKNESS_PHASE`/`AFTER_DARKNESS_PHASE`) would
+silently skip the rest of that round's resolution on reload - a real
+correctness gap, not a double-fire risk. `PlayerHud.set_save_enabled(bool)`
+(new) disables the Gear menu's "Save" button (starts disabled) outside
+Player phase; `MissionPlayer._advance_to()` calls it with
+`checkpoint == RoundCheckpoint.Checkpoint.PLAYER_PHASE` on every checkpoint
+change (covering the fresh-play path), and `_show_player_phase_ui()` also
+calls it directly (covering resume, which doesn't go through
+`_advance_to()`). Verified headlessly: starts disabled, `set_save_enabled(true)`/`(false)` toggle the button correctly.
+
+**`MissionPlayer.save_game()`** (the Gear menu's "Save" item, now real -
+`PlayerHud.save_requested`, replacing its old mock) builds a `SaveGame` from
+everything currently live and writes it to
+`user://saves/<mission_name>_<timestamp>.tres` (zero-padded
+`YYYYMMDD-HHMMSS`, same Windows-filename-safe reasoning
+`CreatorAutosave.gd`'s own timestamp already uses) - a deliberate, kept
+snapshot, no rotation/pruning (unlike that autosave system - a game save is
+something the player chose to keep, not a safety-net copy). `MainMenu.gd`
+gained a **"Load Game" button** + a second `FileDialog` (`%SaveFileDialog`,
+rooted at `user://saves/`) alongside the existing "Play Mission" one (rooted
+at `user://missions/`) - picking a file sets `GameState.load_save_path` and
+opens the Player exactly like picking a mission does with
+`current_mission_path`.
+
+**Fresh-install `FileDialog.root_subfolder` bug, found and fixed the same
+day**: `root_subfolder` is validated at SCENE DESERIALIZATION time (before
+any `_ready()` runs) - `FileDialog.root_subfolder` errors
+("must be an existing sub-directory") if that folder doesn't exist yet,
+true for BOTH `user://missions/` and the new `user://saves/` on a
+genuinely fresh install (confirmed the hard way: `MainMenu.tscn` itself
+failed to load headlessly the moment `user://saves/` didn't exist -
+`user://missions/` had the identical latent bug, just never noticed since
+every dev machine here had already saved a mission at least once).
+`MainMenu._ready()` now creates both folders if missing and RE-APPLIES
+`root_subfolder` on the already-instantiated dialogs afterward - a no-op
+when the deserialization-time value already took, the actual fix when it
+didn't (a startup `ERROR:` print from the initial failed deserialization
+attempt is harmless noise on a first-ever run, same "benign engine noise"
+tolerance as e.g. the Whisper addon's "Unsupported GPU" message elsewhere
+in this doc).
+
+Verified end-to-end headlessly (not just compiled): a full save -> disk ->
+load -> new `MissionRuntime` round trip confirmed an achieved objective
+survives (via the embedded mission), round/checkpoint/roster/weapon name
+restore correctly, a custom variable's non-default value survives, a
+monster's hp/discovered-weakness restores and a NEWLY registered monster
+after loading gets a genuinely distinct id (no collision), the DAG frontier
+resolves to the correct non-root node (not silently re-seeded to the
+roots), and journal entries round-trip verbatim. **Not run in the actual
+Player** - the Gear menu's "Save" click, the Main Menu's "Load Game" flow,
+and the known mid-Player-phase re-fire limitation above are all unverified
+in a real session.
+
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
 level meter + what it last heard - the ONE thing that stayed OUT of

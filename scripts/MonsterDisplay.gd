@@ -241,6 +241,8 @@ func _ready() -> void:
 	add_child(_stands_root)
 	if standalone:
 		return
+	# Same big concrete floor as the world map; the figures stand right on it.
+	add_child(GroundFloor.create(-0.01))
 	_build_camera()
 	refresh_monsters([])
 
@@ -303,7 +305,7 @@ func monster_at(screen_pos: Vector2) -> RuntimeMonster:
 ## Height figures stand at above a stand's origin: the plinth's thickness in
 ## the M-view grid, 0 for standalone (on-map) holders that have no plinth.
 func _base_height() -> float:
-	return 0.0 if standalone else BASE_SIZE.y
+	return 0.0  # no plinths anymore - figures stand directly on the floor
 
 
 func place_stand(origin: Vector3, monster: Dictionary, index: int = 0, chip_color: Color = Color(0, 0, 0, 0)) -> void:
@@ -311,6 +313,11 @@ func place_stand(origin: Vector3, monster: Dictionary, index: int = 0, chip_colo
 
 
 ## The REAL_MONSTERS entry whose `folder` matches, or an empty Dictionary.
+## The combat dialog "croptop" of a monster type (`folder` as in REAL_MONSTERS).
+static func crop_texture(folder: String) -> Texture2D:
+	return OfficialAssetOverrides.texture_for("res://models/crops/monster_%s.png" % folder.replace(" ", "_"))
+
+
 static func find_monster(folder: String) -> Dictionary:
 	for monster in REAL_MONSTERS:
 		if monster["folder"] == folder:
@@ -383,19 +390,6 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	# though the underlying math never was. Thickness (Y) stays constant -
 	# only the game's own real footprint concept (bigger monster, bigger
 	# base) should scale, not how tall the plinth itself is.
-	# The plinth only makes sense in the M-view grid; standalone holders
-	# (figures placed on the real map) get no base, see _base_height().
-	if not standalone:
-		var base := MeshInstance3D.new()
-		var base_mesh := BoxMesh.new()
-		base_mesh.size = Vector3(BASE_SIZE.x * size_units, BASE_SIZE.y, BASE_SIZE.z * size_units)
-		var base_material := StandardMaterial3D.new()
-		base_material.albedo_color = Color(0.15, 0.15, 0.15)
-		base_mesh.material = base_material
-		base.mesh = base_mesh
-		base.position = origin + Vector3(0, BASE_SIZE.y * 0.5, 0)
-		_stands_root.add_child(base)
-
 	_build_real_figure(origin, monster, index, chip_color)
 
 	# Label offset scales with size_units too (a rough approximation, not

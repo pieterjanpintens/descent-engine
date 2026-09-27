@@ -135,3 +135,12 @@ On Windows, the final output lands at:
 ```
 %APPDATA%\Godot\app_userdata\Descent-Engine\monster_assets\<folder>\{mesh.tres,diffuse.png}
 ```
+
+
+## Croptops (2026-09-26)
+
+`import_official_assets.py` also fetches the combat-dialog croptops named in `OfficialAssetMap.gd`: `<Hero>_Weapon1_Crop`/`<Hero>_Weapon2_Crop` (the hero's acti/actii `_Crop` texture) and `<Monster>_Tab` (the monster's tab image - the game has no monster `_CROP`). See `source_for()` in the script.
+
+## Damage-type icons (2026-09-26)
+
+The combat view's icons (`Icons_Pierce/Slash/Crush/Lumos/Aquos/Ignos/Mortos/Terros/Anemos` plus `Icons_Unknown`, the red "?") are Sprites under `assets/d3/glossaryterms/damage/mainterms/damage types/`. Their names are unique, so `import_official_assets.py` picks them up by name straight from `OfficialAssetMap.gd` - nothing else to run (58 textures in total now).

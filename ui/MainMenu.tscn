@@ -21,6 +21,10 @@ layout_mode = 2
 layout_mode = 2
 text = "Play Mission"
 
+[node name="LoadGameButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Load Game"
+
 [node name="EditorButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1832514075]
 layout_mode = 2
 text = "Editor"
@@ -38,7 +42,17 @@ access = 1
 root_subfolder = "user://missions/"
 filters = PackedStringArray("*.tres")
 
+[node name="SaveFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Load a Saved Game"
+file_mode = 0
+access = 1
+root_subfolder = "user://saves/"
+filters = PackedStringArray("*.tres")
+
 [connection signal="pressed" from="CenterContainer/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/LoadGameButton" to="." method="_on_load_game_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/EditorButton" to="." method="_on_editor_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="file_selected" from="MissionFileDialog" to="." method="_on_mission_file_dialog_file_selected"]
+[connection signal="file_selected" from="SaveFileDialog" to="." method="_on_save_file_dialog_file_selected"]

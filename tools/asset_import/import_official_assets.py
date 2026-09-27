@@ -79,6 +79,32 @@ HERO_PORTRAIT_CONTAINERS = {
 }
 
 
+def source_for(official_name):
+    """(unity_name, container path or None, object type or None) for one
+    official name from OfficialAssetMap.MAP. Most map 1:1 to a Unity asset of
+    the same name; the "croptops" (added 2026-09-26) need a bit more:
+      - "<Hero>_Weapon1_Crop" / "<Hero>_Weapon2_Crop" -> the Unity texture
+        "<Hero>_Crop" in that hero's acti / actii folder (the game keeps one
+        crop per act; Weapon 1 = acti, Weapon 2 = actii - assumed, by what the
+        two images show), Texture2D (uniform 256x85, unlike the trimmed Sprite).
+      - "Icons_<Kind>" (damage-type icons, plus "Icons_Unknown") are Sprites
+        with unique names - no special handling, matched by name.
+      - "<Monster>_Tab" -> the monster's tab image (the game has no
+        monster "_CROP"; this is the equivalent), pinned to
+        assets/d3/enemies/<monster>/<monster>_tab.png, Texture2D (256x121).
+    """
+    m = re.fullmatch(r"(\w+)_Weapon([12])_Crop", official_name)
+    if m:
+        hero = m.group(1).lower()
+        act = "acti" if m.group(2) == "1" else "actii"
+        return f"{m.group(1)}_Crop", f"assets/d3/heroes/{hero}/{act}/{hero}_crop.png", "Texture2D"
+    m = re.fullmatch(r"(.+)_Tab", official_name)
+    if m:
+        folder = m.group(1).lower()
+        return official_name, f"assets/d3/enemies/{folder}/{folder}_tab.png", "Texture2D"
+    return official_name, HERO_PORTRAIT_CONTAINERS.get(official_name), None
+
+
 def read_official_names_from_gd():
     """Parses OfficialAssetMap.gd's MAP dict for the official asset names
     (the dict VALUES, e.g. "W1_Underlay_FetidPool") - never hand-duplicate
@@ -102,6 +128,7 @@ def main():
 
     name_map = read_official_names_from_gd()
     wanted = set(name_map.values())
+    sources = {o: source_for(o) for o in wanted}
     print(f"Looking for {len(wanted)} official asset(s): {sorted(wanted)}")
 
     os.makedirs(OVERRIDE_DIR, exist_ok=True)
@@ -120,24 +147,22 @@ def main():
         except Exception:
             continue
         name = getattr(data, "m_Name", "")
-        if name not in wanted or name in found:
-            continue
-        # Hero portraits also need the exact container path to match - see
-        # HERO_PORTRAIT_CONTAINERS's own doc for why the name alone is
-        # ambiguous for these (every other wanted name has none of this
-        # collision, confirmed against the full manifest, so they keep
-        # matching by name alone exactly as before).
-        wanted_container = HERO_PORTRAIT_CONTAINERS.get(name)
-        if wanted_container is not None and (getattr(obj, "container", "") or "") != wanted_container:
-            continue
-        try:
-            image = data.image
-        except Exception:
-            continue
-        out_path = os.path.join(OVERRIDE_DIR, f"{name}.png")
-        image.save(out_path)
-        print(f"saved {out_path}")
-        found.add(name)
+        # An official name can be served by an object with a DIFFERENT Unity
+        # name / need a container+type pin - see source_for().
+        for official in [o for o in wanted - found if sources[o][0] == name]:
+            _, wanted_container, wanted_type = sources[official]
+            if wanted_container is not None and (getattr(obj, "container", "") or "") != wanted_container:
+                continue
+            if wanted_type is not None and obj.type.name != wanted_type:
+                continue
+            try:
+                image = data.image
+            except Exception:
+                continue
+            out_path = os.path.join(OVERRIDE_DIR, f"{official}.png")
+            image.save(out_path)
+            print(f"saved {out_path}")
+            found.add(official)
 
     missing = wanted - found
     if missing:

@@ -60,6 +60,8 @@ var open_voice_settings: Callable
 var open_quest_log: Callable
 ## MissionPlayer's line-of-sight toggle; returns the new on/off state.
 var toggle_line_of_sight: Callable
+## MissionPlayer.save_game() - the Gear menu's "Save" item.
+var save_requested: Callable
 
 ## The official rulebook PDF, hosted by Fantasy Flight Games themselves -
 ## opened in the system browser (OS.shell_open()) by "Rules Reference", not
@@ -84,6 +86,7 @@ var _gear_button: Button
 var _party_button: Button
 var _gear_menu: VBoxContainer
 var _party_menu: VBoxContainer
+var _save_button: Button
 
 
 func _ready() -> void:
@@ -99,6 +102,18 @@ func _ready() -> void:
 func set_view_buttons_visible(shown: bool) -> void:
 	if _view_buttons != null:
 		_view_buttons.visible = shown
+
+
+## Save is only safe to CLICK while genuinely in Player phase - resume
+## always jumps straight back into Player phase for the saved round (see
+## MissionPlayer._show_player_phase_ui()), so a save taken during Darkness
+## phase or a checkpoint transition would silently skip the rest of that
+## round on reload. MissionPlayer toggles this from every place
+## current_checkpoint changes; starts disabled (set once the button is
+## built, above) until the first real Player phase.
+func set_save_enabled(enabled: bool) -> void:
+	if _save_button != null:
+		_save_button.disabled = not enabled
 
 
 func _build_top_right() -> void:
@@ -231,6 +246,10 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 				btn.pressed.connect(_on_quest_log_pressed)
 			"Line of Sight":
 				btn.pressed.connect(_on_line_of_sight_pressed.bind(btn))
+			"Save":
+				btn.pressed.connect(_on_save_pressed)
+				_save_button = btn
+				_save_button.disabled = true  # off until set_save_enabled(true) - see that method's own doc
 			_:
 				btn.pressed.connect(_on_mock_item_pressed.bind(item))
 		menu.add_child(btn)
@@ -277,6 +296,12 @@ func _on_quest_log_pressed() -> void:
 	_party_menu.visible = false
 	if open_quest_log.is_valid():
 		open_quest_log.call()
+
+
+func _on_save_pressed() -> void:
+	_gear_menu.visible = false
+	if save_requested.is_valid():
+		save_requested.call()
 
 
 func _on_rules_reference_pressed() -> void:

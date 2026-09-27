@@ -227,9 +227,11 @@ func ask_roster(mission: MissionData) -> Array[int]:
 func ask_loadouts(roster: Array[int]) -> Dictionary:
 	for child in _loadout_rows.get_children():
 		child.free()
-	var catalog := WeaponCatalog.all()
+	var catalogs: Dictionary = {}  # slot -> the weapons that hero may pick from
 	var pickers: Dictionary = {}
 	for slot in roster:
+		var catalog := WeaponCatalog.for_hero(slot)
+		catalogs[slot] = catalog
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
 		name_label.text = HeroCatalog.slot_name(slot)
@@ -239,6 +241,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 		for n in 2:
 			var picker := OptionButton.new()
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			picker.tooltip_text = "Weapon %d" % (n + 1)  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
 				picker.add_item(weapon.summary())
 			picker.select(mini(n, catalog.size() - 1))
@@ -257,6 +260,6 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	for slot in roster:
 		var chosen: Array[Weapon] = []
 		for picker in pickers[slot]:
-			chosen.append(catalog[picker.selected])
+			chosen.append(catalogs[slot][picker.selected])
 		loadouts[slot] = chosen
 	return loadouts

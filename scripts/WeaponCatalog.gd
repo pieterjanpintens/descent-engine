@@ -25,6 +25,15 @@ static func make(weapon_name: String, damage: int, types: Array[int], weapon_ran
 	return weapon
 
 
+## The weapons hero `slot` may pick from at embark. Today everyone gets the
+## whole catalog; this is the seam for a predefined, per-hero set later. A
+## hero always picks TWO: the first pick is "Weapon 1", the second "Weapon 2" -
+## that position (not which weapon it is) decides the combat croptop shown, see
+## HeroCatalog.slot_crop().
+static func for_hero(_slot: int) -> Array[Weapon]:
+	return all()
+
+
 ## Fresh Weapon instances each call, in picker order.
 static func all() -> Array[Weapon]:
 	var weapons: Array[Weapon] = [

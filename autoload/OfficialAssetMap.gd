@@ -58,6 +58,52 @@ const MAP: Dictionary = {
 	# PlayerHud's "Quest" (map-view) icon button - same case as
 	# Button_EnemyView above, also confirmed unique.
 	"res://models/hud_quest.png": "Button_MapView",
+	# Damage-type icons for the combat view (2026-09-26): dummy placeholders in
+	# models/icons/ (same sizes as the real ones), replaced by the user's own art
+	# when present. "unknown" is the red ? shown for undiscovered weaknesses.
+	"res://models/icons/damage_pierce.png": "Icons_Pierce",
+	"res://models/icons/damage_slash.png": "Icons_Slash",
+	"res://models/icons/damage_crush.png": "Icons_Crush",
+	"res://models/icons/damage_lumos.png": "Icons_Lumos",
+	"res://models/icons/damage_aquos.png": "Icons_Aquos",
+	"res://models/icons/damage_ignos.png": "Icons_Ignos",
+	"res://models/icons/damage_mortos.png": "Icons_Mortos",
+	"res://models/icons/damage_terros.png": "Icons_Terros",
+	"res://models/icons/damage_anemos.png": "Icons_Anemos",
+	"res://models/icons/damage_unknown.png": "Icons_Unknown",
+	# Combat dialog "croptops" (2026-09-26): per hero one per weapon (Weapon 1 =
+	# the game's acti crop, Weapon 2 = actii), per monster its tab image (the
+	# game has no monster _CROP). See tools/asset_import/import_official_assets.py's
+	# source_for() for how these names are resolved.
+	"res://models/crops/hero_chance_weapon1.png": "Chance_Weapon1_Crop",
+	"res://models/crops/hero_chance_weapon2.png": "Chance_Weapon2_Crop",
+	"res://models/crops/hero_galaden_weapon1.png": "Galaden_Weapon1_Crop",
+	"res://models/crops/hero_galaden_weapon2.png": "Galaden_Weapon2_Crop",
+	"res://models/crops/hero_brynn_weapon1.png": "Brynn_Weapon1_Crop",
+	"res://models/crops/hero_brynn_weapon2.png": "Brynn_Weapon2_Crop",
+	"res://models/crops/hero_vaerix_weapon1.png": "Vaerix_Weapon1_Crop",
+	"res://models/crops/hero_vaerix_weapon2.png": "Vaerix_Weapon2_Crop",
+	"res://models/crops/hero_kehli_weapon1.png": "Kehli_Weapon1_Crop",
+	"res://models/crops/hero_kehli_weapon2.png": "Kehli_Weapon2_Crop",
+	"res://models/crops/hero_syrus_weapon1.png": "Syrus_Weapon1_Crop",
+	"res://models/crops/hero_syrus_weapon2.png": "Syrus_Weapon2_Crop",
+	"res://models/crops/monster_bandit.png": "Bandit_Tab",
+	"res://models/crops/monster_berserker.png": "Berserker_Tab",
+	"res://models/crops/monster_blood_sister.png": "Blood Sister_Tab",
+	"res://models/crops/monster_centurion.png": "Centurion_Tab",
+	"res://models/crops/monster_doomcaller.png": "Doomcaller_Tab",
+	"res://models/crops/monster_fae.png": "Fae_Tab",
+	"res://models/crops/monster_golem.png": "Golem_Tab",
+	"res://models/crops/monster_harbinger.png": "Harbinger_Tab",
+	"res://models/crops/monster_legionnaire.png": "Legionnaire_Tab",
+	"res://models/crops/monster_mercenary.png": "Mercenary_Tab",
+	"res://models/crops/monster_reanimate.png": "Reanimate_Tab",
+	"res://models/crops/monster_salamander.png": "Salamander_Tab",
+	"res://models/crops/monster_specter.png": "Specter_Tab",
+	"res://models/crops/monster_vampire.png": "Vampire_Tab",
+	"res://models/crops/monster_wight.png": "Wight_Tab",
+	"res://models/crops/monster_wolf.png": "Wolf_Tab",
+	"res://models/crops/monster_zealot.png": "Zealot_Tab",
 }
 
 

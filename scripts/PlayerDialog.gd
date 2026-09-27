@@ -39,6 +39,10 @@ signal _closed(result: Variant)
 var _label: Label
 var _button_row: HBoxContainer
 var _count_input: SpinBox
+var _image_row: HBoxContainer
+var _left_image: TextureRect
+var _right_image: TextureRect
+const IMAGE_WIDTH := 220.0
 
 var _narrative_pages: Array[String] = []
 
@@ -91,6 +95,21 @@ func _build_ui() -> void:
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(_label)
+
+	# Optional image row (combat croptops): left = attacker, right = target.
+	_image_row = HBoxContainer.new()
+	_image_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_image_row.add_theme_constant_override("separation", 24)
+	_image_row.visible = false
+	vbox.add_child(_image_row)
+	vbox.move_child(_image_row, 0)
+	_left_image = TextureRect.new()
+	_right_image = TextureRect.new()
+	for img in [_left_image, _right_image]:
+		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		img.custom_minimum_size = Vector2(IMAGE_WIDTH, 0)
+		_image_row.add_child(img)
 
 	_count_input = SpinBox.new()
 	_count_input.min_value = 0
@@ -151,7 +170,8 @@ func _apply_panel_layout(large: bool) -> void:
 		_label.remove_theme_font_size_override("font_size")
 
 
-func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: String = "") -> void:
+func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: String = "", left_image: Texture2D = null, right_image: Texture2D = null) -> void:
+	_set_images(left_image, right_image)
 	_set_modal(dim)
 	if log_title != "" and journal != null:
 		journal.add(log_title, [text])
@@ -164,6 +184,7 @@ func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: Stri
 	await _closed
 	visible = false
 	_set_modal(true)
+	_set_images(null, null)
 	if large:
 		_apply_panel_layout(false)
 
@@ -171,9 +192,58 @@ func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: Stri
 ## dim = false is the "placement" look: no scrim AND the rest of the screen
 ## stays interactive (only the dialog box itself blocks clicks), so the table
 ## can still move the camera while being told where to put things.
+func _set_images(left: Texture2D, right: Texture2D) -> void:
+	_image_row.visible = left != null or right != null
+	for pair in [[_left_image, left], [_right_image, right]]:
+		var img: TextureRect = pair[0]
+		var tex: Texture2D = pair[1]
+		img.texture = tex
+		img.visible = tex != null
+		# Keep the aspect ratio: height follows the texture's proportions.
+		img.custom_minimum_size = Vector2(IMAGE_WIDTH, IMAGE_WIDTH * tex.get_height() / tex.get_width()) if tex != null else Vector2.ZERO
+
+
 func _set_modal(dim: bool) -> void:
 	_scrim.visible = dim
 	mouse_filter = Control.MOUSE_FILTER_STOP if dim else Control.MOUSE_FILTER_IGNORE
+
+
+## The full-screen combat screen (CombatView): asks for the number of
+## successes rolled. Returns -1 if cancelled. `cfg` is CombatView.configure()'s
+## dictionary. Voice answers work like ask_count() (the number is spoken, then
+## Confirm is pressed).
+func ask_attack(cfg: Dictionary) -> int:
+	if _combat == null:
+		_combat = CombatView.new()
+		add_child(_combat)
+		_combat.step_requested.connect(func(delta: int): _count_input.value = clampi(int(_count_input.value) + delta, int(_count_input.min_value), int(_count_input.max_value)))
+		_count_input.value_changed.connect(func(v: float): _combat.show_value(int(v)))
+		_combat.confirm_button.pressed.connect(_on_button_pressed.bind(null))
+		_combat.cancel_button.pressed.connect(_on_button_pressed.bind(-1))
+	_count_input.min_value = 0
+	_count_input.max_value = 99
+	_count_input.value = 0
+	_combat.configure(cfg)
+	_scrim.visible = false
+	_panel.visible = false
+	_combat.visible = true
+	_buttons = [_combat.confirm_button, _combat.cancel_button]
+	var normal_hint := _hint_label
+	_hint_label = _combat.hint_label
+	_set_voice_context("count")
+	visible = true
+	var result: Variant = await _closed
+	visible = false
+	_hint_label = normal_hint
+	_combat.visible = false
+	_panel.visible = true
+	_scrim.visible = true
+	if typeof(result) == TYPE_INT and result == -1:
+		return -1
+	return int(_count_input.value)
+
+
+var _combat: CombatView
 
 
 func ask_yes_no(text: String) -> bool:
@@ -187,7 +257,8 @@ func ask_yes_no(text: String) -> bool:
 	return result
 
 
-func ask_count(text: String, min_value: int = 0, max_value: int = 99) -> int:
+func ask_count(text: String, min_value: int = 0, max_value: int = 99, left_image: Texture2D = null, right_image: Texture2D = null) -> int:
+	_set_images(left_image, right_image)
 	_label.text = text
 	_count_input.min_value = min_value
 	_count_input.max_value = max_value
@@ -198,6 +269,7 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99) -> int:
 	visible = true
 	await _closed
 	visible = false
+	_set_images(null, null)
 	return int(_count_input.value)
 
 

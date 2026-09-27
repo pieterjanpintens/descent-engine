@@ -92,6 +92,71 @@ func set_variable(name: String, value: Variant) -> void:
 	_variables[name] = value
 
 
+# ---------------------------------------------------------------- save/load
+
+## Every variable's live value (custom + builtins), for SaveGame - see that
+## class's own doc for why the mission's own progress doesn't need a
+## separate mechanism the way this does.
+func get_variables_state() -> Dictionary:
+	return _variables.duplicate()
+
+
+func load_variables_state(state: Dictionary) -> void:
+	_variables = state.duplicate()
+
+
+## Replaces the live monster registry wholesale (SaveGame.monsters, each a
+## RuntimeMonster.to_dict()) and re-derives _next_monster_number from the
+## restored ids ("monster_N") so a monster spawned after loading never
+## collides with one that already existed - no separate save field needed
+## for it. Fires monsters_changed so the M view picks it up.
+func restore_monsters(dicts: Array[Dictionary]) -> void:
+	monsters.clear()
+	for d in dicts:
+		monsters.append(RuntimeMonster.from_dict(d))
+	for monster in monsters:
+		var parts := monster.id.split("_")
+		if parts.size() == 2 and parts[0] == "monster" and parts[1].is_valid_int():
+			_next_monster_number = maxi(_next_monster_number, int(parts[1]) + 1)
+	monsters_changed.emit()
+
+
+## The DAG traversal frontier (_current_groups), as MissionObjective ids -
+## a save can't embed direct object references across a reload the way an
+## in-memory Array can, since a fresh MissionData load produces entirely new
+## MissionObjective instances (this is exactly why OutlineNode/MissionObjective
+## carry a stable `id` at all - see that field's own doc).
+func get_current_objective_ids() -> Array:
+	var result: Array = []
+	for group: Array in _current_groups:
+		var ids: Array[String] = []
+		for node: MissionObjective in group:
+			ids.append(node.id)
+		result.append(ids)
+	return result
+
+
+## The inverse of get_current_objective_ids() - resolves each id back to the
+## REAL MissionObjective instance living in `mission`'s own DAG (via
+## MissionData.find_objective_by_id()), so evaluate_checkpoint()/fire_event()
+## keep mutating the same objects the mission itself was saved with. A group
+## that resolves to nothing (e.g. authoring changed since the save) is
+## dropped rather than left empty; if everything drops, the roots-only
+## seeding from _init() is left in place instead of being cleared out.
+func load_current_objective_ids(ids: Array) -> void:
+	var groups: Array = []
+	for id_list: Array in ids:
+		var group: Array = []
+		for id in id_list:
+			var node := mission.find_objective_by_id(id)
+			if node != null:
+				group.append(node)
+		if not group.is_empty():
+			groups.append(group)
+	if not groups.is_empty():
+		_current_groups = groups
+
+
 func evaluate_condition(condition: Condition) -> bool:
 	var declared: int = _declared_type(condition.variable_name)
 	if declared == -1:
@@ -267,10 +332,16 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	for kind in weapon.damage_types:
 		if monster.weaknesses.has(kind):
 			bonus += 1
+			if not monster.known_weaknesses.has(kind):
+				monster.known_weaknesses.append(kind)
 		if monster.resistances.has(kind):
 			penalty += 1
+			if not monster.known_resistances.has(kind):
+				monster.known_resistances.append(kind)
 		if monster.immunities.has(kind):
 			immune = true
+			if not monster.known_immunities.has(kind):
+				monster.known_immunities.append(kind)
 	var weapon_damage := maxi(weapon.damage + bonus - penalty, 0)
 	var damage := 0 if immune else successes * weapon_damage
 	var defense_roll := 0 if immune else randi_range(0, maxi(monster.defense, 0))

@@ -73,7 +73,19 @@ func _ready() -> void:
 	end_phase_button.disabled = true
 	objective_label.visible = false  # shown again once _show_spawn_area_and_confirm() closes, below
 
-	mission = MissionIO.load_mission(GameState.current_mission_path)
+	# Resuming a saved session (GameState.load_save_path) vs. starting a
+	# mission fresh (GameState.current_mission_path) - see SaveGame.gd's own
+	# doc for what a save actually holds. Consumed immediately so a later
+	# scene reload (e.g. Back to Menu -> Play) doesn't re-trigger this.
+	var resume_save: SaveGame = null
+	if GameState.load_save_path != "":
+		resume_save = MissionIO.load_game(GameState.load_save_path)
+		GameState.load_save_path = ""
+
+	if resume_save != null:
+		mission = resume_save.mission
+	else:
+		mission = MissionIO.load_mission(GameState.current_mission_path)
 	if mission == null:
 		info_label.text = "Failed to load mission: %s" % GameState.current_mission_path
 		info_label.visible = true
@@ -109,13 +121,18 @@ func _ready() -> void:
 	# there's any board state to interact with. Defines player count (the
 	# roster's size) and which character is player 1/2/3/... - equipment
 	# selection is explicitly deferred, see EmbarkDialog's own docstring.
-	# Hero/weapon selection: nothing but the dialog - no ground, no view buttons.
-	_set_ground_decor_visible(false)
-	hud.set_view_buttons_visible(false)
-	player_roster = await embark_dialog.ask_roster(mission)
-	player_weapons = await embark_dialog.ask_loadouts(player_roster)
-	_set_ground_decor_visible(true)
-	hud.set_view_buttons_visible(true)
+	if resume_save != null:
+		# Already answered when this session was saved - nothing to ask again.
+		player_roster = resume_save.player_roster
+		player_weapons = resume_save.player_weapons
+	else:
+		# Hero/weapon selection: nothing but the dialog - no ground, no view buttons.
+		_set_ground_decor_visible(false)
+		hud.set_view_buttons_visible(false)
+		player_roster = await embark_dialog.ask_roster(mission)
+		player_weapons = await embark_dialog.ask_loadouts(player_roster)
+		_set_ground_decor_visible(true)
+		hud.set_view_buttons_visible(true)
 	interaction_dock.set_roster(player_roster)
 	interaction_dock.hero_weapons = player_weapons
 
@@ -125,6 +142,16 @@ func _ready() -> void:
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
+	if resume_save != null:
+		# Everything the mission resource itself doesn't already carry via its
+		# own in-place mutation (see SaveGame.gd's own doc) - variables, the
+		# monster registry, and which DAG branch is currently active.
+		current_round = resume_save.current_round
+		current_checkpoint = resume_save.current_checkpoint
+		_runtime.load_variables_state(resume_save.runtime_variables)
+		_runtime.restore_monsters(resume_save.monsters)
+		_runtime.load_current_objective_ids(resume_save.current_objective_ids)
+		journal.entries = resume_save.journal_entries
 
 	# Name labels over everything a hero can interact with right now (parented
 	# to layered_map, so they hide with the world in the M monster view).
@@ -197,31 +224,76 @@ func _ready() -> void:
 	voice_settings.dialog = dialog
 	voice_listener.voice_ready.connect(func(_ready: bool): voice_settings._update_dialog_hints())
 	hud.open_voice_settings = voice_settings.open
+	hud.save_requested = save_game
 
 	voice_listener.start()
 	interaction_dock.game_over_requested.connect(_on_game_over_requested)
 	interaction_dock.objectives_progressed.connect(_on_objectives_progressed)
 	_refresh_objective_label()
 
-	# Before players are placed, tell the table what physical pieces the
-	# starting room needs and reveal it - see show_stage(). Whichever
-	# group contains the tile under a player_spawn_cells entry, found via
-	# MissionData.find_starting_group_ids(); a mission with no groups
-	# authored (or no group under its spawn cells) contributes nothing
-	# here, same as before this feature existed.
-	for group_id in mission.find_starting_group_ids():
-		await show_stage(group_id)
+	if resume_save == null:
+		# Before players are placed, tell the table what physical pieces the
+		# starting room needs and reveal it - see show_stage(). Whichever
+		# group contains the tile under a player_spawn_cells entry, found via
+		# MissionData.find_starting_group_ids(); a mission with no groups
+		# authored (or no group under its spawn cells) contributes nothing
+		# here, same as before this feature existed.
+		for group_id in mission.find_starting_group_ids():
+			await show_stage(group_id)
 
-	# Round 1's first entry into Player phase IS "players spawn" - the app
-	# doesn't track real player positions (see claude.md's Story layer
-	# section), so there's no digital spawn step beyond this: highlight the
-	# authored starting area (if any), wait for confirmation, then remove
-	# it - players place their tokens on it themselves.
-	if not await _advance_to(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE):
-		return
-	await _show_spawn_area_and_confirm()
-	objective_label.visible = true
-	await _enter_player_phase()
+		# Round 1's first entry into Player phase IS "players spawn" - the app
+		# doesn't track real player positions (see claude.md's Story layer
+		# section), so there's no digital spawn step beyond this: highlight the
+		# authored starting area (if any), wait for confirmation, then remove
+		# it - players place their tokens on it themselves.
+		if not await _advance_to(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE):
+			return
+		await _show_spawn_area_and_confirm()
+		objective_label.visible = true
+		await _enter_player_phase()
+	else:
+		# Resuming: BEFORE_PLAYER_PHASE and PLAYER_PHASE for THIS round both
+		# already fired earlier, before the game was saved - _show_player_phase_ui()
+		# (not _enter_player_phase()) rebuilds the screen state without
+		# refiring either checkpoint, so no trigger can double-apply across
+		# a save/reload.
+		objective_label.visible = true
+		_refresh_objective_label()
+		_show_player_phase_ui()
+
+
+## The Gear menu's "Save" item (hud.save_requested) - builds a SaveGame from
+## everything currently live (see that class's own doc for the split between
+## what the mission resource already carries and what this adds) and writes
+## it under user://saves/. Timestamped filename, same "no separate naming
+## UI, just never overwrite silently" convention CreatorAutosave.gd's own
+## backups already use - not literally shared code (that one is a two-tier
+## rotating autosave; a game save is a deliberate, kept snapshot, no rotation).
+func save_game() -> void:
+	var save := SaveGame.new()
+	save.mission = mission
+	save.current_round = current_round
+	save.current_checkpoint = current_checkpoint
+	save.player_roster = player_roster.duplicate()
+	save.player_weapons = player_weapons.duplicate(true)
+	save.runtime_variables = _runtime.get_variables_state()
+	var monster_dicts: Array[Dictionary] = []
+	for monster in _runtime.monsters:
+		monster_dicts.append(monster.to_dict())
+	save.monsters = monster_dicts
+	save.current_objective_ids = _runtime.get_current_objective_ids()
+	save.journal_entries = journal.entries.duplicate(true)
+
+	var d := Time.get_datetime_dict_from_system()
+	var timestamp := "%04d%02d%02d-%02d%02d%02d" % [d.year, d.month, d.day, d.hour, d.minute, d.second]
+	save.saved_at = timestamp
+	var mission_name := mission.mission_name if mission.mission_name != "" else "untitled"
+	var path := "user://saves/%s_%s.tres" % [mission_name, timestamp]
+
+	if MissionIO.save_game(save, path):
+		await dialog.ask_ok("Saved.")
+	else:
+		await dialog.ask_ok("Failed to save - see the Output panel for details.")
 
 
 ## No-op if the mission doesn't have a spawn area authored - not every
@@ -574,11 +646,6 @@ func _find_group(group_id: String) -> MissionGroup:
 	return null
 
 
-## Side of the ground plane (world units) - "really big", so no edge is
-## ever visible from any camera position.
-const GROUND_SIZE := 2000.0
-## Tiles of the texture across the plane (~4 units each).
-const GROUND_TEXTURE_REPEAT := 500.0
 ## Just below the floor-level plane, so underlay hazards (drawn at floor level) still show.
 const GROUND_Y := -0.05
 
@@ -597,19 +664,7 @@ func _set_ground_decor_visible(shown: bool) -> void:
 
 
 func _add_ground_floor() -> void:
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(GROUND_SIZE, GROUND_SIZE)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = load("res://models/floor_concrete.jpg")
-	mat.albedo_color = Color(1, 1, 1)
-	mat.uv1_scale = Vector3(GROUND_TEXTURE_REPEAT, GROUND_TEXTURE_REPEAT, 1.0)
-	mat.texture_repeat = true
-	mat.roughness = 1.0
-	plane.material = mat
-	var ground := MeshInstance3D.new()
-	ground.mesh = plane
-	ground.position.y = GROUND_Y
-	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var ground := GroundFloor.create(GROUND_Y)
 	layered_map.add_child(ground)
 	_ground_decor.append(ground)
 
@@ -701,6 +756,19 @@ func _add_bounding_box() -> void:
 func _enter_player_phase() -> void:
 	if not await _advance_to(RoundCheckpoint.Checkpoint.PLAYER_PHASE):
 		return
+	_show_player_phase_ui()
+
+
+## The checkpoint-independent half of _enter_player_phase() above - just the
+## screen state for "the table is now free to act." Split out (2026-09-27)
+## specifically so resuming a save doesn't have to re-fire the PLAYER_PHASE
+## checkpoint to get here: that checkpoint already fired earlier THIS round,
+## before the save happened, and refiring it on every resume (which used to
+## happen unconditionally, since _enter_player_phase() was the only way in)
+## could double-apply a non-one_shot trigger's effects - a real, no-longer-
+## needed limitation this split removes outright, not just narrows.
+func _show_player_phase_ui() -> void:
+	hud.set_save_enabled(true)  # redundant after _advance_to() itself, but this is resume's only path here
 	if current_round == 1:
 		phase_label.text = "Players spawn. Place your tokens, then play."
 	else:
@@ -771,6 +839,7 @@ func _run_darkness_and_loop() -> void:
 ## this file.
 func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	current_checkpoint = checkpoint
+	hud.set_save_enabled(checkpoint == RoundCheckpoint.Checkpoint.PLAYER_PHASE)
 	var objective := await _runtime.evaluate_checkpoint(checkpoint)
 	_refresh_objective_label()
 	for group_id in _runtime.drain_pending_stage_reveals():

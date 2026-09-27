@@ -295,6 +295,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 	# One of the hero's two embark weapons (asked only when there is a choice).
 	var weapons: Array = hero_weapons.get(hero_slot, [])
 	var weapon: Weapon = null
+	var weapon_index := 0
 	if weapons.size() == 1:
 		weapon = weapons[0]
 	elif weapons.size() > 1:
@@ -306,6 +307,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 			spoken = VoiceAnswerParser.match_choice(weapon_text, weapon_names)
 		if spoken >= 0:
 			weapon = weapons[spoken]
+			weapon_index = spoken
 		else:
 			var labels: Array[String] = []
 			for w: Weapon in weapons:
@@ -314,11 +316,33 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 			if picked < 0:
 				return
 			weapon = weapons[picked]
-	# Show the weapon in use before asking for the roll - the weapon question is
-	# often skipped now (only one weapon, or it was spoken), so this is where the
-	# table sees which one it is.
-	var weapon_line := "" if weapon == null else "\nwith the %s" % weapon.summary()
-	var successes: int = preset_successes if preset_successes >= 0 else await dialog.ask_count("%s attacks %s%s.\nHow many successes did you roll?" % [hero_name, target, weapon_line], 0, 99)
+			weapon_index = picked
+	# The full-screen combat view (hero croptop left, monster right) - skipped when
+	# the successes were already spoken in the command.
+	var successes: int = preset_successes
+	if successes < 0:
+		var damage_types: Array = [] if weapon == null else weapon.damage_types
+		visible = false  # hero bar out of the way of the full-screen combat view
+		successes = await dialog.ask_attack({
+			"hero_image": HeroCatalog.slot_crop(hero_slot, weapon_index),
+			"monster_image": MonsterDisplay.crop_texture(monster.folder),
+			"hero_name": hero_name,
+			"weapon_name": "" if weapon == null else weapon.weapon_name,
+			"base_damage": null if weapon == null else weapon.damage,
+			"monster_name": monster.display_name(),
+			"hitpoints": monster.hitpoints,
+			"defense": monster.defense,
+			"damage_types": damage_types,
+			"weaknesses": monster.weaknesses,
+			"known_weaknesses": monster.known_weaknesses,
+			"resistances": monster.resistances,
+			"known_resistances": monster.known_resistances,
+			"immunities": monster.immunities,
+			"known_immunities": monster.known_immunities,
+		})
+		visible = true
+		if successes < 0:
+			return
 	var r := mission_runtime.resolve_attack(monster, successes, weapon)
 
 	var text := "%s attacks %s\nwith the %s (damage %d)\n" % [hero_name, target, r["weapon_name"], r["base_damage"]]

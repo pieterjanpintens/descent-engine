@@ -6,3 +6,7 @@ extends Node
 ## next without wiring up a signal bus for one value.
 
 var current_mission_path: String = ""
+## Set instead of current_mission_path to resume a saved session - see
+## MissionPlayer._ready(). Consumed (cleared) the moment the Player reads it,
+## same one-shot handoff shape as current_mission_path itself.
+var load_save_path: String = ""

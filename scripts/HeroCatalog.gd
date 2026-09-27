@@ -43,5 +43,12 @@ static func slot_color(index: int) -> Color:
 ## The shipped placeholder portrait, or a user's own official art if
 ## OfficialAssetOverrides finds one locally (see that autoload's
 ## texture_for()). Never null - falls back to the placeholder either way.
+## The combat dialog "croptop" of hero `index` holding weapon `weapon_index`
+## (0 = Weapon 1, 1 = Weapon 2) - dummy placeholder, or the user's own
+## official art if present (see OfficialAssetMap).
+static func slot_crop(index: int, weapon_index: int) -> Texture2D:
+	return OfficialAssetOverrides.texture_for("res://models/crops/hero_%s_weapon%d.png" % [HERO_NAMES[index].to_lower(), weapon_index + 1])
+
+
 static func slot_portrait(index: int) -> Texture2D:
 	return OfficialAssetOverrides.texture_for(PORTRAIT_PATHS[index])

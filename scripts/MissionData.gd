@@ -151,6 +151,28 @@ func find_node_by_id(id: String) -> OutlineNode:
 	return null
 
 
+## Finds a MissionObjective anywhere in the DAG by its own `id` - used by
+## SaveGame/MissionRuntime to restore which branch was "current" (see
+## MissionRuntime.get_current_objective_ids()/load_current_objective_ids()).
+## A plain BFS from every root, same cycle-guarded traversal shape
+## ObjectivesDialog.gd's own _rebuild_graph() already uses for this DAG -
+## a node reachable from more than one parent must still only be visited
+## once, and an accidentally-authored cycle (MissionRuntime._warn_on_cycles()
+## already warns about these) must not infinite-loop the search.
+func find_objective_by_id(id: String) -> MissionObjective:
+	var visited := {}
+	var queue: Array[MissionObjective] = objectives.duplicate()
+	while not queue.is_empty():
+		var node: MissionObjective = queue.pop_front()
+		if visited.has(node):
+			continue
+		visited[node] = true
+		if node.id == id:
+			return node
+		queue.append_array(node.children)
+	return null
+
+
 func get_tile(cell: Vector3i) -> TileEntry:
 	return tiles.get(cell, null)
 
