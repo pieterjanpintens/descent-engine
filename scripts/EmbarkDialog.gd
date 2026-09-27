@@ -221,33 +221,51 @@ func ask_roster(mission: MissionData) -> Array[int]:
 	return roster
 
 
-## Second embark page: each hero in `roster` picks TWO weapons from
-## WeaponCatalog (the same weapon twice is allowed). Returns
-## {hero slot index: Array[Weapon]} (two entries each).
+## Second embark page: each hero in `roster` has TWO weapon slots, each
+## FIXED to one weapon TYPE (WeaponCatalog.HERO_WEAPON_TYPES - e.g. Brynn is
+## always Warhammer + Sword) - the picker within a slot only offers named
+## weapons of THAT type (WeaponCatalog.weapons_of_type()), so "all swords
+## fall under the sword dropdown" holds regardless of which hero has a sword
+## slot. Returns {hero slot index: Array[Weapon]} (two entries each, in
+## Weapon 1/Weapon 2 order - that POSITION, not the type or the specific
+## item chosen, is what decides the combat croptop/mesh shown).
 func ask_loadouts(roster: Array[int]) -> Dictionary:
 	for child in _loadout_rows.get_children():
 		child.free()
-	var catalogs: Dictionary = {}  # slot -> the weapons that hero may pick from
+	var catalogs: Dictionary = {}  # slot -> [Array[Weapon] for slot 0, Array[Weapon] for slot 1]
 	var pickers: Dictionary = {}
 	for slot in roster:
-		var catalog := WeaponCatalog.for_hero(slot)
-		catalogs[slot] = catalog
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
 		name_label.text = HeroCatalog.slot_name(slot)
 		name_label.custom_minimum_size = Vector2(70, 0)
 		row.add_child(name_label)
+		var per_slot_catalogs: Array = []
 		var pair: Array[OptionButton] = []
-		for n in 2:
+		for weapon_index in 2:
+			var type_name := WeaponCatalog.type_of(slot, weapon_index)
+			var catalog := WeaponCatalog.weapons_of_type(type_name)
+			per_slot_catalogs.append(catalog)
+
+			var type_label := Label.new()
+			type_label.text = type_name
+			type_label.add_theme_font_size_override("font_size", 12)
+			type_label.modulate = Color(1, 1, 1, 0.7)
+
 			var picker := OptionButton.new()
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			picker.tooltip_text = "Weapon %d" % (n + 1)  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
+			picker.tooltip_text = "Weapon %d (%s)" % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
 				picker.add_item(weapon.summary())
-			picker.select(mini(n, catalog.size() - 1))
-			row.add_child(picker)
+
+			var column := VBoxContainer.new()
+			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			column.add_child(type_label)
+			column.add_child(picker)
+			row.add_child(column)
 			pair.append(picker)
 		_loadout_rows.add_child(row)
+		catalogs[slot] = per_slot_catalogs
 		pickers[slot] = pair
 
 	_party_panel.visible = false
@@ -259,7 +277,9 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	var loadouts: Dictionary = {}
 	for slot in roster:
 		var chosen: Array[Weapon] = []
-		for picker in pickers[slot]:
-			chosen.append(catalogs[slot][picker.selected])
+		for weapon_index in pickers[slot].size():
+			var picker: OptionButton = pickers[slot][weapon_index]
+			var catalog: Array = catalogs[slot][weapon_index]
+			chosen.append(catalog[picker.selected])
 		loadouts[slot] = chosen
 	return loadouts

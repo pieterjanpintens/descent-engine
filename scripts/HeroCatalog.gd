@@ -98,25 +98,31 @@ static func has_flat_mesh(index: int, weapon_index: int) -> bool:
 	return not flat_mesh_paths(index, weapon_index).is_empty() and flat_diffuse_texture(index, weapon_index) != null
 
 
-## Pitch correction for the rigged hero mesh's true "up" axis - DATA-DRIVEN
-## first guess, not yet visually confirmed: every hero's raw AABB has its Y
-## extent as the SMALLEST of the three axes (e.g. Chance 0.0092 vs 0.0146/
-## 0.0135, Galaden 0.0154 vs 0.0221/0.0284) while Z is consistently the
-## LARGEST - i.e. a standing figure's real height is baked into local Z, not
-## Y, the exact same signature several monster plastic-pool rigs already
-## needed a -90-degree X correction for (see MonsterDisplay.REAL_MONSTERS'
-## own pitch_correction_degrees history) - confirmed to report as "seeing
-## the top or bottom" once actually rendered, matching what a Y/Z swap with
-## no correction would look like (the fixed camera looks along world Z, so
-## if the model's real front-facing axis is actually world Y once the
-## squashed axis is treated as "up", the camera ends up looking down/up the
-## true height axis instead of at the front). -90 applied to all 6 heroes
-## uniformly (unlike monsters, which needed per-monster values) since every
-## hero showed the identical Y/Z pattern - not yet confirmed correct, may
-## still need `+90` or another value once actually seen (see
-## MonsterDisplay's own saga for how many rounds that sometimes took).
-const FLAT_MESH_ROTATION_DEGREES := Vector3(-90, 0, 0)
+## Pitch correction for the rigged hero mesh's true "up" axis - PER WEAPON
+## SLOT, not per hero, since acti and actii turned out to be authored under
+## COMPLETELY DIFFERENT conventions (confirmed directly, not assumed - once
+## acti meshes were added, the SAME -90 that fixed actii tipped acti's
+## meshes onto their back, and the user independently confirmed in Blender
+## that the two acts' raw meshes are oriented differently from each other).
+##
+## ACTII (weapon_index 1) - every hero's raw AABB has Y as the SMALLEST of
+## the three axes (e.g. Chance 0.0092 vs 0.0146/0.0135) while Z is
+## consistently the LARGEST - a standing figure's real height baked into
+## local Z instead of Y, the same signature several monster plastic-pool
+## rigs needed a -90-degree X correction for (see MonsterDisplay.
+## REAL_MONSTERS' own pitch_correction_degrees history) - CONFIRMED correct
+## once rendered (5 of 6 heroes reported fine; only Vaerix was double-
+## checked directly since his second submesh happens to be simple).
+##
+## ACTI (weapon_index 0) - the OPPOSITE situation: Y is a full, substantial
+## dimension comparable to X (e.g. Chance 3.26 vs 4.08/2.35), with Z
+## consistently the SMALLEST - the same "Y is already up, Z is a plausible
+## thin/depth axis" shape the flat MONSTER cards showed, which needed NO
+## correction. Acti therefore gets `Vector3.ZERO` - applying actii's -90
+## here is exactly what was rotating these onto their back ("viewing from
+## the top").
+const FLAT_MESH_ROTATION_BY_WEAPON: Array[Vector3] = [Vector3.ZERO, Vector3(-90, 0, 0)]
 
 
-static func flat_mesh_rotation(_index: int) -> Vector3:
-	return FLAT_MESH_ROTATION_DEGREES
+static func flat_mesh_rotation(_index: int, weapon_index: int) -> Vector3:
+	return FLAT_MESH_ROTATION_BY_WEAPON[weapon_index]

@@ -1010,10 +1010,48 @@ only the NAMES are real so far. The Embark loadout screen (`EmbarkDialog.
 ask_loadouts()`) is unchanged in mechanism - it still shows two dropdowns
 per hero populated from `for_hero(slot)` - but now defaults to (and only
 ever offers) that hero's own real pair instead of the generic 8-item
-catalog. **Not yet visually confirmed which act corresponds to which named
+catalog. **Weapon TYPES, not fixed named weapons, same day** ("categorize weapons
+under the 'types' I gave... all swords should fall under the sword
+dropdown... feel free to make some up for testing") - `WeaponCatalog`
+reworked again: each hero's two slots are now fixed to a TYPE
+(`HERO_WEAPON_TYPES`, the same names given directly - e.g. Brynn =
+Warhammer + Sword), and each type has a pool of multiple INVENTED named
+items (`WEAPONS_BY_TYPE`, e.g. Sword: Iron Longsword/Silverblade/Kingsbane) -
+a type is a single GLOBAL pool shared by every hero who has a slot of it
+(Galaden and Brynn both have a "Sword" slot and pick from the exact same
+three swords, not separate lists). `type_of(slot, weapon_index)` returns
+the fixed type for a slot; `weapons_of_type(type_name)` returns that type's
+item pool. `EmbarkDialog.ask_loadouts()` reworked to match: each weapon
+slot is now a small type-labelled column (a caption showing the fixed type
+name, e.g. "Warhammer") with a dropdown offering only that type's own
+items - the position (Weapon 1/2) and its type stay fixed per hero;
+picking WHICH item fills it is the only free choice. `for_hero()` (the old
+single-flat-pair accessor) is removed - callers now go through
+`type_of()`/`weapons_of_type()` directly. Verified headlessly: the Sword
+type resolves identically for both Galaden and Brynn, and a built
+`EmbarkDialog` shows Brynn's Warhammer column with all 3 invented items and
+a correctly separate "Sword" column for his second slot.
+
+**Not yet visually confirmed which act corresponds to which named
 weapon** - the user's own plan is to check the rendered result and correct
 the Weapon 1/Weapon 2 order if the acti/actii assumption turns out
 backwards for a given hero.
+
+**Fourth confirmed bug, same day, follow-up report ("the new meshes are
+rotated badly again... in blender they also have a different orientation")**:
+once acti meshes were added, the single shared `-90` pitch correction (only
+ever calibrated against actii's own data) tipped every acti mesh onto its
+back. Confirmed data-driven, not guessed, and matching the user's own
+independent Blender observation: acti and actii are authored under
+COMPLETELY DIFFERENT conventions - actii has Y as the smallest axis (needs
+`-90`, as already established), while ACTI has Y as a full, substantial
+dimension comparable to X, with Z consistently smallest - the same
+"already correctly oriented, Z is a plausible depth axis" shape the flat
+MONSTER cards have, needing NO correction at all. `HeroCatalog.
+flat_mesh_rotation()` now takes `weapon_index` and returns `Vector3.ZERO`
+for acti (0) / `Vector3(-90,0,0)` for actii (1) via
+`FLAT_MESH_ROTATION_BY_WEAPON`, instead of one value for both. Verified
+headlessly that each weapon index now resolves to its own correct value.
 
 **Third confirmed bug, same day, follow-up report ("nope still looks
 bad")** - the mipmap fix was real but not the dominant cause. The actual
