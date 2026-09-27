@@ -318,6 +318,90 @@ static func crop_texture(folder: String) -> Texture2D:
 	return OfficialAssetOverrides.texture_for("res://models/crops/monster_%s.png" % folder.replace(" ", "_"))
 
 
+## EXPERIMENTAL (2026-09-27, branch experiment/monster-flat-meshes) - the
+## combat view's monster side, second attempt: the game's own flat "card"
+## mesh + texture (extracted by import_monster_meshes.py, see that script's
+## own doc) instead of the tab-image crop_texture() above. `has_flat_card()`
+## is the one place "does this monster have a real card" is decided, so
+## callers never special-case a specific monster by name themselves - if
+## the import script hasn't been run, or found nothing for a given folder,
+## callers fall back to crop_texture() instead (currently expected for none
+## of the 17, but the fallback stays cheap insurance either way).
+##
+## user://monster_assets/<folder>/flat_N.tres, N = 0, 1, 2... - usually just
+## one piece, but a genuinely multi-piece card (confirmed: Fae, 3 pieces;
+## Centurion, 1 piece but 3 SURFACES - body/wings/cloth, one mesh - see
+## flat_surface_texture_overrides()'s own doc and import_monster_meshes.py's
+## stage_centurion_flat()) stages/converts every kept piece, not just the
+## first.
+static func flat_mesh_paths(folder: String) -> Array[String]:
+	var paths: Array[String] = []
+	var i := 0
+	while true:
+		var path := "user://monster_assets/%s/flat_%d.tres" % [folder, i]
+		if not ResourceLoader.exists(path):
+			break
+		paths.append(path)
+		i += 1
+	return paths
+
+
+static func flat_diffuse_texture(folder: String) -> Texture2D:
+	return _load_flat_texture(folder, "flat_diffuse.png")
+
+
+static func _load_flat_texture(folder: String, filename: String) -> Texture2D:
+	var path := "user://monster_assets/%s/%s" % [folder, filename]
+	if not FileAccess.file_exists(path):
+		return null
+	var image := Image.load_from_file(path)  # same idiom as OfficialAssetOverrides._load_override_texture()
+	if image == null:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+## Per-monster surface-name -> extra texture filename, for a card whose
+## pieces genuinely need more than one texture (confirmed: Centurion only -
+## its card is one mesh with "body"/"wings"/"body" surfaces, see
+## import_monster_meshes.py's stage_centurion_flat() for the full story;
+## the "rock" the physical miniature stands on isn't part of this mesh at
+## all). Any surface name NOT listed here just uses flat_diffuse_texture()
+## - MonsterCombatPreview.show_meshes() is what actually applies this,
+## per surface, by name.
+const FLAT_SURFACE_TEXTURE_FILES: Dictionary = {
+	"centurion": {"wings": "flat_diffuse_wings.png"},
+}
+
+
+static func flat_surface_texture_overrides(folder: String) -> Dictionary:
+	var result := {}
+	var files: Dictionary = FLAT_SURFACE_TEXTURE_FILES.get(folder, {})
+	for surface_name in files:
+		var texture := _load_flat_texture(folder, files[surface_name])
+		if texture != null:
+			result[surface_name] = texture
+	return result
+
+
+## True when a real flat card (mesh + texture) is available for this monster,
+## or if the asset import script hasn't been run/found nothing.
+static func has_flat_card(folder: String) -> bool:
+	return not flat_mesh_paths(folder).is_empty() and flat_diffuse_texture(folder) != null
+
+
+## Per-monster correction for the flat card's true facing (X/Y/Z degrees) -
+## UNVERIFIED for every entry so far (empty = no correction), same
+## "expect to fix these one at a time once actually seen" situation
+## REAL_MONSTERS' own pitch_correction_degrees/extra_rotation_degrees went
+## through - a placeholder dict so a future fix is one data line here, not
+## a code change in MonsterCombatPreview.gd.
+const FLAT_CARD_ROTATION_DEGREES: Dictionary = {}
+
+
+static func flat_card_rotation(folder: String) -> Vector3:
+	return FLAT_CARD_ROTATION_DEGREES.get(folder, Vector3.ZERO)
+
+
 static func find_monster(folder: String) -> Dictionary:
 	for monster in REAL_MONSTERS:
 		if monster["folder"] == folder:

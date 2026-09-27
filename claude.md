@@ -793,6 +793,112 @@ Player** - the Gear menu's "Save" click, the Main Menu's "Load Game" flow,
 and the known mid-Player-phase re-fire limitation above are all unverified
 in a real session.
 
+**EXPERIMENTAL: real monster cards in the combat view, branch
+`experiment/monster-flat-meshes` (2026-09-27)** - replaces the tab-image
+crop on the monster side of `CombatView` with the game's own flat "card"
+mesh + texture, rendered live in 3D, instead of a flat 2D image. Built in
+three steps, per direct request, so the rendering mechanism was proven with
+a known-good image before trusting a freshly-extracted mesh:
+
+1. **Mockup**: `MonsterCombatPreview` (`scripts/MonsterCombatPreview.gd`, a
+   `SubViewportContainer`) - a `SubViewport` (transparent background) with
+   an orthographic `Camera3D` and no light at all (every material is
+   UNSHADED - these are flat painted illustrations, not lit 3D props, so a
+   light would only ever be a source of inconsistency between the mockup
+   and the real card). `show_quad(texture)` builds a single unit quad sized
+   to the texture's own aspect ratio - this is both the permanent Centurion-
+   less-common fallback path AND what this step was proven with, using the
+   existing crop texture with zero new asset dependencies.
+2. **Fetch script**: `import_monster_meshes.py` extended to also stage each
+   monster's flat card - see that script's own doc for the full story,
+   condensed here: `find_flat_mesh_and_texture()` resolves the card by
+   CONTAINER PATH plus a junk-name exclude list (`smoke`/`particle`/`glow`/
+   `bg`/`background` for meshes, plus `diamond`/`rune`/`lava`/`circle` for
+   textures) rather than a material-graph walk (tried first, unreliable for
+   these nested prefabs - most sub-objects don't carry a usable container
+   path at all). Confirmed against the real dump that this leaves exactly
+   one correct mesh+texture pair per monster, with ONE deliberate
+   exception: Fae's card is genuinely 3 separate mesh pieces (kept
+   entirely, not merged), so `flat_mesh_paths()` returns however many
+   pieces a monster actually has - usually 1, sometimes more.
+   **Centurion is its own dedicated case, `stage_centurion_flat()`** - its
+   card has no plain mesh at all through the generic path (a rigged
+   `SkinnedMeshRenderer`, unlike every other monster's static quad), but
+   turned out to be extractable properly rather than left on the crop
+   mockup: ONE mesh with THREE submeshes/materials - confirmed directly
+   from the renderer's own data, not guessed - "Regular_ID1_Body" (body,
+   texture `Centurion_ID1_DiffuseMap`), "Regular_ID2_Wings" (wings, texture
+   `Centurion_ID2_DiffuseMap`), "Regular_ID3_Cloth" (reuses the body
+   texture) - and there is NO separate "rock" mesh/texture anywhere in this
+   prefab at all (the miniature's plinth isn't part of this asset).
+   Exported via UnityPy's `export_mesh_obj(mesh, material_names=[...])`
+   (bypassing the plain `.export()` every other monster uses, which has no
+   such parameter) - tags each submesh with a `g`/`usemtl` group name in
+   the .obj text, which Godot's own native OBJ importer was CONFIRMED (a
+   synthetic multi-group test through this exact staging/import/convert
+   pipeline, before trusting it on the real asset) to split into a
+   MULTI-SURFACE `ArrayMesh`, one surface per group, correctly by NAME even
+   with same-named groups repeated (`["body", "wings", "body"]` - Godot
+   keeps them as 3 distinct surfaces, doesn't merge same-named ones) and
+   even with no real `.mtl` file present (the exporter only ever writes the
+   `mtllib` reference line, never the file itself - Godot's importer prints
+   a harmless "Couldn't open MTL file" warning and imports the geometry
+   fine regardless, confirmed on the real Centurion mesh too, not just the
+   synthetic test). `convert_staged_meshes.gd` was generalized from a
+   hardcoded `mesh.obj` to converting EVERY `*.obj` in a staged folder
+   (needed once flat cards started staging as `flat_0.obj`/`flat_1.obj`/...
+   alongside the existing `mesh.obj`) - each becomes its own `<basename>.tres`.
+3. **Render the mesh**: `MonsterCombatPreview.show_meshes(mesh_paths,
+   default_texture, rotation_degrees_correction, surface_texture_overrides)`
+   - one `MeshInstance3D` per piece, each surface gets
+   `set_surface_override_material()` individually (not one uniform
+   `material_override` - needed for Centurion's per-surface textures, see
+   below), looked up by `ArrayMesh.surface_get_name()` against
+   `surface_texture_overrides` (falling back to `default_texture` for any
+   surface not listed - covers every monster except Centurion, where
+   `MonsterDisplay.flat_surface_texture_overrides("centurion")` maps
+   `"wings"` to its own separate texture file, `flat_diffuse_wings.png`).
+   Camera framing is PER-MONSTER (`_frame_camera()` sizes the orthographic
+   camera off that mesh's own combined AABB every time), so the wildly
+   inconsistent raw mesh scale actually seen across monsters (confirmed:
+   camera-fit sizes ranged from ~0.025 to ~13.7 across the 17, a ~500x
+   spread) needs no manual normalization here the way the M-view grid's
+   shared-world-space miniatures did - each card fills its own frame
+   regardless of its absolute units, since only one monster is ever shown
+   at a time.
+
+`MonsterDisplay` gained `flat_mesh_paths()`, `flat_diffuse_texture()`,
+`flat_surface_texture_overrides()`, `has_flat_card()` (the ONE place "does
+this monster have a real card" is decided - callers never special-case a
+monster by name), and `flat_card_rotation()` (`FLAT_CARD_ROTATION_DEGREES`,
+currently empty for every monster - a placeholder correction hook, same
+"expect to fix these one at a time once actually seen" situation
+`REAL_MONSTERS`' own `pitch_correction_degrees` went through, not yet
+exercised since NONE of these cards have been visually confirmed correct
+yet). `PlayerInteractionController.attack()`'s `cfg` builder now checks
+`has_flat_card()` and sends either the flat-card keys or the old
+`monster_image` crop key - `CombatView.configure()` routes to
+`show_meshes()`/`show_quad()` accordingly, both going through the exact
+same `MonsterCombatPreview` node either way.
+
+Verified end-to-end headlessly across the full 17-monster roster: every
+monster's `has_flat_card()` is true, every one's mesh(es) load with the
+expected piece count (Fae: 3, Bandit: 2 - kept its 'Object001' piece
+alongside the main body mesh since it doesn't match any junk-word,
+uncertain what it actually is - everyone else: 1), Centurion's card comes
+back with exactly 3 surfaces named body/wings/body, its wings surface
+resolves to a texture file CONFIRMED byte-different from the body one (not
+accidentally the same file twice), and the mockup quad path still renders
+correctly. **NOT verified visually in the Player at all** - no monster's
+card orientation (`flat_card_rotation()`), unlit shading, or actual
+on-screen look has been confirmed correct; expect a real per-monster
+tuning pass once actually seen, the same way the plastic-pool miniatures'
+own rotation/scale needed several rounds of real feedback before landing.
+Bandit's extra 'Object001' piece and Doomcaller/Golem's excluded second
+textures (`Rune`/`Golem_Lava` - possible legitimate overlay effects, not
+just junk, per the exclude-list's own doc) are both open questions a real
+look might answer differently than the current guess.
+
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
 level meter + what it last heard - the ONE thing that stayed OUT of
