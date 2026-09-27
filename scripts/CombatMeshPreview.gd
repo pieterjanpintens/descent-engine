@@ -150,6 +150,19 @@ func _frame_camera(aabb: AABB) -> void:
 	_camera.look_at(center, Vector3.UP)
 
 
+## CONFIRMED BUG, fixed 2026-09-27: queue_free() defers actual removal to
+## end of frame, so a SECOND show_meshes()/show_quad() call on the SAME
+## preview (e.g. a second attack reusing PlayerDialog's cached CombatView)
+## added its new MeshInstance3D(s) here while the PREVIOUS ones were still
+## technically present and rendering for at least the rest of that frame -
+## confirmed directly (a synthetic two-call test showed 2 children
+## immediately after the second call, not the expected 1). This is exactly
+## the same class of bug claude.md's own Hard-won lessons already documents
+## for ObjectivesDialog's GraphNode rebuild - the general rule there
+## ("never queue_free() something you're about to synchronously replace")
+## applies here too, just as an overlapping-mesh visual glitch (reported as
+## "an additional/wrong texture") rather than a silent name collision.
 func _clear() -> void:
 	for child in _root.get_children():
-		child.queue_free()
+		_root.remove_child(child)
+		child.free()

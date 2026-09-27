@@ -966,7 +966,29 @@ uncertain what it actually is - everyone else: 1), Centurion's card comes
 back with exactly 3 surfaces named body/wings/body, its wings surface
 resolves to a texture file CONFIRMED byte-different from the body one (not
 accidentally the same file twice), and the mockup quad path still renders
-correctly. **Second confirmed bug, same day, follow-up report ("the others seem to
+correctly. **Third confirmed bug, same day, follow-up report ("nope still looks
+bad")** - the mipmap fix was real but not the dominant cause. The actual
+one: `CombatMeshPreview._clear()` used `queue_free()`, which defers actual
+removal to END OF FRAME - a SECOND `show_meshes()`/`show_quad()` call on the
+SAME preview (any second attack, since `PlayerDialog` caches and reuses one
+`CombatView`/`CombatMeshPreview` per side) added its new mesh while the
+PREVIOUS one was still technically present and rendering for at least that
+frame, overlapping it - CONFIRMED directly with a synthetic two-call test
+(child count was 2 immediately after a second call, not the expected 1),
+not just inferred from the symptom. This is the exact same bug CLASS
+claude.md's own Hard-won lessons already documents for `ObjectivesDialog`'s
+`GraphNode` rebuild (`queue_free()` + immediate re-add) - the general rule
+there applies here too, just surfacing as an overlapping-mesh visual
+glitch ("an additional/wrong texture") rather than a silent name collision.
+Fixed with immediate `remove_child()` + `free()` instead of `queue_free()` -
+re-verified the same synthetic test now holds at 1 child after any number
+of repeated calls, including switching from a real mesh back to the
+show_quad() mockup path. **Still not confirmed against the actual reported
+screenshots** - this was diagnosed and fixed from a proven, reproducible
+mechanism (not a guess), but this environment still can't render a frame to
+compare directly against what was seen.
+
+**Second confirmed bug, same day, follow-up report ("the others seem to
 have additional/wrong texture applied. Do you apply two textures or
 something?")** - NO, only ever one texture per hero/monster, applied
 uniformly (confirmed by re-checking the actual data, not just asserted):
