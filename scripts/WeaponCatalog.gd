@@ -25,13 +25,65 @@ static func make(weapon_name: String, damage: int, types: Array[int], weapon_ran
 	return weapon
 
 
-## The weapons hero `slot` may pick from at embark. Today everyone gets the
-## whole catalog; this is the seam for a predefined, per-hero set later. A
-## hero always picks TWO: the first pick is "Weapon 1", the second "Weapon 2" -
-## that position (not which weapon it is) decides the combat croptop shown, see
-## HeroCatalog.slot_crop().
-static func for_hero(_slot: int) -> Array[Weapon]:
-	return all()
+## Real per-hero weapon NAMES (2026-09-27, given directly), index-aligned
+## with HeroCatalog.HERO_NAMES - each hero's two real weapons, in order
+## (index 0 = Weapon 1/acti, index 1 = Weapon 2/actii, matching
+## HeroCatalog.slot_crop()/flat_mesh_paths()'s own weapon_index convention -
+## these are also the actual pair the game's own two real meshes/croptops
+## are for). Damage/type/range are STILL invented placeholders (no real
+## stat data exists yet) - only the NAMES are real.
+const HERO_WEAPONS: Array = [
+	["Gloves", "Throwing Knives"],       # Chance
+	["Swords", "Bow"],                   # Galaden
+	["Warhammer", "Sword"],              # Brynn
+	["War Bell", "Staff"],               # Vaerix
+	["Hammer", "Crossbow"],              # Kehli
+	["Staff", "Wand"],                   # Syrus
+]
+
+
+## The weapons hero `slot` may pick from at embark - their own real pair
+## (see HERO_WEAPONS above), not the generic catalog. A hero always picks
+## TWO: the first pick is "Weapon 1", the second "Weapon 2" - that position
+## (not which weapon it is) decides the combat croptop/mesh shown, see
+## HeroCatalog.slot_crop()/flat_mesh_paths().
+static func for_hero(slot: int) -> Array[Weapon]:
+	var weapons: Array[Weapon] = []
+	for weapon_name: String in HERO_WEAPONS[slot]:
+		weapons.append(make(weapon_name, _placeholder_damage(weapon_name), _placeholder_types(weapon_name), _placeholder_range(weapon_name)))
+	return weapons
+
+
+## Crude, invented type/damage/range guesses from the weapon's own name -
+## blunt/bladed/ranged/magic, nothing more - replace with real stats
+## whenever they're known.
+static func _placeholder_types(weapon_name: String) -> Array[int]:
+	var name := weapon_name.to_lower()
+	if name.contains("wand"):
+		return [LUMOS]
+	if name.contains("sword"):
+		return [SLASH]
+	if name.contains("bow") or name.contains("crossbow") or name.contains("knives") or name.contains("knife"):
+		return [PIERCE]
+	return [CRUSH]  # hammer, warhammer, bell, staff, gloves
+
+
+static func _placeholder_damage(weapon_name: String) -> int:
+	var name := weapon_name.to_lower()
+	if name.contains("warhammer"):
+		return 4
+	if name.contains("gloves") or name.contains("staff") or name.contains("knives") or name.contains("wand"):
+		return 2
+	return 3
+
+
+static func _placeholder_range(weapon_name: String) -> int:
+	var name := weapon_name.to_lower()
+	if name.contains("bow") or name.contains("crossbow"):
+		return 5
+	if name.contains("knives") or name.contains("wand"):
+		return 3
+	return 0
 
 
 ## Fresh Weapon instances each call, in picker order.

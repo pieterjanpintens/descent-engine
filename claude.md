@@ -966,7 +966,56 @@ uncertain what it actually is - everyone else: 1), Centurion's card comes
 back with exactly 3 surfaces named body/wings/body, its wings surface
 resolves to a texture file CONFIRMED byte-different from the body one (not
 accidentally the same file twice), and the mockup quad path still renders
-correctly. **Third confirmed bug, same day, follow-up report ("nope still looks
+correctly. **Real correction, same day: heroes DO have two meshes after all**
+("i the dumped object it looks fine, i can open blender and see two attack
+meshes for vairix") - the earlier "only one flat mesh per hero" claim in
+`HeroCatalog`/`import_hero_meshes.py` was WRONG, found by the user directly
+inspecting the raw dump in Blender, not by anything caught in this
+environment. The mistake: the first search only matched container paths
+containing the literal word "flat" - acti's own mesh isn't named that
+(e.g. it's just `"<hero>.fbx"`, not `"<hero> flat.fbx"`), so it was missed
+entirely. Corrected: BOTH `acti` and `actii` have a real mesh + dedicated
+texture per hero, exactly mirroring `slot_crop()`'s own weapon split
+(index 0 = acti = Weapon 1, index 1 = actii = Weapon 2) - there was no
+"heroes only get one shared mesh" limitation after all. One naming
+exception found the same way: Chance's ACTI body mesh is internally named
+"Meiyer", not "Chance" - recorded by hand in the new
+`HERO_BODY_MESH_NAME_OVERRIDES` dict (`import_hero_meshes.py`), same
+"can't be derived, only hand-authored" precedent as
+`import_official_assets.py`'s own `HERO_PORTRAIT_CONTAINERS`.
+
+Renamed the on-disk convention to avoid ambiguity with `MonsterDisplay`'s
+own `flat_N.tres` ("N = piece of one card") - heroes now use
+`weapon_<0|1>.tres`/`weapon_<0|1>_diffuse.png` under
+`user://hero_assets/<hero>/`, since N here means a whole separate WEAPON-
+slot mesh, never multiple pieces of one. `HeroCatalog.flat_mesh_paths()`/
+`flat_diffuse_texture()`/`has_flat_mesh()` all gained a `weapon_index`
+parameter to match. Re-fetched for real against the actual game install:
+6/6 heroes, both weapon slots each, Chance's "Meiyer" override resolved
+correctly. Verified headlessly that Chance's two weapon meshes are
+genuinely different geometry (different AABBs), not the same mesh reused.
+
+**Real per-hero weapon names applied the same day** (given directly by the
+user: Chance = Gloves/Throwing Knives, Galaden = Swords/Bow, Brynn =
+Warhammer/Sword, Vaerix = War Bell/Staff, Kehli = Hammer/Crossbow, Syrus =
+Staff/Wand) - `WeaponCatalog.for_hero(slot)` (previously just returning the
+whole generic catalog, explicitly built as "the seam for a predefined,
+per-hero set later") now returns each hero's own real two-weapon pair via
+`HERO_WEAPONS` (index-aligned with `HeroCatalog.HERO_NAMES`, position 0/1
+matching Weapon 1/Weapon 2 - and, not coincidentally, the same acti/actii
+split the meshes and crops already use). Damage/type/range are still
+INVENTED placeholders guessed from each weapon's own name
+(`_placeholder_damage()`/`_placeholder_types()`/`_placeholder_range()`) -
+only the NAMES are real so far. The Embark loadout screen (`EmbarkDialog.
+ask_loadouts()`) is unchanged in mechanism - it still shows two dropdowns
+per hero populated from `for_hero(slot)` - but now defaults to (and only
+ever offers) that hero's own real pair instead of the generic 8-item
+catalog. **Not yet visually confirmed which act corresponds to which named
+weapon** - the user's own plan is to check the rendered result and correct
+the Weapon 1/Weapon 2 order if the acti/actii assumption turns out
+backwards for a given hero.
+
+**Third confirmed bug, same day, follow-up report ("nope still looks
 bad")** - the mipmap fix was real but not the dominant cause. The actual
 one: `CombatMeshPreview._clear()` used `queue_free()`, which defers actual
 removal to END OF FRAME - a SECOND `show_meshes()`/`show_quad()` call on the

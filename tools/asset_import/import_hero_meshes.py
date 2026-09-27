@@ -18,12 +18,21 @@ hand-rolled parser" section for why).
 Usage:
     python import_hero_meshes.py <path to game's bundles folder> <path to Godot executable>
 
-**Confirmed directly from the game's own data, not assumed**: unlike the
-crop images (one per act - Weapon 1 = acti, Weapon 2 = actii, see
-HeroCatalog.slot_crop()), there is only ONE real mesh per hero, and it only
-exists under actii - acti has no "flat" model at all, just the regular
-non-flat one. Both weapon slots in the combat view therefore reuse this
-same single mesh/texture; there is no per-weapon mesh to bind separately.
+**Corrected 2026-09-27, same day**: an earlier version of this doc claimed
+heroes only had ONE mesh (actii only), because the first search only looked
+for "flat" in the container path - acti's own mesh isn't named "flat" (e.g.
+Chance's acti mesh file is "vaerix.fbx"-style, just "<hero>.fbx", not
+"<hero> flat.fbx"), so it was missed. Confirmed directly (the user found
+both while inspecting the raw dump in Blender) that BOTH acti and actii
+have a real, usable mesh, each with its own dedicated texture - exactly
+mirroring the crop images (Weapon 1 = acti, Weapon 2 = actii, see
+HeroCatalog.slot_crop()). Both weapon slots now get their OWN mesh/texture,
+same as the crops - there is no reuse needed after all.
+
+One naming exception, found the same way: Chance's ACTI mesh is internally
+named "Meiyer", not "Chance" (their pre-established name in the game's own
+lore, apparently) - HERO_BODY_MESH_NAME_OVERRIDES below records this, the
+only hero/act combination that doesn't match by the hero's own name.
 
 Each hero's actii "<hero>.prefab" is a fully rigged SkinnedMeshRenderer
 model (a bone armature, same shape Centurion's card turned out to have -
@@ -34,12 +43,14 @@ attached - showing the actually-equipped weapon in-hand is out of scope
 here; the mesh alone doesn't include one.
 
 Picking the RIGHT SkinnedMeshRenderer needed real care - a hero's prefab
-can contain MORE than one (Syrus's own prefab has 3: "Syrus" - his own
-body - plus "Bird" and "Bird.Flame", an unrelated companion creature with
-its own mesh/texture). Resolved by matching the MESH's own name against the
-hero's name case-insensitively; falls back to the renderer with the most
-vertices if no name match is found (a safety net, not currently exercised -
-all 6 heroes checked resolve by name).
+can contain MORE than one (Syrus's own prefab has 3 on EACH act: "Syrus" -
+his own body - plus "Bird"/"Syrus-Bird" and "Bird.Flame", an unrelated
+companion creature with its own mesh/texture). Resolved by matching the
+MESH's own name against the hero's name case-insensitively (or the
+HERO_BODY_MESH_NAME_OVERRIDES entry for Chance's acti side - see above);
+falls back to the renderer with the most vertices if neither matches (a
+safety net, not currently exercised - every hero/act combination checked
+resolves by name).
 
 Texture resolution also needed a second key: some materials (any "Cloth"
 piece, and Syrus's own body) use `_Diffuse` instead of the more common
@@ -61,6 +72,13 @@ USER_DATA_DIR = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine
 
 PREFERRED_TEX_KEYS = ["_MainTex", "_Diffuse"]
 
+# Hero/act combinations whose body mesh isn't named after the hero itself -
+# recorded by hand, once, same "can't be derived, only hand-authored"
+# precedent as import_official_assets.py's own HERO_PORTRAIT_CONTAINERS.
+HERO_BODY_MESH_NAME_OVERRIDES = {
+    ("chance", "acti"): "meiyer",
+}
+
 
 def read_hero_names_from_gd():
     """Parses HeroCatalog.gd's HERO_NAMES array - never hand-duplicated,
@@ -74,13 +92,14 @@ def read_hero_names_from_gd():
     return re.findall(r'"([^"]+)"', match.group(1))
 
 
-def find_hero_body_mesh_and_texture(env, hero):
-    """Finds the hero's OWN SkinnedMeshRenderer (not a companion creature's,
-    see module docstring - Syrus in particular) + its diffuse texture, from
-    "<hero>/actii/prefabs/<hero>.prefab". Returns (mesh_data, texture_data),
+def find_hero_body_mesh_and_texture(env, hero, act):
+    """Finds the hero's OWN SkinnedMeshRenderer for the given act ("acti" or
+    "actii") - not a companion creature's, see module docstring - Syrus in
+    particular - + its diffuse texture, from
+    "<hero>/<act>/prefabs/<hero>.prefab". Returns (mesh_data, texture_data),
     either of which may be None if not found."""
     folder = hero.lower()
-    prefab_container = f"assets/d3/heroes/{folder}/actii/prefabs/{folder}.prefab"
+    prefab_container = f"assets/d3/heroes/{folder}/{act}/prefabs/{folder}.prefab"
     renderers = []
     for obj in env.objects:
         if obj.type.name != "SkinnedMeshRenderer":
@@ -100,13 +119,15 @@ def find_hero_body_mesh_and_texture(env, hero):
         except Exception:
             return None
 
-    # Prefer the renderer whose mesh is literally named after the hero -
-    # confirmed correct for all 6 heroes; the vertex-count fallback below is
-    # an untested safety net for a hero this wasn't checked against.
+    # Prefer the renderer whose mesh is literally named after the hero (or
+    # this hero/act's recorded override, e.g. Chance's acti body is
+    # internally "Meiyer") - confirmed correct for all 6 heroes on both
+    # acts; the vertex-count fallback below is an untested safety net.
+    wanted_name = HERO_BODY_MESH_NAME_OVERRIDES.get((folder, act), hero.lower())
     named_match = None
     for renderer in renderers:
         mesh = mesh_of(renderer)
-        if mesh is not None and mesh.m_Name.lower() == hero.lower():
+        if mesh is not None and mesh.m_Name.lower() == wanted_name:
             named_match = (renderer, mesh)
             break
     if named_match is None:
@@ -123,7 +144,7 @@ def find_hero_body_mesh_and_texture(env, hero):
         if not scored:
             return None, None
         scored.sort(key=lambda x: -x[0])
-        print(f"  '{hero}': no mesh literally named '{hero}' among {len(renderers)} candidates - using the one with the most vertices")
+        print(f"  '{hero}' ({act}): no mesh literally named '{wanted_name}' among {len(renderers)} candidates - using the one with the most vertices")
         _, renderer, mesh = scored[0]
         named_match = (renderer, mesh)
 
@@ -183,26 +204,31 @@ def main():
     staged = []
     for hero in heroes:
         folder = hero.lower()
-        mesh, texture = find_hero_body_mesh_and_texture(env, hero)
-        if mesh is None:
-            print(f"  '{hero}': NO flat mesh found - combat view keeps the crop mockup")
-            continue
-
         hero_staging_dir = os.path.join(STAGING_DIR, folder)
-        os.makedirs(hero_staging_dir, exist_ok=True)
-        obj_path = os.path.join(hero_staging_dir, "flat_0.obj")
-        with open(obj_path, "w", encoding="utf-8") as f:
-            f.write(mesh.export())
-        staged.append(hero)
-        print(f"  '{hero}': staged flat mesh -> {obj_path}")
-
         user_dir = os.path.join(USER_DATA_DIR, folder)
-        os.makedirs(user_dir, exist_ok=True)
-        if texture is not None:
-            texture.image.save(os.path.join(user_dir, "flat_diffuse.png"))
-            print(f"  '{hero}': saved texture -> {user_dir}\\flat_diffuse.png")
-        else:
-            print(f"  '{hero}': NO texture found - mesh will render untextured")
+        any_staged = False
+        # index 0 = acti = Weapon 1, index 1 = actii = Weapon 2 - same
+        # convention HeroCatalog.slot_crop()'s weapon_index already uses.
+        for weapon_index, act in enumerate(["acti", "actii"]):
+            mesh, texture = find_hero_body_mesh_and_texture(env, hero, act)
+            if mesh is None:
+                print(f"  '{hero}' ({act}, weapon {weapon_index + 1}): NO mesh found - this weapon slot keeps the crop mockup")
+                continue
+            os.makedirs(hero_staging_dir, exist_ok=True)
+            obj_path = os.path.join(hero_staging_dir, f"weapon_{weapon_index}.obj")
+            with open(obj_path, "w", encoding="utf-8") as f:
+                f.write(mesh.export())
+            any_staged = True
+            print(f"  '{hero}' ({act}, weapon {weapon_index + 1}): staged mesh -> {obj_path}")
+
+            os.makedirs(user_dir, exist_ok=True)
+            if texture is not None:
+                texture.image.save(os.path.join(user_dir, f"weapon_{weapon_index}_diffuse.png"))
+                print(f"  '{hero}' ({act}): saved texture -> {user_dir}\\weapon_{weapon_index}_diffuse.png")
+            else:
+                print(f"  '{hero}' ({act}): NO texture found - mesh will render untextured")
+        if any_staged:
+            staged.append(hero)
 
     if not staged:
         print("\nNothing staged - nothing to convert. Aborting.")
@@ -216,8 +242,8 @@ def main():
         shutil.rmtree(STAGING_DIR, ignore_errors=True)
         print(f"\nCleaned up staging folder {STAGING_DIR}")
 
-    print(f"\nDone. {len(staged)}/{len(heroes)} hero mesh(es) converted to")
-    print(f"{USER_DATA_DIR}\\<hero>\\flat_0.tres - Godot will pick these up next run.")
+    print(f"\nDone. {len(staged)}/{len(heroes)} hero(es) converted to")
+    print(f"{USER_DATA_DIR}\\<hero>\\weapon_<0|1>.tres - Godot will pick these up next run.")
 
 
 if __name__ == "__main__":
