@@ -13,24 +13,31 @@ extends Control
 @onready var save_dialog: FileDialog = %SaveFileDialog
 
 
-## FileDialog.root_subfolder errors ("must be an existing sub-directory") if
-## the folder doesn't exist yet - true on a genuinely fresh install (no
-## mission ever saved, no game ever saved), confirmed the hard way when
-## user://saves/ was added and this menu's own scene failed to even load
-## headlessly. Neither folder had ever been guaranteed to exist before this.
-## The .tscn's own root_subfolder is set at DESERIALIZATION time (before any
-## _ready() runs, or a directory this script could create), so the folders
-## are made first and root_subfolder is then re-applied from here - a no-op
-## when it already took, the actual fix on a fresh install where it didn't.
+## Ensures both user:// folders exist before anything tries to browse them -
+## true on a genuinely fresh install (no mission ever saved, no game ever
+## saved) that neither had ever been guaranteed before this (confirmed the
+## hard way when user://saves/ was added and this menu's own scene failed to
+## even load headlessly with FileDialog.root_subfolder pointed at it).
 func _ready() -> void:
 	for dir in ["user://missions", "user://saves"]:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
-	mission_dialog.root_subfolder = "user://missions/"
-	save_dialog.root_subfolder = "user://saves/"
 
 
+## Each dialog OPENS in its own folder but isn't locked to it - unlike
+## root_subfolder (used briefly here, and still what the Creator's own
+## mission dialog uses), current_dir just picks the starting folder and
+## leaves the rest of `user://` (both access = User Data) reachable by
+## navigating up, so the missions folder is browsable from the Load Game
+## dialog and vice versa - requested directly, since a save and a mission
+## are both just "a .tres file somewhere under user://" from the table's
+## point of view even though this project keeps them in separate folders.
+## Same current_dir idiom CreatorSaveLoad.gd's own dialog already uses, set
+## fresh on every popup rather than once in _ready() for the same reason
+## that one does - navigating away in a previous session shouldn't carry
+## over as this dialog's new default.
 func _on_play_button_pressed() -> void:
+	mission_dialog.current_dir = "user://missions"
 	mission_dialog.popup_centered()
 
 
@@ -38,8 +45,10 @@ func _on_play_button_pressed() -> void:
 ## SaveGame.gd/MissionPlayer.save_game(). A separate button/dialog from
 ## "Play Mission" since it opens a save file (user://saves/), not a mission
 ## definition (user://missions/) - the two folders hold different Resource
-## types.
+## types, but see _on_play_button_pressed()'s own doc for why neither
+## dialog is locked to just its own folder.
 func _on_load_game_button_pressed() -> void:
+	save_dialog.current_dir = "user://saves"
 	save_dialog.popup_centered()
 
 

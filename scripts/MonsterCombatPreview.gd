@@ -25,6 +25,19 @@ var _root: Node3D
 func _ready() -> void:
 	stretch = true
 	_viewport = SubViewport.new()
+	# CONFIRMED BUG, fixed 2026-09-27: without this, a SubViewport shares the
+	# SAME World3D as whatever it's nested under by default - this preview
+	# lives inside PlayerDialog (a Control/CanvasLayer tree), but that still
+	# resolves to the game's own main World3D, so its camera could see
+	# MonsterDisplay's M-view stands, AND its own card mesh kept existing in
+	# that shared world after the dialog closed (only cleared on the NEXT
+	# show_quad()/show_meshes() call, not when the dialog itself closes) -
+	# reported directly: "parts of the mesh of the monster overlay in the
+	## combat dialog, and after combat the flat mesh is also in the monster
+	# overview." own_world_3d gives this SubViewport a genuinely separate,
+	# isolated 3D scene graph, so nothing here is visible from the main
+	# world and vice versa.
+	_viewport.own_world_3d = true
 	_viewport.transparent_bg = true
 	_viewport.size = Vector2i(480, 480)
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS

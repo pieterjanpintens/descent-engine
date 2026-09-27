@@ -889,7 +889,25 @@ uncertain what it actually is - everyone else: 1), Centurion's card comes
 back with exactly 3 surfaces named body/wings/body, its wings surface
 resolves to a texture file CONFIRMED byte-different from the body one (not
 accidentally the same file twice), and the mockup quad path still renders
-correctly. **NOT verified visually in the Player at all** - no monster's
+correctly. **Confirmed real bug, fixed the same branch, same day** - reported directly:
+"I see parts of the mesh of the monster overlay in the combat dialog, and
+after combat the flat mesh is also in the monster overview." Root cause:
+`MonsterCombatPreview`'s `SubViewport` never set `own_world_3d = true`, so
+by Godot's own default it shared the SAME `World3D` as whatever it's nested
+under - which, despite living inside `PlayerDialog`'s `Control`/`CanvasLayer`
+tree, still resolves to the game's own main 3D world. Two consequences from
+one cause: the preview's camera could see `MonsterDisplay`'s M-view stands
+(the "parts of the monster overlay" bleeding IN), and the preview's own
+card `MeshInstance3D`s kept existing in that shared world after the dialog
+closed - `_clear()` only ever ran on the NEXT `show_quad()`/`show_meshes()`
+call, not when the dialog itself closed, so a stale card was left sitting
+in the M-view's own world until the next attack (the "flat mesh also in the
+monster overview" bleeding OUT). Fixed with the one missing line -
+`_viewport.own_world_3d = true` - confirmed headlessly that the preview's
+`SubViewport.find_world_3d()` is now a genuinely different object from the
+main viewport's, not just assumed from the symptom matching.
+
+**NOT verified visually in the Player at all** - no monster's
 card orientation (`flat_card_rotation()`), unlit shading, or actual
 on-screen look has been confirmed correct; expect a real per-monster
 tuning pass once actually seen, the same way the plastic-pool miniatures'

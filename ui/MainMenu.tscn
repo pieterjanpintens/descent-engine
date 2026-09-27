@@ -39,7 +39,6 @@ unique_name_in_owner = true
 title = "Open a File"
 file_mode = 0
 access = 1
-root_subfolder = "user://missions/"
 filters = PackedStringArray("*.tres")
 
 [node name="SaveFileDialog" type="FileDialog" parent="."]
@@ -47,7 +46,6 @@ unique_name_in_owner = true
 title = "Load a Saved Game"
 file_mode = 0
 access = 1
-root_subfolder = "user://saves/"
 filters = PackedStringArray("*.tres")
 
 [connection signal="pressed" from="CenterContainer/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
