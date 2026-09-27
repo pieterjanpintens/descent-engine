@@ -966,7 +966,32 @@ uncertain what it actually is - everyone else: 1), Centurion's card comes
 back with exactly 3 surfaces named body/wings/body, its wings surface
 resolves to a texture file CONFIRMED byte-different from the body one (not
 accidentally the same file twice), and the mockup quad path still renders
-correctly. **Confirmed real bug, fixed the same branch, same day** - reported directly:
+correctly. **Second confirmed bug, same day, follow-up report ("the others seem to
+have additional/wrong texture applied. Do you apply two textures or
+something?")** - NO, only ever one texture per hero/monster, applied
+uniformly (confirmed by re-checking the actual data, not just asserted):
+every hero's "second" material (Kehli's "Fluid", Galaden's "Cloth",
+Vaerix's "Bell") genuinely shares the SAME diffuse image as the main body,
+each sampling its own small, valid UV region - not a second texture file,
+not mismatched UVs. The actual cause, found by looking at the real texture
+files directly (cropped to the relevant region and viewed): these diffuse
+textures are dense ATLASES packing many small hand-painted pieces edge-to-
+edge with little to no padding between them (a crossbow, straps, cloth,
+feathers, each in their own tiny rectangle). `StandardMaterial3D`'s default
+`TEXTURE_FILTER_LINEAR_WITH_MIPMAPS` blends each texel with its neighbours
+across generated mip levels - on a tightly packed atlas like this, that
+bleeds colour in from the ADJACENT, unrelated patch, which is exactly what
+"an additional/wrong texture" looks like. Vaerix's own second submesh
+happens to sit in a less crowded part of his atlas, which is why only his
+came out clean while Kehli's and Galaden's didn't. Fixed with one line -
+`material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR` (no
+mipmaps) in `CombatMeshPreview._unshaded_material()` - confirmed headlessly
+that the property is actually applied to the resulting material. **Still
+not confirmed visually** - the same rendering-access limitation applies
+(this environment can only inspect data, not see a rendered frame), so
+whether this fully resolves what was seen still needs a real look.
+
+**Confirmed real bug, fixed the same branch, same day** - reported directly:
 "I see parts of the mesh of the monster overlay in the combat dialog, and
 after combat the flat mesh is also in the monster overview." Root cause:
 `MonsterCombatPreview`'s `SubViewport` never set `own_world_3d = true`, so

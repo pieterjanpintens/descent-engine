@@ -121,6 +121,20 @@ func _unshaded_material(texture: Texture2D) -> StandardMaterial3D:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED  # a flat card should read from either side
+	# CONFIRMED BUG, fixed 2026-09-27: these diffuse textures are dense
+	# texture ATLASES (many small hand-painted pieces packed edge-to-edge -
+	# e.g. Kehli's crossbow/straps, Galaden's cloth/feathers, each in its own
+	# tiny region with little to no padding between them). Godot's default
+	# TEXTURE_FILTER_LINEAR_WITH_MIPMAPS blends each texel with its
+	# neighbours across generated mip levels, which on a tightly packed
+	# atlas like this bleeds colour in from the ADJACENT, unrelated patch -
+	# reported directly as "an additional/wrong texture" on specific small
+	# pieces (Kehli's shield-ish "Fluid" submesh, Galaden's "Cloth" one),
+	# while a hero whose second submesh happens to sit in a less crowded
+	# part of its own atlas (Vaerix) showed no such bleed. Plain
+	# TEXTURE_FILTER_LINEAR (no mipmaps) samples only a texel's immediate
+	# neighbourhood, which stays inside one atlas patch.
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	return material
 
 
