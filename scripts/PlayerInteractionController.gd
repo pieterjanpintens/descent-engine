@@ -341,6 +341,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		if HeroCatalog.has_flat_mesh(hero_slot):
 			cfg["hero_flat_meshes"] = HeroCatalog.flat_mesh_paths(hero_slot)
 			cfg["hero_flat_texture"] = HeroCatalog.flat_diffuse_texture(hero_slot)
+			cfg["hero_flat_rotation"] = HeroCatalog.flat_mesh_rotation(hero_slot)
 		else:
 			cfg["hero_image"] = HeroCatalog.slot_crop(hero_slot, weapon_index)
 		if MonsterDisplay.has_flat_card(monster.folder):

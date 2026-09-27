@@ -220,7 +220,7 @@ func _build() -> void:
 ## `monster_flat_surface_overrides` are monster-only (Centurion's wings need
 ## a distinct texture; heroes have no such override case yet).
 func configure(cfg: Dictionary) -> void:
-	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"))
+	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"), cfg.get("hero_flat_rotation", Vector3.ZERO))
 	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}))
 	_hero_name_label.text = cfg.get("hero_name", "")
 	_weapon_label.text = cfg.get("weapon_name", "")

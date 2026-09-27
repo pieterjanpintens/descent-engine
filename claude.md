@@ -842,7 +842,32 @@ zero needing the vertex-count fallback. Verified headlessly: every hero's
 mesh, and `CombatView`'s hero-side preview picks it up through
 `PlayerInteractionController.attack()`'s `cfg` builder (which now checks
 `HeroCatalog.has_flat_mesh()` the same way it already checks `MonsterDisplay.
-has_flat_card()`). **NOT verified visually** - same caveat as the monster
+has_flat_card()`). **Orientation fix, same day, follow-up report ("I see their bottom or
+top")**: DATA-DRIVEN diagnosis rather than a blind guess - every hero's raw
+AABB has Y as its SMALLEST extent while Z is consistently the LARGEST
+(Chance: Y 0.0092 vs Z 0.0135/X 0.0146; Galaden: Y 0.0154 vs Z 0.0284/X
+0.0221) - the exact same signature several monster plastic-pool rigs
+already needed a -90-degree X pitch correction for (their real height baked
+into local Z instead of Y - see `REAL_MONSTERS`' own `pitch_correction_degrees`
+history). The flat MONSTER cards (Wolf, Harbinger, Centurion) do NOT show
+this pattern - their smallest axis is a plausible card-thickness Z, no
+correction needed - so this looks like a heroes-only issue, consistent with
+heroes being genuinely rigged full-body models (like Centurion's card) while
+most flat cards are simpler. `HeroCatalog.flat_mesh_rotation()`
+(`FLAT_MESH_ROTATION_DEGREES = Vector3(-90, 0, 0)`, applied uniformly to all
+6 - unlike monsters, every hero showed the identical pattern) is wired
+through `PlayerInteractionController.attack()`'s `cfg["hero_flat_rotation"]`
+into `CombatView._configure_preview()`'s hero-side call (previously
+hardcoded to no correction) - `CombatMeshPreview.show_meshes()` already
+supported this parameter, it just wasn't being passed for the hero side yet.
+Verified headlessly that the rotation is actually applied and the camera
+correctly reframes the ROTATED bounds (not the raw ones). **Still not
+confirmed correct once actually rendered** - `-90` is the informed first
+guess this project's own established pattern would predict, not a visual
+confirmation; may need `+90` or further adjustment once seen, the same way
+Wolf's own plastic-pool correction took three rounds before landing.
+
+**NOT verified visually** - same caveat as the monster
 side, nothing here has been looked at rendered yet.
 
 **EXPERIMENTAL: real monster cards in the combat view, branch
