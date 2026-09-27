@@ -20,10 +20,11 @@ var confirm_button: Button
 var cancel_button: Button
 var hint_label: Label
 
-var _hero_image: TextureRect
-## EXPERIMENTAL (branch experiment/monster-flat-meshes) - a small 3D preview
-## instead of a flat TextureRect, see MonsterCombatPreview.gd's own doc.
-var _monster_preview: MonsterCombatPreview
+## EXPERIMENTAL (branch experiment/monster-flat-meshes) - small 3D previews
+## instead of flat TextureRects on both sides, see CombatMeshPreview.gd's
+## own doc.
+var _hero_preview: CombatMeshPreview
+var _monster_preview: CombatMeshPreview
 var _hero_name_label: Label
 var _weapon_label: Label
 var _damage_label: Label
@@ -65,8 +66,11 @@ func _build() -> void:
 	add_child(background)
 
 	# Art: hero on the left, monster on the right.
-	_hero_image = _art(0.02, 0.44, 0.12, 0.62)
-	_monster_preview = MonsterCombatPreview.new()
+	_hero_preview = CombatMeshPreview.new()
+	_anchor(_hero_preview, 0.02, 0.44, 0.12, 0.62)
+	_hero_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_hero_preview)
+	_monster_preview = CombatMeshPreview.new()
 	_anchor(_monster_preview, 0.56, 0.98, 0.12, 0.62)
 	_monster_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_monster_preview)
@@ -198,31 +202,26 @@ func _build() -> void:
 		_property_sections[key] = {"section": section, "box": box}
 
 
-## cfg: hero_image, hero_name, weapon_name, base_damage, monster_name,
-## hitpoints, defense, damage_types (Array of Vulnerability.Kind), per
-## property kind (weaknesses/resistances/immunities, each an Array of Kind)
-## plus its known_* twin (the ones already discovered), and optional
-## `ability_text` - a MONSTER ability/effect ("Resilience: immune to
-## affliction..."), not a description of the attack; the info box is
-## hidden entirely when this is empty (no monster abilities are authorable
-## yet - fill this in once they are).
+## cfg: hero_name, weapon_name, base_damage, monster_name, hitpoints,
+## defense, damage_types (Array of Vulnerability.Kind), per property kind
+## (weaknesses/resistances/immunities, each an Array of Kind) plus its
+## known_* twin (the ones already discovered), and optional `ability_text` -
+## a MONSTER ability/effect ("Resilience: immune to affliction..."), not a
+## description of the attack; the info box is hidden entirely when this is
+## empty (no monster abilities are authorable yet - fill this in once they
+## are).
 ##
-## The monster side is EITHER `monster_flat_meshes` (Array[String],
-## MonsterDisplay.flat_mesh_paths()) + `monster_flat_texture` (Texture2D) -
-## the real flat card, rendered in 3D (see MonsterCombatPreview.gd) - OR,
-## when those aren't given (Centurion, or a monster with nothing extracted
-## yet), `monster_image` (Texture2D, the old crop_texture() mockup) shown
-## as a textured quad through that SAME preview mechanism.
+## Each side is EITHER `<side>_flat_meshes` (Array[String], HeroCatalog/
+## MonsterDisplay.flat_mesh_paths()) + `<side>_flat_texture` (Texture2D) -
+## the real mesh, rendered in 3D (see CombatMeshPreview.gd) - OR, when those
+## aren't given (nothing extracted for this hero/monster yet), `hero_image`/
+## `monster_image` (Texture2D, the old crop_texture() mockup) shown as a
+## textured quad through that SAME preview mechanism. `monster_flat_rotation`/
+## `monster_flat_surface_overrides` are monster-only (Centurion's wings need
+## a distinct texture; heroes have no such override case yet).
 func configure(cfg: Dictionary) -> void:
-	_hero_image.texture = cfg.get("hero_image")
-	var flat_meshes: Array = cfg.get("monster_flat_meshes", [])
-	if not flat_meshes.is_empty():
-		var typed_paths: Array[String] = []
-		for path in flat_meshes:
-			typed_paths.append(str(path))
-		_monster_preview.show_meshes(typed_paths, cfg.get("monster_flat_texture"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}))
-	else:
-		_monster_preview.show_quad(cfg.get("monster_image"))
+	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"))
+	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}))
 	_hero_name_label.text = cfg.get("hero_name", "")
 	_weapon_label.text = cfg.get("weapon_name", "")
 	var base_damage: Variant = cfg.get("base_damage")
@@ -255,16 +254,19 @@ func show_value(v: int) -> void:
 	_value_label.text = str(v)
 
 
+## Shared by both sides' configure() branch - real mesh(es) if given, else
+## the flat-image mockup/fallback quad. See configure()'s own doc.
+func _configure_preview(preview: CombatMeshPreview, flat_meshes: Array, flat_texture: Texture2D, fallback_image: Texture2D, rotation_correction: Vector3 = Vector3.ZERO, surface_overrides: Dictionary = {}) -> void:
+	if not flat_meshes.is_empty():
+		var typed_paths: Array[String] = []
+		for path in flat_meshes:
+			typed_paths.append(str(path))
+		preview.show_meshes(typed_paths, flat_texture, rotation_correction, surface_overrides)
+	else:
+		preview.show_quad(fallback_image)
+
+
 # ---------------------------------------------------------------- helpers
-
-func _art(left: float, right: float, top: float, bottom: float) -> TextureRect:
-	var t := TextureRect.new()
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_anchor(t, left, right, top, bottom)
-	add_child(t)
-	return t
-
 
 func _anchor(control: Control, left: float, right: float, top: float, bottom: float) -> void:
 	control.anchor_left = left

@@ -1,21 +1,25 @@
-class_name MonsterCombatPreview
+class_name CombatMeshPreview
 extends SubViewportContainer
 
-## EXPERIMENTAL (branch experiment/monster-flat-meshes) - the combat view's
-## monster side, rendered as a small 3D scene instead of a flat 2D image:
-## either the monster's real "flat card" mesh(es) (see MonsterDisplay.
-## flat_mesh_paths()/flat_diffuse_texture()), or - for Centurion, and as the
-## mockup this was first proven with - a single unit quad textured with the
-## existing crop image (show_quad()). Both paths share one mechanism
-## (one or more MeshInstance3D children + one shared unshaded material +
-## camera framed to their combined bounds), so the "mockup with a plane"
-## step and the "real mesh" step are literally the same code, not two
-## separate implementations to keep in sync.
+## EXPERIMENTAL (branch experiment/monster-flat-meshes) - either side of the
+## combat view (hero left, monster right), rendered as a small 3D scene
+## instead of a flat 2D image: either the real "flat card"/hero mesh(es)
+## (see MonsterDisplay.flat_mesh_paths()/HeroCatalog.flat_mesh_paths() and
+## their diffuse-texture counterparts), or - for anything without one yet,
+## and as the mockup this was first proven with - a single unit quad
+## textured with the existing crop image (show_quad()). Both paths share
+## one mechanism (one or more MeshInstance3D children + one shared unshaded
+## material + camera framed to their combined bounds), so the "mockup with
+## a plane" step and the "real mesh" step are literally the same code, not
+## two separate implementations to keep in sync. Originally built (and
+## still named after) the monster side specifically - genuinely generic
+## from the start, so reused as-is once heroes turned out to have real
+## meshes too, rather than duplicated.
 ##
 ## Unshaded material - these are flat, painted illustration assets (card
 ## art), not real lit 3D props, so no light node is needed at all; this
 ## also keeps the crop-quad mockup and the real card visually consistent
-## with each other and with the hero croptop beside it.
+## with each other.
 
 var _viewport: SubViewport
 var _camera: Camera3D

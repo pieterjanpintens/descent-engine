@@ -324,7 +324,6 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		var damage_types: Array = [] if weapon == null else weapon.damage_types
 		visible = false  # hero bar out of the way of the full-screen combat view
 		var cfg := {
-			"hero_image": HeroCatalog.slot_crop(hero_slot, weapon_index),
 			"hero_name": hero_name,
 			"weapon_name": "" if weapon == null else weapon.weapon_name,
 			"base_damage": null if weapon == null else weapon.damage,
@@ -339,6 +338,11 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 			"immunities": monster.immunities,
 			"known_immunities": monster.known_immunities,
 		}
+		if HeroCatalog.has_flat_mesh(hero_slot):
+			cfg["hero_flat_meshes"] = HeroCatalog.flat_mesh_paths(hero_slot)
+			cfg["hero_flat_texture"] = HeroCatalog.flat_diffuse_texture(hero_slot)
+		else:
+			cfg["hero_image"] = HeroCatalog.slot_crop(hero_slot, weapon_index)
 		if MonsterDisplay.has_flat_card(monster.folder):
 			cfg["monster_flat_meshes"] = MonsterDisplay.flat_mesh_paths(monster.folder)
 			cfg["monster_flat_texture"] = MonsterDisplay.flat_diffuse_texture(monster.folder)

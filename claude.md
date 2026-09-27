@@ -793,6 +793,58 @@ Player** - the Gear menu's "Save" click, the Main Menu's "Load Game" flow,
 and the known mid-Player-phase re-fire limitation above are all unverified
 in a real session.
 
+**EXPERIMENTAL: real hero meshes too, same day (2026-09-27)** - direct
+follow-up question ("the heroes also have flat meshes, one for each weapon
+it seems") led to checking, which turned up a REAL asset but a DIFFERENT
+shape than assumed: heroes DO have a real rigged "flat" mesh (structurally
+like Centurion's card - a bone armature, not a plain quad), but there is
+only ONE per hero, not one per weapon - it only exists under `actii`;
+`acti` has no equivalent asset at all (confirmed directly, not assumed -
+`acti` only has the regular non-flat model + its own diffuse). So unlike
+the crop image (genuinely one per act/weapon slot), both weapon slots in
+the combat view reuse this SAME single mesh/texture - there's no per-weapon
+mesh to bind. The rig also carries a "Weapon" bone/socket with nothing
+attached to it - showing the actually-equipped weapon in-hand would need a
+separate weapon-prop mesh rigged onto that bone, explicitly out of scope
+for this pass (agreed with the user before building anything, rather than
+silently reusing the mesh under the original "one per weapon" premise once
+it turned out not to hold).
+
+`CombatMeshPreview` (renamed from `MonsterCombatPreview` - it was already
+fully generic, just misleadingly named after only one of its two now-real
+uses) is reused as-is for both sides of `CombatView` - `_hero_preview`
+alongside the existing `_monster_preview`, both driven through one shared
+`_configure_preview()` helper. `HeroCatalog` gained
+`flat_mesh_paths()`/`flat_diffuse_texture()`/`has_flat_mesh()`, mirroring
+`MonsterDisplay`'s equivalents exactly (no per-monster rotation-correction
+hook yet for heroes - not needed until one is actually seen mis-oriented).
+
+**`import_hero_meshes.py`** (new, `convert_staged_hero_meshes.gd` its own
+converter twin - own copies, not shared code with the monster versions,
+same "each tool owns its own near-identical logic" convention already
+established) - picking the RIGHT `SkinnedMeshRenderer` needed real care:
+Syrus's own `actii` prefab has THREE of them - "Syrus" (his own body) plus
+"Bird" and "Bird.Flame" (an unrelated companion creature sharing the same
+prefab) - resolved by matching the MESH's own name against the hero's name
+case-insensitively (a vertex-count fallback exists for any future hero this
+doesn't hold for, untested since all 6 resolved by name). Texture
+resolution checks BOTH `_MainTex` and `_Diffuse` keys (some materials -
+any "Cloth" piece, and Syrus's own body - use `_Diffuse` instead of the
+more common `_MainTex`, the same non-standard key Centurion's cloth
+material also turned out to use). No multi-surface material splitting was
+needed here (unlike Centurion) - every material on a given hero resolves to
+the SAME single diffuse texture, confirmed for all 6, so the plain
+`Mesh.export()` (no `material_names`) is enough.
+
+Fetched for real against the actual game install: 6/6 heroes converted,
+zero needing the vertex-count fallback. Verified headlessly: every hero's
+`has_flat_mesh()` is true, `CombatMeshPreview.show_meshes()` renders the
+mesh, and `CombatView`'s hero-side preview picks it up through
+`PlayerInteractionController.attack()`'s `cfg` builder (which now checks
+`HeroCatalog.has_flat_mesh()` the same way it already checks `MonsterDisplay.
+has_flat_card()`). **NOT verified visually** - same caveat as the monster
+side, nothing here has been looked at rendered yet.
+
 **EXPERIMENTAL: real monster cards in the combat view, branch
 `experiment/monster-flat-meshes` (2026-09-27)** - replaces the tab-image
 crop on the monster side of `CombatView` with the game's own flat "card"

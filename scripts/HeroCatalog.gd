@@ -52,3 +52,43 @@ static func slot_crop(index: int, weapon_index: int) -> Texture2D:
 
 static func slot_portrait(index: int) -> Texture2D:
 	return OfficialAssetOverrides.texture_for(PORTRAIT_PATHS[index])
+
+
+## EXPERIMENTAL (2026-09-27, branch experiment/monster-flat-meshes) - the
+## combat view's hero side, real mesh instead of the flat crop image, same
+## idea as MonsterDisplay's own flat card (see that class's own doc). UNLIKE
+## the crop (one per weapon, from acti/actii), there is only ONE real mesh
+## per hero - confirmed directly, not assumed: the game only has a rigged
+## "flat" model under actii, acti has no equivalent asset at all - so both
+## weapon slots reuse this same mesh/texture; the "Weapon" bone this rig
+## carries has no baked-in weapon geometry (nothing is attached to it),
+## showing the actually-equipped weapon in-hand is explicitly out of scope
+## for this pass. `import_hero_meshes.py` (tools/asset_import/) is the
+## fetch script; see that script's own doc for how the correct
+## SkinnedMeshRenderer is picked out of a hero's other rig meshes (Syrus in
+## particular has 2 unrelated companion-creature meshes in the same prefab).
+static func flat_mesh_paths(index: int) -> Array[String]:
+	var paths: Array[String] = []
+	var folder := HERO_NAMES[index].to_lower()
+	var i := 0
+	while true:
+		var path := "user://hero_assets/%s/flat_%d.tres" % [folder, i]
+		if not ResourceLoader.exists(path):
+			break
+		paths.append(path)
+		i += 1
+	return paths
+
+
+static func flat_diffuse_texture(index: int) -> Texture2D:
+	var path := "user://hero_assets/%s/flat_diffuse.png" % HERO_NAMES[index].to_lower()
+	if not FileAccess.file_exists(path):
+		return null
+	var image := Image.load_from_file(path)  # same idiom as OfficialAssetOverrides._load_override_texture()
+	if image == null:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+static func has_flat_mesh(index: int) -> bool:
+	return not flat_mesh_paths(index).is_empty() and flat_diffuse_texture(index) != null
