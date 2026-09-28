@@ -121,6 +121,21 @@ func _unshaded_material(texture: Texture2D) -> StandardMaterial3D:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED  # a flat card should read from either side
+	# CONFIRMED BUG, fixed 2026-09-28, "certain parts that need to be in the
+	# back are clipped to the front... models are not closed": Godot's
+	# alpha-blend materials don't write to the depth buffer by default
+	# (depth_draw_mode = DEPTH_DRAW_OPAQUE_ONLY), so triangles within ONE
+	# transparent mesh never depth-test against each other - they just paint
+	# in whatever order they're stored in (painter's-algorithm-style),
+	# regardless of actual camera distance. With CULL_DISABLED (both faces
+	# render) and an open/non-manifold mesh (no back wall to occlude
+	# anything geometrically either), a back-facing triangle submitted after
+	# a front-facing one paints right over it. DEPTH_DRAW_ALWAYS makes this
+	# material write depth like an opaque one - each triangle now correctly
+	# depth-tests against whatever already drew, so the actually-nearer
+	# triangle wins regardless of draw order. Confirmed visually (spinning
+	# the mesh around Y showed exactly this symptom before the fix).
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS
 	# CONFIRMED BUG, fixed 2026-09-27: these diffuse textures are dense
 	# texture ATLASES (many small hand-painted pieces packed edge-to-edge -
 	# e.g. Kehli's crossbow/straps, Galaden's cloth/feathers, each in its own

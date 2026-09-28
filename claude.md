@@ -1032,10 +1032,16 @@ type resolves identically for both Galaden and Brynn, and a built
 `EmbarkDialog` shows Brynn's Warhammer column with all 3 invented items and
 a correctly separate "Sword" column for his second slot.
 
-**Not yet visually confirmed which act corresponds to which named
-weapon** - the user's own plan is to check the rendered result and correct
-the Weapon 1/Weapon 2 order if the acti/actii assumption turns out
-backwards for a given hero.
+**Weapon 1/Weapon 2 order corrected for 3 heroes, 2026-09-28, follow-up
+report ("weapons of galaden, bryn and vairix must swap")** - the acti/actii
+assumption (index 0 = acti = Weapon 1) turned out backwards for these
+three specifically, confirmed by the user checking the rendered result per
+their own stated plan above. `WeaponCatalog.HERO_WEAPON_TYPES` swapped:
+Galaden `["Sword","Bow"]` -> `["Bow","Sword"]`, Brynn
+`["Warhammer","Sword"]` -> `["Sword","Warhammer"]`, Vaerix
+`["War Bell","Staff"]` -> `["Staff","War Bell"]`. Chance/Kehli/Syrus were
+NOT reported wrong, left unchanged. Compile-checked only (headless
+`--import`, no script errors) - not re-confirmed visually after the swap.
 
 **Fourth confirmed bug, same day, follow-up report ("the new meshes are
 rotated badly again... in blender they also have a different orientation")**:
@@ -1117,6 +1123,31 @@ monster overview" bleeding OUT). Fixed with the one missing line -
 `_viewport.own_world_3d = true` - confirmed headlessly that the preview's
 `SubViewport.find_world_3d()` is now a genuinely different object from the
 main viewport's, not just assumed from the symptom matching.
+
+**Fifth confirmed bug, same day: back-face clipping, fixed via depth write,
+CONFIRMED WORKING (2026-09-28)** - direct report: "the heros still look
+funny... certain parts that need to be in the back are clipped to the
+front. The models themselves are not concave, that is they are not
+closed." Diagnosed with a temporary Y-axis auto-rotate
+(`CombatMeshPreview._process()`, added first "to test," spinning `_root`
+continuously) - the user spun it and confirmed the symptom directly
+("yeah confirmed, it's clipping"). Root cause: `_unshaded_material()` sets
+`TRANSPARENCY_ALPHA`, and Godot's `StandardMaterial3D` alpha-blend
+materials do NOT write to the depth buffer by default
+(`depth_draw_mode` = `DEPTH_DRAW_OPAQUE_ONLY`) - so triangles within one
+transparent mesh never depth-test against each other, only draw in
+vertex/submission order, regardless of which is actually nearer the
+camera. Combined with `CULL_DISABLED` (both faces render) and a mesh
+that's open/non-manifold (no back wall to occlude anything geometrically
+either), a back-facing triangle drawn after a front-facing one paints over
+it. Fixed with `material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS`
+in `_unshaded_material()` - makes the material write depth like an opaque
+one, so each triangle now correctly depth-tests against whatever already
+drew regardless of submission order. **Confirmed working in-editor** ("yeah
+confirmed" - re-checked live with the diagnostic rotation still spinning).
+The temporary rotate diagnostic (`_process()`/`ROTATE_SPEED_DEG`) was
+removed again once confirmed - `CombatMeshPreview` is static again outside
+an actual attack.
 
 **NOT verified visually in the Player at all** - no monster's
 card orientation (`flat_card_rotation()`), unlit shading, or actual

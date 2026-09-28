@@ -36,9 +36,9 @@ static func make(weapon_name: String, damage: int, types: Array[int], weapon_ran
 ## slot, and both pick from the SAME pool, not separate per-hero lists).
 const HERO_WEAPON_TYPES: Array = [
 	["Gloves", "Throwing Knives"],       # Chance
-	["Sword", "Bow"],                    # Galaden
-	["Warhammer", "Sword"],              # Brynn
-	["War Bell", "Staff"],               # Vaerix
+	["Bow", "Sword"],                    # Galaden - swapped 2026-09-28, acti/actii mismatch confirmed visually
+	["Sword", "Warhammer"],              # Brynn - swapped 2026-09-28, acti/actii mismatch confirmed visually
+	["Staff", "War Bell"],               # Vaerix - swapped 2026-09-28, acti/actii mismatch confirmed visually
 	["Hammer", "Crossbow"],              # Kehli
 	["Staff", "Wand"],                   # Syrus
 ]
