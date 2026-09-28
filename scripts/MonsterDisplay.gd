@@ -409,6 +409,14 @@ static func find_monster(folder: String) -> Dictionary:
 	return {}
 
 
+## This monster's own REAL_MONSTERS size_units (1.0 default for an unlisted
+## folder) - the same physical-size figure the M-view grid already scales
+## by, reused as-is by CombatMeshPreview's relative-scale system (see that
+## script's own doc) for the combat screen's monster side.
+static func size_units(folder: String) -> float:
+	return find_monster(folder).get("size_units", 1.0)
+
+
 ## TEMPORARY - a plain fixed Camera3D made it hard to tell what was
 ## actually wrong with a mesh's orientation/scale ("it's hard to tell
 ## what's wrong" - fair, a static angle can't rotate around a model to

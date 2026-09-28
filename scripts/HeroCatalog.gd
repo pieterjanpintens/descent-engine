@@ -31,9 +31,20 @@ const PORTRAIT_PATHS: Array[String] = [
 	"res://models/heroes_syrus.png",
 ]
 
+## Index-aligned with HERO_NAMES - each hero's size relative to
+## MonsterDisplay's "mercenary" monster (size_units 1.0, the shared baseline
+## both heroes and monsters are normalized against - see CombatMeshPreview's
+## own doc), given directly (2026-09-28): Chance 0.6, Galaden 0.9, Brynn 0.8,
+## Vaerix 1.0, Kehli 0.5, Syrus 0.8.
+const HERO_SIZE_UNITS: Array[float] = [0.6, 0.9, 0.8, 1.0, 0.5, 0.8]
+
 
 static func slot_name(index: int) -> String:
 	return HERO_NAMES[index]
+
+
+static func size_units(index: int) -> float:
+	return HERO_SIZE_UNITS[index]
 
 
 static func slot_color(index: int) -> Color:

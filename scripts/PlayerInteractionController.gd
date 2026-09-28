@@ -324,9 +324,6 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		var damage_types: Array = [] if weapon == null else weapon.damage_types
 		visible = false  # hero bar out of the way of the full-screen combat view
 		var cfg := {
-			"hero_name": hero_name,
-			"weapon_name": "" if weapon == null else weapon.weapon_name,
-			"base_damage": null if weapon == null else weapon.damage,
 			"monster_name": monster.display_name(),
 			"hitpoints": monster.hitpoints,
 			"defense": monster.defense,
@@ -337,6 +334,8 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 			"known_resistances": monster.known_resistances,
 			"immunities": monster.immunities,
 			"known_immunities": monster.known_immunities,
+			"hero_size_units": HeroCatalog.size_units(hero_slot),
+			"monster_size_units": MonsterDisplay.size_units(monster.folder),
 		}
 		if HeroCatalog.has_flat_mesh(hero_slot, weapon_index):
 			cfg["hero_flat_meshes"] = HeroCatalog.flat_mesh_paths(hero_slot, weapon_index)

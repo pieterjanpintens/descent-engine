@@ -645,6 +645,328 @@ only.
 
 **Full-screen combat view (2026-09-26)** - `CombatView` (`scripts/CombatView.gd`) mimics the real game's attack screen: hero croptop left / monster croptop right on a blue->red gradient, weapon-name plaque top-left, monster HP (heart) + defense (shield) and name top-right, centre info box + big successes picker (arrows, disc, "Successes" label) + Confirm/Cancel, "Damage Type" bottom-left (the weapon's damage types as labelled boxes), "Weakness"/"Resistance"/"Immunity" bottom-right. `PlayerDialog.ask_attack(cfg)` shows it (returns -1 on cancel; the hidden `_count_input` stays the source of truth so typed and voice answers - "I rolled four" - work exactly like `ask_count()`); `PlayerInteractionController.attack()` uses it when the successes weren't already spoken. **Monster properties stay hidden until discovered**: each weakness/resistance/immunity is a red "?" box (one per entry, so the count is visible) until an attack with a matching damage type has hit it - `MissionRuntime.resolve_attack()` records that in `RuntimeMonster.known_weaknesses/known_resistances/known_immunities` (persistent for that monster). The hero portrait bar (`PlayerInteractionController`, `visible = false` while `ask_attack()` is up) is hidden during the combat view. **Combat view polish (2026-09-27)** - the "Successes" caption under the picker disc was removed (implied by context). The top-left plaque now shows hero name / weapon name / base damage stacked (`configure()` reads `hero_name`/`weapon_name`/`base_damage`). The info box is now for a MONSTER ABILITY/effect only (`cfg["ability_text"]`, optional, hidden entirely when empty - no monster abilities are authorable yet) rather than a description of the attack; `PlayerInteractionController.attack()` no longer builds a "X attacks Y..." string for it. Confirm/Cancel (+ the voice hint label) moved out of the centre column to their own bottom-anchored group between the Damage Type and Weakness/Resistance/Immunity columns, so they sit at a fixed spot regardless of the (optional) info box's height. Compile-checked / built headlessly; not seen rendered.
 
+**Art blown up to fill the screen, drawn behind the UI (2026-09-28)** -
+direct request with a reference screenshot: "try to make the hero/monsters
+a lot bigger, just draw them behind the UI elements... to give an
+impression of the real game." `_hero_preview`/`_monster_preview`'s anchors
+changed from a small centred box (2-44% width, 12-62% height) to
+FULL-HEIGHT and most of the width each (`_anchor(_hero_preview, 0.0, 0.55,
+0.0, 1.0)` / `_anchor(_monster_preview, 0.45, 1.0, 0.0, 1.0)`) - a
+deliberate 10%-of-width overlap in the middle (0.45-0.55) rather than
+meeting edge-to-edge at 0.5, so a weapon/limb can dramatically cross into
+the centre the way the reference screenshot's hammer does. **"Behind the
+UI" needed no z-order change at all** - both previews were already
+`add_child()`ed before every other node in `_build()` (plaque/stats/
+centre/buttons/bottom columns), so Control's child-order-is-draw-order
+already put them at the back; that just was never visible while the art
+was small enough to never reach under anything. `CombatMeshPreview`'s
+`SubViewportContainer.stretch = true` auto-resizes its child `SubViewport`
+to the container's actual pixel size on layout, so no internal-resolution
+change was needed to avoid blur at the larger size - and `_frame_camera()`'s
+existing "size the ortho camera off the mesh's own AABB, independent of
+container size" logic means enlarging the anchor box directly enlarges
+the rendered character with zero camera-math changes. Verified headlessly
+in a throwaway scene (`_check_combat_view_layout.gd`, deleted after) at a
+1600x900 window: hero rect `(0,0)-(880,900)`, monster rect
+`(720,0)-(1600,900)` - full height, a 160px (10%) overlap, and both sit at
+child index 1/2 of 9 (right after the background, before everything
+else) - matches the intended geometry exactly, not just assumed from the
+anchor numbers. **Not yet seen rendered** - the geometry is confirmed, the
+actual visual impression (does it read like the reference) still needs a
+real look in the Player.
+
+**No more weapon plaque; damage-type modifiers; ambient smoke (2026-09-28)**
+- three direct follow-ups after the art was blown up (above), all landed
+together:
+1. **Top-left plaque removed** - "given that the weapon is not visible from
+   the character, we can remove it, the character name is also kinda
+   [redundant]... lets remove the blue box top left." `CombatView`'s
+   `_hero_name_label`/`_weapon_label`/`_damage_label` and the `BLUE` const
+   are gone entirely, along with the `PanelContainer` that held them.
+   `PlayerInteractionController.attack()`'s `cfg` dict no longer builds
+   `hero_name`/`weapon_name`/`base_damage` either (those existed ONLY to
+   feed this plaque) - `hero_name` the local VARIABLE stays, still used
+   for the "Which weapon?" prompt and the post-attack log text, just no
+   longer added to `cfg`.
+2. **Damage Type icons now carry a +1/-1/+? modifier badge** - "maybe also
+   show +1/-1 based on know weakness/resistance so players get an idea of
+   what bonuses they can expect. If unknown do '+ ?'." New
+   `CombatView._damage_type_box(kind, known_weaknesses, known_resistances,
+   known_immunities)` wraps the existing `_icon_box()` plus a small `Label`
+   underneath: known weakness -> `"+1"` (green), known resistance ->
+   `"-1"` (red), a known IMMUNITY to that kind (not asked for directly, but
+   added for consistency - `MissionRuntime.resolve_attack()`'s own
+   precedence already treats immune as an override, and leaving it
+   unindicated would silently contradict a property already shown as
+   discovered in the Immunity section) -> `"×"` (grey), both weakness AND
+   resistance known for the same kind (data allows a kind to appear in
+   both lists, though unlikely in practice) -> `"+0"`, anything not yet
+   discovered -> `"+?"` (grey). Deliberately reads ONLY the `known_*` sets
+   cfg already carries, never the full (still-secret) `weaknesses`/
+   `resistances`/`immunities` arrays also present - showing the real
+   answer here would let a table read a monster's hidden properties
+   straight off the weapon picker without ever landing a matching hit
+   first, defeating the whole "hidden until discovered" design the
+   Weakness/Resistance/Immunity sections already establish.
+3. **Ambient smoke** - "to make it spectacular can we add some smoke
+   animation, just to spice up the looks a bit." `CombatView._build_smoke()`
+   (new) adds one `CPUParticles2D` (not `GPUParticles2D` - needs no
+   separate `ParticleProcessMaterial` resource, works the same on every
+   render backend) emitting soft grey wisps from a wide rectangle at the
+   bottom of the screen, drifting upward and fading via a `color_ramp`
+   gradient (fade in by 20% of lifetime, hold, fade out by 100%).
+   `preprocess = lifetime` so the screen doesn't open empty and fill up
+   over the first several seconds. The "smoke" sprite is a generated
+   radial-gradient texture (`GradientTexture2D`, `FILL_RADIAL`) - no
+   external asset, same generated-placeholder approach as every other
+   piece of this project's own art. Added right after the hero/monster art
+   (drifts OVER the characters, not hidden behind them - the art now fills
+   nearly the whole screen, so anything placed further back would barely
+   show) and before every other UI element, same z-order convention the
+   art's own comment already documents. A plain `Node2D`-based system
+   (CPUParticles2D isn't a Control) added directly under this `Control` -
+   Node2D ignores Godot's Control mouse/layout system entirely, so it
+   can't block clicks and needed no `mouse_filter`. Position/size are
+   computed once from `get_viewport_rect().size` at build time, not kept
+   in sync with a later resize - same simplification every other piece of
+   this experimental combat view already makes (it's shown full-screen and
+   not expected to resize live).
+
+Verified headlessly where possible: a scene test confirmed the smoke node
+exists with the expected amount/lifetime/texture/color_ramp and the
+correct emission rect/position for a 1600x900 window. The damage-type
+badge logic could NOT be exercised the same way - `_icon_box()` calls
+`Vulnerability.icon()`, which needs the `OfficialAssetOverrides` autoload,
+unavailable in `-s` script mode (a known, already-documented limitation of
+this project's own headless test harness) - so that part is reasoned
+through by code review plus the full-project `--import` compile check
+(which DOES register autoloads) passing clean, not exercised end-to-end.
+**Smoke tuned down after two real looks in the Player, same day (2026-09-28)**
+- the badges and plaque removal weren't reported as wrong; the smoke went
+through two follow-up rounds:
+1. "the smoke bubbles go up to high and the are to big; also they have a
+   moment that they are very shiny" - `lifetime`/`preprocess` cut
+   7.0 -> 4.5, `gravity` -5 (was -10, less upward acceleration),
+   `initial_velocity` 6-16 (was 14-34) so wisps stay low near where they
+   spawn instead of climbing the whole screen; `scale_amount` 0.6-1.6 (was
+   1.6-3.8, much smaller); the colour ramp changed from a two-plateau shape
+   to one smooth rise-and-fall peaking at alpha 0.14 (was 0.35), and the
+   generated puff texture's own center alpha dropped from a fully-opaque
+   1.0 to 0.6 - both feed the "shiny" flash a particle showed at its peak,
+   since the ramp and texture alpha multiply together.
+2. "i think making more smaller ones with slightly varying size will be
+   perfect, the shiny part happens in the middle" - confirms the flash IS
+   specifically the ramp's peak (the middle of a particle's own life, not
+   the screen), not a reason to abandon the approach. `amount` raised
+   30 -> 48, `scale_amount` narrowed further to 0.35-0.85 (still
+   per-particle randomized, so still "slightly varying," just around a
+   smaller baseline), the ramp's peak alpha dropped again to 0.09, and the
+   texture's own core alpha dropped again to 0.45 - smaller, more numerous,
+   and dimmer at peak together, so no individual wisp reads as a
+   noticeable bright puff.
+
+**Smoke replaced entirely with dust + sparks at the feet, same day, third
+round (2026-09-28)** - "i want to represent dust and smoke at the feets, to
+give it a bit of animo, but now it looks kinda chemical"; "fire sparks are
+also nice." The two tuning rounds above shrank and dimmed the effect, but
+the STRUCTURE was the real problem: one wide `EMISSION_SHAPE_RECTANGLE`
+spanning the whole screen width, rising in unison from a single flat band,
+reads like a fog machine or lab bubbles - not a kick-up at anyone's feet.
+`_build_smoke()`/`_smoke_texture()` were removed outright and replaced with
+four localized `CPUParticles2D` bursts, two per fighter (`_build_foot_dust()`
++ `_build_foot_sparks()`, both parametrized by an `x_fraction`, called once
+each for `HERO_FOOT_X`/`MONSTER_FOOT_X` - new consts, the horizontal centre
+of each side's own preview box; `FOOT_Y_FRACTION` = 0.97, near the very
+bottom of the screen). Both texture generators were unified into one
+`_puff_texture(core_color)` (parametrized by colour instead of a fixed
+white/grey), replacing `_smoke_texture()`.
+- **Dust**: `EMISSION_SHAPE_RECTANGLE` sized to a small stance-width area
+  (not the screen), a WIDE spread (70°, mostly sideways with a little up -
+  dust radiates outward from an impact, it doesn't rise like buoyant
+  smoke), positive (downward) `gravity` so it settles back down instead of
+  climbing, and `damping_min`/`damping_max` so it kicks out fast then
+  visibly slows - a "kick, spread, settle" motion instead of an even
+  drift. Warm dusty tan tint (`Color(0.72, 0.62, 0.46, ...)`), not neutral
+  grey, so it reads as ground dust rather than machine fog.
+- **Sparks (short-lived)** - same shape/positioning idea, much smaller,
+  much shorter-lived, faster, pulled down hard (embers arc back down
+  quickly), bright yellow-orange colour ramp, and **additive blending**
+  via a `CanvasItemMaterial` (`blend_mode = BLEND_MODE_ADD`) assigned to
+  the node's own `material` property - CPUParticles2D has no
+  `ParticleProcessMaterial` the way GPUParticles2D does, but it's still a
+  `CanvasItem` underneath, so a plain canvas material works - this is what
+  made sparks actually glow against the dark background instead of
+  reading as flat orange dots; the dust deliberately stayed normal alpha
+  blending throughout (a glowing dust cloud would look wrong).
+
+Verified headlessly at this point (not just reasoned about, given how much
+this restructured): a scene test at a 1600x900 window confirmed exactly 4
+`CPUParticles2D` nodes existed, at the expected positions `(440, 873)`/
+`(1160, 873)` (0.275/0.725 x 1600, 0.97 x 900), and the sparks' own
+`material.blend_mode` read `1` (`CanvasItemMaterial.BLEND_MODE_ADD`) while
+the dust nodes' `material` was unset (`none`), confirming the
+additive-vs-normal split actually took.
+
+**Sparks removed again, dust scaled back UP, fourth round, same day** -
+direct feedback after an actual look: "mm its way to small now, actually
+the first version with the big smoke bubbles looked the best; remove the
+sparks; try to use bigger clouds but with the new sprites." Read as: keep
+the foot-localized, settle-down STRUCTURE from the third round (that fixed
+a real, distinct complaint - "looks kinda chemical" - and wasn't itself
+called out as wrong here), but the SIZE went too far in the shrinking
+direction across the two tuning rounds before the sparks even existed, and
+should go back toward the very first pass's own big scale. `_build_foot_sparks()`
+was deleted outright (not just disabled - confirmed via
+`view.has_method("_build_foot_sparks")` returning `false` in a headless
+test, and its two call sites in `_build()` removed). `_build_foot_dust()`'s
+`scale_amount` went from 0.35-0.9 back up to 1.6-3.2 (close to the very
+first pass's own 1.6-3.8), `amount` dropped 16 -> 20... actually reads as
+FEWER-but-bigger relative to how crowded the shrunk version was at 16
+small particles, `lifetime`/`preprocess` extended 1.6 -> 2.2s so a bigger
+cloud has room to visibly billow before fading, and the emission rectangle
+widened slightly (0.05 of screen width, was 0.03) so several big clouds
+don't all spawn from the exact same point. "The new sprites" = the
+`_puff_texture(core_color)` generator and its warm dusty tint from the
+third round, kept as-is - nothing was asked to revert to the original
+neutral grey/white look, only the size and the sparks.
+
+Verified headlessly again after this pass: exactly 2 `CPUParticles2D`
+nodes now (sparks confirmed gone via the `has_method()` check above),
+`amount=20`, `lifetime=2.2`, `scale_amount` `1.6`-`3.2` at both foot
+positions, `material` unset on both (dust never carried the additive
+material to begin with, so removing sparks left nothing behind to clean
+up there). **Still not seen rendered** - the foot-position guesses
+(`HERO_FOOT_X`/`MONSTER_FOOT_X`) are exactly that, guesses, since there's
+no way to know where a given mesh's feet land on screen from this
+environment; the whole look (position, warmth, cloud size/density,
+motion) needs a real look before it's trusted. A real downloadable CC0
+smoke sprite pack (Kenney's "Smoke Particles," kenney.nl, 70 PNGs) was
+found and offered as an alternative to the generated gradient texture but
+never actually downloaded/integrated - the generated `_puff_texture()`
+approach is still what's shipped; revisit if the generated look is ever
+judged not good enough on its own.
+
+**All particle effects removed, same day, fifth and final round** - direct
+feedback once actually seen at the bigger scale: "does not look good
+remove the particles all together, we come back to that." Four rounds of
+tuning (wide ambient band -> localized foot burst -> sparks added -> sparks
+removed + scale enlarged) never landed on something that read well, so
+rather than tune a fifth time, the whole feature came out: `_build_foot_dust()`
+and `_puff_texture()` are both deleted (confirmed via `Grep` for
+`CPUParticles2D`/`_puff_texture`/`_build_foot`/`FOOT_X`/`FOOT_Y` across the
+file turning up nothing left except one doc-comment reference), the two
+`_build_foot_dust()` call sites and the now-unused `HERO_FOOT_X`/
+`MONSTER_FOOT_X`/`FOOT_Y_FRACTION` consts are gone too, and `_build()` left
+with a short comment pointing at this section of claude.md as the starting
+point for a future attempt, rather than any code. **Explicitly "we come
+back to that"** - not abandoned, just parked; the candidate directions
+already explored (and their outcomes) are: a generated `_puff_texture()`
+gradient sprite (never looked right at any tried size/count/position), the
+foot-localized positioning idea (fixed the "chemical" complaint but the
+follow-on size tuning never satisfied), additive-blended sparks (added
+then explicitly asked to be removed), and Kenney's CC0 "Smoke Particles"
+pack (kenney.nl, 70 PNGs, found and offered but never actually downloaded
+or tried) - a real sprite sheet instead of a generated gradient is probably
+worth trying first next time, since every round of tuning the generated
+texture's own shape/softness never got specific negative feedback the way
+size/position/structure did, but the generated LOOK itself may simply be
+the ceiling of what a code-only radial gradient can achieve.
+
+**Relative scale between heroes and monsters, same day (2026-09-28)** -
+direct request: "do we have a relative scale of the monsters and heroes?"
+- answer was no: `MonsterDisplay`'s own M-view grid already scales
+monsters relative to EACH OTHER (`target_figure_diagonal` x `size_units`,
+Centurion at 2x everyone else), but that's monster-only, and
+`CombatMeshPreview`'s two sides (hero/monster) each independently
+auto-fit their own camera to whatever mesh was shown - a huge Centurion
+and a tiny Wolf, or a hero next to either, all rendered at the same
+on-screen size regardless of true relative scale. Fixed with a new
+system, added directly: "yes, add relative scale using size_units for
+monsters, for heroes. take the mercanary as a base and use this sizing:
+bryn: 0.8, galadan: 0.9, vairix: 1, kelhi: 0.5, syrus: 0.8, chance: 0.6."
+- `HeroCatalog.HERO_SIZE_UNITS`/`size_units(index)` (new) - the given
+  values, index-aligned with `HERO_NAMES`.
+- `MonsterDisplay.size_units(folder)` (new) - a thin wrapper over
+  `find_monster(folder).get("size_units", 1.0)`, reusing the SAME
+  `REAL_MONSTERS` data the M-view grid already has (Centurion still 2.0,
+  everyone else 1.0) rather than a second, parallel dataset.
+- `CombatMeshPreview` gained the actual mechanism: every mesh shown via
+  `show_meshes()` is scaled (`_root.scale`) by
+  `(reference_diagonal * size_units) / raw_diagonal` - the EXACT same
+  diagonal-based formula `MonsterDisplay._build_real_figure()` already
+  uses for the M-view, just against a DIFFERENT reference point, since
+  the M-view's own `target_figure_diagonal` is an arbitrary placeholder-
+  cube size with no meaning for these "flat card" meshes.
+  `REFERENCE_MONSTER_FOLDER = "mercenary"` ("take the mercenary as a
+  base") - `_reference_diagonal()` lazily loads/caches Mercenary's own
+  flat-card mesh once and returns its raw AABB diagonal, the "size_units
+  1.0" reference everything else scales against. `show_quad()`'s
+  fallback path (a flat crop image, no size_units concept) is untouched
+  and keeps auto-fitting via the original `_frame_camera()` - it also now
+  explicitly resets `_root.scale` (a real latent bug otherwise: a stale
+  scale factor from a PREVIOUS `show_meshes()` call on the same reused
+  preview would silently carry over, the exact same class of bug this
+  project already fixed once for rotation).
+- **Camera framing had to become FIXED, not auto-fit, for relative scale
+  to actually be visible** - if the camera still auto-fit to whatever's
+  shown, a scaled-down mesh would just get zoomed back in to fill the
+  frame, cancelling the whole point. `_frame_camera_relative()` (new,
+  `show_meshes()`'s relative-scale path only) uses a camera size that
+  does NOT depend on which specific mesh is being shown, so two calls
+  sharing the same camera size render at genuinely different apparent
+  sizes when their own `size_units` differ.
+- **What that fixed camera size should be was corrected the same day,
+  twice more**: first tried sizing it off the LARGEST size_units in the
+  whole game (Centurion, 2.0) - correct for relative scale, but meant
+  almost every real encounter (nothing else reaches 2.0) rendered small
+  inside headroom reserved for a creature that isn't even there. "ok but
+  now let try to show characters as big as possible, not relative to the
+  biggest character in the game but to each other" - `show_meshes()`
+  gained a SECOND, separate parameter, `camera_size_units` (the fixed
+  frame size), distinct from `size_units` (this mesh's own size) -
+  `CombatView.configure()` (the only place that sees both sides of an
+  encounter at once) now computes `maxf(hero_size_units,
+  monster_size_units)` ONCE and passes that SAME value to both
+  `_configure_preview()` calls, so e.g. a Wolf (1.0) vs. Kehli (0.5)
+  encounter fills the frame based on the Wolf's own 1.0, while a
+  Centurion encounter still gets its actual 2.0 headroom - both sides
+  MUST receive the identical value or the whole mechanism silently breaks
+  again (documented explicitly in both scripts' own comments, since nothing
+  enforces this at the type level). Then, same day, a second correction:
+  "make them bigger again, they can really fill the entire space off the
+  screen, if they fall off a bit that is ok" - `RELATIVE_CAMERA_MARGIN`
+  dropped from `1.15` (15% headroom around the figure) to `0.85`
+  (deliberately BELOW 1.0 - the frame is now smaller than the figure's
+  own diagonal, so it fills and slightly overflows the screen on purpose,
+  clipping accepted).
+- `PlayerInteractionController.attack()`'s `cfg` builder gained
+  `"hero_size_units": HeroCatalog.size_units(hero_slot)` /
+  `"monster_size_units": MonsterDisplay.size_units(monster.folder)`.
+
+Verified partially headlessly, then stopped short at the user's own
+request ("stop testing ffs") - a scene-based test (autoloads are needed
+for `HeroCatalog`/`MonsterDisplay`, unavailable in plain `-s` script mode,
+same limitation this doc already notes elsewhere - so this went through a
+real throwaway `.tscn`, not just a `.gd` run via `-s`) confirmed, against
+the REAL mercenary/wolf mesh data in this dev environment: every hero's
+`size_units()` matches the given values exactly; Mercenary at
+`size_units=1.0` scales to exactly `1.0`; Wolf (also `size_units=1.0`)
+renders at the same diagonal as Mercenary (`0.036377...`, matching to 8
+significant figures) and, critically, at the IDENTICAL `camera.size` as
+Mercenary despite being a completely different mesh - confirming the
+fixed-frame mechanism actually holds camera size constant across
+different meshes sharing the same `camera_size_units`. The follow-on
+checks (a hero's own scaling, a Centurion encounter getting a bigger
+frame than a Wolf/Kehli one, and `CombatView.configure()` itself applying
+the identical `camera.size` to both its hero and monster preview) were
+cut off by a test-script-only bug (an unrelated `Array`/`Array[String]`
+`:=` inference quirk, not a production-code issue) and never re-verified
+after the fix, since testing was explicitly stopped at that point. The
+`RELATIVE_CAMERA_MARGIN = 0.85` change landed after all scene-based
+testing had already stopped - compile-checked only (`--headless --path .
+--import`, clean), not exercised in a scene at all. **Nothing in this
+whole feature has been seen rendered in the actual Player.**
+
 **Damage-type icons (2026-09-26)**: the text boxes are replaced by icons (`Vulnerability.icon(kind)`, kind < 0 = the red "?" `Icons_Unknown`, used for undiscovered weaknesses/resistances/immunities). Dummy placeholders ship in `models/icons/damage_<kind>.png` (labelled diamonds, same sizes as the real sprites) mapped in `OfficialAssetMap` to the game's `Icons_Pierce/Slash/Crush/Lumos/Aquos/Ignos/Mortos/Terros/Anemos/Unknown` (found under `assets/d3/glossaryterms/damage/mainterms/damage types/`, Sprites; fetched by the normal import script - 58/58 now). The game ALSO has `Icons_Fortunos/Toxos/Umbros/Vigos`, which our `Vulnerability.Kind` doesn't have. Rest of the view is still Placeholder look (flat colours, no game art, glyph stand-ins for icons; the croptops are the wide crop images, not the game's full-body art). Verified headlessly (builds, arrows, voice answer confirms, property sections/"?" counts); layout not seen rendered.
 
 **Save/Load games (2026-09-27)** - "dumping the game state is enough": no

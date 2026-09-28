@@ -21,6 +21,44 @@ extends SubViewportContainer
 ## also keeps the crop-quad mockup and the real card visually consistent
 ## with each other.
 
+## Relative scale (new 2026-09-28, direct request - "add relative scale
+## using size_units for monsters, for heroes... take the mercenary as a
+## base") - both sides used to independently auto-fit their camera to
+## whatever mesh was shown, so a huge Centurion and a tiny Wolf (or a hero
+## standing next to either) all rendered at roughly the same on-screen
+## size regardless of their true relative scale. Now: every mesh is scaled
+## against ONE shared reference (REFERENCE_MONSTER_FOLDER's own raw flat-
+## card diagonal, cached lazily below) by its own `size_units` (see
+## show_meshes()'s new parameter, HeroCatalog.size_units()/MonsterDisplay.
+## size_units() on the calling side), and the camera uses a FIXED size
+## (not an auto-fit one) so relative scale between the two sides survives
+## being rendered in two entirely separate SubViewports.
+##
+## What that fixed size should actually BE was corrected the same day,
+## same request: originally sized to comfortably hold the largest
+## size_units in the WHOLE roster (Centurion, 2.0) regardless of who's
+## actually fighting - meaning almost every real encounter (nothing else
+## reaches 2.0) rendered small, with most of the frame sitting empty. "ok
+## but now let try to show characters as big as possible, not relative to
+## the biggest character in the game but to each other" - `show_meshes()`'s
+## `camera_size_units` parameter (new, no longer a fixed MAX_SIZE_UNITS
+## const) is now THIS ENCOUNTER's own larger of the two `size_units`
+## involved, computed once by CombatView.configure() (the only place that
+## sees both sides at once) and passed identically to both previews - a
+## Wolf (1.0) fighting a Kehli (0.5) now fills the frame based on the
+## Wolf's own 1.0, not Centurion's global 2.0, while still rendering Kehli
+## correctly smaller within that same frame; a Centurion encounter still
+## gets the full 2.0 headroom it actually needs. Both previews MUST receive
+## the identical value for this to work - a mismatched pair would silently
+## reintroduce the exact bug this whole feature fixes, since camera.size
+## directly determines world-units-per-pixel independently per viewport.
+## show_quad()'s own fallback path is untouched (no size_units concept
+## applies to a flat crop image) and keeps auto-fitting via the original
+## _frame_camera().
+const REFERENCE_MONSTER_FOLDER := "mercenary"
+const RELATIVE_CAMERA_MARGIN := 0.85  # 2026-09-28: "make them bigger again... fill the entire space of the screen, if they fall off a bit that is ok" - below 1.0 on purpose, so the frame is now smaller than the figure's own diagonal instead of padded around it
+static var _cached_reference_diagonal := -1.0  # lazily computed once, shared by every CombatMeshPreview instance
+
 var _viewport: SubViewport
 var _camera: Camera3D
 var _root: Node3D
@@ -61,6 +99,7 @@ func _ready() -> void:
 func show_quad(texture: Texture2D) -> void:
 	_clear()
 	_root.rotation_degrees = Vector3.ZERO  # a stale correction from a previous show_meshes() call must not carry over
+	_root.scale = Vector3.ONE  # ditto for a stale relative-scale factor - see show_meshes()'s own doc
 	if texture == null:
 		return
 	var aspect: float = float(texture.get_width()) / float(maxi(texture.get_height(), 1))
@@ -81,10 +120,18 @@ func show_quad(texture: Texture2D) -> void:
 ## the wings needing a genuinely different texture - see that method's own
 ## doc). `rotation_degrees_correction` (MonsterDisplay.flat_card_rotation())
 ## corrects the card's true facing, since the flat mesh's own orientation is
-## unverified - see that field's own doc.
-func show_meshes(mesh_paths: Array[String], default_texture: Texture2D, rotation_degrees_correction: Vector3 = Vector3.ZERO, surface_texture_overrides: Dictionary = {}) -> void:
+## unverified - see that field's own doc. `size_units` (new 2026-09-28,
+## default 1.0 - the shared baseline, so an un-updated caller keeps
+## rendering exactly as before) is THIS mesh's own size relative to
+## REFERENCE_MONSTER_FOLDER; `camera_size_units` (also new) is the larger of
+## the two size_units actually present in the current encounter (the SAME
+## value must be passed to both the hero and monster preview for a given
+## encounter) - see this script's own class-level doc above for the full
+## mechanism and why these are two different numbers.
+func show_meshes(mesh_paths: Array[String], default_texture: Texture2D, rotation_degrees_correction: Vector3 = Vector3.ZERO, surface_texture_overrides: Dictionary = {}, size_units: float = 1.0, camera_size_units: float = 1.0) -> void:
 	_clear()
 	_root.rotation_degrees = rotation_degrees_correction
+	_root.scale = Vector3.ONE  # measure the RAW (unscaled) combined AABB below before applying any relative-scale factor
 	var combined := AABB()
 	var first := true
 	var default_material := _unshaded_material(default_texture)
@@ -110,9 +157,59 @@ func show_meshes(mesh_paths: Array[String], default_texture: Texture2D, rotation
 		combined = aabb if first else combined.merge(aabb)
 		first = false
 	if not first:
-		# Frame the ROTATED bounds (basis applied to the AABB), not the mesh's
-		# own local-space one, so a correction doesn't clip out of view.
-		_frame_camera(_root.transform * combined)
+		# Scale this mesh, relative to the shared reference diagonal, by its
+		# own size_units - matches MonsterDisplay._build_real_figure()'s own
+		# diagonal-based formula exactly (diagonal, not a single axis, since
+		# a mesh's "tall" axis isn't consistent across every source asset -
+		# see that method's own doc for why).
+		var raw_diagonal := combined.size.length()
+		var reference := _reference_diagonal()
+		var scale_factor := (reference * size_units) / raw_diagonal if raw_diagonal > 0.0 else 1.0
+		_root.scale = Vector3.ONE * scale_factor
+		# Frame the ROTATED-AND-SCALED bounds (basis applied to the AABB), not
+		# the mesh's own local-space one, so a correction doesn't clip out of
+		# view - but with a FIXED camera size (not an auto-fit one), so a
+		# smaller size_units figure genuinely renders smaller within the
+		# shared frame instead of being zoomed to fill it.
+		_frame_camera_relative((_root.transform * combined).get_center(), reference, camera_size_units)
+
+
+## Lazily loads/caches REFERENCE_MONSTER_FOLDER's own flat-card mesh once
+## and returns its raw (unscaled) AABB diagonal - the shared "size_units
+## 1.0" reference every show_meshes() call scales against. A plain float
+## cache, not the mesh itself, is kept around (nothing else ever needs the
+## reference mesh's actual geometry). Falls back to 1.0 (a no-op reference -
+## every mesh then renders at its own raw scale, same as before this
+## feature existed) if the reference mesh can't be found/loaded, so a
+## missing/not-yet-imported asset degrades gracefully rather than breaking
+## every combat screen.
+static func _reference_diagonal() -> float:
+	if _cached_reference_diagonal < 0.0:
+		_cached_reference_diagonal = 1.0
+		var paths := MonsterDisplay.flat_mesh_paths(REFERENCE_MONSTER_FOLDER)
+		if not paths.is_empty():
+			var mesh: ArrayMesh = ResourceLoader.load(paths[0])
+			if mesh != null:
+				var diagonal := mesh.get_aabb().size.length()
+				if diagonal > 0.0:
+					_cached_reference_diagonal = diagonal
+	return _cached_reference_diagonal
+
+
+## The fixed-size counterpart to _frame_camera() above (used only by
+## show_meshes()'s relative-scale path) - camera.size is constant for a
+## given `camera_size_units` (reference * camera_size_units * margin)
+## regardless of which specific mesh is shown, so relative scale between
+## calls sharing the same `camera_size_units` is preserved; only the
+## centering point changes per mesh. `camera_size_units` itself is the
+## caller's job to pick consistently (CombatView.configure() uses the
+## larger of the current encounter's two size_units) - see show_meshes()'s
+## own doc for why this must match between the hero and monster preview.
+func _frame_camera_relative(center: Vector3, reference_diagonal: float, camera_size_units: float) -> void:
+	var camera_size := reference_diagonal * camera_size_units * RELATIVE_CAMERA_MARGIN
+	_camera.size = maxf(camera_size, 0.01)
+	_camera.global_position = center + Vector3(0, 0, camera_size + 1.0)
+	_camera.look_at(center, Vector3.UP)
 
 
 func _unshaded_material(texture: Texture2D) -> StandardMaterial3D:
@@ -156,7 +253,11 @@ func _unshaded_material(texture: Texture2D) -> StandardMaterial3D:
 ## Orthographic size = the AABB's largest extent (plus a small margin) so
 ## the whole piece fits regardless of its own local scale/orientation -
 ## the same "don't assume a shared scale" caution MonsterDisplay's own
-## per-mesh auto-scaling already follows for the M-view miniatures.
+## per-mesh auto-scaling already follows for the M-view miniatures. Used
+## ONLY by show_quad()'s own fallback path now (2026-09-28) - show_meshes()
+## uses the FIXED-size _frame_camera_relative() below instead, so relative
+## scale between different meshes/calls is preserved; a flat crop image has
+## no size_units concept, so it keeps auto-fitting to always fill its box.
 func _frame_camera(aabb: AABB) -> void:
 	var center := aabb.get_center()
 	var extent := maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))

@@ -2,15 +2,26 @@ class_name CombatView
 extends Control
 
 ## The full-screen attack screen (modelled on the real game's combat dialog):
-## hero art left, monster art right, weapon plaque top-left, monster hitpoints
-## and defense top-right, an info box and the big successes picker in the
-## middle with Confirm/Cancel below it, "Damage Type" bottom-left and
-## "Weakness" / "Resistance" / "Immunity" bottom-right. Those monster
-## properties stay "?" (one per entry, so the table sees how many there are)
-## until an attack with a matching damage type has hit the monster - see
-## RuntimeMonster.known_*. Pure presentation - PlayerDialog.ask_attack() owns
-## the awaiting, the value (its hidden SpinBox) and the voice answers, and
-## just calls configure()/show_value() and listens to the buttons/signal below.
+## hero art left, monster art right (full-height, drawn behind every other
+## element here - deliberately diverging from the real game's own smaller
+## portraits, "to give an impression of the real game" rather than replicate
+## it exactly), monster hitpoints and defense top-right, an info box and the
+## big successes picker in the middle with Confirm/Cancel below it, "Damage
+## Type" bottom-left (each icon with a +1/-1/+? modifier badge - see
+## _damage_type_box()) and "Weakness" / "Resistance" / "Immunity"
+## bottom-right. Those monster properties stay "?" (one per entry, so the
+## table sees how many there are) until an attack with a matching damage type
+## has hit the monster - see RuntimeMonster.known_*. Pure presentation -
+## PlayerDialog.ask_attack() owns the awaiting, the value (its hidden
+## SpinBox) and the voice answers, and just calls configure()/show_value()
+## and listens to the buttons/signal below.
+##
+## No hero-name/weapon-name/base-damage plaque (removed 2026-09-28, direct
+## request - "given that the weapon is not visible from the character, we
+## can remove it, the character name is also kinda [redundant]... lets
+## remove the blue box top left") - the weapon itself was never rendered on
+## the hero mesh (see HeroCatalog's own "Weapon" bone/socket doc - nothing's
+## attached to it), so naming it added little.
 ##
 ## Placeholder look: flat colours and shapes, no game art.
 
@@ -25,9 +36,6 @@ var hint_label: Label
 ## own doc.
 var _hero_preview: CombatMeshPreview
 var _monster_preview: CombatMeshPreview
-var _hero_name_label: Label
-var _weapon_label: Label
-var _damage_label: Label
 var _hp_label: Label
 var _defense_label: Label
 var _monster_name_label: Label
@@ -39,8 +47,11 @@ var _property_sections: Dictionary = {}  # "weakness"/"resistance"/"immunity" ->
 
 const GOLD := Color(1.0, 0.92, 0.45)
 const ORANGE := Color(0.85, 0.42, 0.05)
-const BLUE := Color(0.12, 0.42, 0.68)
 const ICON_HEIGHT := 64.0
+const WEAKNESS_COLOR := Color(0.45, 0.85, 0.45)   # +1 - a known weakness to this damage type
+const RESISTANCE_COLOR := Color(0.88, 0.35, 0.35) # -1 - a known resistance to this damage type
+const IMMUNE_COLOR := Color(0.55, 0.55, 0.6)      # x - already known to be immune to this type
+const UNKNOWN_MODIFIER_COLOR := Color(0.75, 0.75, 0.75) # +? - not yet discovered either way
 
 
 func _ready() -> void:
@@ -65,39 +76,36 @@ func _build() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
 
-	# Art: hero on the left, monster on the right.
+	# Art: hero on the left, monster on the right - full-height and wide, like
+	# the real game's own attack screen (2026-09-28, "try to make the
+	# hero/monsters a lot bigger, just draw them behind the UI elements... to
+	# give an impression of the real game"). Added BEFORE every other node
+	# below (plaque/stats/centre/buttons/bottom columns) so those all draw ON
+	# TOP of the art regardless of how far it extends - Control z-order is
+	# child order, and this was already true even at the old small size, it
+	# just wasn't visible since the art never reached under anything. A
+	# generous horizontal overlap (0.45-0.55) toward the centre, rather than
+	# meeting edge-to-edge at 0.5, so a weapon/limb can dramatically cross
+	# into the middle the way the reference screenshot's hammer does.
 	_hero_preview = CombatMeshPreview.new()
-	_anchor(_hero_preview, 0.02, 0.44, 0.12, 0.62)
+	_anchor(_hero_preview, 0.0, 0.55, 0.0, 1.0)
 	_hero_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_hero_preview)
 	_monster_preview = CombatMeshPreview.new()
-	_anchor(_monster_preview, 0.56, 0.98, 0.12, 0.62)
+	_anchor(_monster_preview, 0.45, 1.0, 0.0, 1.0)
 	_monster_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_monster_preview)
 
-	# Top-left plaque: hero name, weapon name, base damage - like the real
-	# game's own equipped-weapon plaque, but stacked (that one only ever shows
-	# one hero/weapon at a time; we need hero + weapon + damage together).
-	var plaque := _panel(BLUE, 4)
-	plaque.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	plaque.offset_left = 0
-	plaque.offset_top = 12
-	plaque.custom_minimum_size = Vector2(260, 0)
-	add_child(plaque)
-	var plaque_box := VBoxContainer.new()
-	plaque_box.add_theme_constant_override("separation", 2)
-	plaque.add_child(plaque_box)
-	_hero_name_label = Label.new()
-	_hero_name_label.add_theme_font_size_override("font_size", 24)
-	plaque_box.add_child(_hero_name_label)
-	_weapon_label = Label.new()
-	_weapon_label.add_theme_font_size_override("font_size", 18)
-	_weapon_label.modulate = Color(1, 1, 1, 0.85)
-	plaque_box.add_child(_weapon_label)
-	_damage_label = Label.new()
-	_damage_label.add_theme_font_size_override("font_size", 16)
-	_damage_label.modulate = GOLD
-	plaque_box.add_child(_damage_label)
+	# Particle effects (dust/smoke, briefly also fire sparks) at each
+	# fighter's feet were tried and removed again 2026-09-28 - several
+	# rounds of tuning (wide ambient band -> localized burst -> bigger
+	# clouds, sparks added then removed) never landed ("does not look good
+	# remove the particles all together, we come back to that"). See
+	# claude.md's own history for the full saga if picking this back up -
+	# the generated `_puff_texture()`/CPUParticles2D approach, the
+	# foot-localized positioning idea, and a real CC0 sprite pack
+	# (Kenney's "Smoke Particles") that was found but never actually
+	# integrated are all documented there as starting points.
 
 	# Top-right: hitpoints (heart) + defense (shield), monster name below.
 	var stats := VBoxContainer.new()
@@ -202,10 +210,10 @@ func _build() -> void:
 		_property_sections[key] = {"section": section, "box": box}
 
 
-## cfg: hero_name, weapon_name, base_damage, monster_name, hitpoints,
-## defense, damage_types (Array of Vulnerability.Kind), per property kind
-## (weaknesses/resistances/immunities, each an Array of Kind) plus its
-## known_* twin (the ones already discovered), and optional `ability_text` -
+## cfg: monster_name, hitpoints, defense, damage_types (Array of
+## Vulnerability.Kind), per property kind (weaknesses/resistances/immunities,
+## each an Array of Kind) plus its known_* twin (the ones already
+## discovered - see the Damage Type badges below), and optional `ability_text` -
 ## a MONSTER ability/effect ("Resilience: immune to affliction..."), not a
 ## description of the attack; the info box is hidden entirely when this is
 ## empty (no monster abilities are authorable yet - fill this in once they
@@ -218,14 +226,22 @@ func _build() -> void:
 ## `monster_image` (Texture2D, the old crop_texture() mockup) shown as a
 ## textured quad through that SAME preview mechanism. `monster_flat_rotation`/
 ## `monster_flat_surface_overrides` are monster-only (Centurion's wings need
-## a distinct texture; heroes have no such override case yet).
+## a distinct texture; heroes have no such override case yet). `hero_size_units`/
+## `monster_size_units` (new 2026-09-28, default 1.0 each) feed
+## CombatMeshPreview's relative-scale system - see that script's own doc.
+## The camera frame itself is sized off `maxf()` of the two - THIS
+## encounter's own larger fighter, not the largest size_units in the whole
+## game - so a small pair (e.g. Kehli vs. a Wolf) fills the screen as much
+## as a Centurion encounter does, rather than every non-Centurion fight
+## rendering small inside headroom reserved for a creature that isn't
+## actually there ("show characters as big as possible, not relative to the
+## biggest character in the game but to each other").
 func configure(cfg: Dictionary) -> void:
-	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"), cfg.get("hero_flat_rotation", Vector3.ZERO))
-	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}))
-	_hero_name_label.text = cfg.get("hero_name", "")
-	_weapon_label.text = cfg.get("weapon_name", "")
-	var base_damage: Variant = cfg.get("base_damage")
-	_damage_label.text = "Damage %s" % base_damage if base_damage != null else ""
+	var hero_size_units: float = cfg.get("hero_size_units", 1.0)
+	var monster_size_units: float = cfg.get("monster_size_units", 1.0)
+	var camera_size_units := maxf(hero_size_units, monster_size_units)
+	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"), cfg.get("hero_flat_rotation", Vector3.ZERO), {}, hero_size_units, camera_size_units)
+	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), monster_size_units, camera_size_units)
 	_hp_label.text = str(cfg.get("hitpoints", 0))
 	_defense_label.text = str(cfg.get("defense", 0))
 	_monster_name_label.text = cfg.get("monster_name", "")
@@ -235,9 +251,12 @@ func configure(cfg: Dictionary) -> void:
 	show_value(0)
 
 	var damage_types: Array = cfg.get("damage_types", [])
+	var known_weaknesses: Array = cfg.get("known_weaknesses", [])
+	var known_resistances: Array = cfg.get("known_resistances", [])
+	var known_immunities: Array = cfg.get("known_immunities", [])
 	_clear(_damage_box)
 	for kind in damage_types:
-		_damage_box.add_child(_icon_box(kind))
+		_damage_box.add_child(_damage_type_box(kind, known_weaknesses, known_resistances, known_immunities))
 
 	for pair in [["weakness", "weaknesses", "known_weaknesses"], ["resistance", "resistances", "known_resistances"], ["immunity", "immunities", "known_immunities"]]:
 		var entry: Dictionary = _property_sections[pair[0]]
@@ -256,12 +275,12 @@ func show_value(v: int) -> void:
 
 ## Shared by both sides' configure() branch - real mesh(es) if given, else
 ## the flat-image mockup/fallback quad. See configure()'s own doc.
-func _configure_preview(preview: CombatMeshPreview, flat_meshes: Array, flat_texture: Texture2D, fallback_image: Texture2D, rotation_correction: Vector3 = Vector3.ZERO, surface_overrides: Dictionary = {}) -> void:
+func _configure_preview(preview: CombatMeshPreview, flat_meshes: Array, flat_texture: Texture2D, fallback_image: Texture2D, rotation_correction: Vector3 = Vector3.ZERO, surface_overrides: Dictionary = {}, size_units: float = 1.0, camera_size_units: float = 1.0) -> void:
 	if not flat_meshes.is_empty():
 		var typed_paths: Array[String] = []
 		for path in flat_meshes:
 			typed_paths.append(str(path))
-		preview.show_meshes(typed_paths, flat_texture, rotation_correction, surface_overrides)
+		preview.show_meshes(typed_paths, flat_texture, rotation_correction, surface_overrides, size_units, camera_size_units)
 	else:
 		preview.show_quad(fallback_image)
 
@@ -369,6 +388,53 @@ func _icon_box(kind: int) -> Control:
 	t.custom_minimum_size = Vector2(h * t.texture.get_width() / t.texture.get_height(), h)
 	t.tooltip_text = Vulnerability.display_name(kind) if kind >= 0 else "Unknown"
 	return t
+
+
+## A Damage Type icon PLUS a small modifier badge underneath it, telling the
+## table what bonus/penalty they can expect from attacking with this damage
+## type - "maybe also show +1/-1 based on know weakness/resistance so
+## players get an idea of what bonuses they can expect. If unknown do '+ ?'"
+## (2026-09-28). Deliberately reads only the KNOWN sets (never the full,
+## still-secret weaknesses/resistances/immunities arrays also present in
+## cfg) - anything not yet discovered shows "+?" regardless of whether it's
+## secretly a real bonus or not, same "hidden until discovered" rule the
+## Weakness/Resistance/Immunity sections already enforce; showing the real
+## answer here would let a table read a monster's hidden properties straight
+## off the weapon picker without ever having to land a matching hit first.
+func _damage_type_box(kind: int, known_weaknesses: Array, known_resistances: Array, known_immunities: Array) -> Control:
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 2)
+	column.add_child(_icon_box(kind))
+
+	var text: String
+	var color: Color
+	if known_immunities.has(kind):
+		# A known immunity always wins over a weakness/resistance to the same
+		# kind (matches MissionRuntime.resolve_attack()'s own precedence -
+		# immune sets damage to 0 outright, weakness/resistance never apply).
+		text = "×"
+		color = IMMUNE_COLOR
+	elif known_weaknesses.has(kind) and known_resistances.has(kind):
+		text = "+0"  # both known and cancel out - genuinely possible, MonsterTemplate doesn't forbid the same kind appearing in both lists
+		color = UNKNOWN_MODIFIER_COLOR
+	elif known_weaknesses.has(kind):
+		text = "+1"
+		color = WEAKNESS_COLOR
+	elif known_resistances.has(kind):
+		text = "-1"
+		color = RESISTANCE_COLOR
+	else:
+		text = "+?"
+		color = UNKNOWN_MODIFIER_COLOR
+
+	var badge := Label.new()
+	badge.text = text
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.add_theme_font_size_override("font_size", 18)
+	badge.add_theme_color_override("font_color", color)
+	column.add_child(badge)
+	return column
 
 
 func _clear(box: Control) -> void:
