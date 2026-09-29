@@ -326,6 +326,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		var cfg := {
 			"monster_name": monster.display_name(),
 			"hitpoints": monster.hitpoints,
+			"max_hitpoints": monster.max_hitpoints,
 			"defense": monster.defense,
 			"damage_types": damage_types,
 			"weaknesses": monster.weaknesses,

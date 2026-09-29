@@ -127,18 +127,21 @@ func show_quad(texture: Texture2D) -> void:
 ## the two size_units actually present in the current encounter (the SAME
 ## value must be passed to both the hero and monster preview for a given
 ## encounter) - see this script's own class-level doc above for the full
-## mechanism and why these are two different numbers.
-func show_meshes(mesh_paths: Array[String], default_texture: Texture2D, rotation_degrees_correction: Vector3 = Vector3.ZERO, surface_texture_overrides: Dictionary = {}, size_units: float = 1.0, camera_size_units: float = 1.0) -> void:
+## mechanism and why these are two different numbers. `write_depth` (new
+## 2026-09-29, default true) - see _unshaded_material()'s own doc on
+## DEPTH_DRAW_ALWAYS for why this needs to differ between heroes and
+## monster cards; CombatView passes `false` for the monster side.
+func show_meshes(mesh_paths: Array[String], default_texture: Texture2D, rotation_degrees_correction: Vector3 = Vector3.ZERO, surface_texture_overrides: Dictionary = {}, size_units: float = 1.0, camera_size_units: float = 1.0, write_depth: bool = true) -> void:
 	_clear()
 	_root.rotation_degrees = rotation_degrees_correction
 	_root.scale = Vector3.ONE  # measure the RAW (unscaled) combined AABB below before applying any relative-scale factor
 	var combined := AABB()
 	var first := true
-	var default_material := _unshaded_material(default_texture)
+	var default_material := _unshaded_material(default_texture, write_depth)
 	var override_materials := {}
 	var overrides: Dictionary = surface_texture_overrides
 	for surface_name in overrides:
-		override_materials[surface_name] = _unshaded_material(overrides[surface_name])
+		override_materials[surface_name] = _unshaded_material(overrides[surface_name], write_depth)
 	for path in mesh_paths:
 		# ArrayMesh, not the base Mesh - surface_get_name() (needed for the
 		# per-surface override lookup) is only declared on that subclass, and
@@ -212,7 +215,7 @@ func _frame_camera_relative(center: Vector3, reference_diagonal: float, camera_s
 	_camera.look_at(center, Vector3.UP)
 
 
-func _unshaded_material(texture: Texture2D) -> StandardMaterial3D:
+func _unshaded_material(texture: Texture2D, write_depth: bool = true) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_texture = texture
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -231,8 +234,30 @@ func _unshaded_material(texture: Texture2D) -> StandardMaterial3D:
 	# material write depth like an opaque one - each triangle now correctly
 	# depth-tests against whatever already drew, so the actually-nearer
 	# triangle wins regardless of draw order. Confirmed visually (spinning
-	# the mesh around Y showed exactly this symptom before the fix).
-	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS
+	# the mesh around Y showed exactly this symptom before the fix) -
+	# CONFIRMED for HEROES specifically.
+	#
+	# REGRESSION found 2026-09-29, same rotation-diagnostic trick, this time
+	# on a MONSTER card: "the bandit upper jacket comes over his pants, and
+	# they use alfa channel to hide parts of it but that is not happening
+	# anymore, so the pants are hidden a bit by blackness." Monster cards
+	# are built from SEPARATE layered pieces (Bandit: jacket + pants meshes,
+	# see MonsterDisplay's own "kept its Object001 piece" note) meant to
+	# composite via ALPHA/paint order - pants drawn first, jacket's mostly-
+	# transparent cutout drawn second so the pants show through everywhere
+	# the jacket texture has none. DEPTH_DRAW_ALWAYS breaks exactly this:
+	# it makes even the jacket's fully-transparent pixels WRITE depth, so
+	# the pants piece (drawn after) fails the depth test underneath the
+	# jacket's own footprint and never draws there at all, regardless of
+	# the jacket's own alpha - the "blackness" is whatever the (mostly
+	# empty) viewport shows through instead. Heroes never had this failure
+	# mode reported - a single open mesh's own self-occlusion is a
+	# different problem from two SEPARATE pieces meant to layer by alpha.
+	# `write_depth` (new) lets the caller choose per side - CombatView
+	# passes `true` for heroes (keeps the confirmed fix), `false` for
+	# monsters (restores the alpha-layering technique their cards rely on).
+	if write_depth:
+		material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS
 	# CONFIRMED BUG, fixed 2026-09-27: these diffuse textures are dense
 	# texture ATLASES (many small hand-painted pieces packed edge-to-edge -
 	# e.g. Kehli's crossbow/straps, Galaden's cloth/feathers, each in its own

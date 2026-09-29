@@ -55,6 +55,22 @@ const CELL_SPACING := 2.0
 const BASE_SIZE := Vector3(1.2, 0.15, 1.2)
 const FIGURE_SIZE := Vector3(0.6, 1.0, 0.6)  ## placeholder-cube size; its own diagonal is also the base target real meshes are auto-scaled to, see target_figure_diagonal below
 
+## Health bar (new 2026-09-29, "draw a health bar that shows 'progress'... in
+## the monster view it can go underneath the monster") - a small billboarded
+## quad sitting on the floor just in front of the base, baked from a
+## generated texture (dark background + a filled portion sized to the
+## hitpoints/max_hitpoints fraction) rather than two separately-positioned
+## quads - a billboard only screen-aligns its OWN rotation around its node's
+## origin, not a sibling node's world-space offset, so two independent quads
+## would drift out of alignment with each other at some camera angles in
+## this M-view's free-orbiting FreeLookCamera. One quad, one texture, always
+## correct regardless of view angle. Same "generated placeholder, not a real
+## asset" approach every other piece of this project's own art already uses.
+const HP_BAR_SIZE := Vector2(0.7, 0.09)  ## world units at size_units 1.0
+const HP_BAR_TEXTURE_SIZE := Vector2i(64, 8)
+const HP_BAR_LIFT := 0.02  ## just above floor level, in front of the base
+const HP_BAR_Z_OFFSET := 0.75  ## in front of the base (+Z), so it isn't hidden under the figure
+
 ## How deep to extrude the gap marker's flat quad into a real box, as a
 ## fraction of the panel's OWN height (outer-to-inner distance) rather than
 ## a fixed world-space number - keeps proportions consistent per-monster
@@ -263,6 +279,8 @@ func refresh_monsters(monsters: Array) -> void:
 			continue
 		info["name"] = monster.display_name()
 		info["extra"] = "HP %d · Level %d" % [monster.hitpoints, monster.level]
+		info["hitpoints"] = monster.hitpoints
+		info["max_hitpoints"] = monster.max_hitpoints
 		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)
 		_build_stand(origin, info, i, MonsterChip.color(monster.chip))
 
@@ -494,6 +512,42 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)
+
+	# Health bar, underneath the monster (per direct request) - only for a
+	# real registered monster (has both keys); the standalone spawn-placement
+	# holder's info dict (MissionPlayer._run_monster_spawn()) has neither, so
+	# this is silently skipped there - nothing to show a fraction of before
+	# combat has actually assigned hitpoints on the map.
+	if monster.has("hitpoints") and monster.has("max_hitpoints"):
+		_build_health_bar(origin, monster["hitpoints"], monster["max_hitpoints"], size_units)
+
+
+## A small billboarded quad on the floor just in front of the stand's base -
+## see HP_BAR_SIZE's own doc above for why this is one generated-texture quad
+## rather than two independently-positioned ones.
+func _build_health_bar(origin: Vector3, hitpoints: int, max_hitpoints: int, size_units: float) -> void:
+	if max_hitpoints <= 0:
+		return
+	var fraction := clampf(float(hitpoints) / float(max_hitpoints), 0.0, 1.0)
+	var image := Image.create(HP_BAR_TEXTURE_SIZE.x, HP_BAR_TEXTURE_SIZE.y, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.1, 0.02, 0.02, 0.9))
+	var filled_width := int(round(HP_BAR_TEXTURE_SIZE.x * fraction))
+	if filled_width > 0:
+		var bar_color := Color(0.75, 0.12, 0.1) if fraction > 0.25 else Color(0.85, 0.65, 0.1)
+		image.fill_rect(Rect2i(0, 0, filled_width, HP_BAR_TEXTURE_SIZE.y), bar_color)
+
+	var bar := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = HP_BAR_SIZE * size_units
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_texture = ImageTexture.create_from_image(image)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad.material = material
+	bar.mesh = quad
+	bar.position = origin + Vector3(0, _base_height() + HP_BAR_LIFT, HP_BAR_Z_OFFSET * size_units)
+	_stands_root.add_child(bar)
 
 
 func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 1.0) -> void:

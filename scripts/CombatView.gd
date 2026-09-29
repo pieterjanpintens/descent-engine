@@ -7,11 +7,11 @@ extends Control
 ## portraits, "to give an impression of the real game" rather than replicate
 ## it exactly), monster hitpoints and defense top-right, an info box and the
 ## big successes picker in the middle with Confirm/Cancel below it, "Damage
-## Type" bottom-left (each icon with a +1/-1/+? modifier badge - see
-## _damage_type_box()) and "Weakness" / "Resistance" / "Immunity"
-## bottom-right. Those monster properties stay "?" (one per entry, so the
-## table sees how many there are) until an attack with a matching damage type
-## has hit the monster - see RuntimeMonster.known_*. Pure presentation -
+## Type" bottom-left and "Weakness" (weakness+resistance combined, shield-
+## badge icons) / "Immunity" bottom-right. Those monster properties stay
+## "?" (one per entry, so the table sees how many there are) until an
+## attack with a matching damage type has hit the monster - see
+## RuntimeMonster.known_*. Pure presentation -
 ## PlayerDialog.ask_attack() owns the awaiting, the value (its hidden
 ## SpinBox) and the voice answers, and just calls configure()/show_value()
 ## and listens to the buttons/signal below.
@@ -37,21 +37,38 @@ var hint_label: Label
 var _hero_preview: CombatMeshPreview
 var _monster_preview: CombatMeshPreview
 var _hp_label: Label
+var _hp_fill: ColorRect
 var _defense_label: Label
 var _monster_name_label: Label
 var _info_panel: PanelContainer
 var _info_label: Label
 var _value_label: Label
 var _damage_box: HBoxContainer
-var _property_sections: Dictionary = {}  # "weakness"/"resistance"/"immunity" -> {section, box}
+var _property_sections: Dictionary = {}  # "vulnerability" (weakness+resistance combined)/"immunity" -> {section, box}
 
 const GOLD := Color(1.0, 0.92, 0.45)
 const ORANGE := Color(0.85, 0.42, 0.05)
 const ICON_HEIGHT := 64.0
-const WEAKNESS_COLOR := Color(0.45, 0.85, 0.45)   # +1 - a known weakness to this damage type
-const RESISTANCE_COLOR := Color(0.88, 0.35, 0.35) # -1 - a known resistance to this damage type
-const IMMUNE_COLOR := Color(0.55, 0.55, 0.6)      # x - already known to be immune to this type
-const UNKNOWN_MODIFIER_COLOR := Color(0.75, 0.75, 0.75) # +? - not yet discovered either way
+const HP_BOX_SIZE := Vector2(240, 48)  ## ~2.5x the original compact heart-badge box - "make that wider 2.5x and use that [as the health bar]"
+const DEFENSE_BOX_WIDTH := 100.0  ## the Defense badge's own width; height is pinned to HP_BOX_SIZE.y, see _build_defense_box()
+const HEADING_FONT_SIZE := 20  ## shared by "Damage Type" and "Weakness" so both bottom columns match ("use the same style for the weapon damage type, same font size")
+const PROPERTY_ICON_HEIGHT := 30.0  ## the small damage-type icon layered on a shield badge
+const SHIELD_ICON_SIZE := Vector2(44, 78)  ## the shield/broken-shield background badge itself - reverted 2026-09-29 back to this (matching HP_BOX_SIZE.y instead made them noticeably smaller than the "make them longer" pass just before it, not what was wanted) - 44 is the original width, 78 matches the shield PNG's own 96x168 aspect at that width
+const TICK_COUNT := 8  ## the outer ring's radial tick marks, one every 45 degrees
+const TICK_RADIUS := 56.0  ## matches disc_wrap's own half-size (112/2) - the outer_ring's true edge
+const TICK_GAP := 2.0  ## small gap between the ring's edge and where a tick starts
+const TICK_LENGTH_SHORT := 6.0  ## the diagonal ticks (45/135/225/315)
+const TICK_LENGTH_LONG := 10.0  ## the cardinal ticks (angle mod 90 == 0)
+
+## Placeholder shield art (new 2026-09-29, "find a shield / broken shield
+## icon and use that as background") - generated flat shapes, same
+## "original sculpted/generated asset, no official counterpart" treatment
+## this project already gives gate/archway/tree (see claude.md's own
+## Official asset overrides section) - there's no real game asset name
+## confirmed for these, so no OfficialAssetMap entry/override path, just a
+## direct preload like those other original props.
+const SHIELD_TEXTURE := preload("res://models/icons/shield.png")
+const SHIELD_BROKEN_TEXTURE := preload("res://models/icons/shield_broken.png")
 
 
 func _ready() -> void:
@@ -118,8 +135,9 @@ func _build() -> void:
 	stat_row.alignment = BoxContainer.ALIGNMENT_END
 	stat_row.add_theme_constant_override("separation", 12)
 	stats.add_child(stat_row)
-	_hp_label = _stat_badge(stat_row, Color(0.75, 0.12, 0.1), "♥")
-	_defense_label = _stat_badge(stat_row, Color(0.35, 0.4, 0.5), "⛨")
+	_build_hp_box(stat_row)
+	_defense_label = _build_defense_box(stat_row)
+
 	_monster_name_label = Label.new()
 	_monster_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_monster_name_label.add_theme_font_size_override("font_size", 28)
@@ -151,6 +169,50 @@ func _build() -> void:
 	picker.add_theme_constant_override("separation", 18)
 	centre.add_child(picker)
 	picker.add_child(_arrow("◀", -1))
+
+	# The successes disc gets a second, concentric ring around it (new
+	# 2026-09-29, "to give the input a bit more feel, can we add a double
+	# circle around it") - a plain wrapper Control sized a bit bigger than
+	# the disc itself, holding a second bordered-but-transparent-fill ring
+	# BEHIND the disc, centred on the same point so an even gap shows
+	# between the two circles.
+	#
+	# **Bug fix, same day** - the first version (PRESET_CENTER anchors on
+	# both the ring and the disc) came out rendered off-centre from each
+	# other, and the whole cluster no longer sat evenly between the two
+	# arrow buttons. Same root cause as the HP box fix above: `disc_wrap`
+	# is a plain Control inside `picker` (an HBoxContainer) and its
+	# cross-axis size flag defaults to SIZE_FILL, so it could stretch
+	# unpredictably; `size_flags_vertical = SIZE_SHRINK_CENTER` locks it to
+	# exactly its own 112x112 minimum, and both children are positioned
+	# with plain absolute `position`/`size` (default top-left anchors,
+	# `disc` hand-centred at `(112-96)/2 = 8` on each side) instead of
+	# anchor-preset tricks - fully deterministic.
+	var disc_wrap := Control.new()
+	disc_wrap.custom_minimum_size = Vector2(112, 112)
+	disc_wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	picker.add_child(disc_wrap)
+
+	var outer_ring := PanelContainer.new()
+	var outer_ring_style := StyleBoxFlat.new()
+	outer_ring_style.bg_color = Color(0, 0, 0, 0)
+	outer_ring_style.border_color = ORANGE.darkened(0.35)
+	outer_ring_style.set_border_width_all(2)
+	outer_ring_style.set_corner_radius_all(56)
+	outer_ring.add_theme_stylebox_override("panel", outer_ring_style)
+	outer_ring.position = Vector2.ZERO
+	outer_ring.size = Vector2(112, 112)
+	outer_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	disc_wrap.add_child(outer_ring)
+
+	# Radial tick marks around the outer ring (new 2026-09-29, "add a small
+	# outside pointing lines, lets say we add one every 45degree, make the
+	# ones for which mod 90 = 0 a bit longer") - a plain dial/gauge
+	# decoration, 8 short Line2D segments pointing straight out from the
+	# ring's centre, the 4 cardinal ones (0/90/180/270) a bit longer than
+	# the 4 diagonal ones (45/135/225/315).
+	_build_disc_ticks(disc_wrap)
+
 	var disc := PanelContainer.new()
 	var disc_style := StyleBoxFlat.new()
 	disc_style.bg_color = Color(0.02, 0.02, 0.02)
@@ -158,14 +220,16 @@ func _build() -> void:
 	disc_style.set_border_width_all(4)
 	disc_style.set_corner_radius_all(48)
 	disc.add_theme_stylebox_override("panel", disc_style)
-	disc.custom_minimum_size = Vector2(96, 96)
+	disc.position = Vector2(8, 8)
+	disc.size = Vector2(96, 96)
 	_value_label = Label.new()
 	_value_label.text = "0"
 	_value_label.add_theme_font_size_override("font_size", 54)
 	_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	disc.add_child(_value_label)
-	picker.add_child(disc)
+	disc_wrap.add_child(disc)
+
 	picker.add_child(_arrow("▶", 1))
 
 	# Confirm/Cancel sit at the very bottom, between the Damage Type and
@@ -182,10 +246,12 @@ func _build() -> void:
 	buttons.offset_top = -140
 	buttons.offset_bottom = -16
 	add_child(buttons)
-	confirm_button = _big_button("Confirm", ORANGE, 30, Vector2(260, 60))
+	# Sized down 2026-09-29 - "make confirm and cancel buttons a bit
+	# smaller, they feel very large."
+	confirm_button = _big_button("Confirm", ORANGE, 22, Vector2(190, 44))
 	confirm_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	buttons.add_child(confirm_button)
-	cancel_button = _big_button("Cancel", Color(0.3, 0.3, 0.32), 22, Vector2(200, 40))
+	cancel_button = _big_button("Cancel", Color(0.3, 0.3, 0.32), 16, Vector2(150, 32))
 	cancel_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	buttons.add_child(cancel_button)
 
@@ -197,23 +263,47 @@ func _build() -> void:
 	hint_label.visible = false
 	buttons.add_child(hint_label)
 
-	# Bottom-left: the weapon's damage types.
+	# Bottom-left: the weapon's damage types. No modifier badge underneath
+	# each icon any more (removed 2026-09-29, "remove the actual damage
+	# indicator, it needs a better spot but not there it should be a bit
+	# symmetrical") - plain icons now, same as the Weakness list opposite
+	# it, so the two bottom corners read as a matching pair.
 	var left := _bottom_column(0.03, 0.40)
-	_damage_box = _section(left, "Damage Type", 30)
+	_damage_box = _section(left, "Damage Type", HEADING_FONT_SIZE)
 
-	# Bottom-right: what is known about the monster.
+	# Bottom-right: what is known about the monster. Weakness/Resistance
+	# share ONE compact list now (new 2026-09-29) - small icons on a
+	# shield/broken-shield background differentiate them instead of each
+	# getting its own full-size heading+row ("weakness is a bit verbose,
+	# in the game they put the weakness on a list, make the icon smaller.
+	# the resistance can go next to it to differentiate") - see
+	# _shield_icon_box()'s own doc. Immunity keeps its own full-size
+	# section, unchanged - only weakness/resistance were called out.
+	# Heading text shortened to just "Weakness" (same day, follow-up
+	# request) - the shield background already tells resistance apart, so
+	# spelling both out in the heading was redundant.
 	var right := _bottom_column(0.60, 0.98)
-	for key in ["weakness", "resistance", "immunity"]:
-		var section := VBoxContainer.new()
-		right.add_child(section)
-		var box := _section(section, key.capitalize(), 22)
-		_property_sections[key] = {"section": section, "box": box}
+	# Shifted up 30px (2026-09-29, "put the weakness more to the top") -
+	# the shield badges grew noticeably taller in the same pass, so this
+	# column needed the extra headroom above the bottom edge.
+	right.offset_top -= 30
+	right.offset_bottom -= 30
+	var vulnerability_section := VBoxContainer.new()
+	right.add_child(vulnerability_section)
+	var vulnerability_box := _section(vulnerability_section, "Weakness", HEADING_FONT_SIZE)
+	_property_sections["vulnerability"] = {"section": vulnerability_section, "box": vulnerability_box}
+	var immunity_section := VBoxContainer.new()
+	right.add_child(immunity_section)
+	var immunity_box := _section(immunity_section, "Immunity", 22)
+	_property_sections["immunity"] = {"section": immunity_section, "box": immunity_box}
 
 
-## cfg: monster_name, hitpoints, defense, damage_types (Array of
+## cfg: monster_name, hitpoints, max_hitpoints (new 2026-09-29 - the health
+## bar's "progress" denominator; falls back to hitpoints itself, i.e. a full
+## bar, if not given), defense, damage_types (Array of
 ## Vulnerability.Kind), per property kind (weaknesses/resistances/immunities,
 ## each an Array of Kind) plus its known_* twin (the ones already
-## discovered - see the Damage Type badges below), and optional `ability_text` -
+## discovered - see the Weakness shield badges below), and optional `ability_text` -
 ## a MONSTER ability/effect ("Resilience: immune to affliction..."), not a
 ## description of the attack; the info box is hidden entirely when this is
 ## empty (no monster abilities are authorable yet - fill this in once they
@@ -236,13 +326,26 @@ func _build() -> void:
 ## rendering small inside headroom reserved for a creature that isn't
 ## actually there ("show characters as big as possible, not relative to the
 ## biggest character in the game but to each other").
+##
+## Monster preview passes `write_depth = false` (new 2026-09-29) - see
+## CombatMeshPreview._unshaded_material()'s own doc for why: monster cards
+## are built from SEPARATE pieces meant to layer via alpha (a jacket's
+## mostly-transparent cutout drawn over pants), and forcing depth write
+## broke that ("the bandit upper jacket comes over his pants... the pants
+## are hidden a bit by blackness"). Heroes keep the default `true` - a
+## single open mesh's own self-occlusion is a different problem, confirmed
+## fixed by exactly this depth write.
 func configure(cfg: Dictionary) -> void:
 	var hero_size_units: float = cfg.get("hero_size_units", 1.0)
 	var monster_size_units: float = cfg.get("monster_size_units", 1.0)
 	var camera_size_units := maxf(hero_size_units, monster_size_units)
-	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"), cfg.get("hero_flat_rotation", Vector3.ZERO), {}, hero_size_units, camera_size_units)
-	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), monster_size_units, camera_size_units)
-	_hp_label.text = str(cfg.get("hitpoints", 0))
+	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"), cfg.get("hero_flat_rotation", Vector3.ZERO), {}, hero_size_units, camera_size_units, true)
+	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), monster_size_units, camera_size_units, false)
+	var hitpoints: int = cfg.get("hitpoints", 0)
+	var max_hitpoints: int = cfg.get("max_hitpoints", maxi(hitpoints, 1))
+	_hp_label.text = str(hitpoints)
+	var hp_fraction := clampf(float(hitpoints) / float(max_hitpoints), 0.0, 1.0) if max_hitpoints > 0 else 0.0
+	_hp_fill.size.x = HP_BOX_SIZE.x * hp_fraction
 	_defense_label.text = str(cfg.get("defense", 0))
 	_monster_name_label.text = cfg.get("monster_name", "")
 	var ability_text: String = cfg.get("ability_text", "")
@@ -254,19 +357,37 @@ func configure(cfg: Dictionary) -> void:
 	var known_weaknesses: Array = cfg.get("known_weaknesses", [])
 	var known_resistances: Array = cfg.get("known_resistances", [])
 	var known_immunities: Array = cfg.get("known_immunities", [])
+	# Damage Type icons are shield-backed too now (new 2026-09-29, "damage
+	# type can also use the shields") - the neutral intact/silverish shield,
+	# same texture the Resistance entries use, since a weapon's own damage
+	# types are never secret (no broken-shield/"?" case here at all).
 	_clear(_damage_box)
 	for kind in damage_types:
-		_damage_box.add_child(_damage_type_box(kind, known_weaknesses, known_resistances, known_immunities))
+		_damage_box.add_child(_shield_icon_box(kind, SHIELD_TEXTURE, Vulnerability.display_name(kind)))
 
-	for pair in [["weakness", "weaknesses", "known_weaknesses"], ["resistance", "resistances", "known_resistances"], ["immunity", "immunities", "known_immunities"]]:
-		var entry: Dictionary = _property_sections[pair[0]]
-		var all: Array = cfg.get(pair[1], [])
-		var known: Array = cfg.get(pair[2], [])
-		entry["section"].visible = not all.is_empty()
-		_clear(entry["box"])
-		for kind in all:
-			# Hidden ("?" icon) until discovered.
-			entry["box"].add_child(_icon_box(kind if known.has(kind) else -1))
+	var weaknesses: Array = cfg.get("weaknesses", [])
+	var resistances: Array = cfg.get("resistances", [])
+	var vulnerability_entry: Dictionary = _property_sections["vulnerability"]
+	vulnerability_entry["section"].visible = not weaknesses.is_empty() or not resistances.is_empty()
+	_clear(vulnerability_entry["box"])
+	for kind in weaknesses:
+		# Hidden ("?" icon) until discovered - the CATEGORY (broken shield =
+		# weakness) is never secret, only which damage kind it's for.
+		var shown_weakness: int = kind if known_weaknesses.has(kind) else -1
+		var weakness_tooltip := "Weakness: %s" % (Vulnerability.display_name(shown_weakness) if shown_weakness >= 0 else "Unknown")
+		vulnerability_entry["box"].add_child(_shield_icon_box(shown_weakness, SHIELD_BROKEN_TEXTURE, weakness_tooltip))
+	for kind in resistances:
+		var shown_resistance: int = kind if known_resistances.has(kind) else -1
+		var resistance_tooltip := "Resistance: %s" % (Vulnerability.display_name(shown_resistance) if shown_resistance >= 0 else "Unknown")
+		vulnerability_entry["box"].add_child(_shield_icon_box(shown_resistance, SHIELD_TEXTURE, resistance_tooltip))
+
+	var immunity_entry: Dictionary = _property_sections["immunity"]
+	var immunities: Array = cfg.get("immunities", [])
+	immunity_entry["section"].visible = not immunities.is_empty()
+	_clear(immunity_entry["box"])
+	for kind in immunities:
+		# Hidden ("?" icon) until discovered.
+		immunity_entry["box"].add_child(_icon_box(kind if known_immunities.has(kind) else -1))
 
 
 func show_value(v: int) -> void:
@@ -275,12 +396,12 @@ func show_value(v: int) -> void:
 
 ## Shared by both sides' configure() branch - real mesh(es) if given, else
 ## the flat-image mockup/fallback quad. See configure()'s own doc.
-func _configure_preview(preview: CombatMeshPreview, flat_meshes: Array, flat_texture: Texture2D, fallback_image: Texture2D, rotation_correction: Vector3 = Vector3.ZERO, surface_overrides: Dictionary = {}, size_units: float = 1.0, camera_size_units: float = 1.0) -> void:
+func _configure_preview(preview: CombatMeshPreview, flat_meshes: Array, flat_texture: Texture2D, fallback_image: Texture2D, rotation_correction: Vector3 = Vector3.ZERO, surface_overrides: Dictionary = {}, size_units: float = 1.0, camera_size_units: float = 1.0, write_depth: bool = true) -> void:
 	if not flat_meshes.is_empty():
 		var typed_paths: Array[String] = []
 		for path in flat_meshes:
 			typed_paths.append(str(path))
-		preview.show_meshes(typed_paths, flat_texture, rotation_correction, surface_overrides, size_units, camera_size_units)
+		preview.show_meshes(typed_paths, flat_texture, rotation_correction, surface_overrides, size_units, camera_size_units, write_depth)
 	else:
 		preview.show_quad(fallback_image)
 
@@ -305,20 +426,176 @@ func _panel(color: Color, border: int) -> PanelContainer:
 	return p
 
 
-func _stat_badge(parent: Control, color: Color, glyph: String) -> Label:
-	var p := _panel(color, 3)
+## The HP stat badge, widened into the health bar itself (new 2026-09-29,
+## replacing the separate bar this used to sit above it - "there is a box
+## with the actual health in it, make that wider 2.5x and use that").
+## Two ColorRects sit behind the heart+number: a black baseline (the
+## "missing" portion of health) and a red overlay sized to
+## hitpoints/max_hitpoints on top of it (the "current" portion) -
+## configure() resizes the red one's width each attack. The original
+## bordered-panel look is kept as a THIRD, topmost overlay with a fully
+## transparent fill and just a border stroke ("the border can stay") -
+## drawn last so its border renders over the fill beneath without hiding
+## it. `_hp_label` is left-anchored within the box rather than centred,
+## per the explicit "align that to the left" request.
+##
+## **Bug fix, same day** - the first version anchored everything with
+## PRESET_FULL_RECT/PRESET_CENTER_LEFT tricks and, seen rendered, came out
+## visibly wrong: the fill/empty split ran top-to-bottom instead of
+## left-to-right, wasn't fully filled at full health, and the heart+number
+## floated "somewhere halfway." Root cause: `box` is a plain (non-Container)
+## `Control` sitting inside `stat_row`, an `HBoxContainer` - by default a
+## Control's CROSS-axis size flag is `SIZE_FILL`, so `box` was silently
+## stretched TALLER to match its sibling (the taller Defense badge), while
+## `_hp_fill`'s hardcoded `size = HP_BOX_SIZE` only ever covered the
+## intended 48px from the top, leaving the rest of the now-taller box as
+## bare black underneath it - reading as a top/bottom split, not a
+## left/right progress bar. Fixed two ways at once: `box.size_flags_vertical
+## = SIZE_SHRINK_CENTER` stops the stretch outright (box is now reliably
+## exactly `HP_BOX_SIZE`), and every child here now uses plain absolute
+## `position`/`size` (default top-left anchors) instead of anchor-preset
+## tricks - fully deterministic, no dependency on a preset call correctly
+## reading a not-yet-settled combined minimum size.
+func _build_hp_box(parent: Control) -> void:
+	var box := Control.new()
+	box.custom_minimum_size = HP_BOX_SIZE
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	parent.add_child(box)
+
+	var empty_bg := ColorRect.new()
+	empty_bg.color = Color(0.03, 0.03, 0.03)
+	empty_bg.position = Vector2.ZERO
+	empty_bg.size = HP_BOX_SIZE
+	empty_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(empty_bg)
+
+	_hp_fill = ColorRect.new()
+	_hp_fill.color = Color(0.75, 0.12, 0.1)
+	_hp_fill.position = Vector2.ZERO
+	_hp_fill.size = HP_BOX_SIZE  # width re-set in configure() to the hp fraction
+	_hp_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(_hp_fill)
+
+	var border := PanelContainer.new()
+	var border_style := StyleBoxFlat.new()
+	border_style.bg_color = Color(0, 0, 0, 0)
+	border_style.border_color = Color(0.75, 0.12, 0.1).lightened(0.35)
+	border_style.set_border_width_all(3)
+	border.add_theme_stylebox_override("panel", border_style)
+	border.position = Vector2.ZERO
+	border.size = HP_BOX_SIZE
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(border)
+
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
-	var g := Label.new()
-	g.text = glyph
-	g.add_theme_font_size_override("font_size", 26)
-	row.add_child(g)
-	var l := Label.new()
-	l.add_theme_font_size_override("font_size", 34)
-	row.add_child(l)
-	p.add_child(row)
-	parent.add_child(p)
-	return l
+	row.position = Vector2(14, 0)
+	row.size = Vector2(HP_BOX_SIZE.x - 14, HP_BOX_SIZE.y)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(row)
+
+	var glyph := Label.new()
+	glyph.text = "♥"
+	glyph.add_theme_font_size_override("font_size", 26)
+	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(glyph)
+
+	_hp_label = Label.new()
+	_hp_label.add_theme_font_size_override("font_size", 34)
+	_hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(_hp_label)
+
+
+## The Defense stat badge (the ⛨ "shield" icon + number), pinned to the
+## SAME height as the HP bar next to it (new 2026-09-29, "make the shield
+## box the same size as the health bar vertically" - "shield" here turned
+## out to mean this badge's own ⛨ glyph, not the Weakness/Resistance
+## shield-BACKGROUND icons a few messages earlier mistakenly took the same
+## wording to mean - "it also has a shield icon so that got us confused").
+## Previously built via the generic `_stat_badge()`/`_panel()` helpers,
+## which added a `content_margin_all(10)` PanelContainer margin on top of
+## the label text - that margin, not the font size, was the actual reason
+## the old badge came out taller (~60px) than `HP_BOX_SIZE.y` (48): a
+## 34pt number's own natural line height easily fits inside 48px on its
+## own (confirmed - that's exactly the font size `_build_hp_box()` already
+## uses at this same 48px height), it just never had 20px of margin piled
+## on top of it before. Built the same deterministic way as
+## `_build_hp_box()` (absolute `position`/`size`, no `PanelContainer`
+## content-margin overhead, `size_flags_vertical = SIZE_SHRINK_CENTER` so
+## it can't stretch to match a taller sibling) so it reliably matches
+## `HP_BOX_SIZE.y` exactly. `_stat_badge()` itself is deleted - HP moved
+## off it earlier the same day, this was its only remaining caller.
+func _build_defense_box(parent: Control) -> Label:
+	var box_size := Vector2(DEFENSE_BOX_WIDTH, HP_BOX_SIZE.y)
+	var color := Color(0.35, 0.4, 0.5)
+
+	var box := Control.new()
+	box.custom_minimum_size = box_size
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	parent.add_child(box)
+
+	var bg := ColorRect.new()
+	bg.color = color
+	bg.position = Vector2.ZERO
+	bg.size = box_size
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(bg)
+
+	var border := PanelContainer.new()
+	var border_style := StyleBoxFlat.new()
+	border_style.bg_color = Color(0, 0, 0, 0)
+	border_style.border_color = color.lightened(0.35)
+	border_style.set_border_width_all(3)
+	border.add_theme_stylebox_override("panel", border_style)
+	border.position = Vector2.ZERO
+	border.size = box_size
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(border)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.position = Vector2(6, 0)
+	row.size = Vector2(box_size.x - 12, box_size.y)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(row)
+
+	var glyph := Label.new()
+	glyph.text = "⛨"
+	glyph.add_theme_font_size_override("font_size", 26)
+	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(glyph)
+
+	var value_label := Label.new()
+	value_label.add_theme_font_size_override("font_size", 34)
+	value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(value_label)
+
+	return value_label
+
+
+## 8 short Line2D ticks radiating outward from the centre of `parent`
+## (expected to be `disc_wrap`, a 112x112 Control), one every 45 degrees -
+## see TICK_* consts' own doc. Line2D is a Node2D, not a Control, but
+## Godot allows mixing CanvasItem-derived nodes under a Control freely -
+## its `position` is just a local-space point relative to the parent
+## Control's own top-left corner, same coordinate space `position`/`size`
+## already use elsewhere in this function.
+func _build_disc_ticks(parent: Control) -> void:
+	var center := Vector2(TICK_RADIUS, TICK_RADIUS)
+	for i in TICK_COUNT:
+		var angle_deg := i * 360.0 / TICK_COUNT
+		var is_cardinal := int(angle_deg) % 90 == 0
+		var length := TICK_LENGTH_LONG if is_cardinal else TICK_LENGTH_SHORT
+		var direction := Vector2.RIGHT.rotated(deg_to_rad(angle_deg))
+		var tick := Line2D.new()
+		tick.points = PackedVector2Array([
+			center + direction * (TICK_RADIUS + TICK_GAP),
+			center + direction * (TICK_RADIUS + TICK_GAP + length),
+		])
+		tick.width = 2.0
+		tick.default_color = ORANGE.darkened(0.1 if is_cardinal else 0.3)
+		parent.add_child(tick)
 
 
 func _arrow(glyph: String, delta: int) -> Button:
@@ -390,51 +667,49 @@ func _icon_box(kind: int) -> Control:
 	return t
 
 
-## A Damage Type icon PLUS a small modifier badge underneath it, telling the
-## table what bonus/penalty they can expect from attacking with this damage
-## type - "maybe also show +1/-1 based on know weakness/resistance so
-## players get an idea of what bonuses they can expect. If unknown do '+ ?'"
-## (2026-09-28). Deliberately reads only the KNOWN sets (never the full,
-## still-secret weaknesses/resistances/immunities arrays also present in
-## cfg) - anything not yet discovered shows "+?" regardless of whether it's
-## secretly a real bonus or not, same "hidden until discovered" rule the
-## Weakness/Resistance/Immunity sections already enforce; showing the real
-## answer here would let a table read a monster's hidden properties straight
-## off the weapon picker without ever having to land a matching hit first.
-func _damage_type_box(kind: int, known_weaknesses: Array, known_resistances: Array, known_immunities: Array) -> Control:
-	var column := VBoxContainer.new()
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 2)
-	column.add_child(_icon_box(kind))
+## A compact icon-on-a-shield-badge entry (new 2026-09-29) - a small
+## damage-type icon layered on a shield badge. Originally built just for
+## the combined Weakness/Resistance list ("in the game they put the
+## weakness on a list, make the icon smaller. the resistance can go next
+## to it to differentiate") - the shield itself carries that distinction
+## (broken vs. intact), replacing the old full-size `_icon_box()` row
+## (plus its own heading) each of Weakness/Resistance used to get
+## separately. Extended the same day to the Damage Type row too ("damage
+## type can also use the shields") - `shield_texture`/`tooltip` are passed
+## in explicitly rather than inferred from an is-weakness flag, since the
+## Damage Type row has no weakness/resistance concept at all, just the
+## neutral (now silverish) intact shield as a background.
+## `kind < 0` (not yet discovered) still shows the correct shield (which
+## CATEGORY a monster has is never secret, only which damage type - same
+## rule `_icon_box()`'s own "?" already follows) with the "?" icon on top -
+## irrelevant for the Damage Type row, which never passes `kind < 0`
+## (a weapon's own damage types are never secret).
+func _shield_icon_box(kind: int, shield_texture: Texture2D, tooltip: String) -> Control:
+	var badge := Control.new()
+	badge.custom_minimum_size = SHIELD_ICON_SIZE
+	badge.tooltip_text = tooltip
 
-	var text: String
-	var color: Color
-	if known_immunities.has(kind):
-		# A known immunity always wins over a weakness/resistance to the same
-		# kind (matches MissionRuntime.resolve_attack()'s own precedence -
-		# immune sets damage to 0 outright, weakness/resistance never apply).
-		text = "×"
-		color = IMMUNE_COLOR
-	elif known_weaknesses.has(kind) and known_resistances.has(kind):
-		text = "+0"  # both known and cancel out - genuinely possible, MonsterTemplate doesn't forbid the same kind appearing in both lists
-		color = UNKNOWN_MODIFIER_COLOR
-	elif known_weaknesses.has(kind):
-		text = "+1"
-		color = WEAKNESS_COLOR
-	elif known_resistances.has(kind):
-		text = "-1"
-		color = RESISTANCE_COLOR
-	else:
-		text = "+?"
-		color = UNKNOWN_MODIFIER_COLOR
+	var shield := TextureRect.new()
+	shield.texture = shield_texture
+	shield.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shield.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	shield.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(shield)
 
-	var badge := Label.new()
-	badge.text = text
-	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge.add_theme_font_size_override("font_size", 18)
-	badge.add_theme_color_override("font_color", color)
-	column.add_child(badge)
-	return column
+	var icon := TextureRect.new()
+	icon.texture = Vulnerability.icon(kind)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var h := PROPERTY_ICON_HEIGHT
+	icon.custom_minimum_size = Vector2(h * icon.texture.get_width() / icon.texture.get_height(), h)
+	icon.set_anchors_preset(Control.PRESET_CENTER)
+	icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	icon.grow_vertical = Control.GROW_DIRECTION_BOTH
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(icon)
+
+	return badge
 
 
 func _clear(box: Control) -> void:

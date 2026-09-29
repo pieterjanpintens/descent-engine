@@ -1476,10 +1476,358 @@ card orientation (`flat_card_rotation()`), unlit shading, or actual
 on-screen look has been confirmed correct; expect a real per-monster
 tuning pass once actually seen, the same way the plastic-pool miniatures'
 own rotation/scale needed several rounds of real feedback before landing.
+
+**Sixth confirmed bug, 2026-09-29: the depth-write fix above broke monster
+cards' own alpha-layering, fixed by scoping it per-side** - direct report
+("we did some trick on the flat meshes to make them look correct, but i
+have the impression that the monster look worse, make them rotate again to
+see what is going on"), diagnosed the same way as bug five (re-adding the
+temporary rotate diagnostic), and root-caused directly by the user before
+any fix was written: "ok i think i get it, the bandit upper jacked comes
+over his pants, and they use alfa channel to hide parts of it but that is
+not happening anymore, so the pant are hidden a bit by blackness." Monster
+flat cards are built from SEPARATE mesh pieces (Bandit: jacket + pants, see
+this doc's own earlier "kept its 'Object001' piece" note) that were never
+meant to depth-test against each other at all - they composite via PAINT
+ORDER + ALPHA (pants drawn first, the jacket's mostly-transparent cutout
+drawn second, its alpha reveals the pants underneath). `DEPTH_DRAW_ALWAYS`
+(bug five's fix) makes even the jacket's fully-transparent pixels write
+depth, so the pants piece - drawn after - fails the depth test under the
+jacket's footprint regardless of the jacket's own alpha value, rendering
+as black. Confirmed this needed a PER-SIDE fix, not a blanket revert -
+"CULL_DISABLED it was better before this fix, but that will break the
+heroes again" (heroes are a single open mesh with the genuine back-face
+self-occlusion problem bug five fixed; monsters are multiple alpha-layered
+pieces that need the OLD depth-write-off behavior instead). Fixed by
+threading a new `write_depth: bool = true` parameter through
+`CombatMeshPreview.show_meshes()` -> `_unshaded_material()` (the
+`DEPTH_DRAW_ALWAYS` line is now behind `if write_depth:`), with
+`CombatView.configure()`/`_configure_preview()` passing `true` for the hero
+side (keeps bug five's fix) and `false` for the monster side (restores the
+pre-bug-five alpha-layering behavior). The diagnostic rotation was removed
+again once the cause was confirmed ("also stop the rotation"). Compile-
+checked only - not re-confirmed visually against the actual Bandit report.
 Bandit's extra 'Object001' piece and Doomcaller/Golem's excluded second
 textures (`Rune`/`Golem_Lava` - possible legitimate overlay effects, not
 just junk, per the exclude-list's own doc) are both open questions a real
 look might answer differently than the current guess.
+
+**Health bars, both views (new 2026-09-29)** - direct request: "can we
+somehow store the maxhealth of a monster and draw a health bar that shows
+'progress'... both in the monster and combat view please, in the monster
+view it can go underneath the monster." `RuntimeMonster` gained
+`max_hitpoints: int = 20` (the starting hitpoints - `hitpoints` alone
+already decrements via combat and loses the original value, so there was
+nothing to compute a fraction against before this). Set alongside
+`hitpoints` in `MissionRuntime.register_monster()`
+(`created.max_hitpoints = template.hitpoints`) and round-tripped through
+`RuntimeMonster.to_dict()`/`from_dict()` for `SaveGame` (an older save with
+no `max_hitpoints` key falls back to its own saved `hitpoints`, not a flat
+20 - a better guess for anything already damaged, or spawned from a
+template with a non-default hitpoints value, at save time).
+`PlayerInteractionController.attack()`'s `cfg` builder gained
+`cfg["max_hitpoints"] = monster.max_hitpoints` alongside the existing
+`cfg["hitpoints"]`.
+
+**Combat view**: a small bar under the existing heart/HP number badge
+(`CombatView._hp_bar_fill`, a plain background `ColorRect` + a foreground
+`ColorRect` resized to `hitpoints/max_hitpoints` in `configure()`) - same
+flat-colour placeholder look as the rest of this screen, no new mechanism
+needed since it's an ordinary 2D Control.
+
+**Monster (M) view, "underneath the monster"**: `MonsterDisplay._build_health_bar()`
+(called from `_build_stand()`, only when the passed-in info dict actually
+has both `hitpoints`/`max_hitpoints` keys - `refresh_monsters()` sets both
+now, but the standalone spawn-placement holder's info dict
+(`MissionPlayer._run_monster_spawn()`) still doesn't carry them, so the bar
+is silently skipped there - nothing meaningful to show a fraction of before
+a monster is actually registered/damaged) draws ONE billboarded
+`QuadMesh` positioned on the floor just in front of the stand's base
+(`HP_BAR_LIFT`/`HP_BAR_Z_OFFSET`, scaled by `size_units` like the base
+footprint already is), textured from a small GENERATED `Image` (dark
+background + a filled portion sized to the hp fraction, baked in directly)
+rather than two independently-positioned quads - a `BILLBOARD_ENABLED`
+material only screen-aligns the ROTATION of its own mesh around its node's
+origin, it doesn't make a SIBLING node's world-space offset track the
+screen's axes, so two separately-billboarded quads (one dark background,
+one coloured fill) would visually drift apart at some camera angles in
+this view's free-orbiting `FreeLookCamera` - one quad, one baked texture,
+is correct at every angle by construction. The fill colour shifts from red
+to amber below 25% health (`fraction > 0.25` check), a small touch beyond
+what was literally asked for but cheap given the mechanism already existed.
+Positioned below the existing floating name/HP `Label3D` caption (which
+sits above the figure), not overlapping it, per the explicit "underneath"
+instruction. Compile-checked only (`--headless --path . --import`, clean) -
+not seen rendered; `HP_BAR_SIZE`/`HP_BAR_Z_OFFSET` are first-guess tuning
+constants, same "adjust after a real look" caveat as every other visual
+constant in this Player.
+
+**Weakness/Resistance combined into one compact shield-badge list (new
+2026-09-29)** - direct request: "weakness is a bit verbose, in the game
+they put the weakness on a list, make the icon smaller. the resistance
+can go next to it to differentiate, find a shield / broken shield icon
+and use that as background. weakness -> broken shield, resistance ->
+shield." The old layout gave Weakness/Resistance/Immunity each their own
+full-size heading + row of `_icon_box()`-sized damage-type icons (64px
+tall); Weakness/Resistance are now ONE combined list under a single
+"Weakness / Resistance" heading (`_property_sections["vulnerability"]`,
+replacing the separate `"weakness"`/`"resistance"` keys), each entry a
+small (`PROPERTY_ICON_HEIGHT` 30px) damage-type icon layered on a
+`SHIELD_ICON_SIZE` (44x51) background badge - `_shield_icon_box(kind,
+is_weakness)` (new, `scripts/CombatView.gd`) - broken shield for a
+weakness entry, intact shield for a resistance entry, so the two are
+visually differentiated by background alone rather than by which section
+they're listed under. Immunity is untouched - still its own full-size
+section via `_icon_box()` - only Weakness/Resistance were called out.
+**A not-yet-discovered entry (`kind < 0`) still shows the correct shield**
+(broken vs intact) with the red "?" damage icon on top - which CATEGORY
+a monster has was already non-secret before this change (the table could
+already see how MANY weakness/resistance icons existed, just not which
+damage kind each was, per `_icon_box()`'s own pre-existing "?" rule), so
+carrying that same non-secret distinction into the shield background
+doesn't leak anything new.
+
+**Shield art**: `models/icons/shield.png` (intact, steel-blue, for
+resistance) and `models/icons/shield_broken.png` (duller red with a
+jagged transparent crack cut through it, for weakness) - both new,
+generated placeholders (a throwaway Pillow script, deleted after running,
+same "generated placeholder, not a real asset" convention as every other
+piece of art in this project). **No `OfficialAssetMap` entry** - unlike
+the damage-type diamond icons (which map to confirmed real names pulled
+from the game's own asset dump), no real "shield"/"broken shield" icon
+name has been confirmed anywhere in this project's asset exploration, so
+these are treated the same way `gate`/`archway`/`tree` already are (see
+**Official asset overrides** below) - the user's own original art, no
+official version to swap in, loaded via a plain `preload()` in
+`CombatView.gd` rather than `OfficialAssetOverrides.texture_for()`.
+Compile-checked only (`--headless --path . --import`, clean, including
+both new `.import` files generating without error) - not seen rendered;
+the shield shape/crack styling and the two size constants are first-guess
+placeholders, same "adjust after a real look" caveat as everything else
+in this file that hasn't been visually confirmed yet.
+
+**Three follow-up tweaks, same day** ("change the label to just Weakness.
+use the same style for the weapon damage type, same font size. Remove the
+actual damage indicator, it needs a better spot but not there it should
+be a bit symetrical"):
+1. The "Weakness / Resistance" heading is now just **"Weakness"** - the
+   shield background already tells a resistance entry apart from a
+   weakness one (see the entry just above), so spelling both out in the
+   heading was redundant.
+2. New shared `HEADING_FONT_SIZE` (20) const, used by BOTH the "Damage
+   Type" heading (was 30) and the "Weakness" heading - the two bottom
+   corners now read as a matching pair instead of Damage Type dominating
+   with a noticeably bigger heading.
+3. **The Damage Type row's +1/-1/+?/× modifier badge is gone** -
+   `_damage_type_box()` (built 2026-09-28, one damage-type icon plus a
+   small colour-coded bonus/penalty label underneath) is deleted outright,
+   along with its own now-unused `WEAKNESS_COLOR`/`RESISTANCE_COLOR`/
+   `IMMUNE_COLOR`/`UNKNOWN_MODIFIER_COLOR` consts - the Damage Type row
+   now just shows plain `_icon_box()` icons, the same shape as the
+   Weakness row opposite it now that its own badge (the modifier text)
+   is gone too, closing the visual gap between the two bottom corners
+   ("it should be a bit symmetrical"). **Explicitly parked, not
+   abandoned** - "it needs a better spot but not there" - the underlying
+   idea (telling the table what bonus a damage type is expected to give)
+   is sound, it just doesn't belong stacked under this row any more; no
+   replacement spot has been designed yet.
+
+**HP badge widened into the health bar itself, separate bar removed
+(2026-09-29)** - direct follow-up on the earlier health-bar pass: "there
+is a box with the actual health in it, make that wider 2.5x and use
+that. The border can stay, the inline must be colored black/red based on
+the health. Remove the healthbar you added underneath. Keep the number
+in it allign that to the left." The standalone bar
+(`_hp_bar_fill`/`HP_BAR_SIZE`, built earlier the same day sitting under
+the heart+defense badge row) is gone entirely - `CombatView._build_hp_box()`
+(new, replaces the plain `_stat_badge()` call for HP only; Defense keeps
+its original compact badge) builds a much wider (`HP_BOX_SIZE`, 240x48 -
+"~2.5x" the original compact badge) box that IS the bar: a black
+`ColorRect` baseline (the missing portion) with a red `ColorRect`
+overlay on top sized to `hitpoints/max_hitpoints` (the current portion,
+resized in `configure()`), and the original bordered-panel look kept as
+a THIRD, topmost, fully-transparent-fill overlay so its border renders
+over the fill without hiding it ("the border can stay"). The heart glyph
++ HP number are left-anchored within the box (`PRESET_CENTER_LEFT` +
+`GROW_DIRECTION_END`, same anchor-plus-grow centring trick
+`_shield_icon_box()` already uses, just pinned to the left edge instead
+of the centre point) rather than centred like `_stat_badge()`'s own
+labels - "keep the number in it, align that to the left" - so it reads
+at roughly its original position instead of drifting to the middle of
+the now much wider bar. Compile-checked only, not seen rendered.
+
+**A second concentric ring around the successes picker disc (2026-09-29)**
+- "to give the input a bit more feel, can we add a double circle around
+it." The disc (the number-of-successes picker, previously a single
+bordered circle) is now wrapped in a `disc_wrap` Control holding a second,
+slightly bigger bordered-but-transparent-fill ring BEHIND it
+(`outer_ring`, 112x112 vs. the disc's own 96x96), both centred on the
+same point via `PRESET_CENTER` so an even ~8px gap shows between the two
+circles - a plain decorative double-ring, no new interaction. Compile-
+checked only, not seen rendered.
+
+**Confirm/Cancel sized down (2026-09-29)** - "make confirm and cancel
+buttons a bit smaller, they feel very large." Confirm: 260x60/30pt ->
+190x44/22pt; Cancel: 200x40/22pt -> 150x32/16pt (`CombatView._build()`'s
+two `_big_button()` calls) - the surrounding `buttons` anchor area/layout
+is untouched, only the two buttons' own size/font shrank. Compile-checked
+only, not seen rendered.
+
+**Shield placeholder art reshaped, twice, same day** - direct follow-up
+question confirming these are generated, not real game art ("the shield's
+you use? are they drawn, if so make the upper rectangle part a bit larger
+and the pointy part less pointy") - re-ran the same throwaway Pillow
+generator (see that section's own entry above) with a taller top
+rectangle (the flat-topped section now runs to 58% of the shape's height,
+was 48%). The first attempt at "less pointy" used a short flat edge
+between two corner points instead of a single point - immediately
+corrected ("if possible a bit more round to the bottom"): the bottom is
+now a genuine curve, a quadratic bezier sampled at 16 points between the
+two shoulder points with a shallow control-point dip (`BOTTOM_CONTROL_Y`
+0.90), giving a rounded dome rather than a flat cut or a sharp point.
+Same six-ish-point (now ~19-point, most of them along the curve) polygon
+approach as before, both icons regenerated in place at the same 96x112
+size. Compile-checked only (`--headless --path . --import` re-imported
+both PNGs cleanly each time) - not seen rendered.
+
+**Real screenshots came back, three confirmed layout bugs fixed, same
+day** - the first actual look at this whole pass in the running Player.
+
+1. **HP bar rendered as a top/bottom split, not full at 20/20 health,
+   with the heart+number "floating somewhere halfway"** - root cause:
+   `_build_hp_box()`'s `box` is a plain (non-Container) `Control` sitting
+   inside `stat_row`, an `HBoxContainer` - by default a Control's
+   CROSS-axis size flag is `SIZE_FILL`, so `box` was silently stretched
+   TALLER to match its sibling (the taller Defense badge), while
+   `_hp_fill`'s hardcoded `size = HP_BOX_SIZE` only ever covered the
+   intended 48px from the top - the rest of the now-taller box stayed
+   bare black underneath it, reading as a horizontal top/bottom split
+   instead of a left/right progress bar, and the heart+number (vertically
+   centred within the now-much-taller box) landed near that seam. Fixed
+   two ways at once: `box.size_flags_vertical = SIZE_SHRINK_CENTER` stops
+   the stretch outright, and every child switched from anchor-preset
+   tricks (`PRESET_FULL_RECT`/`PRESET_CENTER_LEFT`) to plain absolute
+   `position`/`size` (default top-left anchors) - fully deterministic,
+   immune to this whole class of cross-axis-stretch surprise.
+2. **The double ring came out off-centre from the disc, and the whole
+   picker no longer sat evenly between the two arrow buttons** - the
+   exact same root cause: `disc_wrap` (also a plain Control inside an
+   `HBoxContainer`) could stretch unpredictably, and `set_anchors_and_offsets_preset(PRESET_CENTER)`
+   pre-computes a FIXED offset once from the current (not-yet-settled)
+   combined minimum size rather than re-resolving live - fragile in a way
+   `_shield_icon_box()`'s OWN icon-centring (`set_anchors_preset()` +
+   explicit grow direction, which DOES re-resolve live every layout pass)
+   happens not to be. Fixed the same way as the HP box:
+   `disc_wrap.size_flags_vertical = SIZE_SHRINK_CENTER` plus absolute
+   `position`/`size` for both the ring and the disc (`disc` hand-centred
+   at `(112-96)/2 = 8` on each side) - no more anchor-preset guessing.
+3. **The shield badges were too small vertically for their own icon** -
+   confirmed directly from a screenshot (the red "?" overflowing below
+   the shield's rounded point). `SHIELD_ICON_SIZE` bumped from `(44, 51)`
+   to `(62, 72)` (same aspect ratio as the 96x112 PNG, ~1.4x bigger) -
+   `PROPERTY_ICON_HEIGHT` (the icon itself) left alone, per the request
+   being about the shield, not the icon.
+
+**Two more direct requests landed the same pass**:
+- **"make the blue also silverish"** - the intact/resistance shield's
+  fill recoloured from steel-blue `(96,128,156)` to a silver/grey
+  `(176,178,182)` (outline/highlight tones adjusted to match) - same
+  throwaway Pillow regeneration, shape untouched this time.
+- **"damage type can also use the shields"** - the Damage Type row now
+  goes through the SAME `_shield_icon_box()` as Weakness/Resistance
+  instead of the plain `_icon_box()` it used before, using the intact
+  (now silver) shield as a neutral background - there's no secret/
+  discovered concept for a weapon's own damage types, so it never passes
+  `kind < 0`. `_shield_icon_box()`'s signature changed from
+  `(kind, is_weakness: bool)` to `(kind, shield_texture: Texture2D,
+  tooltip: String)` to support this third, non-weakness/resistance
+  caller - both Weakness/Resistance call sites build their own tooltip
+  string and pass `SHIELD_BROKEN_TEXTURE`/`SHIELD_TEXTURE` explicitly
+  now, same behavior as before, just no longer inferred from a bool.
+  `_icon_box()` itself is unchanged and still backs the (untouched)
+  Immunity list.
+
+Compile-checked only (`--headless --path . --import`, clean - caught and
+fixed one real `:=` type-inference error along the way, the same
+"ternary from an untyped Array loop variable needs an explicit `int`
+annotation" class of issue this project's own Hard-won lessons section
+already documents elsewhere) - all of the above is reasoned from the
+screenshots and re-verified geometrically, not re-rendered end-to-end in
+this environment; still worth a fresh look once available.
+
+**Radial tick marks around the outer ring (new 2026-09-29)** - "for the
+second ring if possible add a small outside pointing lines, lets say we
+add one every 45degree, make the ones for which mod 90 = 0 a bit longer."
+`CombatView._build_disc_ticks(parent)` (new) draws 8 short `Line2D`
+segments radiating straight out from `disc_wrap`'s own centre, one every
+45 degrees (`TICK_COUNT`), the 4 cardinal ones (0/90/180/270,
+`int(angle_deg) % 90 == 0`) drawn at `TICK_LENGTH_LONG` (10px) and the 4
+diagonal ones at `TICK_LENGTH_SHORT` (6px), both starting `TICK_GAP` (2px)
+outside `TICK_RADIUS` (56, matching `outer_ring`'s own true edge - half
+of its 112x112 size). `Line2D` is a `Node2D`, not a `Control`, but Godot
+freely allows mixing CanvasItem-derived nodes under a Control - its
+`position`/`points` just live in the same local coordinate space
+`disc_wrap`'s other children already use (top-left origin, absolute
+pixels), so no special handling was needed to parent it there. A plain
+dial/gauge decoration, no new interaction. Compile-checked only, not seen
+rendered.
+
+**Shields made taller, not wider, same day, follow-up correction** - "you
+made the shields wider but not longer, that is what i need, revert to the
+previous wide and make them longer." The previous fix (44x51 -> 62x72)
+scaled the badge UNIFORMLY, which grew width as much as height - not what
+was wanted. Since a `TextureRect` with `STRETCH_KEEP_ASPECT_CENTERED`
+never stretches past the source image's own aspect ratio, just enlarging
+`SHIELD_ICON_SIZE`'s height while leaving its width alone wouldn't have
+made the rendered artwork any taller (only added empty letterboxed
+space) - the shield PNGs themselves needed a taller aspect ratio. Both
+regenerated at 96x168 (was 96x112, same width, taller canvas) - every
+point in the generator is a FRACTION of (W, H), so raising H alone
+elongates the shape vertically while every X-coordinate (and the overall
+width) stays exactly where it was. `SHIELD_ICON_SIZE` is now `(44, 78)` -
+44 is the ORIGINAL width from before any of this session's shield-sizing
+changes, 78 matches the new 96x168 image's own aspect ratio at that
+width. Compile-checked only (`--headless --path . --import` re-imported
+both PNGs cleanly) - not seen rendered.
+
+**Two more small layout tweaks, same day**:
+- "not put the weakness more to the top, i would say 30px" (read as "now
+  put...") - the combined Weakness/Resistance + Immunity column
+  (`right`, `CombatView._build()`) shifted up 30px (`offset_top`/
+  `offset_bottom` both `-= 30`) - the shield badges had just grown
+  noticeably taller in the same pass and needed more headroom above the
+  bottom edge. Only the right column moved - Damage Type (`left`) is
+  untouched.
+- "also make the shield box the same size as the health bar vertically" -
+  **this was a genuine mix-up, corrected the same conversation**: read at
+  first as the Weakness/Resistance shield-BACKGROUND icons
+  (`SHIELD_ICON_SIZE`, whose height was set to `HP_BOX_SIZE.y`), which
+  made them noticeably smaller than the "make them longer" pass just
+  before it ("mzz now the shield are smaller :)"). Reverted
+  `SHIELD_ICON_SIZE` straight back to `(44, 78)`. The user then clarified
+  what "the shield box" actually meant - "i meant the defense bar before
+  that sits next to the health bar... it also has a shield icon so that
+  got us confused" - the Defense stat badge's own ⛨ glyph, not the
+  Weakness/Resistance icons at all. See the Defense-badge entry right
+  below for the real fix.
+
+**Defense badge height matched to the HP bar (new 2026-09-29)** - "make
+the defense (gray bar) vertical size the same as the health bar vertical
+size." The Defense badge used to be built via the generic
+`_stat_badge()`/`_panel()` helpers, whose `PanelContainer`
+`content_margin_all(10)` added 20px on top of the label text - that
+margin, not the font size, was the actual reason it came out taller
+(~60px) than `HP_BOX_SIZE.y` (48): the same 34pt number font already
+fits comfortably inside 48px on its own (confirmed - `_build_hp_box()`
+already uses that exact font size at that exact height). New
+`_build_defense_box()` (replacing the `_stat_badge()` call, same
+deterministic technique as `_build_hp_box()` - absolute `position`/`size`,
+no `PanelContainer` content-margin overhead, `size_flags_vertical =
+SIZE_SHRINK_CENTER` so it can't stretch to match a taller sibling) builds
+a `DEFENSE_BOX_WIDTH` (100) x `HP_BOX_SIZE.y` (48) badge that reliably
+matches the HP bar's height exactly. `_stat_badge()` itself is deleted -
+HP had already moved off it earlier the same day, this was its only
+remaining caller. Compile-checked only, not seen rendered.
 
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
