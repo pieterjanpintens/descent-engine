@@ -52,23 +52,24 @@ const ICON_HEIGHT := 64.0
 const HP_BOX_SIZE := Vector2(240, 48)  ## ~2.5x the original compact heart-badge box - "make that wider 2.5x and use that [as the health bar]"
 const DEFENSE_BOX_WIDTH := 100.0  ## the Defense badge's own width; height is pinned to HP_BOX_SIZE.y, see _build_defense_box()
 const HEADING_FONT_SIZE := 20  ## shared by "Damage Type" and "Weakness" so both bottom columns match ("use the same style for the weapon damage type, same font size")
-const PROPERTY_ICON_HEIGHT := 30.0  ## the small damage-type icon layered on a shield badge
-const SHIELD_ICON_SIZE := Vector2(44, 78)  ## the shield/broken-shield background badge itself - reverted 2026-09-29 back to this (matching HP_BOX_SIZE.y instead made them noticeably smaller than the "make them longer" pass just before it, not what was wanted) - 44 is the original width, 78 matches the shield PNG's own 96x168 aspect at that width
+const PROPERTY_ICON_HEIGHT := 30.0  ## the small damage-type icon inside its bordered badge
 const TICK_COUNT := 8  ## the outer ring's radial tick marks, one every 45 degrees
 const TICK_RADIUS := 56.0  ## matches disc_wrap's own half-size (112/2) - the outer_ring's true edge
 const TICK_GAP := 2.0  ## small gap between the ring's edge and where a tick starts
 const TICK_LENGTH_SHORT := 6.0  ## the diagonal ticks (45/135/225/315)
 const TICK_LENGTH_LONG := 10.0  ## the cardinal ticks (angle mod 90 == 0)
 
-## Placeholder shield art (new 2026-09-29, "find a shield / broken shield
-## icon and use that as background") - generated flat shapes, same
-## "original sculpted/generated asset, no official counterpart" treatment
-## this project already gives gate/archway/tree (see claude.md's own
-## Official asset overrides section) - there's no real game asset name
-## confirmed for these, so no OfficialAssetMap entry/override path, just a
-## direct preload like those other original props.
-const SHIELD_TEXTURE := preload("res://models/icons/shield.png")
-const SHIELD_BROKEN_TEXTURE := preload("res://models/icons/shield_broken.png")
+## Shield-art badges removed (2026-10-01, "remove the shields, but a double
+## gray border around the icons") - see `_bordered_icon_box()` for what
+## replaced them. The generated shield.png/shield_broken.png files
+## themselves are left in models/icons/ (and tools/asset_import/
+## generate_shield_icons.py kept, per the earlier "keep the script around"
+## request) in case this look is revisited, just no longer referenced here.
+const ICON_BORDER_PADDING := Vector2(14, 14)  ## gap between the icon and its own (inner) border
+const ICON_BORDER_GAP := 5.0  ## gap between the inner and outer border, each side
+const ICON_BORDER_COLOR := Color(0.72, 0.74, 0.78, 0.9)  ## gray outer ring, and the Damage Type row's own inner ring ("damage type can stay as is color wise")
+const WEAKNESS_BORDER_COLOR := Color(0.55, 0.12, 0.10)  ## dark red, same hue family as the background gradient's own monster-side end colour
+const RESISTANCE_BORDER_COLOR := Color(0.14, 0.22, 0.42)  ## dark blue, same hue family as the background gradient's own hero-side start colour
 
 
 func _ready() -> void:
@@ -272,22 +273,20 @@ func _build() -> void:
 	_damage_box = _section(left, "Damage Type", HEADING_FONT_SIZE)
 
 	# Bottom-right: what is known about the monster. Weakness/Resistance
-	# share ONE compact list now (new 2026-09-29) - small icons on a
-	# shield/broken-shield background differentiate them instead of each
-	# getting its own full-size heading+row ("weakness is a bit verbose,
-	# in the game they put the weakness on a list, make the icon smaller.
-	# the resistance can go next to it to differentiate") - see
-	# _shield_icon_box()'s own doc. Immunity keeps its own full-size
-	# section, unchanged - only weakness/resistance were called out.
-	# Heading text shortened to just "Weakness" (same day, follow-up
-	# request) - the shield background already tells resistance apart, so
-	# spelling both out in the heading was redundant.
+	# share ONE compact list now (new 2026-09-29) - small bordered icons
+	# instead of each getting its own full-size heading+row ("weakness is
+	# a bit verbose, in the game they put the weakness on a list, make the
+	# icon smaller"). Immunity keeps its own full-size section, unchanged -
+	# only weakness/resistance were called out. Heading text shortened to
+	# just "Weakness" (same day, follow-up request).
+	# No longer shifted up relative to `left` (that 30px offset existed
+	# only to make room for the old shield badges' own extra height -
+	# removed 2026-10-01 alongside the shields themselves, "make sure that
+	# the weapon damage and weakness areas are aligned vertically on the
+	# same height" - both columns now use the identical `_bordered_icon_box()`
+	# badge size, so the shared `_bottom_column()` anchoring already lines
+	# them up with no per-column correction needed).
 	var right := _bottom_column(0.60, 0.98)
-	# Shifted up 30px (2026-09-29, "put the weakness more to the top") -
-	# the shield badges grew noticeably taller in the same pass, so this
-	# column needed the extra headroom above the bottom edge.
-	right.offset_top -= 30
-	right.offset_bottom -= 30
 	var vulnerability_section := VBoxContainer.new()
 	right.add_child(vulnerability_section)
 	var vulnerability_box := _section(vulnerability_section, "Weakness", HEADING_FONT_SIZE)
@@ -357,13 +356,15 @@ func configure(cfg: Dictionary) -> void:
 	var known_weaknesses: Array = cfg.get("known_weaknesses", [])
 	var known_resistances: Array = cfg.get("known_resistances", [])
 	var known_immunities: Array = cfg.get("known_immunities", [])
-	# Damage Type icons are shield-backed too now (new 2026-09-29, "damage
-	# type can also use the shields") - the neutral intact/silverish shield,
-	# same texture the Resistance entries use, since a weapon's own damage
-	# types are never secret (no broken-shield/"?" case here at all).
+	# Damage Type icons use the same bordered badge as Weakness/Resistance
+	# (2026-09-29, "damage type can also use the shields" - carried over to
+	# the shield-less badge below) but deliberately keep the plain gray
+	# border colour ("damage type can stay as is color wise" - a weapon's
+	# own damage types have no weakness/resistance concept of their own to
+	# colour-code), hence no `inner_border_color` argument here.
 	_clear(_damage_box)
 	for kind in damage_types:
-		_damage_box.add_child(_shield_icon_box(kind, SHIELD_TEXTURE, Vulnerability.display_name(kind)))
+		_damage_box.add_child(_bordered_icon_box(kind, Vulnerability.display_name(kind)))
 
 	var weaknesses: Array = cfg.get("weaknesses", [])
 	var resistances: Array = cfg.get("resistances", [])
@@ -371,15 +372,15 @@ func configure(cfg: Dictionary) -> void:
 	vulnerability_entry["section"].visible = not weaknesses.is_empty() or not resistances.is_empty()
 	_clear(vulnerability_entry["box"])
 	for kind in weaknesses:
-		# Hidden ("?" icon) until discovered - the CATEGORY (broken shield =
-		# weakness) is never secret, only which damage kind it's for.
+		# Hidden ("?" icon) until discovered - which CATEGORY a monster has
+		# is never secret, only which damage kind it's for.
 		var shown_weakness: int = kind if known_weaknesses.has(kind) else -1
 		var weakness_tooltip := "Weakness: %s" % (Vulnerability.display_name(shown_weakness) if shown_weakness >= 0 else "Unknown")
-		vulnerability_entry["box"].add_child(_shield_icon_box(shown_weakness, SHIELD_BROKEN_TEXTURE, weakness_tooltip))
+		vulnerability_entry["box"].add_child(_bordered_icon_box(shown_weakness, weakness_tooltip, WEAKNESS_BORDER_COLOR))
 	for kind in resistances:
 		var shown_resistance: int = kind if known_resistances.has(kind) else -1
 		var resistance_tooltip := "Resistance: %s" % (Vulnerability.display_name(shown_resistance) if shown_resistance >= 0 else "Unknown")
-		vulnerability_entry["box"].add_child(_shield_icon_box(shown_resistance, SHIELD_TEXTURE, resistance_tooltip))
+		vulnerability_entry["box"].add_child(_bordered_icon_box(shown_resistance, resistance_tooltip, RESISTANCE_BORDER_COLOR))
 
 	var immunity_entry: Dictionary = _property_sections["immunity"]
 	var immunities: Array = cfg.get("immunities", [])
@@ -667,42 +668,90 @@ func _icon_box(kind: int) -> Control:
 	return t
 
 
-## A compact icon-on-a-shield-badge entry (new 2026-09-29) - a small
-## damage-type icon layered on a shield badge. Originally built just for
-## the combined Weakness/Resistance list ("in the game they put the
-## weakness on a list, make the icon smaller. the resistance can go next
-## to it to differentiate") - the shield itself carries that distinction
-## (broken vs. intact), replacing the old full-size `_icon_box()` row
-## (plus its own heading) each of Weakness/Resistance used to get
-## separately. Extended the same day to the Damage Type row too ("damage
-## type can also use the shields") - `shield_texture`/`tooltip` are passed
-## in explicitly rather than inferred from an is-weakness flag, since the
-## Damage Type row has no weakness/resistance concept at all, just the
-## neutral (now silverish) intact shield as a background.
-## `kind < 0` (not yet discovered) still shows the correct shield (which
-## CATEGORY a monster has is never secret, only which damage type - same
-## rule `_icon_box()`'s own "?" already follows) with the "?" icon on top -
-## irrelevant for the Damage Type row, which never passes `kind < 0`
-## (a weapon's own damage types are never secret).
-func _shield_icon_box(kind: int, shield_texture: Texture2D, tooltip: String) -> Control:
+## A small damage-type icon framed by a double gray border (new 2026-10-01,
+## "remove the shields, but a double gray border around the icons" -
+## replaces the earlier shield-background badge entirely, see
+## `tools/asset_import/generate_shield_icons.py`'s own doc comment for that
+## shield art's history). Used by both the Damage Type row and the combined
+## Weakness/Resistance list, so the two bottom corners stay visually
+## identical. Same concentric-ring idea as the successes picker's own
+## double ring (`disc_wrap`/`outer_ring`), just rectangular and per-icon:
+## an outer bordered box (always the neutral `ICON_BORDER_COLOR`, filled
+## black so the border reads clearly against the art behind it - "make
+## sure the color between the borders is also black so it is visible"), a
+## smaller bordered box inset inside it (also the icon's own dark backdrop,
+## black fill too so the two rings blend into one solid black field with
+## just their two border lines visible), and the icon centred on top of
+## both. `inner_border_color` (new, same round - "make weak inner border
+## dark red, resistance dark blue") lets the INNER ring alone carry the
+## weakness-vs-resistance distinction that used to live in the shield
+## art - `WEAKNESS_BORDER_COLOR`/`RESISTANCE_BORDER_COLOR` for those two
+## callers. Damage Type explicitly keeps the plain default
+## `ICON_BORDER_COLOR` gray ("damage type can stay as is color wise") -
+## it has no weakness/resistance concept of its own, so there's nothing
+## for a second colour to distinguish there; it still gets the same
+## square sizing and black-between-borders treatment as everything else,
+## only the colour was asked to stay put. (Immunity has its own
+## `_icon_box()` and never reaches here.) **All badges render as an equal
+## SQUARE now** (new, same round -
+## "can we make all equal size (square)") - `icon`'s own box is a fixed
+## `h x h` square regardless of a given damage icon's real aspect ratio,
+## with `STRETCH_KEEP_ASPECT_CENTERED` still letterboxing the actual
+## artwork inside it undistorted - so every ring size this function builds
+## is identical across every icon, not just same-height-different-width
+## like the very first bordered pass.
+## `kind < 0` (not yet discovered) still shows the "?" icon - which
+## CATEGORY a monster has is never secret, only which damage type (same
+## rule `_icon_box()`'s own "?" already follows) - irrelevant for the
+## Damage Type row, which never passes `kind < 0` (a weapon's own damage
+## types are never secret).
+func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = ICON_BORDER_COLOR) -> Control:
+	var h := PROPERTY_ICON_HEIGHT
+	var icon_texture := Vulnerability.icon(kind)
+	var icon_size := Vector2(h, h)
+	var inner_size := icon_size + ICON_BORDER_PADDING
+	var outer_size := inner_size + Vector2(ICON_BORDER_GAP, ICON_BORDER_GAP) * 2.0
+
 	var badge := Control.new()
-	badge.custom_minimum_size = SHIELD_ICON_SIZE
+	badge.custom_minimum_size = outer_size
 	badge.tooltip_text = tooltip
 
-	var shield := TextureRect.new()
-	shield.texture = shield_texture
-	shield.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	shield.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	shield.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_child(shield)
+	var outer_ring := PanelContainer.new()
+	var outer_style := StyleBoxFlat.new()
+	outer_style.bg_color = Color(0, 0, 0, 0.9)
+	outer_style.border_color = ICON_BORDER_COLOR
+	outer_style.set_border_width_all(2)
+	outer_style.set_corner_radius_all(6)
+	outer_ring.add_theme_stylebox_override("panel", outer_style)
+	outer_ring.custom_minimum_size = outer_size
+	outer_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	outer_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(outer_ring)
+
+	# The inner ring doubles as the icon's own dark backdrop (the
+	# contrast fix from the previous round) - one box, not a separate
+	# backing plate plus a separate border. Its own border colour is the
+	# only thing that distinguishes a weakness entry from a resistance one
+	# now that the shield art is gone.
+	var inner_ring := PanelContainer.new()
+	var inner_style := StyleBoxFlat.new()
+	inner_style.bg_color = Color(0, 0, 0, 0.9)
+	inner_style.border_color = inner_border_color
+	inner_style.set_border_width_all(2)
+	inner_style.set_corner_radius_all(4)
+	inner_ring.add_theme_stylebox_override("panel", inner_style)
+	inner_ring.custom_minimum_size = inner_size
+	inner_ring.set_anchors_preset(Control.PRESET_CENTER)
+	inner_ring.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	inner_ring.grow_vertical = Control.GROW_DIRECTION_BOTH
+	inner_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(inner_ring)
 
 	var icon := TextureRect.new()
-	icon.texture = Vulnerability.icon(kind)
+	icon.texture = icon_texture
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var h := PROPERTY_ICON_HEIGHT
-	icon.custom_minimum_size = Vector2(h * icon.texture.get_width() / icon.texture.get_height(), h)
+	icon.custom_minimum_size = icon_size
 	icon.set_anchors_preset(Control.PRESET_CENTER)
 	icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	icon.grow_vertical = Control.GROW_DIRECTION_BOTH

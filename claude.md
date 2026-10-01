@@ -1829,6 +1829,166 @@ matches the HP bar's height exactly. `_stat_badge()` itself is deleted -
 HP had already moved off it earlier the same day, this was its only
 remaining caller. Compile-checked only, not seen rendered.
 
+**Shield art fully reworked from a reference image, 2026-09-29/30, and
+promoted to a real kept tool** - "can we make shields that look more like
+this. so double edged with a bit more feeling :)" (a reference image of a
+proper heraldic/heater shield - rounded shoulders, pointed bottom, a
+crisp double-line border, glossy two-tone shading). The plain 6-point
+polygon-plus-bezier-bottom shape from earlier in this session was
+replaced entirely:
+- **Shape**: a proper heater-shield silhouette built from two mirrored
+  cubic-bezier segments (top-centre -> rounded shoulder -> bottom point),
+  not a hand-typed polygon - `tools/asset_import/generate_shield_icons.py`'s
+  `_shield_points_frac()`.
+- **"Double edged"**: an outer dark border plus a thin inset light stroke
+  drawn just inside it (`_draw_shield_body()`), reading as a two-line
+  border like the reference.
+- **Anti-aliasing** ("make the edges less pixel block like") - the whole
+  thing is drawn supersampled at 4x the final resolution and downsampled
+  with `Image.LANCZOS`, so every curve/line comes out smooth instead of
+  aliased/blocky.
+- **Gradient shading** ("maybe a bit more gradient") - a real smooth
+  left-to-right gradient (a generated grayscale gradient mask, not a
+  hard-edged two-tone split) gives the fill some actual dimension.
+- **The broken shield's crack, three follow-up rounds**: (1) "the broken
+  shield should be broken trough[,] the white lines you draw over are not
+  long enough" -> "they dont go over the edges of the actual shield" - the
+  crack's erasure path now deliberately OVERSHOOTS past the shield's own
+  top/bottom points into the transparent margin beyond the silhouette, so
+  it fully crosses the border stroke at both ends instead of stopping
+  just inside it (erasing empty canvas past the tip is harmless). (2)
+  "where the cracks are, darken the edge a bit" - a wider dark stroke
+  drawn first along the same path, then the (narrower) transparent gap
+  erased on top of it, leaving a dark rim/shadow visible on both sides of
+  the break. (3) "the shadow effect must stop at the edges of the shield"
+  - that dark rim is CLIPPED to the shield's own silhouette (multiplied
+  against a shape mask before pasting) - UNLIKE the erasure gap, which
+  deliberately isn't clipped, the rim must never bleed past the border
+  into the overshoot margin the erasure fix just added.
+- **Width, several rounds**: "15% wider" (96 -> 110), then "widen the
+  shield another 10% in general" (110 -> 121) - each applied to the
+  generated PNG's own width, `SHIELD_ICON_SIZE` recomputed afterward
+  (`(56, 78)`) to match the final 121x168 aspect at the same 78px height
+  the earlier "make them longer" pass had already settled on.
+- **A genuine mix-up, corrected in the same round**: "make the darker
+  edge a bit wider" was first read as the CRACK's own dark shadow rim
+  (widened 16 -> 24), then corrected - "revert the crack rim widening, i
+  meant the darker border of the shield itself" - reverted the rim back
+  to 16 and widened the shield's own outer border stroke instead (5 -> 8).
+- **Promoted to a permanent tool** ("keep the script around, might want
+  to tweak further") - moved from a throwaway `scripts/_gen_...py` (this
+  project's usual convention, normally deleted once done) to
+  `tools/asset_import/generate_shield_icons.py`, the first placeholder-
+  art generator in this project kept as a real, re-runnable tool rather
+  than a one-off - it went through eight rounds of live tuning across two
+  days and is likely to see more. Output paths resolve relative to the
+  script's own file location (`SCRIPT_DIR`), not the working directory,
+  matching this folder's other tools' convention - confirmed by actually
+  running it from a different directory, not just reasoned about. No
+  `OfficialAssetMap` entry, same as before - there's still no confirmed
+  real "shield"/"broken shield" asset name anywhere in this project's own
+  asset exploration.
+
+Wired back into the game the same day: `SHIELD_ICON_SIZE` updated to
+`(56, 78)` for the final art, full project re-import confirmed clean
+(both PNGs reimport without error). Every step along the way was sent to
+the user as a rendered PNG for a real look before moving on, rather than
+reasoned about blind - unusual for this project's own "unverified in-
+editor" art (see this doc's own many caveats elsewhere), since this
+specific case allowed showing the actual generated file directly. This
+whole pass was committed ("commit this already") before the follow-up
+below.
+
+**A dark backing plate behind the damage-type icon (new 2026-10-01)** -
+"can we make that the icon on the shield sits in a black area." The
+small damage-type icon layered on top of each shield badge
+(`_shield_icon_box()`) used to sit directly on the shield's own
+gradient/colour fill, which could fight the icon's own colours for
+contrast depending on the damage kind. A `PanelContainer` with a flat
+black (88% opacity), slightly rounded `StyleBoxFlat` is now inserted
+BETWEEN the shield art and the icon (`shield` -> `icon_bg` -> `icon`,
+matching draw order = child order), sized to the icon's own computed
+size plus an 8px pad on each axis, centred with the identical
+`PRESET_CENTER` + `GROW_DIRECTION_BOTH` technique the icon itself
+already used - both now share the same `icon_size` value (computed once
+and reused for both, rather than each independently re-deriving it from
+the texture's own aspect ratio) so the backing plate and the icon stay
+concentric regardless of which damage icon's aspect ratio is in play.
+Compile-checked only (`--headless --path . --import`, clean), not seen
+rendered.
+
+**Shields removed entirely, replaced with a double gray border, same
+day** - "ok remove the shields, but a double gray border arround the
+icons, make sure that the weapon damage and weakness areas are alligned
+vertically on the same height." The backing-plate fix above lasted one
+round - `_shield_icon_box()` is gone, replaced by `_bordered_icon_box(kind,
+tooltip)`: a small Damage-Type/Weakness/Resistance icon framed by two
+concentric gray `StyleBoxFlat` borders (an outer transparent-fill ring, a
+smaller inset ring that doubles as the icon's own dark backdrop - folding
+the previous round's "icon sits in a black area" fix into the SAME inner
+box rather than a separate layer, since the new border look already needs
+one anyway), same "no shape distinguishes weakness from resistance"
+simplification the request implied - that distinction now lives only in
+each badge's tooltip text ("Weakness: ..."/"Resistance: ..."), not a
+broken-vs-intact background shape. `SHIELD_TEXTURE`/`SHIELD_BROKEN_TEXTURE`/
+`SHIELD_ICON_SIZE` are deleted from `CombatView.gd`; the generated PNGs
+themselves (`models/icons/shield.png`/`shield_broken.png`) and
+`tools/asset_import/generate_shield_icons.py` are left in place untouched,
+in case this look is revisited - the tool was explicitly kept around for
+exactly that possibility in the previous round.
+
+**Vertical alignment fix**: the Weakness column's own `right.offset_top -=
+30`/`right.offset_bottom -= 30` (added back when the shield badges were
+noticeably taller than the Damage Type row's plain icons) is removed -
+Damage Type and Weakness now both go through the identical
+`_bordered_icon_box()`, so they're the same height again and
+`_bottom_column()`'s shared anchoring lines the two columns up with no
+per-column correction needed. Compile-checked only
+(`--headless --path . --import`, clean), not seen rendered.
+
+**Square badges, colour-coded inner border, solid black between the rings,
+same day, follow-up round** - "can we make all equal size (square), make
+weak inner border dark red, resistance dark blue, much like the colors
+used for the background gradient. Make sure the color between the borders
+is also black so it is visible" - then, mid-edit, a correction limiting
+scope: "damage type can stay as is" followed immediately by the sharper
+"damage type can stay as is color wise" (the second message supersedes the
+first - only the COLOUR was meant to stay put, not the sizing/fill).
+`_bordered_icon_box()` gained a new `inner_border_color: Color =
+ICON_BORDER_COLOR` parameter (defaulting to the existing neutral gray) and
+three other changes applying to every caller equally:
+1. **Square, not aspect-ratio-shaped** - `icon_size` is now a flat
+   `Vector2(h, h)` instead of `Vector2(h * aspect, h)`, so every ring this
+   function builds is an identical square regardless of a given damage
+   icon's own real proportions - `STRETCH_KEEP_ASPECT_CENTERED` still
+   letterboxes the actual artwork inside that square undistorted.
+2. **Both rings now have an opaque-ish black fill** (`bg_color = Color(0,
+   0, 0, 0.9)`, was fully transparent on the outer ring and 0.85 on the
+   inner) - "the color between the borders is also black so it is
+   visible": since a `StyleBoxFlat`'s border is drawn as a frame INSET
+   from its own rect with `bg_color` filling the remaining interior, the
+   outer ring's own interior (the ring/gap area between the two borders)
+   is now solid black same as the inner ring's own interior, so the two
+   rings read as one continuous black field with just their two border
+   lines visible - rather than the gap showing whatever art/background sat
+   behind the badge.
+3. **The inner ring's border colour is the new weakness/resistance
+   signal** - `WEAKNESS_BORDER_COLOR` (dark red, `Color(0.55, 0.12, 0.10)`)
+   and `RESISTANCE_BORDER_COLOR` (dark blue, `Color(0.14, 0.22, 0.42)`),
+   both picked "much like the colors used for the background gradient"
+   (same hue family as that gradient's own monster-side/hero-side end
+   colours, `Color(0.22, 0.06, 0.07)`/`Color(0.05, 0.09, 0.16)`, just
+   brightened enough that a thin 2px border actually reads against a black
+   fill) - passed explicitly by the Weakness/Resistance call sites in
+   `configure()`. **Damage Type's own call site passes no
+   `inner_border_color` at all**, per the follow-up correction - it keeps
+   the plain `ICON_BORDER_COLOR` gray on both rings, same as before this
+   round, while still getting the square sizing and black-fill changes
+   above (those weren't what "stay as is" was about). The outer ring's
+   border stays the shared neutral gray for every caller regardless - only
+   the INNER ring's colour ever changes. Compile-checked only
+   (`--headless --path . --import`, clean), not seen rendered.
+
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
 level meter + what it last heard - the ONE thing that stayed OUT of
