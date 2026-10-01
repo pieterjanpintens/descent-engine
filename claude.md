@@ -1989,6 +1989,129 @@ three other changes applying to every caller equally:
    the INNER ring's colour ever changes. Compile-checked only
    (`--headless --path . --import`, clean), not seen rendered.
 
+**Concave-arc "pointy corner" badge shape, same day, follow-up round** -
+"ok lets try to make it a tiny bit cooler they grey borders make it arcs
+pointing inward so that their tips come together on the corners making
+sharp pointy corner. try something first we correct it" - explicitly
+framed as a first attempt to react to, same iterative pattern as the
+shield art's own many tuning rounds. New `scripts/ConcaveBorderBox.gd`
+(`class_name ConcaveBorderBox extends Control`) - the first custom
+`_draw()`-based 2D Control in this project (everything else that draws
+its own geometry is 3D, via `ImmediateMesh`/`SurfaceTool`). Replaces the
+plain `StyleBoxFlat` rounded-rect `PanelContainer`s
+`CombatView._bordered_icon_box()`'s outer/inner rings used - both rings
+are now `ConcaveBorderBox` instances instead, same fill/border colour
+scheme as before (always-gray outer, weakness=red/resistance=blue/
+damage-type=gray inner), just a different shape: each of the four edges
+is a circular arc bulging INWARD (toward the badge's own centre) by
+`concavity` (0.18, a fraction of the square's own side length) instead of
+a straight line, so the four corners come to a real sharp point instead
+of a flat or rounded one.
+
+**Geometry**: the classic "sagitta" arc construction - for a given edge's
+two corners, the circle that passes through both while bulging toward the
+centre by the target depth has a computable radius
+(`(depth² + (chord/2)²) / (2·depth)`) and its own centre sits on the
+OPPOSITE side of that edge from the badge's centre, by `(depth - radius)`
+along the inward normal. `_arc_between()` (shared by all four edges - the
+only per-edge input is which two corners and which direction counts as
+"inward," resolved via a `normal.dot(center - mid) < 0` flip rather than
+hand-picking a sign per side) samples `arc_segments` (14) points along
+that circle between the two corner angles, wrapping the ±π `atan2` seam
+correctly since the two corner angles are always close together (the
+arc's own circle is huge relative to the badge). `_outline_points()`
+concatenates all four edges into one closed polygon; `_draw()` fills it
+(`draw_colored_polygon`) then strokes the same closed loop
+(`draw_polyline`, antialiased) for the border line.
+
+**A real sign bug, caught by a headless check before trusting it** - the
+first version placed `arc_center` at `mid + normal * (radius - depth)`
+(centre on the SAME side as the bulge), which bulges every edge OUTWARD
+instead of inward - confirmed directly: a 60x60 box at `concavity=0.18`
+produced a top-edge arc midpoint at `(30, -10.8)` (above the square,
+negative) instead of `(30, +10.8)` (dipped into the square). Fixed to
+`mid + normal * (depth - radius)` (centre on the OPPOSITE side) and
+re-verified: all four edges of the same 60x60/0.18 box now produce an arc
+midpoint exactly `depth` (10.8) inside their own straight-edge position,
+each landing at the same distance from the square's centre
+(`30 - 10.8 = 19.2`, confirmed symmetric across all four edges, not just
+the one originally checked), every corner exact, the polygon closes back
+to its own start point to within floating-point epsilon, and no NaNs
+across the full 36-point outline - run via a throwaway headless script
+in the scratchpad (not committed, same disposable-diagnostic convention
+as this project's other one-off geometry checks). `ConcaveBorderBox`
+itself also connects `resized` to `queue_redraw()` in `_ready()` as cheap
+insurance, even though none of this round's actual badge sizes change
+after creation. Compile-checked (`--headless --path . --import`, clean)
+and the arc math is numerically verified - but the actual VISUAL result
+(does the pointy-corner look read well at this badge's real on-screen
+size, and is `concavity = 0.18` the right depth) has not been seen
+rendered - explicitly a first attempt per the request's own framing, to
+be corrected once actually looked at in the Player.
+
+**Two tuning tweaks after the first real look, same day** ("not to bad at
+all, lets make it arc a little bit less if possible have a small bit of
+whitespace (filled with black) between the inner and outer border") -
+confirmation the overall shape landed, just two knobs to adjust:
+1. `ConcaveBorderBox.concavity` eased back `0.18 -> 0.12` - shallower
+   arcs, less dramatic inward bulge.
+2. `CombatView.ICON_BORDER_GAP` widened `5.0 -> 9.0` - more black space
+   between the outer and inner ring (both rings already fill black per
+   the previous round's own "color between the borders is also black"
+   fix - this just widens the band of it that's actually visible between
+   the two border strokes, rather than changing any fill colour). Compile-
+   checked only (`--headless --path . --import`, clean), not re-confirmed
+   visually after this pair of adjustments.
+
+**Corner smoothing + an outward dash accent, same day, follow-up round**
+- "it's pretty solid, the corners where the arc come together are
+looking a bit off, can we smooth those? also try adding a small dash in
+the middle of each arc pointing outward so it touches the size of the
+shape bounding box." Two additions to `ConcaveBorderBox._draw()`, both
+after the existing fill+outline-stroke:
+1. **Corner smoothing** - a small filled `draw_circle()` (radius =
+   `border_width / 2.0`, same colour as the ring's own border) at each of
+   the 4 raw corner points. `draw_polyline()` has no round-join option of
+   its own and strokes each segment as an independent rectangle, which
+   leaves a visible notch/gap right at a corner this acute (two arcs
+   meeting at a near-cusp) - a plain circle caps the join the same way a
+   round line-join would, the standard fix for this exact artifact.
+2. **Outward dash** - `_edge_dash_points()` (new) returns one line-segment
+   pair per edge: from the arc's own deepest (most-inward) point straight
+   back out to the plain bounding-box edge at that same spot, drawn via
+   one `draw_multiline()` call. No new geometry derivation needed for the
+   "inward" endpoint - a circular arc's own midpoint (`t = 0.5`) always
+   lands exactly `depth` along the chord's inward normal from the chord's
+   own straight midpoint, by the definition of sagitta itself, so this
+   reuses the exact same `depth`/`_inward_normal()` values `_arc_between()`
+   already computes rather than re-deriving anything. `_inward_normal()`
+   itself is new too - factored out of `_arc_between()`'s own normal-flip
+   logic so both this and the dash helper share one implementation instead
+   of two near-identical copies.
+Verified numerically (not just assumed): all four dashes come out exactly
+`depth` long, landing on the correct bounding-box edge, symmetric across
+every side, no NaNs.
+
+**A near-miss with an extreme `concavity`, same round** - mid-request the
+user also asked for `ICON_BORDER_GAP -> 7` (applied, a small ease-back
+from 9) and `concavity -> 0.9` - the LATTER was caught and NOT applied as
+asked. A direct headless check (three `concavity` values - 0.12/0.5/0.9 -
+on the same 60x60 box) confirmed `_arc_between()`'s sagitta formula only
+traces the correct INWARD arc while `depth < chord/2` (concavity < 0.5 for
+a square): at 0.5 and 0.9 the arc silently flips to bulge OUTWARD instead
+and misses the requested depth entirely (0.9's own top-edge midpoint came
+out at `y = -16.67`, not the requested `+54`) - not merely "more extreme,"
+genuinely broken/inverted geometry. Flagged directly rather than applied
+blind, given firm numeric proof rather than just stylistic doubt; the user
+confirmed it was a typo for `0.09` ("sorry 0.09"), which was applied
+instead - continuing the same day's own easing trend (`0.18 -> 0.12 ->
+0.09`). `concavity`'s own doc comment now carries an explicit "keep this
+well under ~0.3" warning plus the confirmed failure mode, so a future
+attempt at a more dramatic arc doesn't rediscover this the same way.
+Compile-checked only (`--headless --path . --import`, clean); the corner-
+smoothing/dash accents and the final `0.09`/`7.0` values are not yet seen
+rendered.
+
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic
 level meter + what it last heard - the ONE thing that stayed OUT of

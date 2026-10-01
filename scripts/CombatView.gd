@@ -66,7 +66,7 @@ const TICK_LENGTH_LONG := 10.0  ## the cardinal ticks (angle mod 90 == 0)
 ## generate_shield_icons.py kept, per the earlier "keep the script around"
 ## request) in case this look is revisited, just no longer referenced here.
 const ICON_BORDER_PADDING := Vector2(14, 14)  ## gap between the icon and its own (inner) border
-const ICON_BORDER_GAP := 5.0  ## gap between the inner and outer border, each side
+const ICON_BORDER_GAP := 7.0  ## gap between the inner and outer border, each side - widened 5 -> 9 (2026-10-01, "a small bit of whitespace (filled with black) between the inner and outer border"), then eased back slightly to 7 the same day once actually seen rendered
 const ICON_BORDER_COLOR := Color(0.72, 0.74, 0.78, 0.9)  ## gray outer ring, and the Damage Type row's own inner ring ("damage type can stay as is color wise")
 const WEAKNESS_BORDER_COLOR := Color(0.55, 0.12, 0.10)  ## dark red, same hue family as the background gradient's own monster-side end colour
 const RESISTANCE_BORDER_COLOR := Color(0.14, 0.22, 0.42)  ## dark blue, same hue family as the background gradient's own hero-side start colour
@@ -705,6 +705,13 @@ func _icon_box(kind: int) -> Control:
 ## rule `_icon_box()`'s own "?" already follows) - irrelevant for the
 ## Damage Type row, which never passes `kind < 0` (a weapon's own damage
 ## types are never secret).
+##
+## Both rings are `ConcaveBorderBox` now (new 2026-10-01, "make it arcs
+## pointing inward so that their tips come together on the corners making
+## sharp pointy corner") rather than a plain `StyleBoxFlat` rounded rect -
+## see that script's own doc for the actual arc geometry. A first pass at
+## this shape, asked for as one ("try something first we correct it") -
+## not yet seen rendered.
 func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = ICON_BORDER_COLOR) -> Control:
 	var h := PROPERTY_ICON_HEIGHT
 	var icon_texture := Vulnerability.icon(kind)
@@ -716,13 +723,15 @@ func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = 
 	badge.custom_minimum_size = outer_size
 	badge.tooltip_text = tooltip
 
-	var outer_ring := PanelContainer.new()
-	var outer_style := StyleBoxFlat.new()
-	outer_style.bg_color = Color(0, 0, 0, 0.9)
-	outer_style.border_color = ICON_BORDER_COLOR
-	outer_style.set_border_width_all(2)
-	outer_style.set_corner_radius_all(6)
-	outer_ring.add_theme_stylebox_override("panel", outer_style)
+	# Both rings are ConcaveBorderBox now (new 2026-10-01, "make it arcs
+	# pointing inward so that their tips come together on the corners
+	# making sharp pointy corner") instead of a plain StyleBoxFlat rounded
+	# rect - see that script's own doc for the shape itself. Only the
+	# SHAPE changed here; the fill/border colour scheme from the previous
+	# round (always-gray outer, colour-coded inner) is untouched.
+	var outer_ring := ConcaveBorderBox.new()
+	outer_ring.fill_color = Color(0, 0, 0, 0.9)
+	outer_ring.border_color = ICON_BORDER_COLOR
 	outer_ring.custom_minimum_size = outer_size
 	outer_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	outer_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -733,13 +742,9 @@ func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = 
 	# backing plate plus a separate border. Its own border colour is the
 	# only thing that distinguishes a weakness entry from a resistance one
 	# now that the shield art is gone.
-	var inner_ring := PanelContainer.new()
-	var inner_style := StyleBoxFlat.new()
-	inner_style.bg_color = Color(0, 0, 0, 0.9)
-	inner_style.border_color = inner_border_color
-	inner_style.set_border_width_all(2)
-	inner_style.set_corner_radius_all(4)
-	inner_ring.add_theme_stylebox_override("panel", inner_style)
+	var inner_ring := ConcaveBorderBox.new()
+	inner_ring.fill_color = Color(0, 0, 0, 0.9)
+	inner_ring.border_color = inner_border_color
 	inner_ring.custom_minimum_size = inner_size
 	inner_ring.set_anchors_preset(Control.PRESET_CENTER)
 	inner_ring.grow_horizontal = Control.GROW_DIRECTION_BOTH
