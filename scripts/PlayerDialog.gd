@@ -213,34 +213,87 @@ func _set_modal(dim: bool) -> void:
 ## dictionary. Voice answers work like ask_count() (the number is spoken, then
 ## Confirm is pressed).
 func ask_attack(cfg: Dictionary) -> int:
-	if _combat == null:
-		_combat = CombatView.new()
-		add_child(_combat)
-		_combat.step_requested.connect(func(delta: int): _count_input.value = clampi(int(_count_input.value) + delta, int(_count_input.min_value), int(_count_input.max_value)))
-		_count_input.value_changed.connect(func(v: float): _combat.show_value(int(v)))
-		_combat.confirm_button.pressed.connect(_on_button_pressed.bind(null))
-		_combat.cancel_button.pressed.connect(_on_button_pressed.bind(-1))
+	_ensure_combat()
 	_count_input.min_value = 0
 	_count_input.max_value = 99
 	_count_input.value = 0
 	_combat.configure(cfg)
-	_scrim.visible = false
-	_panel.visible = false
-	_combat.visible = true
-	_buttons = [_combat.confirm_button, _combat.cancel_button]
-	var normal_hint := _hint_label
-	_hint_label = _combat.hint_label
+	var normal_hint := _enter_combat_view([_combat.confirm_button, _combat.cancel_button])
 	_set_voice_context("count")
 	visible = true
 	var result: Variant = await _closed
+	_leave_combat_view(normal_hint)
+	if typeof(result) == TYPE_INT and result == -1:
+		return -1
+	return int(_count_input.value)
+
+
+## The combat view's weapon-choice stage (CombatView.show_choice(), `cfg` as
+## documented there): returns the picked option's index (0/1), or -1 if
+## cancelled. Answerable by voice like ask_choice() (the weapon names).
+func ask_weapon(cfg: Dictionary) -> int:
+	_ensure_combat()
+	_combat.show_choice(cfg)
+	var normal_hint := _enter_combat_view([_combat.choice_buttons[0], _combat.choice_buttons[1], _combat.choice_cancel_button])
+	var names: Array[String] = []
+	for option: Dictionary in cfg.get("options", []):
+		names.append(str(option.get("name", "")))
+	_set_voice_context("choice", names)
+	visible = true
+	var result: Variant = await _closed
+	_leave_combat_view(normal_hint)
+	return int(result)
+
+
+## The combat view's result stage: the art (`cfg` as for ask_attack()) with
+## `text` in the middle, closed with OK. Logged to the quest log under
+## `log_title` when given, like ask_ok().
+func ask_attack_result(cfg: Dictionary, text: String, log_title: String = "") -> void:
+	_ensure_combat()
+	if log_title != "" and journal != null:
+		journal.add(log_title, [text])
+	_combat.show_result(cfg, text)
+	var normal_hint := _enter_combat_view([_combat.result_ok_button])
+	_set_voice_context("ok")
+	visible = true
+	await _closed
+	_leave_combat_view(normal_hint)
+
+
+func _ensure_combat() -> void:
+	if _combat != null:
+		return
+	_combat = CombatView.new()
+	add_child(_combat)
+	_combat.step_requested.connect(func(delta: int): _count_input.value = clampi(int(_count_input.value) + delta, int(_count_input.min_value), int(_count_input.max_value)))
+	_count_input.value_changed.connect(func(v: float): _combat.show_value(int(v)))
+	_combat.confirm_button.pressed.connect(_on_button_pressed.bind(null))
+	_combat.cancel_button.pressed.connect(_on_button_pressed.bind(-1))
+	_combat.choice_buttons[0].pressed.connect(_on_button_pressed.bind(0))
+	_combat.choice_buttons[1].pressed.connect(_on_button_pressed.bind(1))
+	_combat.choice_cancel_button.pressed.connect(_on_button_pressed.bind(-1))
+	_combat.result_ok_button.pressed.connect(_on_button_pressed.bind(null))
+
+
+## Shows the full-screen view in place of the normal dialog box; returns the
+## normal hint label so _leave_combat_view() can put it back. Call AFTER the
+## CombatView stage method (its hint_label depends on the stage).
+func _enter_combat_view(buttons: Array[Button]) -> Label:
+	_scrim.visible = false
+	_panel.visible = false
+	_combat.visible = true
+	_buttons = buttons
+	var normal_hint := _hint_label
+	_hint_label = _combat.hint_label
+	return normal_hint
+
+
+func _leave_combat_view(normal_hint: Label) -> void:
 	visible = false
 	_hint_label = normal_hint
 	_combat.visible = false
 	_panel.visible = true
 	_scrim.visible = true
-	if typeof(result) == TYPE_INT and result == -1:
-		return -1
-	return int(_count_input.value)
 
 
 var _combat: CombatView

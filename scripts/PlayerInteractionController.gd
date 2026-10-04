@@ -288,9 +288,15 @@ func interact(hero_slot: int, entry: InteractableEntry) -> void:
 ## hero's weapons skips the "Which weapon?" question, a number >= 0 skips the
 ## "How many successes?" question. Anything not (clearly) given is asked as usual.
 func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", preset_successes: int = -1) -> void:
-	var hero_name := HeroCatalog.slot_name(hero_slot)
 	if mission_runtime == null:
 		return
+	visible = false  # hero bar out of the way of the full-screen combat views
+	await _attack(hero_slot, monster, weapon_text, preset_successes)
+	visible = true
+
+
+func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, preset_successes: int) -> void:
+	var hero_name := HeroCatalog.slot_name(hero_slot)
 	var target := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 	# One of the hero's two embark weapons (asked only when there is a choice).
 	var weapons: Array = hero_weapons.get(hero_slot, [])
@@ -308,6 +314,28 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		if spoken >= 0:
 			weapon = weapons[spoken]
 			weapon_index = spoken
+		elif weapons.size() == 2:
+			# The full-screen weapon choice: the hero's flat mesh for each weapon
+			# side by side, click one (new 2026-10-04).
+			var options: Array = []
+			for i in 2:
+				var w: Weapon = weapons[i]
+				var option := {
+					"name": w.weapon_name,
+					"subtitle": _weapon_subtitle(hero_slot, i, w),
+					"damage_types": w.damage_types,
+				}
+				option.merge(_hero_art(hero_slot, i))
+				options.append(option)
+			var picked: int = await dialog.ask_weapon({
+				"title": "%s attacks %s - choose a weapon" % [hero_name, target],
+				"hero_size_units": HeroCatalog.size_units(hero_slot),
+				"options": options,
+			})
+			if picked < 0:
+				return
+			weapon = weapons[picked]
+			weapon_index = picked
 		else:
 			var labels: Array[String] = []
 			for w: Weapon in weapons:
@@ -317,44 +345,44 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 				return
 			weapon = weapons[picked]
 			weapon_index = picked
-	# The full-screen combat view (hero croptop left, monster right) - skipped when
-	# the successes were already spoken in the command.
+
+	# The combat view's data - used by the successes screen AND the result screen
+	# (which may be the only one shown when the successes were spoken in the command).
+	var damage_types: Array = [] if weapon == null else weapon.damage_types
+	var cfg := {
+		"monster_name": monster.display_name(),
+		"hitpoints": monster.hitpoints,
+		"max_hitpoints": monster.max_hitpoints,
+		"defense": monster.defense,
+		"damage_types": damage_types,
+		"weaknesses": monster.weaknesses,
+		"known_weaknesses": monster.known_weaknesses,
+		"resistances": monster.resistances,
+		"known_resistances": monster.known_resistances,
+		"immunities": monster.immunities,
+		"known_immunities": monster.known_immunities,
+		"hero_size_units": HeroCatalog.size_units(hero_slot),
+		"monster_size_units": MonsterDisplay.size_units(monster.folder),
+	}
+	var hero_art := _hero_art(hero_slot, weapon_index)
+	for key in hero_art:
+		cfg["hero_" + key] = hero_art[key]
+	if MonsterDisplay.has_flat_card(monster.folder):
+		cfg["monster_flat_meshes"] = MonsterDisplay.flat_mesh_paths(monster.folder)
+		cfg["monster_flat_texture"] = MonsterDisplay.flat_diffuse_texture(monster.folder)
+		cfg["monster_flat_rotation"] = MonsterDisplay.flat_card_rotation(monster.folder)
+		cfg["monster_flat_surface_overrides"] = MonsterDisplay.flat_surface_texture_overrides(monster.folder)
+	else:
+		cfg["monster_image"] = MonsterDisplay.crop_texture(monster.folder)
+
+	# The successes screen - skipped when they were already spoken in the command.
 	var successes: int = preset_successes
 	if successes < 0:
-		var damage_types: Array = [] if weapon == null else weapon.damage_types
-		visible = false  # hero bar out of the way of the full-screen combat view
-		var cfg := {
-			"monster_name": monster.display_name(),
-			"hitpoints": monster.hitpoints,
-			"max_hitpoints": monster.max_hitpoints,
-			"defense": monster.defense,
-			"damage_types": damage_types,
-			"weaknesses": monster.weaknesses,
-			"known_weaknesses": monster.known_weaknesses,
-			"resistances": monster.resistances,
-			"known_resistances": monster.known_resistances,
-			"immunities": monster.immunities,
-			"known_immunities": monster.known_immunities,
-			"hero_size_units": HeroCatalog.size_units(hero_slot),
-			"monster_size_units": MonsterDisplay.size_units(monster.folder),
-		}
-		if HeroCatalog.has_flat_mesh(hero_slot, weapon_index):
-			cfg["hero_flat_meshes"] = HeroCatalog.flat_mesh_paths(hero_slot, weapon_index)
-			cfg["hero_flat_texture"] = HeroCatalog.flat_diffuse_texture(hero_slot, weapon_index)
-			cfg["hero_flat_rotation"] = HeroCatalog.flat_mesh_rotation(hero_slot, weapon_index)
-		else:
-			cfg["hero_image"] = HeroCatalog.slot_crop(hero_slot, weapon_index)
-		if MonsterDisplay.has_flat_card(monster.folder):
-			cfg["monster_flat_meshes"] = MonsterDisplay.flat_mesh_paths(monster.folder)
-			cfg["monster_flat_texture"] = MonsterDisplay.flat_diffuse_texture(monster.folder)
-			cfg["monster_flat_rotation"] = MonsterDisplay.flat_card_rotation(monster.folder)
-			cfg["monster_flat_surface_overrides"] = MonsterDisplay.flat_surface_texture_overrides(monster.folder)
-		else:
-			cfg["monster_image"] = MonsterDisplay.crop_texture(monster.folder)
 		successes = await dialog.ask_attack(cfg)
-		visible = true
 		if successes < 0:
 			return
+	# Resolving changes the monster's hitpoints/known properties - show the
+	# result with the pre-attack cfg's art (the result stage is text only).
 	var r := mission_runtime.resolve_attack(monster, successes, weapon)
 
 	var text := "%s attacks %s\nwith the %s (damage %d)\n" % [hero_name, target, r["weapon_name"], r["base_damage"]]
@@ -371,7 +399,32 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
 	else:
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
-	await dialog.ask_ok(text, true, true, "Attack")
+	await dialog.ask_attack_result(cfg, text, "Attack")
+
+
+## The hero's art for weapon slot `weapon_index` in CombatView's key naming
+## (`flat_meshes`/`flat_texture`/`flat_rotation`, else the crop `image`) -
+## the combat cfg prefixes these with "hero_", a weapon-choice option uses
+## them as they are.
+func _hero_art(hero_slot: int, weapon_index: int) -> Dictionary:
+	if HeroCatalog.has_flat_mesh(hero_slot, weapon_index):
+		return {
+			"flat_meshes": HeroCatalog.flat_mesh_paths(hero_slot, weapon_index),
+			"flat_texture": HeroCatalog.flat_diffuse_texture(hero_slot, weapon_index),
+			"flat_rotation": HeroCatalog.flat_mesh_rotation(hero_slot, weapon_index),
+		}
+	return {"image": HeroCatalog.slot_crop(hero_slot, weapon_index)}
+
+
+## e.g. "Warhammer - damage 3, range 2, reach" under a weapon's name in the
+## weapon-choice screen.
+func _weapon_subtitle(hero_slot: int, weapon_index: int, weapon: Weapon) -> String:
+	var parts: Array[String] = ["damage %d" % weapon.damage]
+	if weapon.weapon_range > 0:
+		parts.append("range %d" % weapon.weapon_range)
+	if weapon.reach:
+		parts.append("reach")
+	return "%s - %s" % [WeaponCatalog.type_of(hero_slot, weapon_index), ", ".join(parts)]
 
 
 ## Presents every CURRENTLY-AVAILABLE action on `entry` (see

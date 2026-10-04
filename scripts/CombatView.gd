@@ -25,11 +25,34 @@ extends Control
 ##
 ## Placeholder look: flat colours and shapes, no game art.
 
+## Three stages share this one full-screen view and its background (new
+## 2026-10-04, "the weapon choice and the result overview look kinda dull"):
+## `show_choice()` - the hero's two flat meshes side by side, click one to
+## pick that weapon; `configure()` - the combat screen described above;
+## `show_result()` - the art again with the damage breakdown text in the
+## middle. PlayerDialog owns the awaiting; `hint_label` always points at the
+## current stage's voice-hint label.
+
 signal step_requested(delta: int)  ## the picker's arrows
 
 var confirm_button: Button
 var cancel_button: Button
-var hint_label: Label
+var hint_label: Label  ## the CURRENT stage's voice-hint label (see _set_stage())
+var choice_buttons: Array[Button] = []  ## the weapon-choice stage's two options, then...
+var choice_cancel_button: Button  ## ...its Cancel
+var result_ok_button: Button
+
+var _art_layer: Control  ## the hero/monster previews (every stage)
+var _ui_layer: Control  ## the combat stage's stats/picker/buttons/columns
+var _choice_layer: Control
+var _result_layer: Control
+var _combat_hint_label: Label
+var _choice_hint_label: Label
+var _result_hint_label: Label
+var _result_label: Label
+var _choice_title: Label
+var _choice_info: Array[VBoxContainer] = []
+var _choice_tween: Tween
 
 ## EXPERIMENTAL (branch experiment/monster-flat-meshes) - small 3D previews
 ## instead of flat TextureRects on both sides, see CombatMeshPreview.gd's
@@ -58,6 +81,9 @@ const TICK_RADIUS := 56.0  ## matches disc_wrap's own half-size (112/2) - the ou
 const TICK_GAP := 2.0  ## small gap between the ring's edge and where a tick starts
 const TICK_LENGTH_SHORT := 6.0  ## the diagonal ticks (45/135/225/315)
 const TICK_LENGTH_LONG := 10.0  ## the cardinal ticks (angle mod 90 == 0)
+const CHOICE_SLIDE_SEC := 0.55  ## weapon-choice slide-in duration
+const CHOICE_SLIDE_STAGGER_SEC := 0.12  ## the right-hand model starts this much later
+const CHOICE_CAMERA_SCALE := 1.15  ## weapon-choice stage: a bit more headroom than the combat stage's deliberate overflow, so a hero's weapon isn't clipped at the sides of its half
 
 ## Shield-art badges removed (2026-10-01, "remove the shields, but a double
 ## gray border around the icons") - see `_bordered_icon_box()` for what
@@ -143,14 +169,17 @@ func _build() -> void:
 	# generous horizontal overlap (0.45-0.55) toward the centre, rather than
 	# meeting edge-to-edge at 0.5, so a weapon/limb can dramatically cross
 	# into the middle the way the reference screenshot's hammer does.
+	_art_layer = _layer()
+	add_child(_art_layer)
+	_ui_layer = _layer()
+	add_child(_ui_layer)
 	_hero_preview = CombatMeshPreview.new()
-	_anchor(_hero_preview, 0.0, 0.55, 0.0, 1.0)
 	_hero_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_hero_preview)
+	_art_layer.add_child(_hero_preview)
 	_monster_preview = CombatMeshPreview.new()
-	_anchor(_monster_preview, 0.45, 1.0, 0.0, 1.0)
 	_monster_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_monster_preview)
+	_art_layer.add_child(_monster_preview)
+	_anchor_art_for_combat()
 
 	# Particle effects (dust/smoke, briefly also fire sparks) at each
 	# fighter's feet were tried and removed again 2026-09-28 - several
@@ -169,7 +198,7 @@ func _build() -> void:
 	stats.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	stats.offset_right = -16
 	stats.offset_top = 12
-	add_child(stats)
+	_ui_layer.add_child(stats)
 	var stat_row := HBoxContainer.new()
 	stat_row.alignment = BoxContainer.ALIGNMENT_END
 	stat_row.add_theme_constant_override("separation", 12)
@@ -190,7 +219,7 @@ func _build() -> void:
 	centre.custom_minimum_size = Vector2(440, 0)
 	centre.alignment = BoxContainer.ALIGNMENT_CENTER
 	centre.add_theme_constant_override("separation", 14)
-	add_child(centre)
+	_ui_layer.add_child(centre)
 
 	# The info box is for a MONSTER ABILITY/effect (e.g. "Resilience: immune
 	# to affliction..."), not a description of the attack - hidden entirely
@@ -284,7 +313,7 @@ func _build() -> void:
 	buttons.anchor_bottom = 1.0
 	buttons.offset_top = -140
 	buttons.offset_bottom = -16
-	add_child(buttons)
+	_ui_layer.add_child(buttons)
 	# Sized down 2026-09-29 - "make confirm and cancel buttons a bit
 	# smaller, they feel very large."
 	confirm_button = _big_button("Confirm", ORANGE, 22, Vector2(190, 44))
@@ -301,6 +330,7 @@ func _build() -> void:
 	hint_label.modulate = Color(1, 1, 1, 0.65)
 	hint_label.visible = false
 	buttons.add_child(hint_label)
+	_combat_hint_label = hint_label
 
 	# Bottom-left: the weapon's damage types. No modifier badge underneath
 	# each icon any more (removed 2026-09-29, "remove the actual damage
@@ -333,6 +363,265 @@ func _build() -> void:
 	right.add_child(immunity_section)
 	var immunity_box := _section(immunity_section, "Immunity", 22)
 	_property_sections["immunity"] = {"section": immunity_section, "box": immunity_box}
+
+	_build_choice_layer()
+	_build_result_layer()
+	_set_stage("combat")
+
+
+# ---------------------------------------------------------------- stages
+
+## A full-rect, click-through container - the stage layers' common shape.
+func _layer() -> Control:
+	var c := Control.new()
+	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return c
+
+
+func _anchor_art_for_combat() -> void:
+	_anchor(_hero_preview, 0.0, 0.55, 0.0, 1.0)
+	_anchor(_monster_preview, 0.45, 1.0, 0.0, 1.0)
+	_reset_art_offsets()
+
+
+## The weapon-choice slide-in animates the previews' offsets - every other
+## stage needs them back at 0 (rect == anchors) and the tween gone.
+func _reset_art_offsets() -> void:
+	if _choice_tween != null:
+		_choice_tween.kill()
+		_choice_tween = null
+	for p in [_hero_preview, _monster_preview]:
+		p.offset_left = 0.0
+		p.offset_right = 0.0
+		p.offset_top = 0.0
+		p.offset_bottom = 0.0
+	for info in _choice_info:
+		info.modulate.a = 1.0
+	if _ui_layer != null:
+		_ui_layer.modulate.a = 1.0
+
+
+## The two weapon models slide in from the screen edges (hero's weapon 1 from
+## the left, weapon 2 from the right, the right one a beat later), and the
+## weapon texts fade in once they've mostly arrived (new 2026-10-04, "make the
+## models slide in from the side").
+func _slide_in_choice() -> void:
+	_slide_in(get_viewport_rect().size.x * 0.5, [_choice_info[0], _choice_info[1]])
+
+
+## The combat stage does the same (new 2026-10-04, "do the same on the combat
+## view itself with hero and monster"): hero from the left, monster from the
+## right, the whole UI layer (stats, picker, buttons, columns) fading in once
+## they've mostly arrived.
+func _slide_in_combat() -> void:
+	_slide_in(get_viewport_rect().size.x * 0.55, [_ui_layer])
+
+
+## Slides the left preview in from the left and the right one in from the
+## right by `distance` pixels (the right one a beat later), fading each of
+## `fade_in` (one node per side, or a single one for both) in at ~60% of the
+## slide.
+func _slide_in(distance: float, fade_in: Array) -> void:
+	_reset_art_offsets()
+	_hero_preview.offset_left = -distance
+	_hero_preview.offset_right = -distance
+	_monster_preview.offset_left = distance
+	_monster_preview.offset_right = distance
+	_choice_tween = create_tween().set_parallel(true)
+	var previews: Array[CombatMeshPreview] = [_hero_preview, _monster_preview]
+	for i in 2:
+		var delay := i * CHOICE_SLIDE_STAGGER_SEC
+		for prop in ["offset_left", "offset_right"]:
+			_choice_tween.tween_property(previews[i], prop, 0.0, CHOICE_SLIDE_SEC).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	for i in fade_in.size():
+		var node: Control = fade_in[i]
+		node.modulate.a = 0.0
+		_choice_tween.tween_property(node, "modulate:a", 1.0, 0.3).set_delay(i * CHOICE_SLIDE_STAGGER_SEC + CHOICE_SLIDE_SEC * 0.6)
+
+
+## The weapon-choice stage reuses the same two previews, one per half of the
+## screen (hero weapon 1 left, weapon 2 right) - no extra 3D viewports.
+func _anchor_art_for_choice() -> void:
+	_anchor(_hero_preview, 0.0, 0.5, 0.0, 1.0)
+	_anchor(_monster_preview, 0.5, 1.0, 0.0, 1.0)
+
+
+func _set_stage(stage: String) -> void:
+	_ui_layer.visible = stage == "combat"
+	_choice_layer.visible = stage == "choice"
+	_result_layer.visible = stage == "result"
+	if stage == "choice":
+		_anchor_art_for_choice()
+	else:
+		_anchor_art_for_combat()
+	match stage:
+		"choice":
+			hint_label = _choice_hint_label
+		"result":
+			hint_label = _result_hint_label
+		_:
+			hint_label = _combat_hint_label
+
+
+## Weapon-choice stage UI: a title, one big click target per half (translucent
+## highlight on hover) with the weapon's name / summary / damage-type icons at
+## the bottom of its half, and Cancel in the middle. The previews behind it
+## are the shared art ones, filled in by show_choice().
+func _build_choice_layer() -> void:
+	_choice_layer = _layer()
+	add_child(_choice_layer)
+
+	_choice_title = Label.new()
+	_choice_title.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_choice_title.offset_top = 20
+	_choice_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_choice_title.add_theme_font_size_override("font_size", 30)
+	_choice_title.add_theme_color_override("font_color", GOLD)
+	_choice_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_choice_layer.add_child(_choice_title)
+
+	for i in 2:
+		var click := Button.new()
+		click.focus_mode = Control.FOCUS_NONE
+		click.flat = true
+		var normal := StyleBoxEmpty.new()
+		var hover := StyleBoxFlat.new()
+		hover.bg_color = Color(1, 1, 1, 0.06)
+		hover.border_color = Color(GOLD, 0.8)
+		hover.set_border_width_all(3)
+		var pressed := StyleBoxFlat.new()
+		pressed.bg_color = Color(1, 1, 1, 0.14)
+		pressed.border_color = GOLD
+		pressed.set_border_width_all(3)
+		click.add_theme_stylebox_override("normal", normal)
+		click.add_theme_stylebox_override("hover", hover)
+		click.add_theme_stylebox_override("pressed", pressed)
+		click.add_theme_stylebox_override("focus", normal)
+		_anchor(click, i * 0.5, (i + 1) * 0.5, 0.0, 1.0)
+		click.offset_top = 80
+		click.offset_bottom = -100
+		click.offset_left = 12 if i == 0 else 6
+		click.offset_right = -6 if i == 0 else -12
+		_choice_layer.add_child(click)
+		choice_buttons.append(click)
+
+	for i in 2:
+		var info := VBoxContainer.new()
+		info.alignment = BoxContainer.ALIGNMENT_END
+		info.add_theme_constant_override("separation", 6)
+		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_anchor(info, i * 0.5, (i + 1) * 0.5, 1.0, 1.0)
+		info.offset_top = -260
+		info.offset_bottom = -110
+		_choice_layer.add_child(info)
+		_choice_info.append(info)
+
+	var bottom := VBoxContainer.new()
+	bottom.alignment = BoxContainer.ALIGNMENT_END
+	bottom.add_theme_constant_override("separation", 6)
+	_anchor(bottom, 0.35, 0.65, 1.0, 1.0)
+	bottom.offset_top = -92
+	bottom.offset_bottom = -12
+	_choice_layer.add_child(bottom)
+	choice_cancel_button = _big_button("Cancel", Color(0.3, 0.3, 0.32), 16, Vector2(150, 32))
+	choice_cancel_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	bottom.add_child(choice_cancel_button)
+	_choice_hint_label = _hint_label_node()
+	bottom.add_child(_choice_hint_label)
+
+
+## The result stage: the combat art stays up, the damage breakdown text sits in
+## a panel in the middle with an OK button under it. Text only for now.
+func _build_result_layer() -> void:
+	_result_layer = _layer()
+	add_child(_result_layer)
+
+	var column := VBoxContainer.new()
+	column.set_anchors_preset(Control.PRESET_CENTER)
+	column.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	column.grow_vertical = Control.GROW_DIRECTION_BOTH
+	column.custom_minimum_size = Vector2(560, 0)
+	column.add_theme_constant_override("separation", 16)
+	_result_layer.add_child(column)
+
+	var panel := _panel(Color(0.02, 0.02, 0.03, 0.88), 2)
+	column.add_child(panel)
+	_result_label = Label.new()
+	_result_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_result_label.add_theme_font_size_override("font_size", 26)
+	panel.add_child(_result_label)
+
+	result_ok_button = _big_button("OK", ORANGE, 22, Vector2(190, 44))
+	result_ok_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.add_child(result_ok_button)
+	_result_hint_label = _hint_label_node()
+	column.add_child(_result_hint_label)
+
+
+func _hint_label_node() -> Label:
+	var l := Label.new()
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 13)
+	l.modulate = Color(1, 1, 1, 0.65)
+	l.visible = false
+	return l
+
+
+## Weapon-choice stage. cfg: `title` (e.g. "Brynn attacks Wolf - choose a
+## weapon"), `hero_size_units`, and `options` - exactly two Dictionaries, one
+## per weapon, each `name`, `subtitle`, `damage_types` (Array of Kind) plus the
+## hero's art for that weapon in the same keys configure() uses
+## (`flat_meshes`/`flat_texture`/`flat_rotation`, else `image`). The player
+## clicks (or says) one - see choice_buttons/choice_cancel_button.
+func show_choice(cfg: Dictionary) -> void:
+	_set_stage("choice")
+	_choice_title.text = cfg.get("title", "Choose a weapon")
+	var hero_size_units: float = cfg.get("hero_size_units", 1.0)
+	var options: Array = cfg.get("options", [])
+	var previews: Array[CombatMeshPreview] = [_hero_preview, _monster_preview]
+	for i in mini(options.size(), 2):
+		var option: Dictionary = options[i]
+		_configure_preview(previews[i], option.get("flat_meshes", []), option.get("flat_texture"), option.get("image"), option.get("flat_rotation", Vector3.ZERO), {}, hero_size_units, hero_size_units * CHOICE_CAMERA_SCALE, true)
+		var info := _choice_info[i]
+		_clear(info)
+		var name_label := Label.new()
+		name_label.text = option.get("name", "")
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.add_theme_font_size_override("font_size", 30)
+		name_label.add_theme_color_override("font_color", GOLD)
+		info.add_child(name_label)
+		var subtitle := Label.new()
+		subtitle.text = option.get("subtitle", "")
+		subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		subtitle.add_theme_font_size_override("font_size", 18)
+		info.add_child(subtitle)
+		var icons := HBoxContainer.new()
+		icons.alignment = BoxContainer.ALIGNMENT_CENTER
+		icons.add_theme_constant_override("separation", 10)
+		for kind in option.get("damage_types", []):
+			icons.add_child(_bordered_icon_box(kind, Vulnerability.display_name(kind)))
+		info.add_child(icons)
+		_ignore_mouse(info)
+	_slide_in_choice()
+
+
+## Result stage: the combat art (configured from `cfg`, same dictionary as
+## configure() - needed because the view may not have been shown for this
+## attack at all when the successes were spoken in the command) plus `text`.
+func show_result(cfg: Dictionary, text: String) -> void:
+	configure(cfg, false)  # no slide-in - the art is already in place from the successes screen
+	_set_stage("result")
+	_result_label.text = text
+
+
+func _ignore_mouse(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child in node.get_children():
+		_ignore_mouse(child)
 
 
 ## cfg: monster_name, hitpoints, max_hitpoints (new 2026-09-29 - the health
@@ -372,7 +661,8 @@ func _build() -> void:
 ## are hidden a bit by blackness"). Heroes keep the default `true` - a
 ## single open mesh's own self-occlusion is a different problem, confirmed
 ## fixed by exactly this depth write.
-func configure(cfg: Dictionary) -> void:
+func configure(cfg: Dictionary, animate: bool = true) -> void:
+	_set_stage("combat")
 	var hero_size_units: float = cfg.get("hero_size_units", 1.0)
 	var monster_size_units: float = cfg.get("monster_size_units", 1.0)
 	var camera_size_units := maxf(hero_size_units, monster_size_units)
@@ -427,6 +717,8 @@ func configure(cfg: Dictionary) -> void:
 	for kind in immunities:
 		# Hidden ("?" icon) until discovered.
 		immunity_entry["box"].add_child(_icon_box(kind if known_immunities.has(kind) else -1))
+	if animate:
+		_slide_in_combat()
 
 
 func show_value(v: int) -> void:
@@ -685,7 +977,7 @@ func _bottom_column(left: float, right: float) -> VBoxContainer:
 	v.offset_top = -260
 	v.offset_bottom = -16
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(v)
+	_ui_layer.add_child(v)
 	return v
 
 

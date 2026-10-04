@@ -967,6 +967,57 @@ testing had already stopped - compile-checked only (`--headless --path .
 --import`, clean), not exercised in a scene at all. **Nothing in this
 whole feature has been seen rendered in the actual Player.**
 
+**Combat dialogs as three stages of one full-screen view (new 2026-10-04)** -
+"the weapon choice and the result overview look kinda dull... use the combat
+overview background there as well, so full screen. use the flat 3d model of the
+hero to make the choice... put the final overview of the damage in the same
+full screen overview, just show the text for now." `CombatView` now has three
+stages sharing its gradient/pentagram background (`_set_stage()`, which also
+repoints `hint_label` at the current stage's voice-hint label):
+1. **Weapon choice** (`show_choice(cfg)`, `PlayerDialog.ask_weapon(cfg) -> int`,
+   -1 = cancel): the hero's flat mesh for weapon 1 (left half) and weapon 2
+   (right half), big translucent-on-hover click targets over each half, the
+   weapon's name / "<Type> - damage N, range, reach" / damage-type icon badges at
+   the bottom of its half, a title ("<hero> attacks <monster> - choose a weapon")
+   and Cancel in the middle. **Reuses the two existing `CombatMeshPreview`s**
+   (re-anchored to 0-0.5 / 0.5-1 for this stage, `_anchor_art_for_choice()`) - no
+   extra 3D viewports. Both get the hero's own `size_units` x `CHOICE_CAMERA_SCALE`
+   (1.15) as camera size. Voice works like `ask_choice()` ("choice" context, the
+   weapon names; `_buttons` = [option 0, option 1, Cancel]). Only used when the
+   hero has exactly two weapons and none was already spoken; a spoken weapon
+   skips it, one weapon needs no choice, other counts fall back to the old
+   `ask_choice()` list.
+2. **Successes** - the existing combat screen (`configure()`), unchanged.
+3. **Result** (`show_result(cfg, text)`, `PlayerDialog.ask_attack_result(cfg,
+   text, log_title)`): the combat art stays, the damage breakdown text (same text
+   as before) sits in a panel in the middle with an OK button; still logged to
+   the quest log as "Attack". Replaces the old large `ask_ok`. `configure(cfg)` is
+   called again for it because the successes screen is skipped when the roll was
+   spoken in the command - so `PlayerInteractionController.attack()` now builds
+   the combat `cfg` unconditionally (art keys via the new `_hero_art()`), uses it
+   for stages 2 and 3, and the result shows the PRE-attack art (the stage is
+   text only, no HP bar). The hero portrait bar is hidden for the whole flow
+   (`attack()` wraps `_attack()`).
+**Slide-in (same day, "make the models slide in from the side")**: on entering the
+choice stage `_slide_in_choice()` tweens both previews' `offset_left`/`offset_right`
+from +-half a screen width to 0 (`CHOICE_SLIDE_SEC` 0.55, cubic ease-out, the right
+one `CHOICE_SLIDE_STAGGER_SEC` 0.12 later) and fades each weapon's text in at ~60% of
+the slide. **The combat (successes) stage slides the same way** (`_slide_in_combat()`:
+hero from the left, monster from the right by 0.55 of the screen width, the whole
+`_ui_layer` fading in at ~60%); both go through the shared `_slide_in(distance,
+fade_in)`. `configure(cfg, animate = true)` - `show_result()` passes `false`, so the
+result stage doesn't re-slide the art that's already in place (and with a spoken roll,
+where the successes screen is skipped, the result art just appears). The tween lives on offsets, so `_reset_art_offsets()` (called by
+`_anchor_art_for_combat()`) must zero them again for the other stages. Compile-checked
+only, not seen.
+The stage layers: `_art_layer` (previews, all stages), `_ui_layer` (stats/picker/
+buttons/bottom columns, combat only), `_choice_layer`, `_result_layer`;
+`PlayerDialog._ensure_combat()`/`_enter_combat_view()`/`_leave_combat_view()` are
+the shared plumbing. Between stages the view is hidden and re-shown in the same
+frame (no flicker expected). Compile-checked only (`--headless --path . --import`
+clean), not seen rendered - tune `CHOICE_CAMERA_SCALE`, the click-target offsets
+and font sizes after a real look.
+
 **Damage-type icons (2026-09-26)**: the text boxes are replaced by icons (`Vulnerability.icon(kind)`, kind < 0 = the red "?" `Icons_Unknown`, used for undiscovered weaknesses/resistances/immunities). Dummy placeholders ship in `models/icons/damage_<kind>.png` (labelled diamonds, same sizes as the real sprites) mapped in `OfficialAssetMap` to the game's `Icons_Pierce/Slash/Crush/Lumos/Aquos/Ignos/Mortos/Terros/Anemos/Unknown` (found under `assets/d3/glossaryterms/damage/mainterms/damage types/`, Sprites; fetched by the normal import script - 58/58 now). The game ALSO has `Icons_Fortunos/Toxos/Umbros/Vigos`, which our `Vulnerability.Kind` doesn't have. Rest of the view is still Placeholder look (flat colours, no game art, glyph stand-ins for icons; the croptops are the wide crop images, not the game's full-body art). Verified headlessly (builds, arrows, voice answer confirms, property sections/"?" counts); layout not seen rendered.
 
 **Save/Load games (2026-09-27)** - "dumping the game state is enough": no
