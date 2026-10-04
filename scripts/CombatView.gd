@@ -71,6 +71,21 @@ const ICON_BORDER_COLOR := Color(0.72, 0.74, 0.78, 0.9)  ## gray outer ring, and
 const WEAKNESS_BORDER_COLOR := Color(0.55, 0.12, 0.10)  ## dark red, same hue family as the background gradient's own monster-side end colour
 const RESISTANCE_BORDER_COLOR := Color(0.14, 0.22, 0.42)  ## dark blue, same hue family as the background gradient's own hero-side start colour
 
+## A faint atmospheric background texture (new 2026-10-01, user-supplied
+## image - "can we use this as a very light overlay in the combat view,
+## make it very transparant" -> "i mean as background") - a dark pentagram/
+## skulls illustration, layered on top of the existing blue->red gradient
+## (not replacing it) at very low opacity so it reads as a subtle mood
+## texture rather than competing with the hero/monster art or any UI on
+## top of it. Not derived from the real game's own assets in any way
+## (unlike the damage-type icons/HUD icons elsewhere in this project,
+## which DO have confirmed real names in the game's own asset dump) - the
+## user's own supplied image, same "no official counterpart, ships as-is"
+## treatment this project already gives its other original/generated art
+## (gate/archway/tree, the shield icons before this session removed them).
+const BACKGROUND_TEXTURE := preload("res://models/combat_background_pentagram.jpg")
+const BACKGROUND_TEXTURE_ALPHA := 0.12  ## "very transparant" - a first-guess opacity, adjust after a real look
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -93,6 +108,29 @@ func _build() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
+
+	# A faint pentagram/skulls texture over the gradient (new 2026-10-01,
+	# see BACKGROUND_TEXTURE's own doc) - STRETCH_KEEP_ASPECT_COVERED so it
+	# fills the screen at any aspect ratio without distorting, cropped
+	# rather than letterboxed. Added right after the plain gradient, so
+	# the hero/monster art and every UI element still draws on top of it
+	# same as they already do for the gradient itself.
+	var background_texture := TextureRect.new()
+	background_texture.texture = BACKGROUND_TEXTURE
+	# EXPAND_IGNORE_SIZE (new 2026-10-01, fixing "it's off center atm") -
+	# without this, a TextureRect's own minimum size defaults to its
+	# texture's native pixel size (1408x768 here), which can win out over
+	# the PRESET_FULL_RECT anchors below and leave it sized/positioned
+	# from its top-left corner instead of actually filling (and centering
+	# within) the real viewport rect - exactly what "off centre" looks
+	# like. The working gradient background above already sets this; this
+	# TextureRect just hadn't been given the same treatment yet.
+	background_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	background_texture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background_texture.modulate = Color(1, 1, 1, BACKGROUND_TEXTURE_ALPHA)
+	background_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(background_texture)
 
 	# Art: hero on the left, monster on the right - full-height and wide, like
 	# the real game's own attack screen (2026-09-28, "try to make the
@@ -463,6 +501,11 @@ func _build_hp_box(parent: Control) -> void:
 	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	parent.add_child(box)
 
+	# The concave-arc ConcaveBorderBox treatment tried here 2026-10-01 ("can
+	# we use the same style for the health bar and defense UI elements")
+	# was reverted the same day ("revert the health and defense, that arced
+	# thing is not good there") - back to plain ColorRects + a straight
+	# PanelContainer border, same as before that round.
 	var empty_bg := ColorRect.new()
 	empty_bg.color = Color(0.03, 0.03, 0.03)
 	empty_bg.position = Vector2.ZERO
@@ -535,6 +578,11 @@ func _build_defense_box(parent: Control) -> Label:
 	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	parent.add_child(box)
 
+	# The concave-arc ConcaveBorderBox treatment tried here 2026-10-01 ("can
+	# we use the same style for the health bar and defense UI elements")
+	# was reverted the same day ("revert the health and defense, that arced
+	# thing is not good there") - back to a plain ColorRect + a straight
+	# PanelContainer border, same as before that round.
 	var bg := ColorRect.new()
 	bg.color = color
 	bg.position = Vector2.ZERO

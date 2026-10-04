@@ -1115,6 +1115,33 @@ Player** - the Gear menu's "Save" click, the Main Menu's "Load Game" flow,
 and the known mid-Player-phase re-fire limitation above are all unverified
 in a real session.
 
+**Save/Load bug fixed (2026-10-04): a loaded game did not restore the
+revealed level/stage** - "our save functionality does not restore the level
+visibility." Root cause was NOT the visibility flag (`MissionGroup.visible`
+is `@export` and round-trips fine): `MissionPlayer.save_game()` put the
+LIVE `mission` into `SaveGame.mission`, but that mission was loaded from a
+mission file, so it still carries that file's `resource_path` - and
+`ResourceSaver` writes any resource that has a path as an external
+REFERENCE to that file, not an embedded copy. The save file contained no
+mission data at all, just a pointer back to the pristine mission, so
+loading it re-read the unmodified original: every revealed group went back
+to hidden, and every other piece of "free" in-place progress this doc
+describes above (`already_fired`, `already_used`, `already_achieved`,
+removed/moved props and tiles) was silently lost too - only the parts
+`SaveGame` stores itself (round, party, variables, monsters, objective
+frontier, journal) survived, which is why the earlier "verified
+end-to-end" round trip passed: it used a mission built in memory (no
+path), which embeds. Fixed by saving `mission.duplicate(true)` (a
+path-less deep copy - the live mission is untouched and keeps playing
+normally). Verified with a throwaway scene reproducing the real flow (mission
+written to a file, loaded back via `MissionIO.load_mission()`, mutated in
+place, saved, reloaded): before the fix the save referenced the mission
+file and `visible` came back `false`; after it the save embeds, and a
+revealed group, a fired trigger and a removed tile all restore. **Saves made
+before this fix are unaffected by it** - they contain only the reference,
+so they will still load the pristine mission (only their round/party/
+variables/etc. restore); there is nothing in them to recover.
+
 **EXPERIMENTAL: real hero meshes too, same day (2026-09-27)** - direct
 follow-up question ("the heroes also have flat meshes, one for each weapon
 it seems") led to checking, which turned up a REAL asset but a DIFFERENT
@@ -2110,7 +2137,114 @@ well under ~0.3" warning plus the confirmed failure mode, so a future
 attempt at a more dramatic arc doesn't rediscover this the same way.
 Compile-checked only (`--headless --path . --import`, clean); the corner-
 smoothing/dash accents and the final `0.09`/`7.0` values are not yet seen
-rendered.
+rendered. This whole pass was committed and pushed ("commit and push,
+looks a lot better than those shields") as
+`b3f8934` on `experiment/monster-flat-meshes`.
+
+**Tried on the HP bar/Defense badge and the End Phase button too, then
+BOTH reverted, same day** - "can we use the same style for the health bar
+and defense UI elements?" led to replacing `_build_hp_box()`/
+`_build_defense_box()`'s own plain straight `PanelContainer` border with a
+`ConcaveBorderBox`, which then needed a follow-up fix once the fill
+(`ColorRect`s, unchanged) visibly poked out past the new border's own
+inward-bulging edges ("the background color... goes out of the arcs now")
+- the Defense badge collapsed its fill+border into one `ConcaveBorderBox`
+node (no proportional split to worry about), while the HP bar needed a
+`clip_contents = true` wrapper (`_hp_fill_clip`) around an always-full-
+width `ConcaveBorderBox`, since the red portion's own WIDTH changes every
+attack and naively resizing a `ConcaveBorderBox` directly would re-bulge
+its edges relative to the new, smaller size instead of just cropping the
+original shape. The same look was then also applied to
+`MissionPlayer`'s End Phase button ("also make the end phase button with
+an edge so it looks a bit like our general style") - its own `StyleBoxFlat`
+background made fully transparent, a `ConcaveBorderBox` SIBLING (not a
+child - a child's own drawn content renders on top of the parent's,
+which would have painted over the button's text) inserted directly before
+it in `CanvasLayer`, copying its anchors/offsets exactly (verified via a
+synthetic headless scene test that the sibling lands at the right index
+with matching anchors).
+
+**All of it reverted the same day, once actually looked at**: "revert the
+end phase button, with border i mean like the buttons in the combat view
+(cancel for example)" and "also revert the health and defense, that arced
+thing is not good there." `_style_end_phase_button()` is back to a plain
+per-state `StyleBoxFlat` (bg colour + lightened border + `corner_radius`),
+just now explicitly matching `_big_button()`'s own Confirm/Cancel pattern
+(border width 3, corner radius 4) rather than the flatter single-colour
+style it had before either round - that was the actual ask, a flat
+bordered rect "like the buttons in the combat view," not the pointy-arc
+badge look. `_build_hp_box()`/`_build_defense_box()` are back to plain
+`ColorRect` fills + a straight `PanelContainer`/`StyleBoxFlat` border,
+exactly as they were before this whole detour (the now-unused
+`_hp_fill_clip` var and its ConcaveBorderBox-typed `_hp_fill` are reverted
+too - `_hp_fill` is a plain `ColorRect` again, resized directly in
+`configure()`). `ConcaveBorderBox` itself is untouched and still used
+exactly as before by the icon badges (`_bordered_icon_box()`) - this
+reversion only concerns the three OTHER places it got tried afterward.
+Compile-checked only (`--headless --path . --import`, clean) after the
+revert.
+
+**A faint user-supplied background texture, same day** - "can we use this
+as a very light overlay in the combat view, make it very transparant" (a
+dark pentagram/skulls illustration) -> clarified immediately after,
+"i mean as background" (not a full-screen overlay drawn on top of
+everything, as the first phrasing could have meant). Saved as
+`models/combat_background_pentagram.jpg` (the user's own supplied image,
+not derived from the real game's own assets in any way - same "original/
+generated art, no official counterpart" treatment this project already
+gives gate/archway/tree and the now-removed shield icons). New
+`CombatView.BACKGROUND_TEXTURE`/`BACKGROUND_TEXTURE_ALPHA` (0.12, "very
+transparant" - a first guess) - a `TextureRect` layered directly on top of
+the existing blue->red gradient (not replacing it), added right after it
+in `_build()` so the hero/monster art and every UI element still draws on
+top of both exactly as before. `STRETCH_KEEP_ASPECT_COVERED` fills the
+screen at any aspect ratio without distortion (cropped, not letterboxed).
+Compile-checked (`--headless --path . --import`, clean, including the new
+`.jpg`'s own `.import` file generating without error), not seen rendered.
+
+**Background off-centre, fixed; then the real idea behind it: characters
+standing on its own floor, same day** - "ok but can we really like center
+it, it's off center atm." A quick detour explored actually measuring the
+star's own visual centroid in the source image via Python/PIL to crop
+around it - abandoned once the user clarified the real intent: "what are
+you trying to do, just put the entire image in the center not the
+pentagram alone." The actual bug was much simpler and Godot-side, not the
+source image at all: the new `background_texture` `TextureRect` never had
+`expand_mode = TextureRect.EXPAND_IGNORE_SIZE` set, unlike the existing,
+already-correct gradient `background` `TextureRect` right above it in the
+same function - without it, a `TextureRect`'s own minimum size defaults to
+its texture's native pixel size (1408x768), which can win out over the
+`PRESET_FULL_RECT` anchors and leave it sized/positioned from its top-left
+corner instead of genuinely filling (and `STRETCH_KEEP_ASPECT_COVERED`
+correctly centring within) the real viewport rect. Fixed by matching the
+gradient's own existing, working setup.
+
+**"put the characters more to the bottom if there is room," then "the
+hero en monster do not need to be aligned vertically," then the actual
+reasoning behind both**: "the image has a floor on the lower part, the
+idea is that the hero/monster stands on it." `CombatMeshPreview` gained
+`VERTICAL_SHIFT_FRACTION` (0.15) - both camera-framing functions
+(`_frame_camera_relative()`, used by the real extracted meshes, and
+`_frame_camera()`, `show_quad()`'s flat-crop fallback path) now aim the
+camera at a point shifted UP from the figure's own true centre by this
+fraction of the frame's own size, before computing `global_position`/
+`look_at()` from that shifted point - since the figure itself doesn't
+move, aiming higher pushes its rendered position DOWN in the frame,
+toward where the new background's own floor sits, instead of vertically
+centred. Applied identically (same constant, no per-side coordination) to
+both the hero and monster preview independently - confirmed fine per the
+user's own follow-up ("do not need to be aligned vertically"), unlike
+`RELATIVE_CAMERA_MARGIN`/`camera_size_units` above, which DO need to match
+between both sides for relative scale to hold. A side that's already
+overflowing its own frame edge-to-edge (`RELATIVE_CAMERA_MARGIN`'s own
+deliberate <1.0 overflow) will just clip a bit more at the top instead of
+visibly shifting - "if there is room" already allows for that; a side
+with headroom to spare (a smaller `size_units` figure inside a larger
+shared `camera_size_units` frame) will genuinely move down. Compile-
+checked only (`--headless --path . --import`, clean) - the camera-aim math
+itself is straightforward Y-up geometry, not independently verified via a
+headless scene test the way the ConcaveBorderBox arc math was, and none of
+this has been seen rendered yet.
 
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic

@@ -57,6 +57,21 @@ extends SubViewportContainer
 ## _frame_camera().
 const REFERENCE_MONSTER_FOLDER := "mercenary"
 const RELATIVE_CAMERA_MARGIN := 0.85  # 2026-09-28: "make them bigger again... fill the entire space of the screen, if they fall off a bit that is ok" - below 1.0 on purpose, so the frame is now smaller than the figure's own diagonal instead of padded around it
+# 2026-10-01: "put the characters more to the bottom if there is room" -
+# CombatView's own new pentagram background texture "has a floor on the
+# lower part, the idea is that the hero/monster stands on it," so the
+# figure's own feet should sit low in the frame rather than vertically
+# centred. Shifts the camera's own LOOK-AT point up by this fraction of
+# its frame size (see _frame_camera()/_frame_camera_relative() below),
+# which pushes the rendered figure down by the same amount without
+# changing its actual scale - "the hero and monster do not need to be
+# aligned vertically" confirms this can apply independently per side with
+# no cross-side matching needed, unlike RELATIVE_CAMERA_MARGIN/
+# camera_size_units above. A side that's already overflowing its own
+# frame edge-to-edge (RELATIVE_CAMERA_MARGIN's own deliberate <1.0
+# overflow) just clips a touch more at the top instead of visibly moving -
+# "if there is room" already allows for that.
+const VERTICAL_SHIFT_FRACTION := 0.15
 static var _cached_reference_diagonal := -1.0  # lazily computed once, shared by every CombatMeshPreview instance
 
 var _viewport: SubViewport
@@ -211,8 +226,12 @@ static func _reference_diagonal() -> float:
 func _frame_camera_relative(center: Vector3, reference_diagonal: float, camera_size_units: float) -> void:
 	var camera_size := reference_diagonal * camera_size_units * RELATIVE_CAMERA_MARGIN
 	_camera.size = maxf(camera_size, 0.01)
-	_camera.global_position = center + Vector3(0, 0, camera_size + 1.0)
-	_camera.look_at(center, Vector3.UP)
+	# Aim above the mesh's own true centre by VERTICAL_SHIFT_FRACTION of the
+	# frame size - see that const's own doc - so the figure renders lower,
+	# standing on the background's own floor instead of floating centred.
+	var aim := center + Vector3(0, camera_size * VERTICAL_SHIFT_FRACTION, 0)
+	_camera.global_position = aim + Vector3(0, 0, camera_size + 1.0)
+	_camera.look_at(aim, Vector3.UP)
 
 
 func _unshaded_material(texture: Texture2D, write_depth: bool = true) -> StandardMaterial3D:
@@ -287,8 +306,11 @@ func _frame_camera(aabb: AABB) -> void:
 	var center := aabb.get_center()
 	var extent := maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))
 	_camera.size = maxf(extent, 0.01) * 1.15
-	_camera.global_position = center + Vector3(0, 0, extent + 1.0)
-	_camera.look_at(center, Vector3.UP)
+	# Same downward push as _frame_camera_relative() - see
+	# VERTICAL_SHIFT_FRACTION's own doc.
+	var aim := center + Vector3(0, _camera.size * VERTICAL_SHIFT_FRACTION, 0)
+	_camera.global_position = aim + Vector3(0, 0, extent + 1.0)
+	_camera.look_at(aim, Vector3.UP)
 
 
 ## CONFIRMED BUG, fixed 2026-09-27: queue_free() defers actual removal to

@@ -8,7 +8,11 @@ extends Resource
 ## MissionGroup's visible flag once revealed, a removed/moved prop/tile's
 ## entry - see claude.md's Story layer section for each of these), so
 ## saving the live mission resource carries all of that across without any
-## extra bookkeeping. This resource only adds what genuinely lives OUTSIDE
+## extra bookkeeping - **but only as a path-less deep COPY** (see
+## MissionPlayer.save_game()): the live mission was loaded from a file, and
+## ResourceSaver writes any resource that still has a resource_path as an
+## external reference to that file instead of embedding it, which silently
+## dropped every bit of that progress on load. This resource only adds what genuinely lives OUTSIDE
 ## the mission: round/checkpoint, the chosen party, and MissionRuntime's own
 ## ephemeral state (custom variable values, the monster registry, which
 ## DAG branch is currently active) - plus the quest log, which is already
