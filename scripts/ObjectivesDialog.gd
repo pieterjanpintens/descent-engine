@@ -556,7 +556,7 @@ func _label(text: String) -> Label:
 ## declared MissionData.custom_variables name - the full set a Condition/
 ## Effect's variable_name can validly reference right now.
 func _known_variable_names() -> Array[String]:
-	var names: Array[String] = ["round_number", "player_count"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in _mission.custom_variables:
 		names.append(variable.name)
 	return names
@@ -596,7 +596,7 @@ func _build_variable_name_option(current_name: String, on_commit: Callable) -> O
 ## be value (int) or a other variable... filtered to the ones of type
 ## int").
 func _known_int_variable_names() -> Array[String]:
-	var names: Array[String] = ["round_number", "player_count"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in _mission.custom_variables:
 		if variable.type == MissionVariable.Type.INT:
 			names.append(variable.name)

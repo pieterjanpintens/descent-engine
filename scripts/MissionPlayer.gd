@@ -829,9 +829,14 @@ func _run_darkness_and_loop() -> void:
 		return
 	phase_label.text = "Darkness phase..."
 	darkness_overlay.visible = true
+	# Start of the monster phase: Afflicted monsters take their affliction damage.
+	await _apply_affliction()
 	# Stand-in for real world-effect resolution + monster AI - just proves
 	# the phase transition and UI change work before either exists.
 	await get_tree().create_timer(darkness_phase_duration).timeout
+
+	# End of the monster phase: conditions only last a round (Doomed ones keep the rest).
+	_runtime.end_monster_phase_conditions()
 
 	if not await _advance_to(RoundCheckpoint.Checkpoint.AFTER_DARKNESS_PHASE):
 		return
@@ -841,6 +846,24 @@ func _run_darkness_and_loop() -> void:
 	if not await _advance_to(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE):
 		return
 	await _enter_player_phase()
+
+
+## Start of the monster phase: tells the table about each Afflicted monster's
+## affliction damage (MissionRuntime.apply_affliction()) - nothing is shown when
+## no monster is afflicted. Logged to the quest log as "Affliction".
+func _apply_affliction() -> void:
+	var results := _runtime.apply_affliction()
+	if results.is_empty():
+		return
+	var lines: Array[String] = []
+	for entry in results:
+		var monster: RuntimeMonster = entry["monster"]
+		var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+		if entry["defeated"]:
+			lines.append("%s takes %d affliction damage and is defeated! Remove it from the board." % [who, entry["damage"]])
+		else:
+			lines.append("%s takes %d affliction damage (%d hitpoints left)." % [who, entry["damage"], entry["hitpoints"]])
+	await dialog.ask_ok("\n\n".join(lines), true, false, "Affliction")
 
 
 ## Updates current_checkpoint, then hands off to MissionRuntime to fire

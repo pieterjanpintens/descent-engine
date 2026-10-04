@@ -27,7 +27,18 @@ extends RefCounted
 const BUILTIN_TYPES := {
 	"round_number": MissionVariable.Type.INT,
 	"player_count": MissionVariable.Type.INT,
+	"affliction_damage": MissionVariable.Type.INT,
 }
+
+## Built-ins an Effect MAY write (the rest are runtime-owned). `affliction_damage`
+## is the damage an Afflicted monster takes at the start of the monster phase -
+## a runtime variable so a mission can raise/lower it ("by default 4 but can be
+## increased / decreased").
+const WRITABLE_BUILTINS := ["affliction_damage"]
+const DEFAULT_AFFLICTION_DAMAGE := 4
+
+## An Exposed monster takes this many percent extra damage (rounded down).
+const EXPOSED_DAMAGE_PERCENT := 20
 
 var mission: MissionData
 
@@ -66,6 +77,7 @@ var _current_groups: Array = []  # Array[Array[MissionObjective]]
 
 func _init(p_mission: MissionData) -> void:
 	mission = p_mission
+	_variables["affliction_damage"] = DEFAULT_AFFLICTION_DAMAGE
 	for variable in mission.custom_variables:
 		var coerced: Variant = _coerce(variable.default_value, variable.type)
 		if typeof(coerced) == TYPE_NIL:
@@ -323,10 +335,23 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 ## defeated and released (chip freed, removed from the M view). Returns the
 ## breakdown for display: {weapon_name, base_damage, weakness_bonus,
 ## resistance_penalty, immune, weapon_damage, successes, damage, defense_roll,
-## dealt, hitpoints, defeated}.
-func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null) -> Dictionary:
+## dealt, hitpoints, defeated, conditions_applied, exposed_bonus}.
+## `apply_conditions` (MonsterCondition.Kind values the table chose to apply
+## with this attack) are assigned to the monster FIRST - any it doesn't already
+## have; `conditions_applied` lists the NEW ones - and then count for the damage:
+## an Exposed monster takes `EXPOSED_DAMAGE_PERCENT`% extra damage (rounded
+## down, `exposed_bonus`), added to successes x weapon damage before the defense
+## roll is subtracted.
+func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null, apply_conditions: Array = []) -> Dictionary:
 	if weapon == null:
 		weapon = Weapon.placeholder()
+	# Conditions are applied BEFORE the damage is calculated, so a condition
+	# applied by this very attack (e.g. Exposed) already affects it.
+	var conditions_applied: Array[int] = []
+	for condition in apply_conditions:
+		if not monster.conditions.has(condition):
+			monster.conditions.append(condition)
+			conditions_applied.append(condition)
 	var bonus := 0
 	var penalty := 0
 	var immune := false
@@ -344,7 +369,12 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 			if not monster.known_immunities.has(kind):
 				monster.known_immunities.append(kind)
 	var weapon_damage := maxi(weapon.damage + bonus - penalty, 0)
-	var damage := 0 if immune else successes * weapon_damage
+	var base_total := 0 if immune else successes * weapon_damage
+	# Exposed: +20% of the attack's damage, rounded down (before the defense roll).
+	var exposed_bonus := 0
+	if not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED):
+		exposed_bonus = floori(base_total * EXPOSED_DAMAGE_PERCENT / 100.0)
+	var damage := base_total + exposed_bonus
 	var defense_roll := 0 if immune else randi_range(0, maxi(monster.defense, 0))
 	var dealt := maxi(damage - defense_roll, 0)
 	monster.hitpoints -= dealt
@@ -354,12 +384,47 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		"weakness_bonus": bonus, "resistance_penalty": penalty, "immune": immune,
 		"weapon_damage": weapon_damage, "successes": successes, "damage": damage,
 		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated,
+		"conditions_applied": conditions_applied, "exposed_bonus": exposed_bonus,
+		"exposed": not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED),
 	}
 	if defeated:
 		release_monster(monster.id)
 	else:
 		monsters_changed.emit()  # the M view shows HP
 	return result
+
+
+## Start of the monster phase: every Afflicted monster takes the current
+## `affliction_damage` (a runtime variable, default 4). One that drops to 0
+## hitpoints or less is defeated and released, same rule as in combat. Returns
+## one {monster, damage, hitpoints, defeated} per afflicted monster for the
+## caller to show.
+func apply_affliction() -> Array[Dictionary]:
+	var damage := maxi(int(_variables.get("affliction_damage", DEFAULT_AFFLICTION_DAMAGE)), 0)
+	var results: Array[Dictionary] = []
+	for monster in monsters.duplicate():
+		if not monster.conditions.has(MonsterCondition.Kind.AFFLICTED):
+			continue
+		monster.hitpoints -= damage
+		var defeated: bool = monster.hitpoints <= 0
+		results.append({"monster": monster, "damage": damage, "hitpoints": monster.hitpoints, "defeated": defeated})
+		if defeated:
+			release_monster(monster.id)
+	if not results.is_empty():
+		monsters_changed.emit()
+	return results
+
+
+## End of the monster phase: conditions only last one round, so every
+## monster's are cleared - EXCEPT that a Doomed monster loses only Doomed
+## (its other conditions stay for another round).
+func end_monster_phase_conditions() -> void:
+	for monster in monsters:
+		if monster.conditions.has(MonsterCondition.Kind.DOOMED):
+			monster.conditions.erase(MonsterCondition.Kind.DOOMED)
+		else:
+			monster.conditions.clear()
+	monsters_changed.emit()
 
 
 ## Removes a monster from the registry, freeing its colour chip (called by
@@ -421,7 +486,7 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 			return
 		await dialog.ask_ok(_format_message(effect.message, effect.message_variables), true, false, "Message")
 		return
-	if BUILTIN_TYPES.has(effect.variable_name):
+	if BUILTIN_TYPES.has(effect.variable_name) and not WRITABLE_BUILTINS.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
 		return
 	var declared: int = _declared_type(effect.variable_name)
@@ -513,7 +578,7 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 ## warn-and-skip discipline as apply_effect()'s SET_VARIABLE body: rejects
 ## a built-in, an undeclared name, or a variable not declared INT.
 func _accumulate(variable_name: String, delta: int) -> void:
-	if BUILTIN_TYPES.has(variable_name):
+	if BUILTIN_TYPES.has(variable_name) and not WRITABLE_BUILTINS.has(variable_name):
 		push_warning("Test result cannot accumulate into built-in variable '%s' - skipped" % variable_name)
 		return
 	var declared: int = _declared_type(variable_name)
@@ -565,7 +630,7 @@ func _apply_math(effect: Effect) -> void:
 			push_warning("Math effect has an unrecognized operator - skipped")
 			return
 
-	if BUILTIN_TYPES.has(effect.variable_name):
+	if BUILTIN_TYPES.has(effect.variable_name) and not WRITABLE_BUILTINS.has(effect.variable_name):
 		push_warning("Math effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
 		return
 	var declared: int = _declared_type(effect.variable_name)

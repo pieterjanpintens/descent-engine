@@ -22,6 +22,10 @@ var known_weaknesses: Array[int] = []
 var known_resistances: Array[int] = []
 var known_immunities: Array[int] = []
 var defense: int = 0  ## max of the random 0..defense roll subtracted from each hit
+## The predefined conditions (MonsterCondition.Kind values) currently affecting
+## this monster - applied by heroes during an attack (MissionRuntime.resolve_attack()).
+## Scripted, game-applied conditions are not modelled yet.
+var conditions: Array[int] = []
 
 
 ## The custom name if one was set, else the type's generic name ("Bandit").
@@ -40,6 +44,7 @@ func to_dict() -> Dictionary:
 		"hitpoints": hitpoints, "max_hitpoints": max_hitpoints, "level": level, "defense": defense,
 		"weaknesses": weaknesses.duplicate(), "resistances": resistances.duplicate(), "immunities": immunities.duplicate(),
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
+		"conditions": conditions.duplicate(),
 	}
 
 
@@ -62,6 +67,7 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.known_weaknesses = _int_array(d.get("known_weaknesses", []))
 	m.known_resistances = _int_array(d.get("known_resistances", []))
 	m.known_immunities = _int_array(d.get("known_immunities", []))
+	m.conditions = _int_array(d.get("conditions", []))
 	return m
 
 

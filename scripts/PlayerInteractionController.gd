@@ -330,6 +330,9 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 			var picked: int = await dialog.ask_weapon({
 				"title": "%s attacks %s - choose a weapon" % [hero_name, target],
 				"hero_size_units": HeroCatalog.size_units(hero_slot),
+				"known_weaknesses": monster.known_weaknesses,
+				"known_resistances": monster.known_resistances,
+				"known_immunities": monster.known_immunities,
 				"options": options,
 			})
 			if picked < 0:
@@ -346,8 +349,10 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 			weapon = weapons[picked]
 			weapon_index = picked
 
-	# The combat view's data - used by the successes screen AND the result screen
-	# (which may be the only one shown when the successes were spoken in the command).
+	# The combat view's data - used by the successes screen AND (as the
+	# pre-attack snapshot) the outcome. The known_* lists are COPIES: the
+	# monster's own arrays are mutated by resolve_attack(), and the outcome
+	# animation needs to know what was already discovered before it.
 	var damage_types: Array = [] if weapon == null else weapon.damage_types
 	var cfg := {
 		"monster_name": monster.display_name(),
@@ -356,13 +361,14 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		"defense": monster.defense,
 		"damage_types": damage_types,
 		"weaknesses": monster.weaknesses,
-		"known_weaknesses": monster.known_weaknesses,
+		"known_weaknesses": monster.known_weaknesses.duplicate(),
 		"resistances": monster.resistances,
-		"known_resistances": monster.known_resistances,
+		"known_resistances": monster.known_resistances.duplicate(),
 		"immunities": monster.immunities,
-		"known_immunities": monster.known_immunities,
+		"known_immunities": monster.known_immunities.duplicate(),
 		"hero_size_units": HeroCatalog.size_units(hero_slot),
 		"monster_size_units": MonsterDisplay.size_units(monster.folder),
+		"monster_conditions": monster.conditions.duplicate(),
 	}
 	var hero_art := _hero_art(hero_slot, weapon_index)
 	for key in hero_art:
@@ -377,13 +383,18 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 
 	# The successes screen - skipped when they were already spoken in the command.
 	var successes: int = preset_successes
+	var conditions: Array[int] = []
 	if successes < 0:
 		successes = await dialog.ask_attack(cfg)
 		if successes < 0:
 			return
-	# Resolving changes the monster's hitpoints/known properties - show the
-	# result with the pre-attack cfg's art (the result stage is text only).
-	var r := mission_runtime.resolve_attack(monster, successes, weapon)
+		conditions = dialog.attack_conditions.duplicate()
+	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions)
+	# The same cfg with what the monster now has discovered.
+	var post_cfg := cfg.duplicate()
+	post_cfg["known_weaknesses"] = monster.known_weaknesses.duplicate()
+	post_cfg["known_resistances"] = monster.known_resistances.duplicate()
+	post_cfg["known_immunities"] = monster.known_immunities.duplicate()
 
 	var text := "%s attacks %s\nwith the %s (damage %d)\n" % [hero_name, target, r["weapon_name"], r["base_damage"]]
 	if r["weakness_bonus"] > 0:
@@ -393,13 +404,23 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	if r["immune"]:
 		text += "\nImmune! The attack does no damage.\n\n0 damage dealt"
 	else:
-		text += "\n%d successes x %d weapon damage = %d damage\nDefense roll: -%d\n\n%d damage dealt" % [
-			r["successes"], r["weapon_damage"], r["damage"], r["defense_roll"], r["dealt"]]
+		text += "\n%d successes x %d weapon damage" % [r["successes"], r["weapon_damage"]]
+		if r["exposed_bonus"] > 0:
+			text += "\nExposed: +%d damage" % r["exposed_bonus"]
+		text += " = %d damage\nDefense roll: -%d\n\n%d damage dealt" % [r["damage"], r["defense_roll"], r["dealt"]]
 	if r["defeated"]:
 		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
 	else:
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
-	await dialog.ask_attack_result(cfg, text, "Attack")
+	var applied: Array[int] = r["conditions_applied"]
+	if not applied.is_empty():
+		var applied_names: Array[String] = []
+		for condition in applied:
+			applied_names.append(MonsterCondition.display_name(condition))
+		text += "\nConditions applied: %s" % ", ".join(applied_names)
+	# The result is shown on the combat screen itself (calculation, health bar,
+	# revealed weaknesses); the text below is what the quest log keeps.
+	await dialog.ask_attack_outcome(cfg, post_cfg, r, text, "Attack")
 
 
 ## The hero's art for weapon slot `weapon_index` in CombatView's key naming

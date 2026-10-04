@@ -279,6 +279,11 @@ func refresh_monsters(monsters: Array) -> void:
 			continue
 		info["name"] = monster.display_name()
 		info["extra"] = "HP %d · Level %d" % [monster.hitpoints, monster.level]
+		if not monster.conditions.is_empty():
+			var condition_names: Array[String] = []
+			for condition in monster.conditions:
+				condition_names.append(MonsterCondition.display_name(condition))
+			info["extra"] += "\n" + ", ".join(condition_names)
 		info["hitpoints"] = monster.hitpoints
 		info["max_hitpoints"] = monster.max_hitpoints
 		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)

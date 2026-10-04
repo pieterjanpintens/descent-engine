@@ -25,13 +25,14 @@ extends Control
 ##
 ## Placeholder look: flat colours and shapes, no game art.
 
-## Three stages share this one full-screen view and its background (new
+## Two stages share this one full-screen view and its background (new
 ## 2026-10-04, "the weapon choice and the result overview look kinda dull"):
 ## `show_choice()` - the hero's two flat meshes side by side, click one to
-## pick that weapon; `configure()` - the combat screen described above;
-## `show_result()` - the art again with the damage breakdown text in the
-## middle. PlayerDialog owns the awaiting; `hint_label` always points at the
-## current stage's voice-hint label.
+## pick that weapon; `configure()` - the combat screen described above, which
+## after Confirm turns into its own result via `show_outcome()` (the damage
+## calculation top-left, the health bar dropping, weakness/resistance revealed -
+## no separate result screen). PlayerDialog owns the awaiting; `hint_label`
+## always points at the current stage's voice-hint label.
 
 signal step_requested(delta: int)  ## the picker's arrows
 
@@ -40,16 +41,25 @@ var cancel_button: Button
 var hint_label: Label  ## the CURRENT stage's voice-hint label (see _set_stage())
 var choice_buttons: Array[Button] = []  ## the weapon-choice stage's two options, then...
 var choice_cancel_button: Button  ## ...its Cancel
-var result_ok_button: Button
 
 var _art_layer: Control  ## the hero/monster previews (every stage)
+var selected_conditions: Array[int] = []  ## MonsterCondition.Kind values toggled in the Conditions dialog - applied to the monster when the attack is confirmed (read by PlayerDialog.ask_attack())
+var _conditions_button: Button
+var _conditions_dialog: Control
+var _condition_checks: Dictionary = {}  # MonsterCondition.Kind -> CheckBox
+var _calc_conditions: Label
+var _picker: HBoxContainer  ## the successes picker (arrows + disc) - hidden once the attack is resolved
+var _calc_panel: PanelContainer  ## top-left damage calculation, shown by show_outcome()
+var _calc_row: HBoxContainer
+var _calc_note: Label
+var _shown_known: Dictionary = {}  ## the known weakness/resistance/immunity lists as last SHOWN - show_outcome() diffs against them to animate newly revealed entries
+var _shown_hp: int = 0
+var _shown_max_hp: int = 1
+var _outcome_tween: Tween
 var _ui_layer: Control  ## the combat stage's stats/picker/buttons/columns
 var _choice_layer: Control
-var _result_layer: Control
 var _combat_hint_label: Label
 var _choice_hint_label: Label
-var _result_hint_label: Label
-var _result_label: Label
 var _choice_title: Label
 var _choice_info: Array[VBoxContainer] = []
 var _choice_tween: Tween
@@ -61,13 +71,14 @@ var _hero_preview: CombatMeshPreview
 var _monster_preview: CombatMeshPreview
 var _hp_label: Label
 var _hp_fill: ColorRect
+var _hp_lost: ColorRect  ## dark-grey "lost" health behind the red fill, outcome mode only
 var _defense_label: Label
 var _monster_name_label: Label
 var _info_panel: PanelContainer
 var _info_label: Label
 var _value_label: Label
 var _damage_box: HBoxContainer
-var _property_sections: Dictionary = {}  # "vulnerability" (weakness+resistance combined)/"immunity" -> {section, box}
+var _property_sections: Dictionary = {}  # "vulnerability" (weakness+resistance+immunity combined) -> {section, box}
 
 const GOLD := Color(1.0, 0.92, 0.45)
 const ORANGE := Color(0.85, 0.42, 0.05)
@@ -81,6 +92,13 @@ const TICK_RADIUS := 56.0  ## matches disc_wrap's own half-size (112/2) - the ou
 const TICK_GAP := 2.0  ## small gap between the ring's edge and where a tick starts
 const TICK_LENGTH_SHORT := 6.0  ## the diagonal ticks (45/135/225/315)
 const TICK_LENGTH_LONG := 10.0  ## the cardinal ticks (angle mod 90 == 0)
+const CHOICE_WEAKNESS_COLOR := GOLD  ## weapon-choice damage badges: outer border for a known weakness of the target
+const CHOICE_RESISTANCE_COLOR := Color(0.85, 0.15, 0.12)  ## ...and for a known resistance
+const HP_LOST_COLOR := Color(0.27, 0.27, 0.29)  ## outcome: the health the attack just removed
+const OUTCOME_TERM_FADE_SEC := 0.1  ## each calculation term fades in this fast, one after another
+const IMMUNITY_BORDER_COLOR := Color(0.38, 0.17, 0.5)  ## dark purple inner border for an immunity entry (weakness dark red, resistance dark blue)
+const CHOICE_IMMUNITY_COLOR := Color(0.72, 0.42, 0.95)  ## ...and the brighter outer border when the attack/weapon hits a known immunity
+const EXPOSED_COLOR := Color(1.0, 0.65, 0.2)  ## the Exposed damage bonus arrow in the outcome calculation
 const CHOICE_SLIDE_SEC := 0.55  ## weapon-choice slide-in duration
 const CHOICE_SLIDE_STAGGER_SEC := 0.12  ## the right-hand model starts this much later
 const CHOICE_CAMERA_SCALE := 1.15  ## weapon-choice stage: a bit more headroom than the combat stage's deliberate overflow, so a hero's weapon isn't clipped at the sides of its half
@@ -211,6 +229,30 @@ func _build() -> void:
 	_monster_name_label.add_theme_font_size_override("font_size", 28)
 	stats.add_child(_monster_name_label)
 
+	# Top-left: the damage calculation, only shown after an attack is resolved
+	# (see show_outcome()).
+	_calc_panel = _panel(Color(0.02, 0.02, 0.03, 0.85), 2)
+	_calc_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_calc_panel.offset_left = 16
+	_calc_panel.offset_top = 12
+	_calc_panel.visible = false
+	var calc_column := VBoxContainer.new()
+	_calc_panel.add_child(calc_column)
+	_calc_row = HBoxContainer.new()
+	_calc_row.add_theme_constant_override("separation", 8)
+	calc_column.add_child(_calc_row)
+	_calc_note = Label.new()
+	_calc_note.add_theme_font_size_override("font_size", 20)
+	_calc_note.add_theme_color_override("font_color", CHOICE_RESISTANCE_COLOR)
+	_calc_note.visible = false
+	calc_column.add_child(_calc_note)
+	_calc_conditions = Label.new()
+	_calc_conditions.add_theme_font_size_override("font_size", 18)
+	_calc_conditions.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	_calc_conditions.visible = false
+	calc_column.add_child(_calc_conditions)
+	_ui_layer.add_child(_calc_panel)
+
 	# Centre column: info box, picker, confirm/cancel.
 	var centre := VBoxContainer.new()
 	centre.set_anchors_preset(Control.PRESET_CENTER)
@@ -233,6 +275,7 @@ func _build() -> void:
 	centre.add_child(_info_panel)
 
 	var picker := HBoxContainer.new()
+	_picker = picker
 	picker.alignment = BoxContainer.ALIGNMENT_CENTER
 	picker.add_theme_constant_override("separation", 18)
 	centre.add_child(picker)
@@ -300,6 +343,14 @@ func _build() -> void:
 
 	picker.add_child(_arrow("▶", 1))
 
+	# "Conditions" - under the successes picker (new 2026-10-04): opens a small
+	# dialog to toggle the predefined conditions this attack applies to the
+	# monster once confirmed.
+	_conditions_button = _big_button("Conditions", Color(0.3, 0.3, 0.32), 16, Vector2(150, 32))
+	_conditions_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_conditions_button.pressed.connect(_open_conditions_dialog)
+	centre.add_child(_conditions_button)
+
 	# Confirm/Cancel sit at the very bottom, between the Damage Type and
 	# Weakness/Resistance/Immunity columns - not in the centre column, so they
 	# stay put regardless of how tall the (optional) info box or a monster's
@@ -359,13 +410,10 @@ func _build() -> void:
 	right.add_child(vulnerability_section)
 	var vulnerability_box := _section(vulnerability_section, "Weakness", HEADING_FONT_SIZE)
 	_property_sections["vulnerability"] = {"section": vulnerability_section, "box": vulnerability_box}
-	var immunity_section := VBoxContainer.new()
-	right.add_child(immunity_section)
-	var immunity_box := _section(immunity_section, "Immunity", 22)
-	_property_sections["immunity"] = {"section": immunity_section, "box": immunity_box}
+
 
 	_build_choice_layer()
-	_build_result_layer()
+	_build_conditions_dialog()
 	_set_stage("combat")
 
 
@@ -450,7 +498,6 @@ func _anchor_art_for_choice() -> void:
 func _set_stage(stage: String) -> void:
 	_ui_layer.visible = stage == "combat"
 	_choice_layer.visible = stage == "choice"
-	_result_layer.visible = stage == "result"
 	if stage == "choice":
 		_anchor_art_for_choice()
 	else:
@@ -458,8 +505,6 @@ func _set_stage(stage: String) -> void:
 	match stage:
 		"choice":
 			hint_label = _choice_hint_label
-		"result":
-			hint_label = _result_hint_label
 		_:
 			hint_label = _combat_hint_label
 
@@ -531,35 +576,6 @@ func _build_choice_layer() -> void:
 	bottom.add_child(_choice_hint_label)
 
 
-## The result stage: the combat art stays up, the damage breakdown text sits in
-## a panel in the middle with an OK button under it. Text only for now.
-func _build_result_layer() -> void:
-	_result_layer = _layer()
-	add_child(_result_layer)
-
-	var column := VBoxContainer.new()
-	column.set_anchors_preset(Control.PRESET_CENTER)
-	column.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	column.grow_vertical = Control.GROW_DIRECTION_BOTH
-	column.custom_minimum_size = Vector2(560, 0)
-	column.add_theme_constant_override("separation", 16)
-	_result_layer.add_child(column)
-
-	var panel := _panel(Color(0.02, 0.02, 0.03, 0.88), 2)
-	column.add_child(panel)
-	_result_label = Label.new()
-	_result_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_result_label.add_theme_font_size_override("font_size", 26)
-	panel.add_child(_result_label)
-
-	result_ok_button = _big_button("OK", ORANGE, 22, Vector2(190, 44))
-	result_ok_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	column.add_child(result_ok_button)
-	_result_hint_label = _hint_label_node()
-	column.add_child(_result_hint_label)
-
-
 func _hint_label_node() -> Label:
 	var l := Label.new()
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -571,7 +587,7 @@ func _hint_label_node() -> Label:
 
 
 ## Weapon-choice stage. cfg: `title` (e.g. "Brynn attacks Wolf - choose a
-## weapon"), `hero_size_units`, and `options` - exactly two Dictionaries, one
+## weapon"), `hero_size_units`, `known_weaknesses`/`known_resistances` (the target's discovered ones - tint the damage badges' outer border), and `options` - exactly two Dictionaries, one
 ## per weapon, each `name`, `subtitle`, `damage_types` (Array of Kind) plus the
 ## hero's art for that weapon in the same keys configure() uses
 ## (`flat_meshes`/`flat_texture`/`flat_rotation`, else `image`). The player
@@ -581,6 +597,9 @@ func show_choice(cfg: Dictionary) -> void:
 	_choice_title.text = cfg.get("title", "Choose a weapon")
 	var hero_size_units: float = cfg.get("hero_size_units", 1.0)
 	var options: Array = cfg.get("options", [])
+	var known_weaknesses: Array = cfg.get("known_weaknesses", [])
+	var known_resistances: Array = cfg.get("known_resistances", [])
+	var known_immunities: Array = cfg.get("known_immunities", [])
 	var previews: Array[CombatMeshPreview] = [_hero_preview, _monster_preview]
 	for i in mini(options.size(), 2):
 		var option: Dictionary = options[i]
@@ -602,19 +621,21 @@ func show_choice(cfg: Dictionary) -> void:
 		icons.alignment = BoxContainer.ALIGNMENT_CENTER
 		icons.add_theme_constant_override("separation", 10)
 		for kind in option.get("damage_types", []):
-			icons.add_child(_bordered_icon_box(kind, Vulnerability.display_name(kind)))
+			# The OUTER border shows what's known about this damage type vs. the
+			# target: gold = known weakness, red = known resistance, otherwise the
+			# neutral gray (neutral, or not discovered yet - never reveals more
+			# than the combat screen's own "?" rules already do).
+			var outer := ICON_BORDER_COLOR
+			if known_weaknesses.has(kind):
+				outer = CHOICE_WEAKNESS_COLOR
+			elif known_resistances.has(kind):
+				outer = CHOICE_RESISTANCE_COLOR
+			elif known_immunities.has(kind):
+				outer = CHOICE_IMMUNITY_COLOR
+			icons.add_child(_bordered_icon_box(kind, Vulnerability.display_name(kind), ICON_BORDER_COLOR, outer))
 		info.add_child(icons)
 		_ignore_mouse(info)
 	_slide_in_choice()
-
-
-## Result stage: the combat art (configured from `cfg`, same dictionary as
-## configure() - needed because the view may not have been shown for this
-## attack at all when the successes were spoken in the command) plus `text`.
-func show_result(cfg: Dictionary, text: String) -> void:
-	configure(cfg, false)  # no slide-in - the art is already in place from the successes screen
-	_set_stage("result")
-	_result_label.text = text
 
 
 func _ignore_mouse(node: Node) -> void:
@@ -681,9 +702,6 @@ func configure(cfg: Dictionary, animate: bool = true) -> void:
 	show_value(0)
 
 	var damage_types: Array = cfg.get("damage_types", [])
-	var known_weaknesses: Array = cfg.get("known_weaknesses", [])
-	var known_resistances: Array = cfg.get("known_resistances", [])
-	var known_immunities: Array = cfg.get("known_immunities", [])
 	# Damage Type icons use the same bordered badge as Weakness/Resistance
 	# (2026-09-29, "damage type can also use the shields" - carried over to
 	# the shield-less badge below) but deliberately keep the plain gray
@@ -694,31 +712,291 @@ func configure(cfg: Dictionary, animate: bool = true) -> void:
 	for kind in damage_types:
 		_damage_box.add_child(_bordered_icon_box(kind, Vulnerability.display_name(kind)))
 
+	_rebuild_properties(cfg)
+	_shown_known = {
+		"weakness": (cfg.get("known_weaknesses", []) as Array).duplicate(),
+		"resistance": (cfg.get("known_resistances", []) as Array).duplicate(),
+		"immunity": (cfg.get("known_immunities", []) as Array).duplicate(),
+	}
+	_shown_hp = hitpoints
+	_shown_max_hp = max_hitpoints
+	_set_outcome_mode(false)
+	_reset_conditions(cfg.get("monster_conditions", []))
+	if animate:
+		_slide_in_combat()
+
+
+## (Re)builds the combined Weakness/Resistance/Immunity list from `cfg`.
+## Entries stay "?" until discovered (which CATEGORY a monster has is never
+## secret, only the damage kind). `hit_kinds` (the outcome screen passes the
+## attack's damage types) colours a known weakness entry's OUTER border gold and
+## a known resistance entry's red, a known immunity's purple when that kind was part of the attack - gray
+## otherwise, the same colours as the weapon-choice badges. `previous_known`
+## (the lists as last shown) makes this return the badges that are newly
+## revealed, so the caller can animate them in.
+func _rebuild_properties(cfg: Dictionary, hit_kinds: Array = [], previous_known: Dictionary = {}) -> Array[Control]:
+	var revealed: Array[Control] = []
+	var known_weaknesses: Array = cfg.get("known_weaknesses", [])
+	var known_resistances: Array = cfg.get("known_resistances", [])
+	var known_immunities: Array = cfg.get("known_immunities", [])
+	var prev_weak: Array = previous_known.get("weakness", [])
+	var prev_res: Array = previous_known.get("resistance", [])
+	var prev_imm: Array = previous_known.get("immunity", [])
+	var animate_reveals := not previous_known.is_empty()
+
 	var weaknesses: Array = cfg.get("weaknesses", [])
 	var resistances: Array = cfg.get("resistances", [])
 	var vulnerability_entry: Dictionary = _property_sections["vulnerability"]
-	vulnerability_entry["section"].visible = not weaknesses.is_empty() or not resistances.is_empty()
+	var immunities: Array = cfg.get("immunities", [])
+	vulnerability_entry["section"].visible = not weaknesses.is_empty() or not resistances.is_empty() or not immunities.is_empty()
 	_clear(vulnerability_entry["box"])
 	for kind in weaknesses:
-		# Hidden ("?" icon) until discovered - which CATEGORY a monster has
-		# is never secret, only which damage kind it's for.
 		var shown_weakness: int = kind if known_weaknesses.has(kind) else -1
 		var weakness_tooltip := "Weakness: %s" % (Vulnerability.display_name(shown_weakness) if shown_weakness >= 0 else "Unknown")
-		vulnerability_entry["box"].add_child(_bordered_icon_box(shown_weakness, weakness_tooltip, WEAKNESS_BORDER_COLOR))
+		var weakness_outer := CHOICE_WEAKNESS_COLOR if shown_weakness >= 0 and hit_kinds.has(kind) else ICON_BORDER_COLOR
+		var weakness_badge := _bordered_icon_box(shown_weakness, weakness_tooltip, WEAKNESS_BORDER_COLOR, weakness_outer)
+		vulnerability_entry["box"].add_child(weakness_badge)
+		if animate_reveals and shown_weakness >= 0 and not prev_weak.has(kind):
+			revealed.append(weakness_badge)
 	for kind in resistances:
 		var shown_resistance: int = kind if known_resistances.has(kind) else -1
 		var resistance_tooltip := "Resistance: %s" % (Vulnerability.display_name(shown_resistance) if shown_resistance >= 0 else "Unknown")
-		vulnerability_entry["box"].add_child(_bordered_icon_box(shown_resistance, resistance_tooltip, RESISTANCE_BORDER_COLOR))
+		var resistance_outer := CHOICE_RESISTANCE_COLOR if shown_resistance >= 0 and hit_kinds.has(kind) else ICON_BORDER_COLOR
+		var resistance_badge := _bordered_icon_box(shown_resistance, resistance_tooltip, RESISTANCE_BORDER_COLOR, resistance_outer)
+		vulnerability_entry["box"].add_child(resistance_badge)
+		if animate_reveals and shown_resistance >= 0 and not prev_res.has(kind):
+			revealed.append(resistance_badge)
 
-	var immunity_entry: Dictionary = _property_sections["immunity"]
-	var immunities: Array = cfg.get("immunities", [])
-	immunity_entry["section"].visible = not immunities.is_empty()
-	_clear(immunity_entry["box"])
 	for kind in immunities:
-		# Hidden ("?" icon) until discovered.
-		immunity_entry["box"].add_child(_icon_box(kind if known_immunities.has(kind) else -1))
-	if animate:
-		_slide_in_combat()
+		var shown_immunity: int = kind if known_immunities.has(kind) else -1
+		var immunity_tooltip := "Immunity: %s" % (Vulnerability.display_name(shown_immunity) if shown_immunity >= 0 else "Unknown")
+		var immunity_outer := CHOICE_IMMUNITY_COLOR if shown_immunity >= 0 and hit_kinds.has(kind) else ICON_BORDER_COLOR
+		var immunity_badge := _bordered_icon_box(shown_immunity, immunity_tooltip, IMMUNITY_BORDER_COLOR, immunity_outer)
+		vulnerability_entry["box"].add_child(immunity_badge)
+		if animate_reveals and shown_immunity >= 0 and not prev_imm.has(kind):
+			revealed.append(immunity_badge)
+	return revealed
+
+
+# ---------------------------------------------------------------- conditions
+
+## The "Conditions" dialog: a modal overlay (own dimmed scrim, so it also
+## blocks the combat controls behind it) with one toggle per predefined
+## MonsterCondition and a Done button. A condition the monster already has is
+## shown checked and disabled ("active") - it can't be applied twice. Toggling
+## only records the choice in `selected_conditions`; nothing happens to the
+## monster until the attack is confirmed (MissionRuntime.resolve_attack()).
+func _build_conditions_dialog() -> void:
+	_conditions_dialog = Control.new()
+	_conditions_dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_conditions_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
+	_conditions_dialog.visible = false
+	add_child(_conditions_dialog)
+
+	var scrim := ColorRect.new()
+	scrim.color = Color(0, 0, 0, 0.55)
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_conditions_dialog.add_child(scrim)
+
+	var panel := _panel(Color(0.06, 0.06, 0.08, 0.97), 2)
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_conditions_dialog.add_child(panel)
+	var column := VBoxContainer.new()
+	column.custom_minimum_size = Vector2(300, 0)
+	column.add_theme_constant_override("separation", 6)
+	panel.add_child(column)
+
+	var title := Label.new()
+	title.text = "Apply conditions"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", GOLD)
+	column.add_child(title)
+
+	for kind in MonsterCondition.all():
+		var check := CheckBox.new()
+		check.text = MonsterCondition.display_name(kind)
+		check.add_theme_font_size_override("font_size", 20)
+		check.toggled.connect(_on_condition_toggled.bind(kind))
+		column.add_child(check)
+		_condition_checks[kind] = check
+
+	var done := _big_button("Done", ORANGE, 18, Vector2(150, 36))
+	done.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	done.pressed.connect(func(): _conditions_dialog.visible = false)
+	column.add_child(done)
+
+
+func _open_conditions_dialog() -> void:
+	_conditions_dialog.visible = true
+
+
+## True while the dialog is up - PlayerDialog ignores voice answers then, so a
+## spoken number can't confirm the attack behind it.
+func conditions_dialog_open() -> bool:
+	return _conditions_dialog != null and _conditions_dialog.visible
+
+
+func _on_condition_toggled(pressed: bool, kind: int) -> void:
+	if pressed and not selected_conditions.has(kind):
+		selected_conditions.append(kind)
+	elif not pressed:
+		selected_conditions.erase(kind)
+	_update_conditions_button()
+
+
+## Fresh state for a new attack: nothing selected, the monster's already-active
+## conditions shown checked + disabled.
+func _reset_conditions(active: Array) -> void:
+	selected_conditions.clear()
+	_conditions_dialog.visible = false
+	for kind in _condition_checks:
+		var check: CheckBox = _condition_checks[kind]
+		var is_active := active.has(kind)
+		check.set_pressed_no_signal(is_active)
+		check.disabled = is_active
+		check.text = MonsterCondition.display_name(kind) + (" (active)" if is_active else "")
+	_update_conditions_button()
+
+
+func _update_conditions_button() -> void:
+	_conditions_button.text = "Conditions" if selected_conditions.is_empty() else "Conditions (%d)" % selected_conditions.size()
+
+
+# ---------------------------------------------------------------- outcome
+
+## The combat screen once the attack is resolved (new 2026-10-04, "ditch that
+## screen and show the effect on the combat screen"): the successes picker and
+## Cancel go away ("Confirm" becomes "Close" - a second click closes the view, see
+## PlayerDialog.ask_attack_outcome()), a short calculation appears top-left
+## ("2 star x (4 sword +1 up) - 3 shield = 5 heart", term by term), then newly
+## discovered weakness/resistance/immunity entries fade in (hit entries get a
+## gold/red outer border) and the health bar drops to its new value.
+## `cfg` = the combat cfg with the monster's CURRENT (post-attack) known_*
+## lists; `r` = MissionRuntime.resolve_attack()'s breakdown. The defense roll
+## is shown as rolled.
+func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
+	_set_outcome_mode(true)
+	# Dark grey behind the red fill, as wide as the health BEFORE the attack -
+	# the red shrinking over it leaves the lost part showing.
+	_hp_lost.size.x = HP_BOX_SIZE.x * clampf(float(_shown_hp) / float(maxi(_shown_max_hp, 1)), 0.0, 1.0)
+	_hp_lost.visible = true
+	_outcome_tween = create_tween()
+
+	# --- calculation terms, revealed one after another
+	var terms: Array[Control] = []
+	terms.append(_calc_term(str(r["successes"]), "★", GOLD))
+	terms.append(_calc_op("×"))
+	var bonus: int = r["weakness_bonus"]
+	var penalty: int = r["resistance_penalty"]
+	var immune: bool = r["immune"]
+	var modified := (bonus > 0 or penalty > 0) and not immune
+	if modified:
+		terms.append(_calc_op("("))
+	terms.append(_calc_term(str(r["base_damage"]), "⚔", Color(0.85, 0.87, 0.9)))
+	if not immune:
+		if bonus > 0:
+			terms.append(_calc_term("+%d" % bonus, "▲", CHOICE_WEAKNESS_COLOR))
+		if penalty > 0:
+			terms.append(_calc_term("−%d" % penalty, "▼", CHOICE_RESISTANCE_COLOR))
+		if modified:
+			terms.append(_calc_op(")"))
+		# Exposed: the +20% bonus is added to the attack's damage (after the
+		# multiplication, before the defense roll) - an arrow marks it.
+		if r.get("exposed", false):
+			terms.append(_calc_term("+%d" % int(r.get("exposed_bonus", 0)), "↑", EXPOSED_COLOR))
+		terms.append(_calc_op("−"))
+		terms.append(_calc_term(str(r["defense_roll"]), "⛨", Color(0.6, 0.72, 0.9)))
+	else:
+		terms.append(_calc_term("", "immune", CHOICE_IMMUNITY_COLOR))
+	terms.append(_calc_op("="))
+	terms.append(_calc_term(str(r["dealt"]), "♥", Color(0.9, 0.25, 0.2)))
+	for term in terms:
+		term.modulate.a = 0.0
+		_calc_row.add_child(term)
+		_outcome_tween.tween_property(term, "modulate:a", 1.0, OUTCOME_TERM_FADE_SEC)
+	var defeated: bool = r["defeated"]
+	_calc_note.visible = defeated
+	_calc_note.text = "☠ Defeated"
+	_calc_note.modulate.a = 0.0
+	if defeated:
+		_outcome_tween.tween_property(_calc_note, "modulate:a", 1.0, 0.2)
+
+	var applied: Array = r.get("conditions_applied", [])
+	_calc_conditions.visible = not applied.is_empty()
+	_calc_conditions.modulate.a = 0.0
+	if not applied.is_empty():
+		var applied_names: Array[String] = []
+		for condition in applied:
+			applied_names.append(MonsterCondition.display_name(condition))
+		_calc_conditions.text = "Applied: " + ", ".join(applied_names)
+		_outcome_tween.tween_property(_calc_conditions, "modulate:a", 1.0, 0.2)
+
+	# --- reveal weakness/resistance, then drop the health
+	var hit_kinds: Array = cfg.get("damage_types", [])
+	_outcome_tween.tween_interval(0.25)
+	_outcome_tween.tween_callback(func():
+		var revealed := _rebuild_properties(cfg, hit_kinds, _shown_known)
+		for badge in revealed:
+			badge.modulate.a = 0.0
+			create_tween().tween_property(badge, "modulate:a", 1.0, 0.45)
+	)
+	_outcome_tween.tween_interval(0.35)
+	var from_hp := float(_shown_hp)
+	var to_hp := maxf(float(r["hitpoints"]), 0.0)
+	_outcome_tween.tween_method(_set_hp_display, from_hp, to_hp, 0.9).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_shown_hp = int(to_hp)
+
+
+func _set_hp_display(value: float) -> void:
+	_hp_label.text = str(int(roundf(value)))
+	_hp_fill.size.x = HP_BOX_SIZE.x * clampf(value / float(maxi(_shown_max_hp, 1)), 0.0, 1.0)
+
+
+## Outcome mode: no successes picker, no Cancel, the calculation panel up.
+func _set_outcome_mode(on: bool) -> void:
+	if _outcome_tween != null:
+		_outcome_tween.kill()
+		_outcome_tween = null
+	_picker.visible = not on
+	cancel_button.visible = not on
+	confirm_button.text = "Close" if on else "Confirm"
+	_conditions_button.visible = not on
+	if on:
+		_conditions_dialog.visible = false
+	_hp_lost.visible = false
+	_calc_panel.visible = on
+	if not on:
+		for child in _calc_row.get_children():
+			child.free()
+
+
+## One calculation term: a number plus a small coloured symbol, e.g. "4 sword".
+func _calc_term(number: String, symbol: String, color: Color) -> Control:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	if number != "":
+		var n := Label.new()
+		n.text = number
+		n.add_theme_font_size_override("font_size", 26)
+		box.add_child(n)
+	var sym := Label.new()
+	sym.text = symbol
+	sym.add_theme_font_size_override("font_size", 22 if symbol.length() == 1 else 18)
+	sym.add_theme_color_override("font_color", color)
+	box.add_child(sym)
+	return box
+
+
+func _calc_op(text: String) -> Control:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 26)
+	l.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	return l
 
 
 func show_value(v: int) -> void:
@@ -804,6 +1082,16 @@ func _build_hp_box(parent: Control) -> void:
 	empty_bg.size = HP_BOX_SIZE
 	empty_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(empty_bg)
+
+	# The health lost by the attack, shown behind the red fill in dark grey
+	# (outcome mode only, see show_outcome()) so the impact stays visible.
+	_hp_lost = ColorRect.new()
+	_hp_lost.color = HP_LOST_COLOR
+	_hp_lost.position = Vector2.ZERO
+	_hp_lost.size = HP_BOX_SIZE
+	_hp_lost.visible = false
+	_hp_lost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(_hp_lost)
 
 	_hp_fill = ColorRect.new()
 	_hp_fill.color = Color(0.75, 0.12, 0.1)
@@ -996,18 +1284,6 @@ func _section(parent: Control, title: String, font_size: int) -> HBoxContainer:
 	return box
 
 
-## The damage-type icon (kind < 0 = the red "?"), scaled to a fixed height.
-func _icon_box(kind: int) -> Control:
-	var t := TextureRect.new()
-	t.texture = Vulnerability.icon(kind)
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var h := ICON_HEIGHT
-	t.custom_minimum_size = Vector2(h * t.texture.get_width() / t.texture.get_height(), h)
-	t.tooltip_text = Vulnerability.display_name(kind) if kind >= 0 else "Unknown"
-	return t
-
-
 ## A small damage-type icon framed by a double gray border (new 2026-10-01,
 ## "remove the shields, but a double gray border around the icons" -
 ## replaces the earlier shield-background badge entirely, see
@@ -1031,8 +1307,8 @@ func _icon_box(kind: int) -> Control:
 ## it has no weakness/resistance concept of its own, so there's nothing
 ## for a second colour to distinguish there; it still gets the same
 ## square sizing and black-between-borders treatment as everything else,
-## only the colour was asked to stay put. (Immunity has its own
-## `_icon_box()` and never reaches here.) **All badges render as an equal
+## only the colour was asked to stay put. (Immunity uses it too now, with
+## `IMMUNITY_BORDER_COLOR`.) **All badges render as an equal
 ## SQUARE now** (new, same round -
 ## "can we make all equal size (square)") - `icon`'s own box is a fixed
 ## `h x h` square regardless of a given damage icon's real aspect ratio,
@@ -1052,7 +1328,7 @@ func _icon_box(kind: int) -> Control:
 ## see that script's own doc for the actual arc geometry. A first pass at
 ## this shape, asked for as one ("try something first we correct it") -
 ## not yet seen rendered.
-func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = ICON_BORDER_COLOR) -> Control:
+func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = ICON_BORDER_COLOR, outer_border_color: Color = ICON_BORDER_COLOR) -> Control:
 	var h := PROPERTY_ICON_HEIGHT
 	var icon_texture := Vulnerability.icon(kind)
 	var icon_size := Vector2(h, h)
@@ -1071,7 +1347,7 @@ func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = 
 	# round (always-gray outer, colour-coded inner) is untouched.
 	var outer_ring := ConcaveBorderBox.new()
 	outer_ring.fill_color = Color(0, 0, 0, 0.9)
-	outer_ring.border_color = ICON_BORDER_COLOR
+	outer_ring.border_color = outer_border_color
 	outer_ring.custom_minimum_size = outer_size
 	outer_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	outer_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
