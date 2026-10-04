@@ -312,7 +312,7 @@ func _move_in_array(array: Array, item, delta: int) -> bool:
 ## ObjectivesDialog's identical helper (same file-local-sharing reasoning
 ## as _build_condition_row()'s own doc comment below).
 func _known_variable_names() -> Array[String]:
-	var names: Array[String] = ["round_number", "player_count"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in layered_map.mission.custom_variables:
 		names.append(variable.name)
 	return names
@@ -345,7 +345,7 @@ func _build_variable_name_option(current_name: String, on_commit: Callable) -> O
 ## operands be value (int) or a other variable... filtered to the ones of
 ## type int").
 func _known_int_variable_names() -> Array[String]:
-	var names: Array[String] = ["round_number", "player_count"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in layered_map.mission.custom_variables:
 		if variable.type == MissionVariable.Type.INT:
 			names.append(variable.name)

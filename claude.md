@@ -967,7 +967,7 @@ testing had already stopped - compile-checked only (`--headless --path .
 --import`, clean), not exercised in a scene at all. **Nothing in this
 whole feature has been seen rendered in the actual Player.**
 
-**Combat dialogs as three stages of one full-screen view (new 2026-10-04)** -
+**Combat dialogs as stages of one full-screen view (new 2026-10-04)** -
 "the weapon choice and the result overview look kinda dull... use the combat
 overview background there as well, so full screen. use the flat 3d model of the
 hero to make the choice... put the final overview of the damage in the same
@@ -988,16 +988,99 @@ repoints `hint_label` at the current stage's voice-hint label):
    skips it, one weapon needs no choice, other counts fall back to the old
    `ask_choice()` list.
 2. **Successes** - the existing combat screen (`configure()`), unchanged.
-3. **Result** (`show_result(cfg, text)`, `PlayerDialog.ask_attack_result(cfg,
-   text, log_title)`): the combat art stays, the damage breakdown text (same text
-   as before) sits in a panel in the middle with an OK button; still logged to
-   the quest log as "Attack". Replaces the old large `ask_ok`. `configure(cfg)` is
-   called again for it because the successes screen is skipped when the roll was
-   spoken in the command - so `PlayerInteractionController.attack()` now builds
-   the combat `cfg` unconditionally (art keys via the new `_hero_art()`), uses it
-   for stages 2 and 3, and the result shows the PRE-attack art (the stage is
-   text only, no HP bar). The hero portrait bar is hidden for the whole flow
-   (`attack()` wraps `_attack()`).
+3. **Outcome - no separate result screen any more** (feature/combat-result-view,
+   "ditch that screen and show the effect on the combat screen"): after Confirm the
+   combat screen stays and becomes its own result. `PlayerDialog.ask_attack()` leaves
+   the view OPEN on Confirm (cancel closes it); the caller resolves and calls
+   `ask_attack_outcome(pre_cfg, post_cfg, outcome, log_text, log_title)` ->
+   `CombatView.show_outcome(post_cfg, r)`, which (outcome mode: picker + Cancel hidden,
+   the Confirm button is relabelled "Close" - **a second click on it, or "ok", closes the view**) plays one
+   tween timeline: (a) a calculation panel top-left, term by term -
+   `2★ × (4⚔ +1▲ −1▼) − 3⛨ = 5♥` (▲ gold = weakness bonus, ▼ red = resistance penalty,
+   parentheses only when there is a modifier; immune shows `4⚔ immune = 0♥`; the
+   defense value is the roll as rolled; "☠ Defeated" note underneath); (b) newly
+   discovered weakness/resistance/immunity badges fade in (`_rebuild_properties()`
+   diffs against `_shown_known`, the lists as last shown) - a weakness entry the attack
+   hit gets a GOLD outer border, a resistance entry it hit RED, anything else gray; (c)
+   the health bar and number animate down to the new value (`_set_hp_display`), with the
+   lost health left showing in dark grey (`_hp_lost`/`HP_LOST_COLOR`, a bar behind the red
+   fill as wide as the pre-attack health); calc terms fade in at `OUTCOME_TERM_FADE_SEC` 0.1.
+   `attack()` snapshots the monster's known_* lists (`.duplicate()`) into the combat
+   `cfg` BEFORE `resolve_attack()` (which mutates the live arrays) and builds `post_cfg`
+   with the new ones; if the roll was spoken (successes screen skipped) the dialog opens
+   the view itself from `pre_cfg`, so the reveal still animates. The quest log still gets
+   the old long text. The old result stage (`show_result`, `ask_attack_result`,
+   `_result_layer`) is deleted. The hero portrait bar is hidden for the whole flow
+   (`attack()` wraps `_attack()`; the cfg is built in `_hero_art()` terms).
+**Weapon-choice damage badges tint their OUTER border by what's known about the
+target (same day)**: gold (`CHOICE_WEAKNESS_COLOR`) = a known weakness of the monster,
+red (`CHOICE_RESISTANCE_COLOR`) = a known resistance, plain gray otherwise (neutral, or
+not discovered yet). `_bordered_icon_box()` gained `outer_border_color`; the choice cfg
+carries the monster's `known_weaknesses`/`known_resistances`. Only the discovered lists
+are read, so nothing hidden leaks; a kind both a known weakness and resistance shows gold;
+immunity isn't tinted. The combat screen's own Damage Type row is unchanged.
+
+**Immunity joins the combined list (same day, "just put it with the others")**: no
+separate "Immunity" section any more - immunity entries are `_bordered_icon_box()` badges
+in the same Weakness list as weaknesses/resistances, inner border dark purple
+(`IMMUNITY_BORDER_COLOR`), "?" until discovered like the others, tooltip "Immunity: ...".
+Outer-border rule is now consistent everywhere (weapon-choice damage badges AND the
+outcome's monster list): gold = weakness, red = resistance, bright purple
+(`CHOICE_IMMUNITY_COLOR`) = immunity, gray = neutral/undiscovered; the choice cfg also
+carries `known_immunities`, the outcome calc's "immune" term uses the purple, and newly
+discovered immunities fade in with the others. `_icon_box()` (immunity's old renderer) is
+deleted. Compile-checked only.
+
+**Monster conditions, first step (2026-10-04, feature/combat-result-view)** - "a monster
+can be affected by various conditions... 7 predefined ones can be applied by attacks or
+abilities of heroes... focus on that part now." `MonsterCondition`
+(`scripts/MonsterCondition.gd`, never instantiated enum namespace like `Vulnerability`):
+`Kind` = AFFLICTED/CONFUSED/DAZED/DOOMED/ENFEEBLED/EXPOSED/SLOWED, `all()`,
+`display_name()`. `RuntimeMonster.conditions: Array[int]` holds them (round-trips through
+`to_dict()`/`from_dict()` for saves; older saves load as none). **Scripted** (game-applied,
+per-mission) conditions are NOT modelled - they'll need their own storage next to this
+list. **Only some conditions react yet** - see "Condition rules implemented so far" below (the rest are only recorded and shown).
+Applying: the combat view has a **"Conditions" button under the successes picker**
+("Conditions (2)" once something is toggled) opening a small modal dialog
+(`CombatView._build_conditions_dialog()`, own dimmed scrim) with a toggle per condition and
+a Done button; a condition the monster already has is shown checked + disabled "(active)"
+(cfg key `monster_conditions`). Toggling only fills `CombatView.selected_conditions`;
+`PlayerDialog.ask_attack()` copies it to `attack_conditions`, and on Confirm
+`attack()` passes it to `MissionRuntime.resolve_attack(monster, successes, weapon,
+apply_conditions)`, which assigns any the monster lacks (also when the damage is 0) and
+returns `conditions_applied` (the NEW ones). Feedback: an "Applied: Afflicted, Dazed" line
+under the outcome calculation, the quest-log text, and the M view's floating monster label
+(second line). Button hidden in outcome mode; voice answers are ignored while the dialog is
+open (`PlayerDialog.try_voice_answer()` guard, `CombatView.conditions_dialog_open()`). With
+a spoken roll (successes screen skipped) no conditions can be chosen. Compile-checked only.
+
+**Condition rules implemented so far (2026-10-04)** - conditions only last ONE round:
+`MissionRuntime.end_monster_phase_conditions()` (called by `MissionPlayer._run_darkness_and_loop()`
+after the darkness-phase timer, before the AFTER_DARKNESS checkpoint) clears every monster's
+conditions, except that a **Doomed** monster loses ONLY Doomed (its other conditions stay one
+more round). Conditions are applied BEFORE the damage is calculated in `resolve_attack()`, so a
+condition applied by that very attack already counts. Per condition:
+- **Afflicted** - `MissionRuntime.apply_affliction()` (called right after the Darkness phase
+  starts, `MissionPlayer._apply_affliction()`): each afflicted monster takes the runtime variable
+  **`affliction_damage`** (new built-in INT, default 4, `DEFAULT_AFFLICTION_DAMAGE`); at <= 0
+  hitpoints (same rule as combat) it is defeated and released. The table gets one dialog
+  listing each monster ("takes 4 affliction damage (N hitpoints left)" / "...is defeated!"),
+  logged as "Affliction". `affliction_damage` is the first built-in an Effect MAY write
+  (`MissionRuntime.WRITABLE_BUILTINS`; SET/MATH/accumulate accept it, round_number/player_count
+  stay runtime-owned) and appears in the Creator's variable pickers, so a mission can raise or
+  lower it.
+- **Exposed** - +`EXPOSED_DAMAGE_PERCENT` (20)% of the attack's damage (successes x weapon
+  damage), rounded down (`floori`), added BEFORE the defense roll; not applied when immune.
+  `resolve_attack()` returns `exposed_bonus`/`exposed`; the outcome calculation shows an orange
+  arrow term `+N↑` after the multiplication (`2★ × (4⚔ +1▲) +2↑ − 3⛨ = ...`, `EXPOSED_COLOR`),
+  and the quest-log text an "Exposed: +N damage" line.
+- **Doomed** - only its end-of-phase behaviour above (it has no other effect yet).
+**TODO - the other four conditions still need their effects implemented later: Confused, Dazed,
+Enfeebled, Slowed** (they can be applied and are shown, nothing reacts to them yet), plus the
+scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + new Exposed -> 14,
+8 -> 9 rounding down, afflicted 4 damage, clearing, Doomed keeping Dazed, a defeat by affliction);
+the Player-side dialog/round-loop hooks are compile-checked only.
+
 **Slide-in (same day, "make the models slide in from the side")**: on entering the
 choice stage `_slide_in_choice()` tweens both previews' `offset_left`/`offset_right`
 from +-half a screen width to 0 (`CHOICE_SLIDE_SEC` 0.55, cubic ease-out, the right
@@ -1005,13 +1088,12 @@ one `CHOICE_SLIDE_STAGGER_SEC` 0.12 later) and fades each weapon's text in at ~6
 the slide. **The combat (successes) stage slides the same way** (`_slide_in_combat()`:
 hero from the left, monster from the right by 0.55 of the screen width, the whole
 `_ui_layer` fading in at ~60%); both go through the shared `_slide_in(distance,
-fade_in)`. `configure(cfg, animate = true)` - `show_result()` passes `false`, so the
-result stage doesn't re-slide the art that's already in place (and with a spoken roll,
-where the successes screen is skipped, the result art just appears). The tween lives on offsets, so `_reset_art_offsets()` (called by
+fade_in)`. `configure(cfg, animate = true)`; the outcome doesn't re-slide (it reuses the open
+view; with a spoken roll the view is opened via configure() and does slide). The tween lives on offsets, so `_reset_art_offsets()` (called by
 `_anchor_art_for_combat()`) must zero them again for the other stages. Compile-checked
 only, not seen.
 The stage layers: `_art_layer` (previews, all stages), `_ui_layer` (stats/picker/
-buttons/bottom columns, combat only), `_choice_layer`, `_result_layer`;
+buttons/bottom columns, combat only), `_choice_layer`;
 `PlayerDialog._ensure_combat()`/`_enter_combat_view()`/`_leave_combat_view()` are
 the shared plumbing. Between stages the view is hidden and re-shown in the same
 frame (no flicker expected). Compile-checked only (`--headless --path . --import`

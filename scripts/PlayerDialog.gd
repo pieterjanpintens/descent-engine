@@ -209,23 +209,56 @@ func _set_modal(dim: bool) -> void:
 
 
 ## The full-screen combat screen (CombatView): asks for the number of
-## successes rolled. Returns -1 if cancelled. `cfg` is CombatView.configure()'s
-## dictionary. Voice answers work like ask_count() (the number is spoken, then
-## Confirm is pressed).
+## successes rolled. Returns -1 if cancelled (the view is closed then). `cfg` is
+## CombatView.configure()'s dictionary. Voice answers work like ask_count() (the
+## number is spoken, then Confirm is pressed).
+## The conditions toggled in the view's Conditions dialog are left in
+## `attack_conditions` (empty when the successes screen was skipped).
+## **On Confirm the view STAYS OPEN** - the caller resolves the attack and then
+## MUST call ask_attack_outcome(), which shows the result on this same screen
+## and closes it.
 func ask_attack(cfg: Dictionary) -> int:
 	_ensure_combat()
+	attack_conditions = []
 	_count_input.min_value = 0
 	_count_input.max_value = 99
 	_count_input.value = 0
 	_combat.configure(cfg)
-	var normal_hint := _enter_combat_view([_combat.confirm_button, _combat.cancel_button])
+	_enter_combat_view([_combat.confirm_button, _combat.cancel_button])
 	_set_voice_context("count")
 	visible = true
 	var result: Variant = await _closed
-	_leave_combat_view(normal_hint)
 	if typeof(result) == TYPE_INT and result == -1:
+		_leave_combat_view()
 		return -1
+	attack_conditions = _combat.selected_conditions.duplicate()
 	return int(_count_input.value)
+
+
+## The result of an attack, shown on the combat screen itself (CombatView.
+## show_outcome(): calculation top-left, health bar dropping, weakness/resistance
+## revealed). `pre_cfg` is the combat cfg as it was shown for the successes
+## screen (known_* lists as they were BEFORE the attack), `post_cfg` the same
+## with the monster's post-attack known_* lists, `outcome` the MissionRuntime.
+## resolve_attack() breakdown. A second click
+## on Confirm (or saying "ok") closes the view. If ask_attack() wasn't shown for
+## this attack (the roll was spoken in the command) the view is opened first.
+## `log_text` goes to the quest log under `log_title` when given, like ask_ok().
+func ask_attack_outcome(pre_cfg: Dictionary, post_cfg: Dictionary, outcome: Dictionary, log_text: String = "", log_title: String = "") -> void:
+	_ensure_combat()
+	if log_title != "" and journal != null:
+		journal.add(log_title, [log_text])
+	if not _combat_open:
+		# The PRE-attack cfg goes through configure() so the newly discovered
+		# entries still animate in below.
+		_combat.configure(pre_cfg)
+		_enter_combat_view([_combat.confirm_button])
+	_combat.show_outcome(post_cfg, outcome)
+	_buttons = [_combat.confirm_button]
+	_set_voice_context("ok")
+	visible = true
+	await _closed
+	_leave_combat_view()
 
 
 ## The combat view's weapon-choice stage (CombatView.show_choice(), `cfg` as
@@ -234,30 +267,15 @@ func ask_attack(cfg: Dictionary) -> int:
 func ask_weapon(cfg: Dictionary) -> int:
 	_ensure_combat()
 	_combat.show_choice(cfg)
-	var normal_hint := _enter_combat_view([_combat.choice_buttons[0], _combat.choice_buttons[1], _combat.choice_cancel_button])
+	_enter_combat_view([_combat.choice_buttons[0], _combat.choice_buttons[1], _combat.choice_cancel_button])
 	var names: Array[String] = []
 	for option: Dictionary in cfg.get("options", []):
 		names.append(str(option.get("name", "")))
 	_set_voice_context("choice", names)
 	visible = true
 	var result: Variant = await _closed
-	_leave_combat_view(normal_hint)
+	_leave_combat_view()
 	return int(result)
-
-
-## The combat view's result stage: the art (`cfg` as for ask_attack()) with
-## `text` in the middle, closed with OK. Logged to the quest log under
-## `log_title` when given, like ask_ok().
-func ask_attack_result(cfg: Dictionary, text: String, log_title: String = "") -> void:
-	_ensure_combat()
-	if log_title != "" and journal != null:
-		journal.add(log_title, [text])
-	_combat.show_result(cfg, text)
-	var normal_hint := _enter_combat_view([_combat.result_ok_button])
-	_set_voice_context("ok")
-	visible = true
-	await _closed
-	_leave_combat_view(normal_hint)
 
 
 func _ensure_combat() -> void:
@@ -272,28 +290,37 @@ func _ensure_combat() -> void:
 	_combat.choice_buttons[0].pressed.connect(_on_button_pressed.bind(0))
 	_combat.choice_buttons[1].pressed.connect(_on_button_pressed.bind(1))
 	_combat.choice_cancel_button.pressed.connect(_on_button_pressed.bind(-1))
-	_combat.result_ok_button.pressed.connect(_on_button_pressed.bind(null))
 
 
-## Shows the full-screen view in place of the normal dialog box; returns the
-## normal hint label so _leave_combat_view() can put it back. Call AFTER the
-## CombatView stage method (its hint_label depends on the stage).
-func _enter_combat_view(buttons: Array[Button]) -> Label:
+## Shows the full-screen view in place of the normal dialog box. Call AFTER the
+## CombatView stage method (its hint_label depends on the stage). Safe to call
+## again while the view is already open (a stage change) - only the buttons and
+## hint label are re-pointed then.
+func _enter_combat_view(buttons: Array[Button]) -> void:
 	_scrim.visible = false
 	_panel.visible = false
 	_combat.visible = true
 	_buttons = buttons
-	var normal_hint := _hint_label
+	if not _combat_open:
+		_combat_saved_hint = _hint_label
+		_combat_open = true
 	_hint_label = _combat.hint_label
-	return normal_hint
 
 
-func _leave_combat_view(normal_hint: Label) -> void:
+func _leave_combat_view() -> void:
 	visible = false
-	_hint_label = normal_hint
+	_combat_open = false
+	if _combat_saved_hint != null:
+		_hint_label = _combat_saved_hint
+		_combat_saved_hint = null
 	_combat.visible = false
 	_panel.visible = true
 	_scrim.visible = true
+
+
+var attack_conditions: Array[int] = []  ## MonsterCondition.Kind values chosen during the last ask_attack()
+var _combat_open: bool = false
+var _combat_saved_hint: Label
 
 
 var _combat: CombatView
@@ -490,6 +517,8 @@ func voice_prompt() -> String:
 func try_voice_answer(text: String) -> bool:
 	if not visible or _voice_kind == "":
 		return false
+	if _combat_open and _combat.conditions_dialog_open():
+		return false  # a spoken answer must not act on the combat view behind the Conditions dialog
 	match _voice_kind:
 		"ok":
 			if VoiceAnswerParser.is_ok(text):
