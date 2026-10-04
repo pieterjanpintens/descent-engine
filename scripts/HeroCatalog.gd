@@ -31,9 +31,20 @@ const PORTRAIT_PATHS: Array[String] = [
 	"res://models/heroes_syrus.png",
 ]
 
+## Index-aligned with HERO_NAMES - each hero's size relative to
+## MonsterDisplay's "mercenary" monster (size_units 1.0, the shared baseline
+## both heroes and monsters are normalized against - see CombatMeshPreview's
+## own doc), given directly (2026-09-28): Chance 0.6, Galaden 0.9, Brynn 0.8,
+## Vaerix 1.0, Kehli 0.5, Syrus 0.8.
+const HERO_SIZE_UNITS: Array[float] = [0.6, 0.9, 0.8, 1.0, 0.5, 0.8]
+
 
 static func slot_name(index: int) -> String:
 	return HERO_NAMES[index]
+
+
+static func size_units(index: int) -> float:
+	return HERO_SIZE_UNITS[index]
 
 
 static func slot_color(index: int) -> Color:
@@ -52,3 +63,77 @@ static func slot_crop(index: int, weapon_index: int) -> Texture2D:
 
 static func slot_portrait(index: int) -> Texture2D:
 	return OfficialAssetOverrides.texture_for(PORTRAIT_PATHS[index])
+
+
+## EXPERIMENTAL (2026-09-27, branch experiment/monster-flat-meshes) - the
+## combat view's hero side, real mesh instead of the flat crop image, same
+## idea as MonsterDisplay's own flat card (see that class's own doc). Each
+## hero has TWO real rigged meshes, one per act - mirroring slot_crop()'s
+## own acti=Weapon1/actii=Weapon2 split exactly (see the CORRECTED note
+## right below for how this was actually found - a first pass wrongly
+## concluded there was only one). The rig's "Weapon" bone carries no
+## baked-in weapon geometry (nothing is attached to it) - showing the
+## actually-equipped weapon in-hand is explicitly out of scope for this
+## pass. `import_hero_meshes.py` (tools/asset_import/) is the fetch script;
+## see that script's own doc for how the correct SkinnedMeshRenderer is
+## picked out of a hero's other rig meshes (Syrus in particular has 2
+## unrelated companion-creature meshes in the same prefab, on BOTH acts).
+## CORRECTED 2026-09-27, same day: an earlier version of this class assumed
+## heroes had only ONE mesh (shared across both weapon slots) - wrong, found
+## by the user directly inspecting the raw dump in Blender: both acti and
+## actii have their OWN real mesh + texture, exactly mirroring slot_crop()'s
+## own weapon_index convention (0 = acti = Weapon 1, 1 = actii = Weapon 2).
+## Filenames are "weapon_<index>.tres"/"weapon_<index>_diffuse.png", NOT
+## "flat_N" - unlike MonsterDisplay's flat_mesh_paths() (where N is a PIECE
+## of one card), N here is a whole separate weapon-slot mesh, never
+## multiple pieces of the same one (not observed for any hero on either
+## act) - the Array[String] return type is kept for interface symmetry with
+## MonsterDisplay/CombatMeshPreview.show_meshes() even though it only ever
+## holds zero or one path.
+static func flat_mesh_paths(index: int, weapon_index: int) -> Array[String]:
+	var path := "user://hero_assets/%s/weapon_%d.tres" % [HERO_NAMES[index].to_lower(), weapon_index]
+	return [path] if ResourceLoader.exists(path) else []
+
+
+static func flat_diffuse_texture(index: int, weapon_index: int) -> Texture2D:
+	var path := "user://hero_assets/%s/weapon_%d_diffuse.png" % [HERO_NAMES[index].to_lower(), weapon_index]
+	if not FileAccess.file_exists(path):
+		return null
+	var image := Image.load_from_file(path)  # same idiom as OfficialAssetOverrides._load_override_texture()
+	if image == null:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+static func has_flat_mesh(index: int, weapon_index: int) -> bool:
+	return not flat_mesh_paths(index, weapon_index).is_empty() and flat_diffuse_texture(index, weapon_index) != null
+
+
+## Pitch correction for the rigged hero mesh's true "up" axis - PER WEAPON
+## SLOT, not per hero, since acti and actii turned out to be authored under
+## COMPLETELY DIFFERENT conventions (confirmed directly, not assumed - once
+## acti meshes were added, the SAME -90 that fixed actii tipped acti's
+## meshes onto their back, and the user independently confirmed in Blender
+## that the two acts' raw meshes are oriented differently from each other).
+##
+## ACTII (weapon_index 1) - every hero's raw AABB has Y as the SMALLEST of
+## the three axes (e.g. Chance 0.0092 vs 0.0146/0.0135) while Z is
+## consistently the LARGEST - a standing figure's real height baked into
+## local Z instead of Y, the same signature several monster plastic-pool
+## rigs needed a -90-degree X correction for (see MonsterDisplay.
+## REAL_MONSTERS' own pitch_correction_degrees history) - CONFIRMED correct
+## once rendered (5 of 6 heroes reported fine; only Vaerix was double-
+## checked directly since his second submesh happens to be simple).
+##
+## ACTI (weapon_index 0) - the OPPOSITE situation: Y is a full, substantial
+## dimension comparable to X (e.g. Chance 3.26 vs 4.08/2.35), with Z
+## consistently the SMALLEST - the same "Y is already up, Z is a plausible
+## thin/depth axis" shape the flat MONSTER cards showed, which needed NO
+## correction. Acti therefore gets `Vector3.ZERO` - applying actii's -90
+## here is exactly what was rotating these onto their back ("viewing from
+## the top").
+const FLAT_MESH_ROTATION_BY_WEAPON: Array[Vector3] = [Vector3.ZERO, Vector3(-90, 0, 0)]
+
+
+static func flat_mesh_rotation(_index: int, weapon_index: int) -> Vector3:
+	return FLAT_MESH_ROTATION_BY_WEAPON[weapon_index]

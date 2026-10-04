@@ -645,6 +645,328 @@ only.
 
 **Full-screen combat view (2026-09-26)** - `CombatView` (`scripts/CombatView.gd`) mimics the real game's attack screen: hero croptop left / monster croptop right on a blue->red gradient, weapon-name plaque top-left, monster HP (heart) + defense (shield) and name top-right, centre info box + big successes picker (arrows, disc, "Successes" label) + Confirm/Cancel, "Damage Type" bottom-left (the weapon's damage types as labelled boxes), "Weakness"/"Resistance"/"Immunity" bottom-right. `PlayerDialog.ask_attack(cfg)` shows it (returns -1 on cancel; the hidden `_count_input` stays the source of truth so typed and voice answers - "I rolled four" - work exactly like `ask_count()`); `PlayerInteractionController.attack()` uses it when the successes weren't already spoken. **Monster properties stay hidden until discovered**: each weakness/resistance/immunity is a red "?" box (one per entry, so the count is visible) until an attack with a matching damage type has hit it - `MissionRuntime.resolve_attack()` records that in `RuntimeMonster.known_weaknesses/known_resistances/known_immunities` (persistent for that monster). The hero portrait bar (`PlayerInteractionController`, `visible = false` while `ask_attack()` is up) is hidden during the combat view. **Combat view polish (2026-09-27)** - the "Successes" caption under the picker disc was removed (implied by context). The top-left plaque now shows hero name / weapon name / base damage stacked (`configure()` reads `hero_name`/`weapon_name`/`base_damage`). The info box is now for a MONSTER ABILITY/effect only (`cfg["ability_text"]`, optional, hidden entirely when empty - no monster abilities are authorable yet) rather than a description of the attack; `PlayerInteractionController.attack()` no longer builds a "X attacks Y..." string for it. Confirm/Cancel (+ the voice hint label) moved out of the centre column to their own bottom-anchored group between the Damage Type and Weakness/Resistance/Immunity columns, so they sit at a fixed spot regardless of the (optional) info box's height. Compile-checked / built headlessly; not seen rendered.
 
+**Art blown up to fill the screen, drawn behind the UI (2026-09-28)** -
+direct request with a reference screenshot: "try to make the hero/monsters
+a lot bigger, just draw them behind the UI elements... to give an
+impression of the real game." `_hero_preview`/`_monster_preview`'s anchors
+changed from a small centred box (2-44% width, 12-62% height) to
+FULL-HEIGHT and most of the width each (`_anchor(_hero_preview, 0.0, 0.55,
+0.0, 1.0)` / `_anchor(_monster_preview, 0.45, 1.0, 0.0, 1.0)`) - a
+deliberate 10%-of-width overlap in the middle (0.45-0.55) rather than
+meeting edge-to-edge at 0.5, so a weapon/limb can dramatically cross into
+the centre the way the reference screenshot's hammer does. **"Behind the
+UI" needed no z-order change at all** - both previews were already
+`add_child()`ed before every other node in `_build()` (plaque/stats/
+centre/buttons/bottom columns), so Control's child-order-is-draw-order
+already put them at the back; that just was never visible while the art
+was small enough to never reach under anything. `CombatMeshPreview`'s
+`SubViewportContainer.stretch = true` auto-resizes its child `SubViewport`
+to the container's actual pixel size on layout, so no internal-resolution
+change was needed to avoid blur at the larger size - and `_frame_camera()`'s
+existing "size the ortho camera off the mesh's own AABB, independent of
+container size" logic means enlarging the anchor box directly enlarges
+the rendered character with zero camera-math changes. Verified headlessly
+in a throwaway scene (`_check_combat_view_layout.gd`, deleted after) at a
+1600x900 window: hero rect `(0,0)-(880,900)`, monster rect
+`(720,0)-(1600,900)` - full height, a 160px (10%) overlap, and both sit at
+child index 1/2 of 9 (right after the background, before everything
+else) - matches the intended geometry exactly, not just assumed from the
+anchor numbers. **Not yet seen rendered** - the geometry is confirmed, the
+actual visual impression (does it read like the reference) still needs a
+real look in the Player.
+
+**No more weapon plaque; damage-type modifiers; ambient smoke (2026-09-28)**
+- three direct follow-ups after the art was blown up (above), all landed
+together:
+1. **Top-left plaque removed** - "given that the weapon is not visible from
+   the character, we can remove it, the character name is also kinda
+   [redundant]... lets remove the blue box top left." `CombatView`'s
+   `_hero_name_label`/`_weapon_label`/`_damage_label` and the `BLUE` const
+   are gone entirely, along with the `PanelContainer` that held them.
+   `PlayerInteractionController.attack()`'s `cfg` dict no longer builds
+   `hero_name`/`weapon_name`/`base_damage` either (those existed ONLY to
+   feed this plaque) - `hero_name` the local VARIABLE stays, still used
+   for the "Which weapon?" prompt and the post-attack log text, just no
+   longer added to `cfg`.
+2. **Damage Type icons now carry a +1/-1/+? modifier badge** - "maybe also
+   show +1/-1 based on know weakness/resistance so players get an idea of
+   what bonuses they can expect. If unknown do '+ ?'." New
+   `CombatView._damage_type_box(kind, known_weaknesses, known_resistances,
+   known_immunities)` wraps the existing `_icon_box()` plus a small `Label`
+   underneath: known weakness -> `"+1"` (green), known resistance ->
+   `"-1"` (red), a known IMMUNITY to that kind (not asked for directly, but
+   added for consistency - `MissionRuntime.resolve_attack()`'s own
+   precedence already treats immune as an override, and leaving it
+   unindicated would silently contradict a property already shown as
+   discovered in the Immunity section) -> `"×"` (grey), both weakness AND
+   resistance known for the same kind (data allows a kind to appear in
+   both lists, though unlikely in practice) -> `"+0"`, anything not yet
+   discovered -> `"+?"` (grey). Deliberately reads ONLY the `known_*` sets
+   cfg already carries, never the full (still-secret) `weaknesses`/
+   `resistances`/`immunities` arrays also present - showing the real
+   answer here would let a table read a monster's hidden properties
+   straight off the weapon picker without ever landing a matching hit
+   first, defeating the whole "hidden until discovered" design the
+   Weakness/Resistance/Immunity sections already establish.
+3. **Ambient smoke** - "to make it spectacular can we add some smoke
+   animation, just to spice up the looks a bit." `CombatView._build_smoke()`
+   (new) adds one `CPUParticles2D` (not `GPUParticles2D` - needs no
+   separate `ParticleProcessMaterial` resource, works the same on every
+   render backend) emitting soft grey wisps from a wide rectangle at the
+   bottom of the screen, drifting upward and fading via a `color_ramp`
+   gradient (fade in by 20% of lifetime, hold, fade out by 100%).
+   `preprocess = lifetime` so the screen doesn't open empty and fill up
+   over the first several seconds. The "smoke" sprite is a generated
+   radial-gradient texture (`GradientTexture2D`, `FILL_RADIAL`) - no
+   external asset, same generated-placeholder approach as every other
+   piece of this project's own art. Added right after the hero/monster art
+   (drifts OVER the characters, not hidden behind them - the art now fills
+   nearly the whole screen, so anything placed further back would barely
+   show) and before every other UI element, same z-order convention the
+   art's own comment already documents. A plain `Node2D`-based system
+   (CPUParticles2D isn't a Control) added directly under this `Control` -
+   Node2D ignores Godot's Control mouse/layout system entirely, so it
+   can't block clicks and needed no `mouse_filter`. Position/size are
+   computed once from `get_viewport_rect().size` at build time, not kept
+   in sync with a later resize - same simplification every other piece of
+   this experimental combat view already makes (it's shown full-screen and
+   not expected to resize live).
+
+Verified headlessly where possible: a scene test confirmed the smoke node
+exists with the expected amount/lifetime/texture/color_ramp and the
+correct emission rect/position for a 1600x900 window. The damage-type
+badge logic could NOT be exercised the same way - `_icon_box()` calls
+`Vulnerability.icon()`, which needs the `OfficialAssetOverrides` autoload,
+unavailable in `-s` script mode (a known, already-documented limitation of
+this project's own headless test harness) - so that part is reasoned
+through by code review plus the full-project `--import` compile check
+(which DOES register autoloads) passing clean, not exercised end-to-end.
+**Smoke tuned down after two real looks in the Player, same day (2026-09-28)**
+- the badges and plaque removal weren't reported as wrong; the smoke went
+through two follow-up rounds:
+1. "the smoke bubbles go up to high and the are to big; also they have a
+   moment that they are very shiny" - `lifetime`/`preprocess` cut
+   7.0 -> 4.5, `gravity` -5 (was -10, less upward acceleration),
+   `initial_velocity` 6-16 (was 14-34) so wisps stay low near where they
+   spawn instead of climbing the whole screen; `scale_amount` 0.6-1.6 (was
+   1.6-3.8, much smaller); the colour ramp changed from a two-plateau shape
+   to one smooth rise-and-fall peaking at alpha 0.14 (was 0.35), and the
+   generated puff texture's own center alpha dropped from a fully-opaque
+   1.0 to 0.6 - both feed the "shiny" flash a particle showed at its peak,
+   since the ramp and texture alpha multiply together.
+2. "i think making more smaller ones with slightly varying size will be
+   perfect, the shiny part happens in the middle" - confirms the flash IS
+   specifically the ramp's peak (the middle of a particle's own life, not
+   the screen), not a reason to abandon the approach. `amount` raised
+   30 -> 48, `scale_amount` narrowed further to 0.35-0.85 (still
+   per-particle randomized, so still "slightly varying," just around a
+   smaller baseline), the ramp's peak alpha dropped again to 0.09, and the
+   texture's own core alpha dropped again to 0.45 - smaller, more numerous,
+   and dimmer at peak together, so no individual wisp reads as a
+   noticeable bright puff.
+
+**Smoke replaced entirely with dust + sparks at the feet, same day, third
+round (2026-09-28)** - "i want to represent dust and smoke at the feets, to
+give it a bit of animo, but now it looks kinda chemical"; "fire sparks are
+also nice." The two tuning rounds above shrank and dimmed the effect, but
+the STRUCTURE was the real problem: one wide `EMISSION_SHAPE_RECTANGLE`
+spanning the whole screen width, rising in unison from a single flat band,
+reads like a fog machine or lab bubbles - not a kick-up at anyone's feet.
+`_build_smoke()`/`_smoke_texture()` were removed outright and replaced with
+four localized `CPUParticles2D` bursts, two per fighter (`_build_foot_dust()`
++ `_build_foot_sparks()`, both parametrized by an `x_fraction`, called once
+each for `HERO_FOOT_X`/`MONSTER_FOOT_X` - new consts, the horizontal centre
+of each side's own preview box; `FOOT_Y_FRACTION` = 0.97, near the very
+bottom of the screen). Both texture generators were unified into one
+`_puff_texture(core_color)` (parametrized by colour instead of a fixed
+white/grey), replacing `_smoke_texture()`.
+- **Dust**: `EMISSION_SHAPE_RECTANGLE` sized to a small stance-width area
+  (not the screen), a WIDE spread (70°, mostly sideways with a little up -
+  dust radiates outward from an impact, it doesn't rise like buoyant
+  smoke), positive (downward) `gravity` so it settles back down instead of
+  climbing, and `damping_min`/`damping_max` so it kicks out fast then
+  visibly slows - a "kick, spread, settle" motion instead of an even
+  drift. Warm dusty tan tint (`Color(0.72, 0.62, 0.46, ...)`), not neutral
+  grey, so it reads as ground dust rather than machine fog.
+- **Sparks (short-lived)** - same shape/positioning idea, much smaller,
+  much shorter-lived, faster, pulled down hard (embers arc back down
+  quickly), bright yellow-orange colour ramp, and **additive blending**
+  via a `CanvasItemMaterial` (`blend_mode = BLEND_MODE_ADD`) assigned to
+  the node's own `material` property - CPUParticles2D has no
+  `ParticleProcessMaterial` the way GPUParticles2D does, but it's still a
+  `CanvasItem` underneath, so a plain canvas material works - this is what
+  made sparks actually glow against the dark background instead of
+  reading as flat orange dots; the dust deliberately stayed normal alpha
+  blending throughout (a glowing dust cloud would look wrong).
+
+Verified headlessly at this point (not just reasoned about, given how much
+this restructured): a scene test at a 1600x900 window confirmed exactly 4
+`CPUParticles2D` nodes existed, at the expected positions `(440, 873)`/
+`(1160, 873)` (0.275/0.725 x 1600, 0.97 x 900), and the sparks' own
+`material.blend_mode` read `1` (`CanvasItemMaterial.BLEND_MODE_ADD`) while
+the dust nodes' `material` was unset (`none`), confirming the
+additive-vs-normal split actually took.
+
+**Sparks removed again, dust scaled back UP, fourth round, same day** -
+direct feedback after an actual look: "mm its way to small now, actually
+the first version with the big smoke bubbles looked the best; remove the
+sparks; try to use bigger clouds but with the new sprites." Read as: keep
+the foot-localized, settle-down STRUCTURE from the third round (that fixed
+a real, distinct complaint - "looks kinda chemical" - and wasn't itself
+called out as wrong here), but the SIZE went too far in the shrinking
+direction across the two tuning rounds before the sparks even existed, and
+should go back toward the very first pass's own big scale. `_build_foot_sparks()`
+was deleted outright (not just disabled - confirmed via
+`view.has_method("_build_foot_sparks")` returning `false` in a headless
+test, and its two call sites in `_build()` removed). `_build_foot_dust()`'s
+`scale_amount` went from 0.35-0.9 back up to 1.6-3.2 (close to the very
+first pass's own 1.6-3.8), `amount` dropped 16 -> 20... actually reads as
+FEWER-but-bigger relative to how crowded the shrunk version was at 16
+small particles, `lifetime`/`preprocess` extended 1.6 -> 2.2s so a bigger
+cloud has room to visibly billow before fading, and the emission rectangle
+widened slightly (0.05 of screen width, was 0.03) so several big clouds
+don't all spawn from the exact same point. "The new sprites" = the
+`_puff_texture(core_color)` generator and its warm dusty tint from the
+third round, kept as-is - nothing was asked to revert to the original
+neutral grey/white look, only the size and the sparks.
+
+Verified headlessly again after this pass: exactly 2 `CPUParticles2D`
+nodes now (sparks confirmed gone via the `has_method()` check above),
+`amount=20`, `lifetime=2.2`, `scale_amount` `1.6`-`3.2` at both foot
+positions, `material` unset on both (dust never carried the additive
+material to begin with, so removing sparks left nothing behind to clean
+up there). **Still not seen rendered** - the foot-position guesses
+(`HERO_FOOT_X`/`MONSTER_FOOT_X`) are exactly that, guesses, since there's
+no way to know where a given mesh's feet land on screen from this
+environment; the whole look (position, warmth, cloud size/density,
+motion) needs a real look before it's trusted. A real downloadable CC0
+smoke sprite pack (Kenney's "Smoke Particles," kenney.nl, 70 PNGs) was
+found and offered as an alternative to the generated gradient texture but
+never actually downloaded/integrated - the generated `_puff_texture()`
+approach is still what's shipped; revisit if the generated look is ever
+judged not good enough on its own.
+
+**All particle effects removed, same day, fifth and final round** - direct
+feedback once actually seen at the bigger scale: "does not look good
+remove the particles all together, we come back to that." Four rounds of
+tuning (wide ambient band -> localized foot burst -> sparks added -> sparks
+removed + scale enlarged) never landed on something that read well, so
+rather than tune a fifth time, the whole feature came out: `_build_foot_dust()`
+and `_puff_texture()` are both deleted (confirmed via `Grep` for
+`CPUParticles2D`/`_puff_texture`/`_build_foot`/`FOOT_X`/`FOOT_Y` across the
+file turning up nothing left except one doc-comment reference), the two
+`_build_foot_dust()` call sites and the now-unused `HERO_FOOT_X`/
+`MONSTER_FOOT_X`/`FOOT_Y_FRACTION` consts are gone too, and `_build()` left
+with a short comment pointing at this section of claude.md as the starting
+point for a future attempt, rather than any code. **Explicitly "we come
+back to that"** - not abandoned, just parked; the candidate directions
+already explored (and their outcomes) are: a generated `_puff_texture()`
+gradient sprite (never looked right at any tried size/count/position), the
+foot-localized positioning idea (fixed the "chemical" complaint but the
+follow-on size tuning never satisfied), additive-blended sparks (added
+then explicitly asked to be removed), and Kenney's CC0 "Smoke Particles"
+pack (kenney.nl, 70 PNGs, found and offered but never actually downloaded
+or tried) - a real sprite sheet instead of a generated gradient is probably
+worth trying first next time, since every round of tuning the generated
+texture's own shape/softness never got specific negative feedback the way
+size/position/structure did, but the generated LOOK itself may simply be
+the ceiling of what a code-only radial gradient can achieve.
+
+**Relative scale between heroes and monsters, same day (2026-09-28)** -
+direct request: "do we have a relative scale of the monsters and heroes?"
+- answer was no: `MonsterDisplay`'s own M-view grid already scales
+monsters relative to EACH OTHER (`target_figure_diagonal` x `size_units`,
+Centurion at 2x everyone else), but that's monster-only, and
+`CombatMeshPreview`'s two sides (hero/monster) each independently
+auto-fit their own camera to whatever mesh was shown - a huge Centurion
+and a tiny Wolf, or a hero next to either, all rendered at the same
+on-screen size regardless of true relative scale. Fixed with a new
+system, added directly: "yes, add relative scale using size_units for
+monsters, for heroes. take the mercanary as a base and use this sizing:
+bryn: 0.8, galadan: 0.9, vairix: 1, kelhi: 0.5, syrus: 0.8, chance: 0.6."
+- `HeroCatalog.HERO_SIZE_UNITS`/`size_units(index)` (new) - the given
+  values, index-aligned with `HERO_NAMES`.
+- `MonsterDisplay.size_units(folder)` (new) - a thin wrapper over
+  `find_monster(folder).get("size_units", 1.0)`, reusing the SAME
+  `REAL_MONSTERS` data the M-view grid already has (Centurion still 2.0,
+  everyone else 1.0) rather than a second, parallel dataset.
+- `CombatMeshPreview` gained the actual mechanism: every mesh shown via
+  `show_meshes()` is scaled (`_root.scale`) by
+  `(reference_diagonal * size_units) / raw_diagonal` - the EXACT same
+  diagonal-based formula `MonsterDisplay._build_real_figure()` already
+  uses for the M-view, just against a DIFFERENT reference point, since
+  the M-view's own `target_figure_diagonal` is an arbitrary placeholder-
+  cube size with no meaning for these "flat card" meshes.
+  `REFERENCE_MONSTER_FOLDER = "mercenary"` ("take the mercenary as a
+  base") - `_reference_diagonal()` lazily loads/caches Mercenary's own
+  flat-card mesh once and returns its raw AABB diagonal, the "size_units
+  1.0" reference everything else scales against. `show_quad()`'s
+  fallback path (a flat crop image, no size_units concept) is untouched
+  and keeps auto-fitting via the original `_frame_camera()` - it also now
+  explicitly resets `_root.scale` (a real latent bug otherwise: a stale
+  scale factor from a PREVIOUS `show_meshes()` call on the same reused
+  preview would silently carry over, the exact same class of bug this
+  project already fixed once for rotation).
+- **Camera framing had to become FIXED, not auto-fit, for relative scale
+  to actually be visible** - if the camera still auto-fit to whatever's
+  shown, a scaled-down mesh would just get zoomed back in to fill the
+  frame, cancelling the whole point. `_frame_camera_relative()` (new,
+  `show_meshes()`'s relative-scale path only) uses a camera size that
+  does NOT depend on which specific mesh is being shown, so two calls
+  sharing the same camera size render at genuinely different apparent
+  sizes when their own `size_units` differ.
+- **What that fixed camera size should be was corrected the same day,
+  twice more**: first tried sizing it off the LARGEST size_units in the
+  whole game (Centurion, 2.0) - correct for relative scale, but meant
+  almost every real encounter (nothing else reaches 2.0) rendered small
+  inside headroom reserved for a creature that isn't even there. "ok but
+  now let try to show characters as big as possible, not relative to the
+  biggest character in the game but to each other" - `show_meshes()`
+  gained a SECOND, separate parameter, `camera_size_units` (the fixed
+  frame size), distinct from `size_units` (this mesh's own size) -
+  `CombatView.configure()` (the only place that sees both sides of an
+  encounter at once) now computes `maxf(hero_size_units,
+  monster_size_units)` ONCE and passes that SAME value to both
+  `_configure_preview()` calls, so e.g. a Wolf (1.0) vs. Kehli (0.5)
+  encounter fills the frame based on the Wolf's own 1.0, while a
+  Centurion encounter still gets its actual 2.0 headroom - both sides
+  MUST receive the identical value or the whole mechanism silently breaks
+  again (documented explicitly in both scripts' own comments, since nothing
+  enforces this at the type level). Then, same day, a second correction:
+  "make them bigger again, they can really fill the entire space off the
+  screen, if they fall off a bit that is ok" - `RELATIVE_CAMERA_MARGIN`
+  dropped from `1.15` (15% headroom around the figure) to `0.85`
+  (deliberately BELOW 1.0 - the frame is now smaller than the figure's
+  own diagonal, so it fills and slightly overflows the screen on purpose,
+  clipping accepted).
+- `PlayerInteractionController.attack()`'s `cfg` builder gained
+  `"hero_size_units": HeroCatalog.size_units(hero_slot)` /
+  `"monster_size_units": MonsterDisplay.size_units(monster.folder)`.
+
+Verified partially headlessly, then stopped short at the user's own
+request ("stop testing ffs") - a scene-based test (autoloads are needed
+for `HeroCatalog`/`MonsterDisplay`, unavailable in plain `-s` script mode,
+same limitation this doc already notes elsewhere - so this went through a
+real throwaway `.tscn`, not just a `.gd` run via `-s`) confirmed, against
+the REAL mercenary/wolf mesh data in this dev environment: every hero's
+`size_units()` matches the given values exactly; Mercenary at
+`size_units=1.0` scales to exactly `1.0`; Wolf (also `size_units=1.0`)
+renders at the same diagonal as Mercenary (`0.036377...`, matching to 8
+significant figures) and, critically, at the IDENTICAL `camera.size` as
+Mercenary despite being a completely different mesh - confirming the
+fixed-frame mechanism actually holds camera size constant across
+different meshes sharing the same `camera_size_units`. The follow-on
+checks (a hero's own scaling, a Centurion encounter getting a bigger
+frame than a Wolf/Kehli one, and `CombatView.configure()` itself applying
+the identical `camera.size` to both its hero and monster preview) were
+cut off by a test-script-only bug (an unrelated `Array`/`Array[String]`
+`:=` inference quirk, not a production-code issue) and never re-verified
+after the fix, since testing was explicitly stopped at that point. The
+`RELATIVE_CAMERA_MARGIN = 0.85` change landed after all scene-based
+testing had already stopped - compile-checked only (`--headless --path .
+--import`, clean), not exercised in a scene at all. **Nothing in this
+whole feature has been seen rendered in the actual Player.**
+
 **Damage-type icons (2026-09-26)**: the text boxes are replaced by icons (`Vulnerability.icon(kind)`, kind < 0 = the red "?" `Icons_Unknown`, used for undiscovered weaknesses/resistances/immunities). Dummy placeholders ship in `models/icons/damage_<kind>.png` (labelled diamonds, same sizes as the real sprites) mapped in `OfficialAssetMap` to the game's `Icons_Pierce/Slash/Crush/Lumos/Aquos/Ignos/Mortos/Terros/Anemos/Unknown` (found under `assets/d3/glossaryterms/damage/mainterms/damage types/`, Sprites; fetched by the normal import script - 58/58 now). The game ALSO has `Icons_Fortunos/Toxos/Umbros/Vigos`, which our `Vulnerability.Kind` doesn't have. Rest of the view is still Placeholder look (flat colours, no game art, glyph stand-ins for icons; the croptops are the wide crop images, not the game's full-body art). Verified headlessly (builds, arrows, voice answer confirms, property sections/"?" counts); layout not seen rendered.
 
 **Save/Load games (2026-09-27)** - "dumping the game state is enough": no
@@ -792,6 +1114,1137 @@ roots), and journal entries round-trip verbatim. **Not run in the actual
 Player** - the Gear menu's "Save" click, the Main Menu's "Load Game" flow,
 and the known mid-Player-phase re-fire limitation above are all unverified
 in a real session.
+
+**Save/Load bug fixed (2026-10-04): a loaded game did not restore the
+revealed level/stage** - "our save functionality does not restore the level
+visibility." Root cause was NOT the visibility flag (`MissionGroup.visible`
+is `@export` and round-trips fine): `MissionPlayer.save_game()` put the
+LIVE `mission` into `SaveGame.mission`, but that mission was loaded from a
+mission file, so it still carries that file's `resource_path` - and
+`ResourceSaver` writes any resource that has a path as an external
+REFERENCE to that file, not an embedded copy. The save file contained no
+mission data at all, just a pointer back to the pristine mission, so
+loading it re-read the unmodified original: every revealed group went back
+to hidden, and every other piece of "free" in-place progress this doc
+describes above (`already_fired`, `already_used`, `already_achieved`,
+removed/moved props and tiles) was silently lost too - only the parts
+`SaveGame` stores itself (round, party, variables, monsters, objective
+frontier, journal) survived, which is why the earlier "verified
+end-to-end" round trip passed: it used a mission built in memory (no
+path), which embeds. Fixed by saving `mission.duplicate(true)` (a
+path-less deep copy - the live mission is untouched and keeps playing
+normally). Verified with a throwaway scene reproducing the real flow (mission
+written to a file, loaded back via `MissionIO.load_mission()`, mutated in
+place, saved, reloaded): before the fix the save referenced the mission
+file and `visible` came back `false`; after it the save embeds, and a
+revealed group, a fired trigger and a removed tile all restore. **Saves made
+before this fix are unaffected by it** - they contain only the reference,
+so they will still load the pristine mission (only their round/party/
+variables/etc. restore); there is nothing in them to recover.
+
+**EXPERIMENTAL: real hero meshes too, same day (2026-09-27)** - direct
+follow-up question ("the heroes also have flat meshes, one for each weapon
+it seems") led to checking, which turned up a REAL asset but a DIFFERENT
+shape than assumed: heroes DO have a real rigged "flat" mesh (structurally
+like Centurion's card - a bone armature, not a plain quad), but there is
+only ONE per hero, not one per weapon - it only exists under `actii`;
+`acti` has no equivalent asset at all (confirmed directly, not assumed -
+`acti` only has the regular non-flat model + its own diffuse). So unlike
+the crop image (genuinely one per act/weapon slot), both weapon slots in
+the combat view reuse this SAME single mesh/texture - there's no per-weapon
+mesh to bind. The rig also carries a "Weapon" bone/socket with nothing
+attached to it - showing the actually-equipped weapon in-hand would need a
+separate weapon-prop mesh rigged onto that bone, explicitly out of scope
+for this pass (agreed with the user before building anything, rather than
+silently reusing the mesh under the original "one per weapon" premise once
+it turned out not to hold).
+
+`CombatMeshPreview` (renamed from `MonsterCombatPreview` - it was already
+fully generic, just misleadingly named after only one of its two now-real
+uses) is reused as-is for both sides of `CombatView` - `_hero_preview`
+alongside the existing `_monster_preview`, both driven through one shared
+`_configure_preview()` helper. `HeroCatalog` gained
+`flat_mesh_paths()`/`flat_diffuse_texture()`/`has_flat_mesh()`, mirroring
+`MonsterDisplay`'s equivalents exactly (no per-monster rotation-correction
+hook yet for heroes - not needed until one is actually seen mis-oriented).
+
+**`import_hero_meshes.py`** (new, `convert_staged_hero_meshes.gd` its own
+converter twin - own copies, not shared code with the monster versions,
+same "each tool owns its own near-identical logic" convention already
+established) - picking the RIGHT `SkinnedMeshRenderer` needed real care:
+Syrus's own `actii` prefab has THREE of them - "Syrus" (his own body) plus
+"Bird" and "Bird.Flame" (an unrelated companion creature sharing the same
+prefab) - resolved by matching the MESH's own name against the hero's name
+case-insensitively (a vertex-count fallback exists for any future hero this
+doesn't hold for, untested since all 6 resolved by name). Texture
+resolution checks BOTH `_MainTex` and `_Diffuse` keys (some materials -
+any "Cloth" piece, and Syrus's own body - use `_Diffuse` instead of the
+more common `_MainTex`, the same non-standard key Centurion's cloth
+material also turned out to use). No multi-surface material splitting was
+needed here (unlike Centurion) - every material on a given hero resolves to
+the SAME single diffuse texture, confirmed for all 6, so the plain
+`Mesh.export()` (no `material_names`) is enough.
+
+Fetched for real against the actual game install: 6/6 heroes converted,
+zero needing the vertex-count fallback. Verified headlessly: every hero's
+`has_flat_mesh()` is true, `CombatMeshPreview.show_meshes()` renders the
+mesh, and `CombatView`'s hero-side preview picks it up through
+`PlayerInteractionController.attack()`'s `cfg` builder (which now checks
+`HeroCatalog.has_flat_mesh()` the same way it already checks `MonsterDisplay.
+has_flat_card()`). **Orientation fix, same day, follow-up report ("I see their bottom or
+top")**: DATA-DRIVEN diagnosis rather than a blind guess - every hero's raw
+AABB has Y as its SMALLEST extent while Z is consistently the LARGEST
+(Chance: Y 0.0092 vs Z 0.0135/X 0.0146; Galaden: Y 0.0154 vs Z 0.0284/X
+0.0221) - the exact same signature several monster plastic-pool rigs
+already needed a -90-degree X pitch correction for (their real height baked
+into local Z instead of Y - see `REAL_MONSTERS`' own `pitch_correction_degrees`
+history). The flat MONSTER cards (Wolf, Harbinger, Centurion) do NOT show
+this pattern - their smallest axis is a plausible card-thickness Z, no
+correction needed - so this looks like a heroes-only issue, consistent with
+heroes being genuinely rigged full-body models (like Centurion's card) while
+most flat cards are simpler. `HeroCatalog.flat_mesh_rotation()`
+(`FLAT_MESH_ROTATION_DEGREES = Vector3(-90, 0, 0)`, applied uniformly to all
+6 - unlike monsters, every hero showed the identical pattern) is wired
+through `PlayerInteractionController.attack()`'s `cfg["hero_flat_rotation"]`
+into `CombatView._configure_preview()`'s hero-side call (previously
+hardcoded to no correction) - `CombatMeshPreview.show_meshes()` already
+supported this parameter, it just wasn't being passed for the hero side yet.
+Verified headlessly that the rotation is actually applied and the camera
+correctly reframes the ROTATED bounds (not the raw ones). **Still not
+confirmed correct once actually rendered** - `-90` is the informed first
+guess this project's own established pattern would predict, not a visual
+confirmation; may need `+90` or further adjustment once seen, the same way
+Wolf's own plastic-pool correction took three rounds before landing.
+
+**NOT verified visually** - same caveat as the monster
+side, nothing here has been looked at rendered yet.
+
+**EXPERIMENTAL: real monster cards in the combat view, branch
+`experiment/monster-flat-meshes` (2026-09-27)** - replaces the tab-image
+crop on the monster side of `CombatView` with the game's own flat "card"
+mesh + texture, rendered live in 3D, instead of a flat 2D image. Built in
+three steps, per direct request, so the rendering mechanism was proven with
+a known-good image before trusting a freshly-extracted mesh:
+
+1. **Mockup**: `MonsterCombatPreview` (`scripts/MonsterCombatPreview.gd`, a
+   `SubViewportContainer`) - a `SubViewport` (transparent background) with
+   an orthographic `Camera3D` and no light at all (every material is
+   UNSHADED - these are flat painted illustrations, not lit 3D props, so a
+   light would only ever be a source of inconsistency between the mockup
+   and the real card). `show_quad(texture)` builds a single unit quad sized
+   to the texture's own aspect ratio - this is both the permanent Centurion-
+   less-common fallback path AND what this step was proven with, using the
+   existing crop texture with zero new asset dependencies.
+2. **Fetch script**: `import_monster_meshes.py` extended to also stage each
+   monster's flat card - see that script's own doc for the full story,
+   condensed here: `find_flat_mesh_and_texture()` resolves the card by
+   CONTAINER PATH plus a junk-name exclude list (`smoke`/`particle`/`glow`/
+   `bg`/`background` for meshes, plus `diamond`/`rune`/`lava`/`circle` for
+   textures) rather than a material-graph walk (tried first, unreliable for
+   these nested prefabs - most sub-objects don't carry a usable container
+   path at all). Confirmed against the real dump that this leaves exactly
+   one correct mesh+texture pair per monster, with ONE deliberate
+   exception: Fae's card is genuinely 3 separate mesh pieces (kept
+   entirely, not merged), so `flat_mesh_paths()` returns however many
+   pieces a monster actually has - usually 1, sometimes more.
+   **Centurion is its own dedicated case, `stage_centurion_flat()`** - its
+   card has no plain mesh at all through the generic path (a rigged
+   `SkinnedMeshRenderer`, unlike every other monster's static quad), but
+   turned out to be extractable properly rather than left on the crop
+   mockup: ONE mesh with THREE submeshes/materials - confirmed directly
+   from the renderer's own data, not guessed - "Regular_ID1_Body" (body,
+   texture `Centurion_ID1_DiffuseMap`), "Regular_ID2_Wings" (wings, texture
+   `Centurion_ID2_DiffuseMap`), "Regular_ID3_Cloth" (reuses the body
+   texture) - and there is NO separate "rock" mesh/texture anywhere in this
+   prefab at all (the miniature's plinth isn't part of this asset).
+   Exported via UnityPy's `export_mesh_obj(mesh, material_names=[...])`
+   (bypassing the plain `.export()` every other monster uses, which has no
+   such parameter) - tags each submesh with a `g`/`usemtl` group name in
+   the .obj text, which Godot's own native OBJ importer was CONFIRMED (a
+   synthetic multi-group test through this exact staging/import/convert
+   pipeline, before trusting it on the real asset) to split into a
+   MULTI-SURFACE `ArrayMesh`, one surface per group, correctly by NAME even
+   with same-named groups repeated (`["body", "wings", "body"]` - Godot
+   keeps them as 3 distinct surfaces, doesn't merge same-named ones) and
+   even with no real `.mtl` file present (the exporter only ever writes the
+   `mtllib` reference line, never the file itself - Godot's importer prints
+   a harmless "Couldn't open MTL file" warning and imports the geometry
+   fine regardless, confirmed on the real Centurion mesh too, not just the
+   synthetic test). `convert_staged_meshes.gd` was generalized from a
+   hardcoded `mesh.obj` to converting EVERY `*.obj` in a staged folder
+   (needed once flat cards started staging as `flat_0.obj`/`flat_1.obj`/...
+   alongside the existing `mesh.obj`) - each becomes its own `<basename>.tres`.
+3. **Render the mesh**: `MonsterCombatPreview.show_meshes(mesh_paths,
+   default_texture, rotation_degrees_correction, surface_texture_overrides)`
+   - one `MeshInstance3D` per piece, each surface gets
+   `set_surface_override_material()` individually (not one uniform
+   `material_override` - needed for Centurion's per-surface textures, see
+   below), looked up by `ArrayMesh.surface_get_name()` against
+   `surface_texture_overrides` (falling back to `default_texture` for any
+   surface not listed - covers every monster except Centurion, where
+   `MonsterDisplay.flat_surface_texture_overrides("centurion")` maps
+   `"wings"` to its own separate texture file, `flat_diffuse_wings.png`).
+   Camera framing is PER-MONSTER (`_frame_camera()` sizes the orthographic
+   camera off that mesh's own combined AABB every time), so the wildly
+   inconsistent raw mesh scale actually seen across monsters (confirmed:
+   camera-fit sizes ranged from ~0.025 to ~13.7 across the 17, a ~500x
+   spread) needs no manual normalization here the way the M-view grid's
+   shared-world-space miniatures did - each card fills its own frame
+   regardless of its absolute units, since only one monster is ever shown
+   at a time.
+
+`MonsterDisplay` gained `flat_mesh_paths()`, `flat_diffuse_texture()`,
+`flat_surface_texture_overrides()`, `has_flat_card()` (the ONE place "does
+this monster have a real card" is decided - callers never special-case a
+monster by name), and `flat_card_rotation()` (`FLAT_CARD_ROTATION_DEGREES`,
+currently empty for every monster - a placeholder correction hook, same
+"expect to fix these one at a time once actually seen" situation
+`REAL_MONSTERS`' own `pitch_correction_degrees` went through, not yet
+exercised since NONE of these cards have been visually confirmed correct
+yet). `PlayerInteractionController.attack()`'s `cfg` builder now checks
+`has_flat_card()` and sends either the flat-card keys or the old
+`monster_image` crop key - `CombatView.configure()` routes to
+`show_meshes()`/`show_quad()` accordingly, both going through the exact
+same `MonsterCombatPreview` node either way.
+
+Verified end-to-end headlessly across the full 17-monster roster: every
+monster's `has_flat_card()` is true, every one's mesh(es) load with the
+expected piece count (Fae: 3, Bandit: 2 - kept its 'Object001' piece
+alongside the main body mesh since it doesn't match any junk-word,
+uncertain what it actually is - everyone else: 1), Centurion's card comes
+back with exactly 3 surfaces named body/wings/body, its wings surface
+resolves to a texture file CONFIRMED byte-different from the body one (not
+accidentally the same file twice), and the mockup quad path still renders
+correctly. **Real correction, same day: heroes DO have two meshes after all**
+("i the dumped object it looks fine, i can open blender and see two attack
+meshes for vairix") - the earlier "only one flat mesh per hero" claim in
+`HeroCatalog`/`import_hero_meshes.py` was WRONG, found by the user directly
+inspecting the raw dump in Blender, not by anything caught in this
+environment. The mistake: the first search only matched container paths
+containing the literal word "flat" - acti's own mesh isn't named that
+(e.g. it's just `"<hero>.fbx"`, not `"<hero> flat.fbx"`), so it was missed
+entirely. Corrected: BOTH `acti` and `actii` have a real mesh + dedicated
+texture per hero, exactly mirroring `slot_crop()`'s own weapon split
+(index 0 = acti = Weapon 1, index 1 = actii = Weapon 2) - there was no
+"heroes only get one shared mesh" limitation after all. One naming
+exception found the same way: Chance's ACTI body mesh is internally named
+"Meiyer", not "Chance" - recorded by hand in the new
+`HERO_BODY_MESH_NAME_OVERRIDES` dict (`import_hero_meshes.py`), same
+"can't be derived, only hand-authored" precedent as
+`import_official_assets.py`'s own `HERO_PORTRAIT_CONTAINERS`.
+
+Renamed the on-disk convention to avoid ambiguity with `MonsterDisplay`'s
+own `flat_N.tres` ("N = piece of one card") - heroes now use
+`weapon_<0|1>.tres`/`weapon_<0|1>_diffuse.png` under
+`user://hero_assets/<hero>/`, since N here means a whole separate WEAPON-
+slot mesh, never multiple pieces of one. `HeroCatalog.flat_mesh_paths()`/
+`flat_diffuse_texture()`/`has_flat_mesh()` all gained a `weapon_index`
+parameter to match. Re-fetched for real against the actual game install:
+6/6 heroes, both weapon slots each, Chance's "Meiyer" override resolved
+correctly. Verified headlessly that Chance's two weapon meshes are
+genuinely different geometry (different AABBs), not the same mesh reused.
+
+**Real per-hero weapon names applied the same day** (given directly by the
+user: Chance = Gloves/Throwing Knives, Galaden = Swords/Bow, Brynn =
+Warhammer/Sword, Vaerix = War Bell/Staff, Kehli = Hammer/Crossbow, Syrus =
+Staff/Wand) - `WeaponCatalog.for_hero(slot)` (previously just returning the
+whole generic catalog, explicitly built as "the seam for a predefined,
+per-hero set later") now returns each hero's own real two-weapon pair via
+`HERO_WEAPONS` (index-aligned with `HeroCatalog.HERO_NAMES`, position 0/1
+matching Weapon 1/Weapon 2 - and, not coincidentally, the same acti/actii
+split the meshes and crops already use). Damage/type/range are still
+INVENTED placeholders guessed from each weapon's own name
+(`_placeholder_damage()`/`_placeholder_types()`/`_placeholder_range()`) -
+only the NAMES are real so far. The Embark loadout screen (`EmbarkDialog.
+ask_loadouts()`) is unchanged in mechanism - it still shows two dropdowns
+per hero populated from `for_hero(slot)` - but now defaults to (and only
+ever offers) that hero's own real pair instead of the generic 8-item
+catalog. **Weapon TYPES, not fixed named weapons, same day** ("categorize weapons
+under the 'types' I gave... all swords should fall under the sword
+dropdown... feel free to make some up for testing") - `WeaponCatalog`
+reworked again: each hero's two slots are now fixed to a TYPE
+(`HERO_WEAPON_TYPES`, the same names given directly - e.g. Brynn =
+Warhammer + Sword), and each type has a pool of multiple INVENTED named
+items (`WEAPONS_BY_TYPE`, e.g. Sword: Iron Longsword/Silverblade/Kingsbane) -
+a type is a single GLOBAL pool shared by every hero who has a slot of it
+(Galaden and Brynn both have a "Sword" slot and pick from the exact same
+three swords, not separate lists). `type_of(slot, weapon_index)` returns
+the fixed type for a slot; `weapons_of_type(type_name)` returns that type's
+item pool. `EmbarkDialog.ask_loadouts()` reworked to match: each weapon
+slot is now a small type-labelled column (a caption showing the fixed type
+name, e.g. "Warhammer") with a dropdown offering only that type's own
+items - the position (Weapon 1/2) and its type stay fixed per hero;
+picking WHICH item fills it is the only free choice. `for_hero()` (the old
+single-flat-pair accessor) is removed - callers now go through
+`type_of()`/`weapons_of_type()` directly. Verified headlessly: the Sword
+type resolves identically for both Galaden and Brynn, and a built
+`EmbarkDialog` shows Brynn's Warhammer column with all 3 invented items and
+a correctly separate "Sword" column for his second slot.
+
+**Weapon 1/Weapon 2 order corrected for 3 heroes, 2026-09-28, follow-up
+report ("weapons of galaden, bryn and vairix must swap")** - the acti/actii
+assumption (index 0 = acti = Weapon 1) turned out backwards for these
+three specifically, confirmed by the user checking the rendered result per
+their own stated plan above. `WeaponCatalog.HERO_WEAPON_TYPES` swapped:
+Galaden `["Sword","Bow"]` -> `["Bow","Sword"]`, Brynn
+`["Warhammer","Sword"]` -> `["Sword","Warhammer"]`, Vaerix
+`["War Bell","Staff"]` -> `["Staff","War Bell"]`. Chance/Kehli/Syrus were
+NOT reported wrong, left unchanged. Compile-checked only (headless
+`--import`, no script errors) - not re-confirmed visually after the swap.
+
+**Fourth confirmed bug, same day, follow-up report ("the new meshes are
+rotated badly again... in blender they also have a different orientation")**:
+once acti meshes were added, the single shared `-90` pitch correction (only
+ever calibrated against actii's own data) tipped every acti mesh onto its
+back. Confirmed data-driven, not guessed, and matching the user's own
+independent Blender observation: acti and actii are authored under
+COMPLETELY DIFFERENT conventions - actii has Y as the smallest axis (needs
+`-90`, as already established), while ACTI has Y as a full, substantial
+dimension comparable to X, with Z consistently smallest - the same
+"already correctly oriented, Z is a plausible depth axis" shape the flat
+MONSTER cards have, needing NO correction at all. `HeroCatalog.
+flat_mesh_rotation()` now takes `weapon_index` and returns `Vector3.ZERO`
+for acti (0) / `Vector3(-90,0,0)` for actii (1) via
+`FLAT_MESH_ROTATION_BY_WEAPON`, instead of one value for both. Verified
+headlessly that each weapon index now resolves to its own correct value.
+
+**Third confirmed bug, same day, follow-up report ("nope still looks
+bad")** - the mipmap fix was real but not the dominant cause. The actual
+one: `CombatMeshPreview._clear()` used `queue_free()`, which defers actual
+removal to END OF FRAME - a SECOND `show_meshes()`/`show_quad()` call on the
+SAME preview (any second attack, since `PlayerDialog` caches and reuses one
+`CombatView`/`CombatMeshPreview` per side) added its new mesh while the
+PREVIOUS one was still technically present and rendering for at least that
+frame, overlapping it - CONFIRMED directly with a synthetic two-call test
+(child count was 2 immediately after a second call, not the expected 1),
+not just inferred from the symptom. This is the exact same bug CLASS
+claude.md's own Hard-won lessons already documents for `ObjectivesDialog`'s
+`GraphNode` rebuild (`queue_free()` + immediate re-add) - the general rule
+there applies here too, just surfacing as an overlapping-mesh visual
+glitch ("an additional/wrong texture") rather than a silent name collision.
+Fixed with immediate `remove_child()` + `free()` instead of `queue_free()` -
+re-verified the same synthetic test now holds at 1 child after any number
+of repeated calls, including switching from a real mesh back to the
+show_quad() mockup path. **Still not confirmed against the actual reported
+screenshots** - this was diagnosed and fixed from a proven, reproducible
+mechanism (not a guess), but this environment still can't render a frame to
+compare directly against what was seen.
+
+**Second confirmed bug, same day, follow-up report ("the others seem to
+have additional/wrong texture applied. Do you apply two textures or
+something?")** - NO, only ever one texture per hero/monster, applied
+uniformly (confirmed by re-checking the actual data, not just asserted):
+every hero's "second" material (Kehli's "Fluid", Galaden's "Cloth",
+Vaerix's "Bell") genuinely shares the SAME diffuse image as the main body,
+each sampling its own small, valid UV region - not a second texture file,
+not mismatched UVs. The actual cause, found by looking at the real texture
+files directly (cropped to the relevant region and viewed): these diffuse
+textures are dense ATLASES packing many small hand-painted pieces edge-to-
+edge with little to no padding between them (a crossbow, straps, cloth,
+feathers, each in their own tiny rectangle). `StandardMaterial3D`'s default
+`TEXTURE_FILTER_LINEAR_WITH_MIPMAPS` blends each texel with its neighbours
+across generated mip levels - on a tightly packed atlas like this, that
+bleeds colour in from the ADJACENT, unrelated patch, which is exactly what
+"an additional/wrong texture" looks like. Vaerix's own second submesh
+happens to sit in a less crowded part of his atlas, which is why only his
+came out clean while Kehli's and Galaden's didn't. Fixed with one line -
+`material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR` (no
+mipmaps) in `CombatMeshPreview._unshaded_material()` - confirmed headlessly
+that the property is actually applied to the resulting material. **Still
+not confirmed visually** - the same rendering-access limitation applies
+(this environment can only inspect data, not see a rendered frame), so
+whether this fully resolves what was seen still needs a real look.
+
+**Confirmed real bug, fixed the same branch, same day** - reported directly:
+"I see parts of the mesh of the monster overlay in the combat dialog, and
+after combat the flat mesh is also in the monster overview." Root cause:
+`MonsterCombatPreview`'s `SubViewport` never set `own_world_3d = true`, so
+by Godot's own default it shared the SAME `World3D` as whatever it's nested
+under - which, despite living inside `PlayerDialog`'s `Control`/`CanvasLayer`
+tree, still resolves to the game's own main 3D world. Two consequences from
+one cause: the preview's camera could see `MonsterDisplay`'s M-view stands
+(the "parts of the monster overlay" bleeding IN), and the preview's own
+card `MeshInstance3D`s kept existing in that shared world after the dialog
+closed - `_clear()` only ever ran on the NEXT `show_quad()`/`show_meshes()`
+call, not when the dialog itself closed, so a stale card was left sitting
+in the M-view's own world until the next attack (the "flat mesh also in the
+monster overview" bleeding OUT). Fixed with the one missing line -
+`_viewport.own_world_3d = true` - confirmed headlessly that the preview's
+`SubViewport.find_world_3d()` is now a genuinely different object from the
+main viewport's, not just assumed from the symptom matching.
+
+**Fifth confirmed bug, same day: back-face clipping, fixed via depth write,
+CONFIRMED WORKING (2026-09-28)** - direct report: "the heros still look
+funny... certain parts that need to be in the back are clipped to the
+front. The models themselves are not concave, that is they are not
+closed." Diagnosed with a temporary Y-axis auto-rotate
+(`CombatMeshPreview._process()`, added first "to test," spinning `_root`
+continuously) - the user spun it and confirmed the symptom directly
+("yeah confirmed, it's clipping"). Root cause: `_unshaded_material()` sets
+`TRANSPARENCY_ALPHA`, and Godot's `StandardMaterial3D` alpha-blend
+materials do NOT write to the depth buffer by default
+(`depth_draw_mode` = `DEPTH_DRAW_OPAQUE_ONLY`) - so triangles within one
+transparent mesh never depth-test against each other, only draw in
+vertex/submission order, regardless of which is actually nearer the
+camera. Combined with `CULL_DISABLED` (both faces render) and a mesh
+that's open/non-manifold (no back wall to occlude anything geometrically
+either), a back-facing triangle drawn after a front-facing one paints over
+it. Fixed with `material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS`
+in `_unshaded_material()` - makes the material write depth like an opaque
+one, so each triangle now correctly depth-tests against whatever already
+drew regardless of submission order. **Confirmed working in-editor** ("yeah
+confirmed" - re-checked live with the diagnostic rotation still spinning).
+The temporary rotate diagnostic (`_process()`/`ROTATE_SPEED_DEG`) was
+removed again once confirmed - `CombatMeshPreview` is static again outside
+an actual attack.
+
+**NOT verified visually in the Player at all** - no monster's
+card orientation (`flat_card_rotation()`), unlit shading, or actual
+on-screen look has been confirmed correct; expect a real per-monster
+tuning pass once actually seen, the same way the plastic-pool miniatures'
+own rotation/scale needed several rounds of real feedback before landing.
+
+**Sixth confirmed bug, 2026-09-29: the depth-write fix above broke monster
+cards' own alpha-layering, fixed by scoping it per-side** - direct report
+("we did some trick on the flat meshes to make them look correct, but i
+have the impression that the monster look worse, make them rotate again to
+see what is going on"), diagnosed the same way as bug five (re-adding the
+temporary rotate diagnostic), and root-caused directly by the user before
+any fix was written: "ok i think i get it, the bandit upper jacked comes
+over his pants, and they use alfa channel to hide parts of it but that is
+not happening anymore, so the pant are hidden a bit by blackness." Monster
+flat cards are built from SEPARATE mesh pieces (Bandit: jacket + pants, see
+this doc's own earlier "kept its 'Object001' piece" note) that were never
+meant to depth-test against each other at all - they composite via PAINT
+ORDER + ALPHA (pants drawn first, the jacket's mostly-transparent cutout
+drawn second, its alpha reveals the pants underneath). `DEPTH_DRAW_ALWAYS`
+(bug five's fix) makes even the jacket's fully-transparent pixels write
+depth, so the pants piece - drawn after - fails the depth test under the
+jacket's footprint regardless of the jacket's own alpha value, rendering
+as black. Confirmed this needed a PER-SIDE fix, not a blanket revert -
+"CULL_DISABLED it was better before this fix, but that will break the
+heroes again" (heroes are a single open mesh with the genuine back-face
+self-occlusion problem bug five fixed; monsters are multiple alpha-layered
+pieces that need the OLD depth-write-off behavior instead). Fixed by
+threading a new `write_depth: bool = true` parameter through
+`CombatMeshPreview.show_meshes()` -> `_unshaded_material()` (the
+`DEPTH_DRAW_ALWAYS` line is now behind `if write_depth:`), with
+`CombatView.configure()`/`_configure_preview()` passing `true` for the hero
+side (keeps bug five's fix) and `false` for the monster side (restores the
+pre-bug-five alpha-layering behavior). The diagnostic rotation was removed
+again once the cause was confirmed ("also stop the rotation"). Compile-
+checked only - not re-confirmed visually against the actual Bandit report.
+Bandit's extra 'Object001' piece and Doomcaller/Golem's excluded second
+textures (`Rune`/`Golem_Lava` - possible legitimate overlay effects, not
+just junk, per the exclude-list's own doc) are both open questions a real
+look might answer differently than the current guess.
+
+**Health bars, both views (new 2026-09-29)** - direct request: "can we
+somehow store the maxhealth of a monster and draw a health bar that shows
+'progress'... both in the monster and combat view please, in the monster
+view it can go underneath the monster." `RuntimeMonster` gained
+`max_hitpoints: int = 20` (the starting hitpoints - `hitpoints` alone
+already decrements via combat and loses the original value, so there was
+nothing to compute a fraction against before this). Set alongside
+`hitpoints` in `MissionRuntime.register_monster()`
+(`created.max_hitpoints = template.hitpoints`) and round-tripped through
+`RuntimeMonster.to_dict()`/`from_dict()` for `SaveGame` (an older save with
+no `max_hitpoints` key falls back to its own saved `hitpoints`, not a flat
+20 - a better guess for anything already damaged, or spawned from a
+template with a non-default hitpoints value, at save time).
+`PlayerInteractionController.attack()`'s `cfg` builder gained
+`cfg["max_hitpoints"] = monster.max_hitpoints` alongside the existing
+`cfg["hitpoints"]`.
+
+**Combat view**: a small bar under the existing heart/HP number badge
+(`CombatView._hp_bar_fill`, a plain background `ColorRect` + a foreground
+`ColorRect` resized to `hitpoints/max_hitpoints` in `configure()`) - same
+flat-colour placeholder look as the rest of this screen, no new mechanism
+needed since it's an ordinary 2D Control.
+
+**Monster (M) view, "underneath the monster"**: `MonsterDisplay._build_health_bar()`
+(called from `_build_stand()`, only when the passed-in info dict actually
+has both `hitpoints`/`max_hitpoints` keys - `refresh_monsters()` sets both
+now, but the standalone spawn-placement holder's info dict
+(`MissionPlayer._run_monster_spawn()`) still doesn't carry them, so the bar
+is silently skipped there - nothing meaningful to show a fraction of before
+a monster is actually registered/damaged) draws ONE billboarded
+`QuadMesh` positioned on the floor just in front of the stand's base
+(`HP_BAR_LIFT`/`HP_BAR_Z_OFFSET`, scaled by `size_units` like the base
+footprint already is), textured from a small GENERATED `Image` (dark
+background + a filled portion sized to the hp fraction, baked in directly)
+rather than two independently-positioned quads - a `BILLBOARD_ENABLED`
+material only screen-aligns the ROTATION of its own mesh around its node's
+origin, it doesn't make a SIBLING node's world-space offset track the
+screen's axes, so two separately-billboarded quads (one dark background,
+one coloured fill) would visually drift apart at some camera angles in
+this view's free-orbiting `FreeLookCamera` - one quad, one baked texture,
+is correct at every angle by construction. The fill colour shifts from red
+to amber below 25% health (`fraction > 0.25` check), a small touch beyond
+what was literally asked for but cheap given the mechanism already existed.
+Positioned below the existing floating name/HP `Label3D` caption (which
+sits above the figure), not overlapping it, per the explicit "underneath"
+instruction. Compile-checked only (`--headless --path . --import`, clean) -
+not seen rendered; `HP_BAR_SIZE`/`HP_BAR_Z_OFFSET` are first-guess tuning
+constants, same "adjust after a real look" caveat as every other visual
+constant in this Player.
+
+**Weakness/Resistance combined into one compact shield-badge list (new
+2026-09-29)** - direct request: "weakness is a bit verbose, in the game
+they put the weakness on a list, make the icon smaller. the resistance
+can go next to it to differentiate, find a shield / broken shield icon
+and use that as background. weakness -> broken shield, resistance ->
+shield." The old layout gave Weakness/Resistance/Immunity each their own
+full-size heading + row of `_icon_box()`-sized damage-type icons (64px
+tall); Weakness/Resistance are now ONE combined list under a single
+"Weakness / Resistance" heading (`_property_sections["vulnerability"]`,
+replacing the separate `"weakness"`/`"resistance"` keys), each entry a
+small (`PROPERTY_ICON_HEIGHT` 30px) damage-type icon layered on a
+`SHIELD_ICON_SIZE` (44x51) background badge - `_shield_icon_box(kind,
+is_weakness)` (new, `scripts/CombatView.gd`) - broken shield for a
+weakness entry, intact shield for a resistance entry, so the two are
+visually differentiated by background alone rather than by which section
+they're listed under. Immunity is untouched - still its own full-size
+section via `_icon_box()` - only Weakness/Resistance were called out.
+**A not-yet-discovered entry (`kind < 0`) still shows the correct shield**
+(broken vs intact) with the red "?" damage icon on top - which CATEGORY
+a monster has was already non-secret before this change (the table could
+already see how MANY weakness/resistance icons existed, just not which
+damage kind each was, per `_icon_box()`'s own pre-existing "?" rule), so
+carrying that same non-secret distinction into the shield background
+doesn't leak anything new.
+
+**Shield art**: `models/icons/shield.png` (intact, steel-blue, for
+resistance) and `models/icons/shield_broken.png` (duller red with a
+jagged transparent crack cut through it, for weakness) - both new,
+generated placeholders (a throwaway Pillow script, deleted after running,
+same "generated placeholder, not a real asset" convention as every other
+piece of art in this project). **No `OfficialAssetMap` entry** - unlike
+the damage-type diamond icons (which map to confirmed real names pulled
+from the game's own asset dump), no real "shield"/"broken shield" icon
+name has been confirmed anywhere in this project's asset exploration, so
+these are treated the same way `gate`/`archway`/`tree` already are (see
+**Official asset overrides** below) - the user's own original art, no
+official version to swap in, loaded via a plain `preload()` in
+`CombatView.gd` rather than `OfficialAssetOverrides.texture_for()`.
+Compile-checked only (`--headless --path . --import`, clean, including
+both new `.import` files generating without error) - not seen rendered;
+the shield shape/crack styling and the two size constants are first-guess
+placeholders, same "adjust after a real look" caveat as everything else
+in this file that hasn't been visually confirmed yet.
+
+**Three follow-up tweaks, same day** ("change the label to just Weakness.
+use the same style for the weapon damage type, same font size. Remove the
+actual damage indicator, it needs a better spot but not there it should
+be a bit symetrical"):
+1. The "Weakness / Resistance" heading is now just **"Weakness"** - the
+   shield background already tells a resistance entry apart from a
+   weakness one (see the entry just above), so spelling both out in the
+   heading was redundant.
+2. New shared `HEADING_FONT_SIZE` (20) const, used by BOTH the "Damage
+   Type" heading (was 30) and the "Weakness" heading - the two bottom
+   corners now read as a matching pair instead of Damage Type dominating
+   with a noticeably bigger heading.
+3. **The Damage Type row's +1/-1/+?/× modifier badge is gone** -
+   `_damage_type_box()` (built 2026-09-28, one damage-type icon plus a
+   small colour-coded bonus/penalty label underneath) is deleted outright,
+   along with its own now-unused `WEAKNESS_COLOR`/`RESISTANCE_COLOR`/
+   `IMMUNE_COLOR`/`UNKNOWN_MODIFIER_COLOR` consts - the Damage Type row
+   now just shows plain `_icon_box()` icons, the same shape as the
+   Weakness row opposite it now that its own badge (the modifier text)
+   is gone too, closing the visual gap between the two bottom corners
+   ("it should be a bit symmetrical"). **Explicitly parked, not
+   abandoned** - "it needs a better spot but not there" - the underlying
+   idea (telling the table what bonus a damage type is expected to give)
+   is sound, it just doesn't belong stacked under this row any more; no
+   replacement spot has been designed yet.
+
+**HP badge widened into the health bar itself, separate bar removed
+(2026-09-29)** - direct follow-up on the earlier health-bar pass: "there
+is a box with the actual health in it, make that wider 2.5x and use
+that. The border can stay, the inline must be colored black/red based on
+the health. Remove the healthbar you added underneath. Keep the number
+in it allign that to the left." The standalone bar
+(`_hp_bar_fill`/`HP_BAR_SIZE`, built earlier the same day sitting under
+the heart+defense badge row) is gone entirely - `CombatView._build_hp_box()`
+(new, replaces the plain `_stat_badge()` call for HP only; Defense keeps
+its original compact badge) builds a much wider (`HP_BOX_SIZE`, 240x48 -
+"~2.5x" the original compact badge) box that IS the bar: a black
+`ColorRect` baseline (the missing portion) with a red `ColorRect`
+overlay on top sized to `hitpoints/max_hitpoints` (the current portion,
+resized in `configure()`), and the original bordered-panel look kept as
+a THIRD, topmost, fully-transparent-fill overlay so its border renders
+over the fill without hiding it ("the border can stay"). The heart glyph
++ HP number are left-anchored within the box (`PRESET_CENTER_LEFT` +
+`GROW_DIRECTION_END`, same anchor-plus-grow centring trick
+`_shield_icon_box()` already uses, just pinned to the left edge instead
+of the centre point) rather than centred like `_stat_badge()`'s own
+labels - "keep the number in it, align that to the left" - so it reads
+at roughly its original position instead of drifting to the middle of
+the now much wider bar. Compile-checked only, not seen rendered.
+
+**A second concentric ring around the successes picker disc (2026-09-29)**
+- "to give the input a bit more feel, can we add a double circle around
+it." The disc (the number-of-successes picker, previously a single
+bordered circle) is now wrapped in a `disc_wrap` Control holding a second,
+slightly bigger bordered-but-transparent-fill ring BEHIND it
+(`outer_ring`, 112x112 vs. the disc's own 96x96), both centred on the
+same point via `PRESET_CENTER` so an even ~8px gap shows between the two
+circles - a plain decorative double-ring, no new interaction. Compile-
+checked only, not seen rendered.
+
+**Confirm/Cancel sized down (2026-09-29)** - "make confirm and cancel
+buttons a bit smaller, they feel very large." Confirm: 260x60/30pt ->
+190x44/22pt; Cancel: 200x40/22pt -> 150x32/16pt (`CombatView._build()`'s
+two `_big_button()` calls) - the surrounding `buttons` anchor area/layout
+is untouched, only the two buttons' own size/font shrank. Compile-checked
+only, not seen rendered.
+
+**Shield placeholder art reshaped, twice, same day** - direct follow-up
+question confirming these are generated, not real game art ("the shield's
+you use? are they drawn, if so make the upper rectangle part a bit larger
+and the pointy part less pointy") - re-ran the same throwaway Pillow
+generator (see that section's own entry above) with a taller top
+rectangle (the flat-topped section now runs to 58% of the shape's height,
+was 48%). The first attempt at "less pointy" used a short flat edge
+between two corner points instead of a single point - immediately
+corrected ("if possible a bit more round to the bottom"): the bottom is
+now a genuine curve, a quadratic bezier sampled at 16 points between the
+two shoulder points with a shallow control-point dip (`BOTTOM_CONTROL_Y`
+0.90), giving a rounded dome rather than a flat cut or a sharp point.
+Same six-ish-point (now ~19-point, most of them along the curve) polygon
+approach as before, both icons regenerated in place at the same 96x112
+size. Compile-checked only (`--headless --path . --import` re-imported
+both PNGs cleanly each time) - not seen rendered.
+
+**Real screenshots came back, three confirmed layout bugs fixed, same
+day** - the first actual look at this whole pass in the running Player.
+
+1. **HP bar rendered as a top/bottom split, not full at 20/20 health,
+   with the heart+number "floating somewhere halfway"** - root cause:
+   `_build_hp_box()`'s `box` is a plain (non-Container) `Control` sitting
+   inside `stat_row`, an `HBoxContainer` - by default a Control's
+   CROSS-axis size flag is `SIZE_FILL`, so `box` was silently stretched
+   TALLER to match its sibling (the taller Defense badge), while
+   `_hp_fill`'s hardcoded `size = HP_BOX_SIZE` only ever covered the
+   intended 48px from the top - the rest of the now-taller box stayed
+   bare black underneath it, reading as a horizontal top/bottom split
+   instead of a left/right progress bar, and the heart+number (vertically
+   centred within the now-much-taller box) landed near that seam. Fixed
+   two ways at once: `box.size_flags_vertical = SIZE_SHRINK_CENTER` stops
+   the stretch outright, and every child switched from anchor-preset
+   tricks (`PRESET_FULL_RECT`/`PRESET_CENTER_LEFT`) to plain absolute
+   `position`/`size` (default top-left anchors) - fully deterministic,
+   immune to this whole class of cross-axis-stretch surprise.
+2. **The double ring came out off-centre from the disc, and the whole
+   picker no longer sat evenly between the two arrow buttons** - the
+   exact same root cause: `disc_wrap` (also a plain Control inside an
+   `HBoxContainer`) could stretch unpredictably, and `set_anchors_and_offsets_preset(PRESET_CENTER)`
+   pre-computes a FIXED offset once from the current (not-yet-settled)
+   combined minimum size rather than re-resolving live - fragile in a way
+   `_shield_icon_box()`'s OWN icon-centring (`set_anchors_preset()` +
+   explicit grow direction, which DOES re-resolve live every layout pass)
+   happens not to be. Fixed the same way as the HP box:
+   `disc_wrap.size_flags_vertical = SIZE_SHRINK_CENTER` plus absolute
+   `position`/`size` for both the ring and the disc (`disc` hand-centred
+   at `(112-96)/2 = 8` on each side) - no more anchor-preset guessing.
+3. **The shield badges were too small vertically for their own icon** -
+   confirmed directly from a screenshot (the red "?" overflowing below
+   the shield's rounded point). `SHIELD_ICON_SIZE` bumped from `(44, 51)`
+   to `(62, 72)` (same aspect ratio as the 96x112 PNG, ~1.4x bigger) -
+   `PROPERTY_ICON_HEIGHT` (the icon itself) left alone, per the request
+   being about the shield, not the icon.
+
+**Two more direct requests landed the same pass**:
+- **"make the blue also silverish"** - the intact/resistance shield's
+  fill recoloured from steel-blue `(96,128,156)` to a silver/grey
+  `(176,178,182)` (outline/highlight tones adjusted to match) - same
+  throwaway Pillow regeneration, shape untouched this time.
+- **"damage type can also use the shields"** - the Damage Type row now
+  goes through the SAME `_shield_icon_box()` as Weakness/Resistance
+  instead of the plain `_icon_box()` it used before, using the intact
+  (now silver) shield as a neutral background - there's no secret/
+  discovered concept for a weapon's own damage types, so it never passes
+  `kind < 0`. `_shield_icon_box()`'s signature changed from
+  `(kind, is_weakness: bool)` to `(kind, shield_texture: Texture2D,
+  tooltip: String)` to support this third, non-weakness/resistance
+  caller - both Weakness/Resistance call sites build their own tooltip
+  string and pass `SHIELD_BROKEN_TEXTURE`/`SHIELD_TEXTURE` explicitly
+  now, same behavior as before, just no longer inferred from a bool.
+  `_icon_box()` itself is unchanged and still backs the (untouched)
+  Immunity list.
+
+Compile-checked only (`--headless --path . --import`, clean - caught and
+fixed one real `:=` type-inference error along the way, the same
+"ternary from an untyped Array loop variable needs an explicit `int`
+annotation" class of issue this project's own Hard-won lessons section
+already documents elsewhere) - all of the above is reasoned from the
+screenshots and re-verified geometrically, not re-rendered end-to-end in
+this environment; still worth a fresh look once available.
+
+**Radial tick marks around the outer ring (new 2026-09-29)** - "for the
+second ring if possible add a small outside pointing lines, lets say we
+add one every 45degree, make the ones for which mod 90 = 0 a bit longer."
+`CombatView._build_disc_ticks(parent)` (new) draws 8 short `Line2D`
+segments radiating straight out from `disc_wrap`'s own centre, one every
+45 degrees (`TICK_COUNT`), the 4 cardinal ones (0/90/180/270,
+`int(angle_deg) % 90 == 0`) drawn at `TICK_LENGTH_LONG` (10px) and the 4
+diagonal ones at `TICK_LENGTH_SHORT` (6px), both starting `TICK_GAP` (2px)
+outside `TICK_RADIUS` (56, matching `outer_ring`'s own true edge - half
+of its 112x112 size). `Line2D` is a `Node2D`, not a `Control`, but Godot
+freely allows mixing CanvasItem-derived nodes under a Control - its
+`position`/`points` just live in the same local coordinate space
+`disc_wrap`'s other children already use (top-left origin, absolute
+pixels), so no special handling was needed to parent it there. A plain
+dial/gauge decoration, no new interaction. Compile-checked only, not seen
+rendered.
+
+**Shields made taller, not wider, same day, follow-up correction** - "you
+made the shields wider but not longer, that is what i need, revert to the
+previous wide and make them longer." The previous fix (44x51 -> 62x72)
+scaled the badge UNIFORMLY, which grew width as much as height - not what
+was wanted. Since a `TextureRect` with `STRETCH_KEEP_ASPECT_CENTERED`
+never stretches past the source image's own aspect ratio, just enlarging
+`SHIELD_ICON_SIZE`'s height while leaving its width alone wouldn't have
+made the rendered artwork any taller (only added empty letterboxed
+space) - the shield PNGs themselves needed a taller aspect ratio. Both
+regenerated at 96x168 (was 96x112, same width, taller canvas) - every
+point in the generator is a FRACTION of (W, H), so raising H alone
+elongates the shape vertically while every X-coordinate (and the overall
+width) stays exactly where it was. `SHIELD_ICON_SIZE` is now `(44, 78)` -
+44 is the ORIGINAL width from before any of this session's shield-sizing
+changes, 78 matches the new 96x168 image's own aspect ratio at that
+width. Compile-checked only (`--headless --path . --import` re-imported
+both PNGs cleanly) - not seen rendered.
+
+**Two more small layout tweaks, same day**:
+- "not put the weakness more to the top, i would say 30px" (read as "now
+  put...") - the combined Weakness/Resistance + Immunity column
+  (`right`, `CombatView._build()`) shifted up 30px (`offset_top`/
+  `offset_bottom` both `-= 30`) - the shield badges had just grown
+  noticeably taller in the same pass and needed more headroom above the
+  bottom edge. Only the right column moved - Damage Type (`left`) is
+  untouched.
+- "also make the shield box the same size as the health bar vertically" -
+  **this was a genuine mix-up, corrected the same conversation**: read at
+  first as the Weakness/Resistance shield-BACKGROUND icons
+  (`SHIELD_ICON_SIZE`, whose height was set to `HP_BOX_SIZE.y`), which
+  made them noticeably smaller than the "make them longer" pass just
+  before it ("mzz now the shield are smaller :)"). Reverted
+  `SHIELD_ICON_SIZE` straight back to `(44, 78)`. The user then clarified
+  what "the shield box" actually meant - "i meant the defense bar before
+  that sits next to the health bar... it also has a shield icon so that
+  got us confused" - the Defense stat badge's own ⛨ glyph, not the
+  Weakness/Resistance icons at all. See the Defense-badge entry right
+  below for the real fix.
+
+**Defense badge height matched to the HP bar (new 2026-09-29)** - "make
+the defense (gray bar) vertical size the same as the health bar vertical
+size." The Defense badge used to be built via the generic
+`_stat_badge()`/`_panel()` helpers, whose `PanelContainer`
+`content_margin_all(10)` added 20px on top of the label text - that
+margin, not the font size, was the actual reason it came out taller
+(~60px) than `HP_BOX_SIZE.y` (48): the same 34pt number font already
+fits comfortably inside 48px on its own (confirmed - `_build_hp_box()`
+already uses that exact font size at that exact height). New
+`_build_defense_box()` (replacing the `_stat_badge()` call, same
+deterministic technique as `_build_hp_box()` - absolute `position`/`size`,
+no `PanelContainer` content-margin overhead, `size_flags_vertical =
+SIZE_SHRINK_CENTER` so it can't stretch to match a taller sibling) builds
+a `DEFENSE_BOX_WIDTH` (100) x `HP_BOX_SIZE.y` (48) badge that reliably
+matches the HP bar's height exactly. `_stat_badge()` itself is deleted -
+HP had already moved off it earlier the same day, this was its only
+remaining caller. Compile-checked only, not seen rendered.
+
+**Shield art fully reworked from a reference image, 2026-09-29/30, and
+promoted to a real kept tool** - "can we make shields that look more like
+this. so double edged with a bit more feeling :)" (a reference image of a
+proper heraldic/heater shield - rounded shoulders, pointed bottom, a
+crisp double-line border, glossy two-tone shading). The plain 6-point
+polygon-plus-bezier-bottom shape from earlier in this session was
+replaced entirely:
+- **Shape**: a proper heater-shield silhouette built from two mirrored
+  cubic-bezier segments (top-centre -> rounded shoulder -> bottom point),
+  not a hand-typed polygon - `tools/asset_import/generate_shield_icons.py`'s
+  `_shield_points_frac()`.
+- **"Double edged"**: an outer dark border plus a thin inset light stroke
+  drawn just inside it (`_draw_shield_body()`), reading as a two-line
+  border like the reference.
+- **Anti-aliasing** ("make the edges less pixel block like") - the whole
+  thing is drawn supersampled at 4x the final resolution and downsampled
+  with `Image.LANCZOS`, so every curve/line comes out smooth instead of
+  aliased/blocky.
+- **Gradient shading** ("maybe a bit more gradient") - a real smooth
+  left-to-right gradient (a generated grayscale gradient mask, not a
+  hard-edged two-tone split) gives the fill some actual dimension.
+- **The broken shield's crack, three follow-up rounds**: (1) "the broken
+  shield should be broken trough[,] the white lines you draw over are not
+  long enough" -> "they dont go over the edges of the actual shield" - the
+  crack's erasure path now deliberately OVERSHOOTS past the shield's own
+  top/bottom points into the transparent margin beyond the silhouette, so
+  it fully crosses the border stroke at both ends instead of stopping
+  just inside it (erasing empty canvas past the tip is harmless). (2)
+  "where the cracks are, darken the edge a bit" - a wider dark stroke
+  drawn first along the same path, then the (narrower) transparent gap
+  erased on top of it, leaving a dark rim/shadow visible on both sides of
+  the break. (3) "the shadow effect must stop at the edges of the shield"
+  - that dark rim is CLIPPED to the shield's own silhouette (multiplied
+  against a shape mask before pasting) - UNLIKE the erasure gap, which
+  deliberately isn't clipped, the rim must never bleed past the border
+  into the overshoot margin the erasure fix just added.
+- **Width, several rounds**: "15% wider" (96 -> 110), then "widen the
+  shield another 10% in general" (110 -> 121) - each applied to the
+  generated PNG's own width, `SHIELD_ICON_SIZE` recomputed afterward
+  (`(56, 78)`) to match the final 121x168 aspect at the same 78px height
+  the earlier "make them longer" pass had already settled on.
+- **A genuine mix-up, corrected in the same round**: "make the darker
+  edge a bit wider" was first read as the CRACK's own dark shadow rim
+  (widened 16 -> 24), then corrected - "revert the crack rim widening, i
+  meant the darker border of the shield itself" - reverted the rim back
+  to 16 and widened the shield's own outer border stroke instead (5 -> 8).
+- **Promoted to a permanent tool** ("keep the script around, might want
+  to tweak further") - moved from a throwaway `scripts/_gen_...py` (this
+  project's usual convention, normally deleted once done) to
+  `tools/asset_import/generate_shield_icons.py`, the first placeholder-
+  art generator in this project kept as a real, re-runnable tool rather
+  than a one-off - it went through eight rounds of live tuning across two
+  days and is likely to see more. Output paths resolve relative to the
+  script's own file location (`SCRIPT_DIR`), not the working directory,
+  matching this folder's other tools' convention - confirmed by actually
+  running it from a different directory, not just reasoned about. No
+  `OfficialAssetMap` entry, same as before - there's still no confirmed
+  real "shield"/"broken shield" asset name anywhere in this project's own
+  asset exploration.
+
+Wired back into the game the same day: `SHIELD_ICON_SIZE` updated to
+`(56, 78)` for the final art, full project re-import confirmed clean
+(both PNGs reimport without error). Every step along the way was sent to
+the user as a rendered PNG for a real look before moving on, rather than
+reasoned about blind - unusual for this project's own "unverified in-
+editor" art (see this doc's own many caveats elsewhere), since this
+specific case allowed showing the actual generated file directly. This
+whole pass was committed ("commit this already") before the follow-up
+below.
+
+**A dark backing plate behind the damage-type icon (new 2026-10-01)** -
+"can we make that the icon on the shield sits in a black area." The
+small damage-type icon layered on top of each shield badge
+(`_shield_icon_box()`) used to sit directly on the shield's own
+gradient/colour fill, which could fight the icon's own colours for
+contrast depending on the damage kind. A `PanelContainer` with a flat
+black (88% opacity), slightly rounded `StyleBoxFlat` is now inserted
+BETWEEN the shield art and the icon (`shield` -> `icon_bg` -> `icon`,
+matching draw order = child order), sized to the icon's own computed
+size plus an 8px pad on each axis, centred with the identical
+`PRESET_CENTER` + `GROW_DIRECTION_BOTH` technique the icon itself
+already used - both now share the same `icon_size` value (computed once
+and reused for both, rather than each independently re-deriving it from
+the texture's own aspect ratio) so the backing plate and the icon stay
+concentric regardless of which damage icon's aspect ratio is in play.
+Compile-checked only (`--headless --path . --import`, clean), not seen
+rendered.
+
+**Shields removed entirely, replaced with a double gray border, same
+day** - "ok remove the shields, but a double gray border arround the
+icons, make sure that the weapon damage and weakness areas are alligned
+vertically on the same height." The backing-plate fix above lasted one
+round - `_shield_icon_box()` is gone, replaced by `_bordered_icon_box(kind,
+tooltip)`: a small Damage-Type/Weakness/Resistance icon framed by two
+concentric gray `StyleBoxFlat` borders (an outer transparent-fill ring, a
+smaller inset ring that doubles as the icon's own dark backdrop - folding
+the previous round's "icon sits in a black area" fix into the SAME inner
+box rather than a separate layer, since the new border look already needs
+one anyway), same "no shape distinguishes weakness from resistance"
+simplification the request implied - that distinction now lives only in
+each badge's tooltip text ("Weakness: ..."/"Resistance: ..."), not a
+broken-vs-intact background shape. `SHIELD_TEXTURE`/`SHIELD_BROKEN_TEXTURE`/
+`SHIELD_ICON_SIZE` are deleted from `CombatView.gd`; the generated PNGs
+themselves (`models/icons/shield.png`/`shield_broken.png`) and
+`tools/asset_import/generate_shield_icons.py` are left in place untouched,
+in case this look is revisited - the tool was explicitly kept around for
+exactly that possibility in the previous round.
+
+**Vertical alignment fix**: the Weakness column's own `right.offset_top -=
+30`/`right.offset_bottom -= 30` (added back when the shield badges were
+noticeably taller than the Damage Type row's plain icons) is removed -
+Damage Type and Weakness now both go through the identical
+`_bordered_icon_box()`, so they're the same height again and
+`_bottom_column()`'s shared anchoring lines the two columns up with no
+per-column correction needed. Compile-checked only
+(`--headless --path . --import`, clean), not seen rendered.
+
+**Square badges, colour-coded inner border, solid black between the rings,
+same day, follow-up round** - "can we make all equal size (square), make
+weak inner border dark red, resistance dark blue, much like the colors
+used for the background gradient. Make sure the color between the borders
+is also black so it is visible" - then, mid-edit, a correction limiting
+scope: "damage type can stay as is" followed immediately by the sharper
+"damage type can stay as is color wise" (the second message supersedes the
+first - only the COLOUR was meant to stay put, not the sizing/fill).
+`_bordered_icon_box()` gained a new `inner_border_color: Color =
+ICON_BORDER_COLOR` parameter (defaulting to the existing neutral gray) and
+three other changes applying to every caller equally:
+1. **Square, not aspect-ratio-shaped** - `icon_size` is now a flat
+   `Vector2(h, h)` instead of `Vector2(h * aspect, h)`, so every ring this
+   function builds is an identical square regardless of a given damage
+   icon's own real proportions - `STRETCH_KEEP_ASPECT_CENTERED` still
+   letterboxes the actual artwork inside that square undistorted.
+2. **Both rings now have an opaque-ish black fill** (`bg_color = Color(0,
+   0, 0, 0.9)`, was fully transparent on the outer ring and 0.85 on the
+   inner) - "the color between the borders is also black so it is
+   visible": since a `StyleBoxFlat`'s border is drawn as a frame INSET
+   from its own rect with `bg_color` filling the remaining interior, the
+   outer ring's own interior (the ring/gap area between the two borders)
+   is now solid black same as the inner ring's own interior, so the two
+   rings read as one continuous black field with just their two border
+   lines visible - rather than the gap showing whatever art/background sat
+   behind the badge.
+3. **The inner ring's border colour is the new weakness/resistance
+   signal** - `WEAKNESS_BORDER_COLOR` (dark red, `Color(0.55, 0.12, 0.10)`)
+   and `RESISTANCE_BORDER_COLOR` (dark blue, `Color(0.14, 0.22, 0.42)`),
+   both picked "much like the colors used for the background gradient"
+   (same hue family as that gradient's own monster-side/hero-side end
+   colours, `Color(0.22, 0.06, 0.07)`/`Color(0.05, 0.09, 0.16)`, just
+   brightened enough that a thin 2px border actually reads against a black
+   fill) - passed explicitly by the Weakness/Resistance call sites in
+   `configure()`. **Damage Type's own call site passes no
+   `inner_border_color` at all**, per the follow-up correction - it keeps
+   the plain `ICON_BORDER_COLOR` gray on both rings, same as before this
+   round, while still getting the square sizing and black-fill changes
+   above (those weren't what "stay as is" was about). The outer ring's
+   border stays the shared neutral gray for every caller regardless - only
+   the INNER ring's colour ever changes. Compile-checked only
+   (`--headless --path . --import`, clean), not seen rendered.
+
+**Concave-arc "pointy corner" badge shape, same day, follow-up round** -
+"ok lets try to make it a tiny bit cooler they grey borders make it arcs
+pointing inward so that their tips come together on the corners making
+sharp pointy corner. try something first we correct it" - explicitly
+framed as a first attempt to react to, same iterative pattern as the
+shield art's own many tuning rounds. New `scripts/ConcaveBorderBox.gd`
+(`class_name ConcaveBorderBox extends Control`) - the first custom
+`_draw()`-based 2D Control in this project (everything else that draws
+its own geometry is 3D, via `ImmediateMesh`/`SurfaceTool`). Replaces the
+plain `StyleBoxFlat` rounded-rect `PanelContainer`s
+`CombatView._bordered_icon_box()`'s outer/inner rings used - both rings
+are now `ConcaveBorderBox` instances instead, same fill/border colour
+scheme as before (always-gray outer, weakness=red/resistance=blue/
+damage-type=gray inner), just a different shape: each of the four edges
+is a circular arc bulging INWARD (toward the badge's own centre) by
+`concavity` (0.18, a fraction of the square's own side length) instead of
+a straight line, so the four corners come to a real sharp point instead
+of a flat or rounded one.
+
+**Geometry**: the classic "sagitta" arc construction - for a given edge's
+two corners, the circle that passes through both while bulging toward the
+centre by the target depth has a computable radius
+(`(depth² + (chord/2)²) / (2·depth)`) and its own centre sits on the
+OPPOSITE side of that edge from the badge's centre, by `(depth - radius)`
+along the inward normal. `_arc_between()` (shared by all four edges - the
+only per-edge input is which two corners and which direction counts as
+"inward," resolved via a `normal.dot(center - mid) < 0` flip rather than
+hand-picking a sign per side) samples `arc_segments` (14) points along
+that circle between the two corner angles, wrapping the ±π `atan2` seam
+correctly since the two corner angles are always close together (the
+arc's own circle is huge relative to the badge). `_outline_points()`
+concatenates all four edges into one closed polygon; `_draw()` fills it
+(`draw_colored_polygon`) then strokes the same closed loop
+(`draw_polyline`, antialiased) for the border line.
+
+**A real sign bug, caught by a headless check before trusting it** - the
+first version placed `arc_center` at `mid + normal * (radius - depth)`
+(centre on the SAME side as the bulge), which bulges every edge OUTWARD
+instead of inward - confirmed directly: a 60x60 box at `concavity=0.18`
+produced a top-edge arc midpoint at `(30, -10.8)` (above the square,
+negative) instead of `(30, +10.8)` (dipped into the square). Fixed to
+`mid + normal * (depth - radius)` (centre on the OPPOSITE side) and
+re-verified: all four edges of the same 60x60/0.18 box now produce an arc
+midpoint exactly `depth` (10.8) inside their own straight-edge position,
+each landing at the same distance from the square's centre
+(`30 - 10.8 = 19.2`, confirmed symmetric across all four edges, not just
+the one originally checked), every corner exact, the polygon closes back
+to its own start point to within floating-point epsilon, and no NaNs
+across the full 36-point outline - run via a throwaway headless script
+in the scratchpad (not committed, same disposable-diagnostic convention
+as this project's other one-off geometry checks). `ConcaveBorderBox`
+itself also connects `resized` to `queue_redraw()` in `_ready()` as cheap
+insurance, even though none of this round's actual badge sizes change
+after creation. Compile-checked (`--headless --path . --import`, clean)
+and the arc math is numerically verified - but the actual VISUAL result
+(does the pointy-corner look read well at this badge's real on-screen
+size, and is `concavity = 0.18` the right depth) has not been seen
+rendered - explicitly a first attempt per the request's own framing, to
+be corrected once actually looked at in the Player.
+
+**Two tuning tweaks after the first real look, same day** ("not to bad at
+all, lets make it arc a little bit less if possible have a small bit of
+whitespace (filled with black) between the inner and outer border") -
+confirmation the overall shape landed, just two knobs to adjust:
+1. `ConcaveBorderBox.concavity` eased back `0.18 -> 0.12` - shallower
+   arcs, less dramatic inward bulge.
+2. `CombatView.ICON_BORDER_GAP` widened `5.0 -> 9.0` - more black space
+   between the outer and inner ring (both rings already fill black per
+   the previous round's own "color between the borders is also black"
+   fix - this just widens the band of it that's actually visible between
+   the two border strokes, rather than changing any fill colour). Compile-
+   checked only (`--headless --path . --import`, clean), not re-confirmed
+   visually after this pair of adjustments.
+
+**Corner smoothing + an outward dash accent, same day, follow-up round**
+- "it's pretty solid, the corners where the arc come together are
+looking a bit off, can we smooth those? also try adding a small dash in
+the middle of each arc pointing outward so it touches the size of the
+shape bounding box." Two additions to `ConcaveBorderBox._draw()`, both
+after the existing fill+outline-stroke:
+1. **Corner smoothing** - a small filled `draw_circle()` (radius =
+   `border_width / 2.0`, same colour as the ring's own border) at each of
+   the 4 raw corner points. `draw_polyline()` has no round-join option of
+   its own and strokes each segment as an independent rectangle, which
+   leaves a visible notch/gap right at a corner this acute (two arcs
+   meeting at a near-cusp) - a plain circle caps the join the same way a
+   round line-join would, the standard fix for this exact artifact.
+2. **Outward dash** - `_edge_dash_points()` (new) returns one line-segment
+   pair per edge: from the arc's own deepest (most-inward) point straight
+   back out to the plain bounding-box edge at that same spot, drawn via
+   one `draw_multiline()` call. No new geometry derivation needed for the
+   "inward" endpoint - a circular arc's own midpoint (`t = 0.5`) always
+   lands exactly `depth` along the chord's inward normal from the chord's
+   own straight midpoint, by the definition of sagitta itself, so this
+   reuses the exact same `depth`/`_inward_normal()` values `_arc_between()`
+   already computes rather than re-deriving anything. `_inward_normal()`
+   itself is new too - factored out of `_arc_between()`'s own normal-flip
+   logic so both this and the dash helper share one implementation instead
+   of two near-identical copies.
+Verified numerically (not just assumed): all four dashes come out exactly
+`depth` long, landing on the correct bounding-box edge, symmetric across
+every side, no NaNs.
+
+**A near-miss with an extreme `concavity`, same round** - mid-request the
+user also asked for `ICON_BORDER_GAP -> 7` (applied, a small ease-back
+from 9) and `concavity -> 0.9` - the LATTER was caught and NOT applied as
+asked. A direct headless check (three `concavity` values - 0.12/0.5/0.9 -
+on the same 60x60 box) confirmed `_arc_between()`'s sagitta formula only
+traces the correct INWARD arc while `depth < chord/2` (concavity < 0.5 for
+a square): at 0.5 and 0.9 the arc silently flips to bulge OUTWARD instead
+and misses the requested depth entirely (0.9's own top-edge midpoint came
+out at `y = -16.67`, not the requested `+54`) - not merely "more extreme,"
+genuinely broken/inverted geometry. Flagged directly rather than applied
+blind, given firm numeric proof rather than just stylistic doubt; the user
+confirmed it was a typo for `0.09` ("sorry 0.09"), which was applied
+instead - continuing the same day's own easing trend (`0.18 -> 0.12 ->
+0.09`). `concavity`'s own doc comment now carries an explicit "keep this
+well under ~0.3" warning plus the confirmed failure mode, so a future
+attempt at a more dramatic arc doesn't rediscover this the same way.
+Compile-checked only (`--headless --path . --import`, clean); the corner-
+smoothing/dash accents and the final `0.09`/`7.0` values are not yet seen
+rendered. This whole pass was committed and pushed ("commit and push,
+looks a lot better than those shields") as
+`b3f8934` on `experiment/monster-flat-meshes`.
+
+**Tried on the HP bar/Defense badge and the End Phase button too, then
+BOTH reverted, same day** - "can we use the same style for the health bar
+and defense UI elements?" led to replacing `_build_hp_box()`/
+`_build_defense_box()`'s own plain straight `PanelContainer` border with a
+`ConcaveBorderBox`, which then needed a follow-up fix once the fill
+(`ColorRect`s, unchanged) visibly poked out past the new border's own
+inward-bulging edges ("the background color... goes out of the arcs now")
+- the Defense badge collapsed its fill+border into one `ConcaveBorderBox`
+node (no proportional split to worry about), while the HP bar needed a
+`clip_contents = true` wrapper (`_hp_fill_clip`) around an always-full-
+width `ConcaveBorderBox`, since the red portion's own WIDTH changes every
+attack and naively resizing a `ConcaveBorderBox` directly would re-bulge
+its edges relative to the new, smaller size instead of just cropping the
+original shape. The same look was then also applied to
+`MissionPlayer`'s End Phase button ("also make the end phase button with
+an edge so it looks a bit like our general style") - its own `StyleBoxFlat`
+background made fully transparent, a `ConcaveBorderBox` SIBLING (not a
+child - a child's own drawn content renders on top of the parent's,
+which would have painted over the button's text) inserted directly before
+it in `CanvasLayer`, copying its anchors/offsets exactly (verified via a
+synthetic headless scene test that the sibling lands at the right index
+with matching anchors).
+
+**All of it reverted the same day, once actually looked at**: "revert the
+end phase button, with border i mean like the buttons in the combat view
+(cancel for example)" and "also revert the health and defense, that arced
+thing is not good there." `_style_end_phase_button()` is back to a plain
+per-state `StyleBoxFlat` (bg colour + lightened border + `corner_radius`),
+just now explicitly matching `_big_button()`'s own Confirm/Cancel pattern
+(border width 3, corner radius 4) rather than the flatter single-colour
+style it had before either round - that was the actual ask, a flat
+bordered rect "like the buttons in the combat view," not the pointy-arc
+badge look. `_build_hp_box()`/`_build_defense_box()` are back to plain
+`ColorRect` fills + a straight `PanelContainer`/`StyleBoxFlat` border,
+exactly as they were before this whole detour (the now-unused
+`_hp_fill_clip` var and its ConcaveBorderBox-typed `_hp_fill` are reverted
+too - `_hp_fill` is a plain `ColorRect` again, resized directly in
+`configure()`). `ConcaveBorderBox` itself is untouched and still used
+exactly as before by the icon badges (`_bordered_icon_box()`) - this
+reversion only concerns the three OTHER places it got tried afterward.
+Compile-checked only (`--headless --path . --import`, clean) after the
+revert.
+
+**A faint user-supplied background texture, same day** - "can we use this
+as a very light overlay in the combat view, make it very transparant" (a
+dark pentagram/skulls illustration) -> clarified immediately after,
+"i mean as background" (not a full-screen overlay drawn on top of
+everything, as the first phrasing could have meant). Saved as
+`models/combat_background_pentagram.jpg` (the user's own supplied image,
+not derived from the real game's own assets in any way - same "original/
+generated art, no official counterpart" treatment this project already
+gives gate/archway/tree and the now-removed shield icons). New
+`CombatView.BACKGROUND_TEXTURE`/`BACKGROUND_TEXTURE_ALPHA` (0.12, "very
+transparant" - a first guess) - a `TextureRect` layered directly on top of
+the existing blue->red gradient (not replacing it), added right after it
+in `_build()` so the hero/monster art and every UI element still draws on
+top of both exactly as before. `STRETCH_KEEP_ASPECT_COVERED` fills the
+screen at any aspect ratio without distortion (cropped, not letterboxed).
+Compile-checked (`--headless --path . --import`, clean, including the new
+`.jpg`'s own `.import` file generating without error), not seen rendered.
+
+**Background off-centre, fixed; then the real idea behind it: characters
+standing on its own floor, same day** - "ok but can we really like center
+it, it's off center atm." A quick detour explored actually measuring the
+star's own visual centroid in the source image via Python/PIL to crop
+around it - abandoned once the user clarified the real intent: "what are
+you trying to do, just put the entire image in the center not the
+pentagram alone." The actual bug was much simpler and Godot-side, not the
+source image at all: the new `background_texture` `TextureRect` never had
+`expand_mode = TextureRect.EXPAND_IGNORE_SIZE` set, unlike the existing,
+already-correct gradient `background` `TextureRect` right above it in the
+same function - without it, a `TextureRect`'s own minimum size defaults to
+its texture's native pixel size (1408x768), which can win out over the
+`PRESET_FULL_RECT` anchors and leave it sized/positioned from its top-left
+corner instead of genuinely filling (and `STRETCH_KEEP_ASPECT_COVERED`
+correctly centring within) the real viewport rect. Fixed by matching the
+gradient's own existing, working setup.
+
+**"put the characters more to the bottom if there is room," then "the
+hero en monster do not need to be aligned vertically," then the actual
+reasoning behind both**: "the image has a floor on the lower part, the
+idea is that the hero/monster stands on it." `CombatMeshPreview` gained
+`VERTICAL_SHIFT_FRACTION` (0.15) - both camera-framing functions
+(`_frame_camera_relative()`, used by the real extracted meshes, and
+`_frame_camera()`, `show_quad()`'s flat-crop fallback path) now aim the
+camera at a point shifted UP from the figure's own true centre by this
+fraction of the frame's own size, before computing `global_position`/
+`look_at()` from that shifted point - since the figure itself doesn't
+move, aiming higher pushes its rendered position DOWN in the frame,
+toward where the new background's own floor sits, instead of vertically
+centred. Applied identically (same constant, no per-side coordination) to
+both the hero and monster preview independently - confirmed fine per the
+user's own follow-up ("do not need to be aligned vertically"), unlike
+`RELATIVE_CAMERA_MARGIN`/`camera_size_units` above, which DO need to match
+between both sides for relative scale to hold. A side that's already
+overflowing its own frame edge-to-edge (`RELATIVE_CAMERA_MARGIN`'s own
+deliberate <1.0 overflow) will just clip a bit more at the top instead of
+visibly shifting - "if there is room" already allows for that; a side
+with headroom to spare (a smaller `size_units` figure inside a larger
+shared `camera_size_units` frame) will genuinely move down. Compile-
+checked only (`--headless --path . --import`, clean) - the camera-aim math
+itself is straightforward Y-up geometry, not independently verified via a
+headless scene test the way the ConcaveBorderBox arc math was, and none of
+this has been seen rendered yet.
 
 **Mic status line repositioned, CommandInput too, "for now" (new
 2026-09-23)** - per direct request: `VoiceListener`'s own status Label (mic

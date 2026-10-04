@@ -11,6 +11,7 @@ var folder: String = ""  ## MonsterDisplay.REAL_MONSTERS `folder`, e.g. "wolf"
 var chip: int = MonsterChip.Chip.YELLOW  ## which colour chip is on its base
 var custom_name: String = ""  ## empty = generic type name
 var hitpoints: int = 20
+var max_hitpoints: int = 20  ## the starting hitpoints, for a health-bar "progress" fraction - hitpoints alone loses this once damage is taken
 var level: int = 1
 var weaknesses: Array[int] = []  ## Vulnerability.Kind values
 var resistances: Array[int] = []
@@ -36,7 +37,7 @@ func display_name() -> String:
 func to_dict() -> Dictionary:
 	return {
 		"id": id, "folder": folder, "chip": chip, "custom_name": custom_name,
-		"hitpoints": hitpoints, "level": level, "defense": defense,
+		"hitpoints": hitpoints, "max_hitpoints": max_hitpoints, "level": level, "defense": defense,
 		"weaknesses": weaknesses.duplicate(), "resistances": resistances.duplicate(), "immunities": immunities.duplicate(),
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 	}
@@ -49,6 +50,10 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.chip = d.get("chip", MonsterChip.Chip.YELLOW)
 	m.custom_name = d.get("custom_name", "")
 	m.hitpoints = d.get("hitpoints", 20)
+	# Older saves have no max_hitpoints - fall back to current hitpoints
+	# (better than a flat 20, which would be wrong for anything already
+	# damaged or with a non-default template hitpoints at save time).
+	m.max_hitpoints = d.get("max_hitpoints", m.hitpoints)
 	m.level = d.get("level", 1)
 	m.defense = d.get("defense", 0)
 	m.weaknesses = _int_array(d.get("weaknesses", []))

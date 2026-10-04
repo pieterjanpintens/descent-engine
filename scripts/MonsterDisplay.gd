@@ -55,6 +55,22 @@ const CELL_SPACING := 2.0
 const BASE_SIZE := Vector3(1.2, 0.15, 1.2)
 const FIGURE_SIZE := Vector3(0.6, 1.0, 0.6)  ## placeholder-cube size; its own diagonal is also the base target real meshes are auto-scaled to, see target_figure_diagonal below
 
+## Health bar (new 2026-09-29, "draw a health bar that shows 'progress'... in
+## the monster view it can go underneath the monster") - a small billboarded
+## quad sitting on the floor just in front of the base, baked from a
+## generated texture (dark background + a filled portion sized to the
+## hitpoints/max_hitpoints fraction) rather than two separately-positioned
+## quads - a billboard only screen-aligns its OWN rotation around its node's
+## origin, not a sibling node's world-space offset, so two independent quads
+## would drift out of alignment with each other at some camera angles in
+## this M-view's free-orbiting FreeLookCamera. One quad, one texture, always
+## correct regardless of view angle. Same "generated placeholder, not a real
+## asset" approach every other piece of this project's own art already uses.
+const HP_BAR_SIZE := Vector2(0.7, 0.09)  ## world units at size_units 1.0
+const HP_BAR_TEXTURE_SIZE := Vector2i(64, 8)
+const HP_BAR_LIFT := 0.02  ## just above floor level, in front of the base
+const HP_BAR_Z_OFFSET := 0.75  ## in front of the base (+Z), so it isn't hidden under the figure
+
 ## How deep to extrude the gap marker's flat quad into a real box, as a
 ## fraction of the panel's OWN height (outer-to-inner distance) rather than
 ## a fixed world-space number - keeps proportions consistent per-monster
@@ -263,6 +279,8 @@ func refresh_monsters(monsters: Array) -> void:
 			continue
 		info["name"] = monster.display_name()
 		info["extra"] = "HP %d · Level %d" % [monster.hitpoints, monster.level]
+		info["hitpoints"] = monster.hitpoints
+		info["max_hitpoints"] = monster.max_hitpoints
 		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)
 		_build_stand(origin, info, i, MonsterChip.color(monster.chip))
 
@@ -318,11 +336,103 @@ static func crop_texture(folder: String) -> Texture2D:
 	return OfficialAssetOverrides.texture_for("res://models/crops/monster_%s.png" % folder.replace(" ", "_"))
 
 
+## EXPERIMENTAL (2026-09-27, branch experiment/monster-flat-meshes) - the
+## combat view's monster side, second attempt: the game's own flat "card"
+## mesh + texture (extracted by import_monster_meshes.py, see that script's
+## own doc) instead of the tab-image crop_texture() above. `has_flat_card()`
+## is the one place "does this monster have a real card" is decided, so
+## callers never special-case a specific monster by name themselves - if
+## the import script hasn't been run, or found nothing for a given folder,
+## callers fall back to crop_texture() instead (currently expected for none
+## of the 17, but the fallback stays cheap insurance either way).
+##
+## user://monster_assets/<folder>/flat_N.tres, N = 0, 1, 2... - usually just
+## one piece, but a genuinely multi-piece card (confirmed: Fae, 3 pieces;
+## Centurion, 1 piece but 3 SURFACES - body/wings/cloth, one mesh - see
+## flat_surface_texture_overrides()'s own doc and import_monster_meshes.py's
+## stage_centurion_flat()) stages/converts every kept piece, not just the
+## first.
+static func flat_mesh_paths(folder: String) -> Array[String]:
+	var paths: Array[String] = []
+	var i := 0
+	while true:
+		var path := "user://monster_assets/%s/flat_%d.tres" % [folder, i]
+		if not ResourceLoader.exists(path):
+			break
+		paths.append(path)
+		i += 1
+	return paths
+
+
+static func flat_diffuse_texture(folder: String) -> Texture2D:
+	return _load_flat_texture(folder, "flat_diffuse.png")
+
+
+static func _load_flat_texture(folder: String, filename: String) -> Texture2D:
+	var path := "user://monster_assets/%s/%s" % [folder, filename]
+	if not FileAccess.file_exists(path):
+		return null
+	var image := Image.load_from_file(path)  # same idiom as OfficialAssetOverrides._load_override_texture()
+	if image == null:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+## Per-monster surface-name -> extra texture filename, for a card whose
+## pieces genuinely need more than one texture (confirmed: Centurion only -
+## its card is one mesh with "body"/"wings"/"body" surfaces, see
+## import_monster_meshes.py's stage_centurion_flat() for the full story;
+## the "rock" the physical miniature stands on isn't part of this mesh at
+## all). Any surface name NOT listed here just uses flat_diffuse_texture()
+## - MonsterCombatPreview.show_meshes() is what actually applies this,
+## per surface, by name.
+const FLAT_SURFACE_TEXTURE_FILES: Dictionary = {
+	"centurion": {"wings": "flat_diffuse_wings.png"},
+}
+
+
+static func flat_surface_texture_overrides(folder: String) -> Dictionary:
+	var result := {}
+	var files: Dictionary = FLAT_SURFACE_TEXTURE_FILES.get(folder, {})
+	for surface_name in files:
+		var texture := _load_flat_texture(folder, files[surface_name])
+		if texture != null:
+			result[surface_name] = texture
+	return result
+
+
+## True when a real flat card (mesh + texture) is available for this monster,
+## or if the asset import script hasn't been run/found nothing.
+static func has_flat_card(folder: String) -> bool:
+	return not flat_mesh_paths(folder).is_empty() and flat_diffuse_texture(folder) != null
+
+
+## Per-monster correction for the flat card's true facing (X/Y/Z degrees) -
+## UNVERIFIED for every entry so far (empty = no correction), same
+## "expect to fix these one at a time once actually seen" situation
+## REAL_MONSTERS' own pitch_correction_degrees/extra_rotation_degrees went
+## through - a placeholder dict so a future fix is one data line here, not
+## a code change in MonsterCombatPreview.gd.
+const FLAT_CARD_ROTATION_DEGREES: Dictionary = {}
+
+
+static func flat_card_rotation(folder: String) -> Vector3:
+	return FLAT_CARD_ROTATION_DEGREES.get(folder, Vector3.ZERO)
+
+
 static func find_monster(folder: String) -> Dictionary:
 	for monster in REAL_MONSTERS:
 		if monster["folder"] == folder:
 			return monster
 	return {}
+
+
+## This monster's own REAL_MONSTERS size_units (1.0 default for an unlisted
+## folder) - the same physical-size figure the M-view grid already scales
+## by, reused as-is by CombatMeshPreview's relative-scale system (see that
+## script's own doc) for the combat screen's monster side.
+static func size_units(folder: String) -> float:
+	return find_monster(folder).get("size_units", 1.0)
 
 
 ## TEMPORARY - a plain fixed Camera3D made it hard to tell what was
@@ -402,6 +512,42 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)
+
+	# Health bar, underneath the monster (per direct request) - only for a
+	# real registered monster (has both keys); the standalone spawn-placement
+	# holder's info dict (MissionPlayer._run_monster_spawn()) has neither, so
+	# this is silently skipped there - nothing to show a fraction of before
+	# combat has actually assigned hitpoints on the map.
+	if monster.has("hitpoints") and monster.has("max_hitpoints"):
+		_build_health_bar(origin, monster["hitpoints"], monster["max_hitpoints"], size_units)
+
+
+## A small billboarded quad on the floor just in front of the stand's base -
+## see HP_BAR_SIZE's own doc above for why this is one generated-texture quad
+## rather than two independently-positioned ones.
+func _build_health_bar(origin: Vector3, hitpoints: int, max_hitpoints: int, size_units: float) -> void:
+	if max_hitpoints <= 0:
+		return
+	var fraction := clampf(float(hitpoints) / float(max_hitpoints), 0.0, 1.0)
+	var image := Image.create(HP_BAR_TEXTURE_SIZE.x, HP_BAR_TEXTURE_SIZE.y, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.1, 0.02, 0.02, 0.9))
+	var filled_width := int(round(HP_BAR_TEXTURE_SIZE.x * fraction))
+	if filled_width > 0:
+		var bar_color := Color(0.75, 0.12, 0.1) if fraction > 0.25 else Color(0.85, 0.65, 0.1)
+		image.fill_rect(Rect2i(0, 0, filled_width, HP_BAR_TEXTURE_SIZE.y), bar_color)
+
+	var bar := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = HP_BAR_SIZE * size_units
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_texture = ImageTexture.create_from_image(image)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad.material = material
+	bar.mesh = quad
+	bar.position = origin + Vector3(0, _base_height() + HP_BAR_LIFT, HP_BAR_Z_OFFSET * size_units)
+	_stands_root.add_child(bar)
 
 
 func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 1.0) -> void:

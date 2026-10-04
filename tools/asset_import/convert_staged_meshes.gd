@@ -26,6 +26,12 @@ extends SceneTree
 ## import_monster_meshes.py controls which monsters actually get staged
 ## (read from MonsterDisplay.REAL_MONSTERS), so this just converts
 ## whatever it finds.
+##
+## Converts EVERY *.obj file in a monster's staged folder (2026-09-27,
+## generalized from a hardcoded "mesh.obj" once the flat-card combat-view
+## mesh started staging as "flat_0.obj"/"flat_1.obj"/... alongside it) -
+## each becomes its own "<basename>.tres" under that monster's
+## user://monster_assets/<folder>/ folder.
 
 const STAGING_DIR := "res://models/original/monster_staging"
 
@@ -48,7 +54,22 @@ func _init() -> void:
 
 
 func _convert_one(folder_name: String) -> void:
-	var res_path := "%s/%s/mesh.obj" % [STAGING_DIR, folder_name]
+	var folder_path := "%s/%s" % [STAGING_DIR, folder_name]
+	var dir := DirAccess.open(folder_path)
+	if dir == null:
+		print("Couldn't open ", folder_path)
+		return
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() == "obj":
+			_convert_file(folder_name, file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+
+func _convert_file(folder_name: String, file_name: String) -> void:
+	var res_path := "%s/%s/%s" % [STAGING_DIR, folder_name, file_name]
 	var mesh: Mesh = load(res_path)
 	if mesh == null:
 		print("FAILED to load ", res_path)
@@ -56,7 +77,7 @@ func _convert_one(folder_name: String) -> void:
 
 	var out_dir := "user://monster_assets/%s" % folder_name
 	DirAccess.make_dir_recursive_absolute(out_dir)
-	var out_path := "%s/mesh.tres" % out_dir
+	var out_path := "%s/%s.tres" % [out_dir, file_name.get_basename()]
 	var err := ResourceSaver.save(mesh, out_path)
 	if err == OK:
 		print("Saved ", out_path)

@@ -323,14 +323,10 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 	if successes < 0:
 		var damage_types: Array = [] if weapon == null else weapon.damage_types
 		visible = false  # hero bar out of the way of the full-screen combat view
-		successes = await dialog.ask_attack({
-			"hero_image": HeroCatalog.slot_crop(hero_slot, weapon_index),
-			"monster_image": MonsterDisplay.crop_texture(monster.folder),
-			"hero_name": hero_name,
-			"weapon_name": "" if weapon == null else weapon.weapon_name,
-			"base_damage": null if weapon == null else weapon.damage,
+		var cfg := {
 			"monster_name": monster.display_name(),
 			"hitpoints": monster.hitpoints,
+			"max_hitpoints": monster.max_hitpoints,
 			"defense": monster.defense,
 			"damage_types": damage_types,
 			"weaknesses": monster.weaknesses,
@@ -339,7 +335,23 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 			"known_resistances": monster.known_resistances,
 			"immunities": monster.immunities,
 			"known_immunities": monster.known_immunities,
-		})
+			"hero_size_units": HeroCatalog.size_units(hero_slot),
+			"monster_size_units": MonsterDisplay.size_units(monster.folder),
+		}
+		if HeroCatalog.has_flat_mesh(hero_slot, weapon_index):
+			cfg["hero_flat_meshes"] = HeroCatalog.flat_mesh_paths(hero_slot, weapon_index)
+			cfg["hero_flat_texture"] = HeroCatalog.flat_diffuse_texture(hero_slot, weapon_index)
+			cfg["hero_flat_rotation"] = HeroCatalog.flat_mesh_rotation(hero_slot, weapon_index)
+		else:
+			cfg["hero_image"] = HeroCatalog.slot_crop(hero_slot, weapon_index)
+		if MonsterDisplay.has_flat_card(monster.folder):
+			cfg["monster_flat_meshes"] = MonsterDisplay.flat_mesh_paths(monster.folder)
+			cfg["monster_flat_texture"] = MonsterDisplay.flat_diffuse_texture(monster.folder)
+			cfg["monster_flat_rotation"] = MonsterDisplay.flat_card_rotation(monster.folder)
+			cfg["monster_flat_surface_overrides"] = MonsterDisplay.flat_surface_texture_overrides(monster.folder)
+		else:
+			cfg["monster_image"] = MonsterDisplay.crop_texture(monster.folder)
+		successes = await dialog.ask_attack(cfg)
 		visible = true
 		if successes < 0:
 			return

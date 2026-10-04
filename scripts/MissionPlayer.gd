@@ -271,7 +271,14 @@ func _ready() -> void:
 ## rotating autosave; a game save is a deliberate, kept snapshot, no rotation).
 func save_game() -> void:
 	var save := SaveGame.new()
-	save.mission = mission
+	# A deep copy, NOT the live `mission` itself - the live one was loaded from
+	# a mission file, so it still carries that file's resource_path, and
+	# ResourceSaver writes any sub-resource that has a path as an external
+	# REFERENCE to that file instead of embedding it. The save would then
+	# hold none of the in-place progress (revealed groups, fired triggers,
+	# used actions, removed/moved pieces) - loading it silently re-read the
+	# pristine mission. A duplicate has no path, so it embeds.
+	save.mission = mission.duplicate(true)
 	save.current_round = current_round
 	save.current_checkpoint = current_checkpoint
 	save.player_roster = player_roster.duplicate()
@@ -492,19 +499,32 @@ func _on_back_button_pressed() -> void:
 ## since Godot's default StyleBoxFlat override doesn't otherwise change look
 ## on disabled - without this the button would look identically pressable
 ## while genuinely disabled (see _ready()'s own hiding/disabling of it).
+##
+## A pointy concave-arc `ConcaveBorderBox` sibling was tried here 2026-10-01
+## ("make the end phase button with an edge so it looks a bit like our
+## general style") and reverted the same day ("revert the end phase
+## button, with border i mean like the buttons in the combat view (cancel
+## for example)") - the actual ask was the flat bordered-rect look
+## CombatView's own `_big_button()` (Confirm/Cancel) already uses, not the
+## arced badge shape. Back to a plain `StyleBoxFlat` per state, just now
+## matching that exact pattern (lightened border colour, `border_width`
+## 3, `corner_radius` 4) instead of the flatter single-colour style this
+## had before either round.
 func _style_end_phase_button() -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.55, 0.12, 0.1)
-	normal.set_corner_radius_all(6)
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = Color(0.68, 0.16, 0.12)
-	hover.set_corner_radius_all(6)
+	var color := Color(0.55, 0.12, 0.1)
+	for state in ["normal", "hover", "pressed"]:
+		var s := StyleBoxFlat.new()
+		s.bg_color = color.lightened(0.15) if state == "hover" else color
+		s.border_color = color.lightened(0.4)
+		s.set_border_width_all(3)
+		s.set_corner_radius_all(4)
+		end_phase_button.add_theme_stylebox_override(state, s)
+	var disabled_color := Color(0.3, 0.28, 0.27)
 	var disabled := StyleBoxFlat.new()
-	disabled.bg_color = Color(0.3, 0.28, 0.27)
-	disabled.set_corner_radius_all(6)
-	end_phase_button.add_theme_stylebox_override("normal", normal)
-	end_phase_button.add_theme_stylebox_override("hover", hover)
-	end_phase_button.add_theme_stylebox_override("pressed", hover)
+	disabled.bg_color = disabled_color
+	disabled.border_color = disabled_color.lightened(0.4)
+	disabled.set_border_width_all(3)
+	disabled.set_corner_radius_all(4)
 	end_phase_button.add_theme_stylebox_override("disabled", disabled)
 	end_phase_button.add_theme_color_override("font_color", Color.WHITE)
 	end_phase_button.add_theme_color_override("font_color_disabled", Color(0.7, 0.68, 0.65))

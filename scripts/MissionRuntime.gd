@@ -300,6 +300,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.folder = folder
 	created.custom_name = template.custom_name
 	created.hitpoints = template.hitpoints
+	created.max_hitpoints = template.hitpoints
 	created.level = template.level
 	created.defense = template.defense
 	created.weaknesses = template.weaknesses.duplicate()
