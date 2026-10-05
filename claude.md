@@ -1081,6 +1081,137 @@ scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + ne
 8 -> 9 rounding down, afflicted 4 damage, clearing, Doomed keeping Dazed, a defeat by affliction);
 the Player-side dialog/round-loop hooks are compile-checked only.
 
+**Monster attack properties + condition immunities (2026-10-05, branch
+`feature/monster-attacks`)** - "eventually they must attack, so probably they need some additional
+properties." All **data only - nothing uses the attack side yet** (monsters don't attack in the
+Player). On `MonsterTemplate` (authored) -> copied onto `RuntimeMonster` by `register_monster()`:
+`attack_power` (damage dealt, default 3; heroes will be able to defend against it - not built),
+`attack_range`/`attack_reach` (same meaning as `Weapon.weapon_range`/`reach`, 0 = melee),
+`attack_abilities` and `defense_abilities` (**one shared structure**, `MonsterAbility` Resource -
+`ability_name` only for now; which list it sits in says which kind), `target_rules` (ordered
+"preferred target" rules, `TargetRule` Resource - `rule_name` only; evaluation/rule kinds like "a
+specific hero"/"the hero that did the most damage" not designed), plus `condition_immunities`
+(`Array[int]` of `MonsterCondition.Kind` - "a zombie can't be Confused, no brain"). Runtime copies of
+the ability/rule lists are independent (`MonsterAbility.copies()`/`TargetRule.copies()`) so a spawned
+monster can't mutate the template; `RuntimeMonster.to_dict()/from_dict()` carry all of it for saves
+(older saves default: power 3, range 0, no abilities/rules/immunities). Authoring: `MonsterPropertiesDialog`
+(now scrollable, 440x760) got a "Condition immunities" checkbox grid and an "Attack" section (Power, Range,
+Reach, and three add/rename/remove name-list editors via `_add_name_list()`); `MonsterTemplate.summary()`
+shows "Atk N". **Condition immunity is enforced**: `resolve_attack()` refuses an immune condition (not
+added to the monster) and returns it in `conditions_resisted`; the outcome shows an "Immune to: Confused"
+line under "Applied:" and the quest-log text a line too. Condition immunities are NOT secret (unlike
+damage-type immunities): the combat view's Conditions dialog shows them disabled and marked "(immune)"
+(cfg `monster_condition_immunities`), so they can't even be picked; the `resolve_attack()` refusal
+remains as a safety net. Verified with throwaway scenes (template->runtime copy, independent lists, dict
+round-trip, dialog add/remove rows, Confused refused while Exposed applies and boosts); dialog
+look not seen rendered.
+
+**Reusable monster templates (2026-10-05, branch `feature/monster-templates`, first try)** - "monsters
+are becoming quite complex... offer some sort of template functionality... reusable over levels."
+**Naming**: the UI says "Monster Template", but the class is **`MonsterArchetype`** because
+`MonsterTemplate` already means ONE monster a SPAWN_MONSTERS effect creates. A `MonsterArchetype` (Resource)
+pins: `name_prefix`/`name_postfix` (verbatim - include the spaces: "Shady " + John + " of the
+Shadowguild"), `weaknesses`/`resistances`/`immunities`, `condition_immunities`, `attack_abilities`/
+`defense_abilities` (MonsterAbility), and level scaling tables `attack_scaling`/`defense_scaling`
+(`Array[LevelValue]`: `min_level`..`max_level` INCLUSIVE -> `value`; `LevelValue.lookup()` = highest matching row,
+-1 = pins nothing at that level). **Storage**: a shared library of `.tres` files in user data
+(`user://monster_templates/<name>.tres`, `MonsterArchetypeLibrary` - static `names()/load_template()/
+save_template()/delete_template()/key_for()`), edited by `MonsterTemplateEditor` (Window, File menu "Monster
+Templates…" in `CreatorSaveLoad`; list + New/Delete; form for every pin incl. scaling rows and a "preview at
+level" readout; **every edit is written to the library straight away**, a rename = save under the new key + remove
+the old file; not tied to the mission so no undo history). **Attaching**: `MonsterPropertiesDialog` got a
+"Templates" section (list with ×, a picker of library entries + "Add template") - attaching stores an
+**embedded COPY** (`MonsterArchetype.deep_copy()`, hand-written so no resource paths survive; verified a saved
+template does not reference the library file) in the new `MonsterTemplate.archetypes`, so a mission stays
+self-contained - **but see "Updating monsters when a template changes" right below**: the library is kept in sync
+with those copies. The same dialog gained `name_prefix`/`name_postfix` for the monster itself (the
+"prefix/postfix as general monster properties" idea) and an "Effective (with templates)" preview
+(`MonsterTemplate.resolved_summary()`). **Combining** (**superseded by "Base + additive templates" below for the numbers and
+abilities** - `MonsterTemplate.resolve()`, used by
+`MissionRuntime.register_monster()` and the preview): name prefixes/postfixes are simply ADDED (monster's own
+first, then the templates in attach order); weakness/resistance/immunity/condition-immunity lists and
+attack/defense abilities are MERGED (no duplicates; abilities compared by name); attack power, defense and **hitpoints** (hitpoints scaling added the same day, `hitpoints_scaling`) take
+the HIGHEST of the monster's own value and each template's level-scaled value (the monster's `level` picks the
+row). `RuntimeMonster` gained `name_prefix`/`name_postfix` (saved) and `display_name()` = prefix + base name +
+postfix (so "Sir Shady Big John of the Shadowguild" shows everywhere - M view, dialogs, voice matching still works
+word-by-word). Verified with a throwaway scene (library save/load/delete, two templates combined at level 3 ->
+attack 6/defense 3, level 1 -> own values only, runtime + dict round trip, editor builds); the editor/dialog
+look is not seen rendered. **Decisions I made that are easy to change**: scaling rows are inclusive; own
+name affix comes first; templates don't carry target rules or attack range yet; no template-in-template nesting; deleting a library
+template doesn't touch copies already attached (a copy whose library entry is gone is simply left alone).
+
+**Updating monsters when a template changes (same day, "the goal is to batch update monsters")** - the library is
+the source of truth; copies are matched BY NAME and replaced when their content differs
+(`MonsterArchetype.signature()`). `MonsterArchetypeLibrary.sync_templates(templates, apply)`/`sync_mission(mission,
+apply)` (`apply = false` just counts) walk every monster definition in a mission
+(`MissionData.collect_monster_templates()`: triggers, prop actions, the objectives DAG incl. optional objectives, and
+effects nested in a Test's pass/fail branches). It runs: (1) **live, on every saved template edit** in
+`MonsterTemplateEditor` - the monsters in the mission currently open in the Creator are updated as ONE undo step
+("Update monster templates"; the editor gets `layered_map`/`operation_history` from `CreatorSaveLoad`); (2) **when a
+mission is loaded in the Creator** (`CreatorSaveLoad._load_from()`, with a notice "Updated N monster template(s)...
+Save the mission to keep the update"); (3) **batch: "Update all missions…" in the template editor**
+(`MonsterArchetypeLibrary.update_missions_in("user://missions")` - loads every mission file directly in that folder
+(not the backup sub-folder), syncs, saves the changed ones, reports "Updated N monster(s) in M mission(s)"; a mission
+open in the Creator at that moment keeps its in-memory state - reload it). **The Player does NOT sync** - it plays the
+copies embedded in the mission file, so a shared mission behaves as its author saved it even if a player's library
+differs. So: edit a template -> open mission updates immediately; other missions update when you click "Update all
+missions…" or next open them in the Creator and save. Verified with throwaway scenes (hitpoints scaling 40 -> 55
+propagates through a trigger effect and one nested in a Test's pass branch; counts 0/2/0; batch over a temp folder
+saved + reloaded 55); the editor/dialog UI not seen rendered.
+
+**Base + additive templates (2026-10-05, branch `feature/monster-templates`)** - "make certain templates additive
+while other count as base. A monster must always have a base template." `MonsterArchetype.kind` = `BASE` or
+`ADDITIVE` (default BASE; chosen in `MonsterTemplateEditor`, library list marks each "(base)"/"(additive)").
+A monster has ONE `MonsterTemplate.base_archetype` (embedded copy, null = legacy/none) plus any number of additive
+templates in `archetypes`. **What each kind affects** (`MonsterTemplate.resolve()`):
+- *Both kinds*: name prefix/postfix (own, then base, then additives, added); weaknesses, resistances, immunities and
+  condition immunities (merged union - an additive can add but never remove); hitpoints/attack/defense via the level
+  tables (below).
+- *Base only*: attack range + reach, attack abilities, defense abilities, target rules (an additive's are ignored, "for
+  now"; the editor hides those sections for additive templates). The monster's own extra abilities/rules/lists still merge in.
+- *Numbers*: `final = base(level) + sum(additive(level))` per stat (`MonsterTemplate.STAT_TABLES`: hitpoints/attack/
+  defense -> `hitpoints_scaling`/`attack_scaling`/`defense_scaling`). A BASE table's value is the stat itself; an
+  ADDITIVE table's value is ADDED and may be **negative** (`LevelValue.value` now -9999..9999). A level outside every row
+  uses the **closest row by absolute distance** (`LevelValue.pick()`; ties -> highest value; replaces the old
+  `lookup()`). An additive with an empty table adds nothing; a table with no rows contributes 0. Clamped: hitpoints >= 1, attack/defense >= 0. The old "highest wins" rule is gone.
+  `resolve()` also returns `sources` (the per-stat breakdown) so the dialog preview reads "HP 24 = 18 (Wolf Pack) + 6 (Tough)".
+`MonsterPropertiesDialog`: a "Base template" picker (BASE templates only, item 0 = none, with a red "every monster
+should have a base template" warning while none) and "Additive templates" (ADDITIVE ones only); **with a base
+attached the monster's own hitpoints/defense/attack/range/reach fields are hidden** (since removed entirely - see the
+mandatory-base paragraph). The library sync now also
+refreshes `base_archetype` (`_fresh_copy_if_stale()`), and `names_of_kind()` feeds the pickers. `register_monster()`
+takes hitpoints/attack/defense/range/reach/abilities/target rules from `resolve()`. Existing library templates load as BASE
+and anything already in `archetypes` now counts as additive (its table values are added). Verified with a throwaway scene
+(L3 wolf 18 base + 6 additive = 24; level 8 -> closest row; level 0; negative additive clamped; no-base uses own values;
+additive's abilities/range ignored; kind-filtered library lists; base sync; runtime values; both UIs build); look not seen.
+
+**A base template is MANDATORY (2026-10-05)** - "enforce use of a base template... fix the mission files once, no
+technical debt." Every monster has exactly one `MonsterTemplate.base_archetype`. The monster's own
+hitpoints/defense/attack power/attack range/reach fields are **gone** (they were only a fallback): the base template
+defines them, so give base templates all three scaling tables (a table with no rows contributes 0; hitpoints end up >= 1).
+Enforcement: "Add Monster" in the spawn-monsters editor (ObjectivesDialog/PropActionsDialog) builds the monster via
+`MonsterTemplate.create_with_default_base()` (first BASE template in the library) and refuses with an `OS.alert` when
+the library has none; `MonsterPropertiesDialog`'s base picker item 0 "(choose a base template)" is disabled, so a base can
+be swapped but never removed; `MissionRuntime.register_monster()` returns null without a base and `MissionPlayer.
+_run_monster_spawn()` tells the table "No base template for: X - not spawned (fix the mission in the Creator)".
+**Existing missions were upgraded once, by hand**: the monster spawn effects without a base were removed from
+`DemoMission2.tres` in the real missions folder (2 effects; a backup copy of the file was kept outside the repo) - there is
+deliberately NO migration code in the project (no load-time upgrade). Older files in `missions/backup` (autosaves) and old
+saved games may still contain baseless monsters/removed fields; a baseless spawn there is simply refused at runtime.
+`MissionData._effect_lists()` is the shared walk used by `collect_monster_templates()`. Verified (throwaway scenes) that
+resolve works without own stats, the dialog builds with its disabled item, and the upgraded mission loads with 0 monsters.
+**Minimal monster definition (same day)**: "in the monster creation view I expected only name, base template and additive
+templates." `MonsterPropertiesDialog` now has only: name, **level** (kept - it is the input of the templates' scaling tables),
+the required base template, the additive templates, and a read-only "Effective (with templates)" preview. `MonsterTemplate`
+lost every other own property (weaknesses/resistances/immunities, condition immunities, name prefix/postfix, extra attack/defense
+abilities, target rules) - they only come from templates now; `resolve()` starts empty and merges base then additives.
+(`RuntimeMonster` still carries the resolved values.) The dialog is rewritten (~200 lines, was ~480).
+
+**Dialog sizing**: `MonsterTemplateEditor` and `MonsterPropertiesDialog` open with `popup_centered_clamped(preferred size, 0.9)`
+(820x720 / 440x760 at most, never more than 90% of the game window) and have a small `min_size`; their forms scroll.
+**Scaling rows**: "Add row" in the template editor continues the table - the new row starts after the highest existing max level
+(level 1 in an empty table) and spans two levels (1-2, 3-4, 5-6...), instead of the old 1-99.
+
 **Slide-in (same day, "make the models slide in from the side")**: on entering the
 choice stage `_slide_in_choice()` tweens both previews' `offset_left`/`offset_right`
 from +-half a screen width to 0 (`CHOICE_SLIDE_SEC` 0.55, cubic ease-out, the right

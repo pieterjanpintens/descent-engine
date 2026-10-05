@@ -388,16 +388,20 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	# not registered/placed.
 	var spawned: Array[RuntimeMonster] = []
 	var no_chip: Array[String] = []
+	var no_base: Array[String] = []
 	for template: MonsterTemplate in templates:
 		if MonsterDisplay.find_monster(template.folder).is_empty():
 			push_warning("SPAWN_MONSTERS lists unknown monster '%s' - skipped" % template.folder)
+			continue
+		if template.base_archetype == null:
+			no_base.append(MonsterDisplay.find_monster(template.folder)["name"])
 			continue
 		var registered := _runtime.register_monster(template)
 		if registered == null:
 			no_chip.append(MonsterDisplay.find_monster(template.folder)["name"])
 			continue
 		spawned.append(registered)
-	if spawned.is_empty() and no_chip.is_empty():
+	if spawned.is_empty() and no_chip.is_empty() and no_base.is_empty():
 		return
 
 	# Step 1 - what to take out of the box, one line per monster with its
@@ -408,6 +412,8 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		lines.append("%s - %s chip" % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
 	if not no_chip.is_empty():
 		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
+	if not no_base.is_empty():
+		lines.append("No base template for: %s - not spawned (fix the mission in the Creator)." % ", ".join(no_base))
 	await dialog.ask_ok("
 ".join(lines), true, false, "Monsters appear")
 	if spawned.is_empty():

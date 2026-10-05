@@ -369,6 +369,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		"hero_size_units": HeroCatalog.size_units(hero_slot),
 		"monster_size_units": MonsterDisplay.size_units(monster.folder),
 		"monster_conditions": monster.conditions.duplicate(),
+		"monster_condition_immunities": monster.condition_immunities.duplicate(),
 	}
 	var hero_art := _hero_art(hero_slot, weapon_index)
 	for key in hero_art:
@@ -418,6 +419,12 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		for condition in applied:
 			applied_names.append(MonsterCondition.display_name(condition))
 		text += "\nConditions applied: %s" % ", ".join(applied_names)
+	var resisted: Array[int] = r["conditions_resisted"]
+	if not resisted.is_empty():
+		var resisted_names: Array[String] = []
+		for condition in resisted:
+			resisted_names.append(MonsterCondition.display_name(condition))
+		text += "\nImmune to: %s" % ", ".join(resisted_names)
 	# The result is shown on the combat screen itself (calculation, health bar,
 	# revealed weaknesses); the text below is what the quest log keeps.
 	await dialog.ask_attack_outcome(cfg, post_cfg, r, text, "Attack")
