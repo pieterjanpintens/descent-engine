@@ -145,6 +145,7 @@ func set_roster(roster: Array[int]) -> void:
 	for child in _row.get_children():
 		child.queue_free()
 	_portraits.clear()
+	_wound_labels.clear()
 	_roster = roster.duplicate()
 
 	for dock_position in _roster.size():
@@ -185,8 +186,40 @@ func _make_portrait(hero_slot: int, dock_position: int) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	portrait.add_child(label)
 
+	# Wound marker (top-right): one cross per wound, hidden while healthy.
+	var wound_label := Label.new()
+	wound_label.add_theme_font_size_override("font_size", 18)
+	wound_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	wound_label.add_theme_constant_override("outline_size", 6)
+	wound_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	wound_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	wound_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait.add_child(wound_label)
+	_wound_labels[hero_slot] = wound_label
+	_apply_wound_label(hero_slot)
+
 	portrait.gui_input.connect(_on_portrait_gui_input.bind(dock_position))
 	return portrait
+
+
+## hero slot -> wound count, as last reported by MissionRuntime.hero_wounds.
+var _wounds: Dictionary = {}
+var _wound_labels: Dictionary = {}  # hero slot -> the portrait's wound Label
+
+
+## Updates the wound markers on the portraits (call after every wound).
+func refresh_wounds(wounds: Dictionary) -> void:
+	_wounds = wounds.duplicate()
+	for slot in _wound_labels:
+		_apply_wound_label(slot)
+
+
+func _apply_wound_label(hero_slot: int) -> void:
+	var label: Label = _wound_labels[hero_slot]
+	var count := int(_wounds.get(hero_slot, 0))
+	label.visible = count > 0
+	label.text = "✚".repeat(count)
+	label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.25) if count == 1 else Color(1.0, 0.3, 0.25))
 
 
 func _on_portrait_gui_input(event: InputEvent, dock_position: int) -> void:
@@ -390,7 +423,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		if successes < 0:
 			return
 		conditions = dialog.attack_conditions.duplicate()
-	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions)
+	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot)
 	# The same cfg with what the monster now has discovered.
 	var post_cfg := cfg.duplicate()
 	post_cfg["known_weaknesses"] = monster.known_weaknesses.duplicate()

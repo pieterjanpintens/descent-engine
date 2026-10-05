@@ -116,6 +116,10 @@ func _ready() -> void:
 	quest_log.journal = journal
 	quest_log.objectives_provider = func() -> Array: return _runtime.get_current_objective_descriptions() if _runtime != null else []
 	hud.open_quest_log = quest_log.open
+	var heroes_dialog := HeroesDialog.new()
+	dialog.get_parent().add_child(heroes_dialog)
+	heroes_dialog.wound_requested.connect(_wound_hero)
+	hud.open_heroes = func(): heroes_dialog.open(player_roster, _runtime)
 
 	# Embark comes before anything else - the table picks its party before
 	# there's any board state to interact with. Defines player count (the
@@ -150,6 +154,10 @@ func _ready() -> void:
 		current_checkpoint = resume_save.current_checkpoint
 		_runtime.load_variables_state(resume_save.runtime_variables)
 		_runtime.restore_monsters(resume_save.monsters)
+		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
+		_runtime.hero_times_targeted = resume_save.hero_times_targeted.duplicate()
+		_runtime.hero_wounds = resume_save.hero_wounds.duplicate()
+		interaction_dock.refresh_wounds(_runtime.hero_wounds)
 		_runtime.load_current_objective_ids(resume_save.current_objective_ids)
 		journal.entries = resume_save.journal_entries
 
@@ -288,6 +296,9 @@ func save_game() -> void:
 	for monster in _runtime.monsters:
 		monster_dicts.append(monster.to_dict())
 	save.monsters = monster_dicts
+	save.hero_attacks_made = _runtime.hero_attacks_made.duplicate()
+	save.hero_times_targeted = _runtime.hero_times_targeted.duplicate()
+	save.hero_wounds = _runtime.hero_wounds.duplicate()
 	save.current_objective_ids = _runtime.get_current_objective_ids()
 	save.journal_entries = journal.entries.duplicate(true)
 
@@ -903,6 +914,29 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 		return true
 	await _handle_game_over(objective)
 	return false
+
+
+## The "wound hero" action (HeroesDialog -> wound_requested): the table reports that
+## a hero lost all hitpoints. Confirms, adds the wound, and for the
+## MissionRuntime.HERO_WOUND_LIMIT-th (third) wound loses the game. Logged to the
+## quest log as "Wound".
+func _wound_hero(slot: int) -> void:
+	var hero_name := HeroCatalog.slot_name(slot)
+	var is_last := _runtime.wound_count(slot) + 1 >= MissionRuntime.HERO_WOUND_LIMIT
+	var question := "%s lost all hitpoints. Wound %s?" % [hero_name, hero_name]
+	if is_last:
+		question += "\n\nThis is %s's third wound - the game will be lost!" % hero_name
+	if not await dialog.ask_yes_no(question):
+		return
+	var wounds := _runtime.wound_hero(slot)
+	interaction_dock.refresh_wounds(_runtime.hero_wounds)
+	if wounds >= MissionRuntime.HERO_WOUND_LIMIT:
+		var defeat := MissionObjective.new()
+		defeat.outcome = MissionObjective.Outcome.LOSE
+		defeat.description = "%s was wounded a third time." % hero_name
+		await _handle_game_over(defeat)
+		return
+	await dialog.ask_ok("%s is %s." % [hero_name, MissionRuntime.wound_label(wounds).to_lower()], true, false, "Wound")
 
 
 ## Shared by both ends of the objectives DAG: the checkpoint-driven path

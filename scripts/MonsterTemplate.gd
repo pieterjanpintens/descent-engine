@@ -151,7 +151,7 @@ func resolved_summary() -> String:
 	lines.append("Defense abilities: %s" % _ability_names(r["defense_abilities"]))
 	var rule_names: Array[String] = []
 	for rule: TargetRule in r["target_rules"]:
-		rule_names.append(rule.rule_name)
+		rule_names.append(rule.display_name())
 	lines.append("Preferred targets: %s" % (", ".join(rule_names) if not rule_names.is_empty() else "-"))
 	return "\n".join(lines)
 
@@ -206,7 +206,7 @@ static func _merge_rules(into: Array[TargetRule], extra: Array[TargetRule]) -> v
 	for rule in extra:
 		var present := false
 		for existing in into:
-			if existing.rule_name == rule.rule_name:
+			if existing.kind == rule.kind and existing.hero_slot == rule.hero_slot:
 				present = true
 				break
 		if not present:

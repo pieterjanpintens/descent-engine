@@ -1089,8 +1089,7 @@ Player). On `MonsterTemplate` (authored) -> copied onto `RuntimeMonster` by `reg
 `attack_range`/`attack_reach` (same meaning as `Weapon.weapon_range`/`reach`, 0 = melee),
 `attack_abilities` and `defense_abilities` (**one shared structure**, `MonsterAbility` Resource -
 `ability_name` only for now; which list it sits in says which kind), `target_rules` (ordered
-"preferred target" rules, `TargetRule` Resource - `rule_name` only; evaluation/rule kinds like "a
-specific hero"/"the hero that did the most damage" not designed), plus `condition_immunities`
+"preferred target" rules, `TargetRule` Resource - since turned into rule KINDS, see "Monster target rules" below), plus `condition_immunities`
 (`Array[int]` of `MonsterCondition.Kind` - "a zombie can't be Confused, no brain"). Runtime copies of
 the ability/rule lists are independent (`MonsterAbility.copies()`/`TargetRule.copies()`) so a spawned
 monster can't mutate the template; `RuntimeMonster.to_dict()/from_dict()` carry all of it for saves
@@ -1206,6 +1205,42 @@ the required base template, the additive templates, and a read-only "Effective (
 lost every other own property (weaknesses/resistances/immunities, condition immunities, name prefix/postfix, extra attack/defense
 abilities, target rules) - they only come from templates now; `resolve()` starts empty and merges base then additives.
 (`RuntimeMonster` still carries the resolved values.) The dialog is rewritten (~200 lines, was ~480).
+
+**Monster target rules (2026-10-05, branch `feature/monster-targeting`)** - `TargetRule` is no longer a name: it has a
+`kind` (`TargetRule.Kind`): **RANDOM** (a random hero), **RETALIATE** (the hero that most recently attacked this monster),
+**JUMP** (the hero whose weapon has the longest `weapon_range`, ties random), **TANK** (the hero whose weapon does the most
+`damage`, ties random), **SUPPRESS** (the hero that has attacked the most, ties random). A base template holds an ORDERED list of
+them (`MonsterArchetype.target_rules`; the template editor has a kind picker per row with a tooltip, up/down and remove);
+`MonsterTargeting.choose_target(monster, roster, hero_weapons, hero_attacks_made, rng)` (pure, static) tries them in order, the
+first that finds a hero wins, otherwise a random hero (-1 only for an empty roster). Jump/Tank look at the best of a hero's two
+weapons. Retaliate needs the attacker to still be in the roster; Suppress needs someone to have attacked, else the next rule
+decides. **New tracking** (it did not exist): `RuntimeMonster.last_attacker` (hero slot, -1 none; saved in `to_dict`) and
+`MissionRuntime.hero_attacks_made` (slot -> count; saved in `SaveGame.hero_attacks_made`), both set by
+`resolve_attack(..., hero_slot)` when an attack is confirmed (`PlayerInteractionController` passes the slot).
+`MissionRuntime.choose_target(monster, roster, hero_weapons)` is the entry point. **Not wired into any monster turn yet**
+(monsters don't attack in the Player). Interpretation to confirm: "suppress - attack the hero that is attacked the most" was
+read as "the hero that ATTACKS the most". Verified with a throwaway scene (each rule, fallthrough, ties spread, empty roster,
+tracking + dict round trip, editor row builds).
+
+**Hero wounds + more target rules (2026-10-05, branch `feature/monster-targeting`)** - hero hit points are physical and NOT
+tracked; what the game tracks is **wounds**: when a hero drops to zero the table reports it (the **"wound hero" action**).
+1 wound = Wounded, 2 = Heavily wounded, the **third wound loses the game**. State: `MissionRuntime.hero_wounds` (slot -> count,
+`HERO_WOUND_LIMIT` = 3, `wound_count()`, `wound_hero(slot)` -> new count, static `wound_label(count)`), saved in
+`SaveGame.hero_wounds`. UI: the Party menu's **"Heroes"** item (was a mock) opens `HeroesDialog` (portrait, name, wound state,
+a "Wound" button per hero; closes and emits `wound_requested`); `MissionPlayer._wound_hero(slot)` asks for confirmation (a
+third wound warns that the game will be lost), adds the wound, updates the portrait markers
+(`PlayerInteractionController.refresh_wounds()` - a red/orange "✚" per wound at the top-right of each portrait), logs "Wound"
+to the quest log, and on the third wound ends the game through `_handle_game_over()` with a synthetic LOSE objective
+("<Hero> was wounded a third time."). No voice command yet. **Six more `TargetRule.Kind`s** (appended, so saved values keep
+their meaning): **FOCUS** (the hero the monsters targeted the most, pile on), **SPREAD** (targeted the least), **FIXED_HERO**
+(`TargetRule.hero_slot`, hero picker shown in the template editor for that kind), **CASTER** (a hero with a magic-damage weapon,
+`Vulnerability.is_magic`), **FINISH** (the most wounded hero; nobody wounded -> next rule), **FRESH** (the least wounded).
+`MonsterTargeting.choose_target(monster, roster, context, rng)` now takes ONE context dict ("weapons", "attacks_made",
+"times_targeted", "wounds") instead of separate args; `MissionRuntime.choose_target()` builds it and RECORDS the pick in the new
+`hero_times_targeted` (saved in `SaveGame.hero_times_targeted`). Still NOT wired into a monster turn. Not built: Weakest/Nearest
+(hit points / positions aren't tracked), wound-related variables for mission conditions, a "wound hero" mission effect.
+Verified with a throwaway scene (each new rule + fallthrough, wound counts 1/2/3 + labels, targeting recorded, rule dict round
+trip, HeroesDialog rows + wound signal, portrait badges, editor hero picker); the dialogs/badges are not seen rendered.
 
 **Dialog sizing**: `MonsterTemplateEditor` and `MonsterPropertiesDialog` open with `popup_centered_clamped(preferred size, 0.9)`
 (820x720 / 440x760 at most, never more than 90% of the game window) and have a small `min_size`; their forms scroll.

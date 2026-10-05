@@ -272,6 +272,22 @@ var _pending_object_moves: Array[Dictionary] = []
 ## (Array[String] of monster folders, in spawn-tile order).
 var _pending_monster_spawns: Array[Dictionary] = []
 
+## How many attacks each hero slot has made against monsters (slot -> count),
+## counted by resolve_attack() - what the Suppress target rule follows. Saved
+## with the game (SaveGame.hero_attacks_made).
+var hero_attacks_made: Dictionary = {}
+
+## How many times monsters have targeted each hero slot (slot -> count), recorded by
+## choose_target() - what the Focus/Spread target rules follow. Saved with the game.
+var hero_times_targeted: Dictionary = {}
+
+## Each hero slot's WOUNDS (slot -> 0..HERO_WOUND_LIMIT). Hero hit points are physical
+## and not tracked: when a hero drops to zero the table reports it (the "wound hero"
+## action, HeroesDialog). 1 wound = wounded, 2 = heavily wounded, the HERO_WOUND_LIMIT-th
+## (third) wound loses the game (MissionPlayer). Saved with the game.
+const HERO_WOUND_LIMIT := 3
+var hero_wounds: Dictionary = {}
+
 ## Every live spawned monster (new 2026-09-19), registered by
 ## register_monster(). Emits monsters_changed on any add/remove so the M
 ## monster view can rebuild.
@@ -358,9 +374,13 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 ## an Exposed monster takes `EXPOSED_DAMAGE_PERCENT`% extra damage (rounded
 ## down, `exposed_bonus`), added to successes x weapon damage before the defense
 ## roll is subtracted.
-func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null, apply_conditions: Array = []) -> Dictionary:
+func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null, apply_conditions: Array = [], hero_slot: int = -1) -> Dictionary:
 	if weapon == null:
 		weapon = Weapon.placeholder()
+	# Who attacked is remembered for the Retaliate/Suppress target rules.
+	if hero_slot >= 0:
+		monster.last_attacker = hero_slot
+		hero_attacks_made[hero_slot] = int(hero_attacks_made.get(hero_slot, 0)) + 1
 	# Conditions are applied BEFORE the damage is calculated, so a condition
 	# applied by this very attack (e.g. Exposed) already affects it.
 	var conditions_applied: Array[int] = []
@@ -444,6 +464,45 @@ func end_monster_phase_conditions() -> void:
 		else:
 			monster.conditions.clear()
 	monsters_changed.emit()
+
+
+## Which hero `monster` attacks, from its target rules (MonsterTargeting) - `roster`
+## the hero slots in play, `hero_weapons` slot -> Array[Weapon]. -1 if there are no
+## heroes. Not used by a monster turn yet (monsters don't attack in the Player).
+## The choice is recorded in `hero_times_targeted`.
+func choose_target(monster: RuntimeMonster, roster: Array[int], hero_weapons: Dictionary) -> int:
+	var chosen := MonsterTargeting.choose_target(monster, roster, {
+		"weapons": hero_weapons,
+		"attacks_made": hero_attacks_made,
+		"times_targeted": hero_times_targeted,
+		"wounds": hero_wounds,
+	})
+	if chosen >= 0:
+		hero_times_targeted[chosen] = int(hero_times_targeted.get(chosen, 0)) + 1
+	return chosen
+
+
+func wound_count(slot: int) -> int:
+	return int(hero_wounds.get(slot, 0))
+
+
+## The "wound hero" action: adds one wound to hero `slot` and returns their new
+## wound count. The caller handles what it means (a dialog; the HERO_WOUND_LIMIT-th
+## wound loses the game).
+func wound_hero(slot: int) -> int:
+	hero_wounds[slot] = wound_count(slot) + 1
+	return int(hero_wounds[slot])
+
+
+static func wound_label(count: int) -> String:
+	match count:
+		0:
+			return "Healthy"
+		1:
+			return "Wounded"
+		2:
+			return "Heavily wounded"
+	return "Defeated"
 
 
 ## Removes a monster from the registry, freeing its colour chip (called by
