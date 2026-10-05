@@ -437,6 +437,19 @@ func _rebuild_name_rows(prop: String) -> void:
 		edit.text_submitted.connect(func(_t: String): commit.call())
 		edit.focus_exited.connect(commit)
 		row.add_child(edit)
+		# Attack abilities can have a behavior the engine acts on (MonsterAbility.Behavior).
+		if prop == "attack_abilities":
+			var behavior_picker := OptionButton.new()
+			for behavior in MonsterAbility.Behavior.values():
+				behavior_picker.add_item(MonsterAbility.behavior_name(behavior), behavior)
+			behavior_picker.select(behavior_picker.get_item_index((item as MonsterAbility).behavior))
+			behavior_picker.item_selected.connect(func(index: int):
+				if _suppress:
+					return
+				(item as MonsterAbility).behavior = behavior_picker.get_item_id(index) as MonsterAbility.Behavior
+				_save()
+			)
+			row.add_child(behavior_picker)
 		var remove := Button.new()
 		remove.text = "×"
 		remove.pressed.connect(func():

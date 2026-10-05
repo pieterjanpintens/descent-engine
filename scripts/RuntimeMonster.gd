@@ -48,6 +48,14 @@ var target_rules: Array[TargetRule] = []
 
 
 ## The custom name if one was set, else the type's generic name ("Bandit").
+## True if one of its attack abilities has `behavior` (MonsterAbility.Behavior).
+func has_attack_behavior(behavior: int) -> bool:
+	for ability in attack_abilities:
+		if ability.behavior == behavior:
+			return true
+	return false
+
+
 func display_name() -> String:
 	var base: String = custom_name if custom_name != "" else str(MonsterDisplay.find_monster(folder).get("name", folder))
 	return name_prefix + base + name_postfix
