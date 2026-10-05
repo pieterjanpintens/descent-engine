@@ -43,6 +43,7 @@ var _base_only: VBoxContainer  ## the sections only a BASE template has (range/r
 var _range_spin: SpinBox
 var _reach_check: CheckBox
 var _scaling_hint: Label
+var _rule_rows: VBoxContainer
 var _check_boxes: Dictionary = {}  # prop -> Array[CheckBox], index = kind
 var _name_rows: Dictionary = {}  # prop -> VBoxContainer
 var _scaling_rows: Dictionary = {}  # prop -> VBoxContainer
@@ -176,7 +177,7 @@ func _ready() -> void:
 	_base_only.add_child(attack_row)
 	_add_name_list(_base_only, "Attack abilities", "attack_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_name_list(_base_only, "Defense abilities", "defense_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
-	_add_name_list(_base_only, "Preferred targets (in order)", "target_rules", "rule_name", func() -> Resource: return TargetRule.new())
+	_add_rule_list(_base_only)
 
 	var scaling_title := Label.new()
 	scaling_title.text = "Level scaling"
@@ -330,6 +331,7 @@ func _populate() -> void:
 			var boxes: Array = _check_boxes[prop]
 			for kind in boxes.size():
 				(boxes[kind] as CheckBox).button_pressed = chosen.has(kind)
+		_rebuild_rule_rows()
 		for prop in _name_rows:
 			_rebuild_name_rows(prop)
 		for prop in _scaling_rows:
@@ -444,6 +446,100 @@ func _rebuild_name_rows(prop: String) -> void:
 		)
 		row.add_child(remove)
 		rows.add_child(row)
+
+
+## The base template's preferred-target rules: an ordered list of rule KINDS (see
+## TargetRule) - the monster tries them top to bottom, the first that finds a hero
+## wins, else a random hero. Each row: kind picker, move up/down, remove.
+func _add_rule_list(parent: Control) -> void:
+	var title_label := Label.new()
+	title_label.text = "Preferred targets (tried in order, else a random hero):"
+	parent.add_child(title_label)
+	_rule_rows = VBoxContainer.new()
+	parent.add_child(_rule_rows)
+	var add := Button.new()
+	add.text = "Add rule"
+	add.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	add.pressed.connect(func():
+		if _working == null:
+			return
+		_working.target_rules.append(TargetRule.new())
+		_save()
+		_rebuild_rule_rows()
+	)
+	parent.add_child(add)
+
+
+func _rebuild_rule_rows() -> void:
+	for child in _rule_rows.get_children():
+		_rule_rows.remove_child(child)
+		child.queue_free()
+	if _working == null:
+		return
+	var rules := _working.target_rules
+	for i in rules.size():
+		var rule: TargetRule = rules[i]
+		var row := HBoxContainer.new()
+		var picker := OptionButton.new()
+		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		for kind in TargetRule.Kind.values():
+			picker.add_item(TargetRule.kind_name(kind), kind)
+			picker.set_item_tooltip(picker.item_count - 1, TargetRule.description(kind))
+		picker.select(picker.get_item_index(rule.kind))
+		picker.tooltip_text = TargetRule.description(rule.kind)
+		row.add_child(picker)
+		# Fixed hero: which hero (only shown for that rule kind).
+		var hero_picker := OptionButton.new()
+		for slot in HeroCatalog.SLOT_COUNT:
+			hero_picker.add_item(HeroCatalog.slot_name(slot), slot)
+		hero_picker.select(hero_picker.get_item_index(rule.hero_slot))
+		hero_picker.visible = rule.kind == TargetRule.Kind.FIXED_HERO
+		hero_picker.item_selected.connect(func(index: int):
+			if _suppress:
+				return
+			rule.hero_slot = hero_picker.get_item_id(index)
+			_save()
+		)
+		picker.item_selected.connect(func(index: int):
+			if _suppress:
+				return
+			rule.kind = picker.get_item_id(index) as TargetRule.Kind
+			picker.tooltip_text = TargetRule.description(rule.kind)
+			hero_picker.visible = rule.kind == TargetRule.Kind.FIXED_HERO
+			_save()
+		)
+		row.add_child(hero_picker)
+		var up := Button.new()
+		up.text = "↑"
+		up.disabled = i == 0
+		up.pressed.connect(func(): _move_rule(i, -1))
+		row.add_child(up)
+		var down := Button.new()
+		down.text = "↓"
+		down.disabled = i == rules.size() - 1
+		down.pressed.connect(func(): _move_rule(i, 1))
+		row.add_child(down)
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(func():
+			rules.remove_at(i)
+			_save()
+			_rebuild_rule_rows()
+		)
+		row.add_child(remove)
+		_rule_rows.add_child(row)
+
+
+func _move_rule(index: int, delta: int) -> void:
+	var rules := _working.target_rules
+	var other := index + delta
+	if other < 0 or other >= rules.size():
+		return
+	var moved: TargetRule = rules[index]
+	rules[index] = rules[other]
+	rules[other] = moved
+	_save()
+	_rebuild_rule_rows()
 
 
 func _add_scaling_list(title_text: String, prop: String) -> void:

@@ -58,6 +58,8 @@ var show_monsters: Callable
 var open_voice_settings: Callable
 ## QuestLogDialog.open - the Party menu's "Quest Log" item.
 var open_quest_log: Callable
+## HeroesDialog.open (wound state + the "wound hero" action) - the Party menu's "Heroes".
+var open_heroes: Callable
 ## MissionPlayer's line-of-sight toggle; returns the new on/off state.
 var toggle_line_of_sight: Callable
 ## MissionPlayer.save_game() - the Gear menu's "Save" item.
@@ -244,6 +246,8 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 				btn.pressed.connect(_on_rules_reference_pressed)
 			"Quest Log":
 				btn.pressed.connect(_on_quest_log_pressed)
+			"Heroes":
+				btn.pressed.connect(_on_heroes_pressed)
 			"Line of Sight":
 				btn.pressed.connect(_on_line_of_sight_pressed.bind(btn))
 			"Save":
@@ -290,6 +294,12 @@ func _on_line_of_sight_pressed(btn: Button) -> void:
 	if toggle_line_of_sight.is_valid():
 		var on: bool = toggle_line_of_sight.call()
 		btn.text = "Line of Sight (on)" if on else "Line of Sight"
+
+
+func _on_heroes_pressed() -> void:
+	_party_menu.visible = false
+	if open_heroes.is_valid():
+		open_heroes.call()
 
 
 func _on_quest_log_pressed() -> void:

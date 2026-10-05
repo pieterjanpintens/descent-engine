@@ -92,7 +92,7 @@ func signature() -> String:
 		return rows
 	var rules: Array = []
 	for rule in target_rules:
-		rules.append(rule.rule_name)
+		rules.append([rule.kind, rule.hero_slot])
 	return var_to_str([
 		template_name, kind, attack_range, attack_reach, rules, name_prefix, name_postfix,
 		weaknesses, resistances, immunities, condition_immunities,

@@ -27,6 +27,9 @@ extends Resource
 @export var player_roster: Array[int] = []
 @export var player_weapons: Dictionary = {}  ## hero slot -> Array[Weapon]
 @export var runtime_variables: Dictionary = {}  ## MissionRuntime.get_variables_state()
+@export var hero_wounds: Dictionary = {}  ## MissionRuntime.hero_wounds (hero slot -> wounds)
+@export var hero_times_targeted: Dictionary = {}  ## MissionRuntime.hero_times_targeted
+@export var hero_attacks_made: Dictionary = {}  ## MissionRuntime.hero_attacks_made (hero slot -> attacks made)
 @export var monsters: Array[Dictionary] = []  ## RuntimeMonster.to_dict() per live monster
 @export var current_objective_ids: Array = []  ## Array[Array[String]] - MissionObjective.id per watched candidate group
 @export var journal_entries: Array[Dictionary] = []  ## Journal.entries, verbatim

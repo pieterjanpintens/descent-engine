@@ -36,6 +36,9 @@ var condition_immunities: Array[int] = []
 ## data only, nothing uses it yet: the damage it deals, its range (0 = melee)/
 ## reach, custom attack + defense abilities (names for now) and ordered
 ## preferred-target rules (names for now).
+## The hero slot that most recently attacked this monster (-1 = none yet) - what the
+## Retaliate target rule follows.
+var last_attacker: int = -1
 var attack_power: int = 3
 var attack_range: int = 0
 var attack_reach: bool = false
@@ -60,6 +63,7 @@ func to_dict() -> Dictionary:
 		"weaknesses": weaknesses.duplicate(), "resistances": resistances.duplicate(), "immunities": immunities.duplicate(),
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
+		"last_attacker": last_attacker,
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
 		"target_rules": _to_dicts(target_rules),
@@ -88,6 +92,7 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.known_resistances = _int_array(d.get("known_resistances", []))
 	m.known_immunities = _int_array(d.get("known_immunities", []))
 	m.conditions = _int_array(d.get("conditions", []))
+	m.last_attacker = d.get("last_attacker", -1)
 	m.condition_immunities = _int_array(d.get("condition_immunities", []))
 	m.attack_power = d.get("attack_power", 3)
 	m.attack_range = d.get("attack_range", 0)
