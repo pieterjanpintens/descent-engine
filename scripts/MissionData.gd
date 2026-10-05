@@ -173,6 +173,47 @@ func find_objective_by_id(id: String) -> MissionObjective:
 	return null
 
 
+## Every top-level effect list in the mission (triggers, prop actions, the
+## objectives DAG incl. optional objectives) - the ARRAY REFERENCES themselves, so
+## callers can read or edit them in place. Effects nested in a Test's pass/fail
+## branches are reached through each effect (see _collect_monster_templates()).
+func _effect_lists() -> Array:
+	var lists: Array = []
+	for trigger in triggers:
+		lists.append(trigger.effects)
+	for entry in interactables:
+		for action in entry.actions:
+			lists.append(action.effects)
+	var visited := {}
+	var queue: Array[MissionObjective] = objectives.duplicate()
+	while not queue.is_empty():
+		var node: MissionObjective = queue.pop_front()
+		if visited.has(node):
+			continue
+		visited[node] = true
+		lists.append(node.effects)
+		queue.append_array(node.children)
+		queue.append_array(node.optional_objectives)
+	return lists
+
+
+## Every MonsterTemplate a SPAWN_MONSTERS effect anywhere in the mission carries
+## (incl. effects nested inside a Test's pass/fail branches) - used to update
+## their attached monster templates from the library (MonsterArchetypeLibrary).
+func collect_monster_templates() -> Array[MonsterTemplate]:
+	var result: Array[MonsterTemplate] = []
+	for effects in _effect_lists():
+		_collect_monster_templates(effects, result)
+	return result
+
+
+func _collect_monster_templates(effects: Array[Effect], into: Array[MonsterTemplate]) -> void:
+	for effect in effects:
+		into.append_array(effect.spawn_monsters)
+		_collect_monster_templates(effect.pass_effects, into)
+		_collect_monster_templates(effect.fail_effects, into)
+
+
 func get_tile(cell: Vector3i) -> TileEntry:
 	return tiles.get(cell, null)
 

@@ -721,7 +721,7 @@ func configure(cfg: Dictionary, animate: bool = true) -> void:
 	_shown_hp = hitpoints
 	_shown_max_hp = max_hitpoints
 	_set_outcome_mode(false)
-	_reset_conditions(cfg.get("monster_conditions", []))
+	_reset_conditions(cfg.get("monster_conditions", []), cfg.get("monster_condition_immunities", []))
 	if animate:
 		_slide_in_combat()
 
@@ -849,16 +849,19 @@ func _on_condition_toggled(pressed: bool, kind: int) -> void:
 
 
 ## Fresh state for a new attack: nothing selected, the monster's already-active
-## conditions shown checked + disabled.
-func _reset_conditions(active: Array) -> void:
+## conditions shown checked + disabled, and the ones it is immune to disabled
+## and marked "(immune)" - not a secret, unlike damage-type immunities.
+func _reset_conditions(active: Array, immune: Array = []) -> void:
 	selected_conditions.clear()
 	_conditions_dialog.visible = false
 	for kind in _condition_checks:
 		var check: CheckBox = _condition_checks[kind]
 		var is_active := active.has(kind)
-		check.set_pressed_no_signal(is_active)
-		check.disabled = is_active
-		check.text = MonsterCondition.display_name(kind) + (" (active)" if is_active else "")
+		var is_immune := immune.has(kind)
+		check.set_pressed_no_signal(is_active and not is_immune)
+		check.disabled = is_active or is_immune
+		var suffix := " (immune)" if is_immune else (" (active)" if is_active else "")
+		check.text = MonsterCondition.display_name(kind) + suffix
 	_update_conditions_button()
 
 
@@ -926,13 +929,16 @@ func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 		_outcome_tween.tween_property(_calc_note, "modulate:a", 1.0, 0.2)
 
 	var applied: Array = r.get("conditions_applied", [])
-	_calc_conditions.visible = not applied.is_empty()
-	_calc_conditions.modulate.a = 0.0
+	var resisted: Array = r.get("conditions_resisted", [])
+	var condition_lines: Array[String] = []
 	if not applied.is_empty():
-		var applied_names: Array[String] = []
-		for condition in applied:
-			applied_names.append(MonsterCondition.display_name(condition))
-		_calc_conditions.text = "Applied: " + ", ".join(applied_names)
+		condition_lines.append("Applied: " + ", ".join(_condition_names(applied)))
+	if not resisted.is_empty():
+		condition_lines.append("Immune to: " + ", ".join(_condition_names(resisted)))
+	_calc_conditions.visible = not condition_lines.is_empty()
+	_calc_conditions.modulate.a = 0.0
+	if not condition_lines.is_empty():
+		_calc_conditions.text = "\n".join(condition_lines)
 		_outcome_tween.tween_property(_calc_conditions, "modulate:a", 1.0, 0.2)
 
 	# --- reveal weakness/resistance, then drop the health
@@ -949,6 +955,13 @@ func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 	var to_hp := maxf(float(r["hitpoints"]), 0.0)
 	_outcome_tween.tween_method(_set_hp_display, from_hp, to_hp, 0.9).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	_shown_hp = int(to_hp)
+
+
+func _condition_names(kinds: Array) -> Array[String]:
+	var names: Array[String] = []
+	for kind in kinds:
+		names.append(MonsterCondition.display_name(kind))
+	return names
 
 
 func _set_hp_display(value: float) -> void:

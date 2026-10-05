@@ -42,9 +42,11 @@ extends PopupMenu
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
-enum FileAction { NEW, SAVE, LOAD, SETTINGS, BACK }
+enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK }
 
 var _settings_dialog: CreatorSettingsDialog
+var _monster_template_editor: MonsterTemplateEditor
+var _notice_dialog: AcceptDialog
 var _objectives_dialog: ObjectivesDialog
 var _variables_dialog: MissionVariablesDialog
 
@@ -72,6 +74,7 @@ func _ready() -> void:
 	add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
 	add_item("Load", FileAction.LOAD, (KEY_MASK_CTRL | KEY_O) as Key)
 	add_separator()
+	add_item("Monster Templates…", FileAction.MONSTER_TEMPLATES)
 	add_item("Settings…", FileAction.SETTINGS)
 	add_separator()
 	add_item("Back to Menu", FileAction.BACK)
@@ -82,6 +85,15 @@ func _ready() -> void:
 	# PropertiesDialog.
 	_settings_dialog = CreatorSettingsDialog.new()
 	add_child(_settings_dialog)
+
+	# The shared library of reusable monster templates (new 2026-10-05) - not
+	# part of the mission, so no operation_history/layered_map wiring.
+	_monster_template_editor = MonsterTemplateEditor.new()
+	_monster_template_editor.layered_map = layered_map
+	_monster_template_editor.operation_history = operation_history
+	add_child(_monster_template_editor)
+	_notice_dialog = AcceptDialog.new()
+	add_child(_notice_dialog)
 
 	# Objectives DAG editor (reworked 2026-09-12 from a single LineEdit) -
 	# built once here and reused across opens, same pattern as
@@ -140,6 +152,8 @@ func _on_id_pressed(id: int) -> void:
 			_on_load_button_pressed()
 		FileAction.SETTINGS:
 			_settings_dialog.open()
+		FileAction.MONSTER_TEMPLATES:
+			_monster_template_editor.open()
 		FileAction.BACK:
 			_on_back_button_pressed()
 
@@ -196,10 +210,17 @@ func _load_from(path: String) -> void:
 	var loaded := MissionIO.load_mission(path)
 	if loaded == null:
 		return
+	# Bring the monster templates attached in this mission up to date with the
+	# library first (the library is the source of truth while editing; a copy
+	# whose library entry is gone is left alone).
+	var updated := MonsterArchetypeLibrary.sync_mission(loaded)
 	# apply_mission() emits mission_objects_changed, which
 	# _on_mission_objects_changed() above already turns into a field
 	# refresh - no need to call it explicitly here too.
 	layered_map.apply_mission(loaded)
+	if updated > 0:
+		_notice_dialog.dialog_text = "Updated %d monster template(s) in this mission from the library. Save the mission to keep the update." % updated
+		_notice_dialog.popup_centered()
 
 
 ## Live-synced (2026-09-10, for undo/redo - see OperationHistory.gd). Each

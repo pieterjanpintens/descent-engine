@@ -289,6 +289,9 @@ signal monsters_changed
 ## Returns null (and push_warning()s) if no valid colour is left, e.g. a
 ## fifth bandit or all four yellow chips in use.
 func register_monster(template: MonsterTemplate) -> RuntimeMonster:
+	if template.base_archetype == null:
+		push_warning("Monster '%s' has no base template - not registered" % template.folder)
+		return null
 	var folder := template.folder
 	var candidates: Array[int] = []
 	for chip in MonsterChip.Chip.values():
@@ -311,13 +314,25 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	_next_monster_number += 1
 	created.folder = folder
 	created.custom_name = template.custom_name
-	created.hitpoints = template.hitpoints
-	created.max_hitpoints = template.hitpoints
 	created.level = template.level
-	created.defense = template.defense
-	created.weaknesses = template.weaknesses.duplicate()
-	created.resistances = template.resistances.duplicate()
-	created.immunities = template.immunities.duplicate()
+	# The template's own values combined with its attached monster templates
+	# (MonsterTemplate.resolve()): merged lists, highest attack/defense, name affixes.
+	var resolved := template.resolve()
+	created.hitpoints = resolved["hitpoints"]
+	created.max_hitpoints = resolved["hitpoints"]
+	created.name_prefix = resolved["name_prefix"]
+	created.name_postfix = resolved["name_postfix"]
+	created.defense = resolved["defense"]
+	created.weaknesses = resolved["weaknesses"]
+	created.resistances = resolved["resistances"]
+	created.immunities = resolved["immunities"]
+	created.condition_immunities = resolved["condition_immunities"]
+	created.attack_power = resolved["attack_power"]
+	created.attack_range = resolved["attack_range"]
+	created.attack_reach = resolved["attack_reach"]
+	created.attack_abilities = resolved["attack_abilities"]
+	created.defense_abilities = resolved["defense_abilities"]
+	created.target_rules = resolved["target_rules"]
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()
@@ -335,10 +350,11 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 ## defeated and released (chip freed, removed from the M view). Returns the
 ## breakdown for display: {weapon_name, base_damage, weakness_bonus,
 ## resistance_penalty, immune, weapon_damage, successes, damage, defense_roll,
-## dealt, hitpoints, defeated, conditions_applied, exposed_bonus}.
+## dealt, hitpoints, defeated, conditions_applied, conditions_resisted, exposed_bonus}.
 ## `apply_conditions` (MonsterCondition.Kind values the table chose to apply
 ## with this attack) are assigned to the monster FIRST - any it doesn't already
-## have; `conditions_applied` lists the NEW ones - and then count for the damage:
+## have and isn't immune to (the monster's resolved condition immunities, from its templates - those go
+## to `conditions_resisted` instead); `conditions_applied` lists the NEW ones - and then count for the damage:
 ## an Exposed monster takes `EXPOSED_DAMAGE_PERCENT`% extra damage (rounded
 ## down, `exposed_bonus`), added to successes x weapon damage before the defense
 ## roll is subtracted.
@@ -348,8 +364,11 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	# Conditions are applied BEFORE the damage is calculated, so a condition
 	# applied by this very attack (e.g. Exposed) already affects it.
 	var conditions_applied: Array[int] = []
+	var conditions_resisted: Array[int] = []  # refused: the monster is immune to them
 	for condition in apply_conditions:
-		if not monster.conditions.has(condition):
+		if monster.condition_immunities.has(condition):
+			conditions_resisted.append(condition)
+		elif not monster.conditions.has(condition):
 			monster.conditions.append(condition)
 			conditions_applied.append(condition)
 	var bonus := 0
@@ -384,7 +403,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		"weakness_bonus": bonus, "resistance_penalty": penalty, "immune": immune,
 		"weapon_damage": weapon_damage, "successes": successes, "damage": damage,
 		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated,
-		"conditions_applied": conditions_applied, "exposed_bonus": exposed_bonus,
+		"conditions_applied": conditions_applied, "conditions_resisted": conditions_resisted, "exposed_bonus": exposed_bonus,
 		"exposed": not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED),
 	}
 	if defeated:

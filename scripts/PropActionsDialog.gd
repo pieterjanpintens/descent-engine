@@ -1018,7 +1018,11 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 	var add_button := Button.new()
 	add_button.text = "Add Monster"
 	add_button.pressed.connect(func():
-		_commit_field("Add spawned monster", func(): effect.spawn_monsters.append(MonsterTemplate.new()))
+		var created := MonsterTemplate.create_with_default_base()
+		if created == null:
+			OS.alert("Every monster needs a base template. Create one first (File > Monster Templates…).", "No base template")
+			return
+		_commit_field("Add spawned monster", func(): effect.spawn_monsters.append(created))
 		_open_spawn_monsters_editor(effect)
 	)
 	_spawn_monsters_editor_container.add_child(add_button)
