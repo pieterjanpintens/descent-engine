@@ -16,7 +16,7 @@ extends Node3D
 ## a flat timed pause standing in for real world-effect resolution.
 
 @export var menu_scene_path: String = "res://ui/MainMenu.tscn"  ## <<< set to your actual menu scene
-@export var darkness_phase_duration: float = 5.0  ## placeholder until real trigger/effect resolution exists
+@export var darkness_phase_duration: float = 5.0  ## a pause that only happens when no monster is alive to take its turn
 
 @onready var layered_map: LayeredMap = %LayeredMap
 @onready var info_label: Label = %InfoLabel
@@ -848,9 +848,12 @@ func _run_darkness_and_loop() -> void:
 	darkness_overlay.visible = true
 	# Start of the monster phase: Afflicted monsters take their affliction damage.
 	await _apply_affliction()
-	# Stand-in for real world-effect resolution + monster AI - just proves
-	# the phase transition and UI change work before either exists.
-	await get_tree().create_timer(darkness_phase_duration).timeout
+	# Every live monster takes its turn (picks a target, attacks). With none alive a
+	# short pause stands in so the phase change is still visible.
+	if _runtime.monsters.is_empty():
+		await get_tree().create_timer(darkness_phase_duration).timeout
+	else:
+		await _run_monster_attacks()
 
 	# End of the monster phase: conditions only last a round (Doomed ones keep the rest).
 	_runtime.end_monster_phase_conditions()
@@ -863,6 +866,104 @@ func _run_darkness_and_loop() -> void:
 	if not await _advance_to(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE):
 		return
 	await _enter_player_phase()
+
+
+## The monsters' turn: every live monster with an attack takes its turn in registry
+## order (_monster_attack()).
+func _run_monster_attacks() -> void:
+	for monster in _runtime.monsters.duplicate():
+		if _runtime.monsters.has(monster) and monster.attack_power > 0:
+			await _monster_attack(monster)
+
+
+## One monster's turn: it attacks once - more when an attack ability says so
+## (MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE, e.g. "Bloodseeker": after an attack that
+## dealt damage it attacks again; at most MAX_ATTACKS_PER_TURN attacks). Each attack: the
+## target hero comes from the monster's target rules (MissionRuntime.choose_target()), and
+## a dialog shows the monster's flat model with the target, its damage and range and its
+## abilities - like the real game, that is all; the table works out the attack itself
+## (the app doesn't track positions or hit points) and presses Continue. "Interrupt" puts
+## the players back in charge first (_interrupt()) - they can attack the monster, wound a
+## hero from the Party menu's Heroes, ...; a monster defeated meanwhile never attacks, and
+## a hero wounded meanwhile ends THIS monster's turn only (the next monster goes on). Only
+## when the monster has an ability that depends on the outcome is the table asked about it
+## ("Did X deal damage?"). Logged as "Monster attack".
+const MAX_ATTACKS_PER_TURN := 3
+
+
+func _monster_attack(monster: RuntimeMonster) -> void:
+	var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	var range_text := "melee" if monster.attack_range == 0 else "range %d%s" % [monster.attack_range, ", reach" if monster.attack_reach else ""]
+	var ability_lines: Array[String] = []
+	for ability in monster.attack_abilities:
+		ability_lines.append(ability.ability_name if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [ability.ability_name, MonsterAbility.behavior_name(ability.behavior).to_lower()])
+	for attack_number in range(1, MAX_ATTACKS_PER_TURN + 1):
+		var slot := _runtime.choose_target(monster, player_roster, player_weapons)
+		if slot < 0:
+			return
+		var hero_name := HeroCatalog.slot_name(slot)
+		var text := "%s attacks %s!%s\nDamage %d - %s" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.attack_power, range_text]
+		if not ability_lines.is_empty():
+			text += "\n" + "\n".join(ability_lines)
+		var cfg := MonsterDisplay.preview_data(monster.folder)
+		cfg["text"] = text
+		var choice: int = await dialog.ask_monster_attack(cfg)
+		while choice == 1:  # the players interrupt: they act, then the attack goes on
+			var wounds_before := _total_wounds()
+			await _interrupt(monster)
+			if not _runtime.monsters.has(monster):
+				journal.add("Monster attack", ["%s was defeated during an interrupt before it could attack %s." % [who, hero_name]])
+				return
+			if _total_wounds() > wounds_before:
+				# A hero was wounded (the monster "killed" them): THIS monster's turn is
+				# over - the hero resets their hit points and the monsters carry on with
+				# the NEXT monster's attack. (Only a third wound ends the whole game.)
+				journal.add("Monster attack", ["%s wounded a hero - its turn is over." % who])
+				return
+			choice = await dialog.ask_monster_attack(cfg)
+		journal.add("Monster attack", ["%s attacks %s (damage %d, %s)." % [who, hero_name, monster.attack_power, range_text]])
+		# Abilities that build on the outcome need the table's feedback.
+		if monster.has_attack_behavior(MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE):
+			if await dialog.ask_yes_no("Did %s deal damage to %s?" % [monster.display_name(), hero_name]):
+				continue
+		return
+
+
+## All heroes' wounds added up - how _monster_attack() notices a wound made during an interrupt.
+func _total_wounds() -> int:
+	var total := 0
+	for slot in _runtime.hero_wounds:
+		total += int(_runtime.hero_wounds[slot])
+	return total
+
+
+## The "Interrupt" button of a monster's attack dialog: like the real game, an
+## interrupt puts the PLAYERS back in charge - e.g. an ability lets a hero attack the
+## monster first. The darkness dim goes away, the monster view is shown (so a hero can
+## be dragged onto the monster as usual) and a "Resume monster attack" button waits;
+## nothing else is automated. Returns when the players resume.
+func _interrupt(monster: RuntimeMonster) -> void:
+	var was_dark := darkness_overlay.visible
+	var end_phase_was_visible := end_phase_button.visible
+	var monster_view_was_shown := monster_display.visible
+	var previous_phase_text := phase_label.text
+	darkness_overlay.visible = false
+	end_phase_button.visible = false
+	phase_label.text = "Interrupt - the players act"
+	_set_monster_display_visible(true)
+	# A copy of the End Phase button (same place/look; no signals, so it does not end the
+	# phase) that resumes the monster's attack.
+	var resume := end_phase_button.duplicate(Node.DUPLICATE_GROUPS | Node.DUPLICATE_SCRIPTS) as Button
+	resume.text = "Resume monster attack"
+	resume.disabled = false
+	resume.visible = true
+	end_phase_button.get_parent().add_child(resume)
+	await resume.pressed
+	resume.queue_free()
+	end_phase_button.visible = end_phase_was_visible
+	darkness_overlay.visible = was_dark
+	phase_label.text = previous_phase_text
+	_set_monster_display_visible(monster_view_was_shown)
 
 
 ## Start of the monster phase: tells the table about each Afflicted monster's
@@ -928,6 +1029,13 @@ func _wound_hero(slot: int) -> void:
 		question += "\n\nThis is %s's third wound - the game will be lost!" % hero_name
 	if not await dialog.ask_yes_no(question):
 		return
+	await _apply_wound(slot)
+
+
+## Adds the wound (no confirmation - the caller asked first) and shows it; the third wound
+## loses the game.
+func _apply_wound(slot: int) -> void:
+	var hero_name := HeroCatalog.slot_name(slot)
 	var wounds := _runtime.wound_hero(slot)
 	interaction_dock.refresh_wounds(_runtime.hero_wounds)
 	if wounds >= MissionRuntime.HERO_WOUND_LIMIT:

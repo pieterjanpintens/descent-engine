@@ -1242,6 +1242,31 @@ their meaning): **FOCUS** (the hero the monsters targeted the most, pile on), **
 Verified with a throwaway scene (each new rule + fallthrough, wound counts 1/2/3 + labels, targeting recorded, rule dict round
 trip, HeroesDialog rows + wound signal, portrait badges, editor hero picker); the dialogs/badges are not seen rendered.
 
+**Monsters attack (2026-10-05, branch `feature/monster-attacks-turn`)** - the monster phase has a real monster turn: after
+`_apply_affliction()`, `MissionPlayer._run_monster_attacks()` lets EVERY live monster with `attack_power > 0` take its turn in registry
+order (`_monster_attack()`); with no monsters alive the old `darkness_phase_duration` pause remains. **Modelled on the real game, which
+only shows damage and range**: a plain dialog - `PlayerDialog.ask_monster_attack(cfg)`, the normal box with the monster's FLAT MODEL on
+top (`_attack_preview`, a `CombatMeshPreview`, data from `MonsterDisplay.preview_data(folder)`) and the text "Wolf (Yellow chip) attacks
+Chance! / Damage 4 - melee|range N, reach / <abilities>" - NOT the combat view. The app does not work out the attack (the table does;
+positions and hit points aren't tracked). Two buttons (voice too): **Continue** (the attack is resolved) and **Interrupt**. The target
+comes from the monster's target rules (`MissionRuntime.choose_target()`, which records `hero_times_targeted`); each attack is logged as
+"Monster attack". **Interrupt puts the PLAYERS back in charge** (`MissionPlayer._interrupt()`): the darkness dim and End Phase button are
+hidden, the monster view is shown (a hero can be dragged onto the monster as usual) and a **"Resume monster attack"** button (a
+signal-less duplicate of the End Phase button) waits; nothing else is automated - the players attack the monster, **wound a hero from
+the Party menu's Heroes (the wound hero action)**, etc. On resume everything is restored; a monster defeated meanwhile never attacks (quest
+log: "defeated during an interrupt before it could attack"); **a hero wounded meanwhile ends only THAT monster's turn** (`_total_wounds()` is
+compared before/after the interrupt; quest log "wounded a hero - its turn is over") and the monster phase simply continues with the NEXT monster
+(only a third wound ends the game); otherwise the same dialog returns. **Feedback only when an ability needs it**:
+`MonsterAbility.behavior` (`MonsterAbility.Behavior`: `NONE` flavour only, and **`ATTACK_AGAIN_ON_DAMAGE`** - the "Bloodseeker" idea) - after
+Continue, a monster with that ability triggers the question **"Did X deal damage to Y?"** (yes/no); Yes -> it attacks again, re-choosing its
+target, at most `MissionPlayer.MAX_ATTACKS_PER_TURN` = 3 attacks per turn (the dialog marks "(attacks again)"). Abilities are listed in the
+dialog with their behavior; `RuntimeMonster.has_attack_behavior()`; saved in the ability dict; the template editor has a behavior picker on
+each ATTACK ability row (defense abilities have none yet; `signature()` includes it). The earlier no-damage/damage/wounded buttons, the
+defense-successes dialog, `MissionRuntime.monster_attack_damage()` and the game-over return plumbing of the monster turn were removed.
+Not used yet: defense-ability behaviors, conditions that should affect attacking (Dazed/Slowed/Confused/Enfeebled are unimplemented), monster
+movement, the monster's `attack_range` beyond being shown. Verified: the dialog with a real wolf model (button + voice answers); the
+`_monster_attack`/`_interrupt` flow was not run in a Player session.
+
 **Dialog sizing**: `MonsterTemplateEditor` and `MonsterPropertiesDialog` open with `popup_centered_clamped(preferred size, 0.9)`
 (820x720 / 440x760 at most, never more than 90% of the game window) and have a small `min_size`; their forms scroll.
 **Scaling rows**: "Add row" in the template editor continues the table - the new row starts after the highest existing max level

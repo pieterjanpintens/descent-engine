@@ -408,6 +408,21 @@ static func flat_surface_texture_overrides(folder: String) -> Dictionary:
 
 ## True when a real flat card (mesh + texture) is available for this monster,
 ## or if the asset import script hasn't been run/found nothing.
+## What a dialog needs to show this monster's flat model (CombatMeshPreview): the
+## `monster_flat_*` keys when the real card exists, else the crop image, plus its
+## `monster_size_units` - the same keys the combat view's cfg uses.
+static func preview_data(folder: String) -> Dictionary:
+	var data := {"monster_size_units": size_units(folder)}
+	if has_flat_card(folder):
+		data["monster_flat_meshes"] = flat_mesh_paths(folder)
+		data["monster_flat_texture"] = flat_diffuse_texture(folder)
+		data["monster_flat_rotation"] = flat_card_rotation(folder)
+		data["monster_flat_surface_overrides"] = flat_surface_texture_overrides(folder)
+	else:
+		data["monster_image"] = crop_texture(folder)
+	return data
+
+
 static func has_flat_card(folder: String) -> bool:
 	return not flat_mesh_paths(folder).is_empty() and flat_diffuse_texture(folder) != null
 

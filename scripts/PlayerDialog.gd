@@ -39,6 +39,7 @@ signal _closed(result: Variant)
 var _label: Label
 var _button_row: HBoxContainer
 var _count_input: SpinBox
+var _attack_preview: CombatMeshPreview
 var _image_row: HBoxContainer
 var _left_image: TextureRect
 var _right_image: TextureRect
@@ -110,6 +111,14 @@ func _build_ui() -> void:
 		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		img.custom_minimum_size = Vector2(IMAGE_WIDTH, 0)
 		_image_row.add_child(img)
+
+	# The attacking monster's flat model (ask_monster_attack()) - on top of the box.
+	_attack_preview = CombatMeshPreview.new()
+	_attack_preview.custom_minimum_size = Vector2(320, 240)
+	_attack_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_attack_preview.visible = false
+	vbox.add_child(_attack_preview)
+	vbox.move_child(_attack_preview, 0)
 
 	_count_input = SpinBox.new()
 	_count_input.min_value = 0
@@ -206,6 +215,38 @@ func _set_images(left: Texture2D, right: Texture2D) -> void:
 func _set_modal(dim: bool) -> void:
 	_scrim.visible = dim
 	mouse_filter = Control.MOUSE_FILTER_STOP if dim else Control.MOUSE_FILTER_IGNORE
+
+
+## A MONSTER attacks (new 2026-10-05): the normal dialog box with the monster's flat
+## model on top and `cfg["text"]` (who attacks whom, damage, range, abilities), exactly as
+## much as the real game shows. Two buttons: "Continue" (0 - the table has resolved the
+## attack itself) and "Interrupt" (1 - the players act BEFORE the monster's attack, e.g. an
+## ability that lets a hero attack first; the caller hands control back and shows this
+## dialog again afterwards if the monster survived). `cfg` also carries
+## MonsterDisplay.preview_data() for the model. Answerable by voice ("continue",
+## "interrupt").
+func ask_monster_attack(cfg: Dictionary) -> int:
+	_set_images(null, null)
+	_set_modal(true)
+	var meshes: Array = cfg.get("monster_flat_meshes", [])
+	if not meshes.is_empty():
+		var paths: Array[String] = []
+		for path in meshes:
+			paths.append(str(path))
+		var size_units: float = cfg.get("monster_size_units", 1.0)
+		_attack_preview.show_meshes(paths, cfg.get("monster_flat_texture"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), size_units, size_units, false)
+	else:
+		_attack_preview.show_quad(cfg.get("monster_image"))
+	_attack_preview.visible = true
+	_label.text = cfg.get("text", "")
+	_count_input.visible = false
+	_set_buttons([{"text": "Continue", "result": 0}, {"text": "Interrupt", "result": 1}])
+	_set_voice_context("choice", ["Continue", "Interrupt"])
+	visible = true
+	var result: int = await _closed
+	visible = false
+	_attack_preview.visible = false
+	return result
 
 
 ## The full-screen combat screen (CombatView): asks for the number of
