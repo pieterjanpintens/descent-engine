@@ -1267,6 +1267,19 @@ Not used yet: defense-ability behaviors, conditions that should affect attacking
 movement, the monster's `attack_range` beyond being shown. Verified: the dialog with a real wolf model (button + voice answers); the
 `_monster_attack`/`_interrupt` flow was not run in a Player session.
 
+**Phase banners (2026-10-06, branch `feature/phase-banner`)** - "a clearer separation between the monster and player phase; in the real
+game the phase name is shown big, fades out, and a sound is played." `PhaseBanner` (`scripts/PhaseBanner.gd`, a click-through full-rect
+Control, built by `MissionPlayer._ready()` as a child of the CanvasLayer and moved to the front each time it shows) puts the phase name
+(upper-case, 96pt, outlined, coloured) across the middle of the screen on a dark band: fades in 0.3 s, holds 1.1 s, fades out 0.9 s
+(`FADE_IN_SEC`/`HOLD_SEC`/`FADE_OUT_SEC`) while a sound plays. `show_phase(text, color, sound)` is fire-and-forget; the `finished` signal
+fires after the fade-out. **"Player Phase"** (light blue, `PhaseSounds.player_phase()`) is shown from `_show_player_phase_ui()` (so also
+after resuming a save) without waiting; **"Monster Phase"** (red, `PhaseSounds.monster_phase()`) is shown at the start of the darkness phase
+and AWAITED (`await phase_banner.finished`, ~2.2 s) before affliction/monster attacks, so the first monster dialog never lands on top of it.
+The HUD phase label now says "Monster phase" (was "Darkness phase..."). **Sounds are generated in code** (`PhaseSounds`, 22.05 kHz 16-bit mono
+`AudioStreamWAV`, built once and cached, ~0.1 s): a bright bell (523 Hz, harmonic partials) and a low gong (98 Hz, inharmonic partials, slow
+tremolo) - the project ships no copyrighted audio; there is no override mechanism for real game sounds yet. Verified headlessly (sounds built,
+non-silent, banner shows/finishes in ~2.1 s and ends hidden/on top); the look and the actual sound were not heard/seen.
+
 **Dialog sizing**: `MonsterTemplateEditor` and `MonsterPropertiesDialog` open with `popup_centered_clamped(preferred size, 0.9)`
 (820x720 / 440x760 at most, never more than 90% of the game window) and have a small `min_size`; their forms scroll.
 **Scaling rows**: "Add row" in the template editor continues the table - the new row starts after the highest existing max level

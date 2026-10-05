@@ -116,6 +116,9 @@ func _ready() -> void:
 	quest_log.journal = journal
 	quest_log.objectives_provider = func() -> Array: return _runtime.get_current_objective_descriptions() if _runtime != null else []
 	hud.open_quest_log = quest_log.open
+	# The big phase announcement - the LAST child of the CanvasLayer so it draws on top.
+	phase_banner = PhaseBanner.new()
+	dialog.get_parent().add_child(phase_banner)
 	var heroes_dialog := HeroesDialog.new()
 	dialog.get_parent().add_child(heroes_dialog)
 	heroes_dialog.wound_requested.connect(_wound_hero)
@@ -804,7 +807,15 @@ func _enter_player_phase() -> void:
 ## happen unconditionally, since _enter_player_phase() was the only way in)
 ## could double-apply a non-one_shot trigger's effects - a real, no-longer-
 ## needed limitation this split removes outright, not just narrows.
+## The big "Player Phase" / "Monster Phase" announcement (PhaseBanner).
+var phase_banner: PhaseBanner
+
+const PLAYER_PHASE_COLOR := Color(0.75, 0.88, 1.0)
+const MONSTER_PHASE_COLOR := Color(0.95, 0.3, 0.25)
+
+
 func _show_player_phase_ui() -> void:
+	phase_banner.show_phase("Player Phase", PLAYER_PHASE_COLOR, PhaseSounds.player_phase())
 	hud.set_save_enabled(true)  # redundant after _advance_to() itself, but this is resume's only path here
 	if current_round == 1:
 		phase_label.text = "Players spawn. Place your tokens, then play."
@@ -844,8 +855,11 @@ func _run_darkness_and_loop() -> void:
 
 	if not await _advance_to(RoundCheckpoint.Checkpoint.DARKNESS_PHASE):
 		return
-	phase_label.text = "Darkness phase..."
+	phase_label.text = "Monster phase"
 	darkness_overlay.visible = true
+	# Announce the change of hands, and wait for it before the monsters act.
+	phase_banner.show_phase("Monster Phase", MONSTER_PHASE_COLOR, PhaseSounds.monster_phase())
+	await phase_banner.finished
 	# Start of the monster phase: Afflicted monsters take their affliction damage.
 	await _apply_affliction()
 	# Every live monster takes its turn (picks a target, attacks). With none alive a
