@@ -123,6 +123,9 @@ func _ready() -> void:
 	dialog.get_parent().add_child(heroes_dialog)
 	heroes_dialog.wound_requested.connect(_wound_hero)
 	hud.open_heroes = func(): heroes_dialog.open(player_roster, _runtime)
+	monster_manage_dialog = MonsterManageDialog.new()
+	dialog.get_parent().add_child(monster_manage_dialog)
+	monster_manage_dialog.logged.connect(func(text: String): journal.add("Monster", [text]))
 
 	# Embark comes before anything else - the table picks its party before
 	# there's any board state to interact with. Defines player count (the
@@ -487,6 +490,12 @@ No free spawn tile for: %s - place them next to the others." % ", ".join(unplace
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
 		_set_monster_display_visible(not monster_display.visible)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and monster_display.visible and _runtime != null:
+		# Clicking a monster in the monster view opens its manage dialog (damage/heal,
+		# conditions) - changes outside combat, see MonsterManageDialog.
+		var clicked := monster_display.monster_at(event.position)
+		if clicked != null:
+			monster_manage_dialog.open(clicked, _runtime)
 
 
 ## Swaps which "scene" is rendered while leaving every CanvasLayer UI child
@@ -809,6 +818,7 @@ func _enter_player_phase() -> void:
 ## needed limitation this split removes outright, not just narrows.
 ## The big "Player Phase" / "Monster Phase" announcement (PhaseBanner).
 var phase_banner: PhaseBanner
+var monster_manage_dialog: MonsterManageDialog
 
 const PLAYER_PHASE_COLOR := Color(0.75, 0.88, 1.0)
 const MONSTER_PHASE_COLOR := Color(0.95, 0.3, 0.25)
@@ -907,6 +917,9 @@ const MAX_ATTACKS_PER_TURN := 3
 
 func _monster_attack(monster: RuntimeMonster) -> void:
 	var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	if monster.conditions.has(MonsterCondition.Kind.CONFUSED):
+		await _monster_action(monster, who)
+		return
 	var range_text := "melee" if monster.attack_range == 0 else "range %d%s" % [monster.attack_range, ", reach" if monster.attack_reach else ""]
 	var ability_lines: Array[String] = []
 	for ability in monster.attack_abilities:
@@ -916,31 +929,54 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		if slot < 0:
 			return
 		var hero_name := HeroCatalog.slot_name(slot)
-		var text := "%s attacks %s!%s\nDamage %d - %s" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.attack_power, range_text]
+		var text := "%s attacks %s!%s\nDamage %d - %s - Speed %d" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
+		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
+			text += "\n(Enfeebled: damage reduced from %d)" % monster.attack_power
 		if not ability_lines.is_empty():
 			text += "\n" + "\n".join(ability_lines)
 		var cfg := MonsterDisplay.preview_data(monster.folder)
 		cfg["text"] = text
-		var choice: int = await dialog.ask_monster_attack(cfg)
-		while choice == 1:  # the players interrupt: they act, then the attack goes on
-			var wounds_before := _total_wounds()
-			await _interrupt(monster)
-			if not _runtime.monsters.has(monster):
-				journal.add("Monster attack", ["%s was defeated during an interrupt before it could attack %s." % [who, hero_name]])
-				return
-			if _total_wounds() > wounds_before:
-				# A hero was wounded (the monster "killed" them): THIS monster's turn is
-				# over - the hero resets their hit points and the monsters carry on with
-				# the NEXT monster's attack. (Only a third wound ends the whole game.)
-				journal.add("Monster attack", ["%s wounded a hero - its turn is over." % who])
-				return
-			choice = await dialog.ask_monster_attack(cfg)
-		journal.add("Monster attack", ["%s attacks %s (damage %d, %s)." % [who, hero_name, monster.attack_power, range_text]])
+		if not await _show_monster_dialog(monster, cfg, who, "attack %s" % hero_name):
+			return
+		journal.add("Monster attack", ["%s attacks %s (damage %d, %s)." % [who, hero_name, monster.effective_attack_power(), range_text]])
 		# Abilities that build on the outcome need the table's feedback.
 		if monster.has_attack_behavior(MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE):
 			if await dialog.ask_yes_no("Did %s deal damage to %s?" % [monster.display_name(), hero_name]):
 				continue
 		return
+
+
+## A Confused monster does not attack: it takes an alternative action (MonsterAction,
+## picked by MissionRuntime.pick_confused_action()), shown in the same dialog as an
+## attack - the table carries it out. Interrupt works as for an attack; logged as
+## "Monster action".
+func _monster_action(monster: RuntimeMonster, who: String) -> void:
+	var action := _runtime.pick_confused_action(monster)
+	var cfg := MonsterDisplay.preview_data(monster.folder)
+	cfg["text"] = "%s is confused!\n%s\n%s" % [who, action.action_name, action.shown_text(monster)]
+	if not await _show_monster_dialog(monster, cfg, who, "act"):
+		return
+	journal.add("Monster action", ["%s is confused: %s." % [who, action.action_name]])
+
+
+## Shows a monster's dialog (attack or action) and handles Interrupt: the players act, the
+## dialog comes back. Returns false when the monster's turn is over - it was defeated, or a
+## hero was wounded meanwhile (the hero resets their hit points and the monsters carry on
+## with the NEXT monster; only a third wound ends the game); true to carry out the turn.
+## `goal` completes "before it could ..." in the quest log.
+func _show_monster_dialog(monster: RuntimeMonster, cfg: Dictionary, who: String, goal: String) -> bool:
+	var choice: int = await dialog.ask_monster_attack(cfg)
+	while choice == 1:  # the players interrupt
+		var wounds_before := _total_wounds()
+		await _interrupt(monster)
+		if not _runtime.monsters.has(monster):
+			journal.add("Monster attack", ["%s was defeated during an interrupt before it could %s." % [who, goal]])
+			return false
+		if _total_wounds() > wounds_before:
+			journal.add("Monster attack", ["%s wounded a hero - its turn is over." % who])
+			return false
+		choice = await dialog.ask_monster_attack(cfg)
+	return true
 
 
 ## All heroes' wounds added up - how _monster_attack() notices a wound made during an interrupt.

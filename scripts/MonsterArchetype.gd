@@ -45,11 +45,16 @@ enum Kind { BASE, ADDITIVE }
 @export var attack_scaling: Array[LevelValue] = []
 @export var defense_scaling: Array[LevelValue] = []
 @export var hitpoints_scaling: Array[LevelValue] = []
+## How far the monster can walk (in tiles); a base template must define it.
+@export var speed_scaling: Array[LevelValue] = []
 ## BASE templates only: how the monster attacks (range as Weapon.weapon_range, 0 =
 ## melee; reach) and its ordered preferred-target rules.
 @export_range(0, 99) var attack_range: int = 0
 @export var attack_reach: bool = false
 @export var target_rules: Array[TargetRule] = []
+## BASE templates only: what the monster does when Confused instead of attacking (one is
+## picked at random among the possible ones); empty = MonsterAction.defaults().
+@export var confused_actions: Array[MonsterAction] = []
 
 
 ## A fully independent copy (no resource paths anywhere) - used both when
@@ -62,6 +67,7 @@ func deep_copy() -> MonsterArchetype:
 	copy.attack_range = attack_range
 	copy.attack_reach = attack_reach
 	copy.target_rules = TargetRule.copies(target_rules)
+	copy.confused_actions = MonsterAction.copies(confused_actions)
 	copy.name_prefix = name_prefix
 	copy.name_postfix = name_postfix
 	copy.weaknesses = weaknesses.duplicate()
@@ -73,6 +79,7 @@ func deep_copy() -> MonsterArchetype:
 	copy.attack_scaling = LevelValue.copies(attack_scaling)
 	copy.defense_scaling = LevelValue.copies(defense_scaling)
 	copy.hitpoints_scaling = LevelValue.copies(hitpoints_scaling)
+	copy.speed_scaling = LevelValue.copies(speed_scaling)
 	return copy
 
 
@@ -93,9 +100,13 @@ func signature() -> String:
 	var rules: Array = []
 	for rule in target_rules:
 		rules.append([rule.kind, rule.hero_slot])
+	var actions: Array = []
+	for action in confused_actions:
+		actions.append(action.to_dict())
 	return var_to_str([
-		template_name, kind, attack_range, attack_reach, rules, name_prefix, name_postfix,
+		template_name, kind, attack_range, attack_reach, rules, actions, name_prefix, name_postfix,
 		weaknesses, resistances, immunities, condition_immunities,
 		abilities.call(attack_abilities), abilities.call(defense_abilities),
 		scaling.call(attack_scaling), scaling.call(defense_scaling), scaling.call(hitpoints_scaling),
+		scaling.call(speed_scaling),
 	])

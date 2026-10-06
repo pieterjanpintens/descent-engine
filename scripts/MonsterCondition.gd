@@ -11,7 +11,14 @@ extends RefCounted
 ## Other conditions are "scripted" (they vary per mission/game and are applied
 ## by the game itself) - not built yet; they will need their own storage
 ## alongside this list rather than extending this enum.
-## Implemented so far: Afflicted, Doomed, Exposed (see claude.md). TODO: Confused, Dazed, Enfeebled, Slowed - recorded and shown only.
+## Implemented so far: Afflicted, Doomed, Exposed, Enfeebled, Slowed (see claude.md). TODO: Confused, Dazed - recorded and shown only.
+
+## Slowed: the monster's speed is set to this (see RuntimeMonster.effective_speed()).
+const SLOWED_SPEED := 1
+
+## Enfeebled: the monster's attack damage is lowered by this many percent (the
+## reduction is rounded UP; see RuntimeMonster.effective_attack_power()).
+const ENFEEBLED_DAMAGE_PERCENT := 20
 
 enum Kind {
 	AFFLICTED,

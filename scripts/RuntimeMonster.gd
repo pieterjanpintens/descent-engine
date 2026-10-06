@@ -26,6 +26,7 @@ var known_weaknesses: Array[int] = []
 var known_resistances: Array[int] = []
 var known_immunities: Array[int] = []
 var defense: int = 0  ## max of the random 0..defense roll subtracted from each hit
+var speed: int = 0  ## how far it can walk (tiles); nothing uses it yet - monsters don't move in the app
 ## The predefined conditions (MonsterCondition.Kind values) currently affecting
 ## this monster - applied by heroes during an attack (MissionRuntime.resolve_attack()).
 ## Scripted, game-applied conditions are not modelled yet.
@@ -45,6 +46,23 @@ var attack_reach: bool = false
 var attack_abilities: Array[MonsterAbility] = []
 var defense_abilities: Array[MonsterAbility] = []
 var target_rules: Array[TargetRule] = []
+## What it does when Confused instead of attacking (empty = MonsterAction.defaults()).
+var confused_actions: Array[MonsterAction] = []
+
+
+## Attack damage as it is NOW: an Enfeebled monster deals ENFEEBLED_DAMAGE_PERCENT% less,
+## the reduction rounded up (3 -> 2, 10 -> 8).
+func effective_attack_power() -> int:
+	if conditions.has(MonsterCondition.Kind.ENFEEBLED):
+		return maxi(attack_power - ceili(attack_power * MonsterCondition.ENFEEBLED_DAMAGE_PERCENT / 100.0), 0)
+	return attack_power
+
+
+## Speed as it is NOW: a Slowed monster's speed is SET to MonsterCondition.SLOWED_SPEED.
+func effective_speed() -> int:
+	if conditions.has(MonsterCondition.Kind.SLOWED):
+		return MonsterCondition.SLOWED_SPEED
+	return speed
 
 
 ## The custom name if one was set, else the type's generic name ("Bandit").
@@ -67,14 +85,14 @@ func display_name() -> String:
 func to_dict() -> Dictionary:
 	return {
 		"id": id, "folder": folder, "chip": chip, "custom_name": custom_name, "name_prefix": name_prefix, "name_postfix": name_postfix,
-		"hitpoints": hitpoints, "max_hitpoints": max_hitpoints, "level": level, "defense": defense,
+		"hitpoints": hitpoints, "max_hitpoints": max_hitpoints, "level": level, "defense": defense, "speed": speed,
 		"weaknesses": weaknesses.duplicate(), "resistances": resistances.duplicate(), "immunities": immunities.duplicate(),
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
 		"last_attacker": last_attacker,
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
-		"target_rules": _to_dicts(target_rules),
+		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions),
 	}
 
 
@@ -93,6 +111,7 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.max_hitpoints = d.get("max_hitpoints", m.hitpoints)
 	m.level = d.get("level", 1)
 	m.defense = d.get("defense", 0)
+	m.speed = d.get("speed", 0)
 	m.weaknesses = _int_array(d.get("weaknesses", []))
 	m.resistances = _int_array(d.get("resistances", []))
 	m.immunities = _int_array(d.get("immunities", []))
@@ -111,6 +130,8 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 		m.defense_abilities.append(MonsterAbility.from_dict(entry))
 	for entry in d.get("target_rules", []):
 		m.target_rules.append(TargetRule.from_dict(entry))
+	for entry in d.get("confused_actions", []):
+		m.confused_actions.append(MonsterAction.from_dict(entry))
 	return m
 
 

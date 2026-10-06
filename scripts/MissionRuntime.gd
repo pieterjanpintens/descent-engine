@@ -339,6 +339,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.name_prefix = resolved["name_prefix"]
 	created.name_postfix = resolved["name_postfix"]
 	created.defense = resolved["defense"]
+	created.speed = resolved["speed"]
 	created.weaknesses = resolved["weaknesses"]
 	created.resistances = resolved["resistances"]
 	created.immunities = resolved["immunities"]
@@ -349,6 +350,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.attack_abilities = resolved["attack_abilities"]
 	created.defense_abilities = resolved["defense_abilities"]
 	created.target_rules = resolved["target_rules"]
+	created.confused_actions = resolved["confused_actions"]
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()
@@ -433,6 +435,42 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	return result
 
 
+## Direct changes to a monster outside combat (MonsterManageDialog): a hero ability that
+## damages it or applies a condition without an attack, friendly fire, corrections.
+## `amount` hitpoints are removed - no weapon, defense roll, weakness or resistance; at 0 or
+## less the monster is defeated and released, as in combat. Returns {hitpoints, defeated}.
+func damage_monster(monster: RuntimeMonster, amount: int) -> Dictionary:
+	monster.hitpoints -= maxi(amount, 0)
+	var defeated := monster.hitpoints <= 0
+	if defeated:
+		release_monster(monster.id)
+	else:
+		monsters_changed.emit()
+	return {"hitpoints": monster.hitpoints, "defeated": defeated}
+
+
+## Heals `amount` hitpoints, never above max_hitpoints; returns how much was really healed.
+func heal_monster(monster: RuntimeMonster, amount: int) -> int:
+	var healed := clampi(amount, 0, maxi(monster.max_hitpoints - monster.hitpoints, 0))
+	monster.hitpoints += healed
+	monsters_changed.emit()
+	return healed
+
+
+## Adds a condition; false if the monster is immune to it or already has it.
+func add_condition(monster: RuntimeMonster, kind: int) -> bool:
+	if monster.condition_immunities.has(kind) or monster.conditions.has(kind):
+		return false
+	monster.conditions.append(kind)
+	monsters_changed.emit()
+	return true
+
+
+func remove_condition(monster: RuntimeMonster, kind: int) -> void:
+	monster.conditions.erase(kind)
+	monsters_changed.emit()
+
+
 ## Start of the monster phase: every Afflicted monster takes the current
 ## `affliction_damage` (a runtime variable, default 4). One that drops to 0
 ## hitpoints or less is defeated and released, same rule as in combat. Returns
@@ -480,6 +518,49 @@ func choose_target(monster: RuntimeMonster, roster: Array[int], hero_weapons: Di
 	if chosen >= 0:
 		hero_times_targeted[chosen] = int(hero_times_targeted.get(chosen, 0)) + 1
 	return chosen
+
+
+## True if a visible prop on the board has one of the comma-separated `names` as its
+## reference name or mesh name (a removed prop is gone from the mission, so it no longer counts).
+func object_on_board(names: String) -> bool:
+	var wanted: Array[String] = []
+	for part in names.split(","):
+		var trimmed := part.strip_edges().to_lower()
+		if trimmed != "":
+			wanted.append(trimmed)
+	for entry in mission.interactables:
+		if mission.is_effectively_visible(entry) and (wanted.has(entry.reference_name.to_lower()) or wanted.has(entry.mesh_item_name.to_lower())):
+			return true
+	return false
+
+
+## Whether `action` can be taken right now (its required prop is on the board, enough
+## monsters are alive).
+func is_action_possible(action: MonsterAction) -> bool:
+	if monsters.size() < action.min_monsters:
+		return false
+	return action.required_object.strip_edges() == "" or object_on_board(action.required_object)
+
+
+## The alternative action `monster` takes instead of attacking (see MonsterAction): one
+## picked at random, weighted, among its possible actions (its own list, or the defaults
+## when it has none); "What was I doing?" when none is possible.
+func pick_confused_action(monster: RuntimeMonster) -> MonsterAction:
+	var pool: Array[MonsterAction] = monster.confused_actions if not monster.confused_actions.is_empty() else MonsterAction.defaults()
+	var possible: Array[MonsterAction] = []
+	var total_weight := 0
+	for action in pool:
+		if is_action_possible(action):
+			possible.append(action)
+			total_weight += maxi(action.weight, 1)
+	if possible.is_empty():
+		return MonsterAction.stand_and_stare()
+	var roll := randi_range(1, total_weight)
+	for action in possible:
+		roll -= maxi(action.weight, 1)
+		if roll <= 0:
+			return action
+	return possible[0]
 
 
 func wound_count(slot: int) -> int:
