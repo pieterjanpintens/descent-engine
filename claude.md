@@ -4618,6 +4618,16 @@ first working version).
 	rather than reusing `_move_in_array()`.
 	**Unverified in-editor**, same caveat as everything else built this
 	session without the ability to launch Godot and see it rendered.
+- **`EffectEditor`** (`scripts/EffectEditor.gd`, new 2026-10-06, a `RefCounted`) - **the shared Condition/Effect editor widgets.
+  SUPERSEDES every "own copy per dialog / each dialog owns its own row-builder helpers" remark in the entries below** (those described
+  the situation before this refactor): the condition row, the effect row (all eight `Effect.Type` widget groups), the value-type picker,
+  the variable-name pickers, the MATH operand editor and the nested windows ("Edit Test…", an effect's "Conditions…", message
+  "Variables…", spawn "Monsters…" + `MonsterPropertiesDialog`) used to be copied into `ObjectivesDialog` and `PropActionsDialog` (functionally
+  identical, ~900 lines each). Now each dialog owns ONE `EffectEditor`: `_editor.setup(self, _commit_field)` in `_ready()` (host = the dialog
+  Window the nested windows are added to, commit = the dialog's `_commit_field(label, mutate)` that records the undo step), `_editor.mission = ...`
+  in `open_for()`, then `_editor.build_condition_row(list, condition, on_changed)` / `build_effect_row(list, effect, on_changed)`. Behaviour is
+  unchanged (verified with a throwaway scene: every effect type's row builds, a row's remove goes through the commit callable, all nested editors open,
+  both dialogs load). `TriggersDialog` uses it too.
 - **`ObjectivesDialog.gd`** (new 2026-09-12, `class_name ObjectivesDialog
   extends Window`) - the DAG editor for `MissionData.objectives`, opened
   via `CreatorSaveLoad.gd`'s **"Objectives…"** button (`%ObjectivesButton`,
