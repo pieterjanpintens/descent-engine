@@ -533,8 +533,7 @@ as ordinary (harmless, no-match) dialog-answer text. Outside a dialog,
 behavior is unchanged - an unprompted command still needs the wake phrase,
 same ambiguity-avoidance reasoning as before. Push to talk was never gated
 behind a wake word at all (holding the key is already unambiguous consent),
-so this only changes hands-free. **Compile-checked
-only; hands-free not tried with a real mic since this rewrite.** Windows/Linux only (macOS framework
+so this only changes hands-free. **Hands-free was tried with a real mic and works (confirmed by the user).** Windows/Linux only (macOS framework
 not handled). Tested: full install against a local HTTP server (checksums,
 extraction, runtime load). **Not verified in an exported build**, nor against the
 real GitHub/Hugging Face URLs (the pinned addon zip has no checksum; its entry
@@ -858,8 +857,8 @@ file turning up nothing left except one doc-comment reference), the two
 `_build_foot_dust()` call sites and the now-unused `HERO_FOOT_X`/
 `MONSTER_FOOT_X`/`FOOT_Y_FRACTION` consts are gone too, and `_build()` left
 with a short comment pointing at this section of claude.md as the starting
-point for a future attempt, rather than any code. **Explicitly "we come
-back to that"** - not abandoned, just parked; the candidate directions
+point for a future attempt, rather than any code. **Dropped for good (2026-10-06, the combat dialog
+was pimped another way - no particle effects are wanted)**; the candidate directions
 already explored (and their outcomes) are: a generated `_puff_texture()`
 gradient sprite (never looked right at any tried size/count/position), the
 foot-localized positioning idea (fixed the "chemical" complaint but the
@@ -1101,9 +1100,19 @@ condition applied by that very attack already counts. Per condition:
   duplicates), `remove_condition()`; each change is logged to the quest log as "Monster". Works during an Interrupt (the monster view is shown).
   No voice command yet.
   **Not built**: variable conditions on actions (the library editor isn't tied to a mission's variables), other conditions' action lists.
-**TODO - the last condition still needs its effect: Dazed**
-(it can be applied and are shown, nothing reacts to them yet), plus the
-scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + new Exposed -> 14,
+- **Weapon attachments / secondary abilities (2026-10-06)** - premade `WeaponAttachment`s (`scripts/WeaponAttachment.gd`; premade list
+  `AttachmentCatalog`, INVENTED placeholders) a weapon can carry (`Weapon.attachments`, max `WeaponAttachment.MAX_PER_WEAPON` = 2, none by
+  default). An attachment has a name, where it fits (`hero_slot`, `weapon_index`, `weapon_type`; -1/"" = any - e.g. "Weapon 1 (sword) of Brynn"),
+  the ability that can trigger = a `MonsterCondition` to apply, and a `chance_percent`. **Equipped at embark**: the loadout page has two
+  "Attachment N" pickers under each weapon (only the ones that fit; the same one can't be picked twice on a weapon). **On every attack with the
+  weapon each attachment rolls its chance** (`PlayerInteractionController.attack()`); a triggered one adds its condition to the attack's conditions
+  (a monster immune to it resists, as for table-chosen conditions) and is listed in the outcome ("Attachment: ...") and the quest log; the weapon-choice
+  screen lists a weapon's attachments. Saved with the weapon in `SaveGame.player_weapons`. Only "apply a condition" is a possible ability so far.
+- **Dazed (2026-10-06)** - against a Dazed monster every weapon attachment's trigger chance is raised by
+  `MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT` (10) percentage points, capped at 100 (`WeaponAttachment.effective_chance()`); "Dazed" counts if the
+  monster has it already or the table applies it with this very attack (unless immune); the triggered line notes "(Dazed +10%)".
+  **Interpretation: +10 percentage points, not x1.1.**
+**All seven predefined conditions now have an effect.** Still missing: the scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + new Exposed -> 14,
 8 -> 9 rounding down, afflicted 4 damage, clearing, Doomed keeping Dazed, a defeat by affliction);
 the Player-side dialog/round-loop hooks are compile-checked only.
 
@@ -1503,10 +1512,9 @@ normally). Verified with a throwaway scene reproducing the real flow (mission
 written to a file, loaded back via `MissionIO.load_mission()`, mutated in
 place, saved, reloaded): before the fix the save referenced the mission
 file and `visible` came back `false`; after it the save embeds, and a
-revealed group, a fired trigger and a removed tile all restore. **Saves made
-before this fix are unaffected by it** - they contain only the reference,
-so they will still load the pristine mission (only their round/party/
-variables/etc. restore); there is nothing in them to recover.
+revealed group, a fired trigger and a removed tile all restore. (Saves made
+before this fix contain only the mission reference - nothing to recover and not
+a concern, no old saves matter.)
 
 **EXPERIMENTAL: real hero meshes too, same day (2026-09-27)** - direct
 follow-up question ("the heroes also have flat meshes, one for each weapon
@@ -2019,11 +2027,9 @@ be a bit symetrical"):
    now just shows plain `_icon_box()` icons, the same shape as the
    Weakness row opposite it now that its own badge (the modifier text)
    is gone too, closing the visual gap between the two bottom corners
-   ("it should be a bit symmetrical"). **Explicitly parked, not
-   abandoned** - "it needs a better spot but not there" - the underlying
-   idea (telling the table what bonus a damage type is expected to give)
-   is sound, it just doesn't belong stacked under this row any more; no
-   replacement spot has been designed yet.
+   ("it should be a bit symmetrical"). **Dropped (2026-10-06)** - the idea
+   (telling the table what bonus a damage type is expected to give) is no
+   longer wanted; the combat dialog was reworked since.
 
 **HP badge widened into the health bar itself, separate bar removed
 (2026-09-29)** - direct follow-up on the earlier health-bar pass: "there
@@ -4612,6 +4618,24 @@ first working version).
 	rather than reusing `_move_in_array()`.
 	**Unverified in-editor**, same caveat as everything else built this
 	session without the ability to launch Godot and see it rendered.
+- **`TriggersDialog`** (`scripts/TriggersDialog.gd`, new 2026-10-06) - the authoring UI for `MissionData.triggers` that was missing
+  (the runtime already fired them): the Creator's **"Triggers…"** button (`%TriggersButton`, next to Objectives/Variables in `PropertiesFields`,
+  opened by `CreatorSaveLoad`). A flat list of blocks like `PropActionsDialog`; each trigger has **When** (a round checkpoint - Before/At/After the
+  player phase, Before/At/After the monster phase - OR an event = the action id of any prop's `PropAction`, listed from the mission), **priority**
+  (lower fires first), **One shot** (untick for a repeating trigger, e.g. "every round before the monster phase"), **Conditions** and **Effects**
+  (the shared `EffectEditor` rows). Every edit is an undo step. Unlike an objective (reached once) a trigger can repeat. Smoke-tested headlessly
+  (button resolves, a trigger can be added and switched to event mode); look not seen. Not built: reordering triggers (priority decides),
+  firing events other than prop actions.
+- **`EffectEditor`** (`scripts/EffectEditor.gd`, new 2026-10-06, a `RefCounted`) - **the shared Condition/Effect editor widgets.
+  SUPERSEDES every "own copy per dialog / each dialog owns its own row-builder helpers" remark in the entries below** (those described
+  the situation before this refactor): the condition row, the effect row (all eight `Effect.Type` widget groups), the value-type picker,
+  the variable-name pickers, the MATH operand editor and the nested windows ("Edit Test…", an effect's "Conditions…", message
+  "Variables…", spawn "Monsters…" + `MonsterPropertiesDialog`) used to be copied into `ObjectivesDialog` and `PropActionsDialog` (functionally
+  identical, ~900 lines each). Now each dialog owns ONE `EffectEditor`: `_editor.setup(self, _commit_field)` in `_ready()` (host = the dialog
+  Window the nested windows are added to, commit = the dialog's `_commit_field(label, mutate)` that records the undo step), `_editor.mission = ...`
+  in `open_for()`, then `_editor.build_condition_row(list, condition, on_changed)` / `build_effect_row(list, effect, on_changed)`. Behaviour is
+  unchanged (verified with a throwaway scene: every effect type's row builds, a row's remove goes through the commit callable, all nested editors open,
+  both dialogs load). `TriggersDialog` uses it too.
 - **`ObjectivesDialog.gd`** (new 2026-09-12, `class_name ObjectivesDialog
   extends Window`) - the DAG editor for `MissionData.objectives`, opened
   via `CreatorSaveLoad.gd`'s **"Objectives…"** button (`%ObjectivesButton`,
@@ -6670,7 +6694,7 @@ appears locally, for a user who separately owns the official game and runs
   release is created at all** (`needs` requires every listed job to succeed) —
   worth remembering before adding a new platform job: a broken/incomplete one
   would silently block releases for every OTHER platform too, not just itself.
-- **macOS is NOT set up yet, and needs more than just a new job** (confirmed
+- **macOS is NOT set up and NOT wanted (2026-10-06, the user doesn't need it)** - the notes below are only for reference if that ever changes. **It needs more than just a new job** (confirmed
   2026-09-15, requested but deliberately not scaffolded broken): the pinned
   `barichello/godot-ci` image explicitly does **not** support macOS export
   (its own README: "Automating Xcode projects is doable but not trivial... it
@@ -7179,8 +7203,7 @@ These cost real debugging time — worth not re-learning them:
    `Condition`/`Effect` referencing an undeclared name is silently
    inert~~ - done 2026-09-14, `MissionVariablesDialog.gd` (see **Creator
    tooling**), built specifically off a real bug report this exact gap
-   caused. Still needed: a real `MissionTrigger` authoring surface
-   (nothing edits those at all yet) and a `custom_variables` name dropdown
+   caused. (`MissionTrigger` authoring: done, see `TriggersDialog`) and a `custom_variables` name dropdown
    for `Condition`/`Effect` rows (currently plain free-text everywhere,
    though at least checkable against `MissionVariablesDialog` now).
    The `exploration`/`interact`/`umbra` token props are placeable meshes
@@ -7237,9 +7260,10 @@ These cost real debugging time — worth not re-learning them:
 	offered, and dropping now always presents a `PlayerDialog.ask_choice()`
 	picker (Cancel always included) over whichever ones currently qualify -
 	see **Story layer**'s `PropAction` entry and this script's own above.
-	Still needed: the game's own
-	adjacency rule (interact only with what you're physically near), which
-	needs real player-position tracking that doesn't exist; hiding the
+	The game's own
+	adjacency rule (interact only with what you're physically near) is NOT
+	enforced and not wanted - like the real game, the table keeps track of
+	positions (decided 2026-10-06); still needed: hiding the
 	portrait dock during Darkness phase (currently stays up the whole
 	time). ~~A real hero roster instead of hardcoded placeholder
 	portraits~~ - done, see `EmbarkDialog`/`HeroCatalog` above (still
@@ -7312,7 +7336,8 @@ These cost real debugging time — worth not re-learning them:
 	distinguish floor from wall on a shared GridMap cell coordinate - now
 	keyed by `origin_cell` alone, same as `rebuild_underlay_tiles()`
 	already did.
-15. **A "told-target" / all-players negation effect** (new 2026-09-14,
+15. **NOT PLANNED (decided 2026-10-06): hero hit points/damage stay physical, like the real game - this effect is not needed.**
+	(Original note:) **A "told-target" / all-players negation effect** (new 2026-09-14,
 	explicitly deferred by the user the same day "Test" itself was built -
 	see **Story layer**'s "Test" entry, scenario 3) - e.g. "a pillar
 	collapses, all players take 8 damage, an agility test negates" (roll 6

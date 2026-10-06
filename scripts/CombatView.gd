@@ -931,6 +931,9 @@ func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 	var applied: Array = r.get("conditions_applied", [])
 	var resisted: Array = r.get("conditions_resisted", [])
 	var condition_lines: Array[String] = []
+	var triggered: Array = r.get("attachments_triggered", [])
+	if not triggered.is_empty():
+		condition_lines.append("Attachment: " + ", ".join(triggered))
 	if not applied.is_empty():
 		condition_lines.append("Applied: " + ", ".join(_condition_names(applied)))
 	if not resisted.is_empty():

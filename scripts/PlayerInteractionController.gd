@@ -423,7 +423,19 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		if successes < 0:
 			return
 		conditions = dialog.attack_conditions.duplicate()
+	# The weapon's attachments each roll their chance; one that triggers applies its condition.
+	# A Dazed monster (already, or made so by the table's choice for this attack - unless it is
+	# immune) makes every attachment likelier to trigger.
+	var triggered: Array[String] = []
+	var dazed := monster.conditions.has(MonsterCondition.Kind.DAZED) \
+		or (conditions.has(MonsterCondition.Kind.DAZED) and not monster.condition_immunities.has(MonsterCondition.Kind.DAZED))
+	for attachment in weapon.attachments if weapon != null else []:
+		if attachment.roll(dazed):
+			triggered.append(attachment.summary() + (" (Dazed +%d%%)" % MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT if dazed else ""))
+			if not conditions.has(attachment.condition):
+				conditions.append(attachment.condition)
 	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot)
+	r["attachments_triggered"] = triggered
 	# The same cfg with what the monster now has discovered.
 	var post_cfg := cfg.duplicate()
 	post_cfg["known_weaknesses"] = monster.known_weaknesses.duplicate()
@@ -446,6 +458,8 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
 	else:
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
+	if not triggered.is_empty():
+		text += "\nAttachment triggered: %s" % ", ".join(triggered)
 	var applied: Array[int] = r["conditions_applied"]
 	if not applied.is_empty():
 		var applied_names: Array[String] = []
@@ -485,7 +499,10 @@ func _weapon_subtitle(hero_slot: int, weapon_index: int, weapon: Weapon) -> Stri
 		parts.append("range %d" % weapon.weapon_range)
 	if weapon.reach:
 		parts.append("reach")
-	return "%s - %s" % [WeaponCatalog.type_of(hero_slot, weapon_index), ", ".join(parts)]
+	var text := "%s - %s" % [WeaponCatalog.type_of(hero_slot, weapon_index), ", ".join(parts)]
+	for attachment in weapon.attachments:
+		text += "\n+ " + attachment.summary()
+	return text
 
 
 ## Presents every CURRENTLY-AVAILABLE action on `entry` (see

@@ -159,7 +159,7 @@ func _build_ui() -> void:
 	loadout_background.add_child(loadout_vbox)
 
 	var loadout_title := Label.new()
-	loadout_title.text = "Choose two weapons per hero"
+	loadout_title.text = "Choose two weapons per hero (and optional attachments)"
 	loadout_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bold_title(loadout_title)
 	loadout_vbox.add_child(loadout_title)
@@ -234,6 +234,8 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 		child.free()
 	var catalogs: Dictionary = {}  # slot -> [Array[Weapon] for slot 0, Array[Weapon] for slot 1]
 	var pickers: Dictionary = {}
+	var attachment_options: Dictionary = {}  # [slot, weapon_index] -> Array[WeaponAttachment]
+	var attachment_pickers_by_weapon: Dictionary = {}  # [slot, weapon_index] -> Array[OptionButton]
 	for slot in roster:
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
@@ -262,8 +264,23 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			column.add_child(type_label)
 			column.add_child(picker)
+			# Optional premade attachments (secondary abilities) for this weapon.
+			var options := AttachmentCatalog.for_weapon(slot, weapon_index, type_name)
+			var attachment_pickers: Array[OptionButton] = []
+			for attachment_number in WeaponAttachment.MAX_PER_WEAPON:
+				var attachment_picker := OptionButton.new()
+				attachment_picker.add_theme_font_size_override("font_size", 12)
+				attachment_picker.add_item("Attachment %d: none" % (attachment_number + 1))
+				for option in options:
+					attachment_picker.add_item(option.summary())
+				attachment_picker.disabled = options.is_empty()
+				attachment_picker.item_selected.connect(func(_index: int): _keep_attachments_distinct(attachment_pickers))
+				column.add_child(attachment_picker)
+				attachment_pickers.append(attachment_picker)
 			row.add_child(column)
 			pair.append(picker)
+			attachment_options[[slot, weapon_index]] = options
+			attachment_pickers_by_weapon[[slot, weapon_index]] = attachment_pickers
 		_loadout_rows.add_child(row)
 		catalogs[slot] = per_slot_catalogs
 		pickers[slot] = pair
@@ -280,6 +297,22 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 		for weapon_index in pickers[slot].size():
 			var picker: OptionButton = pickers[slot][weapon_index]
 			var catalog: Array = catalogs[slot][weapon_index]
-			chosen.append(catalog[picker.selected])
+			var weapon: Weapon = catalog[picker.selected]
+			var options: Array = attachment_options[[slot, weapon_index]]
+			for attachment_picker: OptionButton in attachment_pickers_by_weapon[[slot, weapon_index]]:
+				if attachment_picker.selected > 0:
+					weapon.attachments.append(options[attachment_picker.selected - 1])
+			chosen.append(weapon)
 		loadouts[slot] = chosen
 	return loadouts
+
+
+## The same attachment can't be equipped twice on one weapon: if two pickers show the same
+## choice, the later one goes back to "none".
+func _keep_attachments_distinct(attachment_pickers: Array[OptionButton]) -> void:
+	var taken: Array[int] = []
+	for attachment_picker in attachment_pickers:
+		if attachment_picker.selected > 0 and taken.has(attachment_picker.selected):
+			attachment_picker.select(0)
+		elif attachment_picker.selected > 0:
+			taken.append(attachment_picker.selected)
