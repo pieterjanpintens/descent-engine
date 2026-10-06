@@ -42,6 +42,7 @@ const STAT_TABLES := {
 	"hitpoints": "hitpoints_scaling",
 	"attack_power": "attack_scaling",
 	"defense": "defense_scaling",
+	"speed": "speed_scaling",
 }
 
 
@@ -50,15 +51,15 @@ const STAT_TABLES := {
 ## - name prefixes/postfixes are added (base, then additives);
 ## - weakness/resistance/immunity/condition-immunity lists are merged (union - an
 ##   additive can add but never remove);
-## - attack/defense abilities, target rules and attack range/reach come from the
-##   BASE template; additives do not touch them (for now);
-## - hitpoints/attack power/defense = the base template's value for the monster's
+## - attack/defense abilities, target rules, confused actions and attack range/reach
+##   come from the BASE template; additives do not touch them (for now);
+## - hitpoints/attack power/defense/speed = the base template's value for the monster's
 ##   level PLUS each additive's value for that level (may be negative); a table
 ##   with no rows contributes 0. A level outside a table's rows uses the closest
-##   row (LevelValue.pick()). Hitpoints end up >= 1, attack/defense >= 0.
+##   row (LevelValue.pick()). Hitpoints end up >= 1, attack/defense/speed >= 0.
 ## Returns {name_prefix, name_postfix, weaknesses, resistances, immunities,
 ## condition_immunities, attack_abilities, defense_abilities, target_rules,
-## attack_range, attack_reach, hitpoints, attack_power, defense, sources}
+## attack_range, attack_reach, hitpoints, attack_power, defense, speed, sources}
 ## (`sources`: stat -> [[template name, value], ...], the
 ## breakdown the totals were summed from). Used by MissionRuntime.register_monster()
 ## and the properties dialog's preview.
@@ -72,6 +73,7 @@ func resolve() -> Dictionary:
 	var attack_abils: Array[MonsterAbility] = []
 	var defense_abils: Array[MonsterAbility] = []
 	var rules: Array[TargetRule] = []
+	var confused: Array[MonsterAction] = []
 	var range_value := 0
 	var reach_value := false
 	var sources := {}
@@ -88,6 +90,7 @@ func resolve() -> Dictionary:
 		_merge_abilities(attack_abils, base_archetype.attack_abilities)
 		_merge_abilities(defense_abils, base_archetype.defense_abilities)
 		_merge_rules(rules, base_archetype.target_rules)
+		confused = MonsterAction.copies(base_archetype.confused_actions)
 		range_value = base_archetype.attack_range
 		reach_value = base_archetype.attack_reach
 		for stat in STAT_TABLES:
@@ -118,8 +121,9 @@ func resolve() -> Dictionary:
 		"weaknesses": weak, "resistances": resist, "immunities": immune,
 		"condition_immunities": condition_immune,
 		"attack_abilities": attack_abils, "defense_abilities": defense_abils,
-		"target_rules": rules, "attack_range": range_value, "attack_reach": reach_value,
+		"target_rules": rules, "confused_actions": confused, "attack_range": range_value, "attack_reach": reach_value,
 		"hitpoints": totals["hitpoints"], "attack_power": totals["attack_power"], "defense": totals["defense"],
+		"speed": totals["speed"],
 		"sources": sources,
 	}
 
@@ -142,6 +146,7 @@ func resolved_summary() -> String:
 	lines.append(_breakdown("HP", r["hitpoints"], r["sources"]["hitpoints"]))
 	lines.append(_breakdown("Attack", r["attack_power"], r["sources"]["attack_power"]))
 	lines.append(_breakdown("Defense", r["defense"], r["sources"]["defense"]))
+	lines.append(_breakdown("Speed", r["speed"], r["sources"]["speed"]))
 	lines.append("Range %d%s" % [r["attack_range"], ", reach" if r["attack_reach"] else ""])
 	lines.append("Weak: %s" % _names(r["weaknesses"], false))
 	lines.append("Resistant: %s" % _names(r["resistances"], false))

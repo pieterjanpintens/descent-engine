@@ -1075,8 +1075,34 @@ condition applied by that very attack already counts. Per condition:
   arrow term `+N↑` after the multiplication (`2★ × (4⚔ +1▲) +2↑ − 3⛨ = ...`, `EXPOSED_COLOR`),
   and the quest-log text an "Exposed: +N damage" line.
 - **Doomed** - only its end-of-phase behaviour above (it has no other effect yet).
-**TODO - the other four conditions still need their effects implemented later: Confused, Dazed,
-Enfeebled, Slowed** (they can be applied and are shown, nothing reacts to them yet), plus the
+- **Enfeebled (2026-10-06)** - the monster deals `MonsterCondition.ENFEEBLED_DAMAGE_PERCENT` (20)% less damage, the REDUCTION rounded up (3 -> 2,
+  10 -> 8; `RuntimeMonster.effective_attack_power()`, min 0). Used by the monster attack dialog (which adds "(Enfeebled: damage reduced from N)") and
+  the quest-log line. It applies in the monster phase of the round it was applied in (conditions last until the end of the monster phase).
+- **Slowed (2026-10-06)** - the monster's speed is SET to `MonsterCondition.SLOWED_SPEED` (1) (`RuntimeMonster.effective_speed()`), shown in the
+  monster attack dialog; nothing moves monsters yet.
+- **Confused = an alternative activation (2026-10-06)** - instead of attacking, a Confused monster takes a **`MonsterAction`**
+  (`scripts/MonsterAction.gd`, Resource): `action_name`, `text` (`{speed}`/`{damage}` are filled in by `shown_text()`), optional requirements
+  `required_object` (a prop's reference name or mesh name on the board and visible - several separated by commas) and `min_monsters` (monsters
+  alive), and a `weight`. A BASE template holds the list (`MonsterArchetype.confused_actions`, copied/signed/synced like the other fields,
+  resolved to `RuntimeMonster.confused_actions`, saved in `to_dict`); **an empty list = the built-in `MonsterAction.defaults()`** (so existing
+  templates work without migration): Retreat, What was I doing? (does nothing), Guard the gate (needs "gate"), Towards the tree (needs "tree"),
+  Wander, Friendly fire (needs 2 monsters), Lunge no bite, Take cover (needs a pillar: tall/mini/medium). The template editor has a "Confused
+  actions" list on base templates (name, needs prop, monsters >=, weight, text; "Add action", "Fill with defaults" copies the defaults in to edit).
+  `MissionRuntime.pick_confused_action()` picks randomly (weighted) among the possible actions (`is_action_possible()`/`object_on_board()`),
+  "What was I doing?" if none; `MissionPlayer._monster_action()` shows it in the monster attack dialog ("X is confused! / name / text", Continue +
+  Interrupt, logged "Monster action"; no damage line, no Bloodseeker question); the interrupt handling is shared with attacks
+  (`_show_monster_dialog()`). The table carries the action out (positions aren't tracked). **Friendly fire is resolved with the monster
+  manage dialog below**: Interrupt, click the victim in the monster view, apply the damage.
+  **Monster manage dialog (2026-10-06)** - clicking a monster in the M view (`MissionPlayer._unhandled_input()`, left click +
+  `MonsterDisplay.monster_at()`) opens `MonsterManageDialog` (`scripts/MonsterManageDialog.gd`, modal like HeroesDialog): HP "x / max", an amount
+  with **Damage** / **Heal** buttons, and a checkbox per condition (immunities shown disabled "(immune)"). For everything outside combat: hero
+  abilities that damage a monster or apply conditions without an attack, friendly fire, corrections. Backed by `MissionRuntime.damage_monster()`
+  (no weapon/defense roll/weakness; 0 hp = defeated + released), `heal_monster()` (capped at `max_hitpoints`), `add_condition()` (refuses immune/
+  duplicates), `remove_condition()`; each change is logged to the quest log as "Monster". Works during an Interrupt (the monster view is shown).
+  No voice command yet.
+  **Not built**: variable conditions on actions (the library editor isn't tied to a mission's variables), other conditions' action lists.
+**TODO - the last condition still needs its effect: Dazed**
+(it can be applied and are shown, nothing reacts to them yet), plus the
 scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + new Exposed -> 14,
 8 -> 9 rounding down, afflicted 4 damage, clearing, Doomed keeping Dazed, a defeat by affliction);
 the Player-side dialog/round-loop hooks are compile-checked only.
@@ -1169,7 +1195,10 @@ templates in `archetypes`. **What each kind affects** (`MonsterTemplate.resolve(
 - *Base only*: attack range + reach, attack abilities, defense abilities, target rules (an additive's are ignored, "for
   now"; the editor hides those sections for additive templates). The monster's own extra abilities/rules/lists still merge in.
 - *Numbers*: `final = base(level) + sum(additive(level))` per stat (`MonsterTemplate.STAT_TABLES`: hitpoints/attack/
-  defense -> `hitpoints_scaling`/`attack_scaling`/`defense_scaling`). A BASE table's value is the stat itself; an
+  defense/**speed** -> `hitpoints_scaling`/`attack_scaling`/`defense_scaling`/`speed_scaling`). **Speed (2026-10-06)** = how far the monster can
+  walk (tiles); defined by the base template's table like the others (a base without rows gives 0 - not enforced), additives add/subtract,
+  clamped >= 0; `RuntimeMonster.speed` (saved; older saves 0), shown in the template editor/preview, the properties dialog's effective
+  summary and the monster attack dialog ("Damage 4 - melee - Speed 5"). Nothing moves monsters yet. A BASE table's value is the stat itself; an
   ADDITIVE table's value is ADDED and may be **negative** (`LevelValue.value` now -9999..9999). A level outside every row
   uses the **closest row by absolute distance** (`LevelValue.pick()`; ties -> highest value; replaces the old
   `lookup()`). An additive with an empty table adds nothing; a table with no rows contributes 0. Clamped: hitpoints >= 1, attack/defense >= 0. The old "highest wins" rule is gone.

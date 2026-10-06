@@ -44,6 +44,8 @@ var _range_spin: SpinBox
 var _reach_check: CheckBox
 var _scaling_hint: Label
 var _rule_rows: VBoxContainer
+var _action_rows: VBoxContainer
+var _action_hint: Label
 var _check_boxes: Dictionary = {}  # prop -> Array[CheckBox], index = kind
 var _name_rows: Dictionary = {}  # prop -> VBoxContainer
 var _scaling_rows: Dictionary = {}  # prop -> VBoxContainer
@@ -178,6 +180,7 @@ func _ready() -> void:
 	_add_name_list(_base_only, "Attack abilities", "attack_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_name_list(_base_only, "Defense abilities", "defense_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_rule_list(_base_only)
+	_add_action_list(_base_only)
 
 	var scaling_title := Label.new()
 	scaling_title.text = "Level scaling"
@@ -190,6 +193,7 @@ func _ready() -> void:
 	_add_scaling_list("Hitpoints", "hitpoints_scaling")
 	_add_scaling_list("Attack damage", "attack_scaling")
 	_add_scaling_list("Defense", "defense_scaling")
+	_add_scaling_list("Speed", "speed_scaling")
 
 	var preview_row := HBoxContainer.new()
 	var preview_caption := Label.new()
@@ -332,6 +336,7 @@ func _populate() -> void:
 			for kind in boxes.size():
 				(boxes[kind] as CheckBox).button_pressed = chosen.has(kind)
 		_rebuild_rule_rows()
+		_rebuild_action_rows()
 		for prop in _name_rows:
 			_rebuild_name_rows(prop)
 		for prop in _scaling_rows:
@@ -543,6 +548,96 @@ func _rebuild_rule_rows() -> void:
 		_rule_rows.add_child(row)
 
 
+## The base template's Confused actions (MonsterAction): what the monster does instead of
+## attacking while Confused - one is picked at random among the possible ones. An empty
+## list uses the built-in defaults; "Fill with defaults" copies them in to edit.
+func _add_action_list(parent: Control) -> void:
+	var title_label := Label.new()
+	title_label.text = "Confused actions (instead of attacking):"
+	parent.add_child(title_label)
+	_action_hint = Label.new()
+	_action_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_action_hint.modulate = Color(1, 1, 1, 0.7)
+	_action_hint.text = "Empty: the built-in default actions are used. {speed} and {damage} in a text are filled in. A required prop is a reference or mesh name (\"gate\"; several with commas)."
+	parent.add_child(_action_hint)
+	_action_rows = VBoxContainer.new()
+	parent.add_child(_action_rows)
+	var buttons := HBoxContainer.new()
+	parent.add_child(buttons)
+	var add := Button.new()
+	add.text = "Add action"
+	add.pressed.connect(func():
+		if _working == null:
+			return
+		_working.confused_actions.append(MonsterAction.new("New action", "Describe what the monster does."))
+		_save()
+		_rebuild_action_rows()
+	)
+	buttons.add_child(add)
+	var fill := Button.new()
+	fill.text = "Fill with defaults"
+	fill.pressed.connect(func():
+		if _working == null:
+			return
+		_working.confused_actions = MonsterAction.defaults()
+		_save()
+		_rebuild_action_rows()
+	)
+	buttons.add_child(fill)
+
+
+func _rebuild_action_rows() -> void:
+	for child in _action_rows.get_children():
+		_action_rows.remove_child(child)
+		child.queue_free()
+	if _working == null:
+		return
+	for action in _working.confused_actions:
+		var block := VBoxContainer.new()
+		var top := HBoxContainer.new()
+		top.add_child(_action_text_field(action, "action_name", "Name", false))
+		top.add_child(_caption("Needs prop"))
+		var needs := _action_text_field(action, "required_object", "none", false)
+		needs.custom_minimum_size.x = 90
+		needs.size_flags_horizontal = Control.SIZE_FILL
+		top.add_child(needs)
+		top.add_child(_caption("Monsters ≥"))
+		top.add_child(_level_spin(action, "min_monsters", 0, 99))
+		top.add_child(_caption("Weight"))
+		top.add_child(_level_spin(action, "weight", 1, 99))
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(func():
+			_working.confused_actions.erase(action)
+			_save()
+			_rebuild_action_rows()
+		)
+		top.add_child(remove)
+		block.add_child(top)
+		block.add_child(_action_text_field(action, "text", "What the monster does", true))
+		block.add_child(HSeparator.new())
+		_action_rows.add_child(block)
+
+
+## A LineEdit bound to a text property of `action`, committed on Enter / focus lost.
+func _action_text_field(action: MonsterAction, prop: String, placeholder: String, expand: bool) -> LineEdit:
+	var edit := LineEdit.new()
+	edit.text = str(action.get(prop))
+	edit.placeholder_text = placeholder
+	if expand:
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	else:
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL if prop == "action_name" else Control.SIZE_FILL
+	var commit := func():
+		if _suppress or str(action.get(prop)) == edit.text:
+			return
+		action.set(prop, edit.text)
+		_save()
+	edit.text_submitted.connect(func(_t: String): commit.call())
+	edit.focus_exited.connect(commit)
+	return edit
+
+
 func _move_rule(index: int, delta: int) -> void:
 	var rules := _working.target_rules
 	var other := index + delta
@@ -609,7 +704,7 @@ func _rebuild_scaling_rows(prop: String) -> void:
 		rows.add_child(row)
 
 
-func _level_spin(item: LevelValue, field: String, min_value: int, max_value: int) -> SpinBox:
+func _level_spin(item: Resource, field: String, min_value: int, max_value: int) -> SpinBox:
 	var spin := SpinBox.new()
 	spin.min_value = min_value
 	spin.max_value = max_value
@@ -630,10 +725,11 @@ func _refresh_preview() -> void:
 		return
 	var level := int(_preview_level.value)
 	var signed_values := _working.kind == MonsterArchetype.Kind.ADDITIVE
-	_preview_label.text = "  hitpoints %s, attack %s, defense %s" % [
+	_preview_label.text = "  hitpoints %s, attack %s, defense %s, speed %s" % [
 		_table_value(_working.hitpoints_scaling, level, signed_values),
 		_table_value(_working.attack_scaling, level, signed_values),
 		_table_value(_working.defense_scaling, level, signed_values),
+		_table_value(_working.speed_scaling, level, signed_values),
 	]
 
 
