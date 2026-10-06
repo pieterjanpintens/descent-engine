@@ -17,6 +17,9 @@ extends Resource
 @export_range(0, 99) var weapon_range: int = 0
 ## True for weapons with reach (attack past an adjacent square).
 @export var reach: bool = false
+## Premade secondary abilities equipped at embark (at most WeaponAttachment.MAX_PER_WEAPON,
+## none by default) - each may trigger when attacking with this weapon.
+@export var attachments: Array[WeaponAttachment] = []
 
 
 ## One-line description for pickers, e.g. "Spear (damage 3, Pierce, reach)".

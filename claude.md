@@ -1101,9 +1101,19 @@ condition applied by that very attack already counts. Per condition:
   duplicates), `remove_condition()`; each change is logged to the quest log as "Monster". Works during an Interrupt (the monster view is shown).
   No voice command yet.
   **Not built**: variable conditions on actions (the library editor isn't tied to a mission's variables), other conditions' action lists.
-**TODO - the last condition still needs its effect: Dazed**
-(it can be applied and are shown, nothing reacts to them yet), plus the
-scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + new Exposed -> 14,
+- **Weapon attachments / secondary abilities (2026-10-06)** - premade `WeaponAttachment`s (`scripts/WeaponAttachment.gd`; premade list
+  `AttachmentCatalog`, INVENTED placeholders) a weapon can carry (`Weapon.attachments`, max `WeaponAttachment.MAX_PER_WEAPON` = 2, none by
+  default). An attachment has a name, where it fits (`hero_slot`, `weapon_index`, `weapon_type`; -1/"" = any - e.g. "Weapon 1 (sword) of Brynn"),
+  the ability that can trigger = a `MonsterCondition` to apply, and a `chance_percent`. **Equipped at embark**: the loadout page has two
+  "Attachment N" pickers under each weapon (only the ones that fit; the same one can't be picked twice on a weapon). **On every attack with the
+  weapon each attachment rolls its chance** (`PlayerInteractionController.attack()`); a triggered one adds its condition to the attack's conditions
+  (a monster immune to it resists, as for table-chosen conditions) and is listed in the outcome ("Attachment: ...") and the quest log; the weapon-choice
+  screen lists a weapon's attachments. Saved with the weapon in `SaveGame.player_weapons`. Only "apply a condition" is a possible ability so far.
+- **Dazed (2026-10-06)** - against a Dazed monster every weapon attachment's trigger chance is raised by
+  `MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT` (10) percentage points, capped at 100 (`WeaponAttachment.effective_chance()`); "Dazed" counts if the
+  monster has it already or the table applies it with this very attack (unless immune); the triggered line notes "(Dazed +10%)".
+  **Interpretation: +10 percentage points, not x1.1.**
+**All seven predefined conditions now have an effect.** Still missing: the scripted (game-applied) conditions. Verified with a throwaway scene (12 dmg + new Exposed -> 14,
 8 -> 9 rounding down, afflicted 4 damage, clearing, Doomed keeping Dazed, a defeat by affliction);
 the Player-side dialog/round-loop hooks are compile-checked only.
 

@@ -11,7 +11,11 @@ extends RefCounted
 ## Other conditions are "scripted" (they vary per mission/game and are applied
 ## by the game itself) - not built yet; they will need their own storage
 ## alongside this list rather than extending this enum.
-## Implemented so far: Afflicted, Doomed, Exposed, Enfeebled, Slowed (see claude.md). TODO: Confused, Dazed - recorded and shown only.
+## Implemented so far: Afflicted, Doomed, Exposed, Enfeebled, Slowed, Confused, Dazed (see claude.md).
+
+## Dazed: every weapon attachment's chance to trigger against a Dazed monster is raised by
+## this many percentage points (WeaponAttachment.roll()).
+const DAZED_ATTACHMENT_BONUS_PERCENT := 10
 
 ## Slowed: the monster's speed is set to this (see RuntimeMonster.effective_speed()).
 const SLOWED_SPEED := 1
