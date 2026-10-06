@@ -4618,6 +4618,14 @@ first working version).
 	rather than reusing `_move_in_array()`.
 	**Unverified in-editor**, same caveat as everything else built this
 	session without the ability to launch Godot and see it rendered.
+- **`TriggersDialog`** (`scripts/TriggersDialog.gd`, new 2026-10-06) - the authoring UI for `MissionData.triggers` that was missing
+  (the runtime already fired them): the Creator's **"Triggers…"** button (`%TriggersButton`, next to Objectives/Variables in `PropertiesFields`,
+  opened by `CreatorSaveLoad`). A flat list of blocks like `PropActionsDialog`; each trigger has **When** (a round checkpoint - Before/At/After the
+  player phase, Before/At/After the monster phase - OR an event = the action id of any prop's `PropAction`, listed from the mission), **priority**
+  (lower fires first), **One shot** (untick for a repeating trigger, e.g. "every round before the monster phase"), **Conditions** and **Effects**
+  (the shared `EffectEditor` rows). Every edit is an undo step. Unlike an objective (reached once) a trigger can repeat. Smoke-tested headlessly
+  (button resolves, a trigger can be added and switched to event mode); look not seen. Not built: reordering triggers (priority decides),
+  firing events other than prop actions.
 - **`EffectEditor`** (`scripts/EffectEditor.gd`, new 2026-10-06, a `RefCounted`) - **the shared Condition/Effect editor widgets.
   SUPERSEDES every "own copy per dialog / each dialog owns its own row-builder helpers" remark in the entries below** (those described
   the situation before this refactor): the condition row, the effect row (all eight `Effect.Type` widget groups), the value-type picker,
@@ -7195,8 +7203,7 @@ These cost real debugging time — worth not re-learning them:
    `Condition`/`Effect` referencing an undeclared name is silently
    inert~~ - done 2026-09-14, `MissionVariablesDialog.gd` (see **Creator
    tooling**), built specifically off a real bug report this exact gap
-   caused. Still needed: a real `MissionTrigger` authoring surface
-   (nothing edits those at all yet) and a `custom_variables` name dropdown
+   caused. (`MissionTrigger` authoring: done, see `TriggersDialog`) and a `custom_variables` name dropdown
    for `Condition`/`Effect` rows (currently plain free-text everywhere,
    though at least checkable against `MissionVariablesDialog` now).
    The `exploration`/`interact`/`umbra` token props are placeable meshes

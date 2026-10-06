@@ -22,6 +22,8 @@ extends PopupMenu
 ##        opens MissionVariablesDialog.gd, see that script for why this
 ##        exists (without a declared MissionVariable, ANY Condition/Effect
 ##        referencing that name silently does nothing)
+##    |- TriggersButton (Button, marked as Unique Name %TriggersButton) -
+##        opens TriggersDialog.gd (the mission's checkpoint/event triggers)
 ##    |- MinPlayersSpinBox / MaxPlayersSpinBox (SpinBox, marked as Unique
 ##        Names %MinPlayersSpinBox / %MaxPlayersSpinBox)
 ##
@@ -39,6 +41,7 @@ extends PopupMenu
 @onready var file_dialog: FileDialog = %MissionFileDialog
 @onready var objectives_button: Button = %ObjectivesButton
 @onready var variables_button: Button = %VariablesButton
+@onready var triggers_button: Button = %TriggersButton
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
@@ -49,6 +52,7 @@ var _monster_template_editor: MonsterTemplateEditor
 var _notice_dialog: AcceptDialog
 var _objectives_dialog: ObjectivesDialog
 var _variables_dialog: MissionVariablesDialog
+var _triggers_dialog: TriggersDialog
 
 ## Guards _refresh_player_count_fields() below - setting a SpinBox's
 ## `value` from code fires `value_changed` exactly like a user click would,
@@ -118,6 +122,13 @@ func _ready() -> void:
 	_variables_dialog.layered_map = layered_map
 	add_child(_variables_dialog)
 	variables_button.pressed.connect(_on_variables_button_pressed)
+
+	# Triggers (checkpoint/event rules) - same built-once-reused pattern.
+	_triggers_dialog = TriggersDialog.new()
+	_triggers_dialog.operation_history = operation_history
+	_triggers_dialog.layered_map = layered_map
+	add_child(_triggers_dialog)
+	triggers_button.pressed.connect(func(): _triggers_dialog.open_for(layered_map.mission))
 
 	min_players_spin_box.value_changed.connect(_on_min_players_changed)
 	max_players_spin_box.value_changed.connect(_on_max_players_changed)
