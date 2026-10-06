@@ -533,8 +533,7 @@ as ordinary (harmless, no-match) dialog-answer text. Outside a dialog,
 behavior is unchanged - an unprompted command still needs the wake phrase,
 same ambiguity-avoidance reasoning as before. Push to talk was never gated
 behind a wake word at all (holding the key is already unambiguous consent),
-so this only changes hands-free. **Compile-checked
-only; hands-free not tried with a real mic since this rewrite.** Windows/Linux only (macOS framework
+so this only changes hands-free. **Hands-free was tried with a real mic and works (confirmed by the user).** Windows/Linux only (macOS framework
 not handled). Tested: full install against a local HTTP server (checksums,
 extraction, runtime load). **Not verified in an exported build**, nor against the
 real GitHub/Hugging Face URLs (the pinned addon zip has no checksum; its entry
@@ -858,8 +857,8 @@ file turning up nothing left except one doc-comment reference), the two
 `_build_foot_dust()` call sites and the now-unused `HERO_FOOT_X`/
 `MONSTER_FOOT_X`/`FOOT_Y_FRACTION` consts are gone too, and `_build()` left
 with a short comment pointing at this section of claude.md as the starting
-point for a future attempt, rather than any code. **Explicitly "we come
-back to that"** - not abandoned, just parked; the candidate directions
+point for a future attempt, rather than any code. **Dropped for good (2026-10-06, the combat dialog
+was pimped another way - no particle effects are wanted)**; the candidate directions
 already explored (and their outcomes) are: a generated `_puff_texture()`
 gradient sprite (never looked right at any tried size/count/position), the
 foot-localized positioning idea (fixed the "chemical" complaint but the
@@ -1513,10 +1512,9 @@ normally). Verified with a throwaway scene reproducing the real flow (mission
 written to a file, loaded back via `MissionIO.load_mission()`, mutated in
 place, saved, reloaded): before the fix the save referenced the mission
 file and `visible` came back `false`; after it the save embeds, and a
-revealed group, a fired trigger and a removed tile all restore. **Saves made
-before this fix are unaffected by it** - they contain only the reference,
-so they will still load the pristine mission (only their round/party/
-variables/etc. restore); there is nothing in them to recover.
+revealed group, a fired trigger and a removed tile all restore. (Saves made
+before this fix contain only the mission reference - nothing to recover and not
+a concern, no old saves matter.)
 
 **EXPERIMENTAL: real hero meshes too, same day (2026-09-27)** - direct
 follow-up question ("the heroes also have flat meshes, one for each weapon
@@ -2029,11 +2027,9 @@ be a bit symetrical"):
    now just shows plain `_icon_box()` icons, the same shape as the
    Weakness row opposite it now that its own badge (the modifier text)
    is gone too, closing the visual gap between the two bottom corners
-   ("it should be a bit symmetrical"). **Explicitly parked, not
-   abandoned** - "it needs a better spot but not there" - the underlying
-   idea (telling the table what bonus a damage type is expected to give)
-   is sound, it just doesn't belong stacked under this row any more; no
-   replacement spot has been designed yet.
+   ("it should be a bit symmetrical"). **Dropped (2026-10-06)** - the idea
+   (telling the table what bonus a damage type is expected to give) is no
+   longer wanted; the combat dialog was reworked since.
 
 **HP badge widened into the health bar itself, separate bar removed
 (2026-09-29)** - direct follow-up on the earlier health-bar pass: "there
@@ -6680,7 +6676,7 @@ appears locally, for a user who separately owns the official game and runs
   release is created at all** (`needs` requires every listed job to succeed) —
   worth remembering before adding a new platform job: a broken/incomplete one
   would silently block releases for every OTHER platform too, not just itself.
-- **macOS is NOT set up yet, and needs more than just a new job** (confirmed
+- **macOS is NOT set up and NOT wanted (2026-10-06, the user doesn't need it)** - the notes below are only for reference if that ever changes. **It needs more than just a new job** (confirmed
   2026-09-15, requested but deliberately not scaffolded broken): the pinned
   `barichello/godot-ci` image explicitly does **not** support macOS export
   (its own README: "Automating Xcode projects is doable but not trivial... it
@@ -7247,9 +7243,10 @@ These cost real debugging time — worth not re-learning them:
 	offered, and dropping now always presents a `PlayerDialog.ask_choice()`
 	picker (Cancel always included) over whichever ones currently qualify -
 	see **Story layer**'s `PropAction` entry and this script's own above.
-	Still needed: the game's own
-	adjacency rule (interact only with what you're physically near), which
-	needs real player-position tracking that doesn't exist; hiding the
+	The game's own
+	adjacency rule (interact only with what you're physically near) is NOT
+	enforced and not wanted - like the real game, the table keeps track of
+	positions (decided 2026-10-06); still needed: hiding the
 	portrait dock during Darkness phase (currently stays up the whole
 	time). ~~A real hero roster instead of hardcoded placeholder
 	portraits~~ - done, see `EmbarkDialog`/`HeroCatalog` above (still
@@ -7322,7 +7319,8 @@ These cost real debugging time — worth not re-learning them:
 	distinguish floor from wall on a shared GridMap cell coordinate - now
 	keyed by `origin_cell` alone, same as `rebuild_underlay_tiles()`
 	already did.
-15. **A "told-target" / all-players negation effect** (new 2026-09-14,
+15. **NOT PLANNED (decided 2026-10-06): hero hit points/damage stay physical, like the real game - this effect is not needed.**
+	(Original note:) **A "told-target" / all-players negation effect** (new 2026-09-14,
 	explicitly deferred by the user the same day "Test" itself was built -
 	see **Story layer**'s "Test" entry, scenario 3) - e.g. "a pillar
 	collapses, all players take 8 damage, an agility test negates" (roll 6
