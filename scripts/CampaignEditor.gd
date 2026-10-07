@@ -51,6 +51,7 @@ var _act_name_edit: LineEdit
 var _act_intro_edit: TextEdit
 var _map_label: Label
 var _cover_label: Label
+var _cover_preview: TextureRect
 var _cover_dialog: FileDialog
 var _problems_label: Label
 var _map_view: CampaignMapView
@@ -168,6 +169,12 @@ func _ready() -> void:
 	cover_row.add_child(_button("Clear cover", _on_clear_cover_pressed))
 	_cover_label = _label("")
 	left.add_child(_cover_label)
+	_cover_preview = TextureRect.new()
+	_cover_preview.custom_minimum_size = Vector2(120, 180)
+	_cover_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_cover_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_cover_preview.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	left.add_child(_cover_preview)
 
 	left.add_child(HSeparator.new())
 	left.add_child(_label("Acts:"))
@@ -756,6 +763,8 @@ func _refresh_all() -> void:
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")
+	_cover_preview.texture = CampaignIO.image_texture(_folder, _campaign.cover_image)
+	_cover_preview.visible = _cover_preview.texture != null
 	_acts_list.clear()
 	for act in _campaign.acts:
 		_acts_list.add_item(act.act_name)

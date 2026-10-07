@@ -6453,7 +6453,7 @@ outcome (win/lose + which leaf objective) and rewards, **points of interest on t
 are spent on weapon parts/upgrades, the **campaign player** (main menu "Campaign" -> act map -> embark with the saved party ->
 play the mission -> back to the map) - built, see below.
 
-**Data** (Resources, `scripts/`): `Campaign` (`campaign_name`, `intro`, `cover_image` = the book cover file name in the campaign folder - `CampaignIO.import_cover_image()` trims any image (centred) to the 2:3 portrait ratio and scales it to `COVER_SIZE` 400x600 as `cover.png`; the editor has "Book cover…" / "Clear cover" on the Campaign tab, `CampaignIO.image_texture()` loads map and cover images -, `acts`, `next_chapter_number` -> `new_chapter_id()` "ch_N",
+**Data** (Resources, `scripts/`): `Campaign` (`campaign_name`, `intro`, `cover_image` = the book cover file name in the campaign folder - `CampaignIO.import_cover_image()` trims any image (centred) to the 2:3 portrait ratio and scales it to `COVER_SIZE` 400x600 as `cover.png`; the editor has "Book cover…" / "Clear cover" on the Campaign tab with a 120x180 preview of the trimmed cover below, `CampaignIO.image_texture()` loads map and cover images -, `acts`, `next_chapter_number` -> `new_chapter_id()` "ch_N",
 never reused), `CampaignAct` (`act_name`, `intro`, `map_image` file name, `start_chapter_id`, `chapters`; `find_chapter()`,
 `reachable_ids()`, `problems(mission_files)` = no chapters / no start / chapter without or with a missing mission / link to a
 removed chapter / unreachable chapter / no reachable finale), `CampaignChapter` (`id`, `title`, `mission_file` = file NAME inside the
