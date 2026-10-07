@@ -1,7 +1,9 @@
 class_name MissionVariablesDialog
 extends Window
 
-## Popup editor for MissionData.custom_variables - the custom-variable
+## Popup editor for a list of MissionVariable declarations - MissionData.custom_variables
+## (open_for(), through the undo history) or the campaign's Campaign.variables
+## (open_for_list(), with the campaign editor's own commit) - the custom-variable
 ## declarations a Condition/Effect anywhere in the mission (a PropAction, a
 ## MissionTrigger, a MissionObjective) references by name. Without an
 ## entry here for a given name, MissionRuntime treats it as unknown and
@@ -38,7 +40,9 @@ extends Window
 var operation_history: OperationHistory
 var layered_map: LayeredMap
 
-var _mission: MissionData
+var _variables: Array[MissionVariable]
+## (label: String, mutate: Callable) - applies `mutate` and records/refreshes however the owner wants.
+var _commit: Callable
 var _rows_container: VBoxContainer
 var _empty_label: Label
 
@@ -78,7 +82,16 @@ func _ready() -> void:
 
 ## Public - CreatorSaveLoad.gd calls this from its "Variables…" button.
 func open_for(mission: MissionData) -> void:
-	_mission = mission
+	open_for_list(mission.custom_variables, func(label: String, mutate: Callable):
+		operation_history.record(label, mutate)
+		layered_map.notify_objects_changed()
+	)
+
+
+## Edits `variables` in place; every change goes through `commit(label, mutate)`.
+func open_for_list(variables: Array[MissionVariable], commit: Callable) -> void:
+	_variables = variables
+	_commit = commit
 	_rebuild_rows()
 	popup_centered()
 
@@ -92,11 +105,11 @@ func _rebuild_rows() -> void:
 	for child in _rows_container.get_children():
 		child.queue_free()
 
-	if _mission == null:
+	if not _commit.is_valid():
 		return
 
-	_empty_label.visible = _mission.custom_variables.is_empty()
-	for variable in _mission.custom_variables:
+	_empty_label.visible = _variables.is_empty()
+	for variable in _variables:
 		_rows_container.add_child(_build_variable_block(variable))
 		_rows_container.add_child(HSeparator.new())
 
@@ -220,28 +233,21 @@ func _zero_default(type: int) -> Variant:
 
 
 func _on_add_variable_pressed() -> void:
-	if _mission == null:
+	if not _commit.is_valid():
 		return
 	var variable := MissionVariable.new()
-	var mission := _mission
-	operation_history.record("Add variable", func():
-		mission.custom_variables.append(variable)
-	)
-	layered_map.notify_objects_changed()
+	var variables := _variables
+	_commit.call("Add variable", func(): variables.append(variable))
 	_rebuild_rows()
 
 
 func _on_remove_variable_pressed(variable: MissionVariable) -> void:
-	if _mission == null:
+	if not _commit.is_valid():
 		return
-	var mission := _mission
-	operation_history.record("Remove variable", func():
-		mission.custom_variables.erase(variable)
-	)
-	layered_map.notify_objects_changed()
+	var variables := _variables
+	_commit.call("Remove variable", func(): variables.erase(variable))
 	_rebuild_rows()
 
 
 func _commit_field(label: String, mutate: Callable) -> void:
-	operation_history.record(label, mutate)
-	layered_map.notify_objects_changed()
+	_commit.call(label, mutate)

@@ -18,9 +18,11 @@ extends RefCounted
 enum _ValueType { STRING, BOOL, INT, FLOAT }
 
 var mission: MissionData
-## When not empty, the variable names the dropdowns offer INSTEAD of the mission's (the campaign editor
-## edits conditions over the campaign's own values - CampaignState.CONDITION_VARIABLES).
-var variable_names_override: Array[String] = []
+## When not empty, the variables the dropdowns offer INSTEAD of the mission's (the campaign editor uses
+## this editor for conditions/effects over the campaign's own variables - Campaign.all_variables()).
+var campaign_variables: Array[MissionVariable] = []
+## When not empty, the only effect types the type dropdown offers (the campaign editor: set variable / math).
+var allowed_effect_types: Array[int] = []
 var host: Node
 var _commit: Callable
 
@@ -75,8 +77,11 @@ func _label(text: String) -> Label:
 ## declared MissionData.custom_variables name - the full set a Condition/
 ## Effect's variable_name can validly reference right now.
 func _known_variable_names() -> Array[String]:
-	if not variable_names_override.is_empty():
-		return variable_names_override
+	if not campaign_variables.is_empty():
+		var campaign_names: Array[String] = []
+		for variable in campaign_variables:
+			campaign_names.append(variable.name)
+		return campaign_names
 	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in mission.custom_variables:
 		names.append(variable.name)
@@ -115,6 +120,12 @@ func _build_variable_name_option(current_name: String, on_commit: Callable) -> O
 ## be value (int) or a other variable... filtered to the ones of type
 ## int").
 func _known_int_variable_names() -> Array[String]:
+	if not campaign_variables.is_empty():
+		var campaign_names: Array[String] = []
+		for variable in campaign_variables:
+			if variable.type == MissionVariable.Type.INT:
+				campaign_names.append(variable.name)
+		return campaign_names
 	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in mission.custom_variables:
 		if variable.type == MissionVariable.Type.INT:
@@ -257,14 +268,11 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	var row := HBoxContainer.new()
 
 	var type_option := OptionButton.new()
-	type_option.add_item("Set Variable", Effect.Type.SET_VARIABLE)
-	type_option.add_item("Show Stage", Effect.Type.SHOW_STAGE)
-	type_option.add_item("Remove Object", Effect.Type.REMOVE_OBJECT)
-	type_option.add_item("Test", Effect.Type.RUN_TEST)
-	type_option.add_item("Show Message", Effect.Type.SHOW_MESSAGE)
-	type_option.add_item("Move Object", Effect.Type.MOVE_OBJECT)
-	type_option.add_item("Math", Effect.Type.MATH)
-	type_option.add_item("Spawn Monsters", Effect.Type.SPAWN_MONSTERS)
+	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
+			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
+			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS]]:
+		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
+			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 

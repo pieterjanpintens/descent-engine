@@ -20,3 +20,6 @@ extends Resource
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}
 @export var links: Array[CampaignLink] = []
+## Set when the chapter is won / lost (Set Variable and Math effects over the campaign's variables).
+@export var win_effects: Array[Effect] = []
+@export var lose_effects: Array[Effect] = []

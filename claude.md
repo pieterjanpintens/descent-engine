@@ -6514,16 +6514,27 @@ chapters>" on top, then the entries newest first, click one to re-read it. Compi
 `Campaign.side_quests` - NOT in an act, never part of the path, no links between quests (yet). Like a chapter it has a `mission_file`, `story_before/after`,
 `map_position`, `reward_xp` (1) / `reward_gold` / `reward_materials`; in addition `chapter_ids` (the chapters it is offered at) and `conditions`
 (`Array[Condition]`). **Visible** (`CampaignState.is_side_quest_visible()`): not won (`completed_side_quests`), the party can play one of its chapters now
-(`available_chapters`) AND its conditions hold - so it disappears when the party moves on. **Conditions** reuse the mission editor's condition rows
-(`EffectEditor.build_condition_row()`, with the new `variable_names_override`) over the campaign's own values - `CampaignState.CONDITION_VARIABLES` =
-`experience`, `gold`, `act_number` (1-based) - because campaign variables don't exist yet (a condition on an unknown variable or a non-number never holds);
-the comparison itself is the shared `Condition.holds_for(current, target)` (extracted from `MissionRuntime.evaluate_condition()`). **Map**: an orange star
+(`available_chapters`) AND its conditions hold - so it disappears when the party moves on. **Conditions** reuse the mission editor's condition rows (`EffectEditor.build_condition_row()` with `campaign_variables` set to
+`Campaign.all_variables()`) over the campaign variables (next paragraph); evaluation is `CampaignState.conditions_hold()` = `MissionRuntime.evaluate_conditions()`
+over a runtime built from the save game. **Map**: an orange star
 (`CampaignMapView.side_quests`, signals `side_quest_selected/moved`); the editor shows the quests linked to the act's chapters plus the unlinked ones; the player
 only the visible ones. **Editor**: "Add side quest" in the map toolbar (linked to the selected chapter if one is selected); its Selection-tab panel has title, mission
 (+ "Add mission…"), rewards, stories, a checkbox per chapter of every act, conditions ("Add condition") and delete; `Campaign.side_quest_problems()` feeds the Problems
 list (no mission / missing file / not linked / link to a removed chapter). **Player**: selecting a star shows "Side quest (optional)", its reward and story and
 "Play this side quest"; the mission is run like a chapter (`GameState.campaign_chapter_id` holds the quest id) and `apply_side_quest_result()` applies the result: a win
 completes it and gives XP/gold/materials and a "Side quest: <title>" campaign log entry, a loss changes nothing (try again). Headless-checked only.
+
+**Campaign variables (2026-10-07)** - "define them on the campaign so the UI can offer them, no typos". `Campaign.variables` (`Array[MissionVariable]`, edited with the
+**Variables…** button on the editor's Campaign tab - `MissionVariablesDialog`, generalised to `open_for_list(variables, commit)` besides the mission's `open_for()`)
+declares them; the values live in `CampaignState.variables` (defaults copied when a new game starts, a variable added later falls back to its default). Always there in
+addition: the built-ins `experience`, `gold` (writable) and `act_number` (1-based, read-only) - `Campaign.BUILTIN_VARIABLES`, `all_variables()`, `writable_variables()`.
+**Effects**: `CampaignChapter` and `CampaignSideQuest` have `win_effects` / `lose_effects` (`Array[Effect]`, only **Set Variable** and **Math** - `EffectEditor.
+allowed_effect_types` filters the type dropdown; the variable dropdowns list the campaign's variables) shown as "When won, set:" / "When lost, set:" sections with
+"Add effect" in the Selection tab. **Mechanism**: `CampaignState._runtime(campaign)` builds a throwaway `MissionRuntime` over a `MissionData` whose `custom_variables` are
+`all_variables()` (values from the save game), so conditions and effects use the mission rules instead of a second copy; `apply_effects()` runs the effects and copies the
+values back (experience, gold, variables) - it is a coroutine, so `apply_result()` / `apply_side_quest_result()` are too (`CampaignPlayer._apply_result()` awaits them).
+Effects are applied after the rewards, before the links are followed; loss effects fire on a loss. Also fixed: the result summary's "xp" is now the counter AFTER the win.
+`MissionRuntime` no longer prints a "seeded" line per variable. Headless-checked (a win sets a flag and gold, a side quest conditioned on the flag appears).
 
 **Points of interest (2026-10-07)** - places on an act's map where the party spends what it earns. `CampaignPlace` (id "place_N", `title`,
 `description`, `map_position` like a chapter's, `unlocked_by_chapter` = the chapter that must be won before it shows ("" = from the start of the act),

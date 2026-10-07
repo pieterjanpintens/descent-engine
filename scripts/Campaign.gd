@@ -20,6 +20,35 @@ extends Resource
 ## Optional side quests (not part of an act, see CampaignSideQuest) and the counter for their ids ("sq_N").
 @export var side_quests: Array[CampaignSideQuest] = []
 @export var next_side_quest_number: int = 1
+## The campaign's own variables (declared here, so conditions and effects pick them from a list - no typos).
+## Their values live in the save game (CampaignState.variables); a chapter or side quest sets them when won
+## or lost, a side quest's conditions read them.
+@export var variables: Array[MissionVariable] = []
+
+## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only.
+const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]
+
+
+## The built-in counters (INT) followed by the declared variables - everything a condition can read.
+func all_variables() -> Array[MissionVariable]:
+	var all: Array[MissionVariable] = []
+	for variable_name in BUILTIN_VARIABLES:
+		var builtin := MissionVariable.new()
+		builtin.name = variable_name
+		builtin.type = MissionVariable.Type.INT
+		builtin.default_value = 0
+		all.append(builtin)
+	all.append_array(variables)
+	return all
+
+
+## What an effect may write: all of all_variables() except act_number.
+func writable_variables() -> Array[MissionVariable]:
+	var writable: Array[MissionVariable] = []
+	for variable in all_variables():
+		if variable.name != "act_number":
+			writable.append(variable)
+	return writable
 
 
 func new_side_quest_id() -> String:

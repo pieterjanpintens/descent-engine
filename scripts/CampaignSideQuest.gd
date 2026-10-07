@@ -22,5 +22,8 @@ extends Resource
 ## The chapters it is offered at: visible while any of them is one the party can play now.
 @export var chapter_ids: Array[String] = []
 ## Only offered while all of these hold (implicit AND; empty = always). They compare the campaign's
-## values - CampaignState.CONDITION_VARIABLES (experience, gold, act_number).
+## variables (Campaign.all_variables(): experience, gold, act_number and the declared ones).
 @export var conditions: Array[Condition] = []
+## Set when the side quest is won / lost (Set Variable and Math effects over the campaign's variables).
+@export var win_effects: Array[Effect] = []
+@export var lose_effects: Array[Effect] = []

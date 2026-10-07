@@ -116,7 +116,7 @@ func _ready() -> void:
 		var result := GameState.campaign_result
 		GameState.clear_campaign()
 		if _open_save(folder, key) and not result.is_empty():
-			_apply_result(result)
+			await _apply_result(result)
 
 
 # ---------------------------------------------------------------- pages
@@ -451,7 +451,7 @@ func _rebuild_side() -> void:
 		_build_place_panel(place)
 		return
 	var quest := _campaign.find_side_quest(_selected_id)
-	if quest != null and _state.is_side_quest_visible(quest):
+	if quest != null and _state.is_side_quest_visible(_campaign, quest):
 		_build_side_quest_panel(quest)
 		return
 	var chapter := act.find_chapter(_selected_id)
@@ -557,8 +557,11 @@ func _play_mission(mission_file: String, id: String) -> void:
 func _apply_result(result: Dictionary) -> void:
 	var won: bool = result.get("won", false)
 	var finished_id := str(result.get("chapter_id", ""))
-	var summary := _state.apply_side_quest_result(_campaign, finished_id, won) if _campaign.find_side_quest(finished_id) != null \
-		else _state.apply_result(_campaign, finished_id, won)
+	var summary: Dictionary
+	if _campaign.find_side_quest(finished_id) != null:
+		summary = await _state.apply_side_quest_result(_campaign, finished_id, won)
+	else:
+		summary = await _state.apply_result(_campaign, finished_id, won)
 	_save()
 	_selected_id = ""
 	_refresh_view()

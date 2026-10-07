@@ -21,6 +21,8 @@ extends Resource
 ## act can set it to a fixed number when it begins (CampaignAct.start_experience).
 @export var experience: int = 0
 @export var gold: int = 0
+## The values of the campaign's declared variables (Campaign.variables): name -> value.
+@export var variables: Dictionary = {}
 ## Ids of the side quests the party has won.
 @export var completed_side_quests: Array[String] = []
 ## The campaign log: what the party was told and did, oldest first - {title, pages} (see LogDialog).
@@ -31,60 +33,68 @@ extends Resource
 @export var owned_attachments: Array[String] = []
 
 
-## The campaign values a side quest's conditions can compare (Condition.variable_name).
-const CONDITION_VARIABLES: Array[String] = ["experience", "gold", "act_number"]
+## A MissionRuntime over the campaign's variables (the built-in counters from this state plus the declared
+## ones), used to evaluate conditions and apply effects with the mission rules instead of a second copy of
+## them. A declared variable this save game has no value for yet gets its default.
+func _runtime(campaign: Campaign) -> MissionRuntime:
+	var data := MissionData.new()
+	data.custom_variables = campaign.all_variables()
+	var runtime := MissionRuntime.new(data)
+	runtime.log_evaluations = false
+	var values := {"experience": experience, "gold": gold, "act_number": current_act + 1}
+	for variable in campaign.variables:
+		values[variable.name] = variables.get(variable.name, variable.default_value)
+	runtime.load_variables_state(values)
+	return runtime
 
 
-func condition_value(variable_name: String) -> Variant:
-	match variable_name:
-		"experience":
-			return experience
-		"gold":
-			return gold
-		"act_number":
-			return current_act + 1
-	return null
+func conditions_hold(campaign: Campaign, conditions: Array[Condition]) -> bool:
+	return conditions.is_empty() or _runtime(campaign).evaluate_conditions(conditions)
 
 
-## Implicit AND over `conditions`; an unknown variable or a non-number value never holds.
-func conditions_hold(conditions: Array[Condition]) -> bool:
-	for condition in conditions:
-		var current: Variant = condition_value(condition.variable_name)
-		if typeof(current) == TYPE_NIL:
-			return false
-		if typeof(condition.value) != TYPE_INT and typeof(condition.value) != TYPE_FLOAT:
-			return false
-		if not condition.holds_for(current, int(condition.value)):
-			return false
-	return true
+## Applies `effects` (Set Variable / Math) to the campaign's variables and counters.
+func apply_effects(campaign: Campaign, effects: Array[Effect]) -> void:
+	if effects.is_empty():
+		return
+	var runtime := _runtime(campaign)
+	await runtime.apply_effects(effects)
+	var values := runtime.get_variables_state()
+	experience = int(values["experience"])
+	gold = int(values["gold"])
+	for variable in campaign.variables:
+		variables[variable.name] = values[variable.name]
 
 
 ## Offered on the map now: not won yet, the party is at one of its chapters and its conditions hold.
-func is_side_quest_visible(quest: CampaignSideQuest) -> bool:
+func is_side_quest_visible(campaign: Campaign, quest: CampaignSideQuest) -> bool:
 	if completed_side_quests.has(quest.id):
 		return false
 	var at_chapter := false
 	for chapter_id in quest.chapter_ids:
 		if available_chapters.has(chapter_id):
 			at_chapter = true
-	return at_chapter and conditions_hold(quest.conditions)
+	return at_chapter and conditions_hold(campaign, quest.conditions)
 
 
 func visible_side_quests(campaign: Campaign) -> Array[CampaignSideQuest]:
 	var visible: Array[CampaignSideQuest] = []
 	for quest in campaign.side_quests:
-		if is_side_quest_visible(quest):
+		if is_side_quest_visible(campaign, quest):
 			visible.append(quest)
 	return visible
 
 
 ## Applies how a side quest's mission ended. A win completes it (never offered again) and gives its XP, gold
-## and materials; a loss changes nothing (it can be played again). Returns the same summary shape as
-## apply_result() so the screen can tell it the same way.
+## and materials; a loss gives nothing (it can be played again). The quest's win / lose effects are applied.
+## Returns the same summary shape as apply_result() so the screen can tell it the same way.
 func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool) -> Dictionary:
 	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
 	var quest := campaign.find_side_quest(quest_id)
-	if quest == null or not is_side_quest_visible(quest) or not won:
+	if quest == null or not is_side_quest_visible(campaign, quest):
+		return summary
+	if not won:
+		await apply_effects(campaign, quest.lose_effects)
+		summary["xp"] = experience
 		return summary
 	completed_side_quests.append(quest.id)
 	experience += quest.reward_xp
@@ -102,6 +112,8 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool) ->
 			pages.append(story)
 	pages.append("Side quest won: +%d XP%s." % [quest.reward_xp, (", %d gold" % quest.reward_gold) if quest.reward_gold > 0 else ""])
 	add_log("Side quest: %s" % quest.title, pages)
+	await apply_effects(campaign, quest.win_effects)
+	summary["xp"] = experience
 	return summary
 
 
@@ -114,6 +126,8 @@ func ensure_started(campaign: Campaign) -> void:
 	if campaign_complete or not available_chapters.is_empty():
 		return
 	if log_entries.is_empty():
+		for variable in campaign.variables:
+			variables[variable.name] = variable.default_value
 		add_log(campaign.campaign_name, [campaign.intro if campaign.intro != "" else "The story begins."])
 	_begin_act(campaign, current_act)
 
@@ -163,6 +177,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictiona
 		pages.append("Won: +%d XP%s." % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""])
 		add_log(chapter.title, pages)
 		gold += chapter.reward_gold
+	await apply_effects(campaign, chapter.win_effects if won else chapter.lose_effects)
 	var targets: Array[String] = []
 	for link in chapter.links:
 		var applies := link.outcome == CampaignLink.Outcome.ANY \
@@ -179,7 +194,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictiona
 		summary["act_complete"] = true
 		_begin_act(campaign, current_act + 1)
 		summary["campaign_complete"] = campaign_complete
-		summary["xp"] = experience
+	summary["xp"] = experience
 	for next_id in available_chapters:
 		var next_chapter := campaign.acts[current_act].find_chapter(next_id) if current_act < campaign.acts.size() else null
 		if next_chapter != null:

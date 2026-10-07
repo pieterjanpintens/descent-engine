@@ -84,7 +84,6 @@ func _init(p_mission: MissionData) -> void:
 			push_warning("MissionVariable '%s' default_value doesn't match its declared type - using a zero value" % variable.name)
 			coerced = _zero_value(variable.type)
 		_variables[variable.name] = coerced
-		print("MissionRuntime: seeded '%s' = %s (%s)" % [variable.name, coerced, MissionVariable.Type.keys()[variable.type]])
 
 	for root in mission.objectives:
 		_current_groups.append([root])

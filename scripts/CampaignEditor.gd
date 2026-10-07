@@ -21,6 +21,8 @@ var _selected: CampaignChapter
 var _selected_place: CampaignPlace
 var _selected_quest: CampaignSideQuest
 var _condition_editor: EffectEditor
+var _effect_editor: EffectEditor
+var _variables_dialog: MissionVariablesDialog
 var _dirty: bool = false
 
 var _status_label: Label
@@ -172,6 +174,10 @@ func _ready() -> void:
 	left.add_child(cover_row)
 	cover_row.add_child(_button("Book cover…", func(): _cover_dialog.popup_centered_ratio(0.6)))
 	cover_row.add_child(_button("Clear cover", _on_clear_cover_pressed))
+	left.add_child(_button("Variables…", func(): _variables_dialog.open_for_list(_campaign.variables, func(_label: String, mutate: Callable):
+		mutate.call()
+		_mark_dirty()
+	)))
 	_cover_label = _label("")
 	left.add_child(_cover_label)
 	_cover_preview = TextureRect.new()
@@ -294,12 +300,18 @@ func _ready() -> void:
 
 	# The conditions of a side quest are edited with the mission editor's own condition rows, over the
 	# campaign's values.
-	_condition_editor = EffectEditor.new()
-	_condition_editor.variable_names_override = CampaignState.CONDITION_VARIABLES
-	_condition_editor.setup(self, func(_label: String, mutate: Callable):
+	var commit := func(_label: String, mutate: Callable):
 		mutate.call()
 		_mark_dirty()
-	)
+	_condition_editor = EffectEditor.new()
+	_condition_editor.setup(self, commit)
+	# What happens when a chapter or side quest is won / lost: set a variable or do math on it.
+	_effect_editor = EffectEditor.new()
+	_effect_editor.allowed_effect_types = [Effect.Type.SET_VARIABLE, Effect.Type.MATH]
+	_effect_editor.mission = MissionData.new()
+	_effect_editor.setup(self, commit)
+	_variables_dialog = MissionVariablesDialog.new()
+	add_child(_variables_dialog)
 
 	_refresh_open_list()
 	_refresh_all()
@@ -644,6 +656,25 @@ func _on_map_side_quest_selected(quest_id: String) -> void:
 	_rebuild_chapter_panel()
 
 
+## A list of effects (set a variable / do math on it) the campaign applies when a chapter or side quest is
+## won or lost, in the panel on the right.
+func _build_effects_section(heading: String, effects: Array[Effect]) -> void:
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_label(heading))
+	_effect_editor.campaign_variables = _campaign.writable_variables()
+	for effect in effects:
+		_chapter_panel.add_child(_effect_editor.build_effect_row(effects, effect, _rebuild_chapter_panel))
+	_chapter_panel.add_child(_button("Add effect", func():
+		var created := Effect.new()
+		created.type = Effect.Type.SET_VARIABLE
+		created.variable_name = _campaign.writable_variables()[0].name
+		created.value = 0
+		effects.append(created)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+
+
 func _delete_side_quest(quest: CampaignSideQuest) -> void:
 	_campaign.side_quests.erase(quest)
 	_selected_quest = null
@@ -745,12 +776,13 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 			_chapter_panel.add_child(check)
 
 	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label("Only offered when (experience / gold / act_number):"))
+	_chapter_panel.add_child(_label("Only offered when:"))
+	_condition_editor.campaign_variables = _campaign.all_variables()
 	for condition in quest.conditions:
 		_chapter_panel.add_child(_condition_editor.build_condition_row(quest.conditions, condition, _rebuild_chapter_panel))
 	_chapter_panel.add_child(_button("Add condition", func():
 		var created := Condition.new()
-		created.variable_name = CampaignState.CONDITION_VARIABLES[0]
+		created.variable_name = Campaign.BUILTIN_VARIABLES[0]
 		created.operator = Condition.Operator.GREATER_EQUAL
 		created.value = 0
 		quest.conditions.append(created)
@@ -758,6 +790,8 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 		_rebuild_chapter_panel()
 	))
 
+	_build_effects_section("When won, set:", quest.win_effects)
+	_build_effects_section("When lost, set:", quest.lose_effects)
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete side quest", func(): _delete_side_quest(quest)))
 
@@ -1126,6 +1160,8 @@ func _rebuild_chapter_panel() -> void:
 	add_link.disabled = others.is_empty()
 	_chapter_panel.add_child(add_link)
 
+	_build_effects_section("When won, set:", chapter.win_effects)
+	_build_effects_section("When lost, set:", chapter.lose_effects)
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete chapter", func(): _delete_chapter(chapter)))
 
