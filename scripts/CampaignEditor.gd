@@ -28,7 +28,7 @@ var _edit_menu: PopupMenu
 var _open_menu: PopupMenu
 var _open_folders: Array[String] = []
 
-enum FileAction { NEW, SAVE, BACK }
+enum FileAction { NEW, SAVE, BACK, OPEN }
 enum EditAction { UNDO, REDO }
 
 ## Undo/redo works on whole-campaign snapshots (like the mission editor's OperationHistory):
@@ -85,7 +85,7 @@ func _ready() -> void:
 	_open_menu.index_pressed.connect(_on_open_index_pressed)
 	_file_menu.add_child(_open_menu)
 	_file_menu.add_item("New", FileAction.NEW, (KEY_MASK_CTRL | KEY_N) as Key)
-	_file_menu.add_submenu_node_item("Open", _open_menu)
+	_file_menu.add_submenu_node_item("Open", _open_menu, FileAction.OPEN)
 	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
 	_file_menu.add_separator()
 	_file_menu.add_item("Back to Menu", FileAction.BACK)
