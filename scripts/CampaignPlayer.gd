@@ -291,10 +291,6 @@ func _build_play_page() -> Control:
 	var bar := HBoxContainer.new()
 	page.add_child(bar)
 	bar.add_child(_button("‹ Main menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
-	bar.add_child(_button("Restart", func():
-		if _state != null:
-			_ask("Restart '%s'? All progress of this save game is lost." % _state.save_name, _restart)
-	))
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -375,12 +371,6 @@ func _use(campaign: Campaign, state: CampaignState) -> void:
 	_save()
 	_refresh_view()
 	_show_page(_play_page)
-
-
-## Begins the current save game again from the start of the campaign (same name).
-func _restart() -> void:
-	if _state != null:
-		_begin(_state.campaign_folder, _state.save_name)
 
 
 func _save() -> void:
