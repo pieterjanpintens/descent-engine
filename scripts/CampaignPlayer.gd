@@ -210,7 +210,7 @@ func _rebuild_side() -> void:
 	_side.add_child(title)
 	var status_text: String = {"available": "Ready to play", "done": "Completed", "locked": "Locked - win the chapters before it first"}[status]
 	_side.add_child(_label(status_text))
-	_side.add_child(_label("Reward: +%d XP%s" % [CampaignState.XP_PER_WIN, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
+	_side.add_child(_label("Reward: +%d XP%s" % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
 	if status != "locked" and chapter.story_before != "":
 		_side.add_child(_wrapped(chapter.story_before))
 	if status == "done" and chapter.story_after != "":
@@ -291,7 +291,7 @@ func _apply_result(result: Dictionary) -> void:
 	var lines: Array[String] = []
 	lines.append("Victory!" if won else "Defeat.")
 	if won:
-		lines.append("+%d XP (now %d), +%d gold%s." % [CampaignState.XP_PER_WIN, summary["xp"], summary["gold"], (", " + CampaignState.format_materials(summary["materials"])) if not summary["materials"].is_empty() else ""])
+		lines.append("+%d XP (now %d), +%d gold%s." % [summary["xp_gained"], summary["xp"], summary["gold"], (", " + CampaignState.format_materials(summary["materials"])) if not summary["materials"].is_empty() else ""])
 		if summary["story_after"] != "":
 			lines.append("\n" + summary["story_after"])
 	elif summary["next"].is_empty():

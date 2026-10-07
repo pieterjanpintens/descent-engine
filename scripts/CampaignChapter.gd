@@ -14,7 +14,8 @@ extends Resource
 @export_multiline var story_after: String = ""
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var is_finale: bool = false
-## What winning the chapter gives the party besides the experience point every win gives.
+## What winning the chapter gives the party: experience points (the party's counter) and gold.
+@export var reward_xp: int = 1
 @export var reward_gold: int = 0
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}

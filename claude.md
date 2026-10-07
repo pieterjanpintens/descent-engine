@@ -6478,13 +6478,13 @@ which copies a mission from `user://missions`, start/finale checkboxes, story be
 editor driven through its own actions); the layout/drag feel was not seen.
 
 **Experience counter (2026-10-07, replaces the first "hero model")** - the game has no real XP system and no modelled abilities, so what
-carries over between missions is ONE party-wide counter: `CampaignState.experience` (int, default 0). It goes up by `CampaignState.XP_PER_WIN`
-(1) for every WON chapter (a loss gives nothing), and an act can force it to a number when it begins (`CampaignAct.start_experience`, -1 = keep;
+carries over between missions is ONE party-wide counter: `CampaignState.experience` (int, default 0). It goes up by the chapter's `reward_xp` (authored per chapter in the editor, default 1)
+for every WON chapter (a loss gives nothing), and an act can force it to a number when it begins (`CampaignAct.start_experience`, -1 = keep;
 "levels the board again" - applied by `_begin_act()`, so also at the start of the first act and after the last chapter of the previous one).
 It is always visible in the campaign screen's top bar ("XP: N | Gold: ..."), the chapter panel shows the reward, and the result dialog says
 "+1 XP (now N)". Nothing reads the counter yet (planned: scaling the missions' monsters). **Removed as obsolete**: `HeroProgression` (XP
 thresholds/ability slots), `HeroAbility`, `AbilityCatalog`, `HeroState`, `CampaignHeroesDialog` (the "Heroes..." button), per-hero XP,
-`CampaignChapter.reward_xp`, `Campaign.progression` and `party_level()` (old campaign files just ignore the removed properties). The campaign
+`Campaign.progression` and `party_level()` (old campaign files just ignore the removed properties). The campaign
 save (`CampaignState`: `campaign_folder`, `current_act`, `completed_chapters`, `available_chapters`, `experience`, `gold`, `materials`,
 `owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state()` as `user://campaign_saves/<campaign folder>.tres`.
 The editor has a "XP when the act begins (-1 = keep)" spin box per act. Compile-checked only (the logic is a counter; not run in a scene).
@@ -6499,7 +6499,7 @@ the heroes and weapons as usual). **When the mission ends** `MissionPlayer._exit
 `{won, roster, chapter_id}`, or with `{}` for Back to Menu = abandoned) stores `GameState.campaign_result` and returns to the campaign screen instead of the
 main menu; the screen reopens that campaign, applies the result and clears the context (a mission started from the main menu - Play Mission/Load
 Game - clears any campaign context). **Rules** (`CampaignState.apply_result()`, the same logic the screen uses): the party is at a FRONTIER
-(`available_chapters`; the start chapter at first). A WIN completes the chapter, raises the XP counter by 1 and gives `reward_gold` to the party
+(`available_chapters`; the start chapter at first). A WIN completes the chapter, raises the XP counter by the chapter's `reward_xp` (default 1) and gives `reward_gold` to the party
 (per-chapter field, default 0, set in the editor's chapter panel), and replaces the chapter in the frontier by the targets of its "on win"/
 "always" links (several = the table chooses); winning a **finale** (or a chapter with nowhere to go) completes the act and starts the next one, after the
 last act the campaign is complete. A LOSS: an "on lose"/"always" link replaces the chapter, otherwise the chapter is simply offered again (no XP/gold on a

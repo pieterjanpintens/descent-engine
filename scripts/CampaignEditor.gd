@@ -828,7 +828,9 @@ func _rebuild_chapter_panel() -> void:
 
 	var reward_row := HBoxContainer.new()
 	_chapter_panel.add_child(reward_row)
-	reward_row.add_child(_label("Win gives (+1 XP always) gold:"))
+	reward_row.add_child(_label("Win gives XP:"))
+	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
+	reward_row.add_child(_label("gold:"))
 	reward_row.add_child(_reward_spin(chapter.reward_gold, func(value: int): chapter.reward_gold = value))
 
 	var materials_row := HBoxContainer.new()

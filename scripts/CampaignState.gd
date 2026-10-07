@@ -15,7 +15,7 @@ extends Resource
 @export var campaign_complete: bool = false
 ## Ids of the once-only offers the party has bought.
 @export var purchased_offers: Array[String] = []
-## The party's experience points - just a counter: +1 for every won chapter (XP_PER_WIN), and an
+## The party's experience points - just a counter: a won chapter adds its `reward_xp`, and an
 ## act can set it to a fixed number when it begins (CampaignAct.start_experience).
 @export var experience: int = 0
 @export var gold: int = 0
@@ -23,8 +23,6 @@ extends Resource
 @export var materials: Dictionary = {}
 ## Names of the weapon attachments (AttachmentCatalog) the party owns.
 @export var owned_attachments: Array[String] = []
-
-const XP_PER_WIN := 1
 
 
 ## Puts a brand-new campaign at the start of its first act (does nothing once started).
@@ -48,13 +46,13 @@ func _begin_act(campaign: Campaign, index: int) -> void:
 
 
 ## Applies how a chapter's mission ended. A win: the chapter is completed, the experience counter
-## goes up by XP_PER_WIN, the party gets its gold, and the way forward opens (the chapter's "on win"/"always"
+## goes up by the chapter's reward_xp, the party gets its gold, and the way forward opens (the chapter's "on win"/"always"
 ## links; winning a finale ends the act and starts the next one - or finishes the campaign). A loss:
 ## an "on lose"/"always" link leads on; without one the chapter is simply played again. Returns
 ## {won, xp (the counter after the result), gold, next (titles of the chapters now
 ## available), story_after, act_complete, campaign_complete} for the screen to tell.
 func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictionary:
-	var summary := {"won": won, "xp": experience, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
+	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
 	if current_act < 0 or current_act >= campaign.acts.size() or not available_chapters.has(chapter_id):
 		return summary
 	var act := campaign.acts[current_act]
@@ -63,7 +61,8 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictiona
 		return summary
 	if won:
 		mark_completed(chapter_id)
-		experience += XP_PER_WIN
+		experience += chapter.reward_xp
+		summary["xp_gained"] = chapter.reward_xp
 		summary["gold"] = chapter.reward_gold
 		summary["materials"] = chapter.reward_materials.duplicate()
 		for material_name in chapter.reward_materials:
