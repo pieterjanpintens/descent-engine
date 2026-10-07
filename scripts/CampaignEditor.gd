@@ -253,7 +253,7 @@ func _ready() -> void:
 	_mission_dialog.title = "Add a mission to this campaign"
 	_mission_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	_mission_dialog.access = FileDialog.ACCESS_USERDATA
-	_mission_dialog.filters = PackedStringArray(["*.tres ; Missions"])
+	_mission_dialog.filters = PackedStringArray(["*.tres"])
 	_mission_dialog.file_selected.connect(_on_mission_file_selected)
 	add_child(_mission_dialog)
 
@@ -798,7 +798,7 @@ func _rebuild_chapter_panel() -> void:
 	mission_row.add_child(mission_option)
 	mission_row.add_child(_button("Add mission…", func():
 		_mission_dialog.current_dir = "user://missions"
-		_mission_dialog.popup_centered_ratio(0.6)
+		_mission_dialog.popup_centered()
 	))
 
 	var start_check := CheckBox.new()
