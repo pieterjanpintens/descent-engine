@@ -29,6 +29,14 @@ text = "Load Game"
 layout_mode = 2
 text = "Editor"
 
+[node name="CampaignButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Campaign"
+
+[node name="CampaignEditorButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Campaign Editor"
+
 [node name="ExitButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1762109289]
 layout_mode = 2
 text = "Exit
@@ -51,6 +59,8 @@ filters = PackedStringArray("*.tres")
 [connection signal="pressed" from="CenterContainer/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/LoadGameButton" to="." method="_on_load_game_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/EditorButton" to="." method="_on_editor_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/CampaignButton" to="." method="_on_campaign_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/CampaignEditorButton" to="." method="_on_campaign_editor_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="file_selected" from="MissionFileDialog" to="." method="_on_mission_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveFileDialog" to="." method="_on_save_file_dialog_file_selected"]

@@ -8,6 +8,7 @@ extends Control
 
 @export var editor_scene_path: String = "res://map/MissionMap.tscn"   ## <<< set to your actual Creator/editor scene
 @export var player_scene_path: String = "res://player/MissionPlayer.tscn"  ## <<< set to your actual Player scene
+@export var campaign_editor_scene_path: String = "res://ui/CampaignEditor.tscn"
 
 @onready var mission_dialog: FileDialog = %MissionFileDialog
 @onready var save_dialog: FileDialog = %SaveFileDialog
@@ -53,6 +54,7 @@ func _on_load_game_button_pressed() -> void:
 
 
 func _on_save_file_dialog_file_selected(path: String) -> void:
+	GameState.clear_campaign()
 	GameState.load_save_path = path
 	get_tree().change_scene_to_file(player_scene_path)
 
@@ -61,10 +63,20 @@ func _on_editor_button_pressed() -> void:
 	get_tree().change_scene_to_file(editor_scene_path)
 
 
+func _on_campaign_button_pressed() -> void:
+	GameState.clear_campaign()
+	get_tree().change_scene_to_file(GameState.CAMPAIGN_SCENE)
+
+
+func _on_campaign_editor_button_pressed() -> void:
+	get_tree().change_scene_to_file(campaign_editor_scene_path)
+
+
 func _on_exit_button_pressed() -> void:
 	get_tree().quit()
 
 
 func _on_mission_file_dialog_file_selected(path: String) -> void:
+	GameState.clear_campaign()
 	GameState.current_mission_path = path
 	get_tree().change_scene_to_file(player_scene_path)

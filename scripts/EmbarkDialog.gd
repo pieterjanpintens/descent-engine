@@ -28,6 +28,11 @@ extends Control
 
 signal _closed
 
+## In a campaign the loadout page offers only the attachments the party owns (set by
+## MissionPlayer from the campaign save); outside one every fitting attachment is offered.
+var restrict_to_owned: bool = false
+var owned_attachments: Array[String] = []
+
 var _slot_buttons: Array[Button] = []
 var _start_button: Button
 var _party_panel: CenterContainer
@@ -265,7 +270,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			column.add_child(type_label)
 			column.add_child(picker)
 			# Optional premade attachments (secondary abilities) for this weapon.
-			var options := AttachmentCatalog.for_weapon(slot, weapon_index, type_name)
+			var options := _allowed_attachments(slot, weapon_index, type_name)
 			var attachment_pickers: Array[OptionButton] = []
 			for attachment_number in WeaponAttachment.MAX_PER_WEAPON:
 				var attachment_picker := OptionButton.new()
@@ -305,6 +310,17 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			chosen.append(weapon)
 		loadouts[slot] = chosen
 	return loadouts
+
+
+## The attachments that may be offered for a weapon: the ones that fit it (AttachmentCatalog),
+## and in a campaign (`restrict_to_owned`) only those the party owns. An owned attachment can be
+## equipped on more than one weapon - the number of copies is not tracked.
+func _allowed_attachments(slot: int, weapon_index: int, type_name: String) -> Array[WeaponAttachment]:
+	var allowed: Array[WeaponAttachment] = []
+	for attachment in AttachmentCatalog.for_weapon(slot, weapon_index, type_name):
+		if not restrict_to_owned or owned_attachments.has(attachment.attachment_name):
+			allowed.append(attachment)
+	return allowed
 
 
 ## The same attachment can't be equipped twice on one weapon: if two pickers show the same
