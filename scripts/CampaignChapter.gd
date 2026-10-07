@@ -21,5 +21,7 @@ extends Resource
 @export var reward_materials: Dictionary = {}
 @export var links: Array[CampaignLink] = []
 ## Set when the chapter is won / lost (Set Variable and Math effects over the campaign's variables).
+## Mission variables copied into campaign variables when the mission ends, before the effects below.
+@export var mission_outputs: Array[MissionVariableMap] = []
 @export var win_effects: Array[Effect] = []
 @export var lose_effects: Array[Effect] = []

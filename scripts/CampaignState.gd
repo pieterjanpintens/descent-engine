@@ -52,6 +52,20 @@ func conditions_hold(campaign: Campaign, conditions: Array[Condition]) -> bool:
 	return conditions.is_empty() or _runtime(campaign).evaluate_conditions(conditions)
 
 
+## Copies the mission's final variable values into the campaign variables named by `outputs` (a plain
+## Set Variable effect per row, so type checks and the built-in counters behave like any other effect).
+func apply_mission_outputs(campaign: Campaign, outputs: Array[MissionVariableMap], mission_values: Dictionary) -> void:
+	var copies: Array[Effect] = []
+	for output in outputs:
+		if mission_values.has(output.mission_variable):
+			var copy := Effect.new()
+			copy.type = Effect.Type.SET_VARIABLE
+			copy.variable_name = output.campaign_variable
+			copy.value = mission_values[output.mission_variable]
+			copies.append(copy)
+	await apply_effects(campaign, copies)
+
+
 ## Applies `effects` (Set Variable / Math) to the campaign's variables and counters.
 func apply_effects(campaign: Campaign, effects: Array[Effect]) -> void:
 	if effects.is_empty():
@@ -87,12 +101,13 @@ func visible_side_quests(campaign: Campaign) -> Array[CampaignSideQuest]:
 ## Applies how a side quest's mission ended. A win completes it (never offered again) and gives its XP, gold
 ## and materials; a loss gives nothing (it can be played again). The quest's win / lose effects are applied.
 ## Returns the same summary shape as apply_result() so the screen can tell it the same way.
-func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool) -> Dictionary:
+func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mission_values: Dictionary = {}) -> Dictionary:
 	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
 	var quest := campaign.find_side_quest(quest_id)
 	if quest == null or not is_side_quest_visible(campaign, quest):
 		return summary
 	if not won:
+		await apply_mission_outputs(campaign, quest.mission_outputs, mission_values)
 		await apply_effects(campaign, quest.lose_effects)
 		summary["xp"] = experience
 		return summary
@@ -112,6 +127,7 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool) ->
 			pages.append(story)
 	pages.append("Side quest won: +%d XP%s." % [quest.reward_xp, (", %d gold" % quest.reward_gold) if quest.reward_gold > 0 else ""])
 	add_log("Side quest: %s" % quest.title, pages)
+	await apply_mission_outputs(campaign, quest.mission_outputs, mission_values)
 	await apply_effects(campaign, quest.win_effects)
 	summary["xp"] = experience
 	return summary
@@ -153,7 +169,7 @@ func _begin_act(campaign: Campaign, index: int) -> void:
 ## an "on lose"/"always" link leads on; without one the chapter is simply played again. Returns
 ## {won, xp (the counter after the result), gold, next (titles of the chapters now
 ## available), story_after, act_complete, campaign_complete} for the screen to tell.
-func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictionary:
+func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_values: Dictionary = {}) -> Dictionary:
 	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
 	if current_act < 0 or current_act >= campaign.acts.size() or not available_chapters.has(chapter_id):
 		return summary
@@ -177,6 +193,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictiona
 		pages.append("Won: +%d XP%s." % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""])
 		add_log(chapter.title, pages)
 		gold += chapter.reward_gold
+	await apply_mission_outputs(campaign, chapter.mission_outputs, mission_values)
 	await apply_effects(campaign, chapter.win_effects if won else chapter.lose_effects)
 	var targets: Array[String] = []
 	for link in chapter.links:

@@ -6536,6 +6536,15 @@ values back (experience, gold, variables) - it is a coroutine, so `apply_result(
 Effects are applied after the rewards, before the links are followed; loss effects fire on a loss. Also fixed: the result summary's "xp" is now the counter AFTER the win.
 `MissionRuntime` no longer prints a "seeded" line per variable. Headless-checked (a win sets a flag and gold, a side quest conditioned on the flag appears).
 
+**Mission -> campaign bridge (2026-10-07)** - "if an optional objective in the mission kills person A, a side quest that needs A must never appear". When a mission
+ends, `MissionPlayer._handle_game_over()` puts the mission's final variable values in the result (`mission_variables`, win or lose; abandoning gives `{}` so nothing is
+applied). A chapter or side quest has `mission_outputs` (`Array[MissionVariableMap]`: `mission_variable` -> `campaign_variable`); `CampaignState.apply_mission_outputs()`
+copies each value as a plain Set Variable effect (so type checks and the counters behave like any effect) right after the rewards and BEFORE the win/lose effects, so
+everything after can use the campaign variable (math, side quest conditions, other chapters' effects). Editor: a "Take over from the mission:" section in the
+Selection tab (before the effects) - the mission variable dropdown is filled by reading the mission file in the campaign folder (`CampaignIO.mission_variables()`),
+the campaign variable dropdown only offers writable variables of the SAME type; `CampaignIO.mission_output_problems()` feeds the Problems list (variable no longer
+declared by the mission / campaign variable gone / different types). Not built: the reverse direction (campaign variables preset mission variables at its start).
+
 **Points of interest (2026-10-07)** - places on an act's map where the party spends what it earns. `CampaignPlace` (id "place_N", `title`,
 `description`, `map_position` like a chapter's, `unlocked_by_chapter` = the chapter that must be won before it shows ("" = from the start of the act),
 `offers`) lives in `CampaignAct.places`; `CampaignOffer` (id "offer_N", `title`, `description`, `cost_gold`, `cost_materials` name -> count,

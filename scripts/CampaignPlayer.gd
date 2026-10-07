@@ -559,9 +559,9 @@ func _apply_result(result: Dictionary) -> void:
 	var finished_id := str(result.get("chapter_id", ""))
 	var summary: Dictionary
 	if _campaign.find_side_quest(finished_id) != null:
-		summary = await _state.apply_side_quest_result(_campaign, finished_id, won)
+		summary = await _state.apply_side_quest_result(_campaign, finished_id, won, result.get("mission_variables", {}))
 	else:
-		summary = await _state.apply_result(_campaign, finished_id, won)
+		summary = await _state.apply_result(_campaign, finished_id, won, result.get("mission_variables", {}))
 	_save()
 	_selected_id = ""
 	_refresh_view()

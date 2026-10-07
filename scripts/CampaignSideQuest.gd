@@ -25,5 +25,7 @@ extends Resource
 ## variables (Campaign.all_variables(): experience, gold, act_number and the declared ones).
 @export var conditions: Array[Condition] = []
 ## Set when the side quest is won / lost (Set Variable and Math effects over the campaign's variables).
+## Mission variables copied into campaign variables when the mission ends, before the effects below.
+@export var mission_outputs: Array[MissionVariableMap] = []
 @export var win_effects: Array[Effect] = []
 @export var lose_effects: Array[Effect] = []

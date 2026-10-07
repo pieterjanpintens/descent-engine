@@ -1126,6 +1126,7 @@ func _handle_game_over(objective: MissionObjective) -> void:
 	_exit_mission({
 		"won": objective.outcome == MissionObjective.Outcome.WIN,
 		"chapter_id": GameState.campaign_chapter_id,
+		"mission_variables": _runtime.get_variables_state(),
 	})
 
 

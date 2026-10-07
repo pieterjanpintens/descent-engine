@@ -116,6 +116,46 @@ static func mission_files(folder: String) -> Array[String]:
 	return files
 
 
+## The variables a mission declares (MissionData.custom_variables) - empty when the file can't be read.
+static func mission_variables(folder: String, mission_file: String) -> Array[MissionVariable]:
+	if mission_file == "" or not FileAccess.file_exists("%s/%s" % [folder_path(folder), mission_file]):
+		return []
+	var mission := MissionIO.load_mission("%s/%s" % [folder_path(folder), mission_file])
+	return mission.custom_variables if mission != null else []
+
+
+## Problems with the "take over from the mission" rows of every chapter and side quest of `campaign`:
+## a mission variable the mission no longer declares, a campaign variable that is gone or has another type.
+static func mission_output_problems(campaign: Campaign, folder: String) -> Array[String]:
+	var found: Array[String] = []
+	var targets: Array = []
+	for act in campaign.acts:
+		for chapter in act.chapters:
+			targets.append(chapter)
+	targets.append_array(campaign.side_quests)
+	var writable := campaign.writable_variables()
+	for target in targets:
+		if target.mission_outputs.is_empty():
+			continue
+		var declared := mission_variables(folder, target.mission_file)
+		for output: MissionVariableMap in target.mission_outputs:
+			var source: MissionVariable
+			for variable in declared:
+				if variable.name == output.mission_variable:
+					source = variable
+			var destination: MissionVariable
+			for variable in writable:
+				if variable.name == output.campaign_variable:
+					destination = variable
+			if source == null:
+				found.append("'%s': mission variable '%s' is not declared in its mission" % [target.title, output.mission_variable])
+			elif destination == null:
+				found.append("'%s': campaign variable '%s' does not exist" % [target.title, output.campaign_variable])
+			elif source.type != destination.type:
+				found.append("'%s': '%s' and '%s' have different types" % [target.title, output.mission_variable, output.campaign_variable])
+	return found
+
+
 ## Copies a mission file into the campaign folder (so the campaign stays self-contained);
 ## returns the file name it got there, "" on failure. An existing file of that name is replaced.
 static func import_mission(folder: String, source_path: String) -> String:
