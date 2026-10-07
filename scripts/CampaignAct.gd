@@ -63,6 +63,17 @@ func _has_way_forward(chapter: CampaignChapter) -> bool:
 
 ## Human-readable problems with this act's path - `mission_files` is what exists in the
 ## campaign folder. Empty = fine.
+## Every chapter of this act that has a link to `chapter_id`.
+func predecessors(chapter_id: String) -> Array[CampaignChapter]:
+	var found: Array[CampaignChapter] = []
+	for chapter in chapters:
+		for link in chapter.links:
+			if link.target_id == chapter_id:
+				found.append(chapter)
+				break
+	return found
+
+
 func problems(mission_files: Array[String]) -> Array[String]:
 	var found: Array[String] = []
 	if chapters.is_empty():
@@ -82,6 +93,10 @@ func problems(mission_files: Array[String]) -> Array[String]:
 				found.append("'%s' links to a chapter that no longer exists" % chapter.title)
 		if not chapter.is_finale and not _has_way_forward(chapter):
 			found.append("'%s' has no way forward (link it on win, or make it a finale)" % chapter.title)
+		if chapter.wait_for_all:
+			for before in predecessors(chapter.id):
+				if not reachable.has(before.id):
+					found.append("'%s' waits for '%s', which cannot be reached" % [chapter.title, before.title])
 		if not reachable.has(chapter.id):
 			found.append("'%s' cannot be reached from the start" % chapter.title)
 		elif chapter.is_finale:

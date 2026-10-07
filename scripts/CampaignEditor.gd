@@ -1197,6 +1197,15 @@ func _rebuild_chapter_panel() -> void:
 		_map_view.queue_redraw()
 	)
 	_chapter_panel.add_child(finale_check)
+	var join_check := CheckBox.new()
+	join_check.text = "Wait for all chapters that lead here"
+	join_check.tooltip_text = "Playable only once every chapter linking to it is won (fan-out, then join). Don't use it after exclusive branches."
+	join_check.button_pressed = chapter.wait_for_all
+	join_check.toggled.connect(func(on: bool):
+		chapter.wait_for_all = on
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(join_check)
 
 	var reward_row := HBoxContainer.new()
 	_chapter_panel.add_child(reward_row)

@@ -14,6 +14,9 @@ extends Resource
 @export_multiline var story_after: String = ""
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var is_finale: bool = false
+## A join after a fan-out: the chapter only becomes playable once EVERY chapter of the act that links to it
+## has been won (1 -> 2 and 3 in any order -> 4). Without it, the first link followed makes it playable.
+@export var wait_for_all: bool = false
 ## What winning the chapter gives the party: experience points (the party's counter) and gold.
 @export var reward_xp: int = 1
 @export var reward_gold: int = 0

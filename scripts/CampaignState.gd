@@ -205,7 +205,8 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		var applies := link.outcome == CampaignLink.Outcome.ANY \
 			or (won and link.outcome == CampaignLink.Outcome.WIN) \
 			or (not won and link.outcome == CampaignLink.Outcome.LOSE)
-		if applies and act.find_chapter(link.target_id) != null and not targets.has(link.target_id):
+		var target := act.find_chapter(link.target_id)
+		if applies and target != null and not targets.has(link.target_id) and _predecessors_done(act, target):
 			targets.append(link.target_id)
 	if won or not targets.is_empty():  # a loss with no way on = play the chapter again
 		available_chapters.erase(chapter_id)
@@ -222,6 +223,16 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		if next_chapter != null:
 			summary["next"].append(next_chapter.title)
 	return summary
+
+
+## A join chapter (`wait_for_all`) opens only when every chapter linking to it has been won.
+func _predecessors_done(act: CampaignAct, chapter: CampaignChapter) -> bool:
+	if not chapter.wait_for_all:
+		return true
+	for before in act.predecessors(chapter.id):
+		if not completed_chapters.has(before.id):
+			return false
+	return true
 
 
 ## Whether `place` can be visited: its unlocking chapter (if any) has been won.
