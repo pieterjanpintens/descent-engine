@@ -1,7 +1,6 @@
 extends Control
 
-## Root script for the main menu scene. The main page is about PLAYING campaigns: Continue (the
-## most recently played campaign save game), New Campaign (the campaign screen's book library) and
+## Root script for the main menu scene. The main page is about PLAYING campaigns: New Campaign (the campaign screen's book library) and
 ## Load Campaign (its list of save games, where they can also be deleted). Everything for authors and testers - the two editors, playing one single mission,
 ## loading a mission save - sits on a second page, "Editors & Tools".
 
@@ -13,7 +12,6 @@ extends Control
 @onready var save_dialog: FileDialog = %SaveFileDialog
 @onready var main_panel: Control = %MainPanel
 @onready var editors_panel: Control = %EditorsPanel
-@onready var continue_button: Button = %ContinueButton
 @onready var load_campaign_button: Button = %LoadCampaignButton
 
 
@@ -26,19 +24,7 @@ func _ready() -> void:
 	for dir in ["user://missions", "user://saves"]:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
-	var has_saves := not CampaignIO.latest_save().is_empty()
-	continue_button.disabled = not has_saves
-	load_campaign_button.disabled = not has_saves
-
-
-func _on_continue_button_pressed() -> void:
-	var latest := CampaignIO.latest_save()
-	if latest.is_empty():
-		return
-	GameState.clear_campaign()
-	GameState.campaign_folder = latest["folder"]
-	GameState.campaign_save = latest["key"]
-	get_tree().change_scene_to_file(GameState.CAMPAIGN_SCENE)
+	load_campaign_button.disabled = not CampaignIO.has_saves()
 
 
 func _on_editors_button_pressed() -> void:

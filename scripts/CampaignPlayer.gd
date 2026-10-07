@@ -11,8 +11,8 @@ extends Control
 ##    ends), and afterwards what it brought - XP, gold, the story and where the path leads next.
 ## Progress is the campaign save game (CampaignState), written after every change (so there is no Save
 ## button: leaving just leaves it resumable). The XP counter is always shown in the play page's top bar,
-## and the main menu's Continue opens the play page of the latest save game directly. The campaign screen opens
-## on the page named by GameState.campaign_screen ("new" or "load") unless a save game is handed over.
+## The campaign screen opens on the page named by GameState.campaign_screen ("new" or "load") unless a save
+## game is handed over (a finished mission returns to its save game's play page).
 ##
 ## Chapter statuses on the map: green = available (play it), grey ✓ = won, dark = locked. A lost
 ## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
@@ -91,8 +91,7 @@ func _ready() -> void:
 		_show_load()
 	else:
 		_show_library()
-	# Coming back from a mission played as a chapter (or Continue in the main menu): reopen that
-	# save game and apply the outcome, if there is one.
+	# Coming back from a mission played as a chapter: reopen that save game and apply the outcome.
 	if GameState.campaign_folder != "":
 		var folder := GameState.campaign_folder
 		var key := GameState.campaign_save
