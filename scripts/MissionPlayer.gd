@@ -141,7 +141,7 @@ func _ready() -> void:
 		hud.set_view_buttons_visible(false)
 		player_roster = await embark_dialog.ask_roster(mission)
 		if GameState.campaign_folder != "":
-			var campaign_state := CampaignIO.load_state(GameState.campaign_folder)
+			var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
 			if campaign_state != null:
 				embark_dialog.restrict_to_owned = true
 				embark_dialog.owned_attachments = campaign_state.owned_attachments.duplicate()

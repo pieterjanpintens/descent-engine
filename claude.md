@@ -5160,21 +5160,15 @@ first working version).
 
 **App shell** (`ui/`, `player/`):
 
-- `MainMenu` — Play (opens a `FileDialog` over `user://missions/`, then loads
-  `MissionPlayer.tscn` with the chosen path via `GameState`) / Editor (loads the
-  Creator scene) / Exit. The mission folder moved from `res://missions` to
+- `MainMenu` — **revamped 2026-10-07: the main page is about playing campaigns** - (no "Continue" - removed again) "New Campaign" and "Load Campaign" (both open the campaign screen on the matching page; Load is disabled without save games), "Editors & Tools" and "Exit". "Editors & Tools" is a second page
+  of the same scene (`%MainPanel`/`%EditorsPanel`) for authors/testers: Mission Editor, Campaign Editor, Play a Single
+  Mission (a `FileDialog` over `user://missions/`, loads `MissionPlayer.tscn` with the chosen path via `GameState`),
+  Load a Mission Save (`user://saves/`) and Back. Mission folder history: it moved from `res://missions` to
   `user://missions` 2026-09-11 - same `res://` is read-only in an exported
   build reasoning as `CreatorSettings`/`CreatorAutosave` (see **Hard-won
   lessons**), just applied to the Creator's own manual Save/Load this time,
-  not just the autosave system. Both this dialog and `CreatorSaveLoad.gd`'s
-  now use `FileDialog.access = ACCESS_USERDATA` (was the default
-  `ACCESS_RESOURCES`) with `root_subfolder = "user://missions/"` to match.
-  The old `res://missions/*.tres` dev/test fixtures (`one-tile.tres`,
-  `test-123.tres`, `test_mission.tres`, `underlays.tres`) were deleted
-  from the repo the same day, once `res://missions` was no longer where
-  anything actually looks — they were never shipped sample content, just
-  local save-testing artifacts from when the Creator wrote to `res://`
-  directly inside the editor.
+  not just the autosave system. Both dialogs use `FileDialog.access = ACCESS_USERDATA` with `current_dir` set on each open.
+  The old `res://missions/*.tres` dev/test fixtures were deleted the same day.
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
   `%LayeredMap.apply_mission(mission, true)` (the `true` is new 2026-09-14 -
   `respect_visibility`, see `LayeredMap.gd`'s own entry above). `%InfoLabel`
@@ -6458,7 +6452,7 @@ outcome (win/lose + which leaf objective) and rewards, **points of interest on t
 are spent on weapon parts/upgrades, the **campaign player** (main menu "Campaign" -> act map -> embark with the saved party ->
 play the mission -> back to the map) - built, see below.
 
-**Data** (Resources, `scripts/`): `Campaign` (`campaign_name`, `intro`, `acts`, `next_chapter_number` -> `new_chapter_id()` "ch_N",
+**Data** (Resources, `scripts/`): `Campaign` (`campaign_name`, `intro`, `cover_image` = the book cover file name in the campaign folder - `CampaignIO.import_cover_image()` trims any image (centred) to the 2:3 portrait ratio and scales it to `COVER_SIZE` 400x600 as `cover.png`; the editor has "Book cover…" / "Clear cover" on the Campaign tab with a 120x180 preview of the trimmed cover below, `CampaignIO.image_texture()` loads map and cover images -, `acts`, `next_chapter_number` -> `new_chapter_id()` "ch_N",
 never reused), `CampaignAct` (`act_name`, `intro`, `map_image` file name, `start_chapter_id`, `chapters`; `find_chapter()`,
 `reachable_ids()`, `problems(mission_files)` = no chapters / no start / chapter without or with a missing mission / link to a
 removed chapter / unreachable chapter / no reachable finale), `CampaignChapter` (`id`, `title`, `mission_file` = file NAME inside the
@@ -6486,11 +6480,10 @@ It is always visible in the campaign screen's top bar ("XP: N | Gold: ..."), the
 thresholds/ability slots), `HeroAbility`, `AbilityCatalog`, `HeroState`, `CampaignHeroesDialog` (the "Heroes..." button), per-hero XP,
 `Campaign.progression` and `party_level()` (old campaign files just ignore the removed properties). The campaign
 save (`CampaignState`: `campaign_folder`, `current_act`, `completed_chapters`, `available_chapters`, `experience`, `gold`, `materials`,
-`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state()` as `user://campaign_saves/<campaign folder>.tres`.
+`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state(folder, key)` as `user://campaign_saves/<campaign folder>/<save key>.tres` - **several save games per campaign (2026-10-07)**: `CampaignState.save_name` (display name) -> `CampaignIO.save_key()` (file name), `save_keys(folder)`, `delete_state()`; progress is written after every change, so a save game is always resumable; `GameState.campaign_save` carries the key to the Player and back (MissionPlayer reads the owned attachments from that save).
 The editor has a "XP when the act begins (-1 = keep)" spin box per act. Compile-checked only (the logic is a counter; not run in a scene).
 
-**Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a campaign picker +
-"Start / Continue", "Back to menu", the XP counter and gold; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
+**Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a small **wizard (2026-10-07)** of three pages instead of a menu: **New Campaign** = the LIBRARY, every campaign as a "book" (cover image or a generated dummy cover - a coloured 2:3 panel with the title - over the title) in an `HFlowContainer` grid, a click asks a save game name and starts it; **Load Campaign** = every save game of every campaign (small cover, name, campaign, act, XP, gold, Resume / Delete with confirmation); then the PLAY page (top bar "‹ Main menu", the XP counter and gold; there is no restart - start a new game instead). `GameState.campaign_screen` ("new"/"load") picks the opening page, a finished mission hands its save game back directly; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
 "✓" = won, dark = locked; links are only shown from chapters that are not locked) and a side panel for the selected chapter (status, reward, the
 story before, "Play this chapter"; the story after once won). Opening a NEW campaign shows the campaign + act intro; an existing one continues its
 `CampaignState` (`CampaignIO.load_state()`), which is written after every change. **Playing a chapter**: `GameState.campaign_folder/
