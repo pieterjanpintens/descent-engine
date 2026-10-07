@@ -17,6 +17,9 @@ extends Resource
 ## A join after a fan-out: the chapter only becomes playable once EVERY chapter of the act that links to it
 ## has been won (1 -> 2 and 3 in any order -> 4). Without it, the first link followed makes it playable.
 @export var wait_for_all: bool = false
+## A choice: the chapters this one links to are alternatives - once the party has won one of them, the
+## others close for good (1 -> 2 xor 3 -> 4). Without it all of them stay open (any order).
+@export var exclusive_links: bool = false
 ## What winning the chapter gives the party: experience points (the party's counter) and gold.
 @export var reward_xp: int = 1
 @export var reward_gold: int = 0

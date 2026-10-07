@@ -213,6 +213,8 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		for target in targets:
 			if not available_chapters.has(target):
 				available_chapters.append(target)
+	if won:
+		_close_alternatives(act, chapter)
 	if won and (chapter.is_finale or available_chapters.is_empty()):
 		summary["act_complete"] = true
 		_begin_act(campaign, current_act + 1)
@@ -223,6 +225,17 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		if next_chapter != null:
 			summary["next"].append(next_chapter.title)
 	return summary
+
+
+## After `chapter` is won: for every chapter before it that offered its links as a choice
+## (`exclusive_links`), the other targets it opened close for good unless they are done already.
+func _close_alternatives(act: CampaignAct, chapter: CampaignChapter) -> void:
+	for before in act.predecessors(chapter.id):
+		if not before.exclusive_links or not completed_chapters.has(before.id):
+			continue
+		for link in before.links:
+			if link.target_id != chapter.id and not completed_chapters.has(link.target_id):
+				available_chapters.erase(link.target_id)
 
 
 ## A join chapter (`wait_for_all`) opens only when every chapter linking to it has been won.

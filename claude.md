@@ -6473,6 +6473,8 @@ editor driven through its own actions); the layout/drag feel was not seen.
 
 **Fan-out / fan-in (2026-10-07)**: links alone make the targets playable as soon as ONE incoming link is followed, so a join (1 -> 2 and 3 in any order -> 4) needs `CampaignChapter.wait_for_all` ("Wait for all chapters that lead here" in the editor): a link into it is only followed once every chapter of the act linking to it (`CampaignAct.predecessors()`) is won (`CampaignState._predecessors_done()`). Opt-in because after EXCLUSIVE branches it would never open; `CampaignAct.problems()` flags a join whose predecessor is unreachable. Headless-checked with the 4-chapter case.
 
+**Choice (xor) (2026-10-07)**: `CampaignChapter.exclusive_links` ("Its links are a choice") - once the party has won one chapter a choice chapter linked to, the others it opened close for good (`CampaignState._close_alternatives()`, run after a win; stateless - derived from the completed chapters). 1 -> 2 xor 3 -> 4 = a choice on 1 and a plain (not `wait_for_all`) link from 2 and 3 into 4. `wait_for_all` after exclusive branches would never open (it still waits for the closed one). Headless-checked.
+
 **Delete confirmations (2026-10-07)**: deleting a chapter or removing an act asks first (`CampaignEditor._confirm()`, one shared `ConfirmationDialog`); side quests and places still delete immediately. Also fixed: removing the last act no longer errors (an untyped `[]` in a ternary was assigned to the typed `side_quests` array - `_no_quests()`).
 
 **Experience counter (2026-10-07, replaces the first "hero model")** - the game has no real XP system and no modelled abilities, so what

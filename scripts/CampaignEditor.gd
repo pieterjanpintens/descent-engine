@@ -1206,6 +1206,15 @@ func _rebuild_chapter_panel() -> void:
 		_mark_dirty()
 	)
 	_chapter_panel.add_child(join_check)
+	var choice_check := CheckBox.new()
+	choice_check.text = "Its links are a choice (only one can be played)"
+	choice_check.tooltip_text = "Once the party has won one of the chapters this one links to, the others close for good."
+	choice_check.button_pressed = chapter.exclusive_links
+	choice_check.toggled.connect(func(on: bool):
+		chapter.exclusive_links = on
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(choice_check)
 
 	var reward_row := HBoxContainer.new()
 	_chapter_panel.add_child(reward_row)
