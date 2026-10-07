@@ -14,7 +14,7 @@ extends Control
 ## The campaign screen opens on the page named by GameState.campaign_screen ("new" or "load") unless a save
 ## game is handed over (a finished mission returns to its save game's play page).
 ##
-## Chapter statuses on the map: green = available (play it), grey ✓ = won, dark = locked. A lost
+## Chapter statuses on the map: green = available (play it), grey ✓ = won; chapters not reached yet are not shown. A lost
 ## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
 ## chapter is won; selecting one lists its offers, which are bought with gold/materials and give the
 ## party weapon attachments (the embark of a campaign mission offers only owned ones). Not built yet:
@@ -430,10 +430,13 @@ func _rebuild_side() -> void:
 		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
 		return
 	var status := _status_of(chapter.id)
+	if status == "locked":
+		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
+		return
 	var title := _label(chapter.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
-	var status_text: String = {"available": "Ready to play", "done": "Completed", "locked": "Locked - win the chapters before it first"}[status]
+	var status_text: String = {"available": "Ready to play", "done": "Completed"}[status]
 	_side.add_child(_label(status_text))
 	_side.add_child(_label("Reward: +%d XP%s" % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
 	if status != "locked" and chapter.story_before != "":

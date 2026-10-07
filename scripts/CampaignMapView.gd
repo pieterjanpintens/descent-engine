@@ -7,7 +7,8 @@ extends Control
 ## dragged (they edit `map_position` and tell the owner through the *_moved signals; saving and undo
 ## are the editor's business) and clicked to select. With `read_only` (the campaign player) nothing
 ## can be moved; chapters are coloured by `statuses` (chapter id -> "available" / "done" / "locked")
-## instead of start/finale, and places listed in `hidden_place_ids` are not shown.
+## instead of start/finale, a "locked" chapter is not shown at all (the story unfolds as it is played -
+## neither its pin nor an arrow towards it), and places listed in `hidden_place_ids` are not shown.
 
 signal chapter_selected(chapter_id: String)
 signal chapter_moved(chapter_id: String)
@@ -26,7 +27,6 @@ const LINK_COLORS := {
 }
 const AVAILABLE_COLOR := Color(0.4, 0.85, 0.4)
 const DONE_COLOR := Color(0.45, 0.5, 0.55)
-const LOCKED_COLOR := Color(0.18, 0.2, 0.25)
 
 var act: CampaignAct
 var texture: Texture2D
@@ -88,17 +88,18 @@ func _draw() -> void:
 	if act == null:
 		return
 	for chapter in act.chapters:
-		if read_only and statuses.get(chapter.id, "locked") == "locked":
-			continue  # a locked chapter's way on is not revealed yet
+		if _is_hidden(chapter):
+			continue
 		for link in chapter.links:
 			var target := act.find_chapter(link.target_id)
-			if target != null and target != chapter:
+			if target != null and target != chapter and not _is_hidden(target):
 				_draw_arrow(pin_position(chapter), pin_position(target), LINK_COLORS[link.outcome] if not read_only else Color(0.75, 0.75, 0.75, 0.6))
 	for place in act.places:
 		if not hidden_place_ids.has(place.id):
 			_draw_place(place)
 	for chapter in act.chapters:
-		_draw_pin(chapter)
+		if not _is_hidden(chapter):
+			_draw_pin(chapter)
 
 
 func _draw_arrow(from: Vector2, to: Vector2, color: Color) -> void:
@@ -110,12 +111,17 @@ func _draw_arrow(from: Vector2, to: Vector2, color: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([end, end - direction * 12.0 + side * 6.0, end - direction * 12.0 - side * 6.0]), color)
 
 
+## Whether `chapter` is kept off the map: in the player, a chapter the party has not reached yet.
+func _is_hidden(chapter: CampaignChapter) -> bool:
+	return read_only and statuses.get(chapter.id, "locked") == "locked"
+
+
 func _draw_pin(chapter: CampaignChapter) -> void:
 	var center := pin_position(chapter)
 	var fill := PIN_COLOR
 	var status: String = statuses.get(chapter.id, "locked")
 	if read_only:
-		fill = AVAILABLE_COLOR if status == "available" else (DONE_COLOR if status == "done" else LOCKED_COLOR)
+		fill = AVAILABLE_COLOR if status == "available" else DONE_COLOR
 	elif chapter.id == act.start_chapter_id:
 		fill = START_COLOR
 	elif chapter.is_finale:
@@ -177,7 +183,7 @@ func _gui_input(event: InputEvent) -> void:
 ## The chapter or place whose pin is under `position` (chapters on top), or null.
 func _item_at(position: Vector2) -> Resource:
 	for i in range(act.chapters.size() - 1, -1, -1):
-		if pin_position(act.chapters[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+		if not _is_hidden(act.chapters[i]) and pin_position(act.chapters[i]).distance_to(position) <= PIN_RADIUS + 4.0:
 			return act.chapters[i]
 	for i in range(act.places.size() - 1, -1, -1):
 		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= PIN_RADIUS + 4.0:
