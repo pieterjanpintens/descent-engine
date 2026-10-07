@@ -6,6 +6,8 @@ extends Resource
 ## counter and what the party owns. One save per campaign, in user://campaign_saves/.
 
 @export var campaign_folder: String = ""
+## The name of this save game (a campaign can have several playthroughs).
+@export var save_name: String = ""
 @export var current_act: int = 0
 ## Ids of the chapters the party has won.
 @export var completed_chapters: Array[String] = []

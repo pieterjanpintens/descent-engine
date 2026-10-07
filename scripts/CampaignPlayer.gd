@@ -1,12 +1,14 @@
 class_name CampaignPlayer
 extends Control
 
-## Plays a campaign (standalone scene, main menu "Campaign"): pick a campaign (CampaignIO),
+## Plays a campaign (standalone scene, main menu "Campaign"): File > New Game starts a playthrough of
+## a campaign (CampaignIO) under a save game name, File > Load Game resumes any save game, Restart
+## Game begins the current one again, Delete Save removes it,
 ## see the current act's map with the chapters the party can play now, read a chapter's story,
 ## play its mission (the normal Player, which hands the outcome back through GameState when
 ## the mission ends) and then see what it brought - the experience counter, gold, the story
-## afterwards and where the path leads next. Progress is the campaign save (CampaignState),
-## written after every change. The XP counter is always shown in the top bar.
+## afterwards and where the path leads next. Progress is the campaign save game (CampaignState),
+## written after every change (so there is no Save item: closing the game just leaves it resumable). The XP counter is always shown in the top bar.
 ##
 ## Chapter statuses on the map: green = available (play it), grey ✓ = won, dark = locked. A lost
 ## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
@@ -21,8 +23,18 @@ var _state: CampaignState
 var _folder: String = ""
 var _selected_id: String = ""
 
-var _campaign_option: OptionButton
-var _folders: Array[String] = []
+enum FileAction { NEW, LOAD, RESTART, DELETE, BACK }
+
+var _file_menu: PopupMenu
+var _new_menu: PopupMenu
+var _load_menu: PopupMenu
+var _new_folders: Array[String] = []
+var _load_entries: Array[Dictionary] = []  ## {folder, key} per Load Game item
+var _name_dialog: ConfirmationDialog
+var _name_edit: LineEdit
+var _new_folder: String = ""
+var _confirm: ConfirmationDialog
+var _confirm_action: Callable
 var _status_label: Label
 var _heading_label: Label
 var _body: Control
@@ -44,18 +56,35 @@ func _ready() -> void:
 
 	var bar := HBoxContainer.new()
 	root.add_child(bar)
-	_campaign_option = OptionButton.new()
-	_campaign_option.custom_minimum_size.x = 220
-	bar.add_child(_campaign_option)
-	bar.add_child(_button("Start / Continue", _on_start_pressed))
-	bar.add_child(_button("Back to menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
+	var menu_bar := MenuBar.new()
+	bar.add_child(menu_bar)
+	_file_menu = PopupMenu.new()
+	_file_menu.name = "File"
+	menu_bar.add_child(_file_menu)
+	_new_menu = PopupMenu.new()
+	_new_menu.name = "NewMenu"
+	_new_menu.index_pressed.connect(_on_new_index_pressed)
+	_file_menu.add_child(_new_menu)
+	_load_menu = PopupMenu.new()
+	_load_menu.name = "LoadMenu"
+	_load_menu.index_pressed.connect(_on_load_index_pressed)
+	_file_menu.add_child(_load_menu)
+	_file_menu.add_submenu_node_item("New Game", _new_menu, FileAction.NEW)
+	_file_menu.add_submenu_node_item("Load Game", _load_menu, FileAction.LOAD)
+	_file_menu.add_separator()
+	_file_menu.add_item("Restart Game", FileAction.RESTART)
+	_file_menu.add_item("Delete Save", FileAction.DELETE)
+	_file_menu.add_separator()
+	_file_menu.add_item("Back to Menu", FileAction.BACK)
+	_file_menu.id_pressed.connect(_on_file_action)
+	_file_menu.about_to_popup.connect(_refresh_menus)
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	bar.add_child(_status_label)
 
 	_welcome_label = Label.new()
-	_welcome_label.text = "Choose a campaign (make one in the Campaign Editor) and press Start / Continue."
+	_welcome_label.text = "Use File > New Game to start a campaign (make one in the Campaign Editor) or File > Load Game to resume a save game."
 	root.add_child(_welcome_label)
 
 	_heading_label = Label.new()
@@ -90,57 +119,146 @@ func _ready() -> void:
 	_notice = AcceptDialog.new()
 	_notice.min_size = Vector2i(480, 0)
 	add_child(_notice)
+	_name_dialog = ConfirmationDialog.new()
+	_name_dialog.title = "New game"
+	_name_edit = LineEdit.new()
+	_name_edit.placeholder_text = "Name of the save game"
+	_name_dialog.add_child(_name_edit)
+	_name_dialog.confirmed.connect(_on_new_name_confirmed)
+	add_child(_name_dialog)
+	_confirm = ConfirmationDialog.new()
+	_confirm.min_size = Vector2i(420, 0)
+	_confirm.confirmed.connect(func(): _confirm_action.call())
+	add_child(_confirm)
 
-	_refresh_campaign_list()
 	_refresh_view()
-	# Coming back from a mission played as a chapter: reopen that campaign and apply the outcome.
+	# Coming back from a mission played as a chapter: reopen that save game and apply the outcome.
 	if GameState.campaign_folder != "":
 		var folder := GameState.campaign_folder
+		var key := GameState.campaign_save
 		var result := GameState.campaign_result
 		GameState.clear_campaign()
-		if _open_campaign(folder) and not result.is_empty():
+		if _open_save(folder, key) and not result.is_empty():
 			_apply_result(result)
 
 
 # ---------------------------------------------------------------- campaign
 
-func _refresh_campaign_list() -> void:
-	_folders = CampaignIO.folder_names()
-	_campaign_option.clear()
-	for folder in _folders:
-		_campaign_option.add_item(folder)
-	if _folder != "":
-		_campaign_option.select(_folders.find(_folder))
+func _refresh_menus() -> void:
+	_new_folders = CampaignIO.folder_names()
+	_new_menu.clear()
+	for folder in _new_folders:
+		_new_menu.add_item(folder)
+	_load_entries.clear()
+	_load_menu.clear()
+	for folder in _new_folders:
+		for key in CampaignIO.save_keys(folder):
+			var saved := CampaignIO.load_state(folder, key)
+			if saved == null:
+				continue
+			_load_entries.append({"folder": folder, "key": key})
+			_load_menu.add_item("%s - %s" % [folder, saved.save_name if saved.save_name != "" else key])
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.NEW), _new_folders.is_empty())
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.LOAD), _load_entries.is_empty())
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.RESTART), _state == null)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.DELETE), _state == null)
 
 
-func _on_start_pressed() -> void:
-	if _campaign_option.selected >= 0:
-		_open_campaign(_folders[_campaign_option.selected])
+func _on_file_action(id: int) -> void:
+	match id:
+		FileAction.RESTART:
+			if _state != null:
+				_ask("Restart '%s'? All progress of this save game is lost." % _state.save_name, _restart)
+		FileAction.DELETE:
+			if _state != null:
+				_ask("Delete the save game '%s'?" % _state.save_name, _delete_current)
+		FileAction.BACK:
+			get_tree().change_scene_to_file(MENU_SCENE)
 
 
-## Opens `folder` and continues its saved progress (or begins it). Returns whether it worked.
-func _open_campaign(folder: String) -> bool:
+func _ask(text: String, action: Callable) -> void:
+	_confirm.dialog_text = text
+	_confirm_action = action
+	_confirm.popup_centered()
+
+
+func _on_new_index_pressed(index: int) -> void:
+	if index < 0 or index >= _new_folders.size():
+		return
+	_new_folder = _new_folders[index]
+	_name_edit.text = "Game %d" % (CampaignIO.save_keys(_new_folder).size() + 1)
+	_name_dialog.popup_centered()
+
+
+func _on_new_name_confirmed() -> void:
+	var save_name := _name_edit.text.strip_edges()
+	if save_name == "":
+		_say("A save game needs a name.")
+		return
+	if CampaignIO.save_keys(_new_folder).has(CampaignIO.save_key(save_name)):
+		_say("A save game called '%s' already exists." % save_name)
+		return
+	_begin(_new_folder, save_name)
+
+
+func _on_load_index_pressed(index: int) -> void:
+	if index >= 0 and index < _load_entries.size():
+		_open_save(_load_entries[index]["folder"], _load_entries[index]["key"])
+
+
+## Starts a fresh playthrough of campaign `folder` as save game `save_name`.
+func _begin(folder: String, save_name: String) -> bool:
 	var campaign := CampaignIO.load_campaign(folder)
 	if campaign == null:
 		_say("Could not open the campaign '%s'." % folder)
 		return false
-	var state := CampaignIO.load_state(folder)
-	var is_new := state == null
-	if is_new:
-		state = CampaignState.new()
-		state.campaign_folder = folder
+	var state := CampaignState.new()
+	state.campaign_folder = folder
+	state.save_name = save_name
 	state.ensure_started(campaign)
+	_use(campaign, state)
+	var act := _current_act()
+	_say("%s\n\n%s\n\n%s" % [campaign.campaign_name, campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""])
+	return true
+
+
+## Resumes the save game with file name `key` of campaign `folder`.
+func _open_save(folder: String, key: String) -> bool:
+	var campaign := CampaignIO.load_campaign(folder)
+	var state := CampaignIO.load_state(folder, key)
+	if campaign == null or state == null:
+		_say("Could not open that save game.")
+		return false
+	state.campaign_folder = folder
+	state.ensure_started(campaign)
+	_use(campaign, state)
+	return true
+
+
+func _use(campaign: Campaign, state: CampaignState) -> void:
 	_campaign = campaign
 	_state = state
-	_folder = folder
+	_folder = state.campaign_folder
 	_selected_id = ""
 	_save()
-	_refresh_campaign_list()
 	_refresh_view()
-	if is_new:
-		var act := _current_act()
-		_say("%s\n\n%s\n\n%s" % [campaign.campaign_name, campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""])
-	return true
+
+
+## Begins the current save game again from the start of the campaign (same name).
+func _restart() -> void:
+	if _state != null:
+		_begin(_state.campaign_folder, _state.save_name)
+
+
+func _delete_current() -> void:
+	if _state == null:
+		return
+	CampaignIO.delete_state(_state.campaign_folder, CampaignIO.save_key(_state.save_name))
+	_campaign = null
+	_state = null
+	_folder = ""
+	_selected_id = ""
+	_refresh_view()
 
 
 func _save() -> void:
@@ -163,6 +281,7 @@ func _status_of(chapter_id: String) -> String:
 
 
 func _refresh_view() -> void:
+	_refresh_menus()
 	var has_campaign := _campaign != null
 	_body.visible = has_campaign
 	_heading_label.visible = has_campaign
@@ -171,10 +290,10 @@ func _refresh_view() -> void:
 		return
 	var act := _current_act()
 	if _state.campaign_complete or act == null:
-		_heading_label.text = "%s - campaign complete!" % _campaign.campaign_name
+		_heading_label.text = "%s - campaign complete! (%s)" % [_campaign.campaign_name, _state.save_name]
 		_map_view.show_act(null, null)
 	else:
-		_heading_label.text = "%s - %s" % [_campaign.campaign_name, act.act_name]
+		_heading_label.text = "%s - %s (%s)" % [_campaign.campaign_name, act.act_name, _state.save_name]
 		_map_view.statuses = {}
 		for chapter in act.chapters:
 			_map_view.statuses[chapter.id] = _status_of(chapter.id)
@@ -275,6 +394,7 @@ func _play(chapter: CampaignChapter) -> void:
 	GameState.current_mission_path = path
 	GameState.load_save_path = ""
 	GameState.campaign_folder = _folder
+	GameState.campaign_save = CampaignIO.save_key(_state.save_name)
 	GameState.campaign_chapter_id = chapter.id
 	GameState.campaign_result = {}
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")

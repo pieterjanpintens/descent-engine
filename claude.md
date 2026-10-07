@@ -6486,11 +6486,10 @@ It is always visible in the campaign screen's top bar ("XP: N | Gold: ..."), the
 thresholds/ability slots), `HeroAbility`, `AbilityCatalog`, `HeroState`, `CampaignHeroesDialog` (the "Heroes..." button), per-hero XP,
 `Campaign.progression` and `party_level()` (old campaign files just ignore the removed properties). The campaign
 save (`CampaignState`: `campaign_folder`, `current_act`, `completed_chapters`, `available_chapters`, `experience`, `gold`, `materials`,
-`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state()` as `user://campaign_saves/<campaign folder>.tres`.
+`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state(folder, key)` as `user://campaign_saves/<campaign folder>/<save key>.tres` - **several save games per campaign (2026-10-07)**: `CampaignState.save_name` (display name) -> `CampaignIO.save_key()` (file name), `save_keys(folder)`, `delete_state()`; progress is written after every change, so a save game is always resumable; `GameState.campaign_save` carries the key to the Player and back (MissionPlayer reads the owned attachments from that save). Older single-file saves (`<folder>.tres`) are ignored.
 The editor has a "XP when the act begins (-1 = keep)" spin box per act. Compile-checked only (the logic is a counter; not run in a scene).
 
-**Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a campaign picker +
-"Start / Continue", "Back to menu", the XP counter and gold; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
+**Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a **File menu** (like the editors') - **New Game** (submenu of the campaigns, then asks a save game name), **Load Game** (submenu listing every save game of every campaign), **Restart Game** (begin the current save game again, confirmed), **Delete Save** (confirmed), Back to Menu - and the XP counter and gold in the top bar; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
 "✓" = won, dark = locked; links are only shown from chapters that are not locked) and a side panel for the selected chapter (status, reward, the
 story before, "Play this chapter"; the story after once won). Opening a NEW campaign shows the campaign + act intro; an existing one continues its
 `CampaignState` (`CampaignIO.load_state()`), which is written after every change. **Playing a chapter**: `GameState.campaign_folder/

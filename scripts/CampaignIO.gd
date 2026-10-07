@@ -52,21 +52,48 @@ static func load_campaign(folder: String) -> Campaign:
 	return loaded as Campaign
 
 
-## The campaign save (progress) of campaign `folder`: user://campaign_saves/<folder>.tres.
+## The file name (without extension) of a save game called `save_name`.
+static func save_key(save_name: String) -> String:
+	var key := key_for(save_name)
+	return key if key != "" else "save"
+
+
+static func saves_path(folder: String) -> String:
+	return "%s/%s" % [SAVES_ROOT, folder]
+
+
+## A campaign save game (progress): user://campaign_saves/<campaign folder>/<save key>.tres - a
+## campaign can have several, one per playthrough.
 static func save_state(state: CampaignState) -> bool:
-	DirAccess.make_dir_recursive_absolute(SAVES_ROOT)
-	var err := ResourceSaver.save(state, "%s/%s.tres" % [SAVES_ROOT, state.campaign_folder])
+	DirAccess.make_dir_recursive_absolute(saves_path(state.campaign_folder))
+	var err := ResourceSaver.save(state, "%s/%s.tres" % [saves_path(state.campaign_folder), save_key(state.save_name)])
 	if err != OK:
 		push_error("Failed to save campaign progress %s: %s" % [state.campaign_folder, error_string(err)])
 	return err == OK
 
 
-## The saved progress of campaign `folder`, or null if it was never saved.
-static func load_state(folder: String) -> CampaignState:
-	var path := "%s/%s.tres" % [SAVES_ROOT, folder]
+## The save game with file name `key` of campaign `folder`, or null if there is none.
+static func load_state(folder: String, key: String) -> CampaignState:
+	var path := "%s/%s.tres" % [saves_path(folder), key]
 	if not FileAccess.file_exists(path):
 		return null
 	return ResourceLoader.load(path, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
+
+
+## The file names (keys) of every save game of campaign `folder`, sorted.
+static func save_keys(folder: String) -> Array[String]:
+	var keys: Array[String] = []
+	if not DirAccess.dir_exists_absolute(saves_path(folder)):
+		return keys
+	for file in DirAccess.get_files_at(saves_path(folder)):
+		if file.ends_with(".tres"):
+			keys.append(file.trim_suffix(".tres"))
+	keys.sort()
+	return keys
+
+
+static func delete_state(folder: String, key: String) -> void:
+	DirAccess.remove_absolute("%s/%s.tres" % [saves_path(folder), key])
 
 
 ## File names of the missions inside the campaign folder (every .tres except the campaign).
