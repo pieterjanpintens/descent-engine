@@ -18,6 +18,9 @@ extends RefCounted
 enum _ValueType { STRING, BOOL, INT, FLOAT }
 
 var mission: MissionData
+## When not empty, the variable names the dropdowns offer INSTEAD of the mission's (the campaign editor
+## edits conditions over the campaign's own values - CampaignState.CONDITION_VARIABLES).
+var variable_names_override: Array[String] = []
 var host: Node
 var _commit: Callable
 
@@ -72,6 +75,8 @@ func _label(text: String) -> Label:
 ## declared MissionData.custom_variables name - the full set a Condition/
 ## Effect's variable_name can validly reference right now.
 func _known_variable_names() -> Array[String]:
+	if not variable_names_override.is_empty():
+		return variable_names_override
 	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
 	for variable in mission.custom_variables:
 		names.append(variable.name)

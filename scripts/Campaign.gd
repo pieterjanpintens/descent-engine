@@ -17,6 +17,45 @@ extends Resource
 ## The same for places ("place_N") and their offers ("offer_N").
 @export var next_place_number: int = 1
 @export var next_offer_number: int = 1
+## Optional side quests (not part of an act, see CampaignSideQuest) and the counter for their ids ("sq_N").
+@export var side_quests: Array[CampaignSideQuest] = []
+@export var next_side_quest_number: int = 1
+
+
+func new_side_quest_id() -> String:
+	var quest_id := "sq_%d" % next_side_quest_number
+	next_side_quest_number += 1
+	return quest_id
+
+
+func find_side_quest(quest_id: String) -> CampaignSideQuest:
+	for quest in side_quests:
+		if quest.id == quest_id:
+			return quest
+	return null
+
+
+func has_chapter(chapter_id: String) -> bool:
+	for act in acts:
+		if act.find_chapter(chapter_id) != null:
+			return true
+	return false
+
+
+## Human-readable problems with the side quests (`mission_files` = what the campaign folder holds).
+func side_quest_problems(mission_files: Array[String]) -> Array[String]:
+	var found: Array[String] = []
+	for quest in side_quests:
+		if quest.mission_file == "":
+			found.append("side quest '%s' has no mission" % quest.title)
+		elif not mission_files.has(quest.mission_file):
+			found.append("side quest '%s': mission file '%s' is missing" % [quest.title, quest.mission_file])
+		if quest.chapter_ids.is_empty():
+			found.append("side quest '%s' is not linked to a chapter, so it never appears" % quest.title)
+		for chapter_id in quest.chapter_ids:
+			if not has_chapter(chapter_id):
+				found.append("side quest '%s' is linked to a chapter that no longer exists" % quest.title)
+	return found
 
 
 func new_place_id() -> String:

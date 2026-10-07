@@ -29,3 +29,22 @@ enum Operator {
 ## needs right now. A type mismatch is a push_warning() and the condition
 ## evaluates to false rather than silently coercing.
 @export var value: Variant = null
+
+
+## Whether `current` (a variable's live value) satisfies this condition's operator against `target`
+## (the condition's value, already coerced to the variable's type by the caller).
+func holds_for(current: Variant, target: Variant) -> bool:
+	match operator:
+		Operator.EQUALS:
+			return current == target
+		Operator.NOT_EQUALS:
+			return current != target
+		Operator.GREATER:
+			return current > target
+		Operator.GREATER_EQUAL:
+			return current >= target
+		Operator.LESS:
+			return current < target
+		Operator.LESS_EQUAL:
+			return current <= target
+	return false

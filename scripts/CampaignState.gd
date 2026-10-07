@@ -21,12 +21,88 @@ extends Resource
 ## act can set it to a fixed number when it begins (CampaignAct.start_experience).
 @export var experience: int = 0
 @export var gold: int = 0
+## Ids of the side quests the party has won.
+@export var completed_side_quests: Array[String] = []
 ## The campaign log: what the party was told and did, oldest first - {title, pages} (see LogDialog).
 @export var log_entries: Array[Dictionary] = []
 ## Crafting materials: name -> count.
 @export var materials: Dictionary = {}
 ## Names of the weapon attachments (AttachmentCatalog) the party owns.
 @export var owned_attachments: Array[String] = []
+
+
+## The campaign values a side quest's conditions can compare (Condition.variable_name).
+const CONDITION_VARIABLES: Array[String] = ["experience", "gold", "act_number"]
+
+
+func condition_value(variable_name: String) -> Variant:
+	match variable_name:
+		"experience":
+			return experience
+		"gold":
+			return gold
+		"act_number":
+			return current_act + 1
+	return null
+
+
+## Implicit AND over `conditions`; an unknown variable or a non-number value never holds.
+func conditions_hold(conditions: Array[Condition]) -> bool:
+	for condition in conditions:
+		var current: Variant = condition_value(condition.variable_name)
+		if typeof(current) == TYPE_NIL:
+			return false
+		if typeof(condition.value) != TYPE_INT and typeof(condition.value) != TYPE_FLOAT:
+			return false
+		if not condition.holds_for(current, int(condition.value)):
+			return false
+	return true
+
+
+## Offered on the map now: not won yet, the party is at one of its chapters and its conditions hold.
+func is_side_quest_visible(quest: CampaignSideQuest) -> bool:
+	if completed_side_quests.has(quest.id):
+		return false
+	var at_chapter := false
+	for chapter_id in quest.chapter_ids:
+		if available_chapters.has(chapter_id):
+			at_chapter = true
+	return at_chapter and conditions_hold(quest.conditions)
+
+
+func visible_side_quests(campaign: Campaign) -> Array[CampaignSideQuest]:
+	var visible: Array[CampaignSideQuest] = []
+	for quest in campaign.side_quests:
+		if is_side_quest_visible(quest):
+			visible.append(quest)
+	return visible
+
+
+## Applies how a side quest's mission ended. A win completes it (never offered again) and gives its XP, gold
+## and materials; a loss changes nothing (it can be played again). Returns the same summary shape as
+## apply_result() so the screen can tell it the same way.
+func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool) -> Dictionary:
+	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
+	var quest := campaign.find_side_quest(quest_id)
+	if quest == null or not is_side_quest_visible(quest) or not won:
+		return summary
+	completed_side_quests.append(quest.id)
+	experience += quest.reward_xp
+	gold += quest.reward_gold
+	for material_name in quest.reward_materials:
+		add_material(str(material_name), int(quest.reward_materials[material_name]))
+	summary["xp"] = experience
+	summary["xp_gained"] = quest.reward_xp
+	summary["gold"] = quest.reward_gold
+	summary["materials"] = quest.reward_materials.duplicate()
+	summary["story_after"] = quest.story_after
+	var pages: Array[String] = []
+	for story in [quest.story_before, quest.story_after]:
+		if story != "":
+			pages.append(story)
+	pages.append("Side quest won: +%d XP%s." % [quest.reward_xp, (", %d gold" % quest.reward_gold) if quest.reward_gold > 0 else ""])
+	add_log("Side quest: %s" % quest.title, pages)
+	return summary
 
 
 func add_log(title: String, pages: Array[String]) -> void:

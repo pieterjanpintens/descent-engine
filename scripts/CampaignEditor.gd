@@ -19,6 +19,8 @@ var _folder: String = ""
 var _act_index: int = -1
 var _selected: CampaignChapter
 var _selected_place: CampaignPlace
+var _selected_quest: CampaignSideQuest
+var _condition_editor: EffectEditor
 var _dirty: bool = false
 
 var _status_label: Label
@@ -123,6 +125,8 @@ func _ready() -> void:
 	_map_view.chapter_moved.connect(func(_id: String): _mark_dirty())
 	_map_view.place_selected.connect(_on_map_place_selected)
 	_map_view.place_moved.connect(func(_id: String): _mark_dirty())
+	_map_view.side_quest_selected.connect(_on_map_side_quest_selected)
+	_map_view.side_quest_moved.connect(func(_id: String): _mark_dirty())
 	var map_column := VBoxContainer.new()
 	map_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map_column.size_flags_stretch_ratio = 4.0
@@ -131,6 +135,7 @@ func _ready() -> void:
 	map_column.add_child(map_toolbar)
 	map_toolbar.add_child(_button("Add chapter", _on_add_chapter_pressed))
 	map_toolbar.add_child(_button("Add place", _on_add_place_pressed))
+	map_toolbar.add_child(_button("Add side quest", _on_add_side_quest_pressed))
 	map_column.add_child(_map_view)
 
 	_tabs = TabContainer.new()
@@ -184,6 +189,7 @@ func _ready() -> void:
 		_act_index = index
 		_selected = null
 		_selected_place = null
+		_selected_quest = null
 		_refresh_act()
 	)
 	left.add_child(_acts_list)
@@ -286,6 +292,15 @@ func _ready() -> void:
 	_notice = AcceptDialog.new()
 	add_child(_notice)
 
+	# The conditions of a side quest are edited with the mission editor's own condition rows, over the
+	# campaign's values.
+	_condition_editor = EffectEditor.new()
+	_condition_editor.variable_names_override = CampaignState.CONDITION_VARIABLES
+	_condition_editor.setup(self, func(_label: String, mutate: Callable):
+		mutate.call()
+		_mark_dirty()
+	)
+
 	_refresh_open_list()
 	_refresh_all()
 
@@ -346,6 +361,7 @@ func _load_folder(folder: String) -> void:
 	_act_index = 0 if not campaign.acts.is_empty() else -1
 	_selected = null
 	_selected_place = null
+	_selected_quest = null
 	_dirty = false
 	_undo_stack.clear()
 	_redo_stack.clear()
@@ -411,6 +427,7 @@ func _step_history(from: Array[Campaign], to: Array[Campaign]) -> void:
 		return
 	var chapter_id := _selected.id if _selected != null else ""
 	var place_id := _selected_place.id if _selected_place != null else ""
+	var quest_id := _selected_quest.id if _selected_quest != null else ""
 	to.append(_baseline)
 	_campaign = from.pop_back()
 	_baseline = _campaign.duplicate(true)
@@ -419,6 +436,7 @@ func _step_history(from: Array[Campaign], to: Array[Campaign]) -> void:
 	var act := _current_act()
 	_selected = act.find_chapter(chapter_id) if act != null and chapter_id != "" else null
 	_selected_place = act.find_place(place_id) if act != null and place_id != "" else null
+	_selected_quest = _campaign.find_side_quest(quest_id) if quest_id != "" else null
 	_dirty = true
 	_status_label.text = "Unsaved changes"
 	_update_edit_menu()
@@ -530,6 +548,7 @@ func _on_add_chapter_pressed() -> void:
 		act.start_chapter_id = chapter.id
 	_selected = chapter
 	_selected_place = null
+	_selected_quest = null
 	_tabs.current_tab = 1
 	_mark_dirty()
 	_refresh_act()
@@ -541,6 +560,7 @@ func _on_map_chapter_selected(chapter_id: String) -> void:
 		return
 	_selected = act.find_chapter(chapter_id)
 	_selected_place = null
+	_selected_quest = null
 	_tabs.current_tab = 1
 	_rebuild_chapter_panel()
 
@@ -559,26 +579,194 @@ func _delete_chapter(chapter: CampaignChapter) -> void:
 	for place in act.places:
 		if place.unlocked_by_chapter == chapter.id:
 			place.unlocked_by_chapter = ""
+	for quest in _campaign.side_quests:
+		quest.chapter_ids.erase(chapter.id)
 	_selected = null
 	_mark_dirty()
 	_refresh_act()
 
 
 func _on_mission_file_selected(path: String) -> void:
-	if _selected == null:
+	if _selected == null and _selected_quest == null:
 		return
 	var file := CampaignIO.import_mission(_folder, path)
 	if file == "":
 		_say("Could not copy the mission into the campaign.")
 		return
-	_selected.mission_file = file
+	if _selected_quest != null:
+		_selected_quest.mission_file = file
+	else:
+		_selected.mission_file = file
 	_mark_dirty()
 	_rebuild_chapter_panel()
+
+
+# ---------------------------------------------------------------- side quests
+
+## The side quests shown on `act`'s map: the ones linked to one of its chapters, plus the ones not linked
+## yet (so a new one can be placed and linked).
+func _quests_on_act(act: CampaignAct) -> Array[CampaignSideQuest]:
+	var shown: Array[CampaignSideQuest] = []
+	for quest in _campaign.side_quests:
+		var on_act := quest.chapter_ids.is_empty()
+		for chapter_id in quest.chapter_ids:
+			if act.find_chapter(chapter_id) != null:
+				on_act = true
+		if on_act:
+			shown.append(quest)
+	return shown
+
+
+func _on_add_side_quest_pressed() -> void:
+	var act := _current_act()
+	if act == null:
+		return
+	var quest := CampaignSideQuest.new()
+	quest.id = _campaign.new_side_quest_id()
+	quest.title = "Side quest %d" % (_campaign.side_quests.size() + 1)
+	quest.map_position = Vector2(0.5 + 0.06 * (_campaign.side_quests.size() % 6), 0.15 + 0.07 * (_campaign.side_quests.size() % 6))
+	if _selected != null:
+		quest.chapter_ids.append(_selected.id)  # offered at the chapter that is selected right now
+	_campaign.side_quests.append(quest)
+	_selected = null
+	_selected_place = null
+	_selected_quest = quest
+	_tabs.current_tab = 1
+	_mark_dirty()
+	_refresh_act()
+
+
+func _on_map_side_quest_selected(quest_id: String) -> void:
+	_selected = null
+	_selected_place = null
+	_selected_quest = _campaign.find_side_quest(quest_id)
+	_tabs.current_tab = 1
+	_rebuild_chapter_panel()
+
+
+func _delete_side_quest(quest: CampaignSideQuest) -> void:
+	_campaign.side_quests.erase(quest)
+	_selected_quest = null
+	_mark_dirty()
+	_refresh_act()
+
+
+## The right-hand panel for a selected side quest: its mission, rewards, stories, the chapters it is offered
+## at and the conditions that have to hold.
+func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
+	_map_view.selected_id = quest.id
+	_map_view.queue_redraw()
+	_chapter_panel.add_child(_label("Side quest title:"))
+	var title_edit := LineEdit.new()
+	title_edit.text = quest.title
+	title_edit.text_changed.connect(func(text: String):
+		quest.title = text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(title_edit)
+
+	_chapter_panel.add_child(_label("Mission:"))
+	var mission_row := HBoxContainer.new()
+	_chapter_panel.add_child(mission_row)
+	var files := CampaignIO.mission_files(_folder)
+	var mission_option := OptionButton.new()
+	mission_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mission_option.add_item("(none)")
+	for file in files:
+		mission_option.add_item(file)
+	if quest.mission_file != "" and not files.has(quest.mission_file):
+		mission_option.add_item("%s (missing)" % quest.mission_file)
+		mission_option.select(mission_option.item_count - 1)
+	else:
+		mission_option.select(files.find(quest.mission_file) + 1 if quest.mission_file != "" else 0)
+	mission_option.item_selected.connect(func(index: int):
+		quest.mission_file = files[index - 1] if index >= 1 and index <= files.size() else quest.mission_file if index > files.size() else ""
+		_mark_dirty()
+	)
+	mission_row.add_child(mission_option)
+	mission_row.add_child(_button("Add mission…", func():
+		_mission_dialog.current_dir = "user://missions"
+		_mission_dialog.popup_centered_ratio(0.6)
+	))
+
+	var reward_row := HBoxContainer.new()
+	_chapter_panel.add_child(reward_row)
+	reward_row.add_child(_label("Win gives XP:"))
+	reward_row.add_child(_reward_spin(quest.reward_xp, func(value: int): quest.reward_xp = value))
+	reward_row.add_child(_label("gold:"))
+	reward_row.add_child(_reward_spin(quest.reward_gold, func(value: int): quest.reward_gold = value))
+	var materials_row := HBoxContainer.new()
+	_chapter_panel.add_child(materials_row)
+	materials_row.add_child(_label("Materials won:"))
+	var materials_edit := LineEdit.new()
+	materials_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	materials_edit.placeholder_text = "e.g. iron:2, leather:1"
+	materials_edit.text = CampaignState.format_materials(quest.reward_materials)
+	var commit_materials := func():
+		quest.reward_materials = CampaignState.parse_materials(materials_edit.text)
+		_mark_dirty()
+	materials_edit.text_submitted.connect(func(_t: String): commit_materials.call())
+	materials_edit.focus_exited.connect(commit_materials)
+	materials_row.add_child(materials_edit)
+
+	_chapter_panel.add_child(_label("Story before the mission:"))
+	var before_edit := _text_edit(80)
+	before_edit.text = quest.story_before
+	before_edit.text_changed.connect(func():
+		quest.story_before = before_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(before_edit)
+	_chapter_panel.add_child(_label("Story after the mission:"))
+	var after_edit := _text_edit(80)
+	after_edit.text = quest.story_after
+	after_edit.text_changed.connect(func():
+		quest.story_after = after_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(after_edit)
+
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_label("Offered while the party is at one of these chapters:"))
+	for act in _campaign.acts:
+		for chapter in act.chapters:
+			var check := CheckBox.new()
+			check.text = "%s - %s" % [act.act_name, chapter.title]
+			check.button_pressed = quest.chapter_ids.has(chapter.id)
+			check.toggled.connect(func(on: bool):
+				if on and not quest.chapter_ids.has(chapter.id):
+					quest.chapter_ids.append(chapter.id)
+				elif not on:
+					quest.chapter_ids.erase(chapter.id)
+				_mark_dirty()
+				_map_view.side_quests = _quests_on_act(_current_act()) if _current_act() != null else []
+				_map_view.queue_redraw()
+			)
+			_chapter_panel.add_child(check)
+
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_label("Only offered when (experience / gold / act_number):"))
+	for condition in quest.conditions:
+		_chapter_panel.add_child(_condition_editor.build_condition_row(quest.conditions, condition, _rebuild_chapter_panel))
+	_chapter_panel.add_child(_button("Add condition", func():
+		var created := Condition.new()
+		created.variable_name = CampaignState.CONDITION_VARIABLES[0]
+		created.operator = Condition.Operator.GREATER_EQUAL
+		created.value = 0
+		quest.conditions.append(created)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_button("Delete side quest", func(): _delete_side_quest(quest)))
 
 
 # ---------------------------------------------------------------- places
 
 func _selected_id() -> String:
+	if _selected_quest != null:
+		return _selected_quest.id
 	if _selected_place != null:
 		return _selected_place.id
 	return _selected.id if _selected != null else ""
@@ -616,6 +804,7 @@ func _delete_place(place: CampaignPlace) -> void:
 		return
 	act.places.erase(place)
 	_selected_place = null
+	_selected_quest = null
 	_mark_dirty()
 	_refresh_act()
 
@@ -785,6 +974,7 @@ func _refresh_act() -> void:
 	_start_xp_spin.value = act.start_experience if act != null else -1
 	_suppress = false
 	_map_label.text = "Map: %s" % (act.map_image if act != null and act.map_image != "" else "none")
+	_map_view.side_quests = _quests_on_act(act) if act != null else []
 	_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image) if act != null else null, _selected_id())
 	_rebuild_chapter_panel()
 	_update_problems()
@@ -798,6 +988,8 @@ func _update_problems() -> void:
 	for act in _campaign.acts:
 		for problem in act.problems(files):
 			lines.append("%s: %s" % [act.act_name, problem])
+	for problem in _campaign.side_quest_problems(files):
+		lines.append(problem)
 	_problems_label.text = "\n".join(lines) if not lines.is_empty() else "none"
 	_map_view.queue_redraw()
 
@@ -807,11 +999,14 @@ func _rebuild_chapter_panel() -> void:
 		_chapter_panel.remove_child(child)
 		child.queue_free()
 	var act := _current_act()
+	if act != null and _selected_quest != null:
+		_build_side_quest_panel(_selected_quest)
+		return
 	if act != null and _selected_place != null:
 		_build_place_panel(act, _selected_place)
 		return
 	if act == null or _selected == null:
-		_chapter_panel.add_child(_label("Select a chapter or place on the map, or add one."))
+		_chapter_panel.add_child(_label("Select a chapter, place or side quest on the map, or add one."))
 		return
 	var chapter := _selected
 	_map_view.selected_id = chapter.id

@@ -179,22 +179,7 @@ func evaluate_condition(condition: Condition) -> bool:
 		push_warning("Condition value for '%s' doesn't match its declared type" % condition.variable_name)
 		return false
 	var current: Variant = _variables.get(condition.variable_name)
-	var result: bool
-	match condition.operator:
-		Condition.Operator.EQUALS:
-			result = current == target
-		Condition.Operator.NOT_EQUALS:
-			result = current != target
-		Condition.Operator.GREATER:
-			result = current > target
-		Condition.Operator.GREATER_EQUAL:
-			result = current >= target
-		Condition.Operator.LESS:
-			result = current < target
-		Condition.Operator.LESS_EQUAL:
-			result = current <= target
-		_:
-			result = false
+	var result: bool = condition.holds_for(current, target)
 	if log_evaluations:
 		print("MissionRuntime.evaluate_condition: '%s' %s %s -> current=%s (%s) => %s" % [condition.variable_name, Condition.Operator.keys()[condition.operator], target, current, typeof(current), result])
 	return result

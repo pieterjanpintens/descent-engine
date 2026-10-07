@@ -6510,6 +6510,21 @@ done. The play page's top bar has a **Campaign Log** button opening a `LogDialog
 `entries_provider`, `objectives_provider`; the mission player's Quest Log uses the same dialog over `Journal.entries`, which carry a round): "You can play: <available
 chapters>" on top, then the entries newest first, click one to re-read it. Compile-checked + a headless check of the log writes.
 
+**Side quests (2026-10-07)** - optional extras. `CampaignSideQuest` (`scripts/CampaignSideQuest.gd`, id "sq_N" from `Campaign.new_side_quest_id()`) lives in
+`Campaign.side_quests` - NOT in an act, never part of the path, no links between quests (yet). Like a chapter it has a `mission_file`, `story_before/after`,
+`map_position`, `reward_xp` (1) / `reward_gold` / `reward_materials`; in addition `chapter_ids` (the chapters it is offered at) and `conditions`
+(`Array[Condition]`). **Visible** (`CampaignState.is_side_quest_visible()`): not won (`completed_side_quests`), the party can play one of its chapters now
+(`available_chapters`) AND its conditions hold - so it disappears when the party moves on. **Conditions** reuse the mission editor's condition rows
+(`EffectEditor.build_condition_row()`, with the new `variable_names_override`) over the campaign's own values - `CampaignState.CONDITION_VARIABLES` =
+`experience`, `gold`, `act_number` (1-based) - because campaign variables don't exist yet (a condition on an unknown variable or a non-number never holds);
+the comparison itself is the shared `Condition.holds_for(current, target)` (extracted from `MissionRuntime.evaluate_condition()`). **Map**: an orange star
+(`CampaignMapView.side_quests`, signals `side_quest_selected/moved`); the editor shows the quests linked to the act's chapters plus the unlinked ones; the player
+only the visible ones. **Editor**: "Add side quest" in the map toolbar (linked to the selected chapter if one is selected); its Selection-tab panel has title, mission
+(+ "Add mission…"), rewards, stories, a checkbox per chapter of every act, conditions ("Add condition") and delete; `Campaign.side_quest_problems()` feeds the Problems
+list (no mission / missing file / not linked / link to a removed chapter). **Player**: selecting a star shows "Side quest (optional)", its reward and story and
+"Play this side quest"; the mission is run like a chapter (`GameState.campaign_chapter_id` holds the quest id) and `apply_side_quest_result()` applies the result: a win
+completes it and gives XP/gold/materials and a "Side quest: <title>" campaign log entry, a loss changes nothing (try again). Headless-checked only.
+
 **Points of interest (2026-10-07)** - places on an act's map where the party spends what it earns. `CampaignPlace` (id "place_N", `title`,
 `description`, `map_position` like a chapter's, `unlocked_by_chapter` = the chapter that must be won before it shows ("" = from the start of the act),
 `offers`) lives in `CampaignAct.places`; `CampaignOffer` (id "offer_N", `title`, `description`, `cost_gold`, `cost_materials` name -> count,

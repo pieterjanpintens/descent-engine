@@ -15,12 +15,15 @@ signal chapter_selected(chapter_id: String)
 signal chapter_moved(chapter_id: String)
 signal place_selected(place_id: String)
 signal place_moved(place_id: String)
+signal side_quest_selected(quest_id: String)
+signal side_quest_moved(quest_id: String)
 
 const PIN_RADIUS := 14.0
 const START_COLOR := Color(0.95, 0.8, 0.25)
 const FINALE_COLOR := Color(0.7, 0.4, 0.9)
 const PIN_COLOR := Color(0.3, 0.6, 0.95)
 const PLACE_COLOR := Color(0.25, 0.75, 0.7)
+const SIDE_QUEST_COLOR := Color(0.95, 0.55, 0.15)
 const LINK_COLORS := {
 	CampaignLink.Outcome.WIN: Color(0.4, 0.85, 0.4),
 	CampaignLink.Outcome.LOSE: Color(0.9, 0.35, 0.35),
@@ -33,6 +36,9 @@ var texture: Texture2D
 var selected_id: String = ""
 var read_only: bool = false
 var statuses: Dictionary = {}
+## The side quests to show (the owner decides which: the editor lists the ones of this act, the player the
+## ones on offer), each as an orange star.
+var side_quests: Array[CampaignSideQuest] = []
 var hidden_place_ids: Array[String] = []
 
 var _dragging: Resource  ## the CampaignChapter or CampaignPlace being dragged
@@ -97,6 +103,8 @@ func _draw() -> void:
 	for place in act.places:
 		if not hidden_place_ids.has(place.id):
 			_draw_place(place)
+	for quest in side_quests:
+		_draw_side_quest(quest)
 	for chapter in act.chapters:
 		if not _is_hidden(chapter):
 			_draw_pin(chapter)
@@ -141,6 +149,19 @@ func _draw_place(place: CampaignPlace) -> void:
 	_draw_label(center, place.title if place.title != "" else "(unnamed place)")
 
 
+func _draw_side_quest(quest: CampaignSideQuest) -> void:
+	var center := pin_position(quest)
+	var star := PackedVector2Array()
+	for i in 10:
+		var angle := -PI / 2.0 + i * PI / 5.0
+		star.append(center + Vector2(cos(angle), sin(angle)) * (PIN_RADIUS + 3.0 if i % 2 == 0 else (PIN_RADIUS + 3.0) * 0.45))
+	draw_colored_polygon(star, SIDE_QUEST_COLOR)
+	var outline := star.duplicate()
+	outline.append(star[0])
+	draw_polyline(outline, Color.WHITE if quest.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if quest.id == selected_id else 2.0, true)
+	_draw_label(center, quest.title if quest.title != "" else "(unnamed side quest)")
+
+
 func _draw_label(center: Vector2, label: String) -> void:
 	var font := ThemeDB.fallback_font
 	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
@@ -159,6 +180,8 @@ func _gui_input(event: InputEvent) -> void:
 				selected_id = hit.get("id")
 				if hit is CampaignPlace:
 					place_selected.emit(selected_id)
+				elif hit is CampaignSideQuest:
+					side_quest_selected.emit(selected_id)
 				else:
 					chapter_selected.emit(selected_id)
 				queue_redraw()
@@ -166,6 +189,8 @@ func _gui_input(event: InputEvent) -> void:
 			if _dragging != null:
 				if _dragging is CampaignPlace:
 					place_moved.emit(_dragging.id)
+				elif _dragging is CampaignSideQuest:
+					side_quest_moved.emit(_dragging.id)
 				else:
 					chapter_moved.emit(_dragging.get("id"))
 			_dragging = null
@@ -176,11 +201,14 @@ func _gui_input(event: InputEvent) -> void:
 		queue_redraw()
 
 
-## The chapter or place whose pin is under `position` (chapters on top), or null.
+## The chapter, side quest or place whose pin is under `position` (chapters on top), or null.
 func _item_at(position: Vector2) -> Resource:
 	for i in range(act.chapters.size() - 1, -1, -1):
 		if not _is_hidden(act.chapters[i]) and pin_position(act.chapters[i]).distance_to(position) <= PIN_RADIUS + 4.0:
 			return act.chapters[i]
+	for i in range(side_quests.size() - 1, -1, -1):
+		if pin_position(side_quests[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+			return side_quests[i]
 	for i in range(act.places.size() - 1, -1, -1):
 		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= PIN_RADIUS + 4.0:
 			return act.places[i]

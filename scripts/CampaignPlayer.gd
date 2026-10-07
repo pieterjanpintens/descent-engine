@@ -14,7 +14,8 @@ extends Control
 ## The campaign screen opens on the page named by GameState.campaign_screen ("new" or "load") unless a save
 ## game is handed over (a finished mission returns to its save game's play page).
 ##
-## The map only shows the chapters that can be played now (green); what was passed through is read back in the
+## The map only shows the chapters that can be played now (green) and the optional side quests on offer
+## (orange stars, CampaignSideQuest); what was passed through is read back in the
 ## Campaign Log (top bar), a LogDialog over CampaignState.log_entries. A lost
 ## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
 ## chapter is won; selecting one lists its offers, which are bought with gold/materials and give the
@@ -332,6 +333,10 @@ func _build_play_page() -> Control:
 		_selected_id = id
 		_rebuild_side()
 	)
+	_map_view.side_quest_selected.connect(func(id: String):
+		_selected_id = id
+		_rebuild_side()
+	)
 	split.add_child(_map_view)
 	var scroll := ScrollContainer.new()
 	scroll.custom_minimum_size.x = 360
@@ -415,6 +420,7 @@ func _refresh_view() -> void:
 	var act := _current_act()
 	if _state.campaign_complete or act == null:
 		_heading_label.text = "%s - campaign complete! (%s)" % [_campaign.campaign_name, _state.save_name]
+		_map_view.side_quests = []
 		_map_view.show_act(null, null)
 	else:
 		_heading_label.text = "%s - %s (%s)" % [_campaign.campaign_name, act.act_name, _state.save_name]
@@ -425,6 +431,7 @@ func _refresh_view() -> void:
 		for place in act.places:
 			if not _state.is_place_unlocked(place):
 				_map_view.hidden_place_ids.append(place.id)
+		_map_view.side_quests = _state.visible_side_quests(_campaign)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
 	_status_label.text = "XP: %d  |  Gold: %d%s" % [_state.experience, _state.gold, ("  |  " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]
 	_rebuild_side()
@@ -443,6 +450,10 @@ func _rebuild_side() -> void:
 	if place != null and _state.is_place_unlocked(place):
 		_build_place_panel(place)
 		return
+	var quest := _campaign.find_side_quest(_selected_id)
+	if quest != null and _state.is_side_quest_visible(quest):
+		_build_side_quest_panel(quest)
+		return
 	var chapter := act.find_chapter(_selected_id)
 	if chapter == null:
 		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
@@ -458,6 +469,22 @@ func _rebuild_side() -> void:
 		_side.add_child(_wrapped(chapter.story_before))
 	var play := _button("Play this chapter", func(): _play(chapter))
 	play.disabled = chapter.mission_file == ""
+	_side.add_child(play)
+
+
+## An optional side quest on offer: tagged as such, its reward and story and a Play button.
+func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
+	var tag := _label("Side quest (optional)")
+	tag.modulate = CampaignMapView.SIDE_QUEST_COLOR
+	_side.add_child(tag)
+	var title := _label(quest.title)
+	title.add_theme_font_size_override("font_size", 20)
+	_side.add_child(title)
+	_side.add_child(_label("Reward: +%d XP%s" % [quest.reward_xp, (", %d gold" % quest.reward_gold) if quest.reward_gold > 0 else ""]))
+	if quest.story_before != "":
+		_side.add_child(_wrapped(quest.story_before))
+	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id))
+	play.disabled = quest.mission_file == ""
 	_side.add_child(play)
 
 
@@ -507,15 +534,20 @@ func _buy(offer: CampaignOffer) -> void:
 
 
 func _play(chapter: CampaignChapter) -> void:
-	var path := "%s/%s" % [CampaignIO.folder_path(_folder), chapter.mission_file]
-	if chapter.mission_file == "" or not FileAccess.file_exists(path):
-		_say("The mission of this chapter is missing from the campaign folder.")
+	_play_mission(chapter.mission_file, chapter.id)
+
+
+## Starts the mission `mission_file` of the chapter or side quest `id`.
+func _play_mission(mission_file: String, id: String) -> void:
+	var path := "%s/%s" % [CampaignIO.folder_path(_folder), mission_file]
+	if mission_file == "" or not FileAccess.file_exists(path):
+		_say("The mission is missing from the campaign folder.")
 		return
 	GameState.current_mission_path = path
 	GameState.load_save_path = ""
 	GameState.campaign_folder = _folder
 	GameState.campaign_save = CampaignIO.save_key(_state.save_name)
-	GameState.campaign_chapter_id = chapter.id
+	GameState.campaign_chapter_id = id
 	GameState.campaign_result = {}
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
 
@@ -524,7 +556,9 @@ func _play(chapter: CampaignChapter) -> void:
 
 func _apply_result(result: Dictionary) -> void:
 	var won: bool = result.get("won", false)
-	var summary := _state.apply_result(_campaign, str(result.get("chapter_id", "")), won)
+	var finished_id := str(result.get("chapter_id", ""))
+	var summary := _state.apply_side_quest_result(_campaign, finished_id, won) if _campaign.find_side_quest(finished_id) != null \
+		else _state.apply_result(_campaign, finished_id, won)
 	_save()
 	_selected_id = ""
 	_refresh_view()
