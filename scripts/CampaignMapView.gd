@@ -1,27 +1,29 @@
 class_name CampaignMapView
 extends Control
 
-## The map of one act in the campaign editor: the act's map image (a plain grid when it has
-## none) with a pin per chapter - drag a pin to move it, click to select it - and an arrow for
-## every link between chapters (green = on win, red = on lose, grey = always). Pure view: it
-## edits `CampaignChapter.map_position` while a pin is dragged and tells its owner through
-## signals; saving and undo are the editor's business. With `read_only` (the campaign player)
-## pins can only be selected, and are coloured by `statuses` (chapter id -> "available" / "done" /
-## "locked") instead of start/finale.
+## The map of one act: the act's map image (a plain grid when it has none) with a round pin per
+## chapter and a diamond per place (point of interest), and an arrow for every link between
+## chapters (green = on win, red = on lose, grey = always). In the editor pins/diamonds can be
+## dragged (they edit `map_position` and tell the owner through the *_moved signals; saving and undo
+## are the editor's business) and clicked to select. With `read_only` (the campaign player) nothing
+## can be moved; chapters are coloured by `statuses` (chapter id -> "available" / "done" / "locked")
+## instead of start/finale, and places listed in `hidden_place_ids` are not shown.
 
 signal chapter_selected(chapter_id: String)
 signal chapter_moved(chapter_id: String)
+signal place_selected(place_id: String)
+signal place_moved(place_id: String)
 
 const PIN_RADIUS := 14.0
 const START_COLOR := Color(0.95, 0.8, 0.25)
 const FINALE_COLOR := Color(0.7, 0.4, 0.9)
 const PIN_COLOR := Color(0.3, 0.6, 0.95)
+const PLACE_COLOR := Color(0.25, 0.75, 0.7)
 const LINK_COLORS := {
 	CampaignLink.Outcome.WIN: Color(0.4, 0.85, 0.4),
 	CampaignLink.Outcome.LOSE: Color(0.9, 0.35, 0.35),
 	CampaignLink.Outcome.ANY: Color(0.7, 0.7, 0.7),
 }
-
 const AVAILABLE_COLOR := Color(0.4, 0.85, 0.4)
 const DONE_COLOR := Color(0.45, 0.5, 0.55)
 const LOCKED_COLOR := Color(0.18, 0.2, 0.25)
@@ -31,8 +33,9 @@ var texture: Texture2D
 var selected_id: String = ""
 var read_only: bool = false
 var statuses: Dictionary = {}
+var hidden_place_ids: Array[String] = []
 
-var _dragging: CampaignChapter
+var _dragging: Resource  ## the CampaignChapter or CampaignPlace being dragged
 
 
 func _ready() -> void:
@@ -59,9 +62,10 @@ func map_rect() -> Rect2:
 	return Rect2((size - drawn) / 2.0, drawn)
 
 
-func pin_position(chapter: CampaignChapter) -> Vector2:
+## Screen position of a chapter or a place (anything with a `map_position`).
+func pin_position(item: Resource) -> Vector2:
 	var rect := map_rect()
-	return rect.position + chapter.map_position * rect.size
+	return rect.position + (item.get("map_position") as Vector2) * rect.size
 
 
 func _draw() -> void:
@@ -79,7 +83,8 @@ func _draw() -> void:
 		while y <= size.y:
 			draw_line(Vector2(0, y), Vector2(size.x, y), Color(1, 1, 1, 0.06))
 			y += step
-		draw_string(ThemeDB.fallback_font, Vector2(12, 24), "No map image - choose one for this act", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.4))
+		if not read_only:
+			draw_string(ThemeDB.fallback_font, Vector2(12, 24), "No map image - choose one for this act", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.4))
 	if act == null:
 		return
 	for chapter in act.chapters:
@@ -89,6 +94,9 @@ func _draw() -> void:
 			var target := act.find_chapter(link.target_id)
 			if target != null and target != chapter:
 				_draw_arrow(pin_position(chapter), pin_position(target), LINK_COLORS[link.outcome] if not read_only else Color(0.75, 0.75, 0.75, 0.6))
+	for place in act.places:
+		if not hidden_place_ids.has(place.id):
+			_draw_place(place)
 	for chapter in act.chapters:
 		_draw_pin(chapter)
 
@@ -114,10 +122,25 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 		fill = FINALE_COLOR
 	draw_circle(center, PIN_RADIUS, fill)
 	draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if chapter.id == selected_id else 2.0, true)
-	var font := ThemeDB.fallback_font
 	var label := chapter.title if chapter.title != "" else "(untitled)"
 	if read_only and status == "done":
 		label = "✓ " + label
+	_draw_label(center, label)
+
+
+func _draw_place(place: CampaignPlace) -> void:
+	var center := pin_position(place)
+	var radius := PIN_RADIUS - 1.0
+	var diamond := PackedVector2Array([center + Vector2(0, -radius), center + Vector2(radius, 0), center + Vector2(0, radius), center + Vector2(-radius, 0)])
+	draw_colored_polygon(diamond, PLACE_COLOR)
+	var outline := diamond.duplicate()
+	outline.append(diamond[0])
+	draw_polyline(outline, Color.WHITE if place.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if place.id == selected_id else 2.0, true)
+	_draw_label(center, place.title if place.title != "" else "(unnamed place)")
+
+
+func _draw_label(center: Vector2, label: String) -> void:
+	var font := ThemeDB.fallback_font
 	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 	draw_string_outline(font, center + Vector2(-width / 2.0, PIN_RADIUS + 16), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, 4, Color(0, 0, 0, 0.85))
 	draw_string(font, center + Vector2(-width / 2.0, PIN_RADIUS + 16), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
@@ -128,25 +151,35 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			var hit := _chapter_at(event.position)
+			var hit := _item_at(event.position)
 			if hit != null:
 				_dragging = hit if not read_only else null
-				selected_id = hit.id
-				chapter_selected.emit(hit.id)
+				selected_id = hit.get("id")
+				if hit is CampaignPlace:
+					place_selected.emit(selected_id)
+				else:
+					chapter_selected.emit(selected_id)
 				queue_redraw()
 		else:
 			if _dragging != null:
-				chapter_moved.emit(_dragging.id)
+				if _dragging is CampaignPlace:
+					place_moved.emit(_dragging.id)
+				else:
+					chapter_moved.emit(_dragging.get("id"))
 			_dragging = null
 	elif event is InputEventMouseMotion and _dragging != null:
 		var rect := map_rect()
 		var relative: Vector2 = (event.position - rect.position) / rect.size
-		_dragging.map_position = Vector2(clampf(relative.x, 0.0, 1.0), clampf(relative.y, 0.0, 1.0))
+		_dragging.set("map_position", Vector2(clampf(relative.x, 0.0, 1.0), clampf(relative.y, 0.0, 1.0)))
 		queue_redraw()
 
 
-func _chapter_at(position: Vector2) -> CampaignChapter:
+## The chapter or place whose pin is under `position` (chapters on top), or null.
+func _item_at(position: Vector2) -> Resource:
 	for i in range(act.chapters.size() - 1, -1, -1):
 		if pin_position(act.chapters[i]).distance_to(position) <= PIN_RADIUS + 4.0:
 			return act.chapters[i]
+	for i in range(act.places.size() - 1, -1, -1):
+		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+			return act.places[i]
 	return null

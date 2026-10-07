@@ -6468,7 +6468,7 @@ campaign-variable conditions come later). `CampaignIO` (static): `key_for(name)`
 `save_campaign()`/`load_campaign()`, `mission_files(folder)`, `import_mission()` (copies a mission file into the campaign folder),
 `import_map_image()` (copies an image in as `map_<act>.<ext>`), `map_texture()`.
 
-**Editor** (`ui/CampaignEditor.tscn` -> `CampaignEditor.gd`, built in code; main menu button "Campaign Editor"): top bar New…/Open/Save/
+**Editor** (`ui/CampaignEditor.tscn` -> `CampaignEditor.gd`, built in code; main menu button "Campaign Editor"): a **File menu** like the mission editor's (File: New Ctrl+N, Open > submenu of the campaigns, Save Ctrl+S, Back to Menu; Save is disabled without a campaign; status text right of the menu bar) instead of the old button bar; (old note: top bar New…/Open/Save/
 Back (switching campaign or leaving auto-saves unsaved changes; edits are not undo-tracked); left: campaign name/intro, the acts list
 (add/remove/reorder), act name/intro, "Map image…"/"Clear map", "Add chapter", and the live **Problems** list; centre:
 `CampaignMapView` (the act's map image or a grid, a pin per chapter - drag to move, click to select; gold = start, purple = finale -
@@ -6477,25 +6477,20 @@ which copies a mission from `user://missions`, start/finale checkboxes, story be
 (model round trip through the files, problem detection incl. unreachable/missing mission/finale, chapter delete removing links, the
 editor driven through its own actions); the layout/drag feel was not seen.
 
-**Hero model (2026-10-07)** - what carries over between missions is small: **experience** (which gives the **level**) and the
-**equipped abilities**; wounds and the weapons picked at embark stay per mission. `HeroProgression` (Resource on the `Campaign`, tunable in
-the editor's "Hero levels" fields - XP needed per level, comma separated, starting at 0, and ability slots per level; both lists the same
-length, XP strictly ascending, >= 1 slot; invalid input is refused with a note): defaults XP `0,10,25,45,70,100` and slots `1,2,2,3,3,4`
-(**invented - tune**); `level_for(xp)`, `slots_for(level)` (the last entry carries on past the end), `xp_for_next()`, `max_level()`.
-`HeroAbility` (id, name, description, `hero_slot` -1 = any, `required_level`; `fits(slot, level)`) with the premade, INVENTED list
-`AbilityCatalog` (6 generic + 2 per hero, text only - like everything else the table resolves them; hooks into the rules can come later).
-`HeroState` (Resource: `hero_slot`, `experience`, `equipped_abilities` ids): `level()`, `slots()`, `available_abilities()`, `can_equip()`/`equip()`
-(known + fits the hero and level + not equipped + a free slot)/`unequip()`, `add_experience()` -> the levels newly reached (equipped abilities stay).
-`CampaignState` (Resource, **the campaign save**: `campaign_folder`, `current_act`, `completed_chapters`, `heroes` (created on demand by `hero(slot)` at
-level 1), `gold`, `materials` name -> count, `owned_attachments` names; `party_level(roster, progression)` = the average level of the heroes in
-play rounded down, `add_material()`, `mark_completed()`), stored by `CampaignIO.save_state()`/`load_state()` as
-`user://campaign_saves/<campaign folder>.tres` (one per campaign). **Nothing plays a campaign yet** - no screen shows or edits a hero's
-abilities, nothing grants XP, gold or materials, and nothing reads `party_level()`; those arrive with the campaign player. Smoke-tested
-headlessly (levels/slots at the thresholds, equip rules incl. slot limit/other hero's ability/duplicates, XP gain returning levels, a full
-save/load round trip, the editor's progression fields incl. the refusals).
+**Experience counter (2026-10-07, replaces the first "hero model")** - the game has no real XP system and no modelled abilities, so what
+carries over between missions is ONE party-wide counter: `CampaignState.experience` (int, default 0). It goes up by `CampaignState.XP_PER_WIN`
+(1) for every WON chapter (a loss gives nothing), and an act can force it to a number when it begins (`CampaignAct.start_experience`, -1 = keep;
+"levels the board again" - applied by `_begin_act()`, so also at the start of the first act and after the last chapter of the previous one).
+It is always visible in the campaign screen's top bar ("XP: N | Gold: ..."), the chapter panel shows the reward, and the result dialog says
+"+1 XP (now N)". Nothing reads the counter yet (planned: scaling the missions' monsters). **Removed as obsolete**: `HeroProgression` (XP
+thresholds/ability slots), `HeroAbility`, `AbilityCatalog`, `HeroState`, `CampaignHeroesDialog` (the "Heroes..." button), per-hero XP,
+`CampaignChapter.reward_xp`, `Campaign.progression` and `party_level()` (old campaign files just ignore the removed properties). The campaign
+save (`CampaignState`: `campaign_folder`, `current_act`, `completed_chapters`, `available_chapters`, `experience`, `gold`, `materials`,
+`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state()` as `user://campaign_saves/<campaign folder>.tres`.
+The editor has a "XP when the act begins (-1 = keep)" spin box per act. Compile-checked only (the logic is a counter; not run in a scene).
 
 **Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a campaign picker +
-"Start / Continue", "Heroes…", "Back to menu", the gold; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
+"Start / Continue", "Back to menu", the XP counter and gold; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
 "✓" = won, dark = locked; links are only shown from chapters that are not locked) and a side panel for the selected chapter (status, reward, the
 story before, "Play this chapter"; the story after once won). Opening a NEW campaign shows the campaign + act intro; an existing one continues its
 `CampaignState` (`CampaignIO.load_state()`), which is written after every change. **Playing a chapter**: `GameState.campaign_folder/
@@ -6504,18 +6499,36 @@ the heroes and weapons as usual). **When the mission ends** `MissionPlayer._exit
 `{won, roster, chapter_id}`, or with `{}` for Back to Menu = abandoned) stores `GameState.campaign_result` and returns to the campaign screen instead of the
 main menu; the screen reopens that campaign, applies the result and clears the context (a mission started from the main menu - Play Mission/Load
 Game - clears any campaign context). **Rules** (`CampaignState.apply_result()`, the same logic the screen uses): the party is at a FRONTIER
-(`available_chapters`; the start chapter at first). A WIN completes the chapter, gives `reward_xp` to EACH hero in the roster and `reward_gold` to the party
-(per-chapter fields, defaults 5 XP / 0 gold, set in the editor's chapter panel), and replaces the chapter in the frontier by the targets of its "on win"/
+(`available_chapters`; the start chapter at first). A WIN completes the chapter, raises the XP counter by 1 and gives `reward_gold` to the party
+(per-chapter field, default 0, set in the editor's chapter panel), and replaces the chapter in the frontier by the targets of its "on win"/
 "always" links (several = the table chooses); winning a **finale** (or a chapter with nowhere to go) completes the act and starts the next one, after the
 last act the campaign is complete. A LOSS: an "on lose"/"always" link replaces the chapter, otherwise the chapter is simply offered again (no XP/gold on a
-loss). A result is ignored for a chapter that is not in the frontier. After a mission the screen tells the outcome: XP/gold, levels reached, the story
-after, act/campaign completion and what is available now. **Heroes…** = `CampaignHeroesDialog`: per hero the level/XP, the equipped abilities
-(× to unequip) and an Equip picker (only abilities that fit the hero/level, while a slot is free). `CampaignAct.problems()` also flags a non-finale chapter
-without a way forward on win. **Not built**: points of interest (spending gold/materials), the party level scaling the monsters, owned attachments feeding
-the embark, resuming a half-played mission inside a campaign (a mission saved with the Gear menu loses its campaign context; loading it from the main
-menu ends at the main menu), materials rewards. Smoke-tested headlessly: the frontier logic (branching, losses with/without links, finale -> next act ->
+loss). A result is ignored for a chapter that is not in the frontier. After a mission the screen tells the outcome: XP/gold, the story
+after, act/campaign completion and what is available now. `CampaignAct.problems()` also flags a non-finale chapter
+without a way forward on win. **Not built**: the XP counter scaling the monsters, resuming a half-played mission inside a campaign (a mission saved with the Gear menu
+loses its campaign context; loading it from the main menu ends at the main menu). (Points of interest, owned attachments and material rewards: see the next paragraph.) Smoke-tested headlessly: the frontier logic (branching, losses with/without links, finale -> next act ->
 campaign complete, unknown chapter ignored), the player screen applying a result coming back through `GameState`, the side panel and the heroes dialog;
 the full mission -> campaign scene change itself was not run (headless can't play a mission).
+
+**Points of interest (2026-10-07)** - places on an act's map where the party spends what it earns. `CampaignPlace` (id "place_N", `title`,
+`description`, `map_position` like a chapter's, `unlocked_by_chapter` = the chapter that must be won before it shows ("" = from the start of the act),
+`offers`) lives in `CampaignAct.places`; `CampaignOffer` (id "offer_N", `title`, `description`, `cost_gold`, `cost_materials` name -> count,
+`attachment` = the weapon attachment it gives - the campaign's "weapon part / upgrade", other reward kinds can follow - and `once`) in a place's
+`offers` (`Campaign.new_place_id()`/`new_offer_id()` counters, never reused). **Materials**: chapters can reward them (`CampaignChapter.reward_materials`,
+a "Materials won: iron:2, leather:1" field in the editor; `CampaignState.parse_materials()`/`format_materials()` read/write that text) and
+`apply_result()` adds them with the XP/gold. **Shopping** (`CampaignState`): `is_place_unlocked()`, `can_buy()` (enough gold and materials, a once-only offer not
+bought yet - `purchased_offers` ids), `buy()` (pays, the attachment goes to `owned_attachments`; owning two copies is allowed but copies are not tracked at embark).
+**Editor**: "Add place" next to "Add chapter"; a place is a teal diamond on the map (drag to move, click to select); its panel has the name, description,
+"Opens when this chapter is won" and a list of offers (title, description, gold, materials, the attachment it gives from `AttachmentCatalog`, "Only once",
+×) plus "Delete place"; deleting a chapter clears the unlock of places that used it. `CampaignAct.problems()` also flags an offer that gives nothing or an
+unknown attachment, a place unlocked by a missing chapter, and a place unlocked by a **finale** (winning it ends the act, so it could never be visited).
+`CampaignMapView` now handles both kinds (`place_selected`/`place_moved` signals; `hidden_place_ids` in the player). **Player**: places appear on the map
+once unlocked; selecting one shows its description, what the party has, and each offer with its cost, what it gives and a Buy button (disabled when it
+can't be afforded, "Bought" for a finished once-only offer); the status line shows gold and materials; the result dialog lists materials won. The shop only
+exists on the map of its own act - when the act ends the next act's map takes over. **The embark of a campaign mission offers only owned attachments**
+(`EmbarkDialog.restrict_to_owned`/`owned_attachments`, set by `MissionPlayer` from the campaign save; outside a campaign every fitting attachment is
+offered as before). Smoke-tested headlessly (the shop rules incl. unlocking, once-only, poverty, materials; the embark filter; the editor adding/selecting/
+deleting places and saving; the player's locked/unlocked shop panel and a purchase persisted to the save); look/drag feel not seen.
 
 ## Scene structure (post-refactor)
 

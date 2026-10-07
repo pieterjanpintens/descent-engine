@@ -18,18 +18,20 @@ var _campaign: Campaign
 var _folder: String = ""
 var _act_index: int = -1
 var _selected: CampaignChapter
+var _selected_place: CampaignPlace
 var _dirty: bool = false
 
 var _status_label: Label
-var _open_option: OptionButton
+var _file_menu: PopupMenu
+var _open_menu: PopupMenu
 var _open_folders: Array[String] = []
+
+enum FileAction { NEW, SAVE, BACK }
 var _body: Control
 var _welcome_label: Label
 var _campaign_name_edit: LineEdit
 var _campaign_intro_edit: TextEdit
-var _xp_edit: LineEdit
-var _slots_edit: LineEdit
-var _progression_note: Label
+var _start_xp_spin: SpinBox
 var _acts_list: ItemList
 var _act_name_edit: LineEdit
 var _act_intro_edit: TextEdit
@@ -56,18 +58,27 @@ func _ready() -> void:
 	var root := VBoxContainer.new()
 	margin.add_child(root)
 
-	# --- top bar
+	# --- menu bar (File, like the mission editor's)
 	var bar := HBoxContainer.new()
 	root.add_child(bar)
-	bar.add_child(_button("New…", func(): _new_name_edit.text = ""; _new_dialog.popup_centered()))
-	_open_option = OptionButton.new()
-	_open_option.custom_minimum_size.x = 200
-	bar.add_child(_open_option)
-	bar.add_child(_button("Open", _on_open_pressed))
-	bar.add_child(_button("Save", _save))
-	bar.add_child(_button("Back to menu", _on_back_pressed))
+	var menu_bar := MenuBar.new()
+	bar.add_child(menu_bar)
+	_file_menu = PopupMenu.new()
+	_file_menu.name = "File"
+	menu_bar.add_child(_file_menu)
+	_open_menu = PopupMenu.new()
+	_open_menu.name = "OpenMenu"
+	_open_menu.index_pressed.connect(_on_open_index_pressed)
+	_file_menu.add_child(_open_menu)
+	_file_menu.add_item("New", FileAction.NEW, (KEY_MASK_CTRL | KEY_N) as Key)
+	_file_menu.add_submenu_node_item("Open", _open_menu)
+	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
+	_file_menu.add_separator()
+	_file_menu.add_item("Back to Menu", FileAction.BACK)
+	_file_menu.id_pressed.connect(_on_file_action)
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	bar.add_child(_status_label)
 
 	_welcome_label = Label.new()
@@ -107,21 +118,6 @@ func _ready() -> void:
 	)
 	left.add_child(_campaign_intro_edit)
 
-	left.add_child(_label("Hero levels - XP needed for each level (comma separated, starts at 0):"))
-	_xp_edit = LineEdit.new()
-	_xp_edit.text_submitted.connect(func(_text: String): _commit_progression())
-	_xp_edit.focus_exited.connect(_commit_progression)
-	left.add_child(_xp_edit)
-	left.add_child(_label("Ability slots at each level:"))
-	_slots_edit = LineEdit.new()
-	_slots_edit.text_submitted.connect(func(_text: String): _commit_progression())
-	_slots_edit.focus_exited.connect(_commit_progression)
-	left.add_child(_slots_edit)
-	_progression_note = _label("")
-	_progression_note.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_progression_note.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4))
-	left.add_child(_progression_note)
-
 	left.add_child(HSeparator.new())
 	left.add_child(_label("Acts:"))
 	_acts_list = ItemList.new()
@@ -129,6 +125,7 @@ func _ready() -> void:
 	_acts_list.item_selected.connect(func(index: int):
 		_act_index = index
 		_selected = null
+		_selected_place = null
 		_refresh_act()
 	)
 	left.add_child(_acts_list)
@@ -160,13 +157,30 @@ func _ready() -> void:
 		_mark_dirty()
 	)
 	left.add_child(_act_intro_edit)
+	var xp_row := HBoxContainer.new()
+	left.add_child(xp_row)
+	xp_row.add_child(_label("XP when the act begins (-1 = keep):"))
+	_start_xp_spin = SpinBox.new()
+	_start_xp_spin.min_value = -1
+	_start_xp_spin.max_value = 9999
+	_start_xp_spin.value_changed.connect(func(value: float):
+		var act := _current_act()
+		if _suppress or act == null:
+			return
+		act.start_experience = int(value)
+		_mark_dirty()
+	)
+	xp_row.add_child(_start_xp_spin)
 	var map_row := HBoxContainer.new()
 	left.add_child(map_row)
 	map_row.add_child(_button("Map image…", func(): _image_dialog.popup_centered_ratio(0.6)))
 	map_row.add_child(_button("Clear map", _on_clear_map_pressed))
 	_map_label = _label("")
 	left.add_child(_map_label)
-	left.add_child(_button("Add chapter", _on_add_chapter_pressed))
+	var add_row := HBoxContainer.new()
+	left.add_child(add_row)
+	add_row.add_child(_button("Add chapter", _on_add_chapter_pressed))
+	add_row.add_child(_button("Add place", _on_add_place_pressed))
 	left.add_child(HSeparator.new())
 	left.add_child(_label("Problems:"))
 	_problems_label = _label("")
@@ -179,6 +193,8 @@ func _ready() -> void:
 	_map_view.custom_minimum_size = Vector2(300, 300)
 	_map_view.chapter_selected.connect(_on_map_chapter_selected)
 	_map_view.chapter_moved.connect(func(_id: String): _mark_dirty())
+	_map_view.place_selected.connect(_on_map_place_selected)
+	_map_view.place_moved.connect(func(_id: String): _mark_dirty())
 	split.add_child(_map_view)
 
 	var right_scroll := ScrollContainer.new()
@@ -225,11 +241,21 @@ func _ready() -> void:
 
 func _refresh_open_list() -> void:
 	_open_folders = CampaignIO.folder_names()
-	_open_option.clear()
+	_open_menu.clear()
 	for folder in _open_folders:
-		_open_option.add_item(folder)
-	if _folder != "":
-		_open_option.select(_open_folders.find(_folder))
+		_open_menu.add_radio_check_item(folder)
+		_open_menu.set_item_checked(_open_menu.item_count - 1, folder == _folder)
+
+
+func _on_file_action(id: int) -> void:
+	match id:
+		FileAction.NEW:
+			_new_name_edit.text = ""
+			_new_dialog.popup_centered()
+		FileAction.SAVE:
+			_save()
+		FileAction.BACK:
+			_on_back_pressed()
 
 
 func _on_new_confirmed() -> void:
@@ -250,11 +276,11 @@ func _on_new_confirmed() -> void:
 	_load_folder(key)
 
 
-func _on_open_pressed() -> void:
-	if _open_option.selected < 0:
+func _on_open_index_pressed(index: int) -> void:
+	if index < 0 or index >= _open_folders.size():
 		return
 	_save_if_dirty()
-	_load_folder(_open_folders[_open_option.selected])
+	_load_folder(_open_folders[index])
 
 
 func _load_folder(folder: String) -> void:
@@ -296,46 +322,6 @@ func _mark_dirty() -> void:
 	_dirty = true
 	_status_label.text = "Unsaved changes"
 	_update_problems()
-
-
-## Applies the two level fields to the campaign's HeroProgression - only if they are valid
-## (same count, XP ascending from 0, slots >= 1); otherwise the note says why and nothing changes.
-func _commit_progression() -> void:
-	if _suppress or _campaign == null:
-		return
-	var xp := _parse_ints(_xp_edit.text)
-	var slots := _parse_ints(_slots_edit.text)
-	var problem := ""
-	if xp.is_empty() or slots.is_empty():
-		problem = "Both lists need at least one number."
-	elif xp.size() != slots.size():
-		problem = "The two lists need the same number of entries (one per level)."
-	elif xp[0] != 0:
-		problem = "Level 1 must need 0 XP."
-	else:
-		for i in range(1, xp.size()):
-			if xp[i] <= xp[i - 1]:
-				problem = "XP must go up with every level."
-		for slot_count in slots:
-			if slot_count < 1:
-				problem = "Every level needs at least 1 ability slot."
-	_progression_note.text = problem
-	if problem != "":
-		return
-	if xp != _campaign.progression.xp_thresholds or slots != _campaign.progression.slots_by_level:
-		_campaign.progression.xp_thresholds = xp
-		_campaign.progression.slots_by_level = slots
-		_mark_dirty()
-
-
-## "0, 10 , 25" -> [0, 10, 25]; entries that are not whole numbers are skipped.
-func _parse_ints(text: String) -> Array[int]:
-	var numbers: Array[int] = []
-	for part in text.split(","):
-		var trimmed := part.strip_edges()
-		if trimmed.is_valid_int():
-			numbers.append(int(trimmed))
-	return numbers
 
 
 # ---------------------------------------------------------------- acts
@@ -417,6 +403,7 @@ func _on_add_chapter_pressed() -> void:
 	if act.start_chapter_id == "":
 		act.start_chapter_id = chapter.id
 	_selected = chapter
+	_selected_place = null
 	_mark_dirty()
 	_refresh_act()
 
@@ -426,6 +413,7 @@ func _on_map_chapter_selected(chapter_id: String) -> void:
 	if act == null:
 		return
 	_selected = act.find_chapter(chapter_id)
+	_selected_place = null
 	_rebuild_chapter_panel()
 
 
@@ -440,6 +428,9 @@ func _delete_chapter(chapter: CampaignChapter) -> void:
 				other.links.erase(link)
 	if act.start_chapter_id == chapter.id:
 		act.start_chapter_id = ""
+	for place in act.places:
+		if place.unlocked_by_chapter == chapter.id:
+			place.unlocked_by_chapter = ""
 	_selected = null
 	_mark_dirty()
 	_refresh_act()
@@ -457,20 +448,190 @@ func _on_mission_file_selected(path: String) -> void:
 	_rebuild_chapter_panel()
 
 
+# ---------------------------------------------------------------- places
+
+func _selected_id() -> String:
+	if _selected_place != null:
+		return _selected_place.id
+	return _selected.id if _selected != null else ""
+
+
+func _on_add_place_pressed() -> void:
+	var act := _current_act()
+	if act == null:
+		return
+	var place := CampaignPlace.new()
+	place.id = _campaign.new_place_id()
+	place.title = "Place %d" % (act.places.size() + 1)
+	place.map_position = Vector2(0.8 - 0.08 * (act.places.size() % 6), 0.8 - 0.06 * (act.places.size() % 6))
+	act.places.append(place)
+	_selected_place = place
+	_selected = null
+	_mark_dirty()
+	_refresh_act()
+
+
+func _on_map_place_selected(place_id: String) -> void:
+	var act := _current_act()
+	if act == null:
+		return
+	_selected_place = act.find_place(place_id)
+	_selected = null
+	_rebuild_chapter_panel()
+
+
+func _delete_place(place: CampaignPlace) -> void:
+	var act := _current_act()
+	if act == null:
+		return
+	act.places.erase(place)
+	_selected_place = null
+	_mark_dirty()
+	_refresh_act()
+
+
+## The right-hand panel for a selected place: its name, description, which chapter unlocks it and
+## its offers (cost in gold/materials, the attachment it gives, once-only or not).
+func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
+	_map_view.selected_id = place.id
+	_map_view.queue_redraw()
+	_chapter_panel.add_child(_label("Place name:"))
+	var title_edit := LineEdit.new()
+	title_edit.text = place.title
+	title_edit.text_changed.connect(func(text: String):
+		place.title = text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(title_edit)
+	_chapter_panel.add_child(_label("Description:"))
+	var description_edit := _text_edit(60)
+	description_edit.text = place.description
+	description_edit.text_changed.connect(func():
+		place.description = description_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(description_edit)
+
+	_chapter_panel.add_child(_label("Opens when this chapter is won:"))
+	var unlock_option := OptionButton.new()
+	unlock_option.add_item("(from the start of the act)")
+	var unlock_index := 0
+	for i in act.chapters.size():
+		unlock_option.add_item(act.chapters[i].title)
+		if act.chapters[i].id == place.unlocked_by_chapter:
+			unlock_index = i + 1
+	unlock_option.select(unlock_index)
+	unlock_option.item_selected.connect(func(index: int):
+		place.unlocked_by_chapter = act.chapters[index - 1].id if index >= 1 else ""
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(unlock_option)
+
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_label("Offers:"))
+	var attachment_names: Array[String] = []
+	for attachment in AttachmentCatalog.all():
+		attachment_names.append(attachment.attachment_name)
+	for offer in place.offers:
+		_chapter_panel.add_child(_build_offer_block(place, offer, attachment_names))
+	_chapter_panel.add_child(_button("Add offer", func():
+		var created := CampaignOffer.new()
+		created.id = _campaign.new_offer_id()
+		place.offers.append(created)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_button("Delete place", func(): _delete_place(place)))
+
+
+func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_names: Array[String]) -> Control:
+	var panel := PanelContainer.new()
+	var box := VBoxContainer.new()
+	panel.add_child(box)
+	var top := HBoxContainer.new()
+	box.add_child(top)
+	var title_edit := LineEdit.new()
+	title_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_edit.text = offer.title
+	title_edit.text_changed.connect(func(text: String):
+		offer.title = text
+		_mark_dirty()
+	)
+	top.add_child(title_edit)
+	top.add_child(_button("×", func():
+		place.offers.erase(offer)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+	var description_edit := LineEdit.new()
+	description_edit.placeholder_text = "Description"
+	description_edit.text = offer.description
+	description_edit.text_changed.connect(func(text: String):
+		offer.description = text
+		_mark_dirty()
+	)
+	box.add_child(description_edit)
+	var cost_row := HBoxContainer.new()
+	box.add_child(cost_row)
+	cost_row.add_child(_label("Gold:"))
+	cost_row.add_child(_reward_spin(offer.cost_gold, func(value: int): offer.cost_gold = value))
+	cost_row.add_child(_label("Materials:"))
+	var materials_edit := LineEdit.new()
+	materials_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	materials_edit.placeholder_text = "iron:2, leather:1"
+	materials_edit.text = CampaignState.format_materials(offer.cost_materials)
+	var commit_materials := func():
+		offer.cost_materials = CampaignState.parse_materials(materials_edit.text)
+		_mark_dirty()
+	materials_edit.text_submitted.connect(func(_t: String): commit_materials.call())
+	materials_edit.focus_exited.connect(commit_materials)
+	cost_row.add_child(materials_edit)
+	var give_row := HBoxContainer.new()
+	box.add_child(give_row)
+	give_row.add_child(_label("Gives:"))
+	var attachment_option := OptionButton.new()
+	attachment_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	attachment_option.add_item("(nothing)")
+	for attachment_name in attachment_names:
+		attachment_option.add_item(attachment_name)
+	var attachment_index := attachment_names.find(offer.attachment)
+	if offer.attachment != "" and attachment_index < 0:
+		attachment_option.add_item("%s (unknown)" % offer.attachment)
+		attachment_option.select(attachment_option.item_count - 1)
+	else:
+		attachment_option.select(attachment_index + 1 if attachment_index >= 0 else 0)
+	attachment_option.item_selected.connect(func(index: int):
+		if index == 0:
+			offer.attachment = ""
+		elif index <= attachment_names.size():
+			offer.attachment = attachment_names[index - 1]
+		_mark_dirty()
+	)
+	give_row.add_child(attachment_option)
+	var once_check := CheckBox.new()
+	once_check.text = "Only once"
+	once_check.button_pressed = offer.once
+	once_check.toggled.connect(func(on: bool):
+		offer.once = on
+		_mark_dirty()
+	)
+	give_row.add_child(once_check)
+	return panel
+
+
 # ---------------------------------------------------------------- refreshing
 
 func _refresh_all() -> void:
 	var has_campaign := _campaign != null
 	_body.visible = has_campaign
 	_welcome_label.visible = not has_campaign
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.SAVE), not has_campaign)
 	if not has_campaign:
 		return
 	_suppress = true
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
-	_xp_edit.text = ", ".join(_campaign.progression.xp_thresholds.map(func(v: int) -> String: return str(v)))
-	_slots_edit.text = ", ".join(_campaign.progression.slots_by_level.map(func(v: int) -> String: return str(v)))
-	_progression_note.text = ""
 	_acts_list.clear()
 	for act in _campaign.acts:
 		_acts_list.add_item(act.act_name)
@@ -487,9 +648,11 @@ func _refresh_act() -> void:
 	_act_intro_edit.editable = act != null
 	_act_name_edit.text = act.act_name if act != null else ""
 	_act_intro_edit.text = act.intro if act != null else ""
+	_start_xp_spin.editable = act != null
+	_start_xp_spin.value = act.start_experience if act != null else -1
 	_suppress = false
 	_map_label.text = "Map: %s" % (act.map_image if act != null and act.map_image != "" else "none")
-	_map_view.show_act(act, CampaignIO.map_texture(_folder, act.map_image) if act != null else null, _selected.id if _selected != null else "")
+	_map_view.show_act(act, CampaignIO.map_texture(_folder, act.map_image) if act != null else null, _selected_id())
 	_rebuild_chapter_panel()
 	_update_problems()
 
@@ -511,8 +674,11 @@ func _rebuild_chapter_panel() -> void:
 		_chapter_panel.remove_child(child)
 		child.queue_free()
 	var act := _current_act()
+	if act != null and _selected_place != null:
+		_build_place_panel(act, _selected_place)
+		return
 	if act == null or _selected == null:
-		_chapter_panel.add_child(_label("Select a chapter on the map, or add one."))
+		_chapter_panel.add_child(_label("Select a chapter or place on the map, or add one."))
 		return
 	var chapter := _selected
 	_map_view.selected_id = chapter.id
@@ -575,10 +741,22 @@ func _rebuild_chapter_panel() -> void:
 
 	var reward_row := HBoxContainer.new()
 	_chapter_panel.add_child(reward_row)
-	reward_row.add_child(_label("Win gives XP:"))
-	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
-	reward_row.add_child(_label("gold:"))
+	reward_row.add_child(_label("Win gives (+1 XP always) gold:"))
 	reward_row.add_child(_reward_spin(chapter.reward_gold, func(value: int): chapter.reward_gold = value))
+
+	var materials_row := HBoxContainer.new()
+	_chapter_panel.add_child(materials_row)
+	materials_row.add_child(_label("Materials won:"))
+	var materials_edit := LineEdit.new()
+	materials_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	materials_edit.placeholder_text = "e.g. iron:2, leather:1"
+	materials_edit.text = CampaignState.format_materials(chapter.reward_materials)
+	var commit_materials := func():
+		chapter.reward_materials = CampaignState.parse_materials(materials_edit.text)
+		_mark_dirty()
+	materials_edit.text_submitted.connect(func(_t: String): commit_materials.call())
+	materials_edit.focus_exited.connect(commit_materials)
+	materials_row.add_child(materials_edit)
 
 	_chapter_panel.add_child(_label("Story before the mission:"))
 	var before_edit := _text_edit(80)

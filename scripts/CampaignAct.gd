@@ -12,12 +12,24 @@ extends Resource
 @export var map_image: String = ""
 @export var start_chapter_id: String = ""
 @export var chapters: Array[CampaignChapter] = []
+## Points of interest on the map (see CampaignPlace).
+@export var places: Array[CampaignPlace] = []
+## The experience counter is set to this when the act begins ("levels the board again");
+## -1 = leave it as it is.
+@export var start_experience: int = -1
 
 
 func find_chapter(chapter_id: String) -> CampaignChapter:
 	for chapter in chapters:
 		if chapter.id == chapter_id:
 			return chapter
+	return null
+
+
+func find_place(place_id: String) -> CampaignPlace:
+	for place in places:
+		if place.id == place_id:
+			return place
 	return null
 
 
@@ -76,4 +88,17 @@ func problems(mission_files: Array[String]) -> Array[String]:
 			finale_reachable = true
 	if not finale_reachable:
 		found.append("has no finale that can be reached")
+	var attachment_names: Array[String] = []
+	for attachment in AttachmentCatalog.all():
+		attachment_names.append(attachment.attachment_name)
+	for place in places:
+		if place.unlocked_by_chapter != "" and find_chapter(place.unlocked_by_chapter) == null:
+			found.append("place '%s' is unlocked by a chapter that no longer exists" % place.title)
+		elif place.unlocked_by_chapter != "" and find_chapter(place.unlocked_by_chapter).is_finale:
+			found.append("place '%s' is unlocked by a finale - winning it ends the act, so it could never be visited" % place.title)
+		for offer in place.offers:
+			if offer.attachment == "":
+				found.append("'%s' (at '%s') gives nothing" % [offer.title, place.title])
+			elif not attachment_names.has(offer.attachment):
+				found.append("'%s' (at '%s') gives an unknown attachment '%s'" % [offer.title, place.title, offer.attachment])
 	return found

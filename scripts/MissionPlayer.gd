@@ -140,6 +140,11 @@ func _ready() -> void:
 		_set_ground_decor_visible(false)
 		hud.set_view_buttons_visible(false)
 		player_roster = await embark_dialog.ask_roster(mission)
+		if GameState.campaign_folder != "":
+			var campaign_state := CampaignIO.load_state(GameState.campaign_folder)
+			if campaign_state != null:
+				embark_dialog.restrict_to_owned = true
+				embark_dialog.owned_attachments = campaign_state.owned_attachments.duplicate()
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
 		_set_ground_decor_visible(true)
 		hud.set_view_buttons_visible(true)
@@ -1120,7 +1125,6 @@ func _handle_game_over(objective: MissionObjective) -> void:
 	await dialog.ask_ok("%s\n%s" % [outcome_text, objective.description], true, false, outcome_text.trim_suffix("!").trim_suffix("."))
 	_exit_mission({
 		"won": objective.outcome == MissionObjective.Outcome.WIN,
-		"roster": player_roster.duplicate(),
 		"chapter_id": GameState.campaign_chapter_id,
 	})
 

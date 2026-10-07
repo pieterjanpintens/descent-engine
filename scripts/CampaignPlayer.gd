@@ -4,14 +4,15 @@ extends Control
 ## Plays a campaign (standalone scene, main menu "Campaign"): pick a campaign (CampaignIO),
 ## see the current act's map with the chapters the party can play now, read a chapter's story,
 ## play its mission (the normal Player, which hands the outcome back through GameState when
-## the mission ends) and then see what it brought - XP and levels, gold, the story afterwards
-## and where the path leads next. Progress is the campaign save (CampaignState), written after
-## every change. Heroes opens CampaignHeroesDialog to equip abilities.
+## the mission ends) and then see what it brought - the experience counter, gold, the story
+## afterwards and where the path leads next. Progress is the campaign save (CampaignState),
+## written after every change. The XP counter is always shown in the top bar.
 ##
 ## Chapter statuses on the map: green = available (play it), grey ✓ = won, dark = locked. A lost
-## chapter without an "on lose" link is simply offered again. Not built yet: points of interest
-## where gold/materials are spent, owned attachments feeding the embark, the party level scaling
-## the missions' monsters.
+## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
+## chapter is won; selecting one lists its offers, which are bought with gold/materials and give the
+## party weapon attachments (the embark of a campaign mission offers only owned ones). Not built yet:
+## the XP counter scaling the missions' monsters.
 
 const MENU_SCENE := "res://ui/MainMenu.tscn"
 
@@ -28,7 +29,6 @@ var _body: Control
 var _welcome_label: Label
 var _map_view: CampaignMapView
 var _side: VBoxContainer
-var _heroes_dialog: CampaignHeroesDialog
 var _notice: AcceptDialog
 
 
@@ -48,7 +48,6 @@ func _ready() -> void:
 	_campaign_option.custom_minimum_size.x = 220
 	bar.add_child(_campaign_option)
 	bar.add_child(_button("Start / Continue", _on_start_pressed))
-	bar.add_child(_button("Heroes…", _on_heroes_pressed))
 	bar.add_child(_button("Back to menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -75,6 +74,10 @@ func _ready() -> void:
 		_selected_id = id
 		_rebuild_side()
 	)
+	_map_view.place_selected.connect(func(id: String):
+		_selected_id = id
+		_rebuild_side()
+	)
 	split.add_child(_map_view)
 	var scroll := ScrollContainer.new()
 	scroll.custom_minimum_size.x = 360
@@ -84,9 +87,6 @@ func _ready() -> void:
 	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_side)
 
-	_heroes_dialog = CampaignHeroesDialog.new()
-	_heroes_dialog.changed.connect(_save)
-	add_child(_heroes_dialog)
 	_notice = AcceptDialog.new()
 	_notice.min_size = Vector2i(480, 0)
 	add_child(_notice)
@@ -178,8 +178,12 @@ func _refresh_view() -> void:
 		_map_view.statuses = {}
 		for chapter in act.chapters:
 			_map_view.statuses[chapter.id] = _status_of(chapter.id)
+		_map_view.hidden_place_ids = []
+		for place in act.places:
+			if not _state.is_place_unlocked(place):
+				_map_view.hidden_place_ids.append(place.id)
 		_map_view.show_act(act, CampaignIO.map_texture(_folder, act.map_image), _selected_id)
-	_status_label.text = "Gold: %d" % _state.gold
+	_status_label.text = "XP: %d  |  Gold: %d%s" % [_state.experience, _state.gold, ("  |  " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]
 	_rebuild_side()
 
 
@@ -192,6 +196,10 @@ func _rebuild_side() -> void:
 	var act := _current_act()
 	if _campaign == null or act == null:
 		return
+	var place := act.find_place(_selected_id)
+	if place != null and _state.is_place_unlocked(place):
+		_build_place_panel(place)
+		return
 	var chapter := act.find_chapter(_selected_id)
 	if chapter == null:
 		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
@@ -202,8 +210,7 @@ func _rebuild_side() -> void:
 	_side.add_child(title)
 	var status_text: String = {"available": "Ready to play", "done": "Completed", "locked": "Locked - win the chapters before it first"}[status]
 	_side.add_child(_label(status_text))
-	if chapter.reward_xp > 0 or chapter.reward_gold > 0:
-		_side.add_child(_label("Reward: %d XP each, %d gold" % [chapter.reward_xp, chapter.reward_gold]))
+	_side.add_child(_label("Reward: +%d XP%s" % [CampaignState.XP_PER_WIN, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
 	if status != "locked" and chapter.story_before != "":
 		_side.add_child(_wrapped(chapter.story_before))
 	if status == "done" and chapter.story_after != "":
@@ -213,6 +220,51 @@ func _rebuild_side() -> void:
 		var play := _button("Play this chapter", func(): _play(chapter))
 		play.disabled = chapter.mission_file == ""
 		_side.add_child(play)
+
+
+## The shop of a place: its description, what the party has and each offer with a Buy button.
+func _build_place_panel(place: CampaignPlace) -> void:
+	var title := _label(place.title)
+	title.add_theme_font_size_override("font_size", 20)
+	_side.add_child(title)
+	if place.description != "":
+		_side.add_child(_wrapped(place.description))
+	_side.add_child(_label("You have %d gold%s." % [_state.gold, (" and " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]))
+	if place.offers.is_empty():
+		_side.add_child(_label("Nothing for sale here."))
+	for offer in place.offers:
+		_side.add_child(HSeparator.new())
+		_side.add_child(_label(offer.title))
+		if offer.description != "":
+			_side.add_child(_wrapped(offer.description))
+		var cost: Array[String] = []
+		if offer.cost_gold > 0:
+			cost.append("%d gold" % offer.cost_gold)
+		if not offer.cost_materials.is_empty():
+			cost.append(CampaignState.format_materials(offer.cost_materials))
+		_side.add_child(_label("Cost: %s" % (", ".join(cost) if not cost.is_empty() else "free")))
+		if offer.attachment != "":
+			_side.add_child(_label("Gives: %s" % _attachment_summary(offer.attachment)))
+		var bought := offer.once and _state.purchased_offers.has(offer.id)
+		var buy := _button("Bought" if bought else "Buy", func(): _buy(offer))
+		buy.disabled = not _state.can_buy(offer)
+		_side.add_child(buy)
+	if not _state.owned_attachments.is_empty():
+		_side.add_child(HSeparator.new())
+		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(_state.owned_attachments)))
+
+
+func _attachment_summary(attachment_name: String) -> String:
+	for attachment in AttachmentCatalog.all():
+		if attachment.attachment_name == attachment_name:
+			return attachment.summary()
+	return attachment_name
+
+
+func _buy(offer: CampaignOffer) -> void:
+	if _state.buy(offer):
+		_save()
+		_refresh_view()
 
 
 func _play(chapter: CampaignChapter) -> void:
@@ -231,20 +283,15 @@ func _play(chapter: CampaignChapter) -> void:
 # ---------------------------------------------------------------- results
 
 func _apply_result(result: Dictionary) -> void:
-	var roster: Array[int] = []
-	for slot in result.get("roster", []):
-		roster.append(int(slot))
 	var won: bool = result.get("won", false)
-	var summary := _state.apply_result(_campaign, str(result.get("chapter_id", "")), won, roster)
+	var summary := _state.apply_result(_campaign, str(result.get("chapter_id", "")), won)
 	_save()
 	_selected_id = ""
 	_refresh_view()
 	var lines: Array[String] = []
 	lines.append("Victory!" if won else "Defeat.")
 	if won:
-		lines.append("+%d XP for each hero that played, +%d gold." % [summary["xp"], summary["gold"]])
-		for slot in summary["levels"]:
-			lines.append("%s reached level %d!" % [HeroCatalog.slot_name(slot), summary["levels"][slot].back()])
+		lines.append("+%d XP (now %d), +%d gold%s." % [CampaignState.XP_PER_WIN, summary["xp"], summary["gold"], (", " + CampaignState.format_materials(summary["materials"])) if not summary["materials"].is_empty() else ""])
 		if summary["story_after"] != "":
 			lines.append("\n" + summary["story_after"])
 	elif summary["next"].is_empty():
@@ -259,11 +306,6 @@ func _apply_result(result: Dictionary) -> void:
 	if not summary["next"].is_empty():
 		lines.append("\nAvailable now: %s" % ", ".join(summary["next"]))
 	_say("\n".join(lines))
-
-
-func _on_heroes_pressed() -> void:
-	if _state != null:
-		_heroes_dialog.open_for(_state, _campaign.progression)
 
 
 # ---------------------------------------------------------------- helpers
