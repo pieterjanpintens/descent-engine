@@ -23,10 +23,23 @@ var _dirty: bool = false
 
 var _status_label: Label
 var _file_menu: PopupMenu
+var _edit_menu: PopupMenu
 var _open_menu: PopupMenu
 var _open_folders: Array[String] = []
 
 enum FileAction { NEW, SAVE, BACK }
+enum EditAction { UNDO, REDO }
+
+## Undo/redo works on whole-campaign snapshots (like the mission editor's OperationHistory):
+## `_baseline` is a copy of the campaign as of the last recorded edit, and every edit pushes the
+## previous baseline on the undo stack. Edits less than UNDO_MELD_MSEC apart (typing, dragging a
+## pin) share one undo step.
+const MAX_UNDO := 50
+const UNDO_MELD_MSEC := 1500
+var _baseline: Campaign
+var _undo_stack: Array[Campaign] = []
+var _redo_stack: Array[Campaign] = []
+var _last_edit_msec: int = 0
 var _body: Control
 var _welcome_label: Label
 var _campaign_name_edit: LineEdit
@@ -76,6 +89,13 @@ func _ready() -> void:
 	_file_menu.add_separator()
 	_file_menu.add_item("Back to Menu", FileAction.BACK)
 	_file_menu.id_pressed.connect(_on_file_action)
+	_edit_menu = PopupMenu.new()
+	_edit_menu.name = "Edit"
+	menu_bar.add_child(_edit_menu)
+	_edit_menu.add_item("Undo", EditAction.UNDO, (KEY_MASK_CTRL | KEY_Z) as Key)
+	_edit_menu.add_item("Redo", EditAction.REDO, (KEY_MASK_CTRL | KEY_MASK_SHIFT | KEY_Z) as Key)
+	_edit_menu.id_pressed.connect(_on_edit_action)
+	_update_edit_menu()
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -292,7 +312,12 @@ func _load_folder(folder: String) -> void:
 	_folder = folder
 	_act_index = 0 if not campaign.acts.is_empty() else -1
 	_selected = null
+	_selected_place = null
 	_dirty = false
+	_undo_stack.clear()
+	_redo_stack.clear()
+	_baseline = campaign.duplicate(true)
+	_update_edit_menu()
 	_refresh_open_list()
 	_refresh_all()
 	_status_label.text = "Opened %s" % folder
@@ -321,7 +346,55 @@ func _on_back_pressed() -> void:
 func _mark_dirty() -> void:
 	_dirty = true
 	_status_label.text = "Unsaved changes"
+	_record_edit()
 	_update_problems()
+
+
+func _record_edit() -> void:
+	if _campaign == null or _baseline == null:
+		return
+	var now := Time.get_ticks_msec()
+	if now - _last_edit_msec > UNDO_MELD_MSEC:
+		_undo_stack.append(_baseline)
+		if _undo_stack.size() > MAX_UNDO:
+			_undo_stack.pop_front()
+	_baseline = _campaign.duplicate(true)
+	_redo_stack.clear()
+	_last_edit_msec = now
+	_update_edit_menu()
+
+
+func _on_edit_action(id: int) -> void:
+	match id:
+		EditAction.UNDO:
+			_step_history(_undo_stack, _redo_stack)
+		EditAction.REDO:
+			_step_history(_redo_stack, _undo_stack)
+
+
+## Swaps the campaign for the newest snapshot of `from`; the current state goes onto `to`.
+func _step_history(from: Array[Campaign], to: Array[Campaign]) -> void:
+	if _campaign == null or from.is_empty():
+		return
+	var chapter_id := _selected.id if _selected != null else ""
+	var place_id := _selected_place.id if _selected_place != null else ""
+	to.append(_baseline)
+	_campaign = from.pop_back()
+	_baseline = _campaign.duplicate(true)
+	_last_edit_msec = 0
+	_act_index = clampi(_act_index, 0, _campaign.acts.size() - 1) if not _campaign.acts.is_empty() else -1
+	var act := _current_act()
+	_selected = act.find_chapter(chapter_id) if act != null and chapter_id != "" else null
+	_selected_place = act.find_place(place_id) if act != null and place_id != "" else null
+	_dirty = true
+	_status_label.text = "Unsaved changes"
+	_update_edit_menu()
+	_refresh_all()
+
+
+func _update_edit_menu() -> void:
+	_edit_menu.set_item_disabled(_edit_menu.get_item_index(EditAction.UNDO), _undo_stack.is_empty())
+	_edit_menu.set_item_disabled(_edit_menu.get_item_index(EditAction.REDO), _redo_stack.is_empty())
 
 
 # ---------------------------------------------------------------- acts
