@@ -22,6 +22,7 @@ var _selected_place: CampaignPlace
 var _dirty: bool = false
 
 var _status_label: Label
+var _tabs: TabContainer
 var _file_menu: PopupMenu
 var _edit_menu: PopupMenu
 var _open_menu: PopupMenu
@@ -105,16 +106,31 @@ func _ready() -> void:
 	_welcome_label.text = "Create a new campaign or open an existing one."
 	root.add_child(_welcome_label)
 
-	# --- body: campaign/acts | map | chapter
+	# --- body: the map (as big as possible) | tabs on the right: Campaign / Selection
 	var split := HSplitContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(split)
 	_body = split
 
+	_map_view = CampaignMapView.new()
+	_map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_map_view.custom_minimum_size = Vector2(400, 300)
+	_map_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_map_view.size_flags_stretch_ratio = 4.0
+	_map_view.chapter_selected.connect(_on_map_chapter_selected)
+	_map_view.chapter_moved.connect(func(_id: String): _mark_dirty())
+	_map_view.place_selected.connect(_on_map_place_selected)
+	_map_view.place_moved.connect(func(_id: String): _mark_dirty())
+	split.add_child(_map_view)
+
+	_tabs = TabContainer.new()
+	_tabs.custom_minimum_size.x = 360
+	split.add_child(_tabs)
+
 	var left_scroll := ScrollContainer.new()
-	left_scroll.custom_minimum_size.x = 300
+	left_scroll.name = "Campaign"
 	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	split.add_child(left_scroll)
+	_tabs.add_child(left_scroll)
 	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left_scroll.add_child(left)
@@ -208,19 +224,10 @@ func _ready() -> void:
 	_problems_label.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4))
 	left.add_child(_problems_label)
 
-	_map_view = CampaignMapView.new()
-	_map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_map_view.custom_minimum_size = Vector2(300, 300)
-	_map_view.chapter_selected.connect(_on_map_chapter_selected)
-	_map_view.chapter_moved.connect(func(_id: String): _mark_dirty())
-	_map_view.place_selected.connect(_on_map_place_selected)
-	_map_view.place_moved.connect(func(_id: String): _mark_dirty())
-	split.add_child(_map_view)
-
 	var right_scroll := ScrollContainer.new()
-	right_scroll.custom_minimum_size.x = 340
+	right_scroll.name = "Selection"
 	right_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	split.add_child(right_scroll)
+	_tabs.add_child(right_scroll)
 	_chapter_panel = VBoxContainer.new()
 	_chapter_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_scroll.add_child(_chapter_panel)
@@ -477,6 +484,7 @@ func _on_add_chapter_pressed() -> void:
 		act.start_chapter_id = chapter.id
 	_selected = chapter
 	_selected_place = null
+	_tabs.current_tab = 1
 	_mark_dirty()
 	_refresh_act()
 
@@ -487,6 +495,7 @@ func _on_map_chapter_selected(chapter_id: String) -> void:
 		return
 	_selected = act.find_chapter(chapter_id)
 	_selected_place = null
+	_tabs.current_tab = 1
 	_rebuild_chapter_panel()
 
 
@@ -540,6 +549,7 @@ func _on_add_place_pressed() -> void:
 	act.places.append(place)
 	_selected_place = place
 	_selected = null
+	_tabs.current_tab = 1
 	_mark_dirty()
 	_refresh_act()
 
@@ -550,6 +560,7 @@ func _on_map_place_selected(place_id: String) -> void:
 		return
 	_selected_place = act.find_place(place_id)
 	_selected = null
+	_tabs.current_tab = 1
 	_rebuild_chapter_panel()
 
 
