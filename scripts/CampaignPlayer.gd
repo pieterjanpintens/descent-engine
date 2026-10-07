@@ -65,10 +65,20 @@ func _ready() -> void:
 	_notice.min_size = Vector2i(480, 0)
 	add_child(_notice)
 	_name_dialog = ConfirmationDialog.new()
-	_name_dialog.title = "New game"
+	_name_dialog.min_size = Vector2i(440, 0)
+	_name_dialog.ok_button_text = "Start"
+	var name_box := VBoxContainer.new()
+	name_box.add_theme_constant_override("separation", 8)
+	_name_dialog.add_child(name_box)
+	name_box.add_child(_wrapped("Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load Campaign in the main menu). Use a different name for every group or playthrough."))
 	_name_edit = LineEdit.new()
-	_name_edit.placeholder_text = "Name of the save game"
-	_name_dialog.add_child(_name_edit)
+	_name_edit.placeholder_text = "e.g. Friday night group"
+	_name_edit.text_changed.connect(func(text: String): _name_dialog.get_ok_button().disabled = text.strip_edges() == "")
+	_name_edit.text_submitted.connect(func(_text: String):
+		if not _name_dialog.get_ok_button().disabled:
+			_name_dialog.get_ok_button().emit_signal("pressed")
+	)
+	name_box.add_child(_name_edit)
 	_name_dialog.confirmed.connect(_on_new_name_confirmed)
 	add_child(_name_dialog)
 	_confirm = ConfirmationDialog.new()
@@ -257,8 +267,12 @@ func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignS
 
 func _on_new_game_pressed(folder: String) -> void:
 	_folder = folder
-	_name_edit.text = "Game %d" % (CampaignIO.save_keys(folder).size() + 1)
+	var campaign := CampaignIO.load_campaign(folder)
+	_name_dialog.title = "Start a new game of %s" % (campaign.campaign_name if campaign != null else folder)
+	_name_edit.text = ""
+	_name_dialog.get_ok_button().disabled = true
 	_name_dialog.popup_centered()
+	_name_edit.grab_focus()
 
 
 func _on_new_name_confirmed() -> void:
