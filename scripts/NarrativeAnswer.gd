@@ -7,3 +7,7 @@ extends Resource
 @export var text: String = "New answer"
 @export_multiline var reply: String = ""
 @export var effects: Array[Effect] = []
+## The answer is only offered while all of these hold (empty = always).
+@export var conditions: Array[Condition] = []
+## Choosing it ends the story: every step after it is skipped.
+@export var ends_narrative: bool = false

@@ -751,6 +751,25 @@ func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mi
 
 ## A list of effects (set a variable / do math on it) the campaign applies when a chapter or side quest is
 ## won or lost, in the panel on the right.
+## Condition rows over the campaign's variables, with an "Add condition" button, appended to `parent` (the chapter panel by default).
+func _build_conditions_section(heading: String, conditions: Array[Condition], parent: Container = null) -> void:
+	var into: Container = parent if parent != null else _chapter_panel
+	into.add_child(HSeparator.new())
+	into.add_child(_label(heading))
+	_condition_editor.campaign_variables = _campaign.all_variables()
+	for condition in conditions:
+		into.add_child(_condition_editor.build_condition_row(conditions, condition, _rebuild_chapter_panel))
+	into.add_child(_button("Add condition", func():
+		var created := Condition.new()
+		created.variable_name = Campaign.BUILTIN_VARIABLES[0]
+		created.operator = Condition.Operator.GREATER_EQUAL
+		created.value = 0
+		conditions.append(created)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+
+
 func _build_effects_section(heading: String, effects: Array[Effect], parent: Container = null) -> void:
 	var into: Container = parent if parent != null else _chapter_panel
 	into.add_child(HSeparator.new())
@@ -869,20 +888,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 			)
 			_chapter_panel.add_child(check)
 
-	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label("Only offered when:"))
-	_condition_editor.campaign_variables = _campaign.all_variables()
-	for condition in quest.conditions:
-		_chapter_panel.add_child(_condition_editor.build_condition_row(quest.conditions, condition, _rebuild_chapter_panel))
-	_chapter_panel.add_child(_button("Add condition", func():
-		var created := Condition.new()
-		created.variable_name = Campaign.BUILTIN_VARIABLES[0]
-		created.operator = Condition.Operator.GREATER_EQUAL
-		created.value = 0
-		quest.conditions.append(created)
-		_mark_dirty()
-		_rebuild_chapter_panel()
-	))
+	_build_conditions_section("Only offered when:", quest.conditions)
 
 	_build_mapping_section("Give to the mission when it starts:", quest.mission_inputs, quest.mission_file, false)
 	_build_mapping_section("Take over from the mission when it ends:", quest.mission_outputs, quest.mission_file, true)
@@ -1410,6 +1416,7 @@ func _build_step_block(chapter: CampaignChapter, index: int) -> Control:
 		_mark_dirty()
 	)
 	box.add_child(question_edit)
+	_build_conditions_section("Only shown when:", step.conditions, box)
 	for answer in step.answers:
 		box.add_child(_build_answer_block(step, answer))
 	box.add_child(_button("Add answer", func():
@@ -1448,6 +1455,15 @@ func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Contro
 		_mark_dirty()
 	)
 	box.add_child(reply_edit)
+	var end_check := CheckBox.new()
+	end_check.text = "Ends the story (skips the steps after it)"
+	end_check.button_pressed = answer.ends_narrative
+	end_check.toggled.connect(func(on: bool):
+		answer.ends_narrative = on
+		_mark_dirty()
+	)
+	box.add_child(end_check)
+	_build_conditions_section("Only offered when:", answer.conditions, box)
 	_build_effects_section("Choosing it sets:", answer.effects, box)
 	return panel
 

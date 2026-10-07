@@ -563,35 +563,44 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
 
 
-## A narrative chapter: every step is a screen of story; a step with answers asks its question (no cancel).
-## The effects of the chosen answers are applied together once the end is reached, so quitting halfway changes
-## nothing, and the chapter then counts as won. What was read and chosen goes in the campaign log.
+## A narrative chapter: every step is a screen of story; a step with answers asks its question (no cancel). Steps
+## and answers with unmet conditions are skipped, an answer can end the story early. The effects of the chosen answers
+## are applied to the save together once the end is reached, so quitting halfway changes nothing, and the chapter then
+## counts as won. What was read and chosen goes in the campaign log.
 func _play_narrative(chapter: CampaignChapter) -> void:
 	if _narrative_dialog == null:
 		_narrative_dialog = PlayerDialog.new()
 		add_child(_narrative_dialog)
 	var pages: Array[String] = []
 	var chosen: Array[NarrativeAnswer] = []
+	# Steps and answers can depend on the campaign variables - including what was answered earlier in this very
+	# story - so the chosen effects are applied to a scratch copy while reading and to the real save at the end.
+	var scratch: CampaignState = _state.duplicate(true)
 	for step in chapter.steps:
-		if step.answers.is_empty():
+		if not scratch.conditions_hold(_campaign, step.conditions):
+			continue
+		var offered: Array[NarrativeAnswer] = []
+		for answer in step.answers:
+			if scratch.conditions_hold(_campaign, answer.conditions):
+				offered.append(answer)
+		if offered.is_empty():
 			await _narrative_dialog.ask_narrative([step.text])
 			pages.append(step.text)
 			continue
 		var labels: Array[String] = []
-		for answer in step.answers:
+		for answer in offered:
 			labels.append(answer.text)
-		var prompt := step.text if step.question == "" else "%s
-
-%s" % [step.text, step.question]
+		var prompt := step.text if step.question == "" else "%s\n\n%s" % [step.text, step.question]
 		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false)
-		var answer := step.answers[index]
+		var answer := offered[index]
 		chosen.append(answer)
-		pages.append("%s
-
-You chose: %s" % [prompt, answer.text])
+		await scratch.apply_effects(_campaign, answer.effects)
+		pages.append("%s\n\nYou chose: %s" % [prompt, answer.text])
 		if answer.reply != "":
 			await _narrative_dialog.ask_ok(answer.reply)
 			pages.append(answer.reply)
+		if answer.ends_narrative:
+			break
 	_state.add_log(chapter.title, pages)
 	for answer in chosen:
 		await _state.apply_effects(_campaign, answer.effects)

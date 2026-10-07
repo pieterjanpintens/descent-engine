@@ -6480,8 +6480,10 @@ mission player's own `PlayerDialog` is reused (added as a child; voice answers c
 (`apply_result`, so XP/gold/materials, win effects and links work as for a mission; lose effects/mission links don't apply). Editor: a "Type" picker (Mission / Narrative) in the
 chapter panel; narrative = a steps editor (text, question, answers with reply and "Choosing it sets:" effects, reorder/delete) instead of the mission picker and mission variable
 mappings; `CampaignAct.problems()` flags a narrative without steps or an answer without text. **On the map a narrative chapter is a speech bubble instead of a round pin**
-(editor and player) so players know it is a short Q&A. Not built: conditions on steps/answers (e.g. only offer an answer when a variable holds), showing variables in the text
-(`$1` like the mission message effect), narrative side quests. Headless-checked (editor panel builds, a scripted play-through sets the variable, completes the chapter and logs it).
+(editor and player) so players know it is a short Q&A. **Conditions and early end (2026-10-07)**: `NarrativeStep.conditions` (step shown only while they hold) and `NarrativeAnswer.conditions` (answer offered only while they hold; a step
+whose answers are all unavailable is shown as a plain page), both over the campaign variables INCLUDING what was answered earlier in the same story (the player applies the chosen
+effects to a scratch copy of the save while reading, `CampaignState.duplicate(true)`, and to the real save at the end); `NarrativeAnswer.ends_narrative` ("Ends the story") skips every
+step after it. Editor: shared `_build_conditions_section()` (also used by side quests). Not built: showing variables in the text (`$1` like the mission message effect), narrative side quests. Headless-checked (editor panel builds, a scripted play-through sets the variable, completes the chapter and logs it).
 
 **Fan-out / fan-in (2026-10-07)**: links alone make the targets playable as soon as ONE incoming link is followed, so a join (1 -> 2 and 3 in any order -> 4) needs `CampaignChapter.wait_for_all` ("Wait for all chapters that lead here" in the editor): a link into it is only followed once every chapter of the act linking to it (`CampaignAct.predecessors()`) is won (`CampaignState._predecessors_done()`). Opt-in (the default is "the first link followed opens it"); `CampaignAct.problems()` flags a join whose predecessor is unreachable. Headless-checked with the 4-chapter case.
 
