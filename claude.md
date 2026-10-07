@@ -6542,8 +6542,13 @@ applied). A chapter or side quest has `mission_outputs` (`Array[MissionVariableM
 copies each value as a plain Set Variable effect (so type checks and the counters behave like any effect) right after the rewards and BEFORE the win/lose effects, so
 everything after can use the campaign variable (math, side quest conditions, other chapters' effects). Editor: a "Take over from the mission:" section in the
 Selection tab (before the effects) - the mission variable dropdown is filled by reading the mission file in the campaign folder (`CampaignIO.mission_variables()`),
-the campaign variable dropdown only offers writable variables of the SAME type; `CampaignIO.mission_output_problems()` feeds the Problems list (variable no longer
-declared by the mission / campaign variable gone / different types). Not built: the reverse direction (campaign variables preset mission variables at its start).
+the campaign variable dropdown only offers writable variables of the SAME type; `CampaignIO.mission_link_problems()` feeds the Problems list (variable no longer
+declared by the mission / campaign variable gone / different types).
+**The other direction (2026-10-07)**: `mission_inputs` (same `MissionVariableMap`, read the other way) - "give to the mission when it starts": `CampaignPlayer._play_mission()`
+reads the current campaign values (`CampaignState.variable_values()`, incl. experience / gold / act_number) into `GameState.campaign_mission_inputs` (mission variable name ->
+value) and `MissionPlayer` presets them with `MissionRuntime.preset_variable()` (same type check as an effect, unknown names / mismatches skipped with a warning) on a FRESH
+mission only - a resumed mission save keeps its own variables. Editor: the same section builder `_build_mapping_section()` for both ("Give to the mission when it starts:" =
+any campaign variable -> a mission variable of the same type; "Take over from the mission when it ends:"), `CampaignIO.mission_link_problems()` checks both lists.
 
 **Points of interest (2026-10-07)** - places on an act's map where the party spends what it earns. `CampaignPlace` (id "place_N", `title`,
 `description`, `map_position` like a chapter's, `unlocked_by_chapter` = the chapter that must be won before it shows ("" = from the start of the act),

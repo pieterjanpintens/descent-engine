@@ -48,6 +48,11 @@ func _runtime(campaign: Campaign) -> MissionRuntime:
 	return runtime
 
 
+## The current value of every campaign variable (the built-in counters and the declared ones), name -> value.
+func variable_values(campaign: Campaign) -> Dictionary:
+	return _runtime(campaign).get_variables_state()
+
+
 func conditions_hold(campaign: Campaign, conditions: Array[Condition]) -> bool:
 	return conditions.is_empty() or _runtime(campaign).evaluate_conditions(conditions)
 

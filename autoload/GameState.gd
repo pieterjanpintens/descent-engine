@@ -19,6 +19,8 @@ const CAMPAIGN_SCENE := "res://ui/CampaignPlayer.tscn"
 var campaign_folder: String = ""
 ## The key (file name) of the campaign save game being played, see CampaignIO.save_key().
 var campaign_save: String = ""
+## Mission variable name -> value handed over by the campaign when the mission starts (MissionPlayer presets them).
+var campaign_mission_inputs: Dictionary = {}
 ## Which page the campaign screen opens on when no save game is given: "new" (pick a campaign book) or "load".
 var campaign_screen: String = "new"
 var campaign_chapter_id: String = ""
@@ -28,5 +30,6 @@ var campaign_result: Dictionary = {}
 func clear_campaign() -> void:
 	campaign_folder = ""
 	campaign_save = ""
+	campaign_mission_inputs = {}
 	campaign_chapter_id = ""
 	campaign_result = {}

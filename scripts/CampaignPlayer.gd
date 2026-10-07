@@ -483,7 +483,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	_side.add_child(_label("Reward: +%d XP%s" % [quest.reward_xp, (", %d gold" % quest.reward_gold) if quest.reward_gold > 0 else ""]))
 	if quest.story_before != "":
 		_side.add_child(_wrapped(quest.story_before))
-	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id))
+	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
 	play.disabled = quest.mission_file == ""
 	_side.add_child(play)
 
@@ -534,11 +534,12 @@ func _buy(offer: CampaignOffer) -> void:
 
 
 func _play(chapter: CampaignChapter) -> void:
-	_play_mission(chapter.mission_file, chapter.id)
+	_play_mission(chapter.mission_file, chapter.id, chapter.mission_inputs)
 
 
-## Starts the mission `mission_file` of the chapter or side quest `id`.
-func _play_mission(mission_file: String, id: String) -> void:
+## Starts the mission `mission_file` of the chapter or side quest `id`; `inputs` are the campaign variables
+## handed to the mission's own variables.
+func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariableMap]) -> void:
 	var path := "%s/%s" % [CampaignIO.folder_path(_folder), mission_file]
 	if mission_file == "" or not FileAccess.file_exists(path):
 		_say("The mission is missing from the campaign folder.")
@@ -548,6 +549,11 @@ func _play_mission(mission_file: String, id: String) -> void:
 	GameState.campaign_folder = _folder
 	GameState.campaign_save = CampaignIO.save_key(_state.save_name)
 	GameState.campaign_chapter_id = id
+	var values := _state.variable_values(_campaign)
+	GameState.campaign_mission_inputs = {}
+	for input in inputs:
+		if values.has(input.campaign_variable):
+			GameState.campaign_mission_inputs[input.mission_variable] = values[input.campaign_variable]
 	GameState.campaign_result = {}
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
 

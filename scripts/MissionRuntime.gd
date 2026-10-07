@@ -108,6 +108,20 @@ func set_variable(name: String, value: Variant) -> void:
 ## Every variable's live value (custom + builtins), for SaveGame - see that
 ## class's own doc for why the mission's own progress doesn't need a
 ## separate mechanism the way this does.
+## Presets a declared custom variable from outside before play starts (the campaign handing a value over,
+## see MissionVariableMap) - the same type check as an effect; unknown names and mismatches are skipped.
+func preset_variable(variable_name: String, value: Variant) -> void:
+	var declared: int = _declared_type(variable_name)
+	if declared == -1 or BUILTIN_TYPES.has(variable_name):
+		push_warning("Can't preset '%s': not a declared custom variable" % variable_name)
+		return
+	var coerced: Variant = _coerce(value, declared as MissionVariable.Type)
+	if typeof(coerced) == TYPE_NIL:
+		push_warning("Can't preset '%s': the value doesn't match its type" % variable_name)
+		return
+	_variables[variable_name] = coerced
+
+
 func get_variables_state() -> Dictionary:
 	return _variables.duplicate()
 

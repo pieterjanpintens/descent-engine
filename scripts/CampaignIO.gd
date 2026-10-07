@@ -124,9 +124,10 @@ static func mission_variables(folder: String, mission_file: String) -> Array[Mis
 	return mission.custom_variables if mission != null else []
 
 
-## Problems with the "take over from the mission" rows of every chapter and side quest of `campaign`:
-## a mission variable the mission no longer declares, a campaign variable that is gone or has another type.
-static func mission_output_problems(campaign: Campaign, folder: String) -> Array[String]:
+## Problems with the mission <-> campaign variable rows (mission_outputs and mission_inputs) of every chapter
+## and side quest of `campaign`: a mission variable the mission no longer declares, a campaign variable that
+## is gone (or read-only where it is written), or the two having another type.
+static func mission_link_problems(campaign: Campaign, folder: String) -> Array[String]:
 	var found: Array[String] = []
 	var targets: Array = []
 	for act in campaign.acts:
@@ -134,26 +135,34 @@ static func mission_output_problems(campaign: Campaign, folder: String) -> Array
 			targets.append(chapter)
 	targets.append_array(campaign.side_quests)
 	var writable := campaign.writable_variables()
+	var readable := campaign.all_variables()
 	for target in targets:
-		if target.mission_outputs.is_empty():
+		if target.mission_outputs.is_empty() and target.mission_inputs.is_empty():
 			continue
 		var declared := mission_variables(folder, target.mission_file)
 		for output: MissionVariableMap in target.mission_outputs:
-			var source: MissionVariable
-			for variable in declared:
-				if variable.name == output.mission_variable:
-					source = variable
-			var destination: MissionVariable
-			for variable in writable:
-				if variable.name == output.campaign_variable:
-					destination = variable
-			if source == null:
-				found.append("'%s': mission variable '%s' is not declared in its mission" % [target.title, output.mission_variable])
-			elif destination == null:
-				found.append("'%s': campaign variable '%s' does not exist" % [target.title, output.campaign_variable])
-			elif source.type != destination.type:
-				found.append("'%s': '%s' and '%s' have different types" % [target.title, output.mission_variable, output.campaign_variable])
+			found.append_array(_link_problem(target.title, "take over", output, declared, writable))
+		for input: MissionVariableMap in target.mission_inputs:
+			found.append_array(_link_problem(target.title, "give", input, declared, readable))
 	return found
+
+
+static func _link_problem(title: String, verb: String, link: MissionVariableMap, declared: Array[MissionVariable], campaign_side: Array[MissionVariable]) -> Array[String]:
+	var source: MissionVariable
+	for variable in declared:
+		if variable.name == link.mission_variable:
+			source = variable
+	var destination: MissionVariable
+	for variable in campaign_side:
+		if variable.name == link.campaign_variable:
+			destination = variable
+	if source == null:
+		return ["'%s' (%s): mission variable '%s' is not declared in its mission" % [title, verb, link.mission_variable]]
+	if destination == null:
+		return ["'%s' (%s): campaign variable '%s' does not exist" % [title, verb, link.campaign_variable]]
+	if source.type != destination.type:
+		return ["'%s' (%s): '%s' and '%s' have different types" % [title, verb, link.mission_variable, link.campaign_variable]]
+	return []
 
 
 ## Copies a mission file into the campaign folder (so the campaign stays self-contained);

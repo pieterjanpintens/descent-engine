@@ -656,57 +656,61 @@ func _on_map_side_quest_selected(quest_id: String) -> void:
 	_rebuild_chapter_panel()
 
 
-## "Take over from the mission": rows copying a variable of the mission (listed by reading the mission file, so
-## no typing) into a campaign variable of the same type, when the mission ends.
-func _build_outputs_section(outputs: Array[MissionVariableMap], mission_file: String) -> void:
+## Rows linking a variable of the mission (listed by reading the mission file, so no typing) with a campaign
+## variable of the same type. `from_mission` true = "take over from the mission" (mission_outputs: mission
+## variable -> a writable campaign variable, copied when the mission ends); false = "give to the mission"
+## (mission_inputs: any campaign variable -> a mission variable, preset when the mission starts).
+func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mission_file: String, from_mission: bool) -> void:
 	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label("Take over from the mission:"))
+	_chapter_panel.add_child(_label(heading))
 	var declared := CampaignIO.mission_variables(_folder, mission_file)
-	var writable := _campaign.writable_variables()
-	for output in outputs:
+	var campaign_side := _campaign.writable_variables() if from_mission else _campaign.all_variables()
+	var left_list := declared if from_mission else campaign_side
+	var right_list := campaign_side if from_mission else declared
+	var left_property := "mission_variable" if from_mission else "campaign_variable"
+	var right_property := "campaign_variable" if from_mission else "mission_variable"
+	for link in maps:
 		var row := HBoxContainer.new()
-		var source_option := OptionButton.new()
-		for variable in declared:
-			source_option.add_item(variable.name)
-		var source_index := -1
-		var source_type := -1
-		for i in declared.size():
-			if declared[i].name == output.mission_variable:
-				source_index = i
-				source_type = declared[i].type
-		source_option.select(source_index)
-		source_option.item_selected.connect(func(index: int):
-			output.mission_variable = declared[index].name
+		var left_option := OptionButton.new()
+		var left_index := -1
+		var left_type := -1
+		for i in left_list.size():
+			left_option.add_item(left_list[i].name)
+			if left_list[i].name == link.get(left_property):
+				left_index = i
+				left_type = left_list[i].type
+		left_option.select(left_index)
+		left_option.item_selected.connect(func(index: int):
+			link.set(left_property, left_list[index].name)
 			_mark_dirty()
 			_rebuild_chapter_panel()
 		)
-		row.add_child(source_option)
+		row.add_child(left_option)
 		row.add_child(_label("→"))
-		var target_option := OptionButton.new()
+		var right_option := OptionButton.new()
 		var candidates: Array[MissionVariable] = []
-		for variable in writable:
-			if source_type == -1 or variable.type == source_type:
+		for variable in right_list:
+			if left_type == -1 or variable.type == left_type:
 				candidates.append(variable)
-				target_option.add_item(variable.name)
-		var target_index := -1
+				right_option.add_item(variable.name)
+		var right_index := -1
 		for i in candidates.size():
-			if candidates[i].name == output.campaign_variable:
-				target_index = i
-		target_option.select(target_index)
-		target_option.item_selected.connect(func(index: int):
-			output.campaign_variable = candidates[index].name
+			if candidates[i].name == link.get(right_property):
+				right_index = i
+		right_option.select(right_index)
+		right_option.item_selected.connect(func(index: int):
+			link.set(right_property, candidates[index].name)
 			_mark_dirty()
 		)
-		row.add_child(target_option)
+		row.add_child(right_option)
 		row.add_child(_button("×", func():
-			outputs.erase(output)
+			maps.erase(link)
 			_mark_dirty()
 			_rebuild_chapter_panel()
 		))
 		_chapter_panel.add_child(row)
 	var add := _button("Add", func():
-		var created := MissionVariableMap.new()
-		outputs.append(created)
+		maps.append(MissionVariableMap.new())
 		_mark_dirty()
 		_rebuild_chapter_panel()
 	)
@@ -849,7 +853,8 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 		_rebuild_chapter_panel()
 	))
 
-	_build_outputs_section(quest.mission_outputs, quest.mission_file)
+	_build_mapping_section("Give to the mission when it starts:", quest.mission_inputs, quest.mission_file, false)
+	_build_mapping_section("Take over from the mission when it ends:", quest.mission_outputs, quest.mission_file, true)
 	_build_effects_section("When won, set:", quest.win_effects)
 	_build_effects_section("When lost, set:", quest.lose_effects)
 	_chapter_panel.add_child(HSeparator.new())
@@ -1084,7 +1089,7 @@ func _update_problems() -> void:
 			lines.append("%s: %s" % [act.act_name, problem])
 	for problem in _campaign.side_quest_problems(files):
 		lines.append(problem)
-	for problem in CampaignIO.mission_output_problems(_campaign, _folder):
+	for problem in CampaignIO.mission_link_problems(_campaign, _folder):
 		lines.append(problem)
 	_problems_label.text = "\n".join(lines) if not lines.is_empty() else "none"
 	_map_view.queue_redraw()
@@ -1222,7 +1227,8 @@ func _rebuild_chapter_panel() -> void:
 	add_link.disabled = others.is_empty()
 	_chapter_panel.add_child(add_link)
 
-	_build_outputs_section(chapter.mission_outputs, chapter.mission_file)
+	_build_mapping_section("Give to the mission when it starts:", chapter.mission_inputs, chapter.mission_file, false)
+	_build_mapping_section("Take over from the mission when it ends:", chapter.mission_outputs, chapter.mission_file, true)
 	_build_effects_section("When won, set:", chapter.win_effects)
 	_build_effects_section("When lost, set:", chapter.lose_effects)
 	_chapter_panel.add_child(HSeparator.new())

@@ -157,6 +157,9 @@ func _ready() -> void:
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
+	if resume_save == null:
+		for variable_name in GameState.campaign_mission_inputs:
+			_runtime.preset_variable(variable_name, GameState.campaign_mission_inputs[variable_name])
 	if resume_save != null:
 		# Everything the mission resource itself doesn't already carry via its
 		# own in-place mutation (see SaveGame.gd's own doc) - variables, the

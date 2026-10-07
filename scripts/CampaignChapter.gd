@@ -23,5 +23,7 @@ extends Resource
 ## Set when the chapter is won / lost (Set Variable and Math effects over the campaign's variables).
 ## Mission variables copied into campaign variables when the mission ends, before the effects below.
 @export var mission_outputs: Array[MissionVariableMap] = []
+## Campaign variables handed to the mission when it starts.
+@export var mission_inputs: Array[MissionVariableMap] = []
 @export var win_effects: Array[Effect] = []
 @export var lose_effects: Array[Effect] = []
