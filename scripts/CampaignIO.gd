@@ -7,6 +7,7 @@ extends RefCounted
 
 const ROOT := "user://campaigns"
 const FILE_NAME := "campaign.tres"
+const SAVES_ROOT := "user://campaign_saves"
 
 
 ## A folder-safe key for a campaign name ("My Campaign!" -> "my_campaign").
@@ -49,6 +50,23 @@ static func load_campaign(folder: String) -> Campaign:
 		return null
 	var loaded: Resource = ResourceLoader.load(path, "Campaign", ResourceLoader.CACHE_MODE_IGNORE)
 	return loaded as Campaign
+
+
+## The campaign save (progress) of campaign `folder`: user://campaign_saves/<folder>.tres.
+static func save_state(state: CampaignState) -> bool:
+	DirAccess.make_dir_recursive_absolute(SAVES_ROOT)
+	var err := ResourceSaver.save(state, "%s/%s.tres" % [SAVES_ROOT, state.campaign_folder])
+	if err != OK:
+		push_error("Failed to save campaign progress %s: %s" % [state.campaign_folder, error_string(err)])
+	return err == OK
+
+
+## The saved progress of campaign `folder`, or null if it was never saved.
+static func load_state(folder: String) -> CampaignState:
+	var path := "%s/%s.tres" % [SAVES_ROOT, folder]
+	if not FileAccess.file_exists(path):
+		return null
+	return ResourceLoader.load(path, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
 
 
 ## File names of the missions inside the campaign folder (every .tres except the campaign).

@@ -27,6 +27,9 @@ var _body: Control
 var _welcome_label: Label
 var _campaign_name_edit: LineEdit
 var _campaign_intro_edit: TextEdit
+var _xp_edit: LineEdit
+var _slots_edit: LineEdit
+var _progression_note: Label
 var _acts_list: ItemList
 var _act_name_edit: LineEdit
 var _act_intro_edit: TextEdit
@@ -103,6 +106,21 @@ func _ready() -> void:
 		_mark_dirty()
 	)
 	left.add_child(_campaign_intro_edit)
+
+	left.add_child(_label("Hero levels - XP needed for each level (comma separated, starts at 0):"))
+	_xp_edit = LineEdit.new()
+	_xp_edit.text_submitted.connect(func(_text: String): _commit_progression())
+	_xp_edit.focus_exited.connect(_commit_progression)
+	left.add_child(_xp_edit)
+	left.add_child(_label("Ability slots at each level:"))
+	_slots_edit = LineEdit.new()
+	_slots_edit.text_submitted.connect(func(_text: String): _commit_progression())
+	_slots_edit.focus_exited.connect(_commit_progression)
+	left.add_child(_slots_edit)
+	_progression_note = _label("")
+	_progression_note.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_progression_note.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4))
+	left.add_child(_progression_note)
 
 	left.add_child(HSeparator.new())
 	left.add_child(_label("Acts:"))
@@ -280,6 +298,46 @@ func _mark_dirty() -> void:
 	_update_problems()
 
 
+## Applies the two level fields to the campaign's HeroProgression - only if they are valid
+## (same count, XP ascending from 0, slots >= 1); otherwise the note says why and nothing changes.
+func _commit_progression() -> void:
+	if _suppress or _campaign == null:
+		return
+	var xp := _parse_ints(_xp_edit.text)
+	var slots := _parse_ints(_slots_edit.text)
+	var problem := ""
+	if xp.is_empty() or slots.is_empty():
+		problem = "Both lists need at least one number."
+	elif xp.size() != slots.size():
+		problem = "The two lists need the same number of entries (one per level)."
+	elif xp[0] != 0:
+		problem = "Level 1 must need 0 XP."
+	else:
+		for i in range(1, xp.size()):
+			if xp[i] <= xp[i - 1]:
+				problem = "XP must go up with every level."
+		for slot_count in slots:
+			if slot_count < 1:
+				problem = "Every level needs at least 1 ability slot."
+	_progression_note.text = problem
+	if problem != "":
+		return
+	if xp != _campaign.progression.xp_thresholds or slots != _campaign.progression.slots_by_level:
+		_campaign.progression.xp_thresholds = xp
+		_campaign.progression.slots_by_level = slots
+		_mark_dirty()
+
+
+## "0, 10 , 25" -> [0, 10, 25]; entries that are not whole numbers are skipped.
+func _parse_ints(text: String) -> Array[int]:
+	var numbers: Array[int] = []
+	for part in text.split(","):
+		var trimmed := part.strip_edges()
+		if trimmed.is_valid_int():
+			numbers.append(int(trimmed))
+	return numbers
+
+
 # ---------------------------------------------------------------- acts
 
 func _current_act() -> CampaignAct:
@@ -410,6 +468,9 @@ func _refresh_all() -> void:
 	_suppress = true
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
+	_xp_edit.text = ", ".join(_campaign.progression.xp_thresholds.map(func(v: int) -> String: return str(v)))
+	_slots_edit.text = ", ".join(_campaign.progression.slots_by_level.map(func(v: int) -> String: return str(v)))
+	_progression_note.text = ""
 	_acts_list.clear()
 	for act in _campaign.acts:
 		_acts_list.add_item(act.act_name)

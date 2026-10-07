@@ -6451,9 +6451,9 @@ pinned on it as a visual representation. Decisions: branching paths built so a l
 branches; a chapter holds ONE fixed mission (a "pick one of N" pool comes later); a lost mission is **retried by default**,
 or leads to an authored "on lose" branch; the campaign lives in ONE FOLDER with its missions and map images inside
 (`user://campaigns/<name>/campaign.tres`), so it is shareable and every mission stays self-contained. **Planned, not built**:
-**hero leveling** (experience points; heroes equip a set of abilities according to their XP; the party's level also makes
-missions more challenging - monster scaling already has a `level` input), persistent hero state between missions
-(owned weapon attachments, wounds reset each mission), campaign variables missions can read/write, a mission reporting its
+the party's level making missions more challenging (monster scaling already has a `level` input - the plan is a level offset passed
+into `MonsterTemplate.resolve()` when a mission is started from the campaign), attachments owned by the party being what embark offers,
+campaign variables missions can read/write, a mission reporting its
 outcome (win/lose + which leaf objective) and rewards, **points of interest on the map** where gold/materials earned in missions
 are spent on weapon parts/upgrades, the **campaign player** (main menu "Campaign" -> act map -> embark with the saved party ->
 play the mission -> back to the map) and a campaign save separate from a mission save.
@@ -6476,6 +6476,23 @@ and arrows for links: green on win, red on lose, grey always); right: the select
 which copies a mission from `user://missions`, start/finale checkboxes, story before/after, links, delete). Smoke-tested headlessly
 (model round trip through the files, problem detection incl. unreachable/missing mission/finale, chapter delete removing links, the
 editor driven through its own actions); the layout/drag feel was not seen.
+
+**Hero model (2026-10-07)** - what carries over between missions is small: **experience** (which gives the **level**) and the
+**equipped abilities**; wounds and the weapons picked at embark stay per mission. `HeroProgression` (Resource on the `Campaign`, tunable in
+the editor's "Hero levels" fields - XP needed per level, comma separated, starting at 0, and ability slots per level; both lists the same
+length, XP strictly ascending, >= 1 slot; invalid input is refused with a note): defaults XP `0,10,25,45,70,100` and slots `1,2,2,3,3,4`
+(**invented - tune**); `level_for(xp)`, `slots_for(level)` (the last entry carries on past the end), `xp_for_next()`, `max_level()`.
+`HeroAbility` (id, name, description, `hero_slot` -1 = any, `required_level`; `fits(slot, level)`) with the premade, INVENTED list
+`AbilityCatalog` (6 generic + 2 per hero, text only - like everything else the table resolves them; hooks into the rules can come later).
+`HeroState` (Resource: `hero_slot`, `experience`, `equipped_abilities` ids): `level()`, `slots()`, `available_abilities()`, `can_equip()`/`equip()`
+(known + fits the hero and level + not equipped + a free slot)/`unequip()`, `add_experience()` -> the levels newly reached (equipped abilities stay).
+`CampaignState` (Resource, **the campaign save**: `campaign_folder`, `current_act`, `completed_chapters`, `heroes` (created on demand by `hero(slot)` at
+level 1), `gold`, `materials` name -> count, `owned_attachments` names; `party_level(roster, progression)` = the average level of the heroes in
+play rounded down, `add_material()`, `mark_completed()`), stored by `CampaignIO.save_state()`/`load_state()` as
+`user://campaign_saves/<campaign folder>.tres` (one per campaign). **Nothing plays a campaign yet** - no screen shows or edits a hero's
+abilities, nothing grants XP, gold or materials, and nothing reads `party_level()`; those arrive with the campaign player. Smoke-tested
+headlessly (levels/slots at the thresholds, equip rules incl. slot limit/other hero's ability/duplicates, XP gain returning levels, a full
+save/load round trip, the editor's progression fields incl. the refusals).
 
 ## Scene structure (post-refactor)
 
