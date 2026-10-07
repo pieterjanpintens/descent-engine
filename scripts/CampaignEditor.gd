@@ -116,12 +116,19 @@ func _ready() -> void:
 	_map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_map_view.custom_minimum_size = Vector2(400, 300)
 	_map_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_map_view.size_flags_stretch_ratio = 4.0
 	_map_view.chapter_selected.connect(_on_map_chapter_selected)
 	_map_view.chapter_moved.connect(func(_id: String): _mark_dirty())
 	_map_view.place_selected.connect(_on_map_place_selected)
 	_map_view.place_moved.connect(func(_id: String): _mark_dirty())
-	split.add_child(_map_view)
+	var map_column := VBoxContainer.new()
+	map_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map_column.size_flags_stretch_ratio = 4.0
+	split.add_child(map_column)
+	var map_toolbar := HBoxContainer.new()
+	map_column.add_child(map_toolbar)
+	map_toolbar.add_child(_button("Add chapter", _on_add_chapter_pressed))
+	map_toolbar.add_child(_button("Add place", _on_add_place_pressed))
+	map_column.add_child(_map_view)
 
 	_tabs = TabContainer.new()
 	_tabs.custom_minimum_size.x = 360
@@ -213,10 +220,6 @@ func _ready() -> void:
 	map_row.add_child(_button("Clear map", _on_clear_map_pressed))
 	_map_label = _label("")
 	left.add_child(_map_label)
-	var add_row := HBoxContainer.new()
-	left.add_child(add_row)
-	add_row.add_child(_button("Add chapter", _on_add_chapter_pressed))
-	add_row.add_child(_button("Add place", _on_add_place_pressed))
 	left.add_child(HSeparator.new())
 	left.add_child(_label("Problems:"))
 	_problems_label = _label("")
