@@ -111,9 +111,9 @@ func _ready() -> void:
 	hud.show_monsters = _set_monster_display_visible.bind(true)
 	journal.round_provider = func() -> int: return current_round
 	dialog.journal = journal
-	var quest_log := QuestLogDialog.new()
+	var quest_log := LogDialog.new()
 	dialog.get_parent().add_child(quest_log)
-	quest_log.journal = journal
+	quest_log.entries_provider = func() -> Array: return journal.entries
 	quest_log.objectives_provider = func() -> Array: return _runtime.get_current_objective_descriptions() if _runtime != null else []
 	hud.open_quest_log = quest_log.open
 	# The big phase announcement - the LAST child of the CanvasLayer so it draws on top.

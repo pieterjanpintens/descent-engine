@@ -21,16 +21,24 @@ extends Resource
 ## act can set it to a fixed number when it begins (CampaignAct.start_experience).
 @export var experience: int = 0
 @export var gold: int = 0
+## The campaign log: what the party was told and did, oldest first - {title, pages} (see LogDialog).
+@export var log_entries: Array[Dictionary] = []
 ## Crafting materials: name -> count.
 @export var materials: Dictionary = {}
 ## Names of the weapon attachments (AttachmentCatalog) the party owns.
 @export var owned_attachments: Array[String] = []
 
 
+func add_log(title: String, pages: Array[String]) -> void:
+	log_entries.append({"title": title, "pages": pages})
+
+
 ## Puts a brand-new campaign at the start of its first act (does nothing once started).
 func ensure_started(campaign: Campaign) -> void:
 	if campaign_complete or not available_chapters.is_empty():
 		return
+	if log_entries.is_empty():
+		add_log(campaign.campaign_name, [campaign.intro if campaign.intro != "" else "The story begins."])
 	_begin_act(campaign, current_act)
 
 
@@ -39,8 +47,10 @@ func _begin_act(campaign: Campaign, index: int) -> void:
 	available_chapters.clear()
 	if index >= campaign.acts.size():
 		campaign_complete = true
+		add_log("The end", ["The campaign is complete."])
 		return
 	var act := campaign.acts[index]
+	add_log(act.act_name, [act.intro if act.intro != "" else "A new act begins."])
 	if act.start_experience >= 0:
 		experience = act.start_experience
 	if act.find_chapter(act.start_chapter_id) != null:
@@ -70,6 +80,12 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool) -> Dictiona
 		for material_name in chapter.reward_materials:
 			add_material(str(material_name), int(chapter.reward_materials[material_name]))
 		summary["story_after"] = chapter.story_after
+		var pages: Array[String] = []
+		for story in [chapter.story_before, chapter.story_after]:
+			if story != "":
+				pages.append(story)
+		pages.append("Won: +%d XP%s." % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""])
+		add_log(chapter.title, pages)
 		gold += chapter.reward_gold
 	var targets: Array[String] = []
 	for link in chapter.links:

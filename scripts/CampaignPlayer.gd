@@ -14,7 +14,8 @@ extends Control
 ## The campaign screen opens on the page named by GameState.campaign_screen ("new" or "load") unless a save
 ## game is handed over (a finished mission returns to its save game's play page).
 ##
-## Chapter statuses on the map: green = available (play it), grey ✓ = won; chapters not reached yet are not shown. A lost
+## The map only shows the chapters that can be played now (green); what was passed through is read back in the
+## Campaign Log (top bar), a LogDialog over CampaignState.log_entries. A lost
 ## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
 ## chapter is won; selecting one lists its offers, which are bought with gold/materials and give the
 ## party weapon attachments (the embark of a campaign mission offers only owned ones). Not built yet:
@@ -39,6 +40,7 @@ var _heading_label: Label
 var _map_view: CampaignMapView
 var _side: VBoxContainer
 var _notice: AcceptDialog
+var _log_dialog: LogDialog
 var _name_dialog: ConfirmationDialog
 var _name_edit: LineEdit
 var _confirm: ConfirmationDialog
@@ -64,6 +66,21 @@ func _ready() -> void:
 	_notice = AcceptDialog.new()
 	_notice.min_size = Vector2i(480, 0)
 	add_child(_notice)
+	_log_dialog = LogDialog.new()
+	_log_dialog.heading = "Campaign Log"
+	_log_dialog.current_label = "You can play"
+	_log_dialog.empty_text = "Nothing has happened yet."
+	_log_dialog.entries_provider = func() -> Array: return _state.log_entries if _state != null else []
+	_log_dialog.objectives_provider = func() -> Array:
+		var titles: Array = []
+		var act := _current_act()
+		if act != null and _state != null:
+			for id in _state.available_chapters:
+				var chapter := act.find_chapter(id)
+				if chapter != null:
+					titles.append(chapter.title)
+		return titles
+	add_child(_log_dialog)
 	_name_dialog = ConfirmationDialog.new()
 	_name_dialog.min_size = Vector2i(440, 0)
 	_name_dialog.ok_button_text = "Start"
@@ -290,6 +307,7 @@ func _build_play_page() -> Control:
 	var bar := HBoxContainer.new()
 	page.add_child(bar)
 	bar.add_child(_button("‹ Main menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
+	bar.add_child(_button("Campaign Log", func(): _log_dialog.open()))
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -429,25 +447,18 @@ func _rebuild_side() -> void:
 	if chapter == null:
 		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
 		return
-	var status := _status_of(chapter.id)
-	if status == "locked":
+	if _status_of(chapter.id) != "available":
 		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
 		return
 	var title := _label(chapter.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
-	var status_text: String = {"available": "Ready to play", "done": "Completed"}[status]
-	_side.add_child(_label(status_text))
 	_side.add_child(_label("Reward: +%d XP%s" % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
-	if status != "locked" and chapter.story_before != "":
+	if chapter.story_before != "":
 		_side.add_child(_wrapped(chapter.story_before))
-	if status == "done" and chapter.story_after != "":
-		_side.add_child(HSeparator.new())
-		_side.add_child(_wrapped(chapter.story_after))
-	if status == "available":
-		var play := _button("Play this chapter", func(): _play(chapter))
-		play.disabled = chapter.mission_file == ""
-		_side.add_child(play)
+	var play := _button("Play this chapter", func(): _play(chapter))
+	play.disabled = chapter.mission_file == ""
+	_side.add_child(play)
 
 
 ## The shop of a place: its description, what the party has and each offer with a Buy button.

@@ -1,16 +1,21 @@
-class_name QuestLogDialog
+class_name LogDialog
 extends Control
 
-## The Party menu's "Quest Log": the current objective(s) on top, then a
-## replay of everything the table was told (see Journal.gd), newest first.
-## Click an entry to read it again - read-only (going "back" is re-reading,
-## not re-deciding: the effects of an answered dialog have already happened).
-## Built in code, modal scrim like VoiceSettingsDialog; open() rebuilds fresh.
+## A log: a line about what is current on top, then a replay of everything
+## the table was told, newest first. Used for the mission player's "Quest Log"
+## (entries from Journal.gd, numbered by round) and the campaign player's
+## "Campaign Log" (CampaignState.log_entries). Click an entry to read it again -
+## read-only (going "back" is re-reading, not re-deciding: the effects of an
+## answered dialog have already happened). Entries are {title, pages} plus an
+## optional "round". Built in code, modal scrim like VoiceSettingsDialog;
+## open() rebuilds fresh.
 
-## Assigned by MissionPlayer.
-var journal: Journal
-## Returns the current objective descriptions (MissionRuntime.
-## get_current_objective_descriptions()).
+var heading: String = "Quest Log"
+## "Current objective" - the label in front of the current descriptions.
+var current_label: String = "Current objective"
+var empty_text: String = "Nothing has happened yet."
+## Assigned by the owner: returns the log entries (oldest first) / the current descriptions.
+var entries_provider: Callable
 var objectives_provider: Callable
 
 var _objective_label: Label
@@ -42,7 +47,7 @@ func _ready() -> void:
 	background.add_child(vbox)
 
 	var title := Label.new()
-	title.text = "Quest Log"
+	title.text = heading
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var bold := FontVariation.new()
 	bold.base_font = title.get_theme_font("font")
@@ -86,18 +91,18 @@ func open() -> void:
 	var descriptions: Array = []
 	if objectives_provider.is_valid():
 		descriptions = objectives_provider.call()
-	_objective_label.text = "Current objective: %s" % ", ".join(descriptions) if not descriptions.is_empty() else "No current objective."
+	_objective_label.text = "%s: %s" % [current_label, ", ".join(descriptions)] if not descriptions.is_empty() else "No %s." % current_label.to_lower()
 
 	for child in _list.get_children():
 		child.queue_free()
 	_text.text = ""
-	var entries: Array[Dictionary] = journal.entries if journal != null else []
+	var entries: Array = entries_provider.call() if entries_provider.is_valid() else []
 	if entries.is_empty():
-		_text.text = "Nothing has happened yet."
+		_text.text = empty_text
 	for i in range(entries.size() - 1, -1, -1):
-		var entry := entries[i]
+		var entry: Dictionary = entries[i]
 		var btn := Button.new()
-		btn.text = "Round %d - %s" % [entry["round"], entry["title"]]
+		btn.text = "Round %d - %s" % [entry["round"], entry["title"]] if entry.has("round") else entry["title"]
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.clip_text = true
 		btn.pressed.connect(_show_entry.bind(entry))

@@ -7,8 +7,9 @@ extends Control
 ## dragged (they edit `map_position` and tell the owner through the *_moved signals; saving and undo
 ## are the editor's business) and clicked to select. With `read_only` (the campaign player) nothing
 ## can be moved; chapters are coloured by `statuses` (chapter id -> "available" / "done" / "locked")
-## instead of start/finale, a "locked" chapter is not shown at all (the story unfolds as it is played -
-## neither its pin nor an arrow towards it), and places listed in `hidden_place_ids` are not shown.
+## instead of start/finale; only "available" chapters are shown (the story unfolds as it is played, and
+## what was passed through is in the campaign log) - neither a pin nor an arrow for the others -, and
+## places listed in `hidden_place_ids` are not shown.
 
 signal chapter_selected(chapter_id: String)
 signal chapter_moved(chapter_id: String)
@@ -26,7 +27,6 @@ const LINK_COLORS := {
 	CampaignLink.Outcome.ANY: Color(0.7, 0.7, 0.7),
 }
 const AVAILABLE_COLOR := Color(0.4, 0.85, 0.4)
-const DONE_COLOR := Color(0.45, 0.5, 0.55)
 
 var act: CampaignAct
 var texture: Texture2D
@@ -111,27 +111,23 @@ func _draw_arrow(from: Vector2, to: Vector2, color: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([end, end - direction * 12.0 + side * 6.0, end - direction * 12.0 - side * 6.0]), color)
 
 
-## Whether `chapter` is kept off the map: in the player, a chapter the party has not reached yet.
+## Whether `chapter` is kept off the map: in the player, every chapter that can't be played right now.
 func _is_hidden(chapter: CampaignChapter) -> bool:
-	return read_only and statuses.get(chapter.id, "locked") == "locked"
+	return read_only and statuses.get(chapter.id, "locked") != "available"
 
 
 func _draw_pin(chapter: CampaignChapter) -> void:
 	var center := pin_position(chapter)
 	var fill := PIN_COLOR
-	var status: String = statuses.get(chapter.id, "locked")
 	if read_only:
-		fill = AVAILABLE_COLOR if status == "available" else DONE_COLOR
+		fill = AVAILABLE_COLOR
 	elif chapter.id == act.start_chapter_id:
 		fill = START_COLOR
 	elif chapter.is_finale:
 		fill = FINALE_COLOR
 	draw_circle(center, PIN_RADIUS, fill)
 	draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if chapter.id == selected_id else 2.0, true)
-	var label := chapter.title if chapter.title != "" else "(untitled)"
-	if read_only and status == "done":
-		label = "✓ " + label
-	_draw_label(center, label)
+	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)")
 
 
 func _draw_place(place: CampaignPlace) -> void:
