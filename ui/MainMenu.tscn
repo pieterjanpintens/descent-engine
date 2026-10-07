@@ -52,7 +52,7 @@ text = "Campaigns"
 
 [node name="EditorsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 layout_mode = 2
-text = "Editors && Tools"
+text = "Editors & Tools"
 
 [node name="ExitButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 layout_mode = 2
