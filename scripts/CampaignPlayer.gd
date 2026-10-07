@@ -1,14 +1,18 @@
 class_name CampaignPlayer
 extends Control
 
-## Plays a campaign (standalone scene, main menu "Campaign"): File > New Game starts a playthrough of
-## a campaign (CampaignIO) under a save game name, File > Load Game resumes any save game, Restart
-## Game begins the current one again, Delete Save removes it,
-## see the current act's map with the chapters the party can play now, read a chapter's story,
-## play its mission (the normal Player, which hands the outcome back through GameState when
-## the mission ends) and then see what it brought - the experience counter, gold, the story
-## afterwards and where the path leads next. Progress is the campaign save game (CampaignState),
-## written after every change (so there is no Save item: closing the game just leaves it resumable). The XP counter is always shown in the top bar.
+## Plays a campaign (standalone scene, opened from the main menu's "New Campaign" / "Load Campaign"),
+## a small wizard of three pages:
+## 1. the LIBRARY ("New Campaign") - every campaign as a "book" (its cover image and title) in a grid;
+##    picking a book asks for a save game name and starts a new playthrough;
+## 2. the LOAD page ("Load Campaign") - every save game of every campaign: resume one or delete one;
+## 3. the PLAY page - the current act's map with the chapters the party can play now, a chapter's story,
+##    its mission (the normal Player, which hands the outcome back through GameState when the mission
+##    ends), and afterwards what it brought - XP, gold, the story and where the path leads next.
+## Progress is the campaign save game (CampaignState), written after every change (so there is no Save
+## button: leaving just leaves it resumable). The XP counter is always shown in the play page's top bar,
+## and the main menu's Continue opens the play page of the latest save game directly. The campaign screen opens
+## on the page named by GameState.campaign_screen ("new" or "load") unless a save game is handed over.
 ##
 ## Chapter statuses on the map: green = available (play it), grey ✓ = won, dark = locked. A lost
 ## chapter without an "on lose" link is simply offered again. Places (diamonds) appear once their
@@ -17,31 +21,28 @@ extends Control
 ## the XP counter scaling the missions' monsters.
 
 const MENU_SCENE := "res://ui/MainMenu.tscn"
+const BOOK_SIZE := Vector2(190, 340)
+const BOOK_COVER_SIZE := Vector2(170, 255)  ## the 2:3 cover ratio of CampaignIO.COVER_SIZE
 
 var _campaign: Campaign
 var _state: CampaignState
 var _folder: String = ""
 var _selected_id: String = ""
 
-enum FileAction { NEW, LOAD, RESTART, DELETE, BACK }
-
-var _file_menu: PopupMenu
-var _new_menu: PopupMenu
-var _load_menu: PopupMenu
-var _new_folders: Array[String] = []
-var _load_entries: Array[Dictionary] = []  ## {folder, key} per Load Game item
-var _name_dialog: ConfirmationDialog
-var _name_edit: LineEdit
-var _new_folder: String = ""
-var _confirm: ConfirmationDialog
-var _confirm_action: Callable
+var _library_page: Control
+var _library_books: HFlowContainer
+var _load_page: Control
+var _load_list: VBoxContainer
+var _play_page: Control
 var _status_label: Label
 var _heading_label: Label
-var _body: Control
-var _welcome_label: Label
 var _map_view: CampaignMapView
 var _side: VBoxContainer
 var _notice: AcceptDialog
+var _name_dialog: ConfirmationDialog
+var _name_edit: LineEdit
+var _confirm: ConfirmationDialog
+var _confirm_action: Callable
 
 
 func _ready() -> void:
@@ -49,52 +50,249 @@ func _ready() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 8)
+		margin.add_theme_constant_override("margin_" + side, 12)
 	add_child(margin)
-	var root := VBoxContainer.new()
+	var root := Control.new()
 	margin.add_child(root)
+	_library_page = _build_library_page()
+	_load_page = _build_load_page()
+	_play_page = _build_play_page()
+	for page in [_library_page, _load_page, _play_page]:
+		page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		root.add_child(page)
 
+	_notice = AcceptDialog.new()
+	_notice.min_size = Vector2i(480, 0)
+	add_child(_notice)
+	_name_dialog = ConfirmationDialog.new()
+	_name_dialog.title = "New game"
+	_name_edit = LineEdit.new()
+	_name_edit.placeholder_text = "Name of the save game"
+	_name_dialog.add_child(_name_edit)
+	_name_dialog.confirmed.connect(_on_new_name_confirmed)
+	add_child(_name_dialog)
+	_confirm = ConfirmationDialog.new()
+	_confirm.min_size = Vector2i(420, 0)
+	_confirm.confirmed.connect(func(): _confirm_action.call())
+	add_child(_confirm)
+
+	var screen := GameState.campaign_screen
+	if screen == "load":
+		_show_load()
+	else:
+		_show_library()
+	# Coming back from a mission played as a chapter (or Continue in the main menu): reopen that
+	# save game and apply the outcome, if there is one.
+	if GameState.campaign_folder != "":
+		var folder := GameState.campaign_folder
+		var key := GameState.campaign_save
+		var result := GameState.campaign_result
+		GameState.clear_campaign()
+		if _open_save(folder, key) and not result.is_empty():
+			_apply_result(result)
+
+
+# ---------------------------------------------------------------- pages
+
+func _show_page(page: Control) -> void:
+	for candidate in [_library_page, _load_page, _play_page]:
+		candidate.visible = candidate == page
+
+
+func _build_library_page() -> Control:
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 12)
 	var bar := HBoxContainer.new()
-	root.add_child(bar)
-	var menu_bar := MenuBar.new()
-	bar.add_child(menu_bar)
-	_file_menu = PopupMenu.new()
-	_file_menu.name = "File"
-	menu_bar.add_child(_file_menu)
-	_new_menu = PopupMenu.new()
-	_new_menu.name = "NewMenu"
-	_new_menu.index_pressed.connect(_on_new_index_pressed)
-	_file_menu.add_child(_new_menu)
-	_load_menu = PopupMenu.new()
-	_load_menu.name = "LoadMenu"
-	_load_menu.index_pressed.connect(_on_load_index_pressed)
-	_file_menu.add_child(_load_menu)
-	_file_menu.add_submenu_node_item("New Game", _new_menu, FileAction.NEW)
-	_file_menu.add_submenu_node_item("Load Game", _load_menu, FileAction.LOAD)
-	_file_menu.add_separator()
-	_file_menu.add_item("Restart Game", FileAction.RESTART)
-	_file_menu.add_item("Delete Save", FileAction.DELETE)
-	_file_menu.add_separator()
-	_file_menu.add_item("Back to Menu", FileAction.BACK)
-	_file_menu.id_pressed.connect(_on_file_action)
-	_file_menu.about_to_popup.connect(_refresh_menus)
+	page.add_child(bar)
+	bar.add_child(_button("‹ Back to menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
+	var title := _label("Choose a campaign")
+	title.add_theme_font_size_override("font_size", 28)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bar.add_child(title)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page.add_child(scroll)
+	_library_books = HFlowContainer.new()
+	_library_books.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_library_books.add_theme_constant_override("h_separation", 20)
+	_library_books.add_theme_constant_override("v_separation", 20)
+	scroll.add_child(_library_books)
+	return page
+
+
+func _show_library() -> void:
+	for child in _library_books.get_children():
+		_library_books.remove_child(child)
+		child.queue_free()
+	var folders := CampaignIO.folder_names()
+	for folder in folders:
+		var campaign := CampaignIO.load_campaign(folder)
+		if campaign != null:
+			_library_books.add_child(_book(folder, campaign))
+	if folders.is_empty():
+		_library_books.add_child(_wrapped("No campaigns yet - make one in the Campaign Editor (Editors & Tools in the main menu)."))
+	_show_page(_library_page)
+
+
+## One "book": the cover (or a plain coloured one with the title) over the campaign's title; a click
+## starts a new game of it.
+func _book(folder: String, campaign: Campaign) -> Control:
+	var book := Control.new()
+	book.custom_minimum_size = BOOK_SIZE
+	var column := VBoxContainer.new()
+	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	book.add_child(column)
+	column.add_child(_cover(folder, campaign, BOOK_COVER_SIZE))
+	var title := _wrapped(campaign.campaign_name)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(title)
+	var click := Button.new()
+	click.flat = true
+	click.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	click.pressed.connect(func(): _on_new_game_pressed(folder))
+	book.add_child(click)
+	return book
+
+
+## The cover of `campaign` at `size` (always the 2:3 ratio, as imported); without a cover image a plain
+## coloured cover showing the title.
+func _cover(folder: String, campaign: Campaign, size: Vector2) -> Control:
+	var texture := CampaignIO.image_texture(folder, campaign.cover_image)
+	var holder := Control.new()
+	holder.custom_minimum_size = size
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if texture != null:
+		var picture := TextureRect.new()
+		picture.texture = texture
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(picture)
+	else:
+		var panel := Panel.new()
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color.from_hsv(float(campaign.campaign_name.hash() % 360) / 360.0, 0.45, 0.35)
+		style.set_corner_radius_all(6)
+		style.set_border_width_all(3)
+		style.border_color = style.bg_color.lightened(0.35)
+		panel.add_theme_stylebox_override("panel", style)
+		panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(panel)
+		var name_label := _wrapped(campaign.campaign_name)
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		name_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(name_label)
+	return holder
+
+
+func _build_load_page() -> Control:
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 12)
+	var bar := HBoxContainer.new()
+	page.add_child(bar)
+	bar.add_child(_button("‹ Back to menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
+	var title := _label("Load campaign")
+	title.add_theme_font_size_override("font_size", 28)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bar.add_child(title)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page.add_child(scroll)
+	_load_list = VBoxContainer.new()
+	_load_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_load_list.add_theme_constant_override("separation", 10)
+	scroll.add_child(_load_list)
+	return page
+
+
+## Every save game of every campaign: its book, its name and progress, Resume and Delete.
+func _show_load() -> void:
+	for child in _load_list.get_children():
+		_load_list.remove_child(child)
+		child.queue_free()
+	var listed := 0
+	for folder in CampaignIO.folder_names():
+		var campaign := CampaignIO.load_campaign(folder)
+		if campaign == null:
+			continue
+		for key in CampaignIO.save_keys(folder):
+			var saved := CampaignIO.load_state(folder, key)
+			if saved != null:
+				_load_list.add_child(_save_row(campaign, folder, key, saved))
+				listed += 1
+	if listed == 0:
+		_load_list.add_child(_label("No save games yet - start one with New Campaign."))
+	_show_page(_load_page)
+
+
+func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignState) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.add_child(_cover(folder, campaign, BOOK_COVER_SIZE * 0.5))
+	var progress := "Campaign complete" if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
+		else campaign.acts[saved.current_act].act_name
+	var info := _label("%s\n%s  -  %s,  XP %d,  gold %d" % [saved.save_name if saved.save_name != "" else key, campaign.campaign_name, progress, saved.experience, saved.gold])
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(info)
+	row.add_child(_button("Resume", func(): _open_save(folder, key)))
+	row.add_child(_button("Delete", func():
+		_ask("Delete the save game '%s'?" % saved.save_name, func():
+			CampaignIO.delete_state(folder, key)
+			_show_load()
+		)
+	))
+	return row
+
+
+func _on_new_game_pressed(folder: String) -> void:
+	_folder = folder
+	_name_edit.text = "Game %d" % (CampaignIO.save_keys(folder).size() + 1)
+	_name_dialog.popup_centered()
+
+
+func _on_new_name_confirmed() -> void:
+	var save_name := _name_edit.text.strip_edges()
+	if save_name == "":
+		_say("A save game needs a name.")
+		return
+	if CampaignIO.save_keys(_folder).has(CampaignIO.save_key(save_name)):
+		_say("A save game called '%s' already exists." % save_name)
+		return
+	_begin(_folder, save_name)
+
+
+func _build_play_page() -> Control:
+	var page := VBoxContainer.new()
+	var bar := HBoxContainer.new()
+	page.add_child(bar)
+	bar.add_child(_button("‹ Main menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
+	bar.add_child(_button("Restart", func():
+		if _state != null:
+			_ask("Restart '%s'? All progress of this save game is lost." % _state.save_name, _restart)
+	))
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	bar.add_child(_status_label)
 
-	_welcome_label = Label.new()
-	_welcome_label.text = "Use File > New Game to start a campaign (make one in the Campaign Editor) or File > Load Game to resume a save game."
-	root.add_child(_welcome_label)
-
 	_heading_label = Label.new()
 	_heading_label.add_theme_font_size_override("font_size", 22)
-	root.add_child(_heading_label)
+	page.add_child(_heading_label)
 
 	var split := HSplitContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(split)
-	_body = split
+	page.add_child(split)
 	_map_view = CampaignMapView.new()
 	_map_view.read_only = true
 	_map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -115,65 +313,7 @@ func _ready() -> void:
 	_side = VBoxContainer.new()
 	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_side)
-
-	_notice = AcceptDialog.new()
-	_notice.min_size = Vector2i(480, 0)
-	add_child(_notice)
-	_name_dialog = ConfirmationDialog.new()
-	_name_dialog.title = "New game"
-	_name_edit = LineEdit.new()
-	_name_edit.placeholder_text = "Name of the save game"
-	_name_dialog.add_child(_name_edit)
-	_name_dialog.confirmed.connect(_on_new_name_confirmed)
-	add_child(_name_dialog)
-	_confirm = ConfirmationDialog.new()
-	_confirm.min_size = Vector2i(420, 0)
-	_confirm.confirmed.connect(func(): _confirm_action.call())
-	add_child(_confirm)
-
-	_refresh_view()
-	# Coming back from a mission played as a chapter: reopen that save game and apply the outcome.
-	if GameState.campaign_folder != "":
-		var folder := GameState.campaign_folder
-		var key := GameState.campaign_save
-		var result := GameState.campaign_result
-		GameState.clear_campaign()
-		if _open_save(folder, key) and not result.is_empty():
-			_apply_result(result)
-
-
-# ---------------------------------------------------------------- campaign
-
-func _refresh_menus() -> void:
-	_new_folders = CampaignIO.folder_names()
-	_new_menu.clear()
-	for folder in _new_folders:
-		_new_menu.add_item(folder)
-	_load_entries.clear()
-	_load_menu.clear()
-	for folder in _new_folders:
-		for key in CampaignIO.save_keys(folder):
-			var saved := CampaignIO.load_state(folder, key)
-			if saved == null:
-				continue
-			_load_entries.append({"folder": folder, "key": key})
-			_load_menu.add_item("%s - %s" % [folder, saved.save_name if saved.save_name != "" else key])
-	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.NEW), _new_folders.is_empty())
-	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.LOAD), _load_entries.is_empty())
-	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.RESTART), _state == null)
-	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.DELETE), _state == null)
-
-
-func _on_file_action(id: int) -> void:
-	match id:
-		FileAction.RESTART:
-			if _state != null:
-				_ask("Restart '%s'? All progress of this save game is lost." % _state.save_name, _restart)
-		FileAction.DELETE:
-			if _state != null:
-				_ask("Delete the save game '%s'?" % _state.save_name, _delete_current)
-		FileAction.BACK:
-			get_tree().change_scene_to_file(MENU_SCENE)
+	return page
 
 
 func _ask(text: String, action: Callable) -> void:
@@ -182,29 +322,7 @@ func _ask(text: String, action: Callable) -> void:
 	_confirm.popup_centered()
 
 
-func _on_new_index_pressed(index: int) -> void:
-	if index < 0 or index >= _new_folders.size():
-		return
-	_new_folder = _new_folders[index]
-	_name_edit.text = "Game %d" % (CampaignIO.save_keys(_new_folder).size() + 1)
-	_name_dialog.popup_centered()
-
-
-func _on_new_name_confirmed() -> void:
-	var save_name := _name_edit.text.strip_edges()
-	if save_name == "":
-		_say("A save game needs a name.")
-		return
-	if CampaignIO.save_keys(_new_folder).has(CampaignIO.save_key(save_name)):
-		_say("A save game called '%s' already exists." % save_name)
-		return
-	_begin(_new_folder, save_name)
-
-
-func _on_load_index_pressed(index: int) -> void:
-	if index >= 0 and index < _load_entries.size():
-		_open_save(_load_entries[index]["folder"], _load_entries[index]["key"])
-
+# ---------------------------------------------------------------- campaign
 
 ## Starts a fresh playthrough of campaign `folder` as save game `save_name`.
 func _begin(folder: String, save_name: String) -> bool:
@@ -242,23 +360,13 @@ func _use(campaign: Campaign, state: CampaignState) -> void:
 	_selected_id = ""
 	_save()
 	_refresh_view()
+	_show_page(_play_page)
 
 
 ## Begins the current save game again from the start of the campaign (same name).
 func _restart() -> void:
 	if _state != null:
 		_begin(_state.campaign_folder, _state.save_name)
-
-
-func _delete_current() -> void:
-	if _state == null:
-		return
-	CampaignIO.delete_state(_state.campaign_folder, CampaignIO.save_key(_state.save_name))
-	_campaign = null
-	_state = null
-	_folder = ""
-	_selected_id = ""
-	_refresh_view()
 
 
 func _save() -> void:
@@ -281,12 +389,7 @@ func _status_of(chapter_id: String) -> String:
 
 
 func _refresh_view() -> void:
-	_refresh_menus()
-	var has_campaign := _campaign != null
-	_body.visible = has_campaign
-	_heading_label.visible = has_campaign
-	_welcome_label.visible = not has_campaign
-	if not has_campaign:
+	if _campaign == null or _state == null:
 		return
 	var act := _current_act()
 	if _state.campaign_complete or act == null:
@@ -301,7 +404,7 @@ func _refresh_view() -> void:
 		for place in act.places:
 			if not _state.is_place_unlocked(place):
 				_map_view.hidden_place_ids.append(place.id)
-		_map_view.show_act(act, CampaignIO.map_texture(_folder, act.map_image), _selected_id)
+		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
 	_status_label.text = "XP: %d  |  Gold: %d%s" % [_state.experience, _state.gold, ("  |  " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]
 	_rebuild_side()
 

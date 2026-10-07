@@ -45,10 +45,16 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "Continue"
 
-[node name="CampaignButton" type="Button" parent="CenterContainer/Column/MainPanel"]
+[node name="NewCampaignButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-text = "Campaigns"
+text = "New Campaign"
+
+[node name="LoadCampaignButton" type="Button" parent="CenterContainer/Column/MainPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Load Campaign"
 
 [node name="EditorsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 layout_mode = 2
@@ -99,7 +105,8 @@ access = 1
 filters = PackedStringArray("*.tres")
 
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/ContinueButton" to="." method="_on_continue_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/CampaignButton" to="." method="_on_campaign_button_pressed"]
+[connection signal="pressed" from="CenterContainer/Column/MainPanel/NewCampaignButton" to="." method="_on_new_campaign_button_pressed"]
+[connection signal="pressed" from="CenterContainer/Column/MainPanel/LoadCampaignButton" to="." method="_on_load_campaign_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/EditorsButton" to="." method="_on_editors_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/EditorsPanel/EditorButton" to="." method="_on_editor_button_pressed"]

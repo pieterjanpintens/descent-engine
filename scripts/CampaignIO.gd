@@ -8,6 +8,8 @@ extends RefCounted
 const ROOT := "user://campaigns"
 const FILE_NAME := "campaign.tres"
 const SAVES_ROOT := "user://campaign_saves"
+## A book cover is trimmed to this 2:3 portrait ratio (and scaled to this size) when imported.
+const COVER_SIZE := Vector2i(400, 600)
 
 
 ## A folder-safe key for a campaign name ("My Campaign!" -> "my_campaign").
@@ -142,8 +144,30 @@ static func import_map_image(folder: String, source_path: String, act_number: in
 	return file_name
 
 
-## The map image of an act as a texture, or null when there is none / it can't be read.
-static func map_texture(folder: String, file_name: String) -> Texture2D:
+## Imports `source_path` as the book cover of campaign `folder`: trimmed (centred) to the 2:3 cover ratio
+## and scaled to COVER_SIZE, saved as cover.png. Returns the file name, "" on failure.
+static func import_cover_image(folder: String, source_path: String) -> String:
+	var image := Image.load_from_file(source_path)
+	if image == null or image.is_empty():
+		return ""
+	var target_ratio := float(COVER_SIZE.x) / float(COVER_SIZE.y)
+	var crop := Vector2i(image.get_width(), image.get_height())
+	if float(crop.x) / float(crop.y) > target_ratio:
+		crop.x = int(round(crop.y * target_ratio))
+	else:
+		crop.y = int(round(crop.x / target_ratio))
+	var origin := Vector2i((image.get_width() - crop.x) / 2, (image.get_height() - crop.y) / 2)
+	var cover := image.get_region(Rect2i(origin, crop))
+	cover.resize(COVER_SIZE.x, COVER_SIZE.y, Image.INTERPOLATE_LANCZOS)
+	DirAccess.make_dir_recursive_absolute(folder_path(folder))
+	if cover.save_png("%s/cover.png" % folder_path(folder)) != OK:
+		return ""
+	return "cover.png"
+
+
+## An image file inside the campaign folder (a map, a cover) as a texture, or null when there is none /
+## it can't be read.
+static func image_texture(folder: String, file_name: String) -> Texture2D:
 	if file_name == "":
 		return null
 	var image := Image.load_from_file("%s/%s" % [folder_path(folder), file_name])

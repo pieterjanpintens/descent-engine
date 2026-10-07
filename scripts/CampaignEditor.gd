@@ -50,6 +50,8 @@ var _acts_list: ItemList
 var _act_name_edit: LineEdit
 var _act_intro_edit: TextEdit
 var _map_label: Label
+var _cover_label: Label
+var _cover_dialog: FileDialog
 var _problems_label: Label
 var _map_view: CampaignMapView
 var _chapter_panel: VBoxContainer
@@ -160,6 +162,12 @@ func _ready() -> void:
 		_mark_dirty()
 	)
 	left.add_child(_campaign_intro_edit)
+	var cover_row := HBoxContainer.new()
+	left.add_child(cover_row)
+	cover_row.add_child(_button("Book cover…", func(): _cover_dialog.popup_centered_ratio(0.6)))
+	cover_row.add_child(_button("Clear cover", _on_clear_cover_pressed))
+	_cover_label = _label("")
+	left.add_child(_cover_label)
 
 	left.add_child(HSeparator.new())
 	left.add_child(_label("Acts:"))
@@ -251,6 +259,14 @@ func _ready() -> void:
 	_image_dialog.filters = PackedStringArray(["*.png, *.jpg, *.jpeg, *.webp ; Images"])
 	_image_dialog.file_selected.connect(_on_image_selected)
 	add_child(_image_dialog)
+
+	_cover_dialog = FileDialog.new()
+	_cover_dialog.title = "Choose the book cover (it is trimmed to a 2:3 portrait)"
+	_cover_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	_cover_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	_cover_dialog.filters = PackedStringArray(["*.png, *.jpg, *.jpeg, *.webp ; Images"])
+	_cover_dialog.file_selected.connect(_on_cover_selected)
+	add_child(_cover_dialog)
 
 	_mission_dialog = FileDialog.new()
 	_mission_dialog.title = "Add a mission to this campaign"
@@ -460,6 +476,26 @@ func _on_image_selected(path: String) -> void:
 	act.map_image = file
 	_mark_dirty()
 	_refresh_act()
+
+
+func _on_cover_selected(path: String) -> void:
+	if _campaign == null:
+		return
+	var file := CampaignIO.import_cover_image(_folder, path)
+	if file == "":
+		_say("Could not read that image.")
+		return
+	_campaign.cover_image = file
+	_mark_dirty()
+	_refresh_all()
+
+
+func _on_clear_cover_pressed() -> void:
+	if _campaign == null:
+		return
+	_campaign.cover_image = ""
+	_mark_dirty()
+	_refresh_all()
 
 
 func _on_clear_map_pressed() -> void:
@@ -719,6 +755,7 @@ func _refresh_all() -> void:
 	_suppress = true
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
+	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")
 	_acts_list.clear()
 	for act in _campaign.acts:
 		_acts_list.add_item(act.act_name)
@@ -739,7 +776,7 @@ func _refresh_act() -> void:
 	_start_xp_spin.value = act.start_experience if act != null else -1
 	_suppress = false
 	_map_label.text = "Map: %s" % (act.map_image if act != null and act.map_image != "" else "none")
-	_map_view.show_act(act, CampaignIO.map_texture(_folder, act.map_image) if act != null else null, _selected_id())
+	_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image) if act != null else null, _selected_id())
 	_rebuild_chapter_panel()
 	_update_problems()
 

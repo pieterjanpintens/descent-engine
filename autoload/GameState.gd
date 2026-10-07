@@ -19,6 +19,8 @@ const CAMPAIGN_SCENE := "res://ui/CampaignPlayer.tscn"
 var campaign_folder: String = ""
 ## The key (file name) of the campaign save game being played, see CampaignIO.save_key().
 var campaign_save: String = ""
+## Which page the campaign screen opens on when no save game is given: "new" (pick a campaign book) or "load".
+var campaign_screen: String = "new"
 var campaign_chapter_id: String = ""
 var campaign_result: Dictionary = {}
 

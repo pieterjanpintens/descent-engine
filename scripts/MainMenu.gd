@@ -1,8 +1,8 @@
 extends Control
 
 ## Root script for the main menu scene. The main page is about PLAYING campaigns: Continue (the
-## most recently played campaign save game) and Campaigns (the campaign screen, with New Game /
-## Load Game). Everything for authors and testers - the two editors, playing one single mission,
+## most recently played campaign save game), New Campaign (the campaign screen's book library) and
+## Load Campaign (its list of save games, where they can also be deleted). Everything for authors and testers - the two editors, playing one single mission,
 ## loading a mission save - sits on a second page, "Editors & Tools".
 
 @export var editor_scene_path: String = "res://map/MissionMap.tscn"   ## <<< set to your actual Creator/editor scene
@@ -14,6 +14,7 @@ extends Control
 @onready var main_panel: Control = %MainPanel
 @onready var editors_panel: Control = %EditorsPanel
 @onready var continue_button: Button = %ContinueButton
+@onready var load_campaign_button: Button = %LoadCampaignButton
 
 
 ## Ensures both user:// folders exist before anything tries to browse them -
@@ -25,7 +26,9 @@ func _ready() -> void:
 	for dir in ["user://missions", "user://saves"]:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
-	continue_button.disabled = CampaignIO.latest_save().is_empty()
+	var has_saves := not CampaignIO.latest_save().is_empty()
+	continue_button.disabled = not has_saves
+	load_campaign_button.disabled = not has_saves
 
 
 func _on_continue_button_pressed() -> void:
@@ -86,8 +89,17 @@ func _on_editor_button_pressed() -> void:
 	get_tree().change_scene_to_file(editor_scene_path)
 
 
-func _on_campaign_button_pressed() -> void:
+func _on_new_campaign_button_pressed() -> void:
+	_open_campaign_screen("new")
+
+
+func _on_load_campaign_button_pressed() -> void:
+	_open_campaign_screen("load")
+
+
+func _open_campaign_screen(screen: String) -> void:
 	GameState.clear_campaign()
+	GameState.campaign_screen = screen
 	get_tree().change_scene_to_file(GameState.CAMPAIGN_SCENE)
 
 
