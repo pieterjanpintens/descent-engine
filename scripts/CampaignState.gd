@@ -243,9 +243,21 @@ func _predecessors_done(act: CampaignAct, chapter: CampaignChapter) -> bool:
 	if not chapter.wait_for_all:
 		return true
 	for before in act.predecessors(chapter.id):
-		if not completed_chapters.has(before.id):
+		if not completed_chapters.has(before.id) and not _is_closed(act, before):
 			return false
 	return true
+
+
+## Whether `chapter` was closed for good by a choice: a chapter before it offered its links as a choice
+## (`exclusive_links`) and the party won another of them.
+func _is_closed(act: CampaignAct, chapter: CampaignChapter) -> bool:
+	for before in act.predecessors(chapter.id):
+		if not before.exclusive_links or not completed_chapters.has(before.id):
+			continue
+		for link in before.links:
+			if link.target_id != chapter.id and completed_chapters.has(link.target_id):
+				return true
+	return false
 
 
 ## Whether `place` can be visited: its unlocking chapter (if any) has been won.
