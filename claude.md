@@ -5160,21 +5160,17 @@ first working version).
 
 **App shell** (`ui/`, `player/`):
 
-- `MainMenu` — Play (opens a `FileDialog` over `user://missions/`, then loads
-  `MissionPlayer.tscn` with the chosen path via `GameState`) / Editor (loads the
-  Creator scene) / Exit. The mission folder moved from `res://missions` to
+- `MainMenu` — **revamped 2026-10-07: the main page is about playing campaigns** - "Continue" (resumes the most
+  recently written campaign save game, `CampaignIO.latest_save()`; disabled when there is none), "Campaigns" (the
+  campaign screen, which has New Game / Load Game), "Editors & Tools" and "Exit". "Editors & Tools" is a second page
+  of the same scene (`%MainPanel`/`%EditorsPanel`) for authors/testers: Mission Editor, Campaign Editor, Play a Single
+  Mission (a `FileDialog` over `user://missions/`, loads `MissionPlayer.tscn` with the chosen path via `GameState`),
+  Load a Mission Save (`user://saves/`) and Back. Mission folder history: it moved from `res://missions` to
   `user://missions` 2026-09-11 - same `res://` is read-only in an exported
   build reasoning as `CreatorSettings`/`CreatorAutosave` (see **Hard-won
   lessons**), just applied to the Creator's own manual Save/Load this time,
-  not just the autosave system. Both this dialog and `CreatorSaveLoad.gd`'s
-  now use `FileDialog.access = ACCESS_USERDATA` (was the default
-  `ACCESS_RESOURCES`) with `root_subfolder = "user://missions/"` to match.
-  The old `res://missions/*.tres` dev/test fixtures (`one-tile.tres`,
-  `test-123.tres`, `test_mission.tres`, `underlays.tres`) were deleted
-  from the repo the same day, once `res://missions` was no longer where
-  anything actually looks — they were never shipped sample content, just
-  local save-testing artifacts from when the Creator wrote to `res://`
-  directly inside the editor.
+  not just the autosave system. Both dialogs use `FileDialog.access = ACCESS_USERDATA` with `current_dir` set on each open.
+  The old `res://missions/*.tres` dev/test fixtures were deleted the same day.
 - `MissionPlayer.gd` — loads the mission via `MissionIO`, calls
   `%LayeredMap.apply_mission(mission, true)` (the `true` is new 2026-09-14 -
   `respect_visibility`, see `LayeredMap.gd`'s own entry above). `%InfoLabel`
@@ -6486,7 +6482,7 @@ It is always visible in the campaign screen's top bar ("XP: N | Gold: ..."), the
 thresholds/ability slots), `HeroAbility`, `AbilityCatalog`, `HeroState`, `CampaignHeroesDialog` (the "Heroes..." button), per-hero XP,
 `Campaign.progression` and `party_level()` (old campaign files just ignore the removed properties). The campaign
 save (`CampaignState`: `campaign_folder`, `current_act`, `completed_chapters`, `available_chapters`, `experience`, `gold`, `materials`,
-`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state(folder, key)` as `user://campaign_saves/<campaign folder>/<save key>.tres` - **several save games per campaign (2026-10-07)**: `CampaignState.save_name` (display name) -> `CampaignIO.save_key()` (file name), `save_keys(folder)`, `delete_state()`; progress is written after every change, so a save game is always resumable; `GameState.campaign_save` carries the key to the Player and back (MissionPlayer reads the owned attachments from that save). Older single-file saves (`<folder>.tres`) are ignored.
+`owned_attachments`, `purchased_offers`) is stored by `CampaignIO.save_state()`/`load_state(folder, key)` as `user://campaign_saves/<campaign folder>/<save key>.tres` - **several save games per campaign (2026-10-07)**: `CampaignState.save_name` (display name) -> `CampaignIO.save_key()` (file name), `save_keys(folder)`, `delete_state()`; progress is written after every change, so a save game is always resumable; `GameState.campaign_save` carries the key to the Player and back (MissionPlayer reads the owned attachments from that save).
 The editor has a "XP when the act begins (-1 = keep)" spin box per act. Compile-checked only (the logic is a counter; not run in a scene).
 
 **Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a **File menu** (like the editors') - **New Game** (submenu of the campaigns, then asks a save game name), **Load Game** (submenu listing every save game of every campaign), **Restart Game** (begin the current save game again, confirmed), **Delete Save** (confirmed), Back to Menu - and the XP counter and gold in the top bar; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey

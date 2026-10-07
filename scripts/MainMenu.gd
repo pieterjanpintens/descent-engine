@@ -1,10 +1,9 @@
 extends Control
 
-## Root script for the main menu scene. Expected scene layout (see
-## accompanying setup instructions):
-##   MainMenu (Control, this script)
-##    |- ...buttons for Play / Editor / Exit...
-##    |- MissionFileDialog (FileDialog, marked as Unique Name %MissionFileDialog)
+## Root script for the main menu scene. The main page is about PLAYING campaigns: Continue (the
+## most recently played campaign save game) and Campaigns (the campaign screen, with New Game /
+## Load Game). Everything for authors and testers - the two editors, playing one single mission,
+## loading a mission save - sits on a second page, "Editors & Tools".
 
 @export var editor_scene_path: String = "res://map/MissionMap.tscn"   ## <<< set to your actual Creator/editor scene
 @export var player_scene_path: String = "res://player/MissionPlayer.tscn"  ## <<< set to your actual Player scene
@@ -12,6 +11,9 @@ extends Control
 
 @onready var mission_dialog: FileDialog = %MissionFileDialog
 @onready var save_dialog: FileDialog = %SaveFileDialog
+@onready var main_panel: Control = %MainPanel
+@onready var editors_panel: Control = %EditorsPanel
+@onready var continue_button: Button = %ContinueButton
 
 
 ## Ensures both user:// folders exist before anything tries to browse them -
@@ -23,6 +25,27 @@ func _ready() -> void:
 	for dir in ["user://missions", "user://saves"]:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
+	continue_button.disabled = CampaignIO.latest_save().is_empty()
+
+
+func _on_continue_button_pressed() -> void:
+	var latest := CampaignIO.latest_save()
+	if latest.is_empty():
+		return
+	GameState.clear_campaign()
+	GameState.campaign_folder = latest["folder"]
+	GameState.campaign_save = latest["key"]
+	get_tree().change_scene_to_file(GameState.CAMPAIGN_SCENE)
+
+
+func _on_editors_button_pressed() -> void:
+	main_panel.visible = false
+	editors_panel.visible = true
+
+
+func _on_back_button_pressed() -> void:
+	editors_panel.visible = false
+	main_panel.visible = true
 
 
 ## Each dialog OPENS in its own folder but isn't locked to it - unlike

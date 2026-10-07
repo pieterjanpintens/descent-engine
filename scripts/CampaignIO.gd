@@ -92,6 +92,19 @@ static func save_keys(folder: String) -> Array[String]:
 	return keys
 
 
+## The most recently written save game over all campaigns, as {folder, key} ({} if there is none).
+static func latest_save() -> Dictionary:
+	var best := {}
+	var best_time := 0
+	for folder in folder_names():
+		for key in save_keys(folder):
+			var modified := FileAccess.get_modified_time("%s/%s.tres" % [saves_path(folder), key])
+			if modified >= best_time:
+				best_time = modified
+				best = {"folder": folder, "key": key}
+	return best
+
+
 static func delete_state(folder: String, key: String) -> void:
 	DirAccess.remove_absolute("%s/%s.tres" % [saves_path(folder), key])
 
