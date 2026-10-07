@@ -136,6 +136,22 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 	draw_circle(center, PIN_RADIUS, fill)
 	draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if chapter.id == selected_id else 2.0, true)
 	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)")
+	if not read_only:
+		if chapter.wait_for_all:
+			_draw_badge(center + Vector2(-PIN_RADIUS - 2.0, -PIN_RADIUS - 4.0), "ALL")
+		if chapter.exclusive_links:
+			_draw_badge(center + Vector2(PIN_RADIUS + 2.0, -PIN_RADIUS - 4.0), "XOR")
+
+
+## A small tag next to a pin (editor only): "ALL" = waits for every chapter leading to it, "XOR" = its links are
+## a choice. Text, since fonts can't be trusted to have symbols for this.
+func _draw_badge(anchor: Vector2, text: String) -> void:
+	var font := ThemeDB.fallback_font
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
+	var box := Rect2(anchor - Vector2(width / 2.0 + 3.0, 11.0), Vector2(width + 6.0, 14.0))
+	draw_rect(box, Color(0.1, 0.1, 0.14, 0.9))
+	draw_rect(box, Color(0.95, 0.8, 0.25), false, 1.0)
+	draw_string(font, anchor + Vector2(-width / 2.0, 0.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color.WHITE)
 
 
 func _draw_place(place: CampaignPlace) -> void:

@@ -6475,6 +6475,8 @@ editor driven through its own actions); the layout/drag feel was not seen.
 
 **Choice (xor) (2026-10-07)**: `CampaignChapter.exclusive_links` ("Its links are a choice") - once the party has won one chapter a choice chapter linked to, the others it opened close for good (`CampaignState._close_alternatives()`, run after a win; stateless - derived from the completed chapters). 1 -> 2 xor 3 -> 4 = a choice on 1 and a plain (not `wait_for_all`) link from 2 and 3 into 4. A `wait_for_all` join ignores predecessors a choice has closed (`_is_closed()`), so the two can be mixed safely and the join opens once the branch that was taken is won. Headless-checked.
 
+**Join / choice markers (2026-10-07)**: in the editor the map pins carry a small "ALL" tag (waits for all) and "XOR" tag (links are a choice) (`CampaignMapView._draw_badge()`, not in the player), and the chapter panel only offers "Wait for all..." where 2+ chapters link into it and "Its links are a choice" where it has 2+ links (a ticked box always stays visible so it can be unticked). Headless-checked; look not seen.
+
 **Delete confirmations (2026-10-07)**: deleting a chapter or removing an act asks first (`CampaignEditor._confirm()`, one shared `ConfirmationDialog`); side quests and places still delete immediately. Also fixed: removing the last act no longer errors (an untyped `[]` in a ternary was assigned to the typed `side_quests` array - `_no_quests()`).
 
 **Experience counter (2026-10-07, replaces the first "hero model")** - the game has no real XP system and no modelled abilities, so what

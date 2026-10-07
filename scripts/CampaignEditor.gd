@@ -1197,6 +1197,7 @@ func _rebuild_chapter_panel() -> void:
 		_map_view.queue_redraw()
 	)
 	_chapter_panel.add_child(finale_check)
+	var act_of_chapter := _current_act()
 	var join_check := CheckBox.new()
 	join_check.text = "Wait for all chapters that lead here"
 	join_check.tooltip_text = "Playable only once every chapter linking to it is won (fan-out, then join). Don't use it after exclusive branches."
@@ -1204,8 +1205,11 @@ func _rebuild_chapter_panel() -> void:
 	join_check.toggled.connect(func(on: bool):
 		chapter.wait_for_all = on
 		_mark_dirty()
+		_map_view.queue_redraw()
 	)
-	_chapter_panel.add_child(join_check)
+	# Only meaningful where several arrows meet (a ticked box always stays visible so it can be unticked).
+	if chapter.wait_for_all or (act_of_chapter != null and act_of_chapter.predecessors(chapter.id).size() >= 2):
+		_chapter_panel.add_child(join_check)
 	var choice_check := CheckBox.new()
 	choice_check.text = "Its links are a choice (only one can be played)"
 	choice_check.tooltip_text = "Once the party has won one of the chapters this one links to, the others close for good."
@@ -1213,8 +1217,10 @@ func _rebuild_chapter_panel() -> void:
 	choice_check.toggled.connect(func(on: bool):
 		chapter.exclusive_links = on
 		_mark_dirty()
+		_map_view.queue_redraw()
 	)
-	_chapter_panel.add_child(choice_check)
+	if chapter.exclusive_links or chapter.links.size() >= 2:
+		_chapter_panel.add_child(choice_check)
 
 	var reward_row := HBoxContainer.new()
 	_chapter_panel.add_child(reward_row)
