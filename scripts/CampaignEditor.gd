@@ -751,13 +751,14 @@ func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mi
 
 ## A list of effects (set a variable / do math on it) the campaign applies when a chapter or side quest is
 ## won or lost, in the panel on the right.
-func _build_effects_section(heading: String, effects: Array[Effect]) -> void:
-	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label(heading))
+func _build_effects_section(heading: String, effects: Array[Effect], parent: Container = null) -> void:
+	var into: Container = parent if parent != null else _chapter_panel
+	into.add_child(HSeparator.new())
+	into.add_child(_label(heading))
 	_effect_editor.campaign_variables = _campaign.writable_variables()
 	for effect in effects:
-		_chapter_panel.add_child(_effect_editor.build_effect_row(effects, effect, _rebuild_chapter_panel))
-	_chapter_panel.add_child(_button("Add effect", func():
+		into.add_child(_effect_editor.build_effect_row(effects, effect, _rebuild_chapter_panel))
+	into.add_child(_button("Add effect", func():
 		var created := Effect.new()
 		created.type = Effect.Type.SET_VARIABLE
 		created.variable_name = _campaign.writable_variables()[0].name
@@ -833,7 +834,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	materials_edit.focus_exited.connect(commit_materials)
 	materials_row.add_child(materials_edit)
 
-	_chapter_panel.add_child(_label("Story before the mission:"))
+	_chapter_panel.add_child(_label("Story before:"))
 	var before_edit := _text_edit(80)
 	before_edit.text = quest.story_before
 	before_edit.text_changed.connect(func():
@@ -841,7 +842,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 		_mark_dirty()
 	)
 	_chapter_panel.add_child(before_edit)
-	_chapter_panel.add_child(_label("Story after the mission:"))
+	_chapter_panel.add_child(_label("Story after:"))
 	var after_edit := _text_edit(80)
 	after_edit.text = quest.story_after
 	after_edit.text_changed.connect(func():
@@ -1152,29 +1153,46 @@ func _rebuild_chapter_panel() -> void:
 	)
 	_chapter_panel.add_child(title_edit)
 
-	_chapter_panel.add_child(_label("Mission:"))
-	var mission_row := HBoxContainer.new()
-	_chapter_panel.add_child(mission_row)
-	var files := CampaignIO.mission_files(_folder)
-	var mission_option := OptionButton.new()
-	mission_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mission_option.add_item("(none)")
-	for file in files:
-		mission_option.add_item(file)
-	if chapter.mission_file != "" and not files.has(chapter.mission_file):
-		mission_option.add_item("%s (missing)" % chapter.mission_file)
-		mission_option.select(mission_option.item_count - 1)
-	else:
-		mission_option.select(files.find(chapter.mission_file) + 1 if chapter.mission_file != "" else 0)
-	mission_option.item_selected.connect(func(index: int):
-		chapter.mission_file = files[index - 1] if index >= 1 and index <= files.size() else chapter.mission_file if index > files.size() else ""
+	var type_row := HBoxContainer.new()
+	_chapter_panel.add_child(type_row)
+	type_row.add_child(_label("Type:"))
+	var type_option := OptionButton.new()
+	type_option.add_item("Mission")
+	type_option.add_item("Narrative (story and questions)")
+	type_option.select(1 if chapter.is_narrative else 0)
+	type_option.item_selected.connect(func(index: int):
+		chapter.is_narrative = index == 1
 		_mark_dirty()
+		_rebuild_chapter_panel()
+		_map_view.queue_redraw()
 	)
-	mission_row.add_child(mission_option)
-	mission_row.add_child(_button("Add mission…", func():
-		_mission_dialog.current_dir = "user://missions"
-		_mission_dialog.popup_centered_ratio(0.6)
-	))
+	type_row.add_child(type_option)
+	if chapter.is_narrative:
+		_build_narrative_section(chapter)
+	else:
+		_chapter_panel.add_child(_label("Mission:"))
+		var mission_row := HBoxContainer.new()
+		_chapter_panel.add_child(mission_row)
+		var files := CampaignIO.mission_files(_folder)
+		var mission_option := OptionButton.new()
+		mission_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		mission_option.add_item("(none)")
+		for file in files:
+			mission_option.add_item(file)
+		if chapter.mission_file != "" and not files.has(chapter.mission_file):
+			mission_option.add_item("%s (missing)" % chapter.mission_file)
+			mission_option.select(mission_option.item_count - 1)
+		else:
+			mission_option.select(files.find(chapter.mission_file) + 1 if chapter.mission_file != "" else 0)
+		mission_option.item_selected.connect(func(index: int):
+			chapter.mission_file = files[index - 1] if index >= 1 and index <= files.size() else chapter.mission_file if index > files.size() else ""
+			_mark_dirty()
+		)
+		mission_row.add_child(mission_option)
+		mission_row.add_child(_button("Add mission…", func():
+			_mission_dialog.current_dir = "user://missions"
+			_mission_dialog.popup_centered_ratio(0.6)
+		))
 
 	var start_check := CheckBox.new()
 	start_check.text = "Start of the act"
@@ -1281,10 +1299,12 @@ func _rebuild_chapter_panel() -> void:
 	add_link.disabled = others.is_empty()
 	_chapter_panel.add_child(add_link)
 
-	_build_mapping_section("Give to the mission when it starts:", chapter.mission_inputs, chapter.mission_file, false)
-	_build_mapping_section("Take over from the mission when it ends:", chapter.mission_outputs, chapter.mission_file, true)
+	if not chapter.is_narrative:
+		_build_mapping_section("Give to the mission when it starts:", chapter.mission_inputs, chapter.mission_file, false)
+		_build_mapping_section("Take over from the mission when it ends:", chapter.mission_outputs, chapter.mission_file, true)
 	_build_effects_section("When won, set:", chapter.win_effects)
-	_build_effects_section("When lost, set:", chapter.lose_effects)
+	if not chapter.is_narrative:
+		_build_effects_section("When lost, set:", chapter.lose_effects)
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete chapter", func(): _on_delete_chapter_pressed(chapter)))
 
@@ -1336,6 +1356,111 @@ func _reward_spin(initial: int, on_change: Callable) -> SpinBox:
 		_mark_dirty()
 	)
 	return spin
+
+
+# ---------------------------------------------------------------- narrative chapters
+
+## The steps of a narrative chapter: each is a screen of story, optionally with a question and answers; choosing an
+## answer applies its effects to the campaign's variables (that is how answers get into the campaign).
+func _build_narrative_section(chapter: CampaignChapter) -> void:
+	_chapter_panel.add_child(_label("Narrative steps (a step with answers asks its question):"))
+	for i in chapter.steps.size():
+		_chapter_panel.add_child(_build_step_block(chapter, i))
+	_chapter_panel.add_child(_button("Add step", func():
+		chapter.steps.append(NarrativeStep.new())
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+
+
+func _build_step_block(chapter: CampaignChapter, index: int) -> Control:
+	var step := chapter.steps[index]
+	var panel := PanelContainer.new()
+	var box := VBoxContainer.new()
+	panel.add_child(box)
+	var top := HBoxContainer.new()
+	box.add_child(top)
+	var heading := _label("Step %d" % (index + 1))
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(heading)
+	var up := _button("↑", func(): _move_step(chapter, index, -1))
+	up.disabled = index == 0
+	top.add_child(up)
+	var down := _button("↓", func(): _move_step(chapter, index, 1))
+	down.disabled = index == chapter.steps.size() - 1
+	top.add_child(down)
+	top.add_child(_button("×", func():
+		chapter.steps.remove_at(index)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+	var text_edit := _text_edit(90)
+	text_edit.text = step.text
+	text_edit.placeholder_text = "The story the party reads..."
+	text_edit.text_changed.connect(func():
+		step.text = text_edit.text
+		_mark_dirty()
+	)
+	box.add_child(text_edit)
+	var question_edit := LineEdit.new()
+	question_edit.placeholder_text = "Question (shown under the text when there are answers)"
+	question_edit.text = step.question
+	question_edit.text_changed.connect(func(text: String):
+		step.question = text
+		_mark_dirty()
+	)
+	box.add_child(question_edit)
+	for answer in step.answers:
+		box.add_child(_build_answer_block(step, answer))
+	box.add_child(_button("Add answer", func():
+		step.answers.append(NarrativeAnswer.new())
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+	return panel
+
+
+func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Control:
+	var panel := PanelContainer.new()
+	var box := VBoxContainer.new()
+	panel.add_child(box)
+	var row := HBoxContainer.new()
+	box.add_child(row)
+	row.add_child(_label("Answer:"))
+	var text_edit := LineEdit.new()
+	text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_edit.text = answer.text
+	text_edit.text_changed.connect(func(text: String):
+		answer.text = text
+		_mark_dirty()
+	)
+	row.add_child(text_edit)
+	row.add_child(_button("×", func():
+		step.answers.erase(answer)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+	var reply_edit := LineEdit.new()
+	reply_edit.placeholder_text = "Reply shown after choosing it (optional)"
+	reply_edit.text = answer.reply
+	reply_edit.text_changed.connect(func(text: String):
+		answer.reply = text
+		_mark_dirty()
+	)
+	box.add_child(reply_edit)
+	_build_effects_section("Choosing it sets:", answer.effects, box)
+	return panel
+
+
+func _move_step(chapter: CampaignChapter, index: int, delta: int) -> void:
+	var other := index + delta
+	if other < 0 or other >= chapter.steps.size():
+		return
+	var moved := chapter.steps[index]
+	chapter.steps[index] = chapter.steps[other]
+	chapter.steps[other] = moved
+	_mark_dirty()
+	_rebuild_chapter_panel()
 
 
 func _label(text: String) -> Label:

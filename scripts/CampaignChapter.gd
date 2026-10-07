@@ -10,6 +10,10 @@ extends Resource
 @export var title: String = "New chapter"
 ## File name (not a path) of the mission inside the campaign folder; "" = none chosen yet.
 @export var mission_file: String = ""
+## A narrative chapter has no mission: the party reads `steps` (story pages, some asking a question whose
+## answer sets campaign variables) and the chapter counts as won afterwards.
+@export var is_narrative: bool = false
+@export var steps: Array[NarrativeStep] = []
 @export_multiline var story_before: String = ""
 @export_multiline var story_after: String = ""
 @export var map_position: Vector2 = Vector2(0.5, 0.5)

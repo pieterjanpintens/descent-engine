@@ -84,7 +84,14 @@ func problems(mission_files: Array[String]) -> Array[String]:
 	var reachable := reachable_ids()
 	var finale_reachable := false
 	for chapter in chapters:
-		if chapter.mission_file == "":
+		if chapter.is_narrative:
+			if chapter.steps.is_empty():
+				found.append("'%s' is a narrative without steps" % chapter.title)
+			for step in chapter.steps:
+				for answer in step.answers:
+					if answer.text.strip_edges() == "":
+						found.append("'%s' has an answer without text" % chapter.title)
+		elif chapter.mission_file == "":
 			found.append("'%s' has no mission" % chapter.title)
 		elif not mission_files.has(chapter.mission_file):
 			found.append("'%s': mission file '%s' is missing" % [chapter.title, chapter.mission_file])

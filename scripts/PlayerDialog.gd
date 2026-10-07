@@ -406,14 +406,15 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99, left_image
 ## player can see it exists but can no longer be chosen. Defaults to all
 ## enabled - a shorter (or empty) array than option_labels just leaves the
 ## remaining ones enabled.
-func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = []) -> int:
+func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = [], allow_cancel: bool = true) -> int:
 	_label.text = text
 	_count_input.visible = false
 	var specs: Array = []
 	for i in option_labels.size():
 		var disabled: bool = option_disabled[i] if i < option_disabled.size() else false
 		specs.append({"text": option_labels[i], "result": i, "disabled": disabled})
-	specs.append({"text": "Cancel", "result": -1})
+	if allow_cancel:
+		specs.append({"text": "Cancel", "result": -1})
 	_set_buttons(specs)
 	var names: Array[String] = []
 	for label in option_labels:

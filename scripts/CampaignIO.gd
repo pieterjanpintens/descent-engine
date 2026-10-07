@@ -137,7 +137,7 @@ static func mission_link_problems(campaign: Campaign, folder: String) -> Array[S
 	var writable := campaign.writable_variables()
 	var readable := campaign.all_variables()
 	for target in targets:
-		if target.mission_outputs.is_empty() and target.mission_inputs.is_empty():
+		if target.get("is_narrative") == true or (target.mission_outputs.is_empty() and target.mission_inputs.is_empty()):
 			continue
 		var declared := mission_variables(folder, target.mission_file)
 		for output: MissionVariableMap in target.mission_outputs:

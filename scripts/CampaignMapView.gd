@@ -3,7 +3,7 @@ extends Control
 
 ## The map of one act: the act's map image (a plain grid when it has none) with a round pin per
 ## chapter and a diamond per place (point of interest), and an arrow for every link between
-## chapters (green = on win, red = on lose, grey = always). In the editor pins/diamonds can be
+## chapters (green = on win, red = on lose, grey = always). A narrative chapter (story and questions, no mission) is a speech bubble instead of a round pin. In the editor pins/diamonds can be
 ## dragged (they edit `map_position` and tell the owner through the *_moved signals; saving and undo
 ## are the editor's business) and clicked to select. With `read_only` (the campaign player) nothing
 ## can be moved; chapters are coloured by `statuses` (chapter id -> "available" / "done" / "locked")
@@ -133,8 +133,22 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 		fill = START_COLOR
 	elif chapter.is_finale:
 		fill = FINALE_COLOR
-	draw_circle(center, PIN_RADIUS, fill)
-	draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if chapter.id == selected_id else 2.0, true)
+	var outline_color := Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7)
+	var outline_width := 3.0 if chapter.id == selected_id else 2.0
+	if chapter.is_narrative:
+		# A speech bubble instead of a round pin: a short story with questions, no mission.
+		var half := Vector2(PIN_RADIUS + 2.0, PIN_RADIUS - 3.0)
+		var bubble := PackedVector2Array([
+			center + Vector2(-half.x, -half.y), center + Vector2(half.x, -half.y), center + Vector2(half.x, half.y),
+			center + Vector2(-2.0, half.y), center + Vector2(-9.0, half.y + 8.0), center + Vector2(-8.0, half.y),
+			center + Vector2(-half.x, half.y)])
+		draw_colored_polygon(bubble, fill)
+		var bubble_outline := bubble.duplicate()
+		bubble_outline.append(bubble[0])
+		draw_polyline(bubble_outline, outline_color, outline_width, true)
+	else:
+		draw_circle(center, PIN_RADIUS, fill)
+		draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, outline_color, outline_width, true)
 	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)")
 	if not read_only:
 		if chapter.wait_for_all:

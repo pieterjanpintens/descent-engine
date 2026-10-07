@@ -6471,6 +6471,18 @@ which copies a mission from `user://missions`, start/finale checkboxes, story be
 (model round trip through the files, problem detection incl. unreachable/missing mission/finale, chapter delete removing links, the
 editor driven through its own actions); the layout/drag feel was not seen.
 
+**Narrative chapters (2026-10-07)** - "a chapter that is not a long mission: background story with questions". `CampaignChapter.is_narrative` + `steps: Array[NarrativeStep]`
+(`text`, optional `question`, `answers: Array[NarrativeAnswer]` = `text`, optional `reply`, `effects`). **Answers reach the campaign through the effects of the chosen answer**
+(Set Variable / Math over the campaign variables, the same effect rows as win/lose effects) - no mission variable bridge needed. Player (`CampaignPlayer._play_narrative()`): the
+mission player's own `PlayerDialog` is reused (added as a child; voice answers come with it): a step without answers = a story page (`ask_narrative`), with answers =
+`ask_choice(text + question, answers, [], allow_cancel = false)` (new `allow_cancel` parameter), then the optional reply. The chosen answers' effects are applied TOGETHER at the end
+(quitting halfway changes nothing, and a later step can't depend on an earlier answer yet), what was read and chosen goes in the campaign log, and the chapter counts as won
+(`apply_result`, so XP/gold/materials, win effects and links work as for a mission; lose effects/mission links don't apply). Editor: a "Type" picker (Mission / Narrative) in the
+chapter panel; narrative = a steps editor (text, question, answers with reply and "Choosing it sets:" effects, reorder/delete) instead of the mission picker and mission variable
+mappings; `CampaignAct.problems()` flags a narrative without steps or an answer without text. **On the map a narrative chapter is a speech bubble instead of a round pin**
+(editor and player) so players know it is a short Q&A. Not built: conditions on steps/answers (e.g. only offer an answer when a variable holds), showing variables in the text
+(`$1` like the mission message effect), narrative side quests. Headless-checked (editor panel builds, a scripted play-through sets the variable, completes the chapter and logs it).
+
 **Fan-out / fan-in (2026-10-07)**: links alone make the targets playable as soon as ONE incoming link is followed, so a join (1 -> 2 and 3 in any order -> 4) needs `CampaignChapter.wait_for_all` ("Wait for all chapters that lead here" in the editor): a link into it is only followed once every chapter of the act linking to it (`CampaignAct.predecessors()`) is won (`CampaignState._predecessors_done()`). Opt-in (the default is "the first link followed opens it"); `CampaignAct.problems()` flags a join whose predecessor is unreachable. Headless-checked with the 4-chapter case.
 
 **Choice (xor) (2026-10-07)**: `CampaignChapter.exclusive_links` ("Its links are a choice") - once the party has won one chapter a choice chapter linked to, the others it opened close for good (`CampaignState._close_alternatives()`, run after a win; stateless - derived from the completed chapters). 1 -> 2 xor 3 -> 4 = a choice on 1 and a plain (not `wait_for_all`) link from 2 and 3 into 4. A `wait_for_all` join ignores predecessors a choice has closed (`_is_closed()`), so the two can be mixed safely and the join opens once the branch that was taken is won. Headless-checked.

@@ -31,6 +31,8 @@ var _state: CampaignState
 var _folder: String = ""
 var _selected_id: String = ""
 
+## Shows the story pages and questions of a narrative chapter (the mission player's dialog, reused).
+var _narrative_dialog: PlayerDialog
 var _library_page: Control
 var _library_books: HFlowContainer
 var _load_page: Control
@@ -467,8 +469,8 @@ func _rebuild_side() -> void:
 	_side.add_child(_label("Reward: +%d XP%s" % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
 	if chapter.story_before != "":
 		_side.add_child(_wrapped(chapter.story_before))
-	var play := _button("Play this chapter", func(): _play(chapter))
-	play.disabled = chapter.mission_file == ""
+	var play := _button("Read this chapter" if chapter.is_narrative else "Play this chapter", func(): _play(chapter))
+	play.disabled = chapter.steps.is_empty() if chapter.is_narrative else chapter.mission_file == ""
 	_side.add_child(play)
 
 
@@ -534,6 +536,9 @@ func _buy(offer: CampaignOffer) -> void:
 
 
 func _play(chapter: CampaignChapter) -> void:
+	if chapter.is_narrative:
+		_play_narrative(chapter)
+		return
 	_play_mission(chapter.mission_file, chapter.id, chapter.mission_inputs)
 
 
@@ -556,6 +561,41 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 			GameState.campaign_mission_inputs[input.mission_variable] = values[input.campaign_variable]
 	GameState.campaign_result = {}
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
+
+
+## A narrative chapter: every step is a screen of story; a step with answers asks its question (no cancel).
+## The effects of the chosen answers are applied together once the end is reached, so quitting halfway changes
+## nothing, and the chapter then counts as won. What was read and chosen goes in the campaign log.
+func _play_narrative(chapter: CampaignChapter) -> void:
+	if _narrative_dialog == null:
+		_narrative_dialog = PlayerDialog.new()
+		add_child(_narrative_dialog)
+	var pages: Array[String] = []
+	var chosen: Array[NarrativeAnswer] = []
+	for step in chapter.steps:
+		if step.answers.is_empty():
+			await _narrative_dialog.ask_narrative([step.text])
+			pages.append(step.text)
+			continue
+		var labels: Array[String] = []
+		for answer in step.answers:
+			labels.append(answer.text)
+		var prompt := step.text if step.question == "" else "%s
+
+%s" % [step.text, step.question]
+		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false)
+		var answer := step.answers[index]
+		chosen.append(answer)
+		pages.append("%s
+
+You chose: %s" % [prompt, answer.text])
+		if answer.reply != "":
+			await _narrative_dialog.ask_ok(answer.reply)
+			pages.append(answer.reply)
+	_state.add_log(chapter.title, pages)
+	for answer in chosen:
+		await _state.apply_effects(_campaign, answer.effects)
+	_apply_result({"won": true, "chapter_id": chapter.id, "mission_variables": {}})
 
 
 # ---------------------------------------------------------------- results
