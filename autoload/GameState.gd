@@ -17,11 +17,14 @@ var load_save_path: String = ""
 ## it was abandoned) and returns to the campaign screen, which applies it and clears all three.
 const CAMPAIGN_SCENE := "res://ui/CampaignPlayer.tscn"
 var campaign_folder: String = ""
+## The key (file name) of the campaign save game being played, see CampaignIO.save_key().
+var campaign_save: String = ""
 var campaign_chapter_id: String = ""
 var campaign_result: Dictionary = {}
 
 
 func clear_campaign() -> void:
 	campaign_folder = ""
+	campaign_save = ""
 	campaign_chapter_id = ""
 	campaign_result = {}
