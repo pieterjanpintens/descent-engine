@@ -63,6 +63,9 @@ var _chapter_panel: VBoxContainer
 var _suppress: bool = false
 
 var _new_dialog: ConfirmationDialog
+## Asks "are you sure" before something destructive; `_confirm_action` runs when confirmed.
+var _confirm_dialog: ConfirmationDialog
+var _confirm_action: Callable
 var _new_name_edit: LineEdit
 var _image_dialog: FileDialog
 var _mission_dialog: FileDialog
@@ -270,6 +273,11 @@ func _ready() -> void:
 	_new_dialog.add_child(_new_name_edit)
 	_new_dialog.confirmed.connect(_on_new_confirmed)
 	add_child(_new_dialog)
+
+	_confirm_dialog = ConfirmationDialog.new()
+	_confirm_dialog.title = "Are you sure?"
+	_confirm_dialog.confirmed.connect(func(): _confirm_action.call())
+	add_child(_confirm_dialog)
 
 	_image_dialog = FileDialog.new()
 	_image_dialog.title = "Choose the map image of this act"
@@ -481,6 +489,13 @@ func _on_add_act_pressed() -> void:
 
 
 func _on_remove_act_pressed() -> void:
+	var act := _current_act()
+	if act == null:
+		return
+	_confirm("Remove the act '%s' with its %d chapter(s) and places?" % [act.act_name, act.chapters.size()], _remove_current_act)
+
+
+func _remove_current_act() -> void:
 	if _current_act() == null:
 		return
 	_campaign.acts.remove_at(_act_index)
@@ -577,6 +592,17 @@ func _on_map_chapter_selected(chapter_id: String) -> void:
 	_rebuild_chapter_panel()
 
 
+func _confirm(text: String, action: Callable) -> void:
+	_confirm_action = action
+	_confirm_dialog.dialog_text = text
+	_confirm_dialog.popup_centered()
+
+
+func _on_delete_chapter_pressed(chapter: CampaignChapter) -> void:
+	_confirm("Delete the chapter '%s'?
+Links to it are removed too." % chapter.title, func(): _delete_chapter(chapter))
+
+
 func _delete_chapter(chapter: CampaignChapter) -> void:
 	var act := _current_act()
 	if act == null:
@@ -617,6 +643,10 @@ func _on_mission_file_selected(path: String) -> void:
 
 ## The side quests shown on `act`'s map: the ones linked to one of its chapters, plus the ones not linked
 ## yet (so a new one can be placed and linked).
+func _no_quests() -> Array[CampaignSideQuest]:
+	return []
+
+
 func _quests_on_act(act: CampaignAct) -> Array[CampaignSideQuest]:
 	var shown: Array[CampaignSideQuest] = []
 	for quest in _campaign.side_quests:
@@ -833,7 +863,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 				elif not on:
 					quest.chapter_ids.erase(chapter.id)
 				_mark_dirty()
-				_map_view.side_quests = _quests_on_act(_current_act()) if _current_act() != null else []
+				_map_view.side_quests = _quests_on_act(_current_act()) if _current_act() != null else _no_quests()
 				_map_view.queue_redraw()
 			)
 			_chapter_panel.add_child(check)
@@ -1073,7 +1103,7 @@ func _refresh_act() -> void:
 	_start_xp_spin.value = act.start_experience if act != null else -1
 	_suppress = false
 	_map_label.text = "Map: %s" % (act.map_image if act != null and act.map_image != "" else "none")
-	_map_view.side_quests = _quests_on_act(act) if act != null else []
+	_map_view.side_quests = _quests_on_act(act) if act != null else _no_quests()
 	_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image) if act != null else null, _selected_id())
 	_rebuild_chapter_panel()
 	_update_problems()
@@ -1232,7 +1262,7 @@ func _rebuild_chapter_panel() -> void:
 	_build_effects_section("When won, set:", chapter.win_effects)
 	_build_effects_section("When lost, set:", chapter.lose_effects)
 	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_button("Delete chapter", func(): _delete_chapter(chapter)))
+	_chapter_panel.add_child(_button("Delete chapter", func(): _on_delete_chapter_pressed(chapter)))
 
 
 func _build_link_row(chapter: CampaignChapter, link: CampaignLink, others: Array[CampaignChapter]) -> Control:

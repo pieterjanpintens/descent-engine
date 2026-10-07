@@ -6471,6 +6471,8 @@ which copies a mission from `user://missions`, start/finale checkboxes, story be
 (model round trip through the files, problem detection incl. unreachable/missing mission/finale, chapter delete removing links, the
 editor driven through its own actions); the layout/drag feel was not seen.
 
+**Delete confirmations (2026-10-07)**: deleting a chapter or removing an act asks first (`CampaignEditor._confirm()`, one shared `ConfirmationDialog`); side quests and places still delete immediately. Also fixed: removing the last act no longer errors (an untyped `[]` in a ternary was assigned to the typed `side_quests` array - `_no_quests()`).
+
 **Experience counter (2026-10-07, replaces the first "hero model")** - the game has no real XP system and no modelled abilities, so what
 carries over between missions is ONE party-wide counter: `CampaignState.experience` (int, default 0). It goes up by the chapter's `reward_xp` (authored per chapter in the editor, default 1)
 for every WON chapter (a loss gives nothing), and an act can force it to a number when it begins (`CampaignAct.start_experience`, -1 = keep;
