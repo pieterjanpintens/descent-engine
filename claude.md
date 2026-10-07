@@ -6442,6 +6442,41 @@ finds and converts a staged folder, not merely written to look plausible.
 `ObjMeshLoader.gd` stays fully deleted (script + `.uid`) - nothing in the
 runtime path parses OBJ text at all anymore.
 
+## Campaign layer (new 2026-10-07, branch work on master, uncommitted)
+
+**Concept (agreed in conversation)** - missions are chapters of a campaign: a **Campaign** has ordered **Acts**; an act is a
+**path of chapters** (possibly branching) from a start chapter to an **act finale**; players must play the mission of each
+chapter on their way. Each act has a **map** (an image the campaign author supplies - never shipped) with the chapters
+pinned on it as a visual representation. Decisions: branching paths built so a linear path is just a graph without
+branches; a chapter holds ONE fixed mission (a "pick one of N" pool comes later); a lost mission is **retried by default**,
+or leads to an authored "on lose" branch; the campaign lives in ONE FOLDER with its missions and map images inside
+(`user://campaigns/<name>/campaign.tres`), so it is shareable and every mission stays self-contained. **Planned, not built**:
+**hero leveling** (experience points; heroes equip a set of abilities according to their XP; the party's level also makes
+missions more challenging - monster scaling already has a `level` input), persistent hero state between missions
+(owned weapon attachments, wounds reset each mission), campaign variables missions can read/write, a mission reporting its
+outcome (win/lose + which leaf objective) and rewards, **points of interest on the map** where gold/materials earned in missions
+are spent on weapon parts/upgrades, the **campaign player** (main menu "Campaign" -> act map -> embark with the saved party ->
+play the mission -> back to the map) and a campaign save separate from a mission save.
+
+**Data** (Resources, `scripts/`): `Campaign` (`campaign_name`, `intro`, `acts`, `next_chapter_number` -> `new_chapter_id()` "ch_N",
+never reused), `CampaignAct` (`act_name`, `intro`, `map_image` file name, `start_chapter_id`, `chapters`; `find_chapter()`,
+`reachable_ids()`, `problems(mission_files)` = no chapters / no start / chapter without or with a missing mission / link to a
+removed chapter / unreachable chapter / no reachable finale), `CampaignChapter` (`id`, `title`, `mission_file` = file NAME inside the
+campaign folder, `story_before`/`story_after`, `map_position` = fraction 0..1 of the map image, `is_finale`, `links`),
+`CampaignLink` (`target_id`, `outcome` WIN/LOSE/ANY - "on win"/"on lose"/"always"; no link for an outcome = replay the chapter;
+campaign-variable conditions come later). `CampaignIO` (static): `key_for(name)` folder-safe key, `folder_names()`,
+`save_campaign()`/`load_campaign()`, `mission_files(folder)`, `import_mission()` (copies a mission file into the campaign folder),
+`import_map_image()` (copies an image in as `map_<act>.<ext>`), `map_texture()`.
+
+**Editor** (`ui/CampaignEditor.tscn` -> `CampaignEditor.gd`, built in code; main menu button "Campaign Editor"): top bar New…/Open/Save/
+Back (switching campaign or leaving auto-saves unsaved changes; edits are not undo-tracked); left: campaign name/intro, the acts list
+(add/remove/reorder), act name/intro, "Map image…"/"Clear map", "Add chapter", and the live **Problems** list; centre:
+`CampaignMapView` (the act's map image or a grid, a pin per chapter - drag to move, click to select; gold = start, purple = finale -
+and arrows for links: green on win, red on lose, grey always); right: the selected chapter (title, mission picker + "Add mission…"
+which copies a mission from `user://missions`, start/finale checkboxes, story before/after, links, delete). Smoke-tested headlessly
+(model round trip through the files, problem detection incl. unreachable/missing mission/finale, chapter delete removing links, the
+editor driven through its own actions); the layout/drag feel was not seen.
+
 ## Scene structure (post-refactor)
 
 Split into a minimal reusable piece plus two separate wrappers, specifically so
@@ -6716,6 +6751,12 @@ appears locally, for a user who separately owns the official game and runs
 
 These cost real debugging time — worth not re-learning them:
 
+- **`--headless --import` is NOT a complete compile check for scripts nothing has loaded yet** (found 2026-10-07): it catches parse
+  errors (bad indentation, unknown identifiers) when global classes are registered, but type-INFERENCE errors (`var x := <untyped
+  expression>`, e.g. from `event.position` on an untyped `InputEvent`) only surface once the script is actually analysed/loaded - a
+  new `CampaignMapView` shipped one through a clean import and was only caught by a scene test that instantiated it. For new
+  scripts, run a throwaway scene that `load()`s every script under `res://scripts` and `res://autoload` (a loop over
+  `DirAccess.get_files_at()`) and grep the output for `SCRIPT ERROR`; the last full run (2026-10-07) was clean for the whole project.
 - **A "the model looks rotated/wrong" report against imported mesh data
   can have several unrelated root causes that look similar - don't keep
   re-deriving coordinate math by hand, check against a REFERENCE
