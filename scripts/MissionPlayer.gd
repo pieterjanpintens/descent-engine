@@ -519,7 +519,17 @@ func _set_monster_display_visible(shown: bool) -> void:
 
 
 func _on_back_button_pressed() -> void:
-	get_tree().change_scene_to_file(menu_scene_path)
+	_exit_mission({})
+
+
+## Leaves the mission: back to the campaign screen with `result` ({} = abandoned) when it was
+## played as a campaign chapter (GameState.campaign_folder), else to the main menu.
+func _exit_mission(result: Dictionary) -> void:
+	if GameState.campaign_folder != "":
+		GameState.campaign_result = result
+		get_tree().change_scene_to_file(GameState.CAMPAIGN_SCENE)
+	else:
+		get_tree().change_scene_to_file(menu_scene_path)
 
 
 ## A plain flat red theme for the "End Phase" button (no real art - see
@@ -1108,7 +1118,11 @@ func _handle_game_over(objective: MissionObjective) -> void:
 	end_phase_button.disabled = true
 	var outcome_text := "Victory!" if objective.outcome == MissionObjective.Outcome.WIN else "Defeat."
 	await dialog.ask_ok("%s\n%s" % [outcome_text, objective.description], true, false, outcome_text.trim_suffix("!").trim_suffix("."))
-	get_tree().change_scene_to_file(menu_scene_path)
+	_exit_mission({
+		"won": objective.outcome == MissionObjective.Outcome.WIN,
+		"roster": player_roster.duplicate(),
+		"chapter_id": GameState.campaign_chapter_id,
+	})
 
 
 ## PlayerInteractionController.fire_prop_action() can end the game live,

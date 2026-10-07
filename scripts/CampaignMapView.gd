@@ -5,7 +5,9 @@ extends Control
 ## none) with a pin per chapter - drag a pin to move it, click to select it - and an arrow for
 ## every link between chapters (green = on win, red = on lose, grey = always). Pure view: it
 ## edits `CampaignChapter.map_position` while a pin is dragged and tells its owner through
-## signals; saving and undo are the editor's business.
+## signals; saving and undo are the editor's business. With `read_only` (the campaign player)
+## pins can only be selected, and are coloured by `statuses` (chapter id -> "available" / "done" /
+## "locked") instead of start/finale.
 
 signal chapter_selected(chapter_id: String)
 signal chapter_moved(chapter_id: String)
@@ -20,9 +22,15 @@ const LINK_COLORS := {
 	CampaignLink.Outcome.ANY: Color(0.7, 0.7, 0.7),
 }
 
+const AVAILABLE_COLOR := Color(0.4, 0.85, 0.4)
+const DONE_COLOR := Color(0.45, 0.5, 0.55)
+const LOCKED_COLOR := Color(0.18, 0.2, 0.25)
+
 var act: CampaignAct
 var texture: Texture2D
 var selected_id: String = ""
+var read_only: bool = false
+var statuses: Dictionary = {}
 
 var _dragging: CampaignChapter
 
@@ -75,10 +83,12 @@ func _draw() -> void:
 	if act == null:
 		return
 	for chapter in act.chapters:
+		if read_only and statuses.get(chapter.id, "locked") == "locked":
+			continue  # a locked chapter's way on is not revealed yet
 		for link in chapter.links:
 			var target := act.find_chapter(link.target_id)
 			if target != null and target != chapter:
-				_draw_arrow(pin_position(chapter), pin_position(target), LINK_COLORS[link.outcome])
+				_draw_arrow(pin_position(chapter), pin_position(target), LINK_COLORS[link.outcome] if not read_only else Color(0.75, 0.75, 0.75, 0.6))
 	for chapter in act.chapters:
 		_draw_pin(chapter)
 
@@ -95,7 +105,10 @@ func _draw_arrow(from: Vector2, to: Vector2, color: Color) -> void:
 func _draw_pin(chapter: CampaignChapter) -> void:
 	var center := pin_position(chapter)
 	var fill := PIN_COLOR
-	if chapter.id == act.start_chapter_id:
+	var status: String = statuses.get(chapter.id, "locked")
+	if read_only:
+		fill = AVAILABLE_COLOR if status == "available" else (DONE_COLOR if status == "done" else LOCKED_COLOR)
+	elif chapter.id == act.start_chapter_id:
 		fill = START_COLOR
 	elif chapter.is_finale:
 		fill = FINALE_COLOR
@@ -103,6 +116,8 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 	draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if chapter.id == selected_id else 2.0, true)
 	var font := ThemeDB.fallback_font
 	var label := chapter.title if chapter.title != "" else "(untitled)"
+	if read_only and status == "done":
+		label = "✓ " + label
 	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 	draw_string_outline(font, center + Vector2(-width / 2.0, PIN_RADIUS + 16), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, 4, Color(0, 0, 0, 0.85))
 	draw_string(font, center + Vector2(-width / 2.0, PIN_RADIUS + 16), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
@@ -115,7 +130,7 @@ func _gui_input(event: InputEvent) -> void:
 		if event.pressed:
 			var hit := _chapter_at(event.position)
 			if hit != null:
-				_dragging = hit
+				_dragging = hit if not read_only else null
 				selected_id = hit.id
 				chapter_selected.emit(hit.id)
 				queue_redraw()

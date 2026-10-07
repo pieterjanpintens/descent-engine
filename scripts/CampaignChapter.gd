@@ -14,4 +14,7 @@ extends Resource
 @export_multiline var story_after: String = ""
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var is_finale: bool = false
+## What winning the chapter gives: experience to EACH hero that played it, and gold for the party.
+@export var reward_xp: int = 5
+@export var reward_gold: int = 0
 @export var links: Array[CampaignLink] = []

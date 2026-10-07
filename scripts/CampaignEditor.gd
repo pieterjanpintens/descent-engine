@@ -573,6 +573,13 @@ func _rebuild_chapter_panel() -> void:
 	)
 	_chapter_panel.add_child(finale_check)
 
+	var reward_row := HBoxContainer.new()
+	_chapter_panel.add_child(reward_row)
+	reward_row.add_child(_label("Win gives XP:"))
+	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
+	reward_row.add_child(_label("gold:"))
+	reward_row.add_child(_reward_spin(chapter.reward_gold, func(value: int): chapter.reward_gold = value))
+
 	_chapter_panel.add_child(_label("Story before the mission:"))
 	var before_edit := _text_edit(80)
 	before_edit.text = chapter.story_before
@@ -651,6 +658,18 @@ func _build_link_row(chapter: CampaignChapter, link: CampaignLink, others: Array
 
 
 # ---------------------------------------------------------------- small helpers
+
+func _reward_spin(initial: int, on_change: Callable) -> SpinBox:
+	var spin := SpinBox.new()
+	spin.min_value = 0
+	spin.max_value = 9999
+	spin.value = initial
+	spin.value_changed.connect(func(value: float):
+		on_change.call(int(value))
+		_mark_dirty()
+	)
+	return spin
+
 
 func _label(text: String) -> Label:
 	var label := Label.new()

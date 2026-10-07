@@ -6450,13 +6450,13 @@ chapter on their way. Each act has a **map** (an image the campaign author suppl
 pinned on it as a visual representation. Decisions: branching paths built so a linear path is just a graph without
 branches; a chapter holds ONE fixed mission (a "pick one of N" pool comes later); a lost mission is **retried by default**,
 or leads to an authored "on lose" branch; the campaign lives in ONE FOLDER with its missions and map images inside
-(`user://campaigns/<name>/campaign.tres`), so it is shareable and every mission stays self-contained. **Planned, not built**:
+(`user://campaigns/<name>/campaign.tres`), so it is shareable and every mission stays self-contained. **Planned, not built** (the campaign player below is done; see it for what exists):
 the party's level making missions more challenging (monster scaling already has a `level` input - the plan is a level offset passed
 into `MonsterTemplate.resolve()` when a mission is started from the campaign), attachments owned by the party being what embark offers,
 campaign variables missions can read/write, a mission reporting its
 outcome (win/lose + which leaf objective) and rewards, **points of interest on the map** where gold/materials earned in missions
 are spent on weapon parts/upgrades, the **campaign player** (main menu "Campaign" -> act map -> embark with the saved party ->
-play the mission -> back to the map) and a campaign save separate from a mission save.
+play the mission -> back to the map) - built, see below.
 
 **Data** (Resources, `scripts/`): `Campaign` (`campaign_name`, `intro`, `acts`, `next_chapter_number` -> `new_chapter_id()` "ch_N",
 never reused), `CampaignAct` (`act_name`, `intro`, `map_image` file name, `start_chapter_id`, `chapters`; `find_chapter()`,
@@ -6493,6 +6493,29 @@ play rounded down, `add_material()`, `mark_completed()`), stored by `CampaignIO.
 abilities, nothing grants XP, gold or materials, and nothing reads `party_level()`; those arrive with the campaign player. Smoke-tested
 headlessly (levels/slots at the thresholds, equip rules incl. slot limit/other hero's ability/duplicates, XP gain returning levels, a full
 save/load round trip, the editor's progression fields incl. the refusals).
+
+**Campaign player (2026-10-07)** - main menu **"Campaign"** -> `ui/CampaignPlayer.tscn` (`CampaignPlayer.gd`, built in code): a campaign picker +
+"Start / Continue", "Heroes…", "Back to menu", the gold; the current act's map (`CampaignMapView` in `read_only` mode: green pin = available, grey
+"✓" = won, dark = locked; links are only shown from chapters that are not locked) and a side panel for the selected chapter (status, reward, the
+story before, "Play this chapter"; the story after once won). Opening a NEW campaign shows the campaign + act intro; an existing one continues its
+`CampaignState` (`CampaignIO.load_state()`), which is written after every change. **Playing a chapter**: `GameState.campaign_folder/
+campaign_chapter_id` + `current_mission_path` (the mission file in the campaign folder) are set and the normal `MissionPlayer` runs (its embark picks
+the heroes and weapons as usual). **When the mission ends** `MissionPlayer._exit_mission()` (called by `_handle_game_over()` with
+`{won, roster, chapter_id}`, or with `{}` for Back to Menu = abandoned) stores `GameState.campaign_result` and returns to the campaign screen instead of the
+main menu; the screen reopens that campaign, applies the result and clears the context (a mission started from the main menu - Play Mission/Load
+Game - clears any campaign context). **Rules** (`CampaignState.apply_result()`, the same logic the screen uses): the party is at a FRONTIER
+(`available_chapters`; the start chapter at first). A WIN completes the chapter, gives `reward_xp` to EACH hero in the roster and `reward_gold` to the party
+(per-chapter fields, defaults 5 XP / 0 gold, set in the editor's chapter panel), and replaces the chapter in the frontier by the targets of its "on win"/
+"always" links (several = the table chooses); winning a **finale** (or a chapter with nowhere to go) completes the act and starts the next one, after the
+last act the campaign is complete. A LOSS: an "on lose"/"always" link replaces the chapter, otherwise the chapter is simply offered again (no XP/gold on a
+loss). A result is ignored for a chapter that is not in the frontier. After a mission the screen tells the outcome: XP/gold, levels reached, the story
+after, act/campaign completion and what is available now. **Heroes…** = `CampaignHeroesDialog`: per hero the level/XP, the equipped abilities
+(× to unequip) and an Equip picker (only abilities that fit the hero/level, while a slot is free). `CampaignAct.problems()` also flags a non-finale chapter
+without a way forward on win. **Not built**: points of interest (spending gold/materials), the party level scaling the monsters, owned attachments feeding
+the embark, resuming a half-played mission inside a campaign (a mission saved with the Gear menu loses its campaign context; loading it from the main
+menu ends at the main menu), materials rewards. Smoke-tested headlessly: the frontier logic (branching, losses with/without links, finale -> next act ->
+campaign complete, unknown chapter ignored), the player screen applying a result coming back through `GameState`, the side panel and the heroes dialog;
+the full mission -> campaign scene change itself was not run (headless can't play a mission).
 
 ## Scene structure (post-refactor)
 
@@ -6773,7 +6796,9 @@ These cost real debugging time — worth not re-learning them:
   expression>`, e.g. from `event.position` on an untyped `InputEvent`) only surface once the script is actually analysed/loaded - a
   new `CampaignMapView` shipped one through a clean import and was only caught by a scene test that instantiated it. For new
   scripts, run a throwaway scene that `load()`s every script under `res://scripts` and `res://autoload` (a loop over
-  `DirAccess.get_files_at()`) and grep the output for `SCRIPT ERROR`; the last full run (2026-10-07) was clean for the whole project.
+  `DirAccess.get_files_at()`) and **grep the output for `SCRIPT ERROR`** (`load()` still returns a script object when it fails to compile,
+  so checking for null is not enough - a failing script only shows as `Nonexistent function 'new'` when instantiated); the last full
+  run (2026-10-07, 106 scripts + the four main scenes) was clean.
 - **A "the model looks rotated/wrong" report against imported mesh data
   can have several unrelated root causes that look similar - don't keep
   re-deriving coordinate math by hand, check against a REFERENCE

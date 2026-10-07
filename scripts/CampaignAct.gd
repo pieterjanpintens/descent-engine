@@ -41,6 +41,14 @@ func reachable_ids() -> Array[String]:
 	return seen
 
 
+## Whether winning `chapter` leads somewhere (a link "on win" or "always").
+func _has_way_forward(chapter: CampaignChapter) -> bool:
+	for link in chapter.links:
+		if link.outcome != CampaignLink.Outcome.LOSE and find_chapter(link.target_id) != null:
+			return true
+	return false
+
+
 ## Human-readable problems with this act's path - `mission_files` is what exists in the
 ## campaign folder. Empty = fine.
 func problems(mission_files: Array[String]) -> Array[String]:
@@ -60,6 +68,8 @@ func problems(mission_files: Array[String]) -> Array[String]:
 		for link in chapter.links:
 			if find_chapter(link.target_id) == null:
 				found.append("'%s' links to a chapter that no longer exists" % chapter.title)
+		if not chapter.is_finale and not _has_way_forward(chapter):
+			found.append("'%s' has no way forward (link it on win, or make it a finale)" % chapter.title)
 		if not reachable.has(chapter.id):
 			found.append("'%s' cannot be reached from the start" % chapter.title)
 		elif chapter.is_finale:
