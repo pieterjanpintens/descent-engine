@@ -11,7 +11,6 @@ extends RefCounted
 
 const WORD_FILE := "res://data/words_en.txt"
 const CUSTOM_FILE := "user://spelling/custom_words.txt"
-const MISSPELLED_COLOR := Color(1.0, 0.35, 0.35)
 const LETTERS := "abcdefghijklmnopqrstuvwxyz"
 
 static var _words: Dictionary = {}
@@ -95,27 +94,6 @@ static func _starts_sentence(text: String, start: int) -> bool:
 	while i >= 0 and text[i] in " \t\"“‘'([":
 		i -= 1
 	return i < 0 or text[i] in ".!?:"
-
-
-## Re-colours the misspelled words of a line on top of the highlighter's own colour map (column -> {"color"}).
-static func recolor(text: String, colors: Dictionary, names: Dictionary) -> Dictionary:
-	var ranges := misspelled_ranges(text, names)
-	if ranges.is_empty():
-		return colors
-	var keys: Array = colors.keys()
-	keys.sort()
-	var result := colors.duplicate(true)
-	for span in ranges:
-		var restore: Color = colors[keys[0]]["color"]
-		for key in keys:
-			if key <= span.y:
-				restore = colors[key]["color"]
-			if key > span.x and key < span.y:
-				result.erase(key)
-		result[span.x] = {"color": MISSPELLED_COLOR}
-		if not colors.has(span.y):
-			result[span.y] = {"color": restore}
-	return result
 
 
 ## The misspelled word at `column` of `text`: {"start", "end", "word"}, or {} when that word is fine / there is none.

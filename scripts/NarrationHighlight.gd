@@ -12,6 +12,7 @@ static func apply(edit: TextEdit, characters: Array[NarratorCharacter]) -> void:
 	highlighter.characters = characters
 	edit.syntax_highlighter = highlighter
 	_add_spelling_menu(edit, characters)
+	SpellUnderline.new().setup(edit, characters)
 
 
 ## A row of buttons, one per character, in the character's color. They work on whichever of `edits` had the
@@ -95,7 +96,7 @@ static func _add_spelling_menu(edit: TextEdit, characters: Array[NarratorCharact
 			edit.end_complex_operation()
 		elif id == MENU_ADD_WORD:
 			SpellChecker.add_word(found["word"])
-			if edit.syntax_highlighter != null:
-				edit.syntax_highlighter.clear_highlighting_cache()
+			if edit.has_meta("spell_underline"):
+				edit.get_meta("spell_underline").queue_redraw()
 		state["word"] = {}
 	)
