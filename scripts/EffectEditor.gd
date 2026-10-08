@@ -23,6 +23,11 @@ var mission: MissionData
 var campaign_variables: Array[MissionVariable] = []
 ## When not empty, the only effect types the type dropdown offers (the campaign editor: set variable / math).
 var allowed_effect_types: Array[int] = []
+## Campaign mode (the campaign editor): "New variable…" adds to this list (the campaign's own `variables`) instead of the
+## mission's, and `variables_changed` (if set) is called afterwards so the owner can rebuild its other pickers.
+var campaign_mode := false
+var campaign_target: Array[MissionVariable] = []
+var variables_changed: Callable = Callable()
 var host: Node
 var _commit: Callable
 
@@ -99,14 +104,7 @@ func _known_variable_names() -> Array[String]:
 ## actively picks something from the dropdown.
 func _build_variable_name_option(current_name: String, on_commit: Callable) -> OptionButton:
 	var option := OptionButton.new()
-	var names := _known_variable_names()
-	for name in names:
-		option.add_item(name)
-	option.select(names.find(current_name))
-	option.item_selected.connect(func(index: int):
-		if index >= 0 and index < names.size():
-			on_commit.call(names[index])
-	)
+	_wire_variable_option(option, _known_variable_names, current_name, -1, on_commit)
 	return option
 
 
@@ -158,11 +156,10 @@ func _build_math_operand_editor(effect: Effect, prefix: String) -> Control:
 	literal_spin.value = effect.get(prefix + "literal")
 	box.add_child(literal_spin)
 
-	var int_names := _known_int_variable_names()
 	var variable_option := OptionButton.new()
-	for name in int_names:
-		variable_option.add_item(name)
-	variable_option.select(int_names.find(effect.get(prefix + "variable")))
+	_wire_variable_option(variable_option, _known_int_variable_names, effect.get(prefix + "variable"), MissionVariable.Type.INT, func(picked: String):
+		_commit_field("Edit math operand variable", func(): effect.set(prefix + "variable", picked))
+	)
 	box.add_child(variable_option)
 
 	var update_visibility := func():
@@ -177,10 +174,6 @@ func _build_math_operand_editor(effect: Effect, prefix: String) -> Control:
 	)
 	literal_spin.value_changed.connect(func(new_value: float):
 		_commit_field("Edit math operand value", func(): effect.set(prefix + "literal", int(new_value)))
-	)
-	variable_option.item_selected.connect(func(index: int):
-		if index >= 0 and index < int_names.size():
-			_commit_field("Edit math operand variable", func(): effect.set(prefix + "variable", int_names[index]))
 	)
 
 	return box
@@ -631,8 +624,16 @@ func _open_test_editor(effect: Effect) -> void:
 	var accumulate_names := _known_variable_names()
 	for name in accumulate_names:
 		accumulate_option.add_item(name)
+	accumulate_option.add_item(NEW_VARIABLE_ENTRY)
 	accumulate_option.select(accumulate_names.find(effect.accumulate_variable_name) + 1 if effect.accumulate_variable_name != "" else 0)
 	accumulate_option.item_selected.connect(func(index: int):
+		if index == accumulate_names.size() + 1:
+			ask_new_variable(MissionVariable.Type.INT, func(created: String):
+				_commit_field("Edit test accumulate variable", func(): effect.accumulate_variable_name = created)
+				_open_test_editor(effect)
+			)
+			accumulate_option.select(accumulate_names.find(effect.accumulate_variable_name) + 1 if effect.accumulate_variable_name != "" else 0)
+			return
 		var new_name := accumulate_names[index - 1] if index > 0 else ""
 		_commit_field("Edit test accumulate variable", func(): effect.accumulate_variable_name = new_name)
 	)
@@ -947,3 +948,157 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 	_spawn_monsters_editor_container.add_child(add_button)
 
 	_spawn_monsters_editor.popup_centered()
+
+
+# ---------------------------------------------------------------- "New variable..." in every picker
+
+const NEW_VARIABLE_ENTRY := "+ New variable…"
+
+var _new_variable_dialog: ConfirmationDialog
+var _new_name_edit: LineEdit
+var _new_type_option: OptionButton
+var _new_default_check: CheckBox
+var _new_default_spin: SpinBox
+var _new_default_line: LineEdit
+var _new_error_label: Label
+var _new_on_created: Callable
+
+
+## Where "New variable…" adds a variable: the campaign's own list in campaign mode, else the mission's.
+func _target_list() -> Array[MissionVariable]:
+	return campaign_target if campaign_mode else mission.custom_variables
+
+
+## Fills `option` with the names `names_getter` returns plus a final "+ New variable…" entry. Picking a name calls
+## `on_pick(name)`; picking the entry opens the create dialog (`type_lock` = a MissionVariable.Type to force, -1 = free)
+## and, once created, selects and picks the new variable. Re-fetches the names, so the new one is listed at once.
+func _wire_variable_option(option: OptionButton, names_getter: Callable, current: String, type_lock: int, on_pick: Callable) -> void:
+	var state := {"names": [] as Array[String], "previous": -1}
+	var fill := func(select_name: String):
+		option.clear()
+		var current_names: Array[String] = names_getter.call()
+		state["names"] = current_names
+		for variable_name in current_names:
+			option.add_item(variable_name)
+		option.add_item(NEW_VARIABLE_ENTRY)
+		state["previous"] = current_names.find(select_name)
+		option.select(state["previous"])
+	fill.call(current)
+	option.item_selected.connect(func(index: int):
+		var current_names: Array[String] = state["names"]
+		if index >= 0 and index < current_names.size():
+			state["previous"] = index
+			on_pick.call(current_names[index])
+			return
+		option.select(state["previous"])
+		ask_new_variable(type_lock, func(new_name: String):
+			on_pick.call(new_name)
+			fill.call(new_name)
+			if variables_changed.is_valid():
+				variables_changed.call()
+		)
+	)
+
+
+## Opens the small create dialog (name, type, default). `type_lock` forces the type (Math operands need an INT); -1 =
+## free. `on_created(name)` runs after the variable has been added as one undo step.
+func ask_new_variable(type_lock: int, on_created: Callable) -> void:
+	if _new_variable_dialog == null:
+		_build_new_variable_dialog()
+	_new_on_created = on_created
+	_new_name_edit.text = ""
+	_new_error_label.text = ""
+	var type := type_lock if type_lock != -1 else int(MissionVariable.Type.BOOL)
+	_new_type_option.select(_new_type_option.get_item_index(type))
+	_new_type_option.disabled = type_lock != -1
+	_refresh_new_default()
+	_new_variable_dialog.popup_centered()
+	_new_name_edit.grab_focus()
+
+
+func _build_new_variable_dialog() -> void:
+	_new_variable_dialog = ConfirmationDialog.new()
+	_new_variable_dialog.title = "New variable"
+	_new_variable_dialog.ok_button_text = "Create"
+	host.add_child(_new_variable_dialog)
+	var box := VBoxContainer.new()
+	_new_variable_dialog.add_child(box)
+
+	var name_row := HBoxContainer.new()
+	name_row.add_child(_label("Name:"))
+	_new_name_edit = LineEdit.new()
+	_new_name_edit.custom_minimum_size.x = 220
+	_new_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_row.add_child(_new_name_edit)
+	box.add_child(name_row)
+
+	var type_row := HBoxContainer.new()
+	type_row.add_child(_label("Type:"))
+	_new_type_option = OptionButton.new()
+	_new_type_option.add_item("Bool", MissionVariable.Type.BOOL)
+	_new_type_option.add_item("Int", MissionVariable.Type.INT)
+	_new_type_option.add_item("Float", MissionVariable.Type.FLOAT)
+	_new_type_option.add_item("String", MissionVariable.Type.STRING)
+	_new_type_option.item_selected.connect(func(_index: int): _refresh_new_default())
+	type_row.add_child(_new_type_option)
+	box.add_child(type_row)
+
+	var default_row := HBoxContainer.new()
+	default_row.add_child(_label("Default:"))
+	_new_default_check = CheckBox.new()
+	default_row.add_child(_new_default_check)
+	_new_default_spin = SpinBox.new()
+	_new_default_spin.min_value = -999999
+	_new_default_spin.max_value = 999999
+	default_row.add_child(_new_default_spin)
+	_new_default_line = LineEdit.new()
+	_new_default_line.custom_minimum_size.x = 160
+	default_row.add_child(_new_default_line)
+	box.add_child(default_row)
+
+	_new_error_label = Label.new()
+	_new_error_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
+	box.add_child(_new_error_label)
+	_new_variable_dialog.confirmed.connect(_on_new_variable_confirmed)
+
+
+func _refresh_new_default() -> void:
+	var type := _new_type_option.get_selected_id()
+	_new_default_check.visible = type == MissionVariable.Type.BOOL
+	_new_default_spin.visible = type == MissionVariable.Type.INT or type == MissionVariable.Type.FLOAT
+	_new_default_spin.step = 1.0 if type == MissionVariable.Type.INT else 0.01
+	_new_default_line.visible = type == MissionVariable.Type.STRING
+
+
+func _on_new_variable_confirmed() -> void:
+	var new_name := _new_name_edit.text.strip_edges()
+	var taken := _known_variable_names()
+	if campaign_mode:
+		taken.append_array(Campaign.BUILTIN_VARIABLES)
+	var problem := ""
+	if new_name == "":
+		problem = "Give the variable a name."
+	elif taken.has(new_name):
+		problem = "A variable called '%s' already exists." % new_name
+	if problem != "":
+		_new_error_label.text = problem
+		_new_variable_dialog.popup_centered()
+		return
+	var type := _new_type_option.get_selected_id()
+	var variable := MissionVariable.new()
+	variable.name = new_name
+	variable.type = type as MissionVariable.Type
+	match type:
+		MissionVariable.Type.BOOL:
+			variable.default_value = _new_default_check.button_pressed
+		MissionVariable.Type.INT:
+			variable.default_value = int(_new_default_spin.value)
+		MissionVariable.Type.FLOAT:
+			variable.default_value = float(_new_default_spin.value)
+		_:
+			variable.default_value = _new_default_line.text
+	_commit_field("Add variable", func(): _target_list().append(variable))
+	if campaign_mode:
+		campaign_variables.append(variable)
+	if _new_on_created.is_valid():
+		_new_on_created.call(new_name)

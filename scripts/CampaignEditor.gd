@@ -698,6 +698,13 @@ func _on_map_side_quest_selected(quest_id: String) -> void:
 ## variable of the same type. `from_mission` true = "take over from the mission" (mission_outputs: mission
 ## variable -> a writable campaign variable, copied when the mission ends); false = "give to the mission"
 ## (mission_inputs: any campaign variable -> a mission variable, preset when the mission starts).
+## Lets an EffectEditor's pickers create campaign variables in place ("+ New variable…").
+func _bind_variable_editor(editor: EffectEditor) -> void:
+	editor.campaign_mode = true
+	editor.campaign_target = _campaign.variables
+	editor.variables_changed = _rebuild_chapter_panel
+
+
 func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mission_file: String, from_mission: bool) -> void:
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_label(heading))
@@ -717,8 +724,20 @@ func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mi
 			if left_list[i].name == link.get(left_property):
 				left_index = i
 				left_type = left_list[i].type
+		if not from_mission:
+			left_option.add_item(EffectEditor.NEW_VARIABLE_ENTRY)  # the left side is the campaign's
 		left_option.select(left_index)
 		left_option.item_selected.connect(func(index: int):
+			if index >= left_list.size():
+				left_option.select(left_index)
+				_bind_variable_editor(_effect_editor)
+				_effect_editor.campaign_variables = _campaign.writable_variables()
+				_effect_editor.ask_new_variable(-1, func(created: String):
+					link.set(left_property, created)
+					_mark_dirty()
+					_rebuild_chapter_panel()
+				)
+				return
 			link.set(left_property, left_list[index].name)
 			_mark_dirty()
 			_rebuild_chapter_panel()
@@ -735,8 +754,20 @@ func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mi
 		for i in candidates.size():
 			if candidates[i].name == link.get(right_property):
 				right_index = i
+		if from_mission:
+			right_option.add_item(EffectEditor.NEW_VARIABLE_ENTRY)  # the right side is the campaign's
 		right_option.select(right_index)
 		right_option.item_selected.connect(func(index: int):
+			if index >= candidates.size():
+				right_option.select(right_index)
+				_bind_variable_editor(_effect_editor)
+				_effect_editor.campaign_variables = _campaign.writable_variables()
+				_effect_editor.ask_new_variable(left_type, func(created: String):  # same type as the mission variable
+					link.set(right_property, created)
+					_mark_dirty()
+					_rebuild_chapter_panel()
+				)
+				return
 			link.set(right_property, candidates[index].name)
 			_mark_dirty()
 		)
@@ -764,6 +795,7 @@ func _build_conditions_section(heading: String, conditions: Array[Condition], pa
 	var into: Container = parent if parent != null else _chapter_panel
 	into.add_child(HSeparator.new())
 	into.add_child(_label(heading))
+	_bind_variable_editor(_condition_editor)
 	_condition_editor.campaign_variables = _campaign.all_variables()
 	for condition in conditions:
 		into.add_child(_condition_editor.build_condition_row(conditions, condition, _rebuild_chapter_panel))
@@ -782,6 +814,7 @@ func _build_effects_section(heading: String, effects: Array[Effect], parent: Con
 	var into: Container = parent if parent != null else _chapter_panel
 	into.add_child(HSeparator.new())
 	into.add_child(_label(heading))
+	_bind_variable_editor(_effect_editor)
 	_effect_editor.campaign_variables = _campaign.writable_variables()
 	for effect in effects:
 		into.add_child(_effect_editor.build_effect_row(effects, effect, _rebuild_chapter_panel))

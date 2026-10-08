@@ -7594,11 +7594,5 @@ These cost real debugging time — worth not re-learning them:
 	reverted earlier in this same saga - see that section above for why
 	those didn't pan out) rather than approximating it with one
 	rectangle. Low priority, optional - not blocking anything.
-19. **TODO (asked 2026-10-08, "after the Piper experiment"): create variables in place.** Today a mission / campaign variable must be declared in the Variables... dialog first
-	and only then shows up in the pickers - "it's a pita to leave the context, add them and go back". Wanted: wherever a variable can be referenced, the picker itself offers a
-	"New variable..." entry that opens a small create dialog (name, type, default), adds it to `MissionData.custom_variables` (mission editor) or `Campaign.variables`
-	(campaign editor) as ONE undo step, and selects it in the picker you came from. Places: `EffectEditor._build_variable_name_option()` / `_known_variable_names()` (Condition and Effect
-	rows, Set Variable, Test accumulate), the Math operand pickers (`_build_math_operand_editor()`, INT only - the dialog must default to INT there), the message "Variables..." list, the
-	campaign editor's mission-variable mappings (`_build_mapping_section()`) and the narrative step / answer conditions and effects. The create dialog can reuse `MissionVariablesDialog`'s
-	row code; a typed-filter (Math = INT) should preselect and lock the type. Open point: name validation (duplicates, blank) which the variables dialogs still don't do.
+19. ~~create variables in place~~ **DONE 2026-10-08 (compile-checked only)**: every variable picker built by `EffectEditor` ends in a "+ New variable…" entry (`_wire_variable_option()`: Condition/Effect rows, Set Variable, message "Variables…", Math operands - type locked to INT -, and the Test's accumulate picker - INT). It opens a small create dialog (`EffectEditor.ask_new_variable()`: name, type, default; blank/duplicate names refused), adds the variable as ONE undo step to `MissionData.custom_variables` or, in campaign mode (`campaign_mode`/`campaign_target`, set by `CampaignEditor._bind_variable_editor()`), `Campaign.variables`, selects it in the picker and calls `variables_changed` (the campaign editor rebuilds its panel; the mission dialogs only refill the picker you used, the others update on their next rebuild). The campaign editor's mission-variable mappings offer it on their campaign side (type locked to the mission variable's). Narrative step/answer conditions and effects use the same rows, so they have it too.
 
