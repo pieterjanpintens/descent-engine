@@ -49,7 +49,9 @@ func _ready() -> void:
 	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list_scroll.add_child(_list_box)
 	left.add_child(_button("+ Add step", func():
-		chapter.steps.append(NarrativeStep.new())
+		var created := NarrativeStep.new()
+		created.id = chapter.new_step_id()
+		chapter.steps.append(created)
 		_selected = chapter.steps.size() - 1
 		_changed()
 		refresh()
@@ -73,6 +75,7 @@ func open_for(p_chapter: CampaignChapter, p_campaign: Campaign, p_mark_dirty: Ca
 	build_conditions = p_build_conditions
 	build_effects = p_build_effects
 	_selected = 0
+	chapter.ensure_step_ids()
 	refresh()
 	popup_centered_ratio(0.97)
 
@@ -147,6 +150,7 @@ func _rebuild_detail() -> void:
 	down.disabled = index == chapter.steps.size() - 1
 	banner_row.add_child(down)
 	banner_row.add_child(_button("✕ Delete step", func():
+		_forget_goto_to(step.id)
 		chapter.steps.remove_at(index)
 		_changed()
 		refresh()
@@ -233,15 +237,55 @@ func _build_answer(step: NarrativeStep, answer: NarrativeAnswer, k: int) -> Cont
 
 	box.add_child(_sub("Choosing it…", "Variables it sets, and whether it ends the story."))
 	build_effects.call("", answer.effects, box, refresh)
-	var end_check := CheckBox.new()
-	end_check.text = "Ends the story (skips the steps after it)"
-	end_check.button_pressed = answer.ends_narrative
-	end_check.toggled.connect(func(on: bool):
-		answer.ends_narrative = on
+	box.add_child(_sub("After this answer", "Branching: carry on with the next step, jump to another step, or end the story."))
+	box.add_child(_build_after_picker(answer))
+	return frame
+
+
+## Next step / Go to step… (+ which) / End the story - stored as goto_step_id and ends_narrative (never both).
+func _build_after_picker(answer: NarrativeAnswer) -> Control:
+	var row := HBoxContainer.new()
+	var mode := OptionButton.new()
+	mode.add_item("Continue with the next step", 0)
+	mode.add_item("Go to step…", 1)
+	mode.add_item("End the story", 2)
+	var current := 2 if answer.ends_narrative else (1 if answer.goto_step_id != "" else 0)
+	mode.select(current)
+	row.add_child(mode)
+	var target := OptionButton.new()
+	target.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for i in chapter.steps.size():
+		var label := NarrationMarkup.plain(chapter.steps[i].text, campaign.characters).replace("\n", " ").strip_edges()
+		if label.length() > 40:
+			label = label.substr(0, 40) + "…"
+		target.add_item("Step %d: %s" % [i + 1, label if label != "" else "(empty)"], i)
+	var target_index := chapter.find_step_index(answer.goto_step_id)
+	target.select(target_index)  # -1 (blank) when the step no longer exists
+	target.visible = current == 1
+	row.add_child(target)
+	mode.item_selected.connect(func(index: int):
+		answer.ends_narrative = index == 2
+		if index == 1:
+			if chapter.find_step_index(answer.goto_step_id) == -1 and not chapter.steps.is_empty():
+				answer.goto_step_id = chapter.steps[0].id
+		else:
+			answer.goto_step_id = ""
+		_changed()
+		refresh()
+	)
+	target.item_selected.connect(func(index: int):
+		answer.goto_step_id = chapter.steps[index].id
 		_changed()
 	)
-	box.add_child(end_check)
-	return frame
+	return row
+
+
+## Answers that jumped to a step that is being deleted go back to "continue with the next step".
+func _forget_goto_to(step_id: String) -> void:
+	for step in chapter.steps:
+		for answer in step.answers:
+			if answer.goto_step_id == step_id:
+				answer.goto_step_id = ""
 
 
 func _move_step(index: int, delta: int) -> void:

@@ -26,6 +26,8 @@ extends Resource
 @export var exclusive_links: bool = false
 ## What winning the chapter gives the party: experience points (the party's counter) and gold.
 @export var reward_xp: int = 1
+## Counter for NarrativeStep ids (never reused, so a deleted step's id can't point at a newer one).
+@export var next_step_number: int = 1
 @export var reward_gold: int = 0
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}
@@ -37,3 +39,26 @@ extends Resource
 @export var mission_inputs: Array[MissionVariableMap] = []
 @export var win_effects: Array[Effect] = []
 @export var lose_effects: Array[Effect] = []
+
+
+func new_step_id() -> String:
+	var step_id := "step_%d" % next_step_number
+	next_step_number += 1
+	return step_id
+
+
+## Index in `steps` of the step with this id, -1 if there is none.
+func find_step_index(step_id: String) -> int:
+	if step_id == "":
+		return -1
+	for i in steps.size():
+		if steps[i].id == step_id:
+			return i
+	return -1
+
+
+## Gives every step an id (steps added before ids existed have none).
+func ensure_step_ids() -> void:
+	for step in steps:
+		if step.id == "":
+			step.id = new_step_id()

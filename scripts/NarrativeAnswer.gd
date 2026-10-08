@@ -11,3 +11,6 @@ extends Resource
 @export var conditions: Array[Condition] = []
 ## Choosing it ends the story: every step after it is skipped.
 @export var ends_narrative: bool = false
+## Choosing it continues with the step that has this id instead of the next one ("" = the next one) - branching. Ignored
+## when `ends_narrative` is set.
+@export var goto_step_id: String = ""

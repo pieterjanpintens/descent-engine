@@ -91,6 +91,8 @@ func problems(mission_files: Array[String]) -> Array[String]:
 				for answer in step.answers:
 					if answer.text.strip_edges() == "":
 						found.append("'%s' has an answer without text" % chapter.title)
+					if answer.goto_step_id != "" and not answer.ends_narrative and chapter.find_step_index(answer.goto_step_id) == -1:
+						found.append("'%s' has an answer that goes to a step that no longer exists" % chapter.title)
 		elif chapter.mission_file == "":
 			found.append("'%s' has no mission" % chapter.title)
 		elif not mission_files.has(chapter.mission_file):

@@ -587,6 +587,9 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 ## and answers with unmet conditions are skipped, an answer can end the story early. The effects of the chosen answers
 ## are applied to the save together once the end is reached, so quitting halfway changes nothing, and the chapter then
 ## counts as won. What was read and chosen goes in the campaign log.
+const MAX_NARRATIVE_STEPS := 200
+
+
 func _play_narrative(chapter: CampaignChapter) -> void:
 	if _narrative_dialog == null:
 		_narrative_dialog = PlayerDialog.new()
@@ -597,9 +600,14 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 	# Steps and answers can depend on the campaign variables - including what was answered earlier in this very
 	# story - so the chosen effects are applied to a scratch copy while reading and to the real save at the end.
 	var scratch: CampaignState = _state.duplicate(true)
-	for step in chapter.steps:
+	var position := 0
+	var shown := 0  # a goto loop can't run forever
+	while position < chapter.steps.size() and shown < MAX_NARRATIVE_STEPS:
+		var step := chapter.steps[position]
+		position += 1
 		if not scratch.conditions_hold(_campaign, step.conditions):
 			continue
+		shown += 1
 		var offered: Array[NarrativeAnswer] = []
 		for answer in step.answers:
 			if scratch.conditions_hold(_campaign, answer.conditions):
@@ -623,6 +631,9 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 			pages.append(NarrationMarkup.plain(answer.reply, _campaign.characters))
 		if answer.ends_narrative:
 			break
+		var target := chapter.find_step_index(answer.goto_step_id)
+		if target != -1:
+			position = target
 	_state.add_log(chapter.title, pages)
 	for answer in chosen:
 		await _state.apply_effects(_campaign, answer.effects)
