@@ -21,7 +21,7 @@ const RANDOM_ID := ""
 const BASE_MODEL := "en_US-lessac-medium"
 ## What the download button tells the player.
 const EXTRAS_SIZE_TEXT := "about 340 MB"
-const STANDARD_SIZE_TEXT := "about 380 MB"
+const STANDARD_SIZE_TEXT := "about 580 MB"
 
 const BASE := {"id": BASE_ID, "label": "Standard - American man", "model": BASE_MODEL, "speaker": -1, "plain": true}
 
@@ -33,6 +33,13 @@ const STANDARD: Array[Dictionary] = [
 	{"id": "john", "label": "American - man (John)", "model": "en_US-john-medium", "speaker": -1, "plain": true},
 	{"id": "alan", "label": "British - man (Alan)", "model": "en_GB-alan-medium", "speaker": -1, "plain": true},
 	{"id": "cori", "label": "British - woman (Cori)", "model": "en_GB-cori-medium", "speaker": -1, "plain": true},
+	{"id": "british_north_m", "label": "British (Northern) - man", "model": "en_GB-northern_english_male-medium", "speaker": -1, "plain": true},
+	{"id": "british_south_f", "label": "British (Southern) - woman", "model": "en_GB-southern_english_female-low", "speaker": -1, "plain": true},
+	# The four voices of the "semaine" model are acted moods (their speaker names): calm, cheerful, aggressive, gloomy.
+	{"id": "semaine_prudence", "label": "British - woman (Prudence, calm)", "model": "en_GB-semaine-medium", "speaker": 0, "plain": true},
+	{"id": "semaine_poppy", "label": "British - woman (Poppy, cheerful)", "model": "en_GB-semaine-medium", "speaker": 3, "plain": true},
+	{"id": "semaine_spike", "label": "British - man (Spike, aggressive)", "model": "en_GB-semaine-medium", "speaker": 1, "plain": true},
+	{"id": "semaine_obadiah", "label": "British - man (Obadiah, gloomy)", "model": "en_GB-semaine-medium", "speaker": 2, "plain": true},
 ]
 
 const STANDARD_MODEL_PATHS := {
@@ -42,6 +49,9 @@ const STANDARD_MODEL_PATHS := {
 	"en_US-john-medium": "en/en_US/john/medium",
 	"en_GB-alan-medium": "en/en_GB/alan/medium",
 	"en_GB-cori-medium": "en/en_GB/cori/medium",
+	"en_GB-northern_english_male-medium": "en/en_GB/northern_english_male/medium",
+	"en_GB-southern_english_female-low": "en/en_GB/southern_english_female/low",
+	"en_GB-semaine-medium": "en/en_GB/semaine/medium",
 }
 
 ## The extra voices. `speaker` = the speaker number inside a multi-speaker model, -1 for a single-speaker model.
