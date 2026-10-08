@@ -6,11 +6,6 @@ game's physical tiles, pillars and stairs. Made with Godot 4.7.2 (GDScript).
 Unofficial fan project, not affiliated with Fantasy Flight Games or Asmodee. It ships none of the game's art or sounds,
 only placeholders.
 
-## Video
-
-A walkthrough of the campaign player:
-[Campaign.mp4](https://github.com/pieterjanpintens/descent-engine/releases/download/v0.0.11/Campaign.mp4)
-
 ## What it does
 
 - **Mission Creator** - paint floors, hazards, props and pillars on a grid with the real tile shapes, group them into
