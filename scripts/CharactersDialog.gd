@@ -19,6 +19,9 @@ const SAMPLE_LINE := "The old road is longer than it looks, friend, and the nigh
 var _characters: Array[NarratorCharacter]
 ## (label: String, mutate: Callable) - applies `mutate` and records/refreshes however the owner wants.
 var _commit: Callable
+## Optional: returns every text of the campaign/mission, for "Add characters used in the texts".
+var _text_source: Callable
+var _scan_button: Button
 var _rows_container: VBoxContainer
 var _empty_label: Label
 
@@ -38,7 +41,7 @@ func _ready() -> void:
 	add_child(root)
 
 	_empty_label = Label.new()
-	_empty_label.text = "No characters yet. Give a character a voice, then wrap their words in [Name]...[/Name] in a text."
+	_empty_label.text = "No characters needed for someone who just walks by: wrap their words in [Name]...[/Name] and they get a voice made from the name. Add a character here to choose the voice and color of a recurring one."
 	_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	root.add_child(_empty_label)
 
@@ -54,11 +57,19 @@ func _ready() -> void:
 	add_button.pressed.connect(_on_add_pressed)
 	root.add_child(add_button)
 
+	_scan_button = Button.new()
+	_scan_button.text = "Add characters used in the texts"
+	_scan_button.tooltip_text = "Finds every [Name]...[/Name] tag in the texts that has no character yet and adds it."
+	_scan_button.pressed.connect(_on_scan_pressed)
+	root.add_child(_scan_button)
+
 
 ## Edits `characters` in place; every change goes through `commit(label, mutate)`.
-func open_for_list(characters: Array[NarratorCharacter], commit: Callable) -> void:
+func open_for_list(characters: Array[NarratorCharacter], commit: Callable, text_source: Callable = Callable()) -> void:
 	_characters = characters
 	_commit = commit
+	_text_source = text_source
+	_scan_button.visible = text_source.is_valid()
 	_rebuild_rows()
 	popup_centered()
 
@@ -82,30 +93,36 @@ func _build_row(character: NarratorCharacter) -> Control:
 	name_edit.text = character.character_name
 	name_edit.placeholder_text = "Name (case matters)"
 	name_edit.custom_minimum_size.x = 110
-	var commit_name := func():
-		_commit_field("Edit character name", func(): character.character_name = name_edit.text.strip_edges())
-	name_edit.text_submitted.connect(func(_t): commit_name.call())
-	name_edit.focus_exited.connect(commit_name)
+	# Committed as you type - a name typed just before closing the window must not be lost.
+	name_edit.text_changed.connect(func(text: String):
+		_commit_field("Edit character name", func(): character.character_name = text.strip_edges())
+	)
 	row.add_child(name_edit)
 
 	var voice_option := OptionButton.new()
 	voice_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var voices := NarratorVoices.all()
+	voice_option.add_item("Random (from the name)", 0)
+	voice_option.select(0)
 	for i in voices.size():
 		var voice := voices[i]
-		voice_option.add_item(voice["label"] if NarratorVoices.model_installed(voice["model"]) else "%s (not installed)" % voice["label"], i)
+		voice_option.add_item(voice["label"] if NarratorVoices.model_installed(voice["model"]) else "%s (not installed)" % voice["label"], i + 1)
 		if voice["id"] == character.voice_id:
-			voice_option.select(i)
+			voice_option.select(voice_option.item_count - 1)
 	voice_option.item_selected.connect(func(index: int):
-		var chosen := voices[voice_option.get_item_id(index)]
-		_commit_field("Edit character voice", func(): character.voice_id = chosen["id"])
+		var chosen_id := voice_option.get_item_id(index)
+		var voice_id: String = NarratorVoices.RANDOM_ID if chosen_id == 0 else voices[chosen_id - 1]["id"]
+		_commit_field("Edit character voice", func(): character.voice_id = voice_id)
 	)
 	row.add_child(voice_option)
 
 	var play := Button.new()
 	play.text = "▶"
-	play.tooltip_text = "Hear this voice"
-	play.pressed.connect(func(): Narrator.speak_voice(character.voice_id, SAMPLE_LINE))
+	play.tooltip_text = "Hear this character"
+	play.pressed.connect(func():
+		var as_character: Array[NarratorCharacter] = [character]
+		Narrator.speak("[%s]%s[/%s]" % [character.character_name, SAMPLE_LINE, character.character_name], as_character)
+	)
 	row.add_child(play)
 
 	var color_button := ColorPickerButton.new()
@@ -129,10 +146,29 @@ func _build_row(character: NarratorCharacter) -> Control:
 
 
 func _on_add_pressed() -> void:
-	var created := NarratorCharacter.new()
+	var created := NarratorCharacter.new()  # a random voice until you pick one
 	created.character_name = "Character %d" % (_characters.size() + 1)
 	created.color = DEFAULT_COLORS[_characters.size() % DEFAULT_COLORS.size()]
 	_commit_field("Add character", func(): _characters.append(created))
+	_rebuild_rows()
+
+
+func _on_scan_pressed() -> void:
+	var known: Array[String] = []
+	for character in _characters:
+		known.append(character.character_name)
+	var added := 0
+	for text in _text_source.call():
+		for tag_name in NarrationMarkup.tag_names(text):
+			if known.has(tag_name):
+				continue
+			known.append(tag_name)
+			var created := NarratorCharacter.new()
+			created.character_name = tag_name
+			created.color = DEFAULT_COLORS[_characters.size() % DEFAULT_COLORS.size()]
+			_commit_field("Add character", func(): _characters.append(created))
+			added += 1
+	_scan_button.text = "Added %d - add characters used in the texts" % added if added > 0 else "No new tags found in the texts"
 	_rebuild_rows()
 
 

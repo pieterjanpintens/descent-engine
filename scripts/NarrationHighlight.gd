@@ -13,9 +13,13 @@ static func apply(edit: TextEdit, characters: Array[NarratorCharacter]) -> void:
 	edit.syntax_highlighter = highlighter
 
 
-## A row of buttons, one per character, in the character's color.
-static func legend(edit: TextEdit, characters: Array[NarratorCharacter]) -> Control:
+## A row of buttons, one per character, in the character's color. They work on whichever of `edits` had the
+## focus last (the first one before any).
+static func legend(edits: Array[TextEdit], characters: Array[NarratorCharacter]) -> Control:
 	var row := HFlowContainer.new()
+	var target := [edits[0]]
+	for edit in edits:
+		edit.focus_entered.connect(func(): target[0] = edit)
 	var label := Label.new()
 	label.text = "Voices:"
 	row.add_child(label)
@@ -25,7 +29,7 @@ static func legend(edit: TextEdit, characters: Array[NarratorCharacter]) -> Cont
 		button.add_theme_color_override("font_color", character.color)
 		button.add_theme_color_override("font_hover_color", character.color)
 		button.tooltip_text = "Select text and click to give it to %s (or click to insert the tags at the caret)." % character.character_name
-		button.pressed.connect(func(): wrap_selection(edit, character.character_name))
+		button.pressed.connect(func(): wrap_selection(target[0], character.character_name))
 		row.add_child(button)
 	return row
 

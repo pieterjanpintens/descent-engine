@@ -53,6 +53,18 @@ func writable_variables() -> Array[MissionVariable]:
 	return writable
 
 
+## Every text of the narrative chapters (steps, questions, answers, replies) - what the characters' tags are found in.
+func narrative_texts() -> Array[String]:
+	var found: Array[String] = []
+	for act in acts:
+		for chapter in act.chapters:
+			for step in chapter.steps:
+				found.append_array([step.text, step.question])
+				for answer in step.answers:
+					found.append_array([answer.text, answer.reply])
+	return found
+
+
 func new_side_quest_id() -> String:
 	var quest_id := "sq_%d" % next_side_quest_number
 	next_side_quest_number += 1

@@ -5,7 +5,9 @@ extends SyntaxHighlighter
 ## the tags included - in that character's color (see NarrationMarkup for the syntax). CodeHighlighter's color
 ## regions can't do this (their keys must be pure symbols), so the line is scanned here. A tag may span lines,
 ## so the state at the start of a line is found by scanning the lines before it (story texts are short).
-## Only the tags of known characters count; other brackets stay plain.
+## A tag with no character of that name is a throwaway character: colored by a color made from its name (see
+## CharactersDialog's "Add characters used in the texts" to give it a voice of its own); a bracket without a
+## closing tag stays plain.
 
 var characters: Array[NarratorCharacter] = []
 
@@ -33,14 +35,21 @@ func _scan(text: String, open: NarratorCharacter, plain: Color) -> Dictionary:
 		var tag := text.substr(bracket + 1, close - bracket - 1)
 		if open == null:
 			var character := _find(tag)
-			if character != null:
-				open = character
-				colors[bracket] = {"color": character.color}
+			if not tag.begins_with("/") and (character != null or text.contains("[/%s]" % tag)):
+				open = character if character != null else _unknown(tag)
+				colors[bracket] = {"color": open.color}
 		elif tag == "/" + open.character_name:
 			open = null
 			colors[close + 1] = {"color": plain}
 		column = close + 1
 	return {"colors": colors, "open": open}
+
+
+func _unknown(tag: String) -> NarratorCharacter:
+	var stand_in := NarratorCharacter.new()
+	stand_in.character_name = tag
+	stand_in.color = Color.from_hsv(float(tag.hash() % 360) / 360.0, 0.45, 1.0)
+	return stand_in
 
 
 func _find(character_name: String) -> NarratorCharacter:

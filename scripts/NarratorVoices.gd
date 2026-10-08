@@ -13,6 +13,8 @@ extends RefCounted
 
 const VOICE_DIR := "user://piper/voices/"
 const BASE_ID := "lessac"
+## A character's voice_id meaning "pick one from my name" (see Narrator).
+const RANDOM_ID := ""
 const BASE_MODEL := "en_US-lessac-medium"
 ## What the download button tells the player.
 const EXTRAS_SIZE_TEXT := "about 340 MB"

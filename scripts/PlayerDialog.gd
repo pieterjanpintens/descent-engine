@@ -417,13 +417,13 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 	var specs: Array = []
 	for i in option_labels.size():
 		var disabled: bool = option_disabled[i] if i < option_disabled.size() else false
-		specs.append({"text": option_labels[i], "result": i, "disabled": disabled})
+		specs.append({"text": NarrationMarkup.plain(option_labels[i], characters), "result": i, "disabled": disabled})
 	if allow_cancel:
 		specs.append({"text": "Cancel", "result": -1})
 	_set_buttons(specs)
 	var names: Array[String] = []
 	for label in option_labels:
-		names.append(VoiceAnswerParser.option_name(label))
+		names.append(VoiceAnswerParser.option_name(NarrationMarkup.plain(label, characters)))
 	_set_voice_context("choice", names)
 	if narrate:
 		Narrator.speak(text, characters)

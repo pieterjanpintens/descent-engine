@@ -8,7 +8,9 @@ extends Node
 ## story teller reads the untagged parts - the player's own choice of voice, PlayerSettings.storyteller_voice
 ## - and each character its own voice (NarratorVoices). A character whose voice IS the story teller's gets
 ## another installed voice instead, and so does one whose voice isn't installed (the extra voices are an
-## optional download): characters never sound like the story teller.
+## optional download): characters never sound like the story teller. A throwaway character (a tag whose name
+## no character defines) and a character set to "random" get a voice picked from their NAME among the installed
+## ones - random, but always the same voice for the same name, so a guard sounds like himself all story long.
 ##
 ## A worker thread makes one wav file per piece (a piper process fed the text on stdin) in order while the
 ## main thread plays the pieces as they arrive. A new `speak()` or `stop()` cancels what is still being
@@ -62,6 +64,8 @@ func speak(text: String, characters: Array[NarratorCharacter] = []) -> void:
 		var voice := storyteller
 		if segment["speaker"] != null:
 			voice = _character_voice(segment["speaker"], storyteller)
+		elif segment["name"] != "":
+			voice = _random_voice(segment["name"], storyteller)
 		var clean := _flatten(segment["text"])
 		if clean != "":
 			jobs.append({"text": clean, "model": voice["model"], "speaker": voice["speaker"]})
@@ -119,10 +123,24 @@ func _storyteller() -> Dictionary:
 
 
 func _character_voice(character: NarratorCharacter, storyteller: Dictionary) -> Dictionary:
+	if character.voice_id == NarratorVoices.RANDOM_ID:
+		return _random_voice(character.character_name, storyteller)
 	var voice := NarratorVoices.find(character.voice_id)
 	if voice.is_empty() or not _voice_available(voice) or voice["id"] == storyteller["id"]:
 		return _other_voice(storyteller)
 	return voice
+
+
+## A voice for `character_name` among the available ones except the story teller's, picked by the name's hash:
+## the same name always gets the same voice (while the same voices are installed).
+func _random_voice(character_name: String, storyteller: Dictionary) -> Dictionary:
+	var pool: Array[Dictionary] = []
+	for voice in NarratorVoices.all():
+		if voice["id"] != storyteller["id"] and _voice_available(voice):
+			pool.append(voice)
+	if pool.is_empty():
+		return storyteller
+	return pool[character_name.hash() % pool.size()]
 
 
 ## Another voice than the story teller's: the first available one in catalogue order.

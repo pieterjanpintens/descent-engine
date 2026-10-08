@@ -7,6 +7,6 @@ extends Resource
 ## character's voice (Narrator swaps a character's voice if it happens to be the story teller's).
 
 @export var character_name: String = "Character"
-## A NarratorVoices id.
-@export var voice_id: String = NarratorVoices.BASE_ID
+## A NarratorVoices id, or NarratorVoices.RANDOM_ID ("") = a voice picked from the name (for characters who just walk by).
+@export var voice_id: String = NarratorVoices.RANDOM_ID
 @export var color: Color = Color(0.95, 0.75, 0.3)
