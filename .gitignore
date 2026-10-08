@@ -20,3 +20,6 @@
 # Python build artifacts (tools/ scripts)
 __pycache__/
 *.pyc
+
+# local share packages
+/dist/
