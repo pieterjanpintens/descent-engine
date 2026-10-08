@@ -151,7 +151,9 @@ func _random_voice(character_name: String, storyteller: Dictionary, taken: Array
 		wanted_gender = "m"
 	elif character_name.begins_with("F"):
 		wanted_gender = "f"
-	var genders: Array[String] = [wanted_gender, ""] if wanted_gender != "" else [""]  # the wanted gender first, then any
+	var genders: Array[String] = [""]  # the wanted gender first, then any
+	if wanted_gender != "":
+		genders.push_front(wanted_gender)
 	for gender in genders:
 		for avoid in [taken, hero_ids, [] as Array[String]]:
 			for plain_only in [true, false]:  # plain English first, accents only when nothing plain is left
