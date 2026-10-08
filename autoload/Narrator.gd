@@ -1,26 +1,27 @@
 extends Node
 
-## Reads text aloud with Piper (neural text-to-speech, installed on demand by PiperInstaller
-## into user data - see that script). Autoload, so the campaign player and the mission player
-## share one narrator.
+## Reads text aloud with Piper (neural text-to-speech, installed on demand by PiperInstaller into
+## user data - see that script). Autoload, so the campaign player and the mission player share one
+## narrator.
 ##
-## `speak(text)` starts the engine in a worker thread (a piper process fed the text on stdin,
-## writing a WAV file), then plays that file; a new `speak()` or `stop()` cancels whatever is
-## still being made or played. Nothing happens - silently - unless narration is enabled in the
-## options (PlayerSettings.narration_enabled) AND installed. `speaking` is true from the call
-## until the audio has finished, so the microphone can ignore the narrator
-## (VoiceListener checks it).
+## `speak(text, characters)`: the text is cut at the character tags (NarrationMarkup) into pieces; the
+## story teller reads the untagged parts - the player's own choice of voice, PlayerSettings.storyteller_voice
+## - and each character its own voice (NarratorVoices). A character whose voice IS the story teller's gets
+## another installed voice instead, and so does one whose voice isn't installed (the extra voices are an
+## optional download): characters never sound like the story teller.
 ##
-## Piper synthesises a whole text before the first sound (about a second or two for a
-## paragraph on a normal PC); cutting the text into sentences and playing the first while the
-## next is made is the obvious refinement, not done yet.
+## A worker thread makes one wav file per piece (a piper process fed the text on stdin) in order while the
+## main thread plays the pieces as they arrive. A new `speak()` or `stop()` cancels what is still being
+## made or played. Nothing happens - silently - unless narration is enabled in the options
+## (PlayerSettings.narration_enabled) AND installed. `speaking` is true from the call until the last audio
+## has finished, so the microphone can ignore the narrator (VoiceListener checks it).
 
 signal speaking_changed(is_speaking: bool)
 
 const TEMP_DIR := "user://piper/"
 
 ## Test seam: when non-empty this command (executable, then extra arguments) replaces the
-## installed Piper - tests point it at a stub that writes a WAV file.
+## installed Piper and every voice counts as installed - tests point it at a stub that writes a WAV file.
 var command_override: PackedStringArray = PackedStringArray()
 
 var speaking: bool = false
@@ -30,6 +31,8 @@ var _thread: Thread
 var _mutex := Mutex.new()
 var _pid: int = -1
 var _generation: int = 0
+var _pending: Array[String] = []  # wav files made but not played yet
+var _synth_done: bool = true
 var _current_wav: String = ""
 
 
@@ -37,6 +40,10 @@ func _ready() -> void:
 	_player = AudioStreamPlayer.new()
 	add_child(_player)
 	_player.finished.connect(_on_finished)
+
+
+func _exit_tree() -> void:
+	stop()  # joins the worker thread
 
 
 ## Installed (or overridden for a test), whether or not the player switched it on.
@@ -48,17 +55,28 @@ func is_enabled() -> bool:
 	return PlayerSettings.narration_enabled and is_available()
 
 
-func speak(text: String) -> void:
-	stop()
-	if not is_enabled():
-		return
+func speak(text: String, characters: Array[NarratorCharacter] = []) -> void:
+	var jobs: Array[Dictionary] = []
+	var storyteller := _storyteller()
+	for segment in NarrationMarkup.segments(text, characters):
+		var voice := storyteller
+		if segment["speaker"] != null:
+			voice = _character_voice(segment["speaker"], storyteller)
+		var clean := _flatten(segment["text"])
+		if clean != "":
+			jobs.append({"text": clean, "model": voice["model"], "speaker": voice["speaker"]})
+	_start(jobs)
+
+
+## Reads `text` in one particular voice (a voice picker's "play a sample"), whether or not it is the story
+## teller's.
+func speak_voice(voice_id: String, text: String) -> void:
+	var voice := NarratorVoices.find(voice_id)
 	var clean := _flatten(text)
-	if clean == "":
+	if voice.is_empty() or clean == "":
+		stop()
 		return
-	_generation += 1
-	_set_speaking(true)
-	_thread = Thread.new()
-	_thread.start(_synthesize.bind(clean, _generation))
+	_start([{"text": clean, "model": voice["model"], "speaker": voice["speaker"]}] as Array[Dictionary])
 
 
 ## Cuts off the current narration (and a synthesis still running).
@@ -73,35 +91,86 @@ func stop() -> void:
 		_thread.wait_to_finish()
 		_thread = null
 	_player.stop()
-	_remove_wav()
+	for wav in _pending:
+		DirAccess.remove_absolute(wav)
+	_pending.clear()
+	_remove_current()
+	_synth_done = true
 	_set_speaking(false)
 
 
-## Piper reads one utterance per input line and writes ONE wav file for the run, so the text goes in
-## as a single line.
+func _start(jobs: Array[Dictionary]) -> void:
+	stop()
+	if not is_enabled() or jobs.is_empty():
+		return
+	_generation += 1
+	_synth_done = false
+	_set_speaking(true)
+	_thread = Thread.new()
+	_thread.start(_synthesize.bind(jobs, _generation))
+
+
+## The player's chosen story teller, the base voice when that isn't installed.
+func _storyteller() -> Dictionary:
+	var voice := NarratorVoices.find(PlayerSettings.storyteller_voice)
+	if voice.is_empty() or not _voice_available(voice):
+		return NarratorVoices.BASE
+	return voice
+
+
+func _character_voice(character: NarratorCharacter, storyteller: Dictionary) -> Dictionary:
+	var voice := NarratorVoices.find(character.voice_id)
+	if voice.is_empty() or not _voice_available(voice) or voice["id"] == storyteller["id"]:
+		return _other_voice(storyteller)
+	return voice
+
+
+## Another voice than the story teller's: the first available one in catalogue order.
+func _other_voice(storyteller: Dictionary) -> Dictionary:
+	for voice in NarratorVoices.all():
+		if voice["id"] != storyteller["id"] and _voice_available(voice):
+			return voice
+	return storyteller
+
+
+func _voice_available(voice: Dictionary) -> bool:
+	return not command_override.is_empty() or NarratorVoices.model_installed(voice["model"])
+
+
+## Piper reads one utterance per input line and writes ONE wav file for the run, so each piece goes
+## in as a single line.
 static func _flatten(text: String) -> String:
 	return " ".join(text.replace("\r", " ").replace("\n", " ").replace("\t", " ").split(" ", false))
 
 
-## Worker thread: run the engine, then hand the wav file to the main thread.
-func _synthesize(text: String, generation: int) -> void:
-	var wav := ProjectSettings.globalize_path(TEMP_DIR + "narration_%d.wav" % generation)
-	DirAccess.make_dir_recursive_absolute(wav.get_base_dir())
+## Worker thread: run the engine once per piece, handing each wav file to the main thread as it is done.
+func _synthesize(jobs: Array[Dictionary], generation: int) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(TEMP_DIR))
+	for i in jobs.size():
+		if generation != _generation:
+			return
+		var wav := ProjectSettings.globalize_path(TEMP_DIR + "narration_%d_%d.wav" % [generation, i])
+		var made := _run_engine(jobs[i], wav, generation)
+		call_deferred("_on_piece", generation, wav if made else "", i == jobs.size() - 1)
+
+
+func _run_engine(job: Dictionary, wav: String, generation: int) -> bool:
 	var command := _command()
 	var arguments: PackedStringArray = command.slice(1)
-	arguments.append_array(["--model", PiperInstaller.voice_path(), "--output_file", wav])
+	arguments.append_array(["--model", NarratorVoices.model_path(job["model"]), "--output_file", wav])
+	if int(job["speaker"]) >= 0:
+		arguments.append_array(["--speaker", str(job["speaker"])])
 	var process := OS.execute_with_pipe(command[0], arguments, false)
 	if process.is_empty():
 		push_warning("Narrator: couldn't start '%s'" % command[0])
-		call_deferred("_on_synthesized", generation, "")
-		return
+		return false
 	var pid: int = process["pid"]
 	_mutex.lock()
 	_pid = pid
 	_mutex.unlock()
 	var stdio: FileAccess = process["stdio"]
 	var stderr: FileAccess = process["stderr"]
-	stdio.store_string(text + "\n")
+	stdio.store_string(job["text"] + "\n")
 	stdio.flush()
 	stdio.close()  # end of input: piper finishes the line and exits
 	while OS.is_process_running(pid):
@@ -113,7 +182,7 @@ func _synthesize(text: String, generation: int) -> void:
 	_mutex.unlock()
 	if code != 0 and generation == _generation:  # a cancelled run is killed on purpose
 		push_warning("Narrator: the engine exited with code %d" % code)
-	call_deferred("_on_synthesized", generation, wav if code == 0 else "")
+	return code == 0
 
 
 func _command() -> PackedStringArray:
@@ -122,30 +191,43 @@ func _command() -> PackedStringArray:
 	return PackedStringArray([PiperInstaller.engine_path()])
 
 
-func _on_synthesized(generation: int, wav: String) -> void:
+## Main thread: a piece is ready (wav == "" = it failed and is skipped).
+func _on_piece(generation: int, wav: String, last: bool) -> void:
 	if generation != _generation:
 		if wav != "":
 			DirAccess.remove_absolute(wav)
 		return
-	if wav == "" or not FileAccess.file_exists(wav):
-		_set_speaking(false)
+	if wav != "" and FileAccess.file_exists(wav):
+		_pending.append(wav)
+	if last:
+		_synth_done = true
+	_play_next()
+
+
+func _play_next() -> void:
+	if _player.playing:
 		return
-	var stream := AudioStreamWAV.load_from_file(wav)
-	if stream == null:
-		push_warning("Narrator: couldn't read the narration audio")
-		_set_speaking(false)
+	while not _pending.is_empty():
+		var wav: String = _pending.pop_front()
+		var stream := AudioStreamWAV.load_from_file(wav)
+		if stream == null:
+			push_warning("Narrator: couldn't read the narration audio")
+			DirAccess.remove_absolute(wav)
+			continue
+		_current_wav = wav
+		_player.stream = stream
+		_player.play()
 		return
-	_current_wav = wav
-	_player.stream = stream
-	_player.play()
+	if _synth_done:
+		_set_speaking(false)
 
 
 func _on_finished() -> void:
-	_remove_wav()
-	_set_speaking(false)
+	_remove_current()
+	_play_next()
 
 
-func _remove_wav() -> void:
+func _remove_current() -> void:
 	if _current_wav != "":
 		DirAccess.remove_absolute(_current_wav)
 		_current_wav = ""

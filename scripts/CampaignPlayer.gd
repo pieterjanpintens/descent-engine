@@ -571,6 +571,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 	if _narrative_dialog == null:
 		_narrative_dialog = PlayerDialog.new()
 		add_child(_narrative_dialog)
+	_narrative_dialog.characters = _campaign.characters
 	var pages: Array[String] = []
 	var chosen: Array[NarrativeAnswer] = []
 	# Steps and answers can depend on the campaign variables - including what was answered earlier in this very
@@ -585,7 +586,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 				offered.append(answer)
 		if offered.is_empty():
 			await _narrative_dialog.ask_narrative([step.text], "", true, Callable(), true)
-			pages.append(step.text)
+			pages.append(NarrationMarkup.plain(step.text, _campaign.characters))
 			continue
 		var labels: Array[String] = []
 		for answer in offered:
@@ -595,10 +596,10 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		var answer := offered[index]
 		chosen.append(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
-		pages.append("%s\n\nYou chose: %s" % [prompt, answer.text])
+		pages.append("%s\n\nYou chose: %s" % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
 		if answer.reply != "":
 			await _narrative_dialog.ask_ok(answer.reply, true, false, "", null, null, true)
-			pages.append(answer.reply)
+			pages.append(NarrationMarkup.plain(answer.reply, _campaign.characters))
 		if answer.ends_narrative:
 			break
 	_state.add_log(chapter.title, pages)

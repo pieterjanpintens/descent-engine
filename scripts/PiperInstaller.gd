@@ -15,8 +15,7 @@ extends Downloader
 ## actually runs the installed engine.
 
 const INSTALL_DIR := "user://piper/"
-const VOICE_DIR := "user://piper/voices/"
-const VOICE_NAME := "en_US-lessac-medium"
+const VOICE_NAME := NarratorVoices.BASE_MODEL
 ## What the setup button tells the player.
 const DOWNLOAD_SIZE_TEXT := "about 90 MB"
 
@@ -25,6 +24,8 @@ var engine_url_windows := "https://github.com/rhasspy/piper/releases/download/20
 var engine_url_linux := "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz"
 var voice_url := "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/" + VOICE_NAME + ".onnx"
 var voice_config_url := "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/" + VOICE_NAME + ".onnx.json"
+## The root of the voices repository the optional extra voices come from (NarratorVoices.EXTRA_MODEL_PATHS are below it).
+var extras_base_url := "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 
 
 static func is_supported_platform() -> bool:
@@ -41,16 +42,8 @@ static func engine_path() -> String:
 	return ""
 
 
-## The installed voice model (an .onnx next to its .onnx.json) as an absolute OS path, "" if missing.
-static func voice_path() -> String:
-	var model := VOICE_DIR + VOICE_NAME + ".onnx"
-	if FileAccess.file_exists(model) and FileAccess.file_exists(model + ".json"):
-		return ProjectSettings.globalize_path(model)
-	return ""
-
-
 static func is_installed() -> bool:
-	return engine_path() != "" and voice_path() != ""
+	return engine_path() != "" and NarratorVoices.model_installed(VOICE_NAME)
 
 
 ## Downloads and installs the engine and the voice. Smallest files first so a broken link
@@ -59,8 +52,8 @@ func install() -> bool:
 	if not is_supported_platform():
 		progress.emit("Narration setup isn't supported on %s yet." % OS.get_name())
 		return false
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(VOICE_DIR))
-	var voice := VOICE_DIR + VOICE_NAME + ".onnx"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(NarratorVoices.VOICE_DIR))
+	var voice := NarratorVoices.VOICE_DIR + VOICE_NAME + ".onnx"
 	if not await _fetch(voice_config_url, voice + ".json", "", "voice settings"):
 		return false
 	if engine_path() == "" and not await _install_engine():
@@ -71,6 +64,26 @@ func install() -> bool:
 		progress.emit("Narration was downloaded but the engine could not be found - try again.")
 		return false
 	progress.emit("Narration installed.")
+	return true
+
+
+## The optional extra voices (accents): every model of NarratorVoices.EXTRA_MODEL_PATHS, skipping
+## the ones already there. Needs nothing but the voices repository - the engine comes with install().
+func install_extras() -> bool:
+	if not is_supported_platform():
+		progress.emit("Narration setup isn't supported on %s yet." % OS.get_name())
+		return false
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(NarratorVoices.VOICE_DIR))
+	for model in NarratorVoices.EXTRA_MODEL_PATHS:
+		if NarratorVoices.model_installed(model):
+			continue
+		var url: String = extras_base_url + NarratorVoices.EXTRA_MODEL_PATHS[model] + "/" + model
+		var target: String = NarratorVoices.VOICE_DIR + model
+		if not await _fetch(url + ".onnx.json", target + ".onnx.json", "", "voice settings (%s)" % model):
+			return false
+		if not await _fetch(url + ".onnx", target + ".onnx", "", "voices (%s)" % model):
+			return false
+	progress.emit("Extra voices installed.")
 	return true
 
 

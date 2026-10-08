@@ -6485,6 +6485,24 @@ Show Message effect. The microphone ignores the narrator (`VoiceListener._hands_
 (a stub engine). Verified headlessly: install from a local server (zip layout, voice files), speak -> plays -> clears, the text reaches the engine as one line, stop() cancels a slow run, a new speak() replaces the old one,
 disabled = silent. Not done: choosing another voice/speed, per-chapter narrators, the Options dialog look.
 
+**Voices, characters and the story teller (2026-10-08, branch `feature/piper-tts`)** - "more exotic English voices, linked to dialogs, one story teller as a user setting". **Catalogue**: `NarratorVoices`
+(static) - a VOICE = Piper model + speaker number (multi-speaker models carry many voices): the BASE voice `lessac` (installed with the engine) and 23 EXTRA accent voices (Irish, Scottish, Indian, Welsh, South African,
+Australian, NZ, Yorkshire, and Arabic/Hindi/Korean/Mandarin/Spanish/Vietnamese-accented English) from five models (`vctk`, `arctic`, `l2arctic`, `alba`, `jenny_dioco`). **One optional download** for all extras
+(`PiperInstaller.install_extras()`, "Download extra voices - accents (about 340 MB)" in Options, appears once narration works; `extras_base_url` overridable). The accent/gender LABELS come from the corpora's speaker notes
+(remembered, not measured) - verify by ear. **Story teller** = a PLAYER setting (`PlayerSettings.storyteller_voice`, Options dialog "Story teller" picker over the installed voices + a play button), reads everything no
+character speaks. **Characters** (`NarratorCharacter`: name, `voice_id`, color) live on the campaign (`Campaign.characters`, "Characters..." button on the campaign editor's Campaign tab) and on the mission
+(`MissionData.characters`, a "Characters..." button added in code next to Variables... in the mission editor, undoable) - edited in `CharactersDialog` (name, voice dropdown incl. "(not installed)" ones, a play button, color).
+**Tags**: `[Name]...[/Name]` in a text hands those words to the character (`NarrationMarkup.segments()/plain()`; exact name and case; only known characters' tags count, other brackets stay literal text). The dialog shows
+the text without the tags (`PlayerDialog.characters`, set by `CampaignPlayer` / `MissionPlayer`; the quest/campaign logs get the stripped text too). **Narrator** now speaks in pieces: one wav per piece made in order by the
+worker thread while the main thread plays the pieces as they arrive (first sound after the first piece only); a character whose voice is the story teller's, or isn't installed, gets another installed voice instead (characters
+never sound like the story teller; `Narrator._character_voice()`); `Narrator.speak_voice(id, text)` = a voice sample. **Editors**: the narrative step text box colors each character's tagged text in their color
+(`NarrationSyntaxHighlighter` - a custom highlighter; `CodeHighlighter` regions can't be used, their keys must be pure symbols) and has a legend row of colored buttons that wrap the selected text (or insert an empty pair of
+tags at the caret) (`NarrationHighlight`). Other text fields (the mission Show Message line, question/reply fields) are single-line `LineEdit`s - the tags work there when typed but aren't colored. Verified headlessly: markup
+parsing, the highlighter's colors (also across lines), the legend wrap, the order/models/`--speaker` ids of the pieces with the stub engine, the storyteller swap, stop() mid-way, the extras installer against a local server
+(its fake files removed again), and the REAL engine reading a text with a tagged character in 3 pieces (4.4 s total). **Not tested with real extras**: the 340 MB of accent models were never installed on this machine
+(the earlier sample pack came from a scratch folder), so a real accent voice playing in the game hasn't been heard through it; characters just fall back to the base voice until the extras are installed. Not done: colored
+text in the player's dialog (plain Label), characters shared between the campaign and its missions (a mission uses its own list), speed per character.
+
 **Narrative chapters (2026-10-07)** - "a chapter that is not a long mission: background story with questions". `CampaignChapter.is_narrative` + `steps: Array[NarrativeStep]`
 (`text`, optional `question`, `answers: Array[NarrativeAnswer]` = `text`, optional `reply`, `effects`). **Answers reach the campaign through the effects of the chosen answer**
 (Set Variable / Math over the campaign variables, the same effect rows as win/lose effects) - no mission variable bridge needed. Player (`CampaignPlayer._play_narrative()`): the

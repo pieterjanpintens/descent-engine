@@ -34,6 +34,9 @@ var _setup_status_label: Label
 var _narration_check: CheckBox
 var _narration_setup_button: Button
 var _narration_status_label: Label
+var _storyteller_picker: OptionButton
+var _voice_ids: Array[String] = []
+var _extras_button: Button
 
 
 func _ready() -> void:
@@ -132,6 +135,25 @@ func _ready() -> void:
 	_narration_setup_button.pressed.connect(_on_narration_setup_pressed)
 	vbox.add_child(_narration_setup_button)
 
+	var teller_row := HBoxContainer.new()
+	vbox.add_child(teller_row)
+	var teller_label := Label.new()
+	teller_label.text = "Story teller:"
+	teller_row.add_child(teller_label)
+	_storyteller_picker = OptionButton.new()
+	_storyteller_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_storyteller_picker.item_selected.connect(_on_storyteller_selected)
+	teller_row.add_child(_storyteller_picker)
+	var teller_play := Button.new()
+	teller_play.text = "▶"
+	teller_play.tooltip_text = "Hear the story teller"
+	teller_play.pressed.connect(func(): Narrator.speak_voice(PlayerSettings.storyteller_voice, "The old door creaks open, and a cold wind carries the smell of smoke."))
+	teller_row.add_child(teller_play)
+
+	_extras_button = Button.new()
+	_extras_button.pressed.connect(_on_extras_pressed)
+	vbox.add_child(_extras_button)
+
 	_narration_status_label = Label.new()
 	_narration_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_narration_status_label.add_theme_font_size_override("font_size", 13)
@@ -203,6 +225,37 @@ func _refresh_narration() -> void:
 		_narration_setup_button.disabled = false
 		_narration_setup_button.text = "Set up narration (downloads %s)" % PiperInstaller.DOWNLOAD_SIZE_TEXT
 		_narration_status_label.text = "Narration isn't set up yet - the story is shown as text only."
+	_refresh_voices(available)
+
+
+## The story-teller picker lists the installed voices; the "extra voices" download is offered once narration works.
+func _refresh_voices(available: bool) -> void:
+	_storyteller_picker.get_parent().visible = available
+	_extras_button.visible = available and not NarratorVoices.extras_installed()
+	_extras_button.disabled = false
+	_extras_button.text = "Download extra voices - accents (%s)" % NarratorVoices.EXTRAS_SIZE_TEXT
+	_storyteller_picker.clear()
+	_voice_ids.clear()
+	for voice in NarratorVoices.installed():
+		_storyteller_picker.add_item(voice["label"])
+		_voice_ids.append(voice["id"])
+		if voice["id"] == PlayerSettings.storyteller_voice:
+			_storyteller_picker.select(_storyteller_picker.item_count - 1)
+
+
+func _on_storyteller_selected(index: int) -> void:
+	PlayerSettings.storyteller_voice = _voice_ids[index]
+	PlayerSettings.save_settings()
+
+
+func _on_extras_pressed() -> void:
+	_extras_button.disabled = true
+	var installer := PiperInstaller.new()
+	add_child(installer)
+	installer.progress.connect(func(text: String): _narration_status_label.text = text)
+	await installer.install_extras()
+	installer.queue_free()
+	_refresh_narration()
 
 
 func _on_narration_toggled(pressed: bool) -> void:

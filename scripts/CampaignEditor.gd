@@ -23,6 +23,7 @@ var _selected_quest: CampaignSideQuest
 var _condition_editor: EffectEditor
 var _effect_editor: EffectEditor
 var _variables_dialog: MissionVariablesDialog
+var _characters_dialog: CharactersDialog
 var _dirty: bool = false
 
 var _status_label: Label
@@ -181,6 +182,11 @@ func _ready() -> void:
 		mutate.call()
 		_mark_dirty()
 	)))
+	left.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
+		mutate.call()
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	)))
 	_cover_label = _label("")
 	left.add_child(_cover_label)
 	_cover_preview = TextureRect.new()
@@ -320,6 +326,8 @@ func _ready() -> void:
 	_effect_editor.setup(self, commit)
 	_variables_dialog = MissionVariablesDialog.new()
 	add_child(_variables_dialog)
+	_characters_dialog = CharactersDialog.new()
+	add_child(_characters_dialog)
 
 	_refresh_open_list()
 	_refresh_all()
@@ -1407,7 +1415,10 @@ func _build_step_block(chapter: CampaignChapter, index: int) -> Control:
 		step.text = text_edit.text
 		_mark_dirty()
 	)
+	NarrationHighlight.apply(text_edit, _campaign.characters)
 	box.add_child(text_edit)
+	if not _campaign.characters.is_empty():
+		box.add_child(NarrationHighlight.legend(text_edit, _campaign.characters))
 	var question_edit := LineEdit.new()
 	question_edit.placeholder_text = "Question (shown under the text when there are answers)"
 	question_edit.text = step.question

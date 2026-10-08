@@ -24,6 +24,8 @@ extends Resource
 ## Their values live in the save game (CampaignState.variables); a chapter or side quest sets them when won
 ## or lost, a side quest's conditions read them.
 @export var variables: Array[MissionVariable] = []
+## The named speakers of this campaign's stories: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
+@export var characters: Array[NarratorCharacter] = []
 
 ## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only.
 const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]

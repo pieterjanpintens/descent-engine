@@ -91,6 +91,7 @@ func _ready() -> void:
 		info_label.visible = true
 		return
 
+	dialog.characters = mission.characters
 	layered_map.apply_mission(mission, true)
 	_add_ground_floor()
 	_add_bounding_box()

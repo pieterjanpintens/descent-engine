@@ -96,6 +96,8 @@ extends Resource
 ## top of the runtime's own built-ins (round_number, player_count, ...)
 ## which aren't declared here - see MissionVariable.
 @export var custom_variables: Array[MissionVariable] = []
+## The named speakers of this mission's messages: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
+@export var characters: Array[NarratorCharacter] = []
 
 
 ## Returns { group_name: count } tallying every placed floor/underlay/

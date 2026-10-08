@@ -52,6 +52,7 @@ var _monster_template_editor: MonsterTemplateEditor
 var _notice_dialog: AcceptDialog
 var _objectives_dialog: ObjectivesDialog
 var _variables_dialog: MissionVariablesDialog
+var _characters_dialog: CharactersDialog
 var _triggers_dialog: TriggersDialog
 
 ## Guards _refresh_player_count_fields() below - setting a SpinBox's
@@ -122,6 +123,22 @@ func _ready() -> void:
 	_variables_dialog.layered_map = layered_map
 	add_child(_variables_dialog)
 	variables_button.pressed.connect(_on_variables_button_pressed)
+
+	# The mission's speakers (voices for [Name]...[/Name] in its texts) - the button is added next to
+	# Variables... in code, so the scene file needs no change.
+	_characters_dialog = CharactersDialog.new()
+	add_child(_characters_dialog)
+	var characters_button := Button.new()
+	characters_button.text = "Characters…"
+	characters_button.tooltip_text = "The named speakers of this mission's messages, with a voice each."
+	characters_button.pressed.connect(func():
+		_characters_dialog.open_for_list(layered_map.mission.characters, func(label: String, mutate: Callable):
+			operation_history.record(label, mutate)
+			layered_map.notify_objects_changed()
+		)
+	)
+	variables_button.get_parent().add_child(characters_button)
+	variables_button.get_parent().move_child(characters_button, variables_button.get_index() + 1)
 
 	# Triggers (checkpoint/event rules) - same built-once-reused pattern.
 	_triggers_dialog = TriggersDialog.new()
