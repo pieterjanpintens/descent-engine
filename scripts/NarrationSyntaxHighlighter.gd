@@ -18,7 +18,9 @@ func _get_line_syntax_highlighting(line: int) -> Dictionary:
 	var open: NarratorCharacter = null
 	for i in line:
 		open = _scan(edit.get_line(i), open, plain).get("open", open)
-	return _scan(edit.get_line(line), open, plain)["colors"]
+	var last_line := edit.get_line(line)
+	var colors: Dictionary = _scan(last_line, open, plain)["colors"]
+	return SpellChecker.recolor(last_line, colors, SpellChecker.names_set(characters))
 
 
 ## Scans one line starting inside `open` (null = outside any tag): the column -> {"color"} map and the state at the end of the line.

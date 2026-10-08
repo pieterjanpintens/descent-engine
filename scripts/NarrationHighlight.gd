@@ -11,6 +11,7 @@ static func apply(edit: TextEdit, characters: Array[NarratorCharacter]) -> void:
 	var highlighter := NarrationSyntaxHighlighter.new()
 	highlighter.characters = characters
 	edit.syntax_highlighter = highlighter
+	_add_spelling_menu(edit, characters)
 
 
 ## A row of buttons, one per character, in the character's color. They work on whichever of `edits` had the
@@ -45,3 +46,56 @@ static func wrap_selection(edit: TextEdit, character_name: String) -> void:
 	if selected == "":
 		edit.set_caret_column(edit.get_caret_column() - character_name.length() - 3)
 	edit.grab_focus()
+
+
+# ---------------------------------------------------------------- spelling
+
+const MENU_SUGGESTION := 1000
+const MENU_ADD_WORD := 1100
+
+
+## Misspelled words are red (NarrationSyntaxHighlighter); the text box's right-click menu gets the word under the
+## caret's corrections and "Add to dictionary".
+static func _add_spelling_menu(edit: TextEdit, characters: Array[NarratorCharacter]) -> void:
+	var menu := edit.get_menu()
+	var state := {"added": 0, "word": {}, "suggestions": [] as Array[String]}
+	menu.about_to_popup.connect(func():
+		for _i in state["added"]:
+			if menu.item_count > 0:
+				menu.remove_item(menu.item_count - 1)
+		state["added"] = 0
+		var found := SpellChecker.misspelled_at(edit.get_line(edit.get_caret_line()), edit.get_caret_column(), SpellChecker.names_set(characters))
+		state["word"] = found
+		if found.is_empty():
+			return
+		var options := SpellChecker.suggestions(found["word"])
+		state["suggestions"] = options
+		menu.add_separator()
+		state["added"] += 1
+		for i in options.size():
+			menu.add_item(options[i], MENU_SUGGESTION + i)
+			state["added"] += 1
+		if options.is_empty():
+			menu.add_item("(no suggestions)", MENU_SUGGESTION + 99)
+			menu.set_item_disabled(menu.item_count - 1, true)
+			state["added"] += 1
+		menu.add_item("Add \"%s\" to the dictionary" % found["word"], MENU_ADD_WORD)
+		state["added"] += 1
+	)
+	menu.id_pressed.connect(func(id: int):
+		var found: Dictionary = state["word"]
+		if found.is_empty():
+			return
+		var line := edit.get_caret_line()
+		if id >= MENU_SUGGESTION and id < MENU_SUGGESTION + 99:
+			var options: Array[String] = state["suggestions"]
+			edit.begin_complex_operation()
+			edit.select(line, found["start"], line, found["end"])
+			edit.insert_text_at_caret(options[id - MENU_SUGGESTION])
+			edit.end_complex_operation()
+		elif id == MENU_ADD_WORD:
+			SpellChecker.add_word(found["word"])
+			if edit.syntax_highlighter != null:
+				edit.syntax_highlighter.clear_highlighting_cache()
+		state["word"] = {}
+	)
