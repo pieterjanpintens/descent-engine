@@ -99,6 +99,16 @@ static func all() -> Array[Dictionary]:
 	return found
 
 
+## "m", "f" or "" (unknown - the accent voices that don't say), read from the label ("... man", "... woman", "(F)").
+static func gender(voice: Dictionary) -> String:
+	var label: String = voice["label"]
+	if label.contains("woman") or label.contains("(F)"):
+		return "f"
+	if label.contains("man"):
+		return "m"
+	return ""
+
+
 ## The voice with this id; an empty Dictionary if there is none.
 static func find(voice_id: String) -> Dictionary:
 	for voice in all():
