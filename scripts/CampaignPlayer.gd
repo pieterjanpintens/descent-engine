@@ -615,6 +615,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false, true)
 		var answer := offered[index]
 		chosen.append(answer)
+		await _speak_answer(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
 		pages.append("%s\n\nYou chose: %s" % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
 		if answer.reply != "":
@@ -626,6 +627,16 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 	for answer in chosen:
 		await _state.apply_effects(_campaign, answer.effects)
 	_apply_result({"won": true, "chapter_id": chapter.id, "mission_variables": {}})
+
+
+## The chosen answer is spoken when it has voice tags (`[Chance]...[/Chance]`, usually a hero) - an untagged answer is
+## just what the players picked and stays silent. Waits until it has been said so the reply doesn't cut it off.
+func _speak_answer(answer: NarrativeAnswer) -> void:
+	if NarrationMarkup.tag_names(answer.text).is_empty() or not Narrator.is_enabled():
+		return
+	Narrator.speak(answer.text, _narrative_dialog.characters)
+	while Narrator.speaking:
+		await Narrator.speaking_changed
 
 
 # ---------------------------------------------------------------- results

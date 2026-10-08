@@ -1446,11 +1446,13 @@ func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Contro
 	var row := HBoxContainer.new()
 	box.add_child(row)
 	row.add_child(_label("Answer:"))
-	var text_edit := LineEdit.new()
+	var text_edit := _text_edit(34)
 	text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_edit.placeholder_text = "What the players can choose (voice tags make it be spoken, e.g. [Chance](Lie) No.[/Chance])"
 	text_edit.text = answer.text
-	text_edit.text_changed.connect(func(text: String):
-		answer.text = text
+	NarrationHighlight.apply(text_edit, _campaign.characters)
+	text_edit.text_changed.connect(func():
+		answer.text = text_edit.text
 		_mark_dirty()
 	)
 	row.add_child(text_edit)
@@ -1468,7 +1470,7 @@ func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Contro
 		_mark_dirty()
 	)
 	box.add_child(reply_edit)
-	var reply_targets: Array[TextEdit] = [reply_edit]
+	var reply_targets: Array[TextEdit] = [text_edit, reply_edit]
 	box.add_child(NarrationHighlight.legend(reply_targets, _campaign.characters))
 	var end_check := CheckBox.new()
 	end_check.text = "Ends the story (skips the steps after it)"
