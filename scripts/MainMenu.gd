@@ -14,6 +14,8 @@ extends Control
 @onready var editors_panel: Control = %EditorsPanel
 @onready var load_campaign_button: Button = %LoadCampaignButton
 
+var _options_dialog: VoiceSettingsDialog
+
 
 ## Ensures both user:// folders exist before anything tries to browse them -
 ## true on a genuinely fresh install (no mission ever saved, no game ever
@@ -25,6 +27,19 @@ func _ready() -> void:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
 	load_campaign_button.disabled = not CampaignIO.has_saves()
+
+
+## The same Options dialog as the Player's Gear menu (voice control, narration, voices). Nothing is listening in the
+## menu, so the dialog (live = false) only saves the settings and lets the player install the voice packs.
+func _on_options_button_pressed() -> void:
+	if _options_dialog == null:
+		var listener := VoiceListener.new()  # never started: it is only asked what is installed
+		add_child(listener)
+		_options_dialog = VoiceSettingsDialog.new()
+		_options_dialog.voice_listener = listener
+		_options_dialog.live = false
+		add_child(_options_dialog)
+	_options_dialog.open()
 
 
 func _on_editors_button_pressed() -> void:

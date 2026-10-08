@@ -70,20 +70,29 @@ func install() -> bool:
 ## The optional extra voices (accents): every model of NarratorVoices.EXTRA_MODEL_PATHS, skipping
 ## the ones already there. Needs nothing but the voices repository - the engine comes with install().
 func install_extras() -> bool:
+	return await _install_models(NarratorVoices.EXTRA_MODEL_PATHS, "Extra voices installed.")
+
+
+## The optional plain-English voices (NarratorVoices.STANDARD).
+func install_standard() -> bool:
+	return await _install_models(NarratorVoices.STANDARD_MODEL_PATHS, "Standard voices installed.")
+
+
+func _install_models(paths: Dictionary, done_text: String) -> bool:
 	if not is_supported_platform():
 		progress.emit("Narration setup isn't supported on %s yet." % OS.get_name())
 		return false
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(NarratorVoices.VOICE_DIR))
-	for model in NarratorVoices.EXTRA_MODEL_PATHS:
+	for model in paths:
 		if NarratorVoices.model_installed(model):
 			continue
-		var url: String = extras_base_url + NarratorVoices.EXTRA_MODEL_PATHS[model] + "/" + model
+		var url: String = extras_base_url + paths[model] + "/" + model
 		var target: String = NarratorVoices.VOICE_DIR + model
 		if not await _fetch(url + ".onnx.json", target + ".onnx.json", "", "voice settings (%s)" % model):
 			return false
 		if not await _fetch(url + ".onnx", target + ".onnx", "", "voices (%s)" % model):
 			return false
-	progress.emit("Extra voices installed.")
+	progress.emit(done_text)
 	return true
 
 

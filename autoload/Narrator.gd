@@ -143,15 +143,17 @@ func _character_voice(character: NarratorCharacter, storyteller: Dictionary, tak
 
 ## A voice for `character_name`, picked by the name's hash: the same name always gets the same voice (while the same
 ## voices are installed). Never the story teller's; as far as the installed voices allow also none that a character
-## has chosen ("taken"), and failing that none a hero has.
+## has chosen ("taken"), and failing that none a hero has; plain English voices are preferred over accented ones.
 func _random_voice(character_name: String, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String]) -> Dictionary:
 	for avoid in [taken, hero_ids, [] as Array[String]]:
-		var pool: Array[Dictionary] = []
-		for voice in NarratorVoices.all():
-			if voice["id"] != storyteller["id"] and not avoid.has(voice["id"]) and _voice_available(voice):
-				pool.append(voice)
-		if not pool.is_empty():
-			return pool[character_name.hash() % pool.size()]
+		for plain_only in [true, false]:  # plain English first, accents only when nothing plain is left
+			var pool: Array[Dictionary] = []
+			for voice in NarratorVoices.all():
+				if voice["id"] != storyteller["id"] and not avoid.has(voice["id"]) and _voice_available(voice) \
+						and (voice.get("plain", false) or not plain_only):
+					pool.append(voice)
+			if not pool.is_empty():
+				return pool[character_name.hash() % pool.size()]
 	return storyteller
 
 

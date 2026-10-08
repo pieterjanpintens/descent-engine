@@ -50,6 +50,10 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "Load Campaign"
 
+[node name="OptionsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
+layout_mode = 2
+text = "Options"
+
 [node name="EditorsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 layout_mode = 2
 text = "Editors & Tools"
@@ -100,6 +104,7 @@ filters = PackedStringArray("*.tres")
 
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/NewCampaignButton" to="." method="_on_new_campaign_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/LoadCampaignButton" to="." method="_on_load_campaign_button_pressed"]
+[connection signal="pressed" from="CenterContainer/Column/MainPanel/OptionsButton" to="." method="_on_options_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/EditorsButton" to="." method="_on_editors_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/EditorsPanel/EditorButton" to="." method="_on_editor_button_pressed"]

@@ -20,6 +20,9 @@ extends Control
 
 ## Assigned by MissionPlayer right after construction.
 var voice_listener: VoiceListener
+## false in the main menu: there is no running Player to drive, so the settings are only saved (and take effect
+## when a mission starts); the listener is then only asked what is installed.
+var live := true
 ## Also assigned by MissionPlayer - this dialog now owns every write to
 ## dialog.voice_hints_enabled (see "Show voice hints" below), instead of
 ## MissionPlayer wiring voice_listener.voice_ready straight to it.
@@ -37,6 +40,7 @@ var _narration_status_label: Label
 var _storyteller_picker: OptionButton
 var _voice_ids: Array[String] = []
 var _extras_button: Button
+var _standard_button: Button
 
 
 func _ready() -> void:
@@ -150,6 +154,10 @@ func _ready() -> void:
 	teller_play.pressed.connect(func(): Narrator.speak_voice(PlayerSettings.storyteller_voice, "The old door creaks open, and a cold wind carries the smell of smoke."))
 	teller_row.add_child(teller_play)
 
+	_standard_button = Button.new()
+	_standard_button.pressed.connect(_on_standard_pressed)
+	vbox.add_child(_standard_button)
+
 	_extras_button = Button.new()
 	_extras_button.pressed.connect(_on_extras_pressed)
 	vbox.add_child(_extras_button)
@@ -183,7 +191,7 @@ func _refresh() -> void:
 	# *_no_signal: refreshing the widgets must not run the handlers below,
 	# which persist - an unavailable engine would otherwise overwrite the
 	# saved voice_enabled with false.
-	_enabled_check.set_pressed_no_signal(available and voice_listener.is_enabled())
+	_enabled_check.set_pressed_no_signal(available and (voice_listener.is_enabled() if live else PlayerSettings.voice_enabled))
 	_enabled_check.disabled = not available
 
 	_device_picker.clear()
@@ -195,7 +203,7 @@ func _refresh() -> void:
 		_device_picker.select(current)
 
 	_mode_check.text = "Push to talk (hold %s)" % OS.get_keycode_string(VoiceListener.PTT_KEY)
-	_mode_check.set_pressed_no_signal(voice_listener.push_to_talk)
+	_mode_check.set_pressed_no_signal(voice_listener.push_to_talk if live else PlayerSettings.push_to_talk)
 
 	if available:
 		_setup_button.visible = false
@@ -231,6 +239,9 @@ func _refresh_narration() -> void:
 ## The story-teller picker lists the installed voices; the "extra voices" download is offered once narration works.
 func _refresh_voices(available: bool) -> void:
 	_storyteller_picker.get_parent().visible = available
+	_standard_button.visible = available and not NarratorVoices.standard_installed()
+	_standard_button.disabled = false
+	_standard_button.text = "Download more voices - plain English (%s)" % NarratorVoices.STANDARD_SIZE_TEXT
 	_extras_button.visible = available and not NarratorVoices.extras_installed()
 	_extras_button.disabled = false
 	_extras_button.text = "Download extra voices - accents (%s)" % NarratorVoices.EXTRAS_SIZE_TEXT
@@ -246,6 +257,16 @@ func _refresh_voices(available: bool) -> void:
 func _on_storyteller_selected(index: int) -> void:
 	PlayerSettings.storyteller_voice = _voice_ids[index]
 	PlayerSettings.save_settings()
+
+
+func _on_standard_pressed() -> void:
+	_standard_button.disabled = true
+	var installer := PiperInstaller.new()
+	add_child(installer)
+	installer.progress.connect(func(text: String): _narration_status_label.text = text)
+	await installer.install_standard()
+	installer.queue_free()
+	_refresh_narration()
 
 
 func _on_extras_pressed() -> void:
@@ -281,7 +302,8 @@ func _on_narration_setup_pressed() -> void:
 func _on_enabled_toggled(pressed: bool) -> void:
 	PlayerSettings.voice_enabled = pressed
 	PlayerSettings.save_settings()
-	voice_listener.set_enabled(pressed)
+	if live:
+		voice_listener.set_enabled(pressed)
 	# set_enabled() emits voice_ready, which _update_dialog_hints() (below,
 	# connected in _ready()) already reacts to - no separate call needed here.
 
@@ -301,21 +323,23 @@ func _on_hints_toggled(pressed: bool) -> void:
 ## checkbox) and whether the table wants to see the hint at all
 ## (_hints_check). Connected to voice_listener.voice_ready in _ready().
 func _update_dialog_hints() -> void:
-	if dialog != null:
+	if dialog != null and live:
 		dialog.voice_hints_enabled = voice_listener.is_enabled() and _hints_check.button_pressed
 
 
 func _on_mode_toggled(pressed: bool) -> void:
 	PlayerSettings.push_to_talk = pressed
 	PlayerSettings.save_settings()
-	voice_listener.set_push_to_talk(pressed)
+	if live:
+		voice_listener.set_push_to_talk(pressed)
 
 
 func _on_device_selected(index: int) -> void:
 	var device := _device_picker.get_item_text(index)
 	PlayerSettings.input_device = device
 	PlayerSettings.save_settings()
-	voice_listener.set_input_device(device)
+	if live:
+		voice_listener.set_input_device(device)
 
 
 func _on_setup_pressed() -> void:
@@ -328,7 +352,8 @@ func _on_setup_pressed() -> void:
 	if installed:
 		PlayerSettings.voice_enabled = true  # a fresh install means the player wants it on
 		PlayerSettings.save_settings()
-		voice_listener.start()  # re-checks availability and enables
+		if live:
+			voice_listener.start()  # re-checks availability and enables
 	else:
 		_setup_button.disabled = false
 	_refresh()

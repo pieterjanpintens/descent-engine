@@ -8,6 +8,9 @@ extends RefCounted
 ## default story teller; the EXTRA voices (accents: Irish, Scottish, Indian, Welsh, ... ) come with the
 ## one optional "extra voices" download (PiperInstaller.install_extras()).
 ##
+## Two optional downloads: the STANDARD voices (plain American / British English - what throwaway characters are
+## drawn from first) and the accent EXTRAS.
+##
 ## The accent / gender labels of the extra voices come from the source corpora's speaker notes
 ## (remembered, not measured) - check them by ear and correct a label here if one is wrong.
 
@@ -18,8 +21,28 @@ const RANDOM_ID := ""
 const BASE_MODEL := "en_US-lessac-medium"
 ## What the download button tells the player.
 const EXTRAS_SIZE_TEXT := "about 340 MB"
+const STANDARD_SIZE_TEXT := "about 380 MB"
 
-const BASE := {"id": BASE_ID, "label": "Standard - American man", "model": BASE_MODEL, "speaker": -1}
+const BASE := {"id": BASE_ID, "label": "Standard - American man", "model": BASE_MODEL, "speaker": -1, "plain": true}
+
+## Plain English voices (`plain` = no marked accent). Gender labels are from memory - correct one here if it's wrong.
+const STANDARD: Array[Dictionary] = [
+	{"id": "amy", "label": "American - woman (Amy)", "model": "en_US-amy-medium", "speaker": -1, "plain": true},
+	{"id": "kristin", "label": "American - woman (Kristin)", "model": "en_US-kristin-medium", "speaker": -1, "plain": true},
+	{"id": "ryan", "label": "American - man (Ryan)", "model": "en_US-ryan-medium", "speaker": -1, "plain": true},
+	{"id": "john", "label": "American - man (John)", "model": "en_US-john-medium", "speaker": -1, "plain": true},
+	{"id": "alan", "label": "British - man (Alan)", "model": "en_GB-alan-medium", "speaker": -1, "plain": true},
+	{"id": "cori", "label": "British - woman (Cori)", "model": "en_GB-cori-medium", "speaker": -1, "plain": true},
+]
+
+const STANDARD_MODEL_PATHS := {
+	"en_US-amy-medium": "en/en_US/amy/medium",
+	"en_US-kristin-medium": "en/en_US/kristin/medium",
+	"en_US-ryan-medium": "en/en_US/ryan/medium",
+	"en_US-john-medium": "en/en_US/john/medium",
+	"en_GB-alan-medium": "en/en_GB/alan/medium",
+	"en_GB-cori-medium": "en/en_GB/cori/medium",
+}
 
 ## The extra voices. `speaker` = the speaker number inside a multi-speaker model, -1 for a single-speaker model.
 const EXTRAS: Array[Dictionary] = [
@@ -58,9 +81,10 @@ const EXTRA_MODEL_PATHS := {
 }
 
 
-## Every voice: the base one first, then the extras.
+## Every voice: the base one first, then the standard ones, then the accent extras.
 static func all() -> Array[Dictionary]:
 	var found: Array[Dictionary] = [BASE]
+	found.append_array(STANDARD)
 	found.append_array(EXTRAS)
 	return found
 
@@ -95,7 +119,15 @@ static func installed() -> Array[Dictionary]:
 	return found
 
 
-## Are all extra models there (the one optional download)?
+## Are all standard-voice models there?
+static func standard_installed() -> bool:
+	for model in STANDARD_MODEL_PATHS:
+		if not model_installed(model):
+			return false
+	return true
+
+
+## Are all extra (accent) models there?
 static func extras_installed() -> bool:
 	for model in EXTRA_MODEL_PATHS:
 		if not model_installed(model):
