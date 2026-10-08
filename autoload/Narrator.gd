@@ -60,12 +60,21 @@ func is_enabled() -> bool:
 func speak(text: String, characters: Array[NarratorCharacter] = []) -> void:
 	var jobs: Array[Dictionary] = []
 	var storyteller := _storyteller()
+	# Voices with an owner: every character's chosen voice ("taken" - throwaways stay away from them) and the heroes'
+	# ("hero_ids" - not even another character may use those).
+	var taken: Array[String] = []
+	var hero_ids: Array[String] = []
+	for character in characters:
+		if character.voice_id != NarratorVoices.RANDOM_ID:
+			taken.append(character.voice_id)
+			if character.is_hero:
+				hero_ids.append(character.voice_id)
 	for segment in NarrationMarkup.segments(text, characters):
 		var voice := storyteller
 		if segment["speaker"] != null:
-			voice = _character_voice(segment["speaker"], storyteller)
+			voice = _character_voice(segment["speaker"], storyteller, taken, hero_ids)
 		elif segment["name"] != "":
-			voice = _random_voice(segment["name"], storyteller)
+			voice = _random_voice(segment["name"], storyteller, taken, hero_ids)
 		var clean := _flatten(segment["text"])
 		if clean != "":
 			jobs.append({"text": clean, "model": voice["model"], "speaker": voice["speaker"]})
@@ -122,32 +131,27 @@ func _storyteller() -> Dictionary:
 	return voice
 
 
-func _character_voice(character: NarratorCharacter, storyteller: Dictionary) -> Dictionary:
+func _character_voice(character: NarratorCharacter, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String]) -> Dictionary:
 	if character.voice_id == NarratorVoices.RANDOM_ID:
-		return _random_voice(character.character_name, storyteller)
+		return _random_voice(character.character_name, storyteller, taken, hero_ids)
 	var voice := NarratorVoices.find(character.voice_id)
-	if voice.is_empty() or not _voice_available(voice) or voice["id"] == storyteller["id"]:
-		return _other_voice(storyteller)
+	var stolen := not character.is_hero and hero_ids.has(character.voice_id)  # a hero has this voice
+	if voice.is_empty() or not _voice_available(voice) or voice["id"] == storyteller["id"] or stolen:
+		return _random_voice(character.character_name, storyteller, taken, hero_ids)
 	return voice
 
 
-## A voice for `character_name` among the available ones except the story teller's, picked by the name's hash:
-## the same name always gets the same voice (while the same voices are installed).
-func _random_voice(character_name: String, storyteller: Dictionary) -> Dictionary:
-	var pool: Array[Dictionary] = []
-	for voice in NarratorVoices.all():
-		if voice["id"] != storyteller["id"] and _voice_available(voice):
-			pool.append(voice)
-	if pool.is_empty():
-		return storyteller
-	return pool[character_name.hash() % pool.size()]
-
-
-## Another voice than the story teller's: the first available one in catalogue order.
-func _other_voice(storyteller: Dictionary) -> Dictionary:
-	for voice in NarratorVoices.all():
-		if voice["id"] != storyteller["id"] and _voice_available(voice):
-			return voice
+## A voice for `character_name`, picked by the name's hash: the same name always gets the same voice (while the same
+## voices are installed). Never the story teller's; as far as the installed voices allow also none that a character
+## has chosen ("taken"), and failing that none a hero has.
+func _random_voice(character_name: String, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String]) -> Dictionary:
+	for avoid in [taken, hero_ids, [] as Array[String]]:
+		var pool: Array[Dictionary] = []
+		for voice in NarratorVoices.all():
+			if voice["id"] != storyteller["id"] and not avoid.has(voice["id"]) and _voice_available(voice):
+				pool.append(voice)
+		if not pool.is_empty():
+			return pool[character_name.hash() % pool.size()]
 	return storyteller
 
 

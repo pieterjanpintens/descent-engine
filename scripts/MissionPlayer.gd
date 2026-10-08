@@ -92,6 +92,10 @@ func _ready() -> void:
 		return
 
 	dialog.characters = mission.characters
+	if GameState.campaign_folder != "":
+		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		if campaign_state != null:
+			dialog.characters = campaign_state.speakers(mission.characters)
 	layered_map.apply_mission(mission, true)
 	_add_ground_floor()
 	_add_bounding_box()

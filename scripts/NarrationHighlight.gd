@@ -23,7 +23,10 @@ static func legend(edits: Array[TextEdit], characters: Array[NarratorCharacter])
 	var label := Label.new()
 	label.text = "Voices:"
 	row.add_child(label)
-	for character in characters:
+	var speakers: Array[NarratorCharacter] = characters.duplicate()
+	for hero in HeroCatalog.hero_characters():
+		speakers.append(hero)
+	for character in speakers:
 		var button := Button.new()
 		button.text = character.character_name
 		button.add_theme_color_override("font_color", character.color)

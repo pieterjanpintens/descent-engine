@@ -39,6 +39,22 @@ const PORTRAIT_PATHS: Array[String] = [
 const HERO_SIZE_UNITS: Array[float] = [0.6, 0.9, 0.8, 1.0, 0.5, 0.8]
 
 
+static var _hero_characters: Array[NarratorCharacter] = []
+
+
+## The six heroes as characters (names + colors, no voice) - predefined speakers of every campaign: `[Chance]...[/Chance]`.
+## A campaign save gives them voices (CampaignState.hero_characters()).
+static func hero_characters() -> Array[NarratorCharacter]:
+	if _hero_characters.is_empty():
+		for i in HERO_NAMES.size():
+			var hero := NarratorCharacter.new()
+			hero.character_name = HERO_NAMES[i]
+			hero.color = slot_color(i)
+			hero.is_hero = true
+			_hero_characters.append(hero)
+	return _hero_characters
+
+
 static func slot_name(index: int) -> String:
 	return HERO_NAMES[index]
 

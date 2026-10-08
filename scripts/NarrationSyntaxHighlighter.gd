@@ -56,4 +56,7 @@ func _find(character_name: String) -> NarratorCharacter:
 	for character in characters:
 		if character.character_name == character_name:
 			return character
+	for hero in HeroCatalog.hero_characters():
+		if hero.character_name == character_name:
+			return hero
 	return null

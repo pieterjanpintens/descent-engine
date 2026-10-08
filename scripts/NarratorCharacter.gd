@@ -10,3 +10,6 @@ extends Resource
 ## A NarratorVoices id, or NarratorVoices.RANDOM_ID ("") = a voice picked from the name (for characters who just walk by).
 @export var voice_id: String = NarratorVoices.RANDOM_ID
 @export var color: Color = Color(0.95, 0.75, 0.3)
+## Runtime only: one of the party's heroes (HeroCatalog.hero_characters(), voice from the campaign save). Their voices are
+## reserved: no other character or throwaway sounds like a hero (Narrator).
+var is_hero := false
