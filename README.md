@@ -6,6 +6,12 @@ game's physical tiles, pillars and stairs. Made with Godot 4.7.2 (GDScript).
 Unofficial fan project, not affiliated with Fantasy Flight Games or Asmodee. It ships none of the game's art or sounds,
 only placeholders.
 
+## Video
+
+A walkthrough of the campaign player (click to watch on YouTube):
+
+[![Campaign walkthrough](https://img.youtube.com/vi/Ha-fwiLSWd0/hqdefault.jpg)](https://youtu.be/Ha-fwiLSWd0)
+
 ## What it does
 
 - **Mission Creator** - paint floors, hazards, props and pillars on a grid with the real tile shapes, group them into
