@@ -117,8 +117,10 @@ func _ready() -> void:
 		var key := GameState.campaign_save
 		var result := GameState.campaign_result
 		GameState.clear_campaign()
-		if _open_save(folder, key) and not result.is_empty():
-			await _apply_result(result)
+		if _open_save(folder, key):
+			await _ensure_hero_voices()
+			if not result.is_empty():
+				await _apply_result(result)
 
 
 # ---------------------------------------------------------------- pages
@@ -274,7 +276,7 @@ func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignS
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(info)
-	row.add_child(_button("Resume", func(): _open_save(folder, key)))
+	row.add_child(_button("Resume", func(): await _resume(folder, key)))
 	row.add_child(_button("Delete", func():
 		_ask("Delete the save game '%s'?" % saved.save_name, func():
 			CampaignIO.delete_state(folder, key)
@@ -302,7 +304,10 @@ func _on_new_name_confirmed() -> void:
 	if CampaignIO.save_keys(_folder).has(CampaignIO.save_key(save_name)):
 		_say("A save game called '%s' already exists." % save_name)
 		return
-	_begin(_folder, save_name)
+	if _begin(_folder, save_name):
+		await _ensure_hero_voices()
+		var act := _current_act()
+		_say("%s\n\n%s\n\n%s" % [_campaign.campaign_name, _campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""])
 
 
 func _build_play_page() -> Control:
@@ -369,9 +374,24 @@ func _begin(folder: String, save_name: String) -> bool:
 	state.save_name = save_name
 	state.ensure_started(campaign)
 	_use(campaign, state)
-	var act := _current_act()
-	_say("%s\n\n%s\n\n%s" % [campaign.campaign_name, campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""])
 	return true
+
+
+func _resume(folder: String, key: String) -> void:
+	if _open_save(folder, key):
+		await _ensure_hero_voices()
+
+
+## The players give each hero a narration voice once per playthrough - when the campaign starts (or the first resume
+## after narration was installed). Skipped while narration isn't installed: there would be nothing to hear.
+func _ensure_hero_voices() -> void:
+	if _state == null or not _state.hero_voices.is_empty() or not Narrator.is_available():
+		return
+	var dialog := HeroVoicesDialog.new()
+	add_child(dialog)
+	_state.hero_voices = await dialog.ask({})
+	dialog.queue_free()
+	_save()
 
 
 ## Resumes the save game with file name `key` of campaign `folder`.
@@ -571,6 +591,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 	if _narrative_dialog == null:
 		_narrative_dialog = PlayerDialog.new()
 		add_child(_narrative_dialog)
+	_narrative_dialog.characters = _state.speakers(_campaign.characters)
 	var pages: Array[String] = []
 	var chosen: Array[NarrativeAnswer] = []
 	# Steps and answers can depend on the campaign variables - including what was answered earlier in this very
@@ -584,27 +605,38 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 			if scratch.conditions_hold(_campaign, answer.conditions):
 				offered.append(answer)
 		if offered.is_empty():
-			await _narrative_dialog.ask_narrative([step.text])
-			pages.append(step.text)
+			await _narrative_dialog.ask_narrative([step.text], "", true, Callable(), true)
+			pages.append(NarrationMarkup.plain(step.text, _campaign.characters))
 			continue
 		var labels: Array[String] = []
 		for answer in offered:
 			labels.append(answer.text)
 		var prompt := step.text if step.question == "" else "%s\n\n%s" % [step.text, step.question]
-		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false)
+		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false, true)
 		var answer := offered[index]
 		chosen.append(answer)
+		await _speak_answer(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
-		pages.append("%s\n\nYou chose: %s" % [prompt, answer.text])
+		pages.append("%s\n\nYou chose: %s" % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
 		if answer.reply != "":
-			await _narrative_dialog.ask_ok(answer.reply)
-			pages.append(answer.reply)
+			await _narrative_dialog.ask_ok(answer.reply, true, false, "", null, null, true)
+			pages.append(NarrationMarkup.plain(answer.reply, _campaign.characters))
 		if answer.ends_narrative:
 			break
 	_state.add_log(chapter.title, pages)
 	for answer in chosen:
 		await _state.apply_effects(_campaign, answer.effects)
 	_apply_result({"won": true, "chapter_id": chapter.id, "mission_variables": {}})
+
+
+## The chosen answer is spoken when it has voice tags (`[Chance]...[/Chance]`, usually a hero) - an untagged answer is
+## just what the players picked and stays silent. Waits until it has been said so the reply doesn't cut it off.
+func _speak_answer(answer: NarrativeAnswer) -> void:
+	if NarrationMarkup.tag_names(answer.text).is_empty() or not Narrator.is_enabled():
+		return
+	Narrator.speak(answer.text, _narrative_dialog.characters)
+	while Narrator.speaking:
+		await Narrator.speaking_changed
 
 
 # ---------------------------------------------------------------- results

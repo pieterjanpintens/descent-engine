@@ -24,6 +24,8 @@ extends Resource
 ## Their values live in the save game (CampaignState.variables); a chapter or side quest sets them when won
 ## or lost, a side quest's conditions read them.
 @export var variables: Array[MissionVariable] = []
+## The named speakers of this campaign's stories: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
+@export var characters: Array[NarratorCharacter] = []
 
 ## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only.
 const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]
@@ -49,6 +51,18 @@ func writable_variables() -> Array[MissionVariable]:
 		if variable.name != "act_number":
 			writable.append(variable)
 	return writable
+
+
+## Every text of the narrative chapters (steps, questions, answers, replies) - what the characters' tags are found in.
+func narrative_texts() -> Array[String]:
+	var found: Array[String] = []
+	for act in acts:
+		for chapter in act.chapters:
+			for step in chapter.steps:
+				found.append_array([step.text, step.question])
+				for answer in step.answers:
+					found.append_array([answer.text, answer.reply])
+	return found
 
 
 func new_side_quest_id() -> String:

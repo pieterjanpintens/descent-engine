@@ -23,6 +23,7 @@ var _selected_quest: CampaignSideQuest
 var _condition_editor: EffectEditor
 var _effect_editor: EffectEditor
 var _variables_dialog: MissionVariablesDialog
+var _characters_dialog: CharactersDialog
 var _dirty: bool = false
 
 var _status_label: Label
@@ -181,6 +182,11 @@ func _ready() -> void:
 		mutate.call()
 		_mark_dirty()
 	)))
+	left.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
+		mutate.call()
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	, _campaign.narrative_texts)))
 	_cover_label = _label("")
 	left.add_child(_cover_label)
 	_cover_preview = TextureRect.new()
@@ -320,6 +326,8 @@ func _ready() -> void:
 	_effect_editor.setup(self, commit)
 	_variables_dialog = MissionVariablesDialog.new()
 	add_child(_variables_dialog)
+	_characters_dialog = CharactersDialog.new()
+	add_child(_characters_dialog)
 
 	_refresh_open_list()
 	_refresh_all()
@@ -1407,15 +1415,19 @@ func _build_step_block(chapter: CampaignChapter, index: int) -> Control:
 		step.text = text_edit.text
 		_mark_dirty()
 	)
+	NarrationHighlight.apply(text_edit, _campaign.characters)
 	box.add_child(text_edit)
-	var question_edit := LineEdit.new()
+	var question_edit := _text_edit(46)
 	question_edit.placeholder_text = "Question (shown under the text when there are answers)"
 	question_edit.text = step.question
-	question_edit.text_changed.connect(func(text: String):
-		step.question = text
+	question_edit.text_changed.connect(func():
+		step.question = question_edit.text
 		_mark_dirty()
 	)
+	NarrationHighlight.apply(question_edit, _campaign.characters)
 	box.add_child(question_edit)
+	var legend_targets: Array[TextEdit] = [text_edit, question_edit]
+	box.add_child(NarrationHighlight.legend(legend_targets, _campaign.characters))
 	_build_conditions_section("Only shown when:", step.conditions, box)
 	for answer in step.answers:
 		box.add_child(_build_answer_block(step, answer))
@@ -1434,11 +1446,13 @@ func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Contro
 	var row := HBoxContainer.new()
 	box.add_child(row)
 	row.add_child(_label("Answer:"))
-	var text_edit := LineEdit.new()
+	var text_edit := _text_edit(34)
 	text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_edit.placeholder_text = "What the players can choose (voice tags make it be spoken, e.g. [Chance](Lie) No.[/Chance])"
 	text_edit.text = answer.text
-	text_edit.text_changed.connect(func(text: String):
-		answer.text = text
+	NarrationHighlight.apply(text_edit, _campaign.characters)
+	text_edit.text_changed.connect(func():
+		answer.text = text_edit.text
 		_mark_dirty()
 	)
 	row.add_child(text_edit)
@@ -1447,14 +1461,17 @@ func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Contro
 		_mark_dirty()
 		_rebuild_chapter_panel()
 	))
-	var reply_edit := LineEdit.new()
+	var reply_edit := _text_edit(46)
 	reply_edit.placeholder_text = "Reply shown after choosing it (optional)"
 	reply_edit.text = answer.reply
-	reply_edit.text_changed.connect(func(text: String):
-		answer.reply = text
+	NarrationHighlight.apply(reply_edit, _campaign.characters)
+	reply_edit.text_changed.connect(func():
+		answer.reply = reply_edit.text
 		_mark_dirty()
 	)
 	box.add_child(reply_edit)
+	var reply_targets: Array[TextEdit] = [text_edit, reply_edit]
+	box.add_child(NarrationHighlight.legend(reply_targets, _campaign.characters))
 	var end_check := CheckBox.new()
 	end_check.text = "Ends the story (skips the steps after it)"
 	end_check.button_pressed = answer.ends_narrative

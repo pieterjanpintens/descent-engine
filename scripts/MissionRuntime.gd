@@ -641,7 +641,7 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		if dialog == null:
 			push_warning("SHOW_MESSAGE effect fired but MissionRuntime.dialog isn't wired - skipped")
 			return
-		await dialog.ask_ok(_format_message(effect.message, effect.message_variables), true, false, "Message")
+		await dialog.ask_ok(_format_message(effect.message, effect.message_variables), true, false, "Message", null, null, true)
 		return
 	if BUILTIN_TYPES.has(effect.variable_name) and not WRITABLE_BUILTINS.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)

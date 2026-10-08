@@ -31,6 +31,29 @@ extends Resource
 @export var materials: Dictionary = {}
 ## Names of the weapon attachments (AttachmentCatalog) the party owns.
 @export var owned_attachments: Array[String] = []
+## The narration voice of each hero (hero name -> NarratorVoices id, "" = picked from the name). Asked once, when the
+## campaign starts; no two heroes share one (HeroVoicesDialog).
+@export var hero_voices: Dictionary = {}
+
+
+## The heroes as speakers, with this save game's voices.
+func hero_characters() -> Array[NarratorCharacter]:
+	var heroes: Array[NarratorCharacter] = []
+	for template in HeroCatalog.hero_characters():
+		var hero := NarratorCharacter.new()
+		hero.character_name = template.character_name
+		hero.color = template.color
+		hero.is_hero = true
+		hero.voice_id = hero_voices.get(hero.character_name, NarratorVoices.RANDOM_ID)
+		heroes.append(hero)
+	return heroes
+
+
+## `characters` (a campaign's or mission's own) plus the heroes - every speaker a text of this playthrough can name.
+func speakers(characters: Array[NarratorCharacter]) -> Array[NarratorCharacter]:
+	var all: Array[NarratorCharacter] = characters.duplicate()
+	all.append_array(hero_characters())
+	return all
 
 
 ## A MissionRuntime over the campaign's variables (the built-in counters from this state plus the declared
