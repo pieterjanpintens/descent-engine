@@ -24,6 +24,7 @@ var _condition_editor: EffectEditor
 var _effect_editor: EffectEditor
 var _variables_dialog: MissionVariablesDialog
 var _characters_dialog: CharactersDialog
+var _story_window: NarrativeWindow
 var _dirty: bool = false
 
 var _status_label: Label
@@ -467,6 +468,8 @@ func _step_history(from: Array[Campaign], to: Array[Campaign]) -> void:
 	_selected_quest = _campaign.find_side_quest(quest_id) if quest_id != "" else null
 	_dirty = true
 	_status_label.text = "Unsaved changes"
+	if _story_window != null:
+		_story_window.hide()  # it points at the chapter of the campaign that was swapped out
 	_update_edit_menu()
 	_refresh_all()
 
@@ -791,14 +794,17 @@ func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mi
 ## A list of effects (set a variable / do math on it) the campaign applies when a chapter or side quest is
 ## won or lost, in the panel on the right.
 ## Condition rows over the campaign's variables, with an "Add condition" button, appended to `parent` (the chapter panel by default).
-func _build_conditions_section(heading: String, conditions: Array[Condition], parent: Container = null) -> void:
+func _build_conditions_section(heading: String, conditions: Array[Condition], parent: Container = null, rebuild: Callable = Callable()) -> void:
 	var into: Container = parent if parent != null else _chapter_panel
-	into.add_child(HSeparator.new())
-	into.add_child(_label(heading))
+	var changed: Callable = rebuild if rebuild.is_valid() else _rebuild_chapter_panel
+	if heading != "":
+		into.add_child(HSeparator.new())
+		into.add_child(_label(heading))
 	_bind_variable_editor(_condition_editor)
+	_condition_editor.variables_changed = changed
 	_condition_editor.campaign_variables = _campaign.all_variables()
 	for condition in conditions:
-		into.add_child(_condition_editor.build_condition_row(conditions, condition, _rebuild_chapter_panel))
+		into.add_child(_condition_editor.build_condition_row(conditions, condition, changed))
 	into.add_child(_button("Add condition", func():
 		var created := Condition.new()
 		created.variable_name = Campaign.BUILTIN_VARIABLES[0]
@@ -806,18 +812,21 @@ func _build_conditions_section(heading: String, conditions: Array[Condition], pa
 		created.value = 0
 		conditions.append(created)
 		_mark_dirty()
-		_rebuild_chapter_panel()
+		changed.call()
 	))
 
 
-func _build_effects_section(heading: String, effects: Array[Effect], parent: Container = null) -> void:
+func _build_effects_section(heading: String, effects: Array[Effect], parent: Container = null, rebuild: Callable = Callable()) -> void:
 	var into: Container = parent if parent != null else _chapter_panel
-	into.add_child(HSeparator.new())
-	into.add_child(_label(heading))
+	var changed: Callable = rebuild if rebuild.is_valid() else _rebuild_chapter_panel
+	if heading != "":
+		into.add_child(HSeparator.new())
+		into.add_child(_label(heading))
 	_bind_variable_editor(_effect_editor)
+	_effect_editor.variables_changed = changed
 	_effect_editor.campaign_variables = _campaign.writable_variables()
 	for effect in effects:
-		into.add_child(_effect_editor.build_effect_row(effects, effect, _rebuild_chapter_panel))
+		into.add_child(_effect_editor.build_effect_row(effects, effect, changed))
 	into.add_child(_button("Add effect", func():
 		var created := Effect.new()
 		created.type = Effect.Type.SET_VARIABLE
@@ -825,7 +834,7 @@ func _build_effects_section(heading: String, effects: Array[Effect], parent: Con
 		created.value = 0
 		effects.append(created)
 		_mark_dirty()
-		_rebuild_chapter_panel()
+		changed.call()
 	))
 
 
@@ -1174,6 +1183,11 @@ func _update_problems() -> void:
 
 
 func _rebuild_chapter_panel() -> void:
+	if _story_window != null and _story_window.visible:
+		if _selected != null and _selected == _story_window.chapter and _selected.is_narrative and _selected_quest == null and _selected_place == null:
+			_story_window.refresh()
+		else:
+			_story_window.hide()
 	for child in _chapter_panel.get_children():
 		_chapter_panel.remove_child(child)
 		child.queue_free()
@@ -1410,123 +1424,21 @@ func _reward_spin(initial: int, on_change: Callable) -> SpinBox:
 ## The steps of a narrative chapter: each is a screen of story, optionally with a question and answers; choosing an
 ## answer applies its effects to the campaign's variables (that is how answers get into the campaign).
 func _build_narrative_section(chapter: CampaignChapter) -> void:
-	_chapter_panel.add_child(_label("Narrative steps (a step with answers asks its question):"))
-	for i in chapter.steps.size():
-		_chapter_panel.add_child(_build_step_block(chapter, i))
-	_chapter_panel.add_child(_button("Add step", func():
-		chapter.steps.append(NarrativeStep.new())
-		_mark_dirty()
-		_rebuild_chapter_panel()
-	))
+	_chapter_panel.add_child(HSeparator.new())
+	var answers := 0
+	for step in chapter.steps:
+		answers += step.answers.size()
+	_chapter_panel.add_child(_label("Story: %d step(s), %d answer(s)" % [chapter.steps.size(), answers]))
+	var edit := _button("Edit story…  (full screen)", func(): _open_story_window(chapter))
+	edit.custom_minimum_size.y = 40
+	_chapter_panel.add_child(edit)
 
 
-func _build_step_block(chapter: CampaignChapter, index: int) -> Control:
-	var step := chapter.steps[index]
-	var panel := PanelContainer.new()
-	var box := VBoxContainer.new()
-	panel.add_child(box)
-	var top := HBoxContainer.new()
-	box.add_child(top)
-	var heading := _label("Step %d" % (index + 1))
-	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(heading)
-	var up := _button("↑", func(): _move_step(chapter, index, -1))
-	up.disabled = index == 0
-	top.add_child(up)
-	var down := _button("↓", func(): _move_step(chapter, index, 1))
-	down.disabled = index == chapter.steps.size() - 1
-	top.add_child(down)
-	top.add_child(_button("×", func():
-		chapter.steps.remove_at(index)
-		_mark_dirty()
-		_rebuild_chapter_panel()
-	))
-	var text_edit := _text_edit(90)
-	text_edit.text = step.text
-	text_edit.placeholder_text = "The story the party reads..."
-	text_edit.text_changed.connect(func():
-		step.text = text_edit.text
-		_mark_dirty()
-	)
-	NarrationHighlight.apply(text_edit, _campaign.characters)
-	box.add_child(text_edit)
-	var question_edit := _text_edit(46)
-	question_edit.placeholder_text = "Question (shown under the text when there are answers)"
-	question_edit.text = step.question
-	question_edit.text_changed.connect(func():
-		step.question = question_edit.text
-		_mark_dirty()
-	)
-	NarrationHighlight.apply(question_edit, _campaign.characters)
-	box.add_child(question_edit)
-	var legend_targets: Array[TextEdit] = [text_edit, question_edit]
-	box.add_child(NarrationHighlight.legend(legend_targets, _campaign.characters))
-	_build_conditions_section("Only shown when:", step.conditions, box)
-	for answer in step.answers:
-		box.add_child(_build_answer_block(step, answer))
-	box.add_child(_button("Add answer", func():
-		step.answers.append(NarrativeAnswer.new())
-		_mark_dirty()
-		_rebuild_chapter_panel()
-	))
-	return panel
-
-
-func _build_answer_block(step: NarrativeStep, answer: NarrativeAnswer) -> Control:
-	var panel := PanelContainer.new()
-	var box := VBoxContainer.new()
-	panel.add_child(box)
-	var row := HBoxContainer.new()
-	box.add_child(row)
-	row.add_child(_label("Answer:"))
-	var text_edit := _text_edit(34)
-	text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_edit.placeholder_text = "What the players can choose (voice tags make it be spoken, e.g. [Chance](Lie) No.[/Chance])"
-	text_edit.text = answer.text
-	NarrationHighlight.apply(text_edit, _campaign.characters)
-	text_edit.text_changed.connect(func():
-		answer.text = text_edit.text
-		_mark_dirty()
-	)
-	row.add_child(text_edit)
-	row.add_child(_button("×", func():
-		step.answers.erase(answer)
-		_mark_dirty()
-		_rebuild_chapter_panel()
-	))
-	var reply_edit := _text_edit(46)
-	reply_edit.placeholder_text = "Reply shown after choosing it (optional)"
-	reply_edit.text = answer.reply
-	NarrationHighlight.apply(reply_edit, _campaign.characters)
-	reply_edit.text_changed.connect(func():
-		answer.reply = reply_edit.text
-		_mark_dirty()
-	)
-	box.add_child(reply_edit)
-	var reply_targets: Array[TextEdit] = [text_edit, reply_edit]
-	box.add_child(NarrationHighlight.legend(reply_targets, _campaign.characters))
-	var end_check := CheckBox.new()
-	end_check.text = "Ends the story (skips the steps after it)"
-	end_check.button_pressed = answer.ends_narrative
-	end_check.toggled.connect(func(on: bool):
-		answer.ends_narrative = on
-		_mark_dirty()
-	)
-	box.add_child(end_check)
-	_build_conditions_section("Only offered when:", answer.conditions, box)
-	_build_effects_section("Choosing it sets:", answer.effects, box)
-	return panel
-
-
-func _move_step(chapter: CampaignChapter, index: int, delta: int) -> void:
-	var other := index + delta
-	if other < 0 or other >= chapter.steps.size():
-		return
-	var moved := chapter.steps[index]
-	chapter.steps[index] = chapter.steps[other]
-	chapter.steps[other] = moved
-	_mark_dirty()
-	_rebuild_chapter_panel()
+func _open_story_window(chapter: CampaignChapter) -> void:
+	if _story_window == null:
+		_story_window = NarrativeWindow.new()
+		add_child(_story_window)
+	_story_window.open_for(chapter, _campaign, _mark_dirty, _build_conditions_section, _build_effects_section)
 
 
 func _label(text: String) -> Label:
