@@ -28,6 +28,7 @@ OfficialAssetMap="*res://autoload/OfficialAssetMap.gd"
 OfficialAssetOverrides="*res://autoload/OfficialAssetOverrides.gd"
 CreatorSettings="*res://autoload/CreatorSettings.gd"
 PlayerSettings="*res://autoload/PlayerSettings.gd"
+Narrator="*res://autoload/Narrator.gd"
 
 [display]
 

@@ -584,20 +584,20 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 			if scratch.conditions_hold(_campaign, answer.conditions):
 				offered.append(answer)
 		if offered.is_empty():
-			await _narrative_dialog.ask_narrative([step.text])
+			await _narrative_dialog.ask_narrative([step.text], "", true, Callable(), true)
 			pages.append(step.text)
 			continue
 		var labels: Array[String] = []
 		for answer in offered:
 			labels.append(answer.text)
 		var prompt := step.text if step.question == "" else "%s\n\n%s" % [step.text, step.question]
-		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false)
+		var index: int = await _narrative_dialog.ask_choice(prompt, labels, [], false, true)
 		var answer := offered[index]
 		chosen.append(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
 		pages.append("%s\n\nYou chose: %s" % [prompt, answer.text])
 		if answer.reply != "":
-			await _narrative_dialog.ask_ok(answer.reply)
+			await _narrative_dialog.ask_ok(answer.reply, true, false, "", null, null, true)
 			pages.append(answer.reply)
 		if answer.ends_narrative:
 			break

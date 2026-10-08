@@ -23,6 +23,7 @@ extends Node
 const SETTINGS_PATH := "user://configuration/player-settings.cfg"
 const _SECTION := "voice"
 const _GAMEPLAY := "gameplay"
+const _NARRATION := "narration"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -34,6 +35,8 @@ var show_voice_hints: bool = true
 var input_device: String = ""
 ## Gameplay: jump the camera to the player spawn area / newly spawned monsters.
 var auto_camera_to_spawns: bool = true
+## Narration: read the story aloud (Narrator, needs the Piper engine installed on demand).
+var narration_enabled: bool = true
 
 
 func _ready() -> void:
@@ -52,6 +55,7 @@ func load_settings() -> void:
 	show_voice_hints = config.get_value(_SECTION, "show_voice_hints", show_voice_hints)
 	input_device = config.get_value(_SECTION, "input_device", input_device)
 	auto_camera_to_spawns = config.get_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
+	narration_enabled = config.get_value(_NARRATION, "narration_enabled", narration_enabled)
 
 
 func save_settings() -> void:
@@ -61,6 +65,7 @@ func save_settings() -> void:
 	config.set_value(_SECTION, "show_voice_hints", show_voice_hints)
 	config.set_value(_SECTION, "input_device", input_device)
 	config.set_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
+	config.set_value(_NARRATION, "narration_enabled", narration_enabled)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

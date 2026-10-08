@@ -325,6 +325,9 @@ func _process(_delta: float) -> void:
 func _hands_free_step(frames: PackedVector2Array, peak: float, mix_rate: float) -> void:
 	var now := Time.get_ticks_msec()
 	if not _hf_speaking:
+		if Narrator.speaking:  # the narrator reading the story aloud is not a command
+			_hf_pre_roll = PackedVector2Array()
+			return
 		_hf_pre_roll.append_array(frames)
 		var keep := int(HANDS_FREE_PRE_ROLL_SEC * mix_rate)
 		if _hf_pre_roll.size() > keep:
@@ -352,6 +355,7 @@ func _start_talking() -> void:
 	if _thread != null and _thread.is_alive():
 		_set_status("Still processing the last command...")
 		return
+	Narrator.stop()  # whoever holds the talk key wants to be heard, not the narrator
 	_effect_capture.clear_buffer()
 	_ptt_frames = PackedVector2Array()
 	_ptt_peak = 0.0

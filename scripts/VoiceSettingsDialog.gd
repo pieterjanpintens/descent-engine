@@ -31,6 +31,9 @@ var _device_picker: OptionButton
 var _mode_check: CheckBox
 var _setup_button: Button
 var _setup_status_label: Label
+var _narration_check: CheckBox
+var _narration_setup_button: Button
+var _narration_status_label: Label
 
 
 func _ready() -> void:
@@ -115,6 +118,28 @@ func _ready() -> void:
 
 	vbox.add_child(HSeparator.new())
 
+	var narration_title := Label.new()
+	narration_title.text = "Narration"
+	_bold(narration_title)
+	vbox.add_child(narration_title)
+
+	_narration_check = CheckBox.new()
+	_narration_check.text = "Read the story aloud"
+	_narration_check.toggled.connect(_on_narration_toggled)
+	vbox.add_child(_narration_check)
+
+	_narration_setup_button = Button.new()
+	_narration_setup_button.pressed.connect(_on_narration_setup_pressed)
+	vbox.add_child(_narration_setup_button)
+
+	_narration_status_label = Label.new()
+	_narration_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_narration_status_label.add_theme_font_size_override("font_size", 13)
+	_narration_status_label.modulate = Color(1, 1, 1, 0.75)
+	vbox.add_child(_narration_status_label)
+
+	vbox.add_child(HSeparator.new())
+
 	var close_button := Button.new()
 	close_button.text = "Close"
 	close_button.pressed.connect(func(): visible = false)
@@ -131,6 +156,7 @@ func open() -> void:
 ## Read fresh every time the dialog opens - device list/availability can
 ## change between opens (a device plugged in, a download finished).
 func _refresh() -> void:
+	_refresh_narration()
 	var available := voice_listener.is_available()
 	# *_no_signal: refreshing the widgets must not run the handlers below,
 	# which persist - an unavailable engine would otherwise overwrite the
@@ -160,6 +186,43 @@ func _refresh() -> void:
 		_setup_button.disabled = false
 		_setup_button.text = "Set up voice control (downloads %s)" % VoiceInstaller.DOWNLOAD_SIZE_TEXT
 		_setup_status_label.text = "Voice isn't set up yet - typed commands still work."
+
+
+func _refresh_narration() -> void:
+	var available := Narrator.is_available()
+	_narration_check.set_pressed_no_signal(PlayerSettings.narration_enabled)
+	_narration_check.disabled = not available
+	if available:
+		_narration_setup_button.visible = false
+		_narration_status_label.text = "Narration is set up."
+	elif not PiperInstaller.is_supported_platform():
+		_narration_setup_button.visible = false
+		_narration_status_label.text = "Narration isn't available on %s." % OS.get_name()
+	else:
+		_narration_setup_button.visible = true
+		_narration_setup_button.disabled = false
+		_narration_setup_button.text = "Set up narration (downloads %s)" % PiperInstaller.DOWNLOAD_SIZE_TEXT
+		_narration_status_label.text = "Narration isn't set up yet - the story is shown as text only."
+
+
+func _on_narration_toggled(pressed: bool) -> void:
+	PlayerSettings.narration_enabled = pressed
+	PlayerSettings.save_settings()
+	if not pressed:
+		Narrator.stop()
+
+
+func _on_narration_setup_pressed() -> void:
+	_narration_setup_button.disabled = true
+	var installer := PiperInstaller.new()
+	add_child(installer)
+	installer.progress.connect(func(text: String): _narration_status_label.text = text)
+	var installed: bool = await installer.install()
+	installer.queue_free()
+	if installed:
+		PlayerSettings.narration_enabled = true  # a fresh install means the player wants it on
+		PlayerSettings.save_settings()
+	_refresh_narration()
 
 
 func _on_enabled_toggled(pressed: bool) -> void:

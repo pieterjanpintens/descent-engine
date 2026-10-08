@@ -6471,6 +6471,18 @@ which copies a mission from `user://missions`, start/finale checkboxes, story be
 (model round trip through the files, problem detection incl. unreachable/missing mission/finale, chapter delete removing links, the
 editor driven through its own actions); the layout/drag feel was not seen.
 
+**Narration with Piper (2026-10-08, branch `feature/piper-tts`)** - "it's a lot cooler if the story tells itself". Same on-demand model as the speech recognition: nothing ships in releases; `PiperInstaller`
+(`scripts/PiperInstaller.gd`, extends the new shared `Downloader` base that `VoiceInstaller` now extends too - `_fetch()`/`progress` moved there) downloads, on a click in Options ("Set up narration (downloads about 90 MB)"), the Piper
+engine (MIT, `rhasspy/piper` release 2023.11.14-2: Windows zip ~22 MB, Linux tar.gz ~26 MB - unpacked with ZIPReader / the system `tar`) and one voice (`en_US-lessac-medium`, ~63 MB + its .json, from
+`rhasspy/piper-voices` on Hugging Face) into `user://piper/`. URLs exist (HEAD-checked); **no checksums pinned** (unlike the Whisper models) and **the real engine/voice were not downloaded or run yet** - everything
+was tested against a local HTTP server and a stub engine. `Narrator` (autoload `autoload/Narrator.gd`): `speak(text)` cancels what is going on, flattens the text to ONE line (piper writes one wav per run and reads one
+utterance per line), runs `OS.execute_with_pipe(piper, --model ... --output_file ...)` in a worker thread (text on stdin, then close = EOF), and plays the wav (`AudioStreamWAV.load_from_file`); `stop()` kills the process;
+`speaking`/`speaking_changed`. Silent unless `PlayerSettings.narration_enabled` (default on; "Read the story aloud" in the Options dialog's new Narration section) AND installed. `PlayerDialog.ask_ok/ask_choice/ask_narrative`
+got a `narrate` parameter (every page of a narrative is read as it is shown) and any dialog closing stops the narration; callers using it: the campaign narrative chapters (`CampaignPlayer._play_narrative()`) and the mission
+Show Message effect. The microphone ignores the narrator (`VoiceListener._hands_free_step()` skips while `Narrator.speaking`; pressing push to talk calls `Narrator.stop()`). `Narrator.command_override` is a test seam
+(a stub engine). Verified headlessly: install from a local server (zip layout, voice files), speak -> plays -> clears, the text reaches the engine as one line, stop() cancels a slow run, a new speak() replaces the old one,
+disabled = silent. Not done: sentence-by-sentence playback (a paragraph takes 1-2 s before the first sound), choosing another voice/speed, per-chapter narrators, the Options dialog look.
+
 **Narrative chapters (2026-10-07)** - "a chapter that is not a long mission: background story with questions". `CampaignChapter.is_narrative` + `steps: Array[NarrativeStep]`
 (`text`, optional `question`, `answers: Array[NarrativeAnswer]` = `text`, optional `reply`, `effects`). **Answers reach the campaign through the effects of the chosen answer**
 (Set Variable / Math over the campaign variables, the same effect rows as win/lose effects) - no mission variable bridge needed. Player (`CampaignPlayer._play_narrative()`): the

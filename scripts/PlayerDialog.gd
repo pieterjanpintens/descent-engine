@@ -179,7 +179,7 @@ func _apply_panel_layout(large: bool) -> void:
 		_label.remove_theme_font_size_override("font_size")
 
 
-func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: String = "", left_image: Texture2D = null, right_image: Texture2D = null) -> void:
+func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: String = "", left_image: Texture2D = null, right_image: Texture2D = null, narrate: bool = false) -> void:
 	_set_images(left_image, right_image)
 	_set_modal(dim)
 	if log_title != "" and journal != null:
@@ -189,6 +189,8 @@ func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: Stri
 	_count_input.visible = false
 	_set_buttons([{"text": "OK", "result": null}])
 	_set_voice_context("ok")
+	if narrate:
+		Narrator.speak(text)
 	visible = true
 	await _closed
 	visible = false
@@ -406,7 +408,7 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99, left_image
 ## player can see it exists but can no longer be chosen. Defaults to all
 ## enabled - a shorter (or empty) array than option_labels just leaves the
 ## remaining ones enabled.
-func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = [], allow_cancel: bool = true) -> int:
+func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = [], allow_cancel: bool = true, narrate: bool = false) -> int:
 	_label.text = text
 	_count_input.visible = false
 	var specs: Array = []
@@ -420,6 +422,8 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 	for label in option_labels:
 		names.append(VoiceAnswerParser.option_name(label))
 	_set_voice_context("choice", names)
+	if narrate:
+		Narrator.speak(text)
 	visible = true
 	var result: int = await _closed
 	visible = false
@@ -428,8 +432,9 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 
 ## `on_page` (optional) is called with the page index every time a page is
 ## shown (also when going Back) - lets the caller sync the scene to the page.
-func ask_narrative(pages: Array[String], log_title: String = "", dim: bool = true, on_page: Callable = Callable()) -> void:
+func ask_narrative(pages: Array[String], log_title: String = "", dim: bool = true, on_page: Callable = Callable(), narrate: bool = false) -> void:
 	_narrative_page_callback = on_page
+	_narrate_pages = narrate
 	_set_modal(dim)
 	if log_title != "" and journal != null:
 		journal.add(log_title, pages)
@@ -446,12 +451,16 @@ func ask_narrative(pages: Array[String], log_title: String = "", dim: bool = tru
 
 
 var _narrative_page_callback: Callable
+## ask_narrative(..., narrate): every page is read aloud as it is shown (Narrator).
+var _narrate_pages: bool = false
 
 
 func _show_narrative_page() -> void:
 	if _narrative_page_callback.is_valid():
 		_narrative_page_callback.call(_narrative_index)
 	_label.text = _narrative_pages[_narrative_index]
+	if _narrate_pages:
+		Narrator.speak(_label.text)
 	var specs: Array = []
 	if _narrative_index > 0:
 		specs.append({"text": "Back", "result": "_back"})
@@ -497,6 +506,7 @@ func _on_button_pressed(result: Variant) -> void:
 			return
 	_voice_kind = ""
 	_hint_label.visible = false
+	Narrator.stop()
 	_closed.emit(result)
 
 
