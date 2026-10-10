@@ -6712,7 +6712,17 @@ which monster traits make it drop) and `NoRandom` (2 tables). **The drop rules (
 two essences are alternatives) are NOT in anything read so far - do not invent them.** The monster template has a data-only `loot`
 list for this: `LootItem` (name + `common_materials` + `essences`, `LootMaterials` keys), on `MonsterArchetype.loot` (any kind,
 edited in `MonsterTemplateEditor` "Loot"), merged over base + additive templates by `MonsterTemplate.resolve()` -> `RuntimeMonster.loot`
-(saved). Nothing hands it out yet.
+(saved). **Defeat = the party gets the loot (2026-10-10)**: `MissionRuntime.release_monster()` (the one place every defeat goes
+through: attack, manage dialog, affliction, part effects) calls `_collect_loot()` - EVERY material of every `LootItem` the monster
+carries is added to `MissionRuntime.collected_loot` (key -> count; since the real drop rules are unknown, everything listed drops),
+`loot_collected` is emitted (quest log entry "Loot"), and the attack result / affliction dialog say "Loot for the party: ...".
+`collected_loot` is saved in `SaveGame`; the mission result carries it as `"loot"` and `CampaignState.apply_result()` /
+`apply_side_quest_result()` add it to the party's `materials` ONLY WHEN THE MISSION IS WON (a loss is replayed; abandoning gives
+nothing - change this if losses should keep the loot). Campaign **materials rewards** (chapter / side quest `reward_materials`) and
+offer costs are edited in the campaign editor with a counter per material (`_materials_grid()`, `LootMaterials` keys: 7 common +
+10 essences) instead of the old free-text field (`parse_materials()` removed; older campaigns with free-text material names show
+no counters for them). Materials are displayed as "2x Metal". Not yet verified on screen: the editor counters, the "Loot for the
+party" lines in the dialogs.
 
 **Armor (listed only, nothing built)**: 27 base armors, each with a "+" upgrade: Act I (value 200 unless noted): Duskplate, Plate of
 the Bloodstone, Skykeepers (600), Memorium, Dawnwalker Plate, Wayfarers Leather, Stormring Mail, Undertaker's Coat (600), Slayer

@@ -297,6 +297,11 @@ var affliction_bonus_round: int = 0
 var monsters: Array[RuntimeMonster] = []
 var _next_monster_number: int = 1
 signal monsters_changed
+## A defeated monster's loot went to the party: (monster display name, text for the table, e.g. "Metal, Terros").
+signal loot_collected(monster_name: String, text: String)
+## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
+## campaign when the mission is WON (CampaignState.apply_result()); saved with the game.
+var collected_loot: Dictionary = {}
 
 
 ## Registers a newly spawned monster from `template` (its properties are
@@ -612,9 +617,43 @@ static func wound_label(count: int) -> String:
 func release_monster(monster_id: String) -> void:
 	for i in monsters.size():
 		if monsters[i].id == monster_id:
+			var gone := monsters[i]
 			monsters.remove_at(i)
+			_collect_loot(gone)
 			monsters_changed.emit()
 			return
+
+
+## A defeated monster's loot goes to the players: every material of every LootItem it carries is added to
+## `collected_loot` (the game's real drop rules are unknown, so everything listed drops).
+func _collect_loot(monster: RuntimeMonster) -> void:
+	var gained := loot_materials(monster)
+	if gained.is_empty():
+		return
+	for key in gained:
+		collected_loot[key] = int(collected_loot.get(key, 0)) + int(gained[key])
+	loot_collected.emit(monster.display_name(), loot_text(monster))
+
+
+## The materials `monster` drops: LootMaterials key -> count.
+static func loot_materials(monster: RuntimeMonster) -> Dictionary:
+	var gained := {}
+	for item in monster.loot:
+		for key in item.common_materials:
+			gained[key] = int(gained.get(key, 0)) + 1
+		for key in item.essences:
+			gained[key] = int(gained.get(key, 0)) + 1
+	return gained
+
+
+## "Metal, 2x Terros" - what `monster` drops, for the dialogs and the quest log ("" when nothing).
+static func loot_text(monster: RuntimeMonster) -> String:
+	var gained := loot_materials(monster)
+	var parts: Array[String] = []
+	for key in gained:
+		var count := int(gained[key])
+		parts.append(LootMaterials.display_name(key) if count == 1 else "%dx %s" % [count, LootMaterials.display_name(key)])
+	return ", ".join(parts)
 
 
 ## `hero_name` (new 2026-09-14, optional) is the acting player, threaded

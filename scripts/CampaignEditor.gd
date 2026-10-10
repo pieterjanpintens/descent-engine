@@ -899,16 +899,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	var materials_row := HBoxContainer.new()
 	_chapter_panel.add_child(materials_row)
 	materials_row.add_child(_label("Materials won:"))
-	var materials_edit := LineEdit.new()
-	materials_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	materials_edit.placeholder_text = "e.g. iron:2, leather:1"
-	materials_edit.text = CampaignState.format_materials(quest.reward_materials)
-	var commit_materials := func():
-		quest.reward_materials = CampaignState.parse_materials(materials_edit.text)
-		_mark_dirty()
-	materials_edit.text_submitted.connect(func(_t: String): commit_materials.call())
-	materials_edit.focus_exited.connect(commit_materials)
-	materials_row.add_child(materials_edit)
+	materials_row.add_child(_materials_grid(quest.reward_materials))
 
 	_chapter_panel.add_child(_label("Story before:"))
 	var before_edit := _text_edit(80)
@@ -1089,16 +1080,7 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 	cost_row.add_child(_label("Gold:"))
 	cost_row.add_child(_reward_spin(offer.cost_gold, func(value: int): offer.cost_gold = value))
 	cost_row.add_child(_label("Materials:"))
-	var materials_edit := LineEdit.new()
-	materials_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	materials_edit.placeholder_text = "iron:2, leather:1"
-	materials_edit.text = CampaignState.format_materials(offer.cost_materials)
-	var commit_materials := func():
-		offer.cost_materials = CampaignState.parse_materials(materials_edit.text)
-		_mark_dirty()
-	materials_edit.text_submitted.connect(func(_t: String): commit_materials.call())
-	materials_edit.focus_exited.connect(commit_materials)
-	cost_row.add_child(materials_edit)
+	cost_row.add_child(_materials_grid(offer.cost_materials))
 	var give_row := HBoxContainer.new()
 	box.add_child(give_row)
 	give_row.add_child(_label("Gives:"))
@@ -1368,16 +1350,7 @@ func _rebuild_chapter_panel() -> void:
 	var materials_row := HBoxContainer.new()
 	_chapter_panel.add_child(materials_row)
 	materials_row.add_child(_label("Materials won:"))
-	var materials_edit := LineEdit.new()
-	materials_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	materials_edit.placeholder_text = "e.g. iron:2, leather:1"
-	materials_edit.text = CampaignState.format_materials(chapter.reward_materials)
-	var commit_materials := func():
-		chapter.reward_materials = CampaignState.parse_materials(materials_edit.text)
-		_mark_dirty()
-	materials_edit.text_submitted.connect(func(_t: String): commit_materials.call())
-	materials_edit.focus_exited.connect(commit_materials)
-	materials_row.add_child(materials_edit)
+	materials_row.add_child(_materials_grid(chapter.reward_materials))
 
 	_chapter_panel.add_child(_label("Story before the mission:"))
 	var before_edit := _text_edit(80)
@@ -1496,6 +1469,33 @@ func _open_story_window(chapter: CampaignChapter) -> void:
 		_story_window = NarrativeWindow.new()
 		add_child(_story_window)
 	_story_window.open_for(chapter, _campaign, _mark_dirty, _build_conditions_section, _build_effects_section)
+
+
+## Edits a materials dictionary (LootMaterials key -> count) IN PLACE: a counter per material, 0 = none.
+## Used for what a chapter / side quest gives and what an offer costs.
+func _materials_grid(materials: Dictionary) -> Control:
+	var flow := HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var keys: Array[String] = []
+	keys.append_array(LootMaterials.COMMON)
+	keys.append_array(LootMaterials.ESSENCES)
+	for key in keys:
+		var cell := HBoxContainer.new()
+		cell.add_child(_label(LootMaterials.display_name(key) + ":"))
+		var spin := SpinBox.new()
+		spin.min_value = 0
+		spin.max_value = 99
+		spin.value = int(materials.get(key, 0))
+		spin.value_changed.connect(func(value: float):
+			if int(value) > 0:
+				materials[key] = int(value)
+			else:
+				materials.erase(key)
+			_mark_dirty()
+		)
+		cell.add_child(spin)
+		flow.add_child(cell)
+	return flow
 
 
 func _label(text: String) -> Label:

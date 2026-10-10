@@ -136,7 +136,7 @@ func visible_side_quests(campaign: Campaign) -> Array[CampaignSideQuest]:
 ## Applies how a side quest's mission ended. A win completes it (never offered again) and gives its XP, gold
 ## and materials; a loss gives nothing (it can be played again). The quest's win / lose effects are applied.
 ## Returns the same summary shape as apply_result() so the screen can tell it the same way.
-func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mission_values: Dictionary = {}) -> Dictionary:
+func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mission_values: Dictionary = {}, loot: Dictionary = {}) -> Dictionary:
 	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
 	var quest := campaign.find_side_quest(quest_id)
 	if quest == null or not is_side_quest_visible(campaign, quest):
@@ -155,6 +155,7 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	summary["xp_gained"] = quest.reward_xp
 	summary["gold"] = quest.reward_gold
 	summary["materials"] = quest.reward_materials.duplicate()
+	_take_loot(summary, loot)
 	summary["story_after"] = quest.story_after
 	var pages: Array[String] = []
 	for story in [quest.story_before, quest.story_after]:
@@ -208,7 +209,7 @@ func _begin_act(campaign: Campaign, index: int) -> void:
 ## an "on lose"/"always" link leads on; without one the chapter is simply played again. Returns
 ## {won, xp (the counter after the result), gold, next (titles of the chapters now
 ## available), story_after, act_complete, campaign_complete} for the screen to tell.
-func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_values: Dictionary = {}) -> Dictionary:
+func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_values: Dictionary = {}, loot: Dictionary = {}) -> Dictionary:
 	var summary := {"won": won, "xp": experience, "xp_gained": 0, "gold": 0, "materials": {}, "next": [], "story_after": "", "act_complete": false, "campaign_complete": false}
 	if current_act < 0 or current_act >= campaign.acts.size() or not available_chapters.has(chapter_id):
 		return summary
@@ -224,6 +225,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		summary["materials"] = chapter.reward_materials.duplicate()
 		for material_name in chapter.reward_materials:
 			add_material(str(material_name), int(chapter.reward_materials[material_name]))
+		_take_loot(summary, loot)
 		summary["story_after"] = chapter.story_after
 		var pages: Array[String] = []
 		for story in [chapter.story_before, chapter.story_after]:
@@ -299,6 +301,15 @@ func is_place_unlocked(place: CampaignPlace) -> bool:
 	return place.unlocked_by_chapter == "" or completed_chapters.has(place.unlocked_by_chapter)
 
 
+## The materials the party took from defeated monsters during a WON mission go into the stock (and the summary).
+## A lost mission gives no loot (it is played again).
+func _take_loot(summary: Dictionary, loot: Dictionary) -> void:
+	for material_name in loot:
+		var count := int(loot[material_name])
+		add_material(str(material_name), count)
+		summary["materials"][material_name] = int(summary["materials"].get(material_name, 0)) + count
+
+
 func has_materials(cost: Dictionary) -> bool:
 	for material_name in cost:
 		if int(materials.get(material_name, 0)) < int(cost[material_name]):
@@ -335,21 +346,13 @@ func buy(offer: CampaignOffer) -> bool:
 	return true
 
 
-## "iron:2, wood:1" -> {"iron": 2, "wood": 1}; entries that are not "name:number" are skipped.
-static func parse_materials(text: String) -> Dictionary:
-	var parsed := {}
-	for part in text.split(","):
-		var pieces := part.split(":")
-		if pieces.size() == 2 and pieces[0].strip_edges() != "" and pieces[1].strip_edges().is_valid_int():
-			parsed[pieces[0].strip_edges()] = maxi(int(pieces[1].strip_edges()), 0)
-	return parsed
-
-
-## {"iron": 2, "wood": 1} -> "iron:2, wood:1" (the text parse_materials() reads back).
+## {"metal": 2, "terros": 1} -> "2x Metal, Terros" - for the screens (the editors use a counter per material).
 static func format_materials(cost: Dictionary) -> String:
 	var parts: Array[String] = []
 	for material_name in cost:
-		parts.append("%s:%d" % [material_name, int(cost[material_name])])
+		var count := int(cost[material_name])
+		var shown := LootMaterials.display_name(str(material_name))
+		parts.append(shown if count == 1 else "%dx %s" % [count, shown])
 	return ", ".join(parts)
 
 

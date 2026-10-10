@@ -27,6 +27,7 @@ extends Resource
 @export var player_roster: Array[int] = []
 @export var player_weapons: Dictionary = {}  ## hero slot -> Array[Weapon]
 @export var runtime_variables: Dictionary = {}  ## MissionRuntime.get_variables_state()
+@export var collected_loot: Dictionary = {}  ## MissionRuntime.collected_loot (material -> count)
 @export var hero_wounds: Dictionary = {}  ## MissionRuntime.hero_wounds (hero slot -> wounds)
 @export var part_trigger_counts: Dictionary = {}  ## MissionRuntime.part_trigger_counts
 @export var affliction_bonus_round: int = 0  ## MissionRuntime.affliction_bonus_round

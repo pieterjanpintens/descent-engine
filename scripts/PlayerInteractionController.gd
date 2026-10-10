@@ -460,6 +460,8 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		text += " = %d damage\nDefense roll: -%d\n\n%d damage dealt" % [r["damage"], r["defense_roll"], r["dealt"]]
 	if r["defeated"]:
 		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
+		if MissionRuntime.loot_text(monster) != "":
+			text += "\nLoot for the party: %s." % MissionRuntime.loot_text(monster)
 	else:
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
 	var part_lines: Array = r.get("part_lines", [])

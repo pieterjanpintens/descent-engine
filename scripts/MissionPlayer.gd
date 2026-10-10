@@ -163,6 +163,7 @@ func _ready() -> void:
 	_runtime.sync_builtins(current_round, player_roster.size())
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
+	_runtime.loot_collected.connect(func(monster_name: String, text: String): journal.add("Loot", ["%s dropped: %s." % [monster_name, text]]))
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
 	if resume_save == null:
@@ -175,6 +176,7 @@ func _ready() -> void:
 		current_round = resume_save.current_round
 		current_checkpoint = resume_save.current_checkpoint
 		_runtime.load_variables_state(resume_save.runtime_variables)
+		_runtime.collected_loot = resume_save.collected_loot.duplicate()
 		_runtime.restore_monsters(resume_save.monsters)
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
 		_runtime.hero_times_targeted = resume_save.hero_times_targeted.duplicate()
@@ -316,6 +318,7 @@ func save_game() -> void:
 	save.player_roster = player_roster.duplicate()
 	save.player_weapons = player_weapons.duplicate(true)
 	save.runtime_variables = _runtime.get_variables_state()
+	save.collected_loot = _runtime.collected_loot.duplicate()
 	var monster_dicts: Array[Dictionary] = []
 	for monster in _runtime.monsters:
 		monster_dicts.append(monster.to_dict())
@@ -1058,7 +1061,7 @@ func _apply_affliction() -> void:
 		var monster: RuntimeMonster = entry["monster"]
 		var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 		if entry["defeated"]:
-			lines.append("%s takes %d affliction damage and is defeated! Remove it from the board." % [who, entry["damage"]])
+			lines.append("%s takes %d affliction damage and is defeated! Remove it from the board.%s" % [who, entry["damage"], ("\nLoot for the party: %s." % MissionRuntime.loot_text(monster)) if MissionRuntime.loot_text(monster) != "" else ""])
 		else:
 			lines.append("%s takes %d affliction damage (%d hitpoints left)." % [who, entry["damage"], entry["hitpoints"]])
 	await dialog.ask_ok("\n\n".join(lines), true, false, "Affliction")
@@ -1142,6 +1145,7 @@ func _handle_game_over(objective: MissionObjective) -> void:
 		"won": objective.outcome == MissionObjective.Outcome.WIN,
 		"chapter_id": GameState.campaign_chapter_id,
 		"mission_variables": _runtime.get_variables_state(),
+		"loot": _runtime.collected_loot.duplicate(),
 	})
 
 
