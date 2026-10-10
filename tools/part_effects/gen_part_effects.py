@@ -26,6 +26,7 @@ def defense_round(n): return dict(type="defense_round", n=n)
 def become_weak(kinds): return dict(type="become_weak", kinds=kinds)
 def perm(damage, defense): return dict(type="perm", damage=damage, defense=defense)
 def direct(who, amount): return dict(type="direct", who=who, amount=amount)
+def message(): return dict(type="message")
 def drop_loot(n): return dict(type="drop_loot", n=n)
 def loot_times(n): return dict(type="loot_times", n=n)
 
@@ -39,6 +40,9 @@ SPEC = {
     ("Gauntlet", "B", "Shadow-Weave Gloves"): ([drop_loot(1)], None, {}),
     ("Staff", "C", "Goldbloom Lacing"): ([drop_loot(1)], None, {}),
     ("Hammer", "B", "Salvager Haft"): ([loot_times(2)], [loot_times(3)], {}),
+    ("Hammer", "C", "Tinker's Grip"): ([message()], None, {}),
+    ("Wand", "C", "Mothwing Ornament"): ([message()], None, {}),
+    ("Knives", "C", "Duskstrike Belt"): ([message()], None, {}),
     ("Hammer", "B", "Kehlik Haft"): ([dict(type="copy_other")], None, {}),
     ("Hammer", "C", "Devastator's Grip"): ([weak_bonus(1)], [weak_bonus(2)], {}),
     ("Crossbow", "B", "Mammoth Stock"): ([dmg(flat=1), succ(1, to=TAG("Large"))], [dmg(flat=1), succ(2, to=TAG("Large"))], {}),

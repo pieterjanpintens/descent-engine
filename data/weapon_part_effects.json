@@ -41,6 +41,30 @@
    }
   ]
  },
+ "WEAPON_PART_C_HAMMER_4": {
+  "name": "Tinker's Grip",
+  "effects": [
+   {
+    "type": "message"
+   }
+  ]
+ },
+ "WEAPON_PART_C_WAND_4": {
+  "name": "Mothwing Ornament",
+  "effects": [
+   {
+    "type": "message"
+   }
+  ]
+ },
+ "WEAPON_PART_C_KNIVES_5": {
+  "name": "Duskstrike Belt",
+  "effects": [
+   {
+    "type": "message"
+   }
+  ]
+ },
  "WEAPON_PART_B_HAMMER_3": {
   "name": "Kehlik Haft",
   "effects": [

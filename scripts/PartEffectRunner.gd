@@ -76,7 +76,11 @@ func plan(weapon: Weapon, monster: RuntimeMonster, a_conditions: Array) -> Plan:
 		var applied: Array[String] = []
 		await _apply(spec["effects"], part, parts, p, applied, 0)
 		p.lines.append("%s: %s" % [part.attachment_name, ", ".join(applied)] if not applied.is_empty() else "%s triggered" % part.attachment_name)
-		if part.ability_text != "":
+		var told_in_dialog := false
+		for e: Dictionary in spec["effects"]:
+			if str(e["type"]) == "message":
+				told_in_dialog = true
+		if part.ability_text != "" and not told_in_dialog:
 			p.notes.append("%s: %s" % [part.attachment_name, part.ability_text])
 	return p
 
@@ -95,6 +99,17 @@ func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachmen
 					for kind_name: String in e["kinds"]:
 						_add_condition(p, MonsterCondition.Kind[kind_name], applied)
 				p.post.append({"type": "conditions_others", "kinds": e["kinds"], "tag": tag, "part": part.attachment_name})
+			"message":
+				# Parts the app cannot work out (positions, companions, contraptions, umbra tokens): the table is told that
+				# the ability triggered and decides itself whether it is valid and carries it out (conditions can be set
+				# with the monster screen).
+				await _before_ask()
+				await dialog.ask_ok("%s - %s triggered!
+
+%s
+
+Check whether it applies and carry it out on the board (a condition can be applied from the monster screen)." % [hero_name, part.attachment_name, part.ability_text])
+				applied.append("the table carries it out")
 			"drop_loot":
 				p.post.append({"type": "drop_loot", "n": int(e["n"]), "part": part.attachment_name})
 			"loot_times":
