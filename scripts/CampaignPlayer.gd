@@ -90,7 +90,9 @@ func _ready() -> void:
 	var name_box := VBoxContainer.new()
 	name_box.add_theme_constant_override("separation", 8)
 	_name_dialog.add_child(name_box)
-	name_box.add_child(_wrapped("Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load Campaign in the main menu). Use a different name for every group or playthrough."))
+	var name_hint := _wrapped("Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load Campaign in the main menu). Use a different name for every group or playthrough.")
+	name_hint.custom_minimum_size.x = 420  # an auto-wrapping label with no width makes the dialog as tall as one word per line
+	name_box.add_child(name_hint)
 	_name_edit = LineEdit.new()
 	_name_edit.placeholder_text = "e.g. Friday night group"
 	_name_edit.text_changed.connect(func(text: String): _name_dialog.get_ok_button().disabled = text.strip_edges() == "")
