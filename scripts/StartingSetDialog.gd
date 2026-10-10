@@ -42,7 +42,7 @@ func open_for(campaign: Campaign, on_changed: Callable) -> void:
 func _rebuild() -> void:
 	for child in _content.get_children():
 		_content.remove_child(child)
-		child.free()
+		child.queue_free()  # not free(): the button that triggered this rebuild is still inside its own signal
 	var intro := Label.new()
 	intro.text = "What the party owns when the campaign starts. Every hero needs at least one weapon of each of their two types."
 	intro.autowrap_mode = TextServer.AUTOWRAP_WORD
