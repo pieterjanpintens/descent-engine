@@ -9,6 +9,7 @@ against the game install on your own machine, and puts the results in the game's
     3. import_hero_meshes.py      - the hero models                      (needs Godot 4.7.2)
     4. import_weapon_data.py      - weapons, weapon parts, abilities and their texts (JSON)
     5. import_item_data.py        - materials, recipes, potions, armor, trinkets, enemy loot (JSON)
+    6. import_monster_data.py     - the game's monsters: tiers, activations, weaknesses, abilities (JSON)
 
 Usage (Windows):
     python import_all.py                      # finds the game and Godot by itself if it can
@@ -117,12 +118,13 @@ def main() -> int:
     if not ensure_unitypy():
         return 1
 
-    results = {"textures": run("1/5 Textures, portraits, icons", "import_official_assets.py", bundles)}
+    results = {"textures": run("1/6 Textures, portraits, icons", "import_official_assets.py", bundles)}
     if godot:
-        results["monster figures"] = run("2/5 Monster figures", "import_monster_meshes.py", bundles, godot)
-        results["hero models"] = run("3/5 Hero models", "import_hero_meshes.py", bundles, godot)
-    results["weapon data"] = run("4/5 Weapon data", "import_weapon_data.py", bundles)
-    results["item data"] = run("5/5 Item data", "import_item_data.py", bundles)
+        results["monster figures"] = run("2/6 Monster figures", "import_monster_meshes.py", bundles, godot)
+        results["hero models"] = run("3/6 Hero models", "import_hero_meshes.py", bundles, godot)
+    results["weapon data"] = run("4/6 Weapon data", "import_weapon_data.py", bundles)
+    results["item data"] = run("5/6 Item data", "import_item_data.py", bundles)
+    results["monster data"] = run("6/6 Monster data", "import_monster_data.py", bundles)
 
     print("\n=== Done ===")
     for name, ok in results.items():

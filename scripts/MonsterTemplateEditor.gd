@@ -93,6 +93,12 @@ func _ready() -> void:
 	_delete_button.pressed.connect(func(): _delete_confirm.popup_centered())
 	buttons.add_child(_delete_button)
 
+	var import_game := Button.new()
+	import_game.text = "Import the game's monsters…"
+	import_game.tooltip_text = "Create base templates from the game's own monster data (needs your export, see tools/asset_import/import_monster_data.py). Templates that already exist are not touched."
+	import_game.pressed.connect(_on_import_game_pressed)
+	left.add_child(import_game)
+
 	var update_all := Button.new()
 	update_all.text = "Update all missions…"
 	update_all.tooltip_text = "Apply the library to the monsters in every mission file in your missions folder"
@@ -271,6 +277,28 @@ func _select_key(key: String) -> void:
 	_key = key if _working != null else ""
 	_status.text = ""
 	_populate()
+
+
+func _on_import_game_pressed() -> void:
+	if not MonsterGameImport.available():
+		_notice.dialog_text = "No monster data found. Run tools/asset_import/import_monster_data.py (or import_all.py) against your own copy of the game first."
+		_notice.popup_centered()
+		return
+	var report := MonsterGameImport.run()
+	var text := MonsterGameImport.report_text(report)
+	var file := FileAccess.open(MonsterGameImport.REPORT_FILE, FileAccess.WRITE)
+	if file != null:
+		file.store_string(text)
+	_refresh_list("")
+	var window := AcceptDialog.new()
+	window.title = "Import the game's monsters"
+	var box := TextEdit.new()
+	box.text = text
+	box.editable = false
+	box.custom_minimum_size = Vector2(560, 420)
+	window.add_child(box)
+	add_child(window)
+	window.popup_centered()
 
 
 func _on_new_pressed() -> void:
