@@ -58,7 +58,7 @@ def main() -> int:
                 text = data.m_Script if isinstance(data.m_Script, str) else bytes(data.m_Script).decode("utf-8", "ignore")
                 if text.startswith("Key,Type,Desc,English"):
                     for row in csv.DictReader(io.StringIO(text)):
-                        if row["Key"].startswith(LOC_PREFIXES) and row["English"]:
+                        if (row["Key"].startswith(LOC_PREFIXES) or "DEFEN" in row["Key"].upper()) and row["English"]:
                             localization[row["Key"]] = row["English"]
             elif obj.type.name == "MonoBehaviour":
                 try:
@@ -106,7 +106,8 @@ def main() -> int:
             for entry in tree["DefaultLoot"]:
                 target = trees.get(entry["m_PathID"]) if is_pptr(entry) else None
                 loot.append(clean(target) if target is not None else {})
-            result["enemy_loot"].append({"id": identifier, "name": tree.get("m_Name", ""), "loot": loot})
+            result["enemy_loot"].append({"id": identifier, "name": tree.get("m_Name", ""), "loot": loot,
+                                         "defensive_key": tree.get("DefensiveKey", ""), "show_defense_after_attack": bool(tree.get("ShowDefenseAfterAttack", 0))})
 
     for entries in result.values():
         if entries and "_id" in entries[0]:
