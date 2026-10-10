@@ -47,6 +47,7 @@ var _scaling_hint: Label
 var _rule_rows: VBoxContainer
 var _action_rows: VBoxContainer
 var _action_hint: Label
+var _loot_rows: VBoxContainer
 var _check_boxes: Dictionary = {}  # prop -> Array[CheckBox], index = kind
 var _name_rows: Dictionary = {}  # prop -> VBoxContainer
 var _scaling_rows: Dictionary = {}  # prop -> VBoxContainer
@@ -188,6 +189,7 @@ func _ready() -> void:
 	_add_name_list(_base_only, "Defense abilities", "defense_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_rule_list(_base_only)
 	_add_action_list(_base_only)
+	_add_loot_list(_form)
 
 	var scaling_title := Label.new()
 	scaling_title.text = "Level scaling"
@@ -345,6 +347,7 @@ func _populate() -> void:
 				(boxes[kind] as CheckBox).button_pressed = chosen.has(kind)
 		_rebuild_rule_rows()
 		_rebuild_action_rows()
+		_rebuild_loot_rows()
 		for prop in _name_rows:
 			_rebuild_name_rows(prop)
 		for prop in _scaling_rows:
@@ -639,6 +642,89 @@ func _rebuild_action_rows() -> void:
 		block.add_child(_action_text_field(action, "text", "What the monster does", true))
 		block.add_child(HSeparator.new())
 		_action_rows.add_child(block)
+
+
+## What the monster drops (LootItem): a name plus the common materials and essences it is made of. Any template
+## kind can hold loot; a monster drops the loot of its base and additive templates together. Data only for now.
+func _add_loot_list(parent: Control) -> void:
+	var title_label := Label.new()
+	title_label.text = "Loot (what the monster drops):"
+	parent.add_child(title_label)
+	var hint := Label.new()
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	hint.modulate = Color(1, 1, 1, 0.7)
+	hint.text = "Each entry is a thing the monster carries (its name) and the materials it is made of. Nothing is handed out in play yet."
+	parent.add_child(hint)
+	_loot_rows = VBoxContainer.new()
+	parent.add_child(_loot_rows)
+	var add := Button.new()
+	add.text = "Add loot"
+	add.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	add.pressed.connect(func():
+		if _working == null:
+			return
+		_working.loot.append(LootItem.new("New loot"))
+		_save()
+		_rebuild_loot_rows()
+	)
+	parent.add_child(add)
+
+
+func _rebuild_loot_rows() -> void:
+	for child in _loot_rows.get_children():
+		_loot_rows.remove_child(child)
+		child.queue_free()
+	if _working == null:
+		return
+	for item in _working.loot:
+		var block := VBoxContainer.new()
+		var top := HBoxContainer.new()
+		var name_edit := LineEdit.new()
+		name_edit.text = item.item_name
+		name_edit.placeholder_text = "Name"
+		name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var commit := func():
+			if _suppress or item.item_name == name_edit.text:
+				return
+			item.item_name = name_edit.text
+			_save()
+		name_edit.text_submitted.connect(func(_t: String): commit.call())
+		name_edit.focus_exited.connect(commit)
+		top.add_child(name_edit)
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(func():
+			_working.loot.erase(item)
+			_save()
+			_rebuild_loot_rows()
+		)
+		top.add_child(remove)
+		block.add_child(top)
+		block.add_child(_material_boxes("Common", LootMaterials.COMMON, item.common_materials))
+		block.add_child(_material_boxes("Essences", LootMaterials.ESSENCES, item.essences))
+		block.add_child(HSeparator.new())
+		_loot_rows.add_child(block)
+
+
+## A row of checkboxes, one per material key; ticking one adds/removes the key in `chosen`.
+func _material_boxes(caption: String, keys: Array[String], chosen: Array[String]) -> Control:
+	var flow := HFlowContainer.new()
+	flow.add_child(_caption(caption + ":"))
+	for key in keys:
+		var box := CheckBox.new()
+		box.text = LootMaterials.display_name(key)
+		box.button_pressed = chosen.has(key)
+		box.toggled.connect(func(on: bool):
+			if _suppress:
+				return
+			if on and not chosen.has(key):
+				chosen.append(key)
+			elif not on:
+				chosen.erase(key)
+			_save()
+		)
+		flow.add_child(box)
+	return flow
 
 
 ## A LineEdit bound to a text property of `action`, committed on Enter / focus lost.

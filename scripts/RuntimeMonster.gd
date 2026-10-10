@@ -53,6 +53,8 @@ var tags: Array[String] = []
 var defense_round_penalty: int = 0
 ## What it does when Confused instead of attacking (empty = MonsterAction.defaults()).
 var confused_actions: Array[MonsterAction] = []
+## What it drops (LootItem list from its templates); nothing hands it out yet.
+var loot: Array[LootItem] = []
 
 
 ## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
@@ -110,7 +112,7 @@ func to_dict() -> Dictionary:
 		"last_attacker": last_attacker, "tags": tags.duplicate(), "defense_round_penalty": defense_round_penalty,
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
-		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions),
+		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot),
 	}
 
 
@@ -153,6 +155,8 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 		m.target_rules.append(TargetRule.from_dict(entry))
 	for entry in d.get("confused_actions", []):
 		m.confused_actions.append(MonsterAction.from_dict(entry))
+	for entry in d.get("loot", []):
+		m.loot.append(LootItem.from_dict(entry))
 	return m
 
 

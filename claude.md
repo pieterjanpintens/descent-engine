@@ -6690,6 +6690,46 @@ exists on the map of its own act - when the act ends the next act's map takes ov
 offered as before). Smoke-tested headlessly (the shop rules incl. unlocking, once-only, poverty, materials; the embark filter; the editor adding/selecting/
 deleting places and saving; the player's locked/unlocked shop panel and a purchase persisted to the save); look/drag feel not seen.
 
+## Game item data: materials, crafting, loot, potions, armor (2026-10-10, research + data only)
+
+`tools/asset_import/import_item_data.py` (step 5 of `import_all.py`, no Godot needed) exports, from the user's own install, to
+`%APPDATA%\Godot\app_userdata\Descent-Engine\item_data\` (never committed): `items.json` (materials, recipes with their
+ingredients resolved to material ids, consumables, armors, trinkets, per-enemy loot tables) and `localization_en.json` (names/texts).
+Nothing reads it in the engine yet.
+
+**Materials (17)**: 7 COMMON (rarity 1, value 5): Bone, Cloth, Curios, Herbs, Leather, Metal, Minerals; 10 ESSENCES (rarity 2,
+value 25-30), one per damage type: Anemos, Aquos, Fortunos, Ignos, Lumos, Mortos, Terros, Toxos, Umbros, Vigos (`LootMaterials`).
+**Recipes (387)** = what crafting/buying an item costs (2-5 ingredient kinds, each with a quantity): 308 weapon parts, 27 armors,
+32 potions, 20 trinkets (137 base / 250 upgraded "+" versions). Total quantity over ALL recipes (the order of magnitude of loot
+needed): Metal 1052, Minerals 909, Curios 901, Leather 890, Cloth 888, Herbs 871, Bone 860; essences 98-124 each (Terros 124,
+Lumos 117, Fortunos 114, Anemos 114, Aquos 109, Ignos 105, Toxos 104, Mortos 102, Umbros 101, Vigos 98). Per category: weapon
+parts need mostly commons (Metal 898, Leather 757, Cloth 727, Bone 720, Minerals 701, Curios 680, Herbs 490) plus ~70-94 of each
+essence; armor mostly Cloth 158, Metal 130, Leather 92, Minerals 89; potions mostly Herbs 291, Curios 81, Minerals 69; trinkets
+mostly Bone 88, Curios 85, Minerals 50. 4 ingredient references could not be resolved (a material in a bundle not loaded).
+**Enemy loot**: each enemy (122) has `DefaultLoot` = 0-6 loot tables (usually 4), 48 distinct tables ("a Corroded Blade", "some
+Fireweed"...): each has up to 2 common + 2 uncommon (always essences) materials, a `Traits` bit mask (meaning unknown, probably
+which monster traits make it drop) and `NoRandom` (2 tables). **The drop rules (which table drops, how many materials, whether the
+two essences are alternatives) are NOT in anything read so far - do not invent them.** The monster template has a data-only `loot`
+list for this: `LootItem` (name + `common_materials` + `essences`, `LootMaterials` keys), on `MonsterArchetype.loot` (any kind,
+edited in `MonsterTemplateEditor` "Loot"), merged over base + additive templates by `MonsterTemplate.resolve()` -> `RuntimeMonster.loot`
+(saved). Nothing hands it out yet.
+
+**Armor (listed only, nothing built)**: 27 base armors, each with a "+" upgrade: Act I (value 200 unless noted): Duskplate, Plate of
+the Bloodstone, Skykeepers (600), Memorium, Dawnwalker Plate, Wayfarers Leather, Stormring Mail, Undertaker's Coat (600), Slayer
+Leather, Stalwart Mail (600), Sieging Doublet (600), Noble Attire, Sinister Robe, Seven Button Vest (600), Imperceptible Cape,
+Robe of Camaraderie, Tarianor Tunic, Cloak of Sorrow; Act II (200): Monument Plate, Spire, Lightkeeper's Cuirass, Deep Elf Cowl,
+Scholar's Robe, Glimmer Hood, Crossroads, Delver's Chain, Scout's Leathers.
+**Potions / consumables (listed only, nothing built)**: 24 base, each with a "+" version (`unique` = one per party, hero limits in
+brackets): Antidote Potion, Caution Serum (unique), Crimson Potion [Vaerix, Galaden], Efficacious Elixir [Syrus, Kehli], Endurance
+Potion (unique), Fire Grenade, Focus Potion, Glitterdust Bomb, Guardian Potion [Kehli, Brynn], Invisibility Potion (unique), Knack
+Juice (unique), Mage Dust [Syrus, Vaerix], Miasma Grenade, Mud Potion (unique), Mutation Potion (unique), Phoenix Ash Potion
+(unique), Rabbitfoot Potion, Rogue Sweat [Chance, Kehli], Slayer Potion (unique), Smoke Bomb [Chance, Syrus], Stalwart Incense
+[Brynn, Vaerix], Vigor Potion, Warrior Breath [Brynn, Galaden], Whirlwind Grenade [Chance, Galaden].
+**Trinkets (extra, listed only)**: 20 (each with "+"): Bloodthirsty Bracers, Brew Basket, Dead Man's Compass, Horn of Courage, Ironbound
+Rune, Lucky Charm, Mana Weave, Shadow Bracers, Stormbound Pendant, Undying Skull, Wanderer's Stone, War Rune, Bolt of Blood, Cracked
+Mirror, Fae Crystal, Heart Thorn Root, Mage-Sight Goggles, Prescient Charm, Rusted Nail, Tarnished Brooch.
+The item rule texts are in the localization export; not read/modelled yet.
+
 ## Scene structure (post-refactor)
 
 Split into a minimal reusable piece plus two separate wrappers, specifically so
@@ -7656,4 +7696,16 @@ These cost real debugging time — worth not re-learning them:
 	those didn't pan out) rather than approximating it with one
 	rectangle. Low priority, optional - not blocking anything.
 19. ~~create variables in place~~ **DONE 2026-10-08 (compile-checked only)**: every variable picker built by `EffectEditor` ends in a "+ New variable…" entry (`_wire_variable_option()`: Condition/Effect rows, Set Variable, message "Variables…", Math operands - type locked to INT -, and the Test's accumulate picker - INT). It opens a small create dialog (`EffectEditor.ask_new_variable()`: name, type, default; blank/duplicate names refused), adds the variable as ONE undo step to `MissionData.custom_variables` or, in campaign mode (`campaign_mode`/`campaign_target`, set by `CampaignEditor._bind_variable_editor()`), `Campaign.variables`, selects it in the picker and calls `variables_changed` (the campaign editor rebuilds its panel; the mission dialogs only refill the picker you used, the others update on their next rebuild). The campaign editor's mission-variable mappings offer it on their campaign side (type locked to the mission variable's). Narrative step/answer conditions and effects use the same rows, so they have it too.
-
+20. **Weapon part abilities still open (2026-10-10)**: the "unclear" ones need a rule decision - Eastrider Guard (50% / 100% rounding,
+	needs "enemy attacked this round"), Watchtower Haft ("additional damage" before/after the defense roll, rounding of half the round
+	number), Roiling Haft (does the current trigger count), Wildbloom Belt (rounding of "half the enemies", which ones), Excoriation
+	("25% of its health": current or max, rounding), Drakewing Gloves ("max health -10%": rounding, current health too?), Shadowstone
+	Bracers (needs a rule in the monster targeting), Dragonscale Haft uses the tag "Dragon" while Overwhelm / Chosen Foe use
+	"Dragonkind". Parts needing systems that don't exist: loot (Forgik/Salvager Haft, Shadow-Weave Gloves, Goldbloom Lacing),
+	consumables (Magpie's Grip), companions / contraptions / umbra tokens (Mothwing Ornament, Tinker's Grip, Duskstrike Belt), skills
+	(Inventor's/Majestic Haft), monster defensive abilities with behaviour (Spiral Bolts, Star Metal Offhand+), hero wound health
+	(Remembrance Hilt). The combat dialog flow with part abilities was not run in a Player session.
+21. **Loot, crafting and items**: the game's drop rules are unknown (see **Game item data**) - find out / decide how a defeated
+	monster's `loot` becomes materials, then add: material inventory in the campaign state, crafting/shop prices from the recipes
+	(387 recipes exported), potions (consumables with once-per-mission use, hero limits, "+"), armor (27 + "+"), trinkets (20 + "+").
+	Armor and potions are only LISTED so far.

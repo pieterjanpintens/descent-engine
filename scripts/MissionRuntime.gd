@@ -355,6 +355,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.defense_abilities = resolved["defense_abilities"]
 	created.target_rules = resolved["target_rules"]
 	created.confused_actions = resolved["confused_actions"]
+	created.loot = resolved["loot"]
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()
