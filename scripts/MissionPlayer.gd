@@ -957,14 +957,15 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		await _monster_action(monster, who)
 		return
 	var range_text := "melee" if monster.effective_attack_range() == 0 else "range %d%s" % [monster.effective_attack_range(), ", reach" if monster.attack_reach else ""]
-	var ability_lines: Array[String] = []
-	for ability in monster.attack_abilities:
-		ability_lines.append(ability.ability_name if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [ability.ability_name, MonsterAbility.behavior_name(ability.behavior).to_lower()])
 	for attack_number in range(1, MAX_ATTACKS_PER_TURN + 1):
 		var slot := _runtime.choose_target(monster, player_roster, player_weapons)
 		if slot < 0:
 			return
 		var hero_name := HeroCatalog.slot_name(slot)
+		var ability_lines: Array[String] = []
+		for ability in monster.attack_abilities:
+			var shown := ability.shown_text(monster.display_name(), hero_name, monster.level) if ability.game_key != "" else ability.ability_name
+			ability_lines.append(shown if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [shown, MonsterAbility.behavior_name(ability.behavior).to_lower()])
 		var text := "%s attacks %s!%s\nDamage %d - %s - Speed %d" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
 		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
 			text += "\n(Enfeebled: damage reduced from %d)" % monster.attack_power

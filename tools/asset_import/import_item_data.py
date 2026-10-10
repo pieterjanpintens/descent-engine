@@ -24,7 +24,7 @@ import sys
 
 OUTPUT = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\item_data")
 DROPPED = {"m_GameObject", "m_Enabled", "m_Script"}
-LOC_PREFIXES = ("MAT_", "ARMOR_", "CSM_", "TRINKET", "ITEM_", "LOOT")
+LOC_PREFIXES = ("MAT_", "ARMOR_", "CSM_", "TRINKET", "ITEM_", "LOOT", "ENEMY_ACTIVATION_")
 
 
 def is_pptr(value) -> bool:

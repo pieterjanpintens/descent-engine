@@ -23,8 +23,14 @@ enum Behavior {
 @export var game_key: String = ""
 
 
-## The text shown to the table: the game's text for `game_key` (when the export has it), else the name.
-func shown_text() -> String:
+## The text shown to the table: the game's text for `game_key` (when the export has it), else the name. An activation
+## ability's {0}/{1} are filled from the monster / hero names and level (ItemData.fill_activation()).
+func shown_text(monster_name: String = "", hero_name: String = "", level: int = 1) -> String:
+	if game_key.begins_with("ENEMY_ACTIVATION_"):
+		var activation := ItemData.attack_ability(game_key)
+		if activation.is_empty():
+			return ability_name
+		return ItemData.fill_activation(game_key, str(activation["text"]), monster_name, hero_name, level)
 	var info := ItemData.defense_ability(game_key) if game_key != "" else {}
 	return str(info["text"]) if not info.is_empty() else ability_name
 
