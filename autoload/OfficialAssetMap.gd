@@ -71,6 +71,7 @@ const MAP: Dictionary = {
 	"res://models/icons/damage_terros.png": "Icons_Terros",
 	"res://models/icons/damage_anemos.png": "Icons_Anemos",
 	"res://models/icons/damage_umbros.png": "Icons_Umbros",
+	"res://models/icons/damage_vigos.png": "Icons_Vigos",
 	"res://models/icons/damage_unknown.png": "Icons_Unknown",
 	# Combat dialog "croptops" (2026-09-26): per hero one per weapon (Weapon 1 =
 	# the game's acti crop, Weapon 2 = actii), per monster its tab image (the
