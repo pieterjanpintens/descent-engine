@@ -46,8 +46,26 @@ var attack_reach: bool = false
 var attack_abilities: Array[MonsterAbility] = []
 var defense_abilities: Array[MonsterAbility] = []
 var target_rules: Array[TargetRule] = []
+## Labels from its templates ("Large", "Uthuk", ...) that weapon part abilities ask about, see MonsterArchetype.tags.
+var tags: Array[String] = []
+## Defense taken off until the end of this round by weapon part abilities (cleared when the monster phase ends,
+## MissionRuntime.end_monster_phase_conditions()); permanent reductions change `defense` itself.
+var defense_round_penalty: int = 0
 ## What it does when Confused instead of attacking (empty = MonsterAction.defaults()).
 var confused_actions: Array[MonsterAction] = []
+
+
+## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
+func effective_defense() -> int:
+	return maxi(defense - defense_round_penalty, 0)
+
+
+## True if it carries `tag` (ignoring case).
+func has_tag(tag: String) -> bool:
+	for existing in tags:
+		if existing.to_lower() == tag.to_lower():
+			return true
+	return false
 
 
 ## Attack damage as it is NOW: an Enfeebled monster deals ENFEEBLED_DAMAGE_PERCENT% less,
@@ -89,7 +107,7 @@ func to_dict() -> Dictionary:
 		"weaknesses": weaknesses.duplicate(), "resistances": resistances.duplicate(), "immunities": immunities.duplicate(),
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
-		"last_attacker": last_attacker,
+		"last_attacker": last_attacker, "tags": tags.duplicate(), "defense_round_penalty": defense_round_penalty,
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
 		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions),
@@ -120,6 +138,9 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.known_immunities = _int_array(d.get("known_immunities", []))
 	m.conditions = _int_array(d.get("conditions", []))
 	m.last_attacker = d.get("last_attacker", -1)
+	for tag in d.get("tags", []):
+		m.tags.append(str(tag))
+	m.defense_round_penalty = d.get("defense_round_penalty", 0)
 	m.condition_immunities = _int_array(d.get("condition_immunities", []))
 	m.attack_power = d.get("attack_power", 3)
 	m.attack_range = d.get("attack_range", 0)

@@ -300,7 +300,8 @@ static func hero_types() -> Array[String]:
 
 static func _attachment_from_part(part: Dictionary, type_name: String) -> WeaponAttachment:
 	var ability: Dictionary = _abilities[part["Ability"]]
-	var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)
+	var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), type_name)
+	attachment.chance = float(ability["Chance"])
 	attachment.part_id = part["_id"]
 	attachment.icon_path = part["TextureAssetPath"]
 	attachment.part_slot = "B" if part["Slot"] == 1 else "C"

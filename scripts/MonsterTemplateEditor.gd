@@ -37,6 +37,7 @@ var _form: VBoxContainer  ## the whole right side, disabled when nothing is sele
 var _status: Label
 var _name_edit: LineEdit
 var _prefix_edit: LineEdit
+var _tags_edit: LineEdit
 var _postfix_edit: LineEdit
 var _kind_option: OptionButton
 var _base_only: VBoxContainer  ## the sections only a BASE template has (range/reach, abilities, target rules)
@@ -144,6 +145,12 @@ func _ready() -> void:
 	_postfix_edit.text_submitted.connect(func(_t: String): _commit_affix("name_postfix", _postfix_edit))
 	_postfix_edit.focus_exited.connect(func(): _commit_affix("name_postfix", _postfix_edit))
 	_form.add_child(_row("Postfix:", _postfix_edit))
+
+	_tags_edit = LineEdit.new()
+	_tags_edit.placeholder_text = "e.g. Large, Uthuk, Dragonkind (weapon part abilities ask about these)"
+	_tags_edit.text_submitted.connect(func(_t: String): _commit_tags())
+	_tags_edit.focus_exited.connect(_commit_tags)
+	_form.add_child(_row("Tags:", _tags_edit))
 
 	_add_check_group("Weaknesses", "weaknesses", Vulnerability.all(), func(k: int) -> String: return Vulnerability.display_name(k))
 	_add_check_group("Resistances", "resistances", Vulnerability.all(), func(k: int) -> String: return Vulnerability.display_name(k))
@@ -325,6 +332,7 @@ func _populate() -> void:
 	if _working != null:
 		_name_edit.text = _working.template_name
 		_prefix_edit.text = _working.name_prefix
+		_tags_edit.text = ", ".join(_working.tags)
 		_postfix_edit.text = _working.name_postfix
 		_kind_option.select(_kind_option.get_item_index(_working.kind))
 		_range_spin.value = _working.attack_range
@@ -367,6 +375,20 @@ func _commit_affix(prop: String, edit: LineEdit) -> void:
 	if _suppress or _working == null or str(_working.get(prop)) == edit.text:
 		return
 	_working.set(prop, edit.text)  # verbatim - the spaces matter
+	_save()
+
+
+func _commit_tags() -> void:
+	if _suppress or _working == null:
+		return
+	var parsed: Array[String] = []
+	for piece in _tags_edit.text.split(","):
+		var tag := piece.strip_edges()
+		if tag != "" and not parsed.has(tag):
+			parsed.append(tag)
+	if parsed == _working.tags:
+		return
+	_working.tags = parsed
 	_save()
 
 

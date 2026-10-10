@@ -28,6 +28,8 @@ extends Resource
 @export var player_weapons: Dictionary = {}  ## hero slot -> Array[Weapon]
 @export var runtime_variables: Dictionary = {}  ## MissionRuntime.get_variables_state()
 @export var hero_wounds: Dictionary = {}  ## MissionRuntime.hero_wounds (hero slot -> wounds)
+@export var part_trigger_counts: Dictionary = {}  ## MissionRuntime.part_trigger_counts
+@export var affliction_bonus_round: int = 0  ## MissionRuntime.affliction_bonus_round
 @export var hero_times_targeted: Dictionary = {}  ## MissionRuntime.hero_times_targeted
 @export var hero_attacks_made: Dictionary = {}  ## MissionRuntime.hero_attacks_made (hero slot -> attacks made)
 @export var monsters: Array[Dictionary] = []  ## RuntimeMonster.to_dict() per live monster

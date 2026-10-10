@@ -250,6 +250,8 @@ func _build() -> void:
 	_calc_conditions.add_theme_font_size_override("font_size", 18)
 	_calc_conditions.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 	_calc_conditions.visible = false
+	_calc_conditions.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_calc_conditions.custom_minimum_size.x = 620  # a wrapping label needs a width, or the panel grows as wide as the text
 	calc_column.add_child(_calc_conditions)
 	_ui_layer.add_child(_calc_panel)
 
@@ -931,9 +933,16 @@ func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 	var applied: Array = r.get("conditions_applied", [])
 	var resisted: Array = r.get("conditions_resisted", [])
 	var condition_lines: Array[String] = []
-	var triggered: Array = r.get("attachments_triggered", [])
-	if not triggered.is_empty():
-		condition_lines.append("Attachment: " + ", ".join(triggered))
+	for line in r.get("part_lines", []):
+		condition_lines.append(str(line))
+	var not_triggered: Array = r.get("parts_not_triggered", [])
+	if not not_triggered.is_empty():
+		condition_lines.append("Did not trigger: " + ", ".join(not_triggered))
+	var part_notes: Array = r.get("part_notes", [])
+	if not part_notes.is_empty():
+		condition_lines.append("At the table:")
+		for note in part_notes:
+			condition_lines.append("  " + str(note))
 	if not applied.is_empty():
 		condition_lines.append("Applied: " + ", ".join(_condition_names(applied)))
 	if not resisted.is_empty():

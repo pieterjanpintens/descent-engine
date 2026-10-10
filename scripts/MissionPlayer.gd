@@ -179,6 +179,8 @@ func _ready() -> void:
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
 		_runtime.hero_times_targeted = resume_save.hero_times_targeted.duplicate()
 		_runtime.hero_wounds = resume_save.hero_wounds.duplicate()
+		_runtime.part_trigger_counts = resume_save.part_trigger_counts.duplicate()
+		_runtime.affliction_bonus_round = resume_save.affliction_bonus_round
 		interaction_dock.refresh_wounds(_runtime.hero_wounds)
 		_runtime.load_current_objective_ids(resume_save.current_objective_ids)
 		journal.entries = resume_save.journal_entries
@@ -321,6 +323,8 @@ func save_game() -> void:
 	save.hero_attacks_made = _runtime.hero_attacks_made.duplicate()
 	save.hero_times_targeted = _runtime.hero_times_targeted.duplicate()
 	save.hero_wounds = _runtime.hero_wounds.duplicate()
+	save.part_trigger_counts = _runtime.part_trigger_counts.duplicate()
+	save.affliction_bonus_round = _runtime.affliction_bonus_round
 	save.current_objective_ids = _runtime.get_current_objective_ids()
 	save.journal_entries = journal.entries.duplicate(true)
 

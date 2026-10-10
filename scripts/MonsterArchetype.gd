@@ -36,6 +36,9 @@ enum Kind { BASE, ADDITIVE }
 @export var immunities: Array[int] = []
 ## MonsterCondition.Kind values the monster cannot be affected by.
 @export var condition_immunities: Array[int] = []
+## Free labels the weapon part abilities ask about ("Large", "Uthuk", "Dragonkind", "Dragon" - spelled as in the
+## ability texts; compared ignoring case). Merged into the monster's tags like the lists above.
+@export var tags: Array[String] = []
 @export var attack_abilities: Array[MonsterAbility] = []
 @export var defense_abilities: Array[MonsterAbility] = []
 ## Level scaling tables (rows of "level min..max -> value", see LevelValue): for a
@@ -74,6 +77,7 @@ func deep_copy() -> MonsterArchetype:
 	copy.resistances = resistances.duplicate()
 	copy.immunities = immunities.duplicate()
 	copy.condition_immunities = condition_immunities.duplicate()
+	copy.tags = tags.duplicate()
 	copy.attack_abilities = MonsterAbility.copies(attack_abilities)
 	copy.defense_abilities = MonsterAbility.copies(defense_abilities)
 	copy.attack_scaling = LevelValue.copies(attack_scaling)
@@ -105,7 +109,7 @@ func signature() -> String:
 		actions.append(action.to_dict())
 	return var_to_str([
 		template_name, kind, attack_range, attack_reach, rules, actions, name_prefix, name_postfix,
-		weaknesses, resistances, immunities, condition_immunities,
+		weaknesses, resistances, immunities, condition_immunities, tags,
 		abilities.call(attack_abilities), abilities.call(defense_abilities),
 		scaling.call(attack_scaling), scaling.call(defense_scaling), scaling.call(hitpoints_scaling),
 		scaling.call(speed_scaling),

@@ -72,6 +72,7 @@ func resolve() -> Dictionary:
 	var condition_immune: Array[int] = []
 	var attack_abils: Array[MonsterAbility] = []
 	var defense_abils: Array[MonsterAbility] = []
+	var tag_list: Array[String] = []
 	var rules: Array[TargetRule] = []
 	var confused: Array[MonsterAction] = []
 	var range_value := 0
@@ -87,6 +88,7 @@ func resolve() -> Dictionary:
 		_merge_ints(resist, base_archetype.resistances)
 		_merge_ints(immune, base_archetype.immunities)
 		_merge_ints(condition_immune, base_archetype.condition_immunities)
+		_merge_tags(tag_list, base_archetype.tags)
 		_merge_abilities(attack_abils, base_archetype.attack_abilities)
 		_merge_abilities(defense_abils, base_archetype.defense_abilities)
 		_merge_rules(rules, base_archetype.target_rules)
@@ -105,6 +107,7 @@ func resolve() -> Dictionary:
 		_merge_ints(resist, additive.resistances)
 		_merge_ints(immune, additive.immunities)
 		_merge_ints(condition_immune, additive.condition_immunities)
+		_merge_tags(tag_list, additive.tags)
 		for stat in STAT_TABLES:
 			var table: Array[LevelValue] = additive.get(STAT_TABLES[stat])
 			if LevelValue.has_rows(table):
@@ -119,7 +122,7 @@ func resolve() -> Dictionary:
 	return {
 		"name_prefix": prefix, "name_postfix": postfix,
 		"weaknesses": weak, "resistances": resist, "immunities": immune,
-		"condition_immunities": condition_immune,
+		"condition_immunities": condition_immune, "tags": tag_list,
 		"attack_abilities": attack_abils, "defense_abilities": defense_abils,
 		"target_rules": rules, "confused_actions": confused, "attack_range": range_value, "attack_reach": reach_value,
 		"hitpoints": totals["hitpoints"], "attack_power": totals["attack_power"], "defense": totals["defense"],
@@ -188,6 +191,15 @@ static func _names(kinds: Array, is_condition: bool) -> String:
 	for kind in kinds:
 		names.append(MonsterCondition.display_name(kind) if is_condition else Vulnerability.display_name(kind))
 	return ", ".join(names)
+
+
+static func _merge_tags(into: Array[String], extra: Array[String]) -> void:
+	for tag in extra:
+		var present := false
+		for existing in into:
+			present = present or existing.to_lower() == tag.to_lower()
+		if not present:
+			into.append(tag)
 
 
 static func _merge_ints(into: Array[int], extra: Array[int]) -> void:

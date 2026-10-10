@@ -342,6 +342,13 @@ func _ensure_combat() -> void:
 ## CombatView stage method (its hint_label depends on the stage). Safe to call
 ## again while the view is already open (a stage change) - only the buttons and
 ## hint label are re-pointed then.
+## Closes the full-screen combat view (if it is open) so the normal dialog box can ask something - the attack
+## outcome opens it again (PartEffectRunner asks questions between the confirmed roll and the result).
+func pause_combat_view() -> void:
+	if _combat_open:
+		_leave_combat_view()
+
+
 func _enter_combat_view(buttons: Array[Button]) -> void:
 	_scrim.visible = false
 	_panel.visible = false

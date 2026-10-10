@@ -13,8 +13,8 @@ extends RefCounted
 ## alongside this list rather than extending this enum.
 ## Implemented so far: Afflicted, Doomed, Exposed, Enfeebled, Slowed, Confused, Dazed (see claude.md).
 
-## Dazed: every weapon attachment's chance to trigger against a Dazed monster is raised by
-## this many percentage points (WeaponAttachment.roll()).
+## Dazed: every weapon part's chance to trigger against a Dazed monster is raised by
+## this many percentage points (PartEffectRunner).
 const DAZED_ATTACHMENT_BONUS_PERCENT := 10
 
 ## Slowed: the monster's speed is set to this (see RuntimeMonster.effective_speed()).

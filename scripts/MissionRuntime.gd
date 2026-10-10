@@ -285,6 +285,11 @@ var hero_times_targeted: Dictionary = {}
 ## (third) wound loses the game (MissionPlayer). Saved with the game.
 const HERO_WOUND_LIMIT := 3
 var hero_wounds: Dictionary = {}
+## Weapon part abilities (PartEffectRunner): how often each card's ability has triggered this mission (base part id ->
+## count, for "every 5th time"), and the extra affliction damage added for THIS round (cleared when the monster phase
+## ends). Both saved with the game.
+var part_trigger_counts: Dictionary = {}
+var affliction_bonus_round: int = 0
 
 ## Every live spawned monster (new 2026-09-19), registered by
 ## register_monster(). Emits monsters_changed on any add/remove so the M
@@ -342,6 +347,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.resistances = resolved["resistances"]
 	created.immunities = resolved["immunities"]
 	created.condition_immunities = resolved["condition_immunities"]
+	created.tags = resolved["tags"]
 	created.attack_power = resolved["attack_power"]
 	created.attack_range = resolved["attack_range"]
 	created.attack_reach = resolved["attack_reach"]
@@ -374,9 +380,19 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 ## an Exposed monster takes `EXPOSED_DAMAGE_PERCENT`% extra damage (rounded
 ## down, `exposed_bonus`), added to successes x weapon damage before the defense
 ## roll is subtracted.
-func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null, apply_conditions: Array = [], hero_slot: int = -1) -> Dictionary:
+## `modifiers` (PartEffectRunner, the weapon part abilities of this attack; all optional): `extra_types` (damage types
+## the attack gains), `damage_delta` (added to the weapon's damage per success), `damage_double` (the weapon's own
+## damage is doubled first), `extra_successes`, `weakness_bonus_extra` (added to the weakness bonus when the attack
+## has one), `ignore_defense` (no defense roll). The monster's `effective_defense()` (this round's reduction taken
+## off) is what the defense roll uses.
+func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = null, apply_conditions: Array = [], hero_slot: int = -1, modifiers: Dictionary = {}) -> Dictionary:
 	if weapon == null:
 		weapon = Weapon.placeholder()
+	var attack_types: Array[int] = weapon.damage_types.duplicate()
+	for extra_kind in modifiers.get("extra_types", []):
+		if not attack_types.has(extra_kind):
+			attack_types.append(extra_kind)
+	var final_successes: int = successes + int(modifiers.get("extra_successes", 0))
 	# Who attacked is remembered for the Retaliate/Suppress target rules.
 	if hero_slot >= 0:
 		monster.last_attacker = hero_slot
@@ -394,7 +410,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	var bonus := 0
 	var penalty := 0
 	var immune := false
-	for kind in weapon.damage_types:
+	for kind in attack_types:
 		if monster.weaknesses.has(kind):
 			bonus += 1
 			if not monster.known_weaknesses.has(kind):
@@ -407,21 +423,24 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 			immune = true
 			if not monster.known_immunities.has(kind):
 				monster.known_immunities.append(kind)
-	var weapon_damage := maxi(weapon.damage + bonus - penalty, 0)
-	var base_total := 0 if immune else successes * weapon_damage
+	if bonus > 0:
+		bonus += int(modifiers.get("weakness_bonus_extra", 0))
+	var own_damage: int = weapon.damage * (2 if modifiers.get("damage_double", false) else 1) + int(modifiers.get("damage_delta", 0))
+	var weapon_damage := maxi(own_damage + bonus - penalty, 0)
+	var base_total := 0 if immune else final_successes * weapon_damage
 	# Exposed: +20% of the attack's damage, rounded down (before the defense roll).
 	var exposed_bonus := 0
 	if not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED):
 		exposed_bonus = floori(base_total * EXPOSED_DAMAGE_PERCENT / 100.0)
 	var damage := base_total + exposed_bonus
-	var defense_roll := 0 if immune else randi_range(0, maxi(monster.defense, 0))
+	var defense_roll := 0 if (immune or modifiers.get("ignore_defense", false)) else randi_range(0, monster.effective_defense())
 	var dealt := maxi(damage - defense_roll, 0)
 	monster.hitpoints -= dealt
 	var defeated := monster.hitpoints <= 0
 	var result := {
-		"weapon_name": weapon.weapon_name, "base_damage": weapon.damage,
+		"weapon_name": weapon.weapon_name, "base_damage": own_damage,
 		"weakness_bonus": bonus, "resistance_penalty": penalty, "immune": immune,
-		"weapon_damage": weapon_damage, "successes": successes, "damage": damage,
+		"weapon_damage": weapon_damage, "successes": final_successes, "damage": damage,
 		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated,
 		"conditions_applied": conditions_applied, "conditions_resisted": conditions_resisted, "exposed_bonus": exposed_bonus,
 		"exposed": not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED),
@@ -475,7 +494,7 @@ func remove_condition(monster: RuntimeMonster, kind: int) -> void:
 ## one {monster, damage, hitpoints, defeated} per afflicted monster for the
 ## caller to show.
 func apply_affliction() -> Array[Dictionary]:
-	var damage := maxi(int(_variables.get("affliction_damage", DEFAULT_AFFLICTION_DAMAGE)), 0)
+	var damage := maxi(int(_variables.get("affliction_damage", DEFAULT_AFFLICTION_DAMAGE)) + affliction_bonus_round, 0)
 	var results: Array[Dictionary] = []
 	for monster in monsters.duplicate():
 		if not monster.conditions.has(MonsterCondition.Kind.AFFLICTED):
@@ -494,7 +513,9 @@ func apply_affliction() -> Array[Dictionary]:
 ## monster's are cleared - EXCEPT that a Doomed monster loses only Doomed
 ## (its other conditions stay for another round).
 func end_monster_phase_conditions() -> void:
+	affliction_bonus_round = 0
 	for monster in monsters:
+		monster.defense_round_penalty = 0
 		if monster.conditions.has(MonsterCondition.Kind.DOOMED):
 			monster.conditions.erase(MonsterCondition.Kind.DOOMED)
 		else:

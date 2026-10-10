@@ -1,0 +1,1274 @@
+{
+ "WEAPON_PART_B_HAMMER_3": {
+  "name": "Kehlik Haft",
+  "effects": [
+   {
+    "type": "copy_other"
+   }
+  ]
+ },
+ "WEAPON_PART_C_HAMMER_3": {
+  "name": "Devastator's Grip",
+  "effects": [
+   {
+    "type": "weakness_bonus",
+    "n": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "weakness_bonus",
+    "n": 2
+   }
+  ]
+ },
+ "WEAPON_PART_B_CROSSBOW_2": {
+  "name": "Mammoth Stock",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 1
+   },
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "tag": "Large"
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 1
+   },
+   {
+    "type": "successes",
+    "n": 2,
+    "to": {
+     "tag": "Large"
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_C_CROSSBOW_1": {
+  "name": "Barbed Bolts",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED",
+     "SLOWED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED",
+     "SLOWED"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   }
+  ]
+ },
+ "WEAPON_PART_C_CROSSBOW_3": {
+  "name": "Screamer Bolts",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED",
+     "EXPOSED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "ANEMOS"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED",
+     "EXPOSED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_CROSSBOW_4": {
+  "name": "Marking Bolts",
+  "effects": [
+   {
+    "type": "perm",
+    "damage": 1,
+    "defense": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "perm",
+    "damage": 2,
+    "defense": 2
+   }
+  ]
+ },
+ "WEAPON_PART_C_CROSSBOW_5": {
+  "name": "Splintering Bolts",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED",
+     "DOOMED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED",
+     "DOOMED"
+    ]
+   },
+   {
+    "type": "defense_round",
+    "n": 2
+   }
+  ]
+ },
+ "WEAPON_PART_B_SWORD_1": {
+  "name": "Northrider Guard",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 1,
+    "to": {
+     "ask": "injured"
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 2,
+    "to": {
+     "ask": "injured"
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_B_SWORD_4": {
+  "name": "Breaker Guard",
+  "effects": [
+   {
+    "type": "perm",
+    "damage": 1,
+    "defense": 0
+   }
+  ]
+ },
+ "WEAPON_PART_B_WARHAMMER_3": {
+  "name": "Dragonscale Haft",
+  "effects": [
+   {
+    "type": "conditions_all",
+    "kinds": [
+     "DAZED"
+    ],
+    "tag": "Dragon"
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARHAMMER_1": {
+  "name": "Tenderizer Pommel",
+  "effects": [
+   {
+    "type": "become_weak",
+    "kinds": [
+     "PIERCE"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARHAMMER_2": {
+  "name": "Talon Pommel",
+  "effects": [
+   {
+    "type": "become_weak",
+    "kinds": [
+     "SLASH"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARHAMMER_3": {
+  "name": "Sahe Pommel",
+  "effects": [
+   {
+    "type": "become_weak",
+    "kinds": [
+     "CRUSH"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARHAMMER_4": {
+  "name": "Crown Pommel",
+  "effects": [
+   {
+    "type": "become_weak",
+    "kinds": "attack_types"
+   }
+  ]
+ },
+ "WEAPON_PART_B_WARBELL_1": {
+  "name": "Talon Grip",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "already": "DAZED"
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_WARBELL_2": {
+  "name": "Jeweled Grip",
+  "effects": [
+   {
+    "type": "copy_other"
+   }
+  ]
+ },
+ "WEAPON_PART_B_WARBELL_3": {
+  "name": "Spiked Grip",
+  "effects": [
+   {
+    "type": "damage",
+    "per_status": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "per_status": 1
+   },
+   {
+    "type": "random_status",
+    "count": 1,
+    "only_if_none": true
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARBELL_1": {
+  "name": "Reinforced Haft",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 2
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 3
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARBELL_3": {
+  "name": "Ringing Haft",
+  "effects": [
+   {
+    "type": "direct",
+    "who": "others",
+    "amount": "successes"
+   }
+  ]
+ },
+ "WEAPON_PART_B_SPEAR_1": {
+  "name": "Twisting Haft",
+  "effects": [
+   {
+    "type": "same_damage_other"
+   }
+  ]
+ },
+ "WEAPON_PART_B_SPEAR_3": {
+  "name": "Superior Haft",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "SLOWED"
+    ],
+    "to": {
+     "already": "ENFEEBLED"
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_SPEAR_1": {
+  "name": "Radiant Tail",
+  "effects": [
+   {
+    "type": "become_weak",
+    "kinds": [
+     "PIERCE",
+     "IGNOS"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "become_weak",
+    "kinds": [
+     "PIERCE",
+     "IGNOS"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_SPEAR_2": {
+  "name": "Nightfall Tail",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DOOMED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "already": "DOOMED"
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DOOMED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_SPEAR_3": {
+  "name": "Serpent's Tail",
+  "effects": [
+   {
+    "type": "weakness_bonus",
+    "n": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "weakness_bonus",
+    "n": 2
+   }
+  ]
+ },
+ "WEAPON_PART_C_SPEAR_4": {
+  "name": "Biting Tail",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 2
+   }
+  ],
+  "always_if_weak": true
+ },
+ "WEAPON_PART_B_WAND_2": {
+  "name": "Nature Wrap",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED",
+     "SLOWED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_WAND_4": {
+  "name": "Nightsky Wrap",
+  "effects": [
+   {
+    "type": "direct_ask",
+    "prompt": "fatigue"
+   }
+  ]
+ },
+ "WEAPON_PART_B_WAND_5": {
+  "name": "Scholar's Wrap",
+  "effects": [
+   {
+    "type": "reveal_weakness"
+   }
+  ]
+ },
+ "WEAPON_PART_C_WAND_1": {
+  "name": "Feather Ornament",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "IGNOS"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "IGNOS",
+     "LUMOS"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_WAND_2": {
+  "name": "Lacerate",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ],
+    "to": {
+     "weak_to_attack": true
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_C_WAND_3": {
+  "name": "Eye Ornament",
+  "effects": [
+   {
+    "type": "become_weak",
+    "kinds": "random_attack_type"
+   }
+  ]
+ },
+ "WEAPON_PART_C_WAND_5": {
+  "name": "Volcanic Ornament",
+  "effects": [
+   {
+    "type": "counter",
+    "every": 5,
+    "damage_all": 10
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ]
+   },
+   {
+    "type": "counter",
+    "every": 5,
+    "damage_all": 15
+   }
+  ]
+ },
+ "WEAPON_PART_B_STAFF_2": {
+  "name": "Scarlet Wrap",
+  "effects": [
+   {
+    "type": "same_damage_other",
+    "then": [
+     "AFFLICTED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_STAFF_3": {
+  "name": "Rider's Wrap",
+  "effects": [
+   {
+    "type": "damage",
+    "range": [
+     1,
+     2
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "range": [
+     1,
+     3
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_STAFF_4": {
+  "name": "Flamescale Wrap",
+  "effects": [
+   {
+    "type": "affliction_bonus",
+    "n": 3
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ]
+   },
+   {
+    "type": "affliction_bonus",
+    "n": 3
+   }
+  ]
+ },
+ "WEAPON_PART_B_STAFF_5": {
+  "name": "Banded Wrap",
+  "effects": [
+   {
+    "type": "conditions_all",
+    "kinds": [
+     "ENFEEBLED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_STAFF_1": {
+  "name": "Blood Vein Lacing",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "PIERCE",
+     "SLASH"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "PIERCE",
+     "SLASH"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   },
+   {
+    "type": "successes",
+    "n": 1
+   }
+  ]
+ },
+ "WEAPON_PART_C_STAFF_2": {
+  "name": "Stormwind Lacing",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "ANEMOS"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "ANEMOS",
+     "UMBROS"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_STAFF_4": {
+  "name": "Ember Lacing",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "IGNOS"
+    ]
+   },
+   {
+    "type": "max_health_to_current"
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "IGNOS"
+    ]
+   },
+   {
+    "type": "successes",
+    "n": 2
+   },
+   {
+    "type": "max_health_to_current"
+   }
+  ]
+ },
+ "WEAPON_PART_B_GAUNTLET_2": {
+  "name": "Clawed Gloves",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "PIERCE"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_GAUNTLET_5": {
+  "name": "Drakewing Gloves",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "IGNOS"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_GAUNTLET_2": {
+  "name": "Heavy Bracers",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "CRUSH"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_GAUNTLET_3": {
+  "name": "Cruel Bracers",
+  "effects": [
+   {
+    "type": "damage",
+    "per_status": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "per_status": 1
+   },
+   {
+    "type": "random_status",
+    "count": 1,
+    "only_if_none": true
+   }
+  ]
+ },
+ "WEAPON_PART_C_GAUNTLET_4": {
+  "name": "Biting Bracers",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 3
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 4
+   }
+  ]
+ },
+ "WEAPON_PART_C_GAUNTLET_5": {
+  "name": "Grasping Bracers",
+  "effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "TOXOS"
+    ]
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_KNIVES_1": {
+  "name": "Balanced Grip",
+  "effects": [
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "weak_to_attack": true
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_B_KNIVES_2": {
+  "name": "Spiked Grip",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ],
+    "to": {
+     "weak_to_attack": true
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_B_KNIVES_3": {
+  "name": "Lacerate",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ],
+    "to": {
+     "weak_to_attack": true
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_B_KNIVES_4": {
+  "name": "Livewood Grip",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "ENFEEBLED",
+     "SLOWED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_KNIVES_5": {
+  "name": "Fanged Grip",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   },
+   {
+    "type": "direct",
+    "who": "exposed",
+    "amount": 5
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   },
+   {
+    "type": "direct",
+    "who": "exposed",
+    "amount": 8
+   }
+  ]
+ },
+ "WEAPON_PART_C_KNIVES_3": {
+  "name": "Threewishes Sash",
+  "effects": [
+   {
+    "type": "random_status",
+    "count": 3
+   }
+  ]
+ },
+ "WEAPON_PART_B_DUAL_BLADES_2": {
+  "name": "Hooked Offhand",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "SLOWED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "SLOWED",
+     "ENFEEBLED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_DUAL_BLADES_3": {
+  "name": "Forgotten Offhand",
+  "effects": [
+   {
+    "type": "damage",
+    "double": true
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "double": true
+   },
+   {
+    "type": "successes",
+    "n": 1
+   }
+  ]
+ },
+ "WEAPON_PART_B_DUAL_BLADES_4": {
+  "name": "Star Metal Offhand",
+  "effects": [
+   {
+    "type": "ignore_defense"
+   }
+  ]
+ },
+ "WEAPON_PART_B_DUAL_BLADES_5": {
+  "name": "Leonx Offhand",
+  "effects": [
+   {
+    "type": "successes",
+    "per_stronger_enemy": 1
+   }
+  ]
+ },
+ "WEAPON_PART_C_DUAL_BLADES_1": {
+  "name": "Redstone Pommel",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 1,
+    "to": {
+     "tag": "Uthuk"
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 1,
+    "to": {
+     "tag": "Uthuk"
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ],
+    "to": {
+     "tag": "Uthuk"
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_C_DUAL_BLADES_2": {
+  "name": "Bloodscript Pommel",
+  "effects": [
+   {
+    "type": "damage",
+    "ask_injury": true
+   }
+  ]
+ },
+ "WEAPON_PART_C_DUAL_BLADES_3": {
+  "name": "Braided Pommel",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_DUAL_BLADES_4": {
+  "name": "Gilded Pommel",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "CONFUSED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_DUAL_BLADES_5": {
+  "name": "Clawguard Pommel",
+  "effects": [
+   {
+    "type": "conditions_after",
+    "kinds": [
+     "SLOWED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions_after",
+    "kinds": [
+     "DAZED",
+     "SLOWED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_BOW_2": {
+  "name": "Silken String",
+  "effects": [
+   {
+    "type": "execute_below",
+    "hp": 7
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "execute_below",
+    "hp": 13
+   }
+  ]
+ },
+ "WEAPON_PART_B_BOW_3": {
+  "name": "Wildborn String",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 2
+   }
+  ]
+ },
+ "WEAPON_PART_B_BOW_4": {
+  "name": "Full Moon String",
+  "effects": [
+   {
+    "type": "strip_statuses",
+    "damage_per": 3
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "strip_statuses",
+    "damage_per": 5
+   }
+  ]
+ },
+ "WEAPON_PART_B_BOW_5": {
+  "name": "Thrumming String",
+  "effects": [
+   {
+    "type": "spread_status",
+    "all": false
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "spread_status",
+    "all": true
+   }
+  ]
+ },
+ "WEAPON_PART_C_BOW_1": {
+  "name": "Marksman's Arrow",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "already": "EXPOSED"
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "EXPOSED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_BOW_2": {
+  "name": "Direvine Arrow",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_BOW_3": {
+  "name": "Omen-Touched",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DOOMED"
+    ]
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "already": "DOOMED"
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DOOMED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_BOW_5": {
+  "name": "Pinpoint Arrow",
+  "effects": [
+   {
+    "type": "defense_round",
+    "n": 2
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "defense_round",
+    "n": 4
+   }
+  ]
+ },
+ "WEAPON_PART_B_DRAGONSBANE": {
+  "name": "Chosen Foe",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 1,
+    "to": {
+     "tag": "Dragonkind"
+    }
+   },
+   {
+    "type": "successes",
+    "n": 1,
+    "to": {
+     "tag": "Dragonkind"
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_B_FEAR": {
+  "name": "Enervation",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED",
+     "ENFEEBLED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_ICE_STORM": {
+  "name": "Impede",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "SLOWED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_LIGHTNING_STRIKE": {
+  "name": "Omen-Touched",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "DOOMED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_B_RUNE_OF_BLADES": {
+  "name": "Lacerate",
+  "effects": [
+   {
+    "type": "conditions",
+    "kinds": [
+     "AFFLICTED"
+    ],
+    "to": {
+     "weak_to_attack": true
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_C_DRAGONSBANE": {
+  "name": "Overwhelm",
+  "effects": [
+   {
+    "type": "conditions_all",
+    "kinds": [
+     "ENFEEBLED",
+     "EXPOSED"
+    ],
+    "tag": "Dragonkind"
+   }
+  ]
+ },
+ "WEAPON_PART_C_ICE_STORM": {
+  "name": "Whiteout",
+  "effects": [
+   {
+    "type": "conditions_all",
+    "kinds": [
+     "ENFEEBLED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_LIGHTNING_STRIKE": {
+  "name": "Overcharge",
+  "effects": [
+   {
+    "type": "conditions_all",
+    "kinds": [
+     "DAZED",
+     "EXPOSED"
+    ]
+   }
+  ]
+ },
+ "WEAPON_PART_C_RUNE_OF_BLADES": {
+  "name": "Spiral Strike",
+  "effects": [
+   {
+    "type": "same_damage_other"
+   }
+  ]
+ }
+}

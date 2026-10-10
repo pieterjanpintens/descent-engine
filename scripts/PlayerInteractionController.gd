@@ -423,21 +423,25 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		if successes < 0:
 			return
 		conditions = dialog.attack_conditions.duplicate()
-	# The weapon's attachments each roll their chance; one that triggers applies its condition.
-	# A Dazed monster (already, or made so by the table's choice for this attack - unless it is
-	# immune) makes every attachment likelier to trigger.
-	var triggered: Array[String] = []
-	var dazed := monster.conditions.has(MonsterCondition.Kind.DAZED) \
-		or (conditions.has(MonsterCondition.Kind.DAZED) and not monster.condition_immunities.has(MonsterCondition.Kind.DAZED))
-	for attachment in weapon.attachments if weapon != null else []:
-		if attachment.roll(dazed):
-			triggered.append(attachment.summary() + (" (Dazed +%d%%)" % MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT if dazed else ""))
-			if not conditions.has(attachment.condition):
-				conditions.append(attachment.condition)
-	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot)
-	r["attachments_triggered"] = triggered
+	# What the table entered is what weapon part A did (successes, conditions). The weapon's parts B and C now roll
+	# their chance and apply what they can (PartEffectRunner), the damage is worked out, and what comes after the
+	# damage is applied.
+	if weapon == null:
+		weapon = Weapon.placeholder()
+	var runner := PartEffectRunner.new()
+	runner.runtime = mission_runtime
+	runner.dialog = dialog
+	runner.hero_name = hero_name
+	var plan: PartEffectRunner.Plan = await runner.plan(weapon, monster, conditions)
+	for kind in plan.conditions:
+		if not conditions.has(kind):
+			conditions.append(kind)
+	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot, plan.modifiers())
+	await runner.finish(plan, r)
 	# The same cfg with what the monster now has discovered.
 	var post_cfg := cfg.duplicate()
+	post_cfg["damage_types"] = plan.attack_types
+	post_cfg["max_hitpoints"] = monster.max_hitpoints
 	post_cfg["known_weaknesses"] = monster.known_weaknesses.duplicate()
 	post_cfg["known_resistances"] = monster.known_resistances.duplicate()
 	post_cfg["known_immunities"] = monster.known_immunities.duplicate()
@@ -458,8 +462,12 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
 	else:
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
-	if not triggered.is_empty():
-		text += "\nAttachment triggered: %s" % ", ".join(triggered)
+	var part_lines: Array = r.get("part_lines", [])
+	if not part_lines.is_empty():
+		text += "\nWeapon parts: " + "; ".join(part_lines)
+	var part_notes: Array = r.get("part_notes", [])
+	if not part_notes.is_empty():
+		text += "\nAt the table: " + " | ".join(part_notes)
 	var applied: Array[int] = r["conditions_applied"]
 	if not applied.is_empty():
 		var applied_names: Array[String] = []
