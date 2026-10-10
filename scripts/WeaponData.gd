@@ -30,8 +30,8 @@ const TYPE_TO_GAME_WEAPON := {
 ## The game's damage `Traits` numbers -> Vulnerability.Kind. 0-2 are certain (hammers / swords / bows and knives);
 ## confirmed by the user: 4 (Wing Blade+ = Anemos), 6 (Rebound Hammer+ = Terros), 7 (Ancestral Blade = Lumos), 8
 ## (Relentless Gauntlet+ = Umbros), 9 (Dragonsbane+ = Vigos), 10 (Life-Drinking Gauntlet+ = Mortos) and 3 (Sunburst+ =
-## Lumos and Ignos) and 11 (Warping Wand+ = Toxos). Only 5 (water: Ice Storm) is still a guess from the part name. The
-## game also has a Fortunos damage icon, no weapon part uses it yet, so it is not one of our kinds.
+## Lumos and Ignos), 11 (Warping Wand+ = Toxos) and 5 (Ice Storm = Aquos): every number is confirmed. The game's
+## Fortunos (luck) icon does not apply to weapons, so it is not one of our kinds.
 const TRAIT_TO_KIND := {
 	0: Vulnerability.Kind.CRUSH,
 	1: Vulnerability.Kind.SLASH,
