@@ -533,6 +533,8 @@ func _build_place_panel(place: CampaignPlace) -> void:
 		_side.add_child(_label("Cost: %s" % (", ".join(cost) if not cost.is_empty() else "free")))
 		if offer.attachment != "":
 			_side.add_child(_label("Gives: %s" % _attachment_summary(offer.attachment)))
+		if offer.weapon != "":
+			_side.add_child(_label("Gives the weapon: %s" % WeaponData.weapon_label(offer.weapon)))
 		if offer.rune != "":
 			_side.add_child(_label("Gives the rune: %s" % WeaponData.rune_label(offer.rune)))
 		var bought := offer.once and _state.purchased_offers.has(offer.id)
@@ -545,6 +547,11 @@ func _build_place_panel(place: CampaignPlace) -> void:
 		for part_id in _state.owned_attachments:
 			owned_labels.append(AttachmentCatalog.label(part_id))
 		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(owned_labels)))
+	if not _state.owned_weapons.is_empty():
+		var weapon_labels: Array[String] = []
+		for weapon_id in _state.owned_weapons:
+			weapon_labels.append(WeaponData.weapon_label(weapon_id))
+		_side.add_child(_wrapped("Owned weapons: %s" % ", ".join(weapon_labels)))
 	if not _state.owned_runes.is_empty():
 		var rune_labels: Array[String] = []
 		for rune_id in _state.owned_runes:

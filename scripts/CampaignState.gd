@@ -33,6 +33,8 @@ extends Resource
 @export var owned_attachments: Array[String] = []
 ## Part ids of the runes the party owns (any hero can take one in place of Weapon 1 or 2).
 @export var owned_runes: Array[String] = []
+## Part ids of the weapon cards the party owns (base ids; a card and its "+" side are one card).
+@export var owned_weapons: Array[String] = []
 ## The narration voice of each hero (hero name -> NarratorVoices id, "" = picked from the name). Asked once, when the
 ## campaign starts; no two heroes share one (HeroVoicesDialog).
 @export var hero_voices: Dictionary = {}
@@ -174,6 +176,9 @@ func ensure_started(campaign: Campaign) -> void:
 	if log_entries.is_empty():
 		for variable in campaign.variables:
 			variables[variable.name] = variable.default_value
+		owned_weapons = campaign.starting_weapons.duplicate()
+		owned_attachments = campaign.starting_attachments.duplicate()
+		owned_runes = campaign.starting_runes.duplicate()
 		add_log(campaign.campaign_name, [campaign.intro if campaign.intro != "" else "The story begins."])
 	_begin_act(campaign, current_act)
 
@@ -315,6 +320,8 @@ func buy(offer: CampaignOffer) -> bool:
 		owned_attachments.append(offer.attachment)
 	if offer.rune != "" and not owned_runes.has(offer.rune):
 		owned_runes.append(offer.rune)
+	if offer.weapon != "" and not owned_weapons.has(offer.weapon):
+		owned_weapons.append(offer.weapon)
 	if offer.once:
 		purchased_offers.append(offer.id)
 	return true

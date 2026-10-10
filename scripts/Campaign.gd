@@ -24,6 +24,11 @@ extends Resource
 ## Their values live in the save game (CampaignState.variables); a chapter or side quest sets them when won
 ## or lost, a side quest's conditions read them.
 @export var variables: Array[MissionVariable] = []
+## The starting set: what the party owns at mission 0 (base part ids, see WeaponData): weapon cards, B/C parts, runes.
+## Every hero type needs at least one starting weapon (starting_set_problems()); StartingSetDialog edits it.
+@export var starting_weapons: Array[String] = []
+@export var starting_attachments: Array[String] = []
+@export var starting_runes: Array[String] = []
 ## The named speakers of this campaign's stories: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
 @export var characters: Array[NarratorCharacter] = []
 
@@ -99,6 +104,27 @@ func side_quest_problems(mission_files: Array[String]) -> Array[String]:
 			if not has_chapter(chapter_id):
 				found.append("side quest '%s' is linked to a chapter that no longer exists" % quest.title)
 	return found
+
+
+## Problems with the starting set: each hero weapon type needs at least one weapon (needs the weapon-data export).
+func starting_set_problems() -> Array[String]:
+	var found: Array[String] = []
+	if not WeaponData.available():
+		return found
+	var owned_types: Array[String] = []
+	for part_id in starting_weapons:
+		owned_types.append(WeaponData.weapon_type_of_part(part_id))
+	for type_name in WeaponData.hero_types():
+		if not owned_types.has(type_name):
+			found.append("starting equipment: no %s (a hero needs one for Weapon 1 or 2)" % type_name)
+	return found
+
+
+## Ticks the first weapon of every hero type, nothing else.
+func fill_default_starting_set() -> void:
+	for part_id in WeaponData.basic_set():
+		if not starting_weapons.has(part_id):
+			starting_weapons.append(part_id)
 
 
 func new_place_id() -> String:

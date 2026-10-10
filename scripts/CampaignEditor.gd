@@ -24,6 +24,7 @@ var _condition_editor: EffectEditor
 var _effect_editor: EffectEditor
 var _variables_dialog: MissionVariablesDialog
 var _characters_dialog: CharactersDialog
+var _starting_set_dialog: StartingSetDialog
 var _story_window: NarrativeWindow
 var _dirty: bool = false
 
@@ -183,6 +184,10 @@ func _ready() -> void:
 		mutate.call()
 		_mark_dirty()
 	)))
+	left.add_child(_button("Starting equipment…", func(): _starting_set_dialog.open_for(_campaign, func():
+		_mark_dirty()
+		_update_problems()
+	)))
 	left.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
 		mutate.call()
 		_mark_dirty()
@@ -329,6 +334,8 @@ func _ready() -> void:
 	add_child(_variables_dialog)
 	_characters_dialog = CharactersDialog.new()
 	add_child(_characters_dialog)
+	_starting_set_dialog = StartingSetDialog.new()
+	add_child(_starting_set_dialog)
 
 	_refresh_open_list()
 	_refresh_all()
@@ -1131,6 +1138,28 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 		_mark_dirty()
 	)
 	give_row.add_child(rune_option)
+	var weapon_row := HBoxContainer.new()
+	box.add_child(weapon_row)
+	weapon_row.add_child(_label("Weapon card:"))
+	var weapon_option := OptionButton.new()
+	weapon_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	weapon_option.add_item("(no weapon)")
+	var weapon_ids: Array[String] = []
+	for type_name: String in WeaponData.TYPE_TO_GAME_WEAPON:
+		for weapon in WeaponData.weapons_for_type(type_name):
+			weapon_ids.append(weapon.part_id)
+			weapon_option.add_item("%s (%s)" % [weapon.weapon_name, type_name])
+	var weapon_index := weapon_ids.find(offer.weapon)
+	if offer.weapon != "" and weapon_index < 0:
+		weapon_option.add_item("%s (unknown)" % offer.weapon)
+		weapon_option.select(weapon_option.item_count - 1)
+	else:
+		weapon_option.select(weapon_index + 1 if weapon_index >= 0 else 0)
+	weapon_option.item_selected.connect(func(index: int):
+		offer.weapon = weapon_ids[index - 1] if index >= 1 and index <= weapon_ids.size() else ""
+		_mark_dirty()
+	)
+	weapon_row.add_child(weapon_option)
 	var once_check := CheckBox.new()
 	once_check.text = "Only once"
 	once_check.button_pressed = offer.once
@@ -1192,6 +1221,8 @@ func _update_problems() -> void:
 		for problem in act.problems(files):
 			lines.append("%s: %s" % [act.act_name, problem])
 	for problem in _campaign.side_quest_problems(files):
+		lines.append(problem)
+	for problem in _campaign.starting_set_problems():
 		lines.append(problem)
 	for problem in CampaignIO.mission_link_problems(_campaign, _folder):
 		lines.append(problem)

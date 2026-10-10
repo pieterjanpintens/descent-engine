@@ -228,6 +228,50 @@ static func _game_weapon_for_part(part_id: String) -> Dictionary:
 	return {}
 
 
+## The weapon TYPE name ("Sword") of an A/B/C part id, "" if unknown.
+static func weapon_type_of_part(part_id: String) -> String:
+	_load()
+	var part: Dictionary = _parts_by_id.get(part_id, {})
+	if part.is_empty():
+		return ""
+	for type_name: String in TYPE_TO_GAME_WEAPON:
+		var game_id: String = TYPE_TO_GAME_WEAPON[type_name]
+		if _weapons.has(game_id) and _weapons[game_id]["Class"] == part["Class"]:
+			return type_name
+	return ""
+
+
+## "Warden's Blade (Sword)" for shop pickers and texts; the id itself when unknown.
+static func weapon_label(part_id: String) -> String:
+	_load()
+	var part: Dictionary = _parts_by_id.get(part_id, {})
+	if part.is_empty():
+		return part_id
+	return "%s (%s)" % [_text(part["KeyName"], part["m_Name"]), weapon_type_of_part(part_id)]
+
+
+## Every base weapon card of the types heroes use, as part ids, in type order - the basic set: the FIRST card of each
+## hero weapon type.
+static func basic_set() -> Array[String]:
+	_load()
+	var ids: Array[String] = []
+	for type_name: String in hero_types():
+		var weapons := weapons_for_type(type_name)
+		if not weapons.is_empty():
+			ids.append(weapons[0].part_id)
+	return ids
+
+
+## The distinct weapon types the six heroes use (WeaponCatalog.HERO_WEAPON_TYPES).
+static func hero_types() -> Array[String]:
+	var types: Array[String] = []
+	for pair: Array in WeaponCatalog.HERO_WEAPON_TYPES:
+		for type_name: String in pair:
+			if not types.has(type_name):
+				types.append(type_name)
+	return types
+
+
 static func _attachment_from_part(part: Dictionary, type_name: String) -> WeaponAttachment:
 	var ability: Dictionary = _abilities[part["Ability"]]
 	var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)

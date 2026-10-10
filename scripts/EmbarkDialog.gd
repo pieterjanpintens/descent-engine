@@ -33,6 +33,7 @@ signal _closed
 var restrict_to_owned: bool = false
 var owned_attachments: Array[String] = []
 var owned_runes: Array[String] = []  # part ids of the runes the party owns (campaign only)
+var owned_weapons: Array[String] = []  # part ids of the weapon cards the party owns (campaign only)
 
 var _slot_buttons: Array[Button] = []
 var _start_button: Button
@@ -258,6 +259,15 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			# In a campaign a weapon and its upgraded "+" side are ONE card (a "+" box flips it); in a plain mission
 			# everything is listed, so the table can use whatever it wants.
 			var catalog := WeaponCatalog.weapons_of_type(type_name, show_all)
+			if restrict_to_owned:
+				# Only the weapon cards the party owns (the campaign's starting set plus what it bought); a
+				# campaign without any of this type would be unplayable, so then everything stays offered.
+				var owned_catalog: Array[Weapon] = []
+				for weapon in catalog:
+					if owned_weapons.has(weapon.base_part_id):
+						owned_catalog.append(weapon)
+				if not owned_catalog.is_empty():
+					catalog = owned_catalog
 			var type_weapon_count := catalog.size()
 			for rune in WeaponData.runes(show_all):  # any hero can take a rune in place of their own weapon
 				if not restrict_to_owned or owned_runes.has(rune.base_part_id):

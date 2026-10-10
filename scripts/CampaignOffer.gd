@@ -15,4 +15,6 @@ extends Resource
 @export var attachment: String = ""
 ## Part id of the rune it gives ("" = none) - WeaponData.runes(); the party can then equip it at embark.
 @export var rune: String = ""
+## Part id of the weapon card it gives ("" = none) - a base A part, see WeaponData.
+@export var weapon: String = ""
 @export var once: bool = true
