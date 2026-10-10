@@ -957,8 +957,13 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		await _monster_action(monster, who)
 		return
 	var range_text := "melee" if monster.effective_attack_range() == 0 else "range %d%s" % [monster.effective_attack_range(), ", reach" if monster.attack_reach else ""]
+	# What the monster's activation abilities do by themselves (ActivationRules), once per activation.
+	var activation_lines := ActivationRules.start_of_activation(_runtime, monster)
+	var excluded_slot := -1  # Bloodlust: the second attack goes to another hero
 	for attack_number in range(1, MAX_ATTACKS_PER_TURN + 1):
-		var slot := _runtime.choose_target(monster, player_roster, player_weapons)
+		var roster := player_roster.duplicate()
+		roster.erase(excluded_slot)
+		var slot := _runtime.choose_target(monster, roster, player_weapons)
 		if slot < 0:
 			return
 		var hero_name := HeroCatalog.slot_name(slot)
@@ -969,6 +974,9 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		var text := "%s attacks %s!%s\nDamage %d - %s - Speed %d" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
 		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
 			text += "\n(Enfeebled: damage reduced from %d)" % monster.attack_power
+		if attack_number == 1 and not activation_lines.is_empty():
+			text += "
+Activation: " + "; ".join(activation_lines)
 		if monster.next_activation_damage > 0:
 			text += "\n(+%d damage from a defense ability this activation)" % monster.next_activation_damage
 		if not ability_lines.is_empty():
@@ -979,6 +987,11 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 			return
 		journal.add("Monster attack", ["%s attacks %s (damage %d, %s)." % [who, hero_name, monster.effective_attack_power(), range_text]])
 		monster.next_activation_damage = 0  # used up by this activation
+		# Bloodlust: after the attack it may attack a second hero (the table knows whether one is in reach).
+		if attack_number == 1 and ActivationRules.has_second_attack(monster) and player_roster.size() > 1:
+			if await dialog.ask_yes_no("Can %s attack a second hero?" % monster.display_name()):
+				excluded_slot = slot
+				continue
 		# Abilities that build on the outcome need the table's feedback.
 		if monster.has_attack_behavior(MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE):
 			if await dialog.ask_yes_no("Did %s deal damage to %s?" % [monster.display_name(), hero_name]):
