@@ -32,7 +32,7 @@ never part of the app.
 ## Where the files go
 
 `%APPDATA%\Godot\app_userdata\Descent-Engine\` (paste that into the Explorer address bar). To go back to the
-placeholders, delete the `official_assets`, `monster_assets` and `hero_assets` folders in there.
+placeholders, delete the `official_assets`, `monster_assets`, `hero_assets` and `weapon_data` folders in there.
 
 ## If something goes wrong
 

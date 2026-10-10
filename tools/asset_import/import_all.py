@@ -7,6 +7,7 @@ against the game install on your own machine, and puts the results in the game's
     1. import_official_assets.py  - textures: floors, hazards, tokens, hero portraits, croptops, icons
     2. import_monster_meshes.py   - the monster figures and flat cards   (needs Godot 4.7.2)
     3. import_hero_meshes.py      - the hero models                      (needs Godot 4.7.2)
+    4. import_weapon_data.py      - weapons, weapon parts, abilities and their texts (JSON)
 
 Usage (Windows):
     python import_all.py                      # finds the game and Godot by itself if it can
@@ -115,10 +116,11 @@ def main() -> int:
     if not ensure_unitypy():
         return 1
 
-    results = {"textures": run("1/3 Textures, portraits, icons", "import_official_assets.py", bundles)}
+    results = {"textures": run("1/4 Textures, portraits, icons", "import_official_assets.py", bundles)}
     if godot:
-        results["monster figures"] = run("2/3 Monster figures", "import_monster_meshes.py", bundles, godot)
-        results["hero models"] = run("3/3 Hero models", "import_hero_meshes.py", bundles, godot)
+        results["monster figures"] = run("2/4 Monster figures", "import_monster_meshes.py", bundles, godot)
+        results["hero models"] = run("3/4 Hero models", "import_hero_meshes.py", bundles, godot)
+    results["weapon data"] = run("4/4 Weapon data", "import_weapon_data.py", bundles)
 
     print("\n=== Done ===")
     for name, ok in results.items():
