@@ -15,8 +15,7 @@ var _content: VBoxContainer
 
 func _ready() -> void:
 	title = "Starting equipment"
-	size = Vector2i(620, 720)
-	min_size = Vector2i(420, 320)
+	min_size = Vector2i(360, 240)
 	visible = false
 	close_requested.connect(hide)
 	var margin := MarginContainer.new()
@@ -36,7 +35,7 @@ func open_for(campaign: Campaign, on_changed: Callable) -> void:
 	_campaign = campaign
 	_on_changed = on_changed
 	_rebuild()
-	popup_centered()
+	popup_centered_clamped(Vector2i(640, 720), 0.9)  # never bigger than 90% of the game window
 
 
 func _rebuild() -> void:
@@ -60,23 +59,30 @@ func _rebuild() -> void:
 		_rebuild()
 	)
 	_content.add_child(defaults)
+	# One folded section per weapon type (a long flat list didn't fit the window); a section opens to two columns of
+	# check boxes - the weapon cards, then the B and C parts.
 	for type_name: String in WeaponData.TYPE_TO_GAME_WEAPON:
-		_content.add_child(HSeparator.new())
-		var heading := Label.new()
-		heading.text = type_name
-		heading.add_theme_font_size_override("font_size", 16)
-		_content.add_child(heading)
+		var grid := _section(type_name)
 		for weapon in WeaponData.weapons_for_type(type_name):
-			_content.add_child(_check("%s  (damage %d)" % [weapon.weapon_name, weapon.damage], _campaign.starting_weapons, weapon.part_id, weapon.ability_text))
+			grid.add_child(_check("%s (dmg %d)" % [weapon.weapon_name, weapon.damage], _campaign.starting_weapons, weapon.part_id, weapon.ability_text))
 		for attachment in WeaponData.attachments_for_type(type_name):
-			_content.add_child(_check("Part %s: %s" % [attachment.part_slot, attachment.attachment_name], _campaign.starting_attachments, attachment.part_id, attachment.ability_text))
-	_content.add_child(HSeparator.new())
-	var runes_heading := Label.new()
-	runes_heading.text = "Runes"
-	runes_heading.add_theme_font_size_override("font_size", 16)
-	_content.add_child(runes_heading)
+			grid.add_child(_check("%s: %s" % [attachment.part_slot, attachment.attachment_name], _campaign.starting_attachments, attachment.part_id, attachment.ability_text))
+	var rune_grid := _section("Runes")
 	for rune in WeaponData.runes():
-		_content.add_child(_check(rune.weapon_name, _campaign.starting_runes, rune.part_id, rune.ability_text))
+		rune_grid.add_child(_check(rune.weapon_name, _campaign.starting_runes, rune.part_id, rune.ability_text))
+
+
+## A folded section titled `title_text` holding a two-column grid.
+func _section(title_text: String) -> GridContainer:
+	var section := FoldableContainer.new()
+	section.title = title_text
+	section.folded = true
+	_content.add_child(section)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	section.add_child(grid)
+	return grid
 
 
 func _check(text: String, owned: Array[String], id: String, tooltip: String) -> CheckBox:
