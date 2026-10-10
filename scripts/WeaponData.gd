@@ -27,8 +27,9 @@ const TYPE_TO_GAME_WEAPON := {
 	"Dual Blades": "WEAPON_DUAL_BLADES",
 }
 
-## The game's damage `Traits` numbers -> Vulnerability.Kind. 0-2 are certain (hammers / swords / bows and knives);
-## 3-8 were read from the part names that carry them (Ashen, Sunburst = fire, Wing Blade, Howling = wind, Ice Storm =
+## The game's damage `Traits` numbers -> Vulnerability.Kind. 0-2 are certain (hammers / swords / bows and knives), and
+## 4 (Wing Blade+), 6 (Rebound Hammer+) and 7 (Ancestral Blade) are confirmed by the user; 3, 5 and 8 were read from the
+## part names that carry them (Ashen, Sunburst = fire, Wing Blade, Howling = wind, Ice Storm =
 ## water, Quaking = earth, Crystal, Sunburst = light, Shrieking, Fear = dead) and are an educated guess. 9, 10 and 11
 ## (Hungry, Dragonsbane, Life Drinking, Warping...) have no kind of ours yet and are skipped.
 const TRAIT_TO_KIND := {
