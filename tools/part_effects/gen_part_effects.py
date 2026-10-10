@@ -26,6 +26,7 @@ def defense_round(n): return dict(type="defense_round", n=n)
 def become_weak(kinds): return dict(type="become_weak", kinds=kinds)
 def perm(damage, defense): return dict(type="perm", damage=damage, defense=defense)
 def direct(who, amount): return dict(type="direct", who=who, amount=amount)
+def drop_loot(n): return dict(type="drop_loot", n=n)
 
 TAG = lambda t: {"tag": t}
 ALREADY = lambda k: {"already": k}
@@ -33,6 +34,9 @@ WEAK = {"weak_to_attack": True}
 
 # (class, slot, name): (base effects, upgraded effects or None = same, options)
 SPEC = {
+    ("Hammer", "B", "Forgik Haft"): ([drop_loot(1)], None, {}),
+    ("Gauntlet", "B", "Shadow-Weave Gloves"): ([drop_loot(1)], None, {}),
+    ("Staff", "C", "Goldbloom Lacing"): ([drop_loot(1)], None, {}),
     ("Hammer", "B", "Kehlik Haft"): ([dict(type="copy_other")], None, {}),
     ("Hammer", "C", "Devastator's Grip"): ([weak_bonus(1)], [weak_bonus(2)], {}),
     ("Crossbow", "B", "Mammoth Stock"): ([dmg(flat=1), succ(1, to=TAG("Large"))], [dmg(flat=1), succ(2, to=TAG("Large"))], {}),

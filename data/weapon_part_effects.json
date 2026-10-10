@@ -1,4 +1,31 @@
 {
+ "WEAPON_PART_B_HAMMER_2": {
+  "name": "Forgik Haft",
+  "effects": [
+   {
+    "type": "drop_loot",
+    "n": 1
+   }
+  ]
+ },
+ "WEAPON_PART_B_GAUNTLET_1": {
+  "name": "Shadow-Weave Gloves",
+  "effects": [
+   {
+    "type": "drop_loot",
+    "n": 1
+   }
+  ]
+ },
+ "WEAPON_PART_C_STAFF_3": {
+  "name": "Goldbloom Lacing",
+  "effects": [
+   {
+    "type": "drop_loot",
+    "n": 1
+   }
+  ]
+ },
  "WEAPON_PART_B_HAMMER_3": {
   "name": "Kehlik Haft",
   "effects": [

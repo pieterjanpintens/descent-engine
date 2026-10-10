@@ -95,6 +95,8 @@ func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachmen
 					for kind_name: String in e["kinds"]:
 						_add_condition(p, MonsterCondition.Kind[kind_name], applied)
 				p.post.append({"type": "conditions_others", "kinds": e["kinds"], "tag": tag, "part": part.attachment_name})
+			"drop_loot":
+				p.post.append({"type": "drop_loot", "n": int(e["n"]), "part": part.attachment_name})
 			"random_status":
 				if e.get("only_if_none", false) and not p.state_conditions.is_empty():
 					continue
@@ -355,6 +357,12 @@ func finish(p: Plan, r: Dictionary) -> void:
 					said = "%s suffers %d damage" % [chosen.display_name(), int(r["dealt"])]
 					if _alive(chosen) and not e["then"].is_empty():
 						said += ", " + _add_to_monster(chosen, e["then"]).to_lower()
+			"drop_loot":
+				if _alive(target):
+					var dropped := runtime.drop_loot(target, int(e["n"]))
+					said = ("the enemy drops %s" % ", ".join(dropped)) if not dropped.is_empty() else "the enemy has no loot left to drop"
+				else:
+					said = "the enemy is defeated: all its loot goes to the party anyway"
 			"counter":
 				var count := int(runtime.part_trigger_counts.get(str(e["base_id"]), 0))
 				if int(e["every"]) > 0 and count % int(e["every"]) == 0:

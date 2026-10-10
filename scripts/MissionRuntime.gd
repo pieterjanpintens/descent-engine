@@ -635,6 +635,32 @@ func _collect_loot(monster: RuntimeMonster) -> void:
 	loot_collected.emit(monster.display_name(), loot_text(monster))
 
 
+## Makes `monster` drop `amount` single materials NOW, picked at random from what it still carries (weapon parts
+## like Forgik Haft: "the enemy drops a small amount of loot"). They go to the party like a defeat's loot and are taken
+## off the monster, so a later defeat does not hand them out twice. Returns the display names dropped.
+func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
+	var dropped: Array[String] = []
+	for i in amount:
+		var slots: Array = []  ## [item, key list, index]
+		for item in monster.loot:
+			for index in item.common_materials.size():
+				slots.append([item, item.common_materials, index])
+			for index in item.essences.size():
+				slots.append([item, item.essences, index])
+		if slots.is_empty():
+			break
+		var chosen: Array = slots.pick_random()
+		var key: String = chosen[1][chosen[2]]
+		chosen[1].remove_at(chosen[2])
+		if chosen[0].common_materials.is_empty() and chosen[0].essences.is_empty():
+			monster.loot.erase(chosen[0])
+		collected_loot[key] = int(collected_loot.get(key, 0)) + 1
+		dropped.append(LootMaterials.display_name(key))
+	if not dropped.is_empty():
+		loot_collected.emit(monster.display_name(), ", ".join(dropped))
+	return dropped
+
+
 ## The materials `monster` drops: LootMaterials key -> count.
 static func loot_materials(monster: RuntimeMonster) -> Dictionary:
 	var gained := {}
