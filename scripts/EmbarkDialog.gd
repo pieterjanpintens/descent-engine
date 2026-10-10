@@ -242,6 +242,9 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	var pickers: Dictionary = {}
 	var attachment_options: Dictionary = {}  # [slot, weapon_index] -> Array[WeaponAttachment]
 	var attachment_pickers_by_weapon: Dictionary = {}  # [slot, weapon_index] -> Array[OptionButton]
+	var show_all := not restrict_to_owned
+	var weapon_plus_boxes: Dictionary = {}  # [slot, weapon_index] -> CheckBox (the weapon's upgraded side)
+	var attachment_plus_boxes: Dictionary = {}  # [slot, weapon_index] -> Array[CheckBox] (the B / C parts' upgraded sides)
 	for slot in roster:
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
@@ -252,10 +255,12 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 		var pair: Array[OptionButton] = []
 		for weapon_index in 2:
 			var type_name := WeaponCatalog.type_of(slot, weapon_index)
-			var catalog := WeaponCatalog.weapons_of_type(type_name)
+			# In a campaign a weapon and its upgraded "+" side are ONE card (a "+" box flips it); in a plain mission
+			# everything is listed, so the table can use whatever it wants.
+			var catalog := WeaponCatalog.weapons_of_type(type_name, show_all)
 			var type_weapon_count := catalog.size()
-			for rune in WeaponData.runes():  # any hero can take a rune in place of their own weapon
-				if not restrict_to_owned or owned_runes.has(rune.part_id):
+			for rune in WeaponData.runes(show_all):  # any hero can take a rune in place of their own weapon
+				if not restrict_to_owned or owned_runes.has(rune.base_part_id):
 					catalog.append(rune)
 			per_slot_catalogs.append(catalog)
 
@@ -270,17 +275,26 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			for weapon in catalog:
 				picker.add_item(("Rune: " if weapon.is_rune else "") + weapon.summary())
 				if weapon.is_rune:
-					picker.set_item_tooltip(picker.item_count - 1, "%s: %s
-Fixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(weapon.attachments.map(func(a: WeaponAttachment) -> String: return "%s (%s)" % [a.attachment_name, a.ability_text]))])
+					var fixed_parts: Array[String] = []
+					for fixed in weapon.attachments:
+						fixed_parts.append("%s (%s)" % [fixed.attachment_name, fixed.ability_text])
+					picker.set_item_tooltip(picker.item_count - 1, "%s: %s\nFixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(fixed_parts)])
+
+			# A weapon and its upgraded "+" side are ONE physical card: in a campaign the picker lists the card and a
+			# box flips it; outside one every version is listed and there is nothing to flip.
+			var weapon_plus := _plus_box()
+			weapon_plus.visible = not show_all
+			weapon_plus_boxes[[slot, weapon_index]] = weapon_plus
 
 			var column := VBoxContainer.new()
 			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			column.add_child(type_label)
-			column.add_child(picker)
+			column.add_child(_with_plus(picker, weapon_plus))
 			# Optional premade attachments (secondary abilities) for this weapon.
-			var all_options := _allowed_attachments(slot, weapon_index, type_name)
+			var all_options := _allowed_attachments(slot, weapon_index, type_name, show_all)
 			var options: Array = []  # per picker: the attachments it offers (the real B / C parts go to their own picker)
 			var attachment_pickers: Array[OptionButton] = []
+			var attachment_plus: Array[CheckBox] = []
 			for attachment_number in WeaponAttachment.MAX_PER_WEAPON:
 				var part_slot := "B" if attachment_number == 0 else "C"
 				var picker_options: Array[WeaponAttachment] = []
@@ -289,6 +303,7 @@ Fixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(weapon.a
 						picker_options.append(option)
 				options.append(picker_options)
 				var attachment_picker := OptionButton.new()
+				attachment_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				attachment_picker.add_theme_font_size_override("font_size", 12)
 				attachment_picker.add_item("Part %s: none" % part_slot)
 				for option in picker_options:
@@ -298,16 +313,25 @@ Fixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(weapon.a
 				attachment_picker.disabled = picker_options.is_empty()
 				attachment_picker.item_selected.connect(func(_index: int): _keep_attachments_distinct(attachment_pickers, options))
 				attachment_picker.set_meta("free_disabled", picker_options.is_empty())
-				column.add_child(attachment_picker)
+				var part_plus := _plus_box()
+				part_plus.visible = not show_all
+				part_plus.disabled = picker_options.is_empty()
+				attachment_plus.append(part_plus)
+				column.add_child(_with_plus(attachment_picker, part_plus))
 				attachment_pickers.append(attachment_picker)
-			# A rune has its B and C parts fixed: the part pickers don't apply while one is selected.
+			attachment_plus_boxes[[slot, weapon_index]] = attachment_plus
+			# A rune has its B and C parts fixed: the part pickers don't apply while one is selected. A rune
+			# is one card: while one hero holds it, it is greyed out in every other picker.
 			picker.item_selected.connect(func(_index: int):
 				var is_rune_selected := picker.selected >= type_weapon_count
-				for attachment_picker in attachment_pickers:
+				for picker_number in attachment_pickers.size():
 					if is_rune_selected:
-						attachment_picker.select(0)
-					attachment_picker.disabled = is_rune_selected or attachment_picker.get_meta("free_disabled")
-				_keep_runes_distinct(pickers, catalogs)
+						attachment_pickers[picker_number].select(0)
+						attachment_plus[picker_number].button_pressed = false
+					var free: bool = attachment_pickers[picker_number].get_meta("free_disabled")
+					attachment_pickers[picker_number].disabled = is_rune_selected or free
+					attachment_plus[picker_number].disabled = is_rune_selected or free
+				_refresh_rune_availability(pickers, catalogs)
 			)
 			row.add_child(column)
 			pair.append(picker)
@@ -330,12 +354,18 @@ Fixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(weapon.a
 			var picker: OptionButton = pickers[slot][weapon_index]
 			var catalog: Array = catalogs[slot][weapon_index]
 			var weapon: Weapon = catalog[picker.selected]
+			if weapon_plus_boxes[[slot, weapon_index]].button_pressed:
+				weapon = WeaponData.upgraded_weapon(weapon)
 			var options: Array = attachment_options[[slot, weapon_index]]
 			var weapon_pickers: Array = attachment_pickers_by_weapon[[slot, weapon_index]]
+			var plus_boxes: Array = attachment_plus_boxes[[slot, weapon_index]]
 			for picker_number in weapon_pickers.size():
 				var attachment_picker: OptionButton = weapon_pickers[picker_number]
 				if attachment_picker.selected > 0 and not weapon.is_rune:
-					weapon.attachments.append(options[picker_number][attachment_picker.selected - 1])
+					var attachment: WeaponAttachment = options[picker_number][attachment_picker.selected - 1]
+					if plus_boxes[picker_number].button_pressed:
+						attachment = WeaponData.upgraded_attachment(attachment)
+					weapon.attachments.append(attachment)
 			chosen.append(weapon)
 		loadouts[slot] = chosen
 	return loadouts
@@ -344,29 +374,47 @@ Fixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(weapon.a
 ## The attachments that may be offered for a weapon: the ones that fit it (AttachmentCatalog),
 ## and in a campaign (`restrict_to_owned`) only those the party owns. An owned attachment can be
 ## equipped on more than one weapon - the number of copies is not tracked.
-func _allowed_attachments(slot: int, weapon_index: int, type_name: String) -> Array[WeaponAttachment]:
+func _allowed_attachments(slot: int, weapon_index: int, type_name: String, include_upgrades: bool = false) -> Array[WeaponAttachment]:
 	var allowed: Array[WeaponAttachment] = []
-	for attachment in AttachmentCatalog.for_weapon(slot, weapon_index, type_name):
+	for attachment in AttachmentCatalog.for_weapon(slot, weapon_index, type_name, include_upgrades):
 		if not restrict_to_owned or owned_attachments.has(attachment.part_id):
 			allowed.append(attachment)
 	return allowed
 
 
-## A rune is one physical card: it can only be in one hero's hands, so a later picker showing the same rune goes
-## back to the hero's own first weapon.
-func _keep_runes_distinct(pickers: Dictionary, catalogs: Dictionary) -> void:
-	var taken: Array[String] = []
+## A rune is one physical card: while one hero's weapon slot holds it (either side of the card), it is greyed out
+## (not selectable) in every other weapon picker; pick something else in that slot first to make it available again.
+func _refresh_rune_availability(pickers: Dictionary, catalogs: Dictionary) -> void:
+	var holders: Dictionary = {}  # rune card (base part id) -> the picker holding it
 	for slot in pickers:
 		for weapon_index in pickers[slot].size():
 			var picker: OptionButton = pickers[slot][weapon_index]
 			var weapon: Weapon = catalogs[slot][weapon_index][picker.selected]
-			if not weapon.is_rune:
-				continue
-			if taken.has(weapon.part_id):
-				picker.select(0)
-				picker.item_selected.emit(0)
-			else:
-				taken.append(weapon.part_id)
+			if weapon.is_rune:
+				holders[weapon.base_part_id] = picker
+	for slot in pickers:
+		for weapon_index in pickers[slot].size():
+			var picker: OptionButton = pickers[slot][weapon_index]
+			var catalog: Array = catalogs[slot][weapon_index]
+			for index in catalog.size():
+				var weapon: Weapon = catalog[index]
+				if weapon.is_rune:
+					picker.set_item_disabled(index, holders.has(weapon.base_part_id) and holders[weapon.base_part_id] != picker)
+
+
+## The small "+" check box that flips a card to its upgraded side.
+func _plus_box() -> CheckBox:
+	var box := CheckBox.new()
+	box.text = "+"
+	box.tooltip_text = "Use the upgraded (+) side of this card"
+	return box
+
+
+func _with_plus(picker: OptionButton, plus: CheckBox) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_child(picker)
+	row.add_child(plus)
+	return row
 
 
 ## The same attachment can't be equipped twice on one weapon: if two pickers show the same

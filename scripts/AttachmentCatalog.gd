@@ -17,8 +17,8 @@ static func all() -> Array[WeaponAttachment]:
 
 
 ## The attachments that fit a weapon of type `weapon_type` (the parts of that weapon).
-static func for_weapon(_slot: int, _weapon_index: int, weapon_type: String) -> Array[WeaponAttachment]:
-	return WeaponData.attachments_for_type(weapon_type)
+static func for_weapon(_slot: int, _weapon_index: int, weapon_type: String, include_upgrades: bool = false) -> Array[WeaponAttachment]:
+	return WeaponData.attachments_for_type(weapon_type, include_upgrades)
 
 
 ## The attachment with this part id, null if unknown.

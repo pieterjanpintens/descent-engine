@@ -91,34 +91,36 @@ static func reload() -> void:
 
 ## Fresh Weapon instances for every A part of the game weapon behind `type_name`, base versions first then the
 ## upgraded ones; empty when there is no export or the type is unknown.
-static func weapons_for_type(type_name: String) -> Array[Weapon]:
+static func weapons_for_type(type_name: String, include_upgrades: bool = false) -> Array[Weapon]:
 	_load()
 	var result: Array[Weapon] = []
 	var game_id: String = TYPE_TO_GAME_WEAPON.get(type_name, "")
 	if game_id == "" or not _weapons.has(game_id):
 		return result
-	if not _cache.has(type_name):
-		_cache[type_name] = _build(_weapons[game_id])
-	for template: Weapon in _cache[type_name]:
+	var cache_key := type_name + ("+" if include_upgrades else "")
+	if not _cache.has(cache_key):
+		_cache[cache_key] = _build(_weapons[game_id], include_upgrades)
+	for template: Weapon in _cache[cache_key]:
 		result.append(template.duplicate(true))
 	return result
 
 
 ## Fresh WeaponAttachment instances for every B and C part of the weapon behind `type_name` that has an ability (the
 ## starter guard / hilt do nothing and count as "none"), base versions first then the upgraded ones.
-static func attachments_for_type(type_name: String) -> Array[WeaponAttachment]:
+static func attachments_for_type(type_name: String, include_upgrades: bool = false) -> Array[WeaponAttachment]:
 	_load()
 	var result: Array[WeaponAttachment] = []
 	var game_id: String = TYPE_TO_GAME_WEAPON.get(type_name, "")
 	if game_id == "" or not _weapons.has(game_id):
 		return result
-	if _attachment_cache.has(type_name):
-		for cached: WeaponAttachment in _attachment_cache[type_name]:
+	var cache_key := type_name + ("+" if include_upgrades else "")
+	if _attachment_cache.has(cache_key):
+		for cached: WeaponAttachment in _attachment_cache[cache_key]:
 			result.append(cached.duplicate(true))
 		return result
 	var parts: Array = []
 	for part: Dictionary in _parts:
-		if part["Class"] == _weapons[game_id]["Class"] and (part["Slot"] == 1 or part["Slot"] == 2) and _abilities.has(part["Ability"]):
+		if part["Class"] == _weapons[game_id]["Class"] and (part["Slot"] == 1 or part["Slot"] == 2) and _abilities.has(part["Ability"]) and (include_upgrades or part["IsUpgrade"] == 0):
 			parts.append(part)
 	parts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a["Slot"] != b["Slot"]:
@@ -128,14 +130,14 @@ static func attachments_for_type(type_name: String) -> Array[WeaponAttachment]:
 		return str(a["_id"]) < str(b["_id"]))
 	for part: Dictionary in parts:
 		result.append(_attachment_from_part(part, type_name))
-	_attachment_cache[type_name] = result.duplicate()
+	_attachment_cache[cache_key] = result.duplicate()
 	return result
 
 
 ## The rune weapons (and Dragonsbane): global weapons that belong to no hero. Unlike a normal weapon a rune has its B
 ## and C part FIXED - they can't be chosen - so they come attached already. Base versions first, then the upgraded A
 ## versions (which keep the same B and C). Fresh instances each call.
-static func runes() -> Array[Weapon]:
+static func runes(include_upgrades: bool = false) -> Array[Weapon]:
 	_load()
 	var result: Array[Weapon] = []
 	var upgraded: Array[Weapon] = []
@@ -158,9 +160,10 @@ static func runes() -> Array[Weapon]:
 		if part_a.is_empty():
 			continue
 		var variants: Array[Dictionary] = [part_a]
-		for part: Dictionary in _parts:
-			if part["BaseItemId"] == part_a["_id"]:
-				variants.append(part)
+		if include_upgrades:
+			for part: Dictionary in _parts:
+				if part["IsUpgrade"] == 1 and part["BaseItemId"] == part_a["_id"]:
+					variants.append(part)
 		for variant in variants:
 			var weapon := _weapon_from_part(variant, game_weapon)
 			weapon.is_rune = true
@@ -184,6 +187,47 @@ static func rune_label(part_id: String) -> String:
 	return part_id if rune == null else rune.weapon_name
 
 
+## The upgraded ("+") side of `weapon`'s card - a weapon and its + are ONE physical card (the campaign flips it, see
+## EmbarkDialog). Returns `weapon` itself when it has no upgrade. A rune keeps its fixed parts.
+static func upgraded_weapon(weapon: Weapon) -> Weapon:
+	_load()
+	var upgrade := _upgrade_of(weapon.part_id)
+	if upgrade.is_empty():
+		return weapon
+	var upgraded := _weapon_from_part(upgrade, _game_weapon_for_part(weapon.part_id))
+	upgraded.is_rune = weapon.is_rune
+	upgraded.attachments = weapon.attachments.duplicate()
+	return upgraded
+
+
+## The upgraded ("+") side of a B or C part, `attachment` itself when it has none.
+static func upgraded_attachment(attachment: WeaponAttachment) -> WeaponAttachment:
+	_load()
+	var upgrade := _upgrade_of(attachment.part_id)
+	if upgrade.is_empty() or not _abilities.has(upgrade["Ability"]):
+		return attachment
+	return _attachment_from_part(upgrade, attachment.weapon_type)
+
+
+static func _upgrade_of(part_id: String) -> Dictionary:
+	for part: Dictionary in _parts:
+		if part["IsUpgrade"] == 1 and part["BaseItemId"] == part_id:
+			return part
+	return {}
+
+
+## The game weapon model an A part belongs to: a rune/global weapon lists its parts, a normal weapon is found by class.
+static func _game_weapon_for_part(part_id: String) -> Dictionary:
+	for game_weapon: Dictionary in _weapons.values():
+		if game_weapon["StartingWeaponParts"].has(part_id):
+			return game_weapon
+	var part: Dictionary = _parts_by_id.get(part_id, {})
+	for game_weapon: Dictionary in _weapons.values():
+		if game_weapon["IsGlobal"] != 1 and not part.is_empty() and game_weapon["Class"] == part["Class"]:
+			return game_weapon
+	return {}
+
+
 static func _attachment_from_part(part: Dictionary, type_name: String) -> WeaponAttachment:
 	var ability: Dictionary = _abilities[part["Ability"]]
 	var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)
@@ -194,11 +238,11 @@ static func _attachment_from_part(part: Dictionary, type_name: String) -> Weapon
 	return attachment
 
 
-static func _build(game_weapon: Dictionary) -> Array[Weapon]:
+static func _build(game_weapon: Dictionary, include_upgrades: bool) -> Array[Weapon]:
 	var built: Array[Weapon] = []
 	var parts: Array = []
 	for part: Dictionary in _parts:
-		if part["Class"] == game_weapon["Class"] and part["Slot"] == 0:
+		if part["Class"] == game_weapon["Class"] and part["Slot"] == 0 and (include_upgrades or part["IsUpgrade"] == 0):
 			parts.append(part)
 	parts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if a["IsUpgrade"] != b["IsUpgrade"]:
@@ -215,6 +259,7 @@ static func _weapon_from_part(part: Dictionary, game_weapon: Dictionary) -> Weap
 	var weapon := Weapon.new()
 	weapon.weapon_name = _text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else "")
 	weapon.part_id = part["_id"]
+	weapon.base_part_id = part["BaseItemId"] if part["IsUpgrade"] == 1 else part["_id"]
 	weapon.damage = int(part["Damage"])
 	var kinds: Array[int] = []
 	for trait_number in part["Traits"]:
