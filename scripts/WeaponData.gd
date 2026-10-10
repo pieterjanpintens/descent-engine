@@ -163,11 +163,25 @@ static func runes() -> Array[Weapon]:
 				variants.append(part)
 		for variant in variants:
 			var weapon := _weapon_from_part(variant, game_weapon)
+			weapon.is_rune = true
 			for fixed in fixed_parts:
 				weapon.attachments.append(_attachment_from_part(fixed, "Rune"))
 			(upgraded if variant["IsUpgrade"] == 1 else result).append(weapon)
 	result.append_array(upgraded)
 	return result
+
+
+## The rune with this A part id (null if unknown), and its name for pickers.
+static func find_rune(part_id: String) -> Weapon:
+	for rune in runes():
+		if rune.part_id == part_id:
+			return rune
+	return null
+
+
+static func rune_label(part_id: String) -> String:
+	var rune := find_rune(part_id)
+	return part_id if rune == null else rune.weapon_name
 
 
 static func _attachment_from_part(part: Dictionary, type_name: String) -> WeaponAttachment:
@@ -200,6 +214,7 @@ static func _build(game_weapon: Dictionary) -> Array[Weapon]:
 static func _weapon_from_part(part: Dictionary, game_weapon: Dictionary) -> Weapon:
 	var weapon := Weapon.new()
 	weapon.weapon_name = _text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else "")
+	weapon.part_id = part["_id"]
 	weapon.damage = int(part["Damage"])
 	var kinds: Array[int] = []
 	for trait_number in part["Traits"]:

@@ -1114,6 +1114,23 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 		_mark_dirty()
 	)
 	give_row.add_child(attachment_option)
+	var rune_option := OptionButton.new()
+	rune_option.add_item("(no rune)")
+	var rune_ids: Array[String] = []
+	for rune in WeaponData.runes():
+		rune_ids.append(rune.part_id)
+		rune_option.add_item("Rune: " + rune.weapon_name)
+	var rune_index := rune_ids.find(offer.rune)
+	if offer.rune != "" and rune_index < 0:
+		rune_option.add_item("%s (unknown)" % offer.rune)
+		rune_option.select(rune_option.item_count - 1)
+	else:
+		rune_option.select(rune_index + 1 if rune_index >= 0 else 0)
+	rune_option.item_selected.connect(func(index: int):
+		offer.rune = rune_ids[index - 1] if index >= 1 and index <= rune_ids.size() else ""
+		_mark_dirty()
+	)
+	give_row.add_child(rune_option)
 	var once_check := CheckBox.new()
 	once_check.text = "Only once"
 	once_check.button_pressed = offer.once

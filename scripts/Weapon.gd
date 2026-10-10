@@ -24,6 +24,11 @@ extends Resource
 ## for the table only - nothing in the engine applies it. Empty for the placeholder weapons.
 @export var ability_name: String = ""
 @export_multiline var ability_text: String = ""
+## The game's id of the A part ("WEAPON_PART_A_ICE_STORM") for the real weapons, "" for placeholders.
+@export var part_id: String = ""
+## A rune (WeaponData.runes()): belongs to no hero, any hero can take it as Weapon 1 or Weapon 2 in place of their
+## own weapon; its B and C parts are fixed (already in `attachments`).
+@export var is_rune: bool = false
 
 
 ## One-line description for pickers, e.g. "Spear (damage 3, Pierce, reach)".

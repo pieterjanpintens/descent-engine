@@ -31,6 +31,8 @@ extends Resource
 @export var materials: Dictionary = {}
 ## Part ids of the weapon attachments (AttachmentCatalog) the party owns.
 @export var owned_attachments: Array[String] = []
+## Part ids of the runes the party owns (any hero can take one in place of Weapon 1 or 2).
+@export var owned_runes: Array[String] = []
 ## The narration voice of each hero (hero name -> NarratorVoices id, "" = picked from the name). Asked once, when the
 ## campaign starts; no two heroes share one (HeroVoicesDialog).
 @export var hero_voices: Dictionary = {}
@@ -311,6 +313,8 @@ func buy(offer: CampaignOffer) -> bool:
 		add_material(str(material_name), -int(offer.cost_materials[material_name]))
 	if offer.attachment != "":
 		owned_attachments.append(offer.attachment)
+	if offer.rune != "" and not owned_runes.has(offer.rune):
+		owned_runes.append(offer.rune)
 	if offer.once:
 		purchased_offers.append(offer.id)
 	return true

@@ -32,6 +32,7 @@ signal _closed
 ## MissionPlayer from the campaign save); outside one every fitting attachment is offered.
 var restrict_to_owned: bool = false
 var owned_attachments: Array[String] = []
+var owned_runes: Array[String] = []  # part ids of the runes the party owns (campaign only)
 
 var _slot_buttons: Array[Button] = []
 var _start_button: Button
@@ -252,6 +253,10 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 		for weapon_index in 2:
 			var type_name := WeaponCatalog.type_of(slot, weapon_index)
 			var catalog := WeaponCatalog.weapons_of_type(type_name)
+			var type_weapon_count := catalog.size()
+			for rune in WeaponData.runes():  # any hero can take a rune in place of their own weapon
+				if not restrict_to_owned or owned_runes.has(rune.part_id):
+					catalog.append(rune)
 			per_slot_catalogs.append(catalog)
 
 			var type_label := Label.new()
@@ -263,7 +268,10 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			picker.tooltip_text = "Weapon %d (%s)" % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
-				picker.add_item(weapon.summary())
+				picker.add_item(("Rune: " if weapon.is_rune else "") + weapon.summary())
+				if weapon.is_rune:
+					picker.set_item_tooltip(picker.item_count - 1, "%s: %s
+Fixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(weapon.attachments.map(func(a: WeaponAttachment) -> String: return "%s (%s)" % [a.attachment_name, a.ability_text]))])
 
 			var column := VBoxContainer.new()
 			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -289,8 +297,18 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 						attachment_picker.set_item_tooltip(attachment_picker.item_count - 1, option.ability_text)
 				attachment_picker.disabled = picker_options.is_empty()
 				attachment_picker.item_selected.connect(func(_index: int): _keep_attachments_distinct(attachment_pickers, options))
+				attachment_picker.set_meta("free_disabled", picker_options.is_empty())
 				column.add_child(attachment_picker)
 				attachment_pickers.append(attachment_picker)
+			# A rune has its B and C parts fixed: the part pickers don't apply while one is selected.
+			picker.item_selected.connect(func(_index: int):
+				var is_rune_selected := picker.selected >= type_weapon_count
+				for attachment_picker in attachment_pickers:
+					if is_rune_selected:
+						attachment_picker.select(0)
+					attachment_picker.disabled = is_rune_selected or attachment_picker.get_meta("free_disabled")
+				_keep_runes_distinct(pickers, catalogs)
+			)
 			row.add_child(column)
 			pair.append(picker)
 			attachment_options[[slot, weapon_index]] = options
@@ -316,7 +334,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			var weapon_pickers: Array = attachment_pickers_by_weapon[[slot, weapon_index]]
 			for picker_number in weapon_pickers.size():
 				var attachment_picker: OptionButton = weapon_pickers[picker_number]
-				if attachment_picker.selected > 0:
+				if attachment_picker.selected > 0 and not weapon.is_rune:
 					weapon.attachments.append(options[picker_number][attachment_picker.selected - 1])
 			chosen.append(weapon)
 		loadouts[slot] = chosen
@@ -332,6 +350,23 @@ func _allowed_attachments(slot: int, weapon_index: int, type_name: String) -> Ar
 		if not restrict_to_owned or owned_attachments.has(attachment.part_id):
 			allowed.append(attachment)
 	return allowed
+
+
+## A rune is one physical card: it can only be in one hero's hands, so a later picker showing the same rune goes
+## back to the hero's own first weapon.
+func _keep_runes_distinct(pickers: Dictionary, catalogs: Dictionary) -> void:
+	var taken: Array[String] = []
+	for slot in pickers:
+		for weapon_index in pickers[slot].size():
+			var picker: OptionButton = pickers[slot][weapon_index]
+			var weapon: Weapon = catalogs[slot][weapon_index][picker.selected]
+			if not weapon.is_rune:
+				continue
+			if taken.has(weapon.part_id):
+				picker.select(0)
+				picker.item_selected.emit(0)
+			else:
+				taken.append(weapon.part_id)
 
 
 ## The same attachment can't be equipped twice on one weapon: if two pickers show the same

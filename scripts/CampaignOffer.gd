@@ -13,4 +13,6 @@ extends Resource
 @export var cost_materials: Dictionary = {}
 ## Name of the weapon attachment it gives ("" = none yet).
 @export var attachment: String = ""
+## Part id of the rune it gives ("" = none) - WeaponData.runes(); the party can then equip it at embark.
+@export var rune: String = ""
 @export var once: bool = true

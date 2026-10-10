@@ -150,6 +150,7 @@ func _ready() -> void:
 			if campaign_state != null:
 				embark_dialog.restrict_to_owned = true
 				embark_dialog.owned_attachments = campaign_state.owned_attachments.duplicate()
+				embark_dialog.owned_runes = campaign_state.owned_runes.duplicate()
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
 		_set_ground_decor_visible(true)
 		hud.set_view_buttons_visible(true)
