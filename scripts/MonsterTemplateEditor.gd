@@ -38,6 +38,7 @@ var _status: Label
 var _name_edit: LineEdit
 var _prefix_edit: LineEdit
 var _tags_edit: LineEdit
+var _defeat_edit: TextEdit
 var _postfix_edit: LineEdit
 var _kind_option: OptionButton
 var _base_only: VBoxContainer  ## the sections only a BASE template has (range/reach, abilities, target rules)
@@ -185,6 +186,19 @@ func _ready() -> void:
 	)
 	attack_row.add_child(_reach_check)
 	_base_only.add_child(attack_row)
+	var defeat_title := Label.new()
+	defeat_title.text = "On defeat text (shown to the table when the monster is defeated; {name} = its name):"
+	_base_only.add_child(defeat_title)
+	_defeat_edit = TextEdit.new()
+	_defeat_edit.custom_minimum_size.y = 64
+	_defeat_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	_defeat_edit.focus_exited.connect(func():
+		if _suppress or _working == null or _working.defeat_text == _defeat_edit.text:
+			return
+		_working.defeat_text = _defeat_edit.text
+		_save()
+	)
+	_base_only.add_child(_defeat_edit)
 	_add_name_list(_base_only, "Attack abilities", "attack_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_name_list(_base_only, "Defense abilities", "defense_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_rule_list(_base_only)
@@ -335,6 +349,7 @@ func _populate() -> void:
 		_name_edit.text = _working.template_name
 		_prefix_edit.text = _working.name_prefix
 		_tags_edit.text = ", ".join(_working.tags)
+		_defeat_edit.text = _working.defeat_text
 		_postfix_edit.text = _working.name_postfix
 		_kind_option.select(_kind_option.get_item_index(_working.kind))
 		_range_spin.value = _working.attack_range

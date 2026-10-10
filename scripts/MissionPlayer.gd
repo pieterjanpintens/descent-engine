@@ -163,6 +163,7 @@ func _ready() -> void:
 	_runtime.sync_builtins(current_round, player_roster.size())
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
+	_runtime.monster_defeated.connect(_on_monster_defeated)
 	_runtime.loot_collected.connect(func(monster_name: String, text: String): journal.add("Loot", ["%s dropped: %s." % [monster_name, text]]))
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
@@ -1109,6 +1110,29 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 ## a hero lost all hitpoints. Confirms, adds the wound, and for the
 ## MissionRuntime.HERO_WOUND_LIMIT-th (third) wound loses the game. Logged to the
 ## quest log as "Wound".
+var _defeat_queue: Array[String] = []
+var _defeat_busy := false
+
+
+## A monster with an "on defeat" text (its base template's) tells the table once the dialog it was defeated in (the combat
+## outcome, the manage dialog...) is closed; several in a row are shown one after the other.
+func _on_monster_defeated(monster: RuntimeMonster) -> void:
+	if monster.defeat_text.strip_edges() == "":
+		return
+	_defeat_queue.append(monster.defeat_text.replace("{name}", monster.display_name()))
+	if _defeat_busy:
+		return
+	_defeat_busy = true
+	while not _defeat_queue.is_empty():
+		var quiet := 0
+		while quiet < 3:  # wait until no dialog is open for a few frames in a row
+			await get_tree().process_frame
+			quiet = quiet + 1 if not dialog.visible else 0
+		var text: String = _defeat_queue.pop_front()
+		await dialog.ask_ok(text, true, false, "Defeated")
+	_defeat_busy = false
+
+
 func _wound_hero(slot: int) -> void:
 	var hero_name := HeroCatalog.slot_name(slot)
 	var is_last := _runtime.wound_count(slot) + 1 >= MissionRuntime.HERO_WOUND_LIMIT

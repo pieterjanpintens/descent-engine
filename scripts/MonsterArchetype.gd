@@ -58,6 +58,8 @@ enum Kind { BASE, ADDITIVE }
 ## BASE templates only: what the monster does when Confused instead of attacking (one is
 ## picked at random among the possible ones); empty = MonsterAction.defaults().
 @export var confused_actions: Array[MonsterAction] = []
+## BASE templates only: text shown to the table when the monster is defeated ("{name}" = the monster's name). Empty = none.
+@export_multiline var defeat_text: String = ""
 ## What the monster drops (see LootItem); merged over base and additive templates. Data only for now.
 @export var loot: Array[LootItem] = []
 
@@ -73,6 +75,7 @@ func deep_copy() -> MonsterArchetype:
 	copy.attack_reach = attack_reach
 	copy.target_rules = TargetRule.copies(target_rules)
 	copy.confused_actions = MonsterAction.copies(confused_actions)
+	copy.defeat_text = defeat_text
 	copy.loot = LootItem.copies(loot)
 	copy.name_prefix = name_prefix
 	copy.name_postfix = name_postfix
@@ -114,7 +117,7 @@ func signature() -> String:
 	for item in loot:
 		drops.append(item.to_dict())
 	return var_to_str([
-		template_name, kind, attack_range, attack_reach, rules, actions, drops, name_prefix, name_postfix,
+		template_name, kind, attack_range, attack_reach, rules, actions, drops, defeat_text, name_prefix, name_postfix,
 		weaknesses, resistances, immunities, condition_immunities, tags,
 		abilities.call(attack_abilities), abilities.call(defense_abilities),
 		scaling.call(attack_scaling), scaling.call(defense_scaling), scaling.call(hitpoints_scaling),

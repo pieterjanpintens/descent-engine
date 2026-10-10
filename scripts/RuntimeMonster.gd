@@ -70,6 +70,8 @@ var shadowed_heroes: Array[int] = []
 var confused_actions: Array[MonsterAction] = []
 ## What it drops (LootItem list from its templates); nothing hands it out yet.
 var loot: Array[LootItem] = []
+## Shown to the table when this monster is defeated (from its base template).
+var defeat_text: String = ""
 
 
 ## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
@@ -167,7 +169,7 @@ func to_dict() -> Dictionary:
 		"speed_round_bonus": speed_round_bonus, "next_activation_damage": next_activation_damage, "defense_ability_fired": defense_ability_fired, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
-		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot),
+		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text,
 	}
 
 
@@ -221,6 +223,7 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 		m.confused_actions.append(MonsterAction.from_dict(entry))
 	for entry in d.get("loot", []):
 		m.loot.append(LootItem.from_dict(entry))
+	m.defeat_text = str(d.get("defeat_text", ""))
 	return m
 
 

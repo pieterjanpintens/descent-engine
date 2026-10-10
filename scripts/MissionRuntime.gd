@@ -297,6 +297,8 @@ var affliction_bonus_round: int = 0
 var monsters: Array[RuntimeMonster] = []
 var _next_monster_number: int = 1
 signal monsters_changed
+## A monster was defeated and removed (every way of defeating one ends in release_monster()).
+signal monster_defeated(monster: RuntimeMonster)
 ## A defeated monster's loot went to the party: (monster display name, text for the table, e.g. "Metal, Terros").
 signal loot_collected(monster_name: String, text: String)
 ## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
@@ -364,6 +366,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.target_rules = resolved["target_rules"]
 	created.confused_actions = resolved["confused_actions"]
 	created.loot = resolved["loot"]
+	created.defeat_text = resolved["defeat_text"]
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()
@@ -649,6 +652,7 @@ func release_monster(monster_id: String) -> void:
 			monsters.remove_at(i)
 			_collect_loot(gone)
 			monsters_changed.emit()
+			monster_defeated.emit(gone)
 			return
 
 
