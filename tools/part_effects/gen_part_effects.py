@@ -26,7 +26,7 @@ def defense_round(n): return dict(type="defense_round", n=n)
 def become_weak(kinds): return dict(type="become_weak", kinds=kinds)
 def perm(damage, defense): return dict(type="perm", damage=damage, defense=defense)
 def direct(who, amount): return dict(type="direct", who=who, amount=amount)
-def message(): return dict(type="message")
+def message(text=None): return dict(type="message") if text is None else dict(type="message", text=text)
 def drop_loot(n): return dict(type="drop_loot", n=n)
 def loot_times(n): return dict(type="loot_times", n=n)
 
@@ -43,6 +43,15 @@ SPEC = {
     ("Hammer", "C", "Tinker's Grip"): ([message()], None, {}),
     ("Wand", "C", "Mothwing Ornament"): ([message()], None, {}),
     ("Knives", "C", "Duskstrike Belt"): ([message()], None, {}),
+    ("Sword", "B", "Eastrider Guard"): ([dmg(pct=50, to={"not_attacked": True})], [dmg(pct=100, to={"not_attacked": True})], {}),
+    ("WarHammer", "B", "Watchtower Haft"): ([dict(type="bonus_damage", round_div=2)], [dict(type="bonus_damage", round_div=1)], {}),
+    ("Spear", "B", "Roiling Haft"): ([dict(type="trigger_damage_all")], None, {}),
+    ("Knives", "C", "Wildbloom Belt"): ([dict(type="damage_half", n=10)], [dict(type="damage_half", n=15)], {}),
+    ("Rune", "B", "Excoriation"): ([message("{hero} must scar 1 card."), dict(type="pct_health_damage", pct=25)], None, {}),
+    ("Gauntlet", "C", "Shadowstone Bracers"): ([dict(type="shadow")], [dict(type="shadow"), message("{hero}: after the attack, shift 1.")], {}),
+    ("Sword", "C", "Remembrance Hilt"): ([dict(type="wound_health", n=1)], [dict(type="wound_health", n=4)], {}),
+    ("Hammer", "B", "Inventor's Haft"): ([message()], None, {}),
+    ("Warbell", "C", "Majestic Haft"): ([message()], None, {}),
     ("Hammer", "B", "Kehlik Haft"): ([dict(type="copy_other")], None, {}),
     ("Hammer", "C", "Devastator's Grip"): ([weak_bonus(1)], [weak_bonus(2)], {}),
     ("Crossbow", "B", "Mammoth Stock"): ([dmg(flat=1), succ(1, to=TAG("Large"))], [dmg(flat=1), succ(2, to=TAG("Large"))], {}),
@@ -83,7 +92,7 @@ SPEC = {
     ("Staff", "C", "Stormwind Lacing"): ([types(["ANEMOS"])], [types(["ANEMOS", "UMBROS"])], {}),
     ("Staff", "C", "Ember Lacing"): ([types(["IGNOS"]), dict(type="max_health_to_current")], [types(["IGNOS"]), succ(2), dict(type="max_health_to_current")], {}),
     ("Gauntlet", "B", "Clawed Gloves"): ([types(["PIERCE"]), conds(["EXPOSED"])], None, {}),
-    ("Gauntlet", "B", "Drakewing Gloves"): ([types(["IGNOS"])], None, {}),
+    ("Gauntlet", "B", "Drakewing Gloves"): ([types(["IGNOS"]), dict(type="max_health_pct", pct=10)], None, {}),
     ("Gauntlet", "C", "Heavy Bracers"): ([types(["CRUSH"]), conds(["DAZED"])], None, {}),
     ("Gauntlet", "C", "Cruel Bracers"): ([dmg(per_status=1)], [dmg(per_status=1), dict(type="random_status", count=1, only_if_none=True)], {}),
     ("Gauntlet", "C", "Biting Bracers"): ([dmg(flat=3)], [dmg(flat=4)], {}),

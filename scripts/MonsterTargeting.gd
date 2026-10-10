@@ -20,11 +20,24 @@ const _LOWEST := -(1 << 30)
 static func choose_target(monster: RuntimeMonster, roster: Array[int], context: Dictionary, rng: RandomNumberGenerator = null) -> int:
 	if roster.is_empty():
 		return -1
+	var chosen := -1
 	for rule in monster.target_rules:
 		var picked := _apply(rule, monster, roster, context, rng)
 		if picked != -1:
-			return picked
-	return _random(roster, rng)
+			chosen = picked
+			break
+	if chosen == -1:
+		chosen = _random(roster, rng)
+	# Shadowstone Bracers: a hero the monster is "less likely to target" - half the time the pick moves to another hero.
+	if monster.shadowed_heroes.has(chosen) and roster.size() > 1:
+		var roll := rng.randf() if rng != null else randf()
+		if roll < 0.5:
+			var others: Array[int] = []
+			for slot in roster:
+				if slot != chosen:
+					others.append(slot)
+			chosen = _random(others, rng)
+	return chosen
 
 
 static func _apply(rule: TargetRule, monster: RuntimeMonster, roster: Array[int], context: Dictionary, rng: RandomNumberGenerator) -> int:

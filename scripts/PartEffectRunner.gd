@@ -26,6 +26,7 @@ static var _spec_loaded := false
 var runtime: MissionRuntime
 var dialog: PlayerDialog
 var hero_name: String = ""
+var hero_slot: int = -1
 
 
 class Plan:
@@ -35,6 +36,8 @@ class Plan:
 	var state_conditions: Array[int] = []  ## the monster's conditions as the parts so far leave them
 	var extra_types: Array[int] = []
 	var damage_delta := 0
+	var weapon_damage := 0  ## the weapon's own damage per success (for percentages)
+	var bonus_damage := 0  ## flat extra damage of the whole attack (before the defense roll)
 	var damage_double := false
 	var extra_successes := 0
 	var weakness_bonus_extra := 0
@@ -49,6 +52,7 @@ class Plan:
 		return {
 			"extra_types": extra_types, "damage_delta": damage_delta, "damage_double": damage_double,
 			"extra_successes": extra_successes, "weakness_bonus_extra": weakness_bonus_extra, "ignore_defense": ignore_defense,
+			"bonus_damage": bonus_damage,
 		}
 
 
@@ -57,6 +61,7 @@ class Plan:
 func plan(weapon: Weapon, monster: RuntimeMonster, a_conditions: Array) -> Plan:
 	var p := Plan.new()
 	p.monster = monster
+	p.weapon_damage = weapon.damage
 	p.attack_types = weapon.damage_types.duplicate()
 	p.state_conditions = monster.conditions.duplicate()
 	for condition in a_conditions:
@@ -104,12 +109,29 @@ func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachmen
 				# the ability triggered and decides itself whether it is valid and carries it out (conditions can be set
 				# with the monster screen).
 				await _before_ask()
-				await dialog.ask_ok("%s - %s triggered!
+				if e.has("text"):
+					await dialog.ask_ok("%s - %s triggered!
+
+%s" % [hero_name, part.attachment_name, str(e["text"]).replace("{hero}", hero_name)])
+				else:
+					await dialog.ask_ok("%s - %s triggered!
 
 %s
 
 Check whether it applies and carry it out on the board (a condition can be applied from the monster screen)." % [hero_name, part.attachment_name, part.ability_text])
 				applied.append("the table carries it out")
+			"bonus_damage":
+				var round_number := int(runtime.get_variables_state().get("round_number", 1))
+				var extra := floori(round_number / float(e["round_div"]))
+				p.bonus_damage += extra
+				applied.append("+%d damage (round %d)" % [extra, round_number])
+			"shadow":
+				if hero_slot >= 0 and not p.monster.shadowed_heroes.has(hero_slot):
+					p.monster.shadowed_heroes.append(hero_slot)
+				applied.append("%s is less likely to be its target this round" % hero_name)
+			"wound_health":
+				runtime.wound_health_override = int(e["n"])
+				applied.append("the first hero wounded this round has health %d instead" % int(e["n"]))
 			"drop_loot":
 				p.post.append({"type": "drop_loot", "n": int(e["n"]), "part": part.attachment_name})
 			"loot_times":
@@ -199,6 +221,8 @@ func _apply_damage(e: Dictionary, part: WeaponAttachment, p: Plan, applied: Arra
 		n = int(e["per_status"]) * p.state_conditions.size()
 	elif e.has("range"):
 		n = randi_range(int(e["range"][0]), int(e["range"][1]))
+	elif e.has("pct"):
+		n = floori(p.weapon_damage * float(e["pct"]) / 100.0)
 	elif e.get("double", false):
 		p.damage_double = true
 		applied.append("weapon damage doubled")
@@ -217,6 +241,8 @@ func _apply_damage(e: Dictionary, part: WeaponAttachment, p: Plan, applied: Arra
 func _holds(cond: Dictionary, part: WeaponAttachment, p: Plan) -> bool:
 	if cond.has("tag"):
 		return p.monster.has_tag(str(cond["tag"]))
+	if cond.get("not_attacked", false):
+		return not p.monster.attacked_this_round
 	if cond.has("already"):
 		return p.state_conditions.has(MonsterCondition.Kind[str(cond["already"])])
 	if cond.get("weak_to_attack", false):
@@ -384,6 +410,35 @@ func finish(p: Plan, r: Dictionary) -> void:
 					said = ("the enemy drops %s" % ", ".join(dropped)) if not dropped.is_empty() else "the enemy has no loot left to drop"
 				else:
 					said = "the enemy is defeated: all its loot goes to the party anyway"
+			"trigger_damage_all":
+				var times := int(runtime.part_trigger_counts.get(str(e["base_id"]), 0))
+				for other in runtime.monsters.duplicate():
+					runtime.damage_monster(other, times)
+				said = "each enemy suffers %d damage (trigger %d)" % [times, times]
+			"damage_half":
+				var pool: Array[RuntimeMonster] = []
+				for other in runtime.monsters:
+					pool.append(other)
+				pool.shuffle()
+				var hit := ceili(pool.size() / 2.0)
+				var names: Array[String] = []
+				for i in hit:
+					names.append(pool[i].display_name())
+					runtime.damage_monster(pool[i], int(e["n"]))
+				if not names.is_empty():
+					said = "%d damage to %s" % [int(e["n"]), ", ".join(names)]
+			"pct_health_damage":
+				if _alive(target):
+					var amount := floori(target.hitpoints * float(e["pct"]) / 100.0)
+					runtime.damage_monster(target, amount)
+					said = "%d extra damage (%d%% of its health)" % [amount, int(e["pct"])]
+			"max_health_pct":
+				if _alive(target):
+					var cut := ceili(target.max_hitpoints * float(e["pct"]) / 100.0)
+					target.max_hitpoints = maxi(target.max_hitpoints - cut, 1)
+					target.hitpoints = mini(target.hitpoints, target.max_hitpoints)
+					runtime.monsters_changed.emit()
+					said = "maximum health -%d (now %d)" % [cut, target.max_hitpoints]
 			"counter":
 				var count := int(runtime.part_trigger_counts.get(str(e["base_id"]), 0))
 				if int(e["every"]) > 0 and count % int(e["every"]) == 0:

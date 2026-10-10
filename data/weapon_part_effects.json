@@ -65,6 +65,126 @@
    }
   ]
  },
+ "WEAPON_PART_B_SWORD_3": {
+  "name": "Eastrider Guard",
+  "effects": [
+   {
+    "type": "damage",
+    "pct": 50,
+    "to": {
+     "not_attacked": true
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "pct": 100,
+    "to": {
+     "not_attacked": true
+    }
+   }
+  ]
+ },
+ "WEAPON_PART_B_WARHAMMER_5": {
+  "name": "Watchtower Haft",
+  "effects": [
+   {
+    "type": "bonus_damage",
+    "round_div": 2
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "bonus_damage",
+    "round_div": 1
+   }
+  ]
+ },
+ "WEAPON_PART_B_SPEAR_4": {
+  "name": "Roiling Haft",
+  "effects": [
+   {
+    "type": "trigger_damage_all"
+   }
+  ]
+ },
+ "WEAPON_PART_C_KNIVES_4": {
+  "name": "Wildbloom Belt",
+  "effects": [
+   {
+    "type": "damage_half",
+    "n": 10
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_half",
+    "n": 15
+   }
+  ]
+ },
+ "WEAPON_PART_B_SUNBURST": {
+  "name": "Excoriation",
+  "effects": [
+   {
+    "type": "message",
+    "text": "{hero} must scar 1 card."
+   },
+   {
+    "type": "pct_health_damage",
+    "pct": 25
+   }
+  ]
+ },
+ "WEAPON_PART_C_GAUNTLET_1": {
+  "name": "Shadowstone Bracers",
+  "effects": [
+   {
+    "type": "shadow"
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "shadow"
+   },
+   {
+    "type": "message",
+    "text": "{hero}: after the attack, shift 1."
+   }
+  ]
+ },
+ "WEAPON_PART_C_SWORD_3": {
+  "name": "Remembrance Hilt",
+  "effects": [
+   {
+    "type": "wound_health",
+    "n": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "wound_health",
+    "n": 4
+   }
+  ]
+ },
+ "WEAPON_PART_B_HAMMER_4": {
+  "name": "Inventor's Haft",
+  "effects": [
+   {
+    "type": "message"
+   }
+  ]
+ },
+ "WEAPON_PART_C_WARBELL_4": {
+  "name": "Majestic Haft",
+  "effects": [
+   {
+    "type": "message"
+   }
+  ]
+ },
  "WEAPON_PART_B_HAMMER_3": {
   "name": "Kehlik Haft",
   "effects": [
@@ -777,6 +897,10 @@
     "kinds": [
      "IGNOS"
     ]
+   },
+   {
+    "type": "max_health_pct",
+    "pct": 10
    }
   ]
  },

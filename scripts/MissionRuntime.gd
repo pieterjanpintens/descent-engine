@@ -302,6 +302,9 @@ signal loot_collected(monster_name: String, text: String)
 ## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
 ## campaign when the mission is WON (CampaignState.apply_result()); saved with the game.
 var collected_loot: Dictionary = {}
+## Remembrance Hilt: the first hero wounded this round gets this health instead (0 = none); cleared when the monster
+## phase ends (MissionPlayer._apply_wound() shows it and clears it earlier).
+var wound_health_override: int = 0
 
 
 ## Registers a newly spawned monster from `template` (its properties are
@@ -438,10 +441,12 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	var exposed_bonus := 0
 	if not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED):
 		exposed_bonus = floori(base_total * EXPOSED_DAMAGE_PERCENT / 100.0)
-	var damage := base_total + exposed_bonus
+	var bonus_damage := 0 if immune else int(modifiers.get("bonus_damage", 0))
+	var damage := base_total + exposed_bonus + bonus_damage
 	var defense_roll := 0 if (immune or modifiers.get("ignore_defense", false)) else randi_range(0, monster.effective_defense())
 	var dealt := maxi(damage - defense_roll, 0)
 	monster.hitpoints -= dealt
+	monster.attacked_this_round = true
 	var defeated := monster.hitpoints <= 0
 	var result := {
 		"weapon_name": weapon.weapon_name, "base_damage": own_damage,
@@ -520,8 +525,11 @@ func apply_affliction() -> Array[Dictionary]:
 ## (its other conditions stay for another round).
 func end_monster_phase_conditions() -> void:
 	affliction_bonus_round = 0
+	wound_health_override = 0
 	for monster in monsters:
 		monster.defense_round_penalty = 0
+		monster.attacked_this_round = false
+		monster.shadowed_heroes.clear()
 		if monster.conditions.has(MonsterCondition.Kind.DOOMED):
 			monster.conditions.erase(MonsterCondition.Kind.DOOMED)
 		else:

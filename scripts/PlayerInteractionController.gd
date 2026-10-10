@@ -432,6 +432,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	runner.runtime = mission_runtime
 	runner.dialog = dialog
 	runner.hero_name = hero_name
+	runner.hero_slot = hero_slot
 	var plan: PartEffectRunner.Plan = await runner.plan(weapon, monster, conditions)
 	for kind in plan.conditions:
 		if not conditions.has(kind):

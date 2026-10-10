@@ -177,6 +177,7 @@ func _ready() -> void:
 		current_checkpoint = resume_save.current_checkpoint
 		_runtime.load_variables_state(resume_save.runtime_variables)
 		_runtime.collected_loot = resume_save.collected_loot.duplicate()
+		_runtime.wound_health_override = resume_save.wound_health_override
 		_runtime.restore_monsters(resume_save.monsters)
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
 		_runtime.hero_times_targeted = resume_save.hero_times_targeted.duplicate()
@@ -319,6 +320,7 @@ func save_game() -> void:
 	save.player_weapons = player_weapons.duplicate(true)
 	save.runtime_variables = _runtime.get_variables_state()
 	save.collected_loot = _runtime.collected_loot.duplicate()
+	save.wound_health_override = _runtime.wound_health_override
 	var monster_dicts: Array[Dictionary] = []
 	for monster in _runtime.monsters:
 		monster_dicts.append(monster.to_dict())
@@ -1127,7 +1129,12 @@ func _apply_wound(slot: int) -> void:
 		defeat.description = "%s was wounded a third time." % hero_name
 		await _handle_game_over(defeat)
 		return
-	await dialog.ask_ok("%s is %s." % [hero_name, MissionRuntime.wound_label(wounds).to_lower()], true, false, "Wound")
+	var wound_text := "%s is %s." % [hero_name, MissionRuntime.wound_label(wounds).to_lower()]
+	if _runtime.wound_health_override > 0:
+		# Remembrance Hilt: the first hero wounded this round has this health instead.
+		wound_text += "\n\nRemembrance Hilt: set %s's health to %d instead." % [hero_name, _runtime.wound_health_override]
+		_runtime.wound_health_override = 0
+	await dialog.ask_ok(wound_text, true, false, "Wound")
 
 
 ## Shared by both ends of the objectives DAG: the checkpoint-driven path

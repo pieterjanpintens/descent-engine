@@ -51,6 +51,10 @@ var tags: Array[String] = []
 ## Defense taken off until the end of this round by weapon part abilities (cleared when the monster phase ends,
 ## MissionRuntime.end_monster_phase_conditions()); permanent reductions change `defense` itself.
 var defense_round_penalty: int = 0
+## Attacked by a hero earlier this round (Eastrider Guard); cleared when the monster phase ends.
+var attacked_this_round: bool = false
+## Hero slots this monster is less likely to target until the end of the round (Shadowstone Bracers).
+var shadowed_heroes: Array[int] = []
 ## What it does when Confused instead of attacking (empty = MonsterAction.defaults()).
 var confused_actions: Array[MonsterAction] = []
 ## What it drops (LootItem list from its templates); nothing hands it out yet.
@@ -63,9 +67,12 @@ func effective_defense() -> int:
 
 
 ## True if it carries `tag` (ignoring case).
+## "Dragonkind" also matches a "Dragon" (a dragon is dragonkind); "Dragon" matches only a dragon.
 func has_tag(tag: String) -> bool:
+	var wanted := tag.to_lower()
 	for existing in tags:
-		if existing.to_lower() == tag.to_lower():
+		var held := existing.to_lower()
+		if held == wanted or (wanted == "dragonkind" and held == "dragon"):
 			return true
 	return false
 
@@ -110,6 +117,7 @@ func to_dict() -> Dictionary:
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
 		"last_attacker": last_attacker, "tags": tags.duplicate(), "defense_round_penalty": defense_round_penalty,
+		"attacked_this_round": attacked_this_round, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
 		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot),
@@ -143,6 +151,8 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	for tag in d.get("tags", []):
 		m.tags.append(str(tag))
 	m.defense_round_penalty = d.get("defense_round_penalty", 0)
+	m.attacked_this_round = d.get("attacked_this_round", false)
+	m.shadowed_heroes = _int_array(d.get("shadowed_heroes", []))
 	m.condition_immunities = _int_array(d.get("condition_immunities", []))
 	m.attack_power = d.get("attack_power", 3)
 	m.attack_range = d.get("attack_range", 0)
