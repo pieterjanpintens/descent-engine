@@ -6741,6 +6741,18 @@ Rune, Lucky Charm, Mana Weave, Shadow Bracers, Stormbound Pendant, Undying Skull
 Mirror, Fae Crystal, Heart Thorn Root, Mage-Sight Goggles, Prescient Charm, Rusted Nail, Tarnished Brooch.
 The item rule texts are in the localization export; not read/modelled yet.
 
+## Hero-specific board pieces (concepts defined by the user 2026-10-10, NOT built yet)
+
+Needed by weapon parts that need a "system" (Mothwing Ornament, Tinker's Grip, Duskstrike Belt) and by hero abilities in general:
+- **Companion**: a player-controlled puppet unit on the board. Syrus has one (his prefab also holds the bird meshes "Bird" / "Bird.Flame",
+  see `import_hero_meshes.py`, which deliberately skips them).
+- **Umbra token**: a token Chance can spawn with some abilities. Very much like the exploration token we already have (a placeable
+  token prop, `umbra` mesh exists with an official texture), but linked to Chance and the abilities he has.
+- **Contraption**: like an umbra token but linked to Kehli; NOT a token but a physical 1-cell object that can be STACKED in the same cell
+  as other things (so the occupancy has to allow several on one cell - props are already multi-owner, see `MissionData.occupied_cells`).
+More concepts (and the rules: how they are placed, moved, removed, what their abilities do) are to be defined by the user before any
+of this is modelled.
+
 ## Scene structure (post-refactor)
 
 Split into a minimal reusable piece plus two separate wrappers, specifically so
