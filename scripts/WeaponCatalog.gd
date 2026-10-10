@@ -71,6 +71,9 @@ static func type_of(slot: int, weapon_index: int) -> String:
 ## after the type itself if the type has no entry there (keeps this
 ## resilient to a HERO_WEAPON_TYPES entry with no matching catalog yet).
 static func weapons_of_type(type_name: String) -> Array[Weapon]:
+	var real := WeaponData.weapons_for_type(type_name)  # the user's own export of the game's data, when present
+	if not real.is_empty():
+		return real
 	var names: Array = WEAPONS_BY_TYPE.get(type_name, [type_name])
 	var weapons: Array[Weapon] = []
 	for weapon_name: String in names:

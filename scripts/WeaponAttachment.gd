@@ -21,6 +21,12 @@ const MAX_PER_WEAPON := 2
 ## The ability that can trigger: a MonsterCondition.Kind applied to the monster.
 @export var condition: MonsterCondition.Kind = MonsterCondition.Kind.DAZED
 @export_range(0, 100) var chance_percent: int = 25
+## A real weapon part (WeaponData): "B" (guard / haft) or "C" (hilt / pommel) - a weapon has one slot of each. "" = any
+## (the invented premade attachments). A real part has `ability_name`/`ability_text` from the game's data, which is
+## information for the table only: it never triggers by itself (chance 0), the table applies it.
+@export var part_slot: String = ""
+@export var ability_name: String = ""
+@export_multiline var ability_text: String = ""
 
 
 func _init(p_name: String = "", p_condition: int = MonsterCondition.Kind.DAZED, p_chance: int = 25, p_weapon_type: String = "", p_hero_slot: int = -1, p_weapon_index: int = -1) -> void:
@@ -41,7 +47,16 @@ func fits(p_hero_slot: int, p_weapon_index: int, p_type: String) -> bool:
 
 ## "Stunning Blow - Dazed 30%".
 func summary() -> String:
+	if ability_text != "":
+		return "%s - %s" % [attachment_name, ability_name]
 	return "%s - %s %d%%" % [attachment_name, MonsterCondition.display_name(condition), chance_percent]
+
+
+## summary() plus, for a real part, what its ability does.
+func detail() -> String:
+	if ability_text != "":
+		return "%s: %s" % [summary(), ability_text]
+	return summary()
 
 
 ## The chance against a target that is (not) Dazed: a Dazed monster adds

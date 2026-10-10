@@ -29,6 +29,9 @@ static func all() -> Array[WeaponAttachment]:
 
 ## The attachments that fit weapon slot `weapon_index` of hero `slot` (type `weapon_type`).
 static func for_weapon(slot: int, weapon_index: int, weapon_type: String) -> Array[WeaponAttachment]:
+	var real := WeaponData.attachments_for_type(weapon_type)  # the real B and C parts, from the user's own export
+	if not real.is_empty():
+		return real
 	var fitting: Array[WeaponAttachment] = []
 	for attachment in all():
 		if attachment.fits(slot, weapon_index, weapon_type):

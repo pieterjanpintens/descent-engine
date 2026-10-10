@@ -270,16 +270,25 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			column.add_child(type_label)
 			column.add_child(picker)
 			# Optional premade attachments (secondary abilities) for this weapon.
-			var options := _allowed_attachments(slot, weapon_index, type_name)
+			var all_options := _allowed_attachments(slot, weapon_index, type_name)
+			var options: Array = []  # per picker: the attachments it offers (the real B / C parts go to their own picker)
 			var attachment_pickers: Array[OptionButton] = []
 			for attachment_number in WeaponAttachment.MAX_PER_WEAPON:
+				var part_slot := "B" if attachment_number == 0 else "C"
+				var picker_options: Array[WeaponAttachment] = []
+				for option in all_options:
+					if option.part_slot == "" or option.part_slot == part_slot:
+						picker_options.append(option)
+				options.append(picker_options)
 				var attachment_picker := OptionButton.new()
 				attachment_picker.add_theme_font_size_override("font_size", 12)
-				attachment_picker.add_item("Attachment %d: none" % (attachment_number + 1))
-				for option in options:
+				attachment_picker.add_item("Part %s: none" % part_slot if _has_real_parts(all_options) else "Attachment %d: none" % (attachment_number + 1))
+				for option in picker_options:
 					attachment_picker.add_item(option.summary())
-				attachment_picker.disabled = options.is_empty()
-				attachment_picker.item_selected.connect(func(_index: int): _keep_attachments_distinct(attachment_pickers))
+					if option.ability_text != "":
+						attachment_picker.set_item_tooltip(attachment_picker.item_count - 1, option.ability_text)
+				attachment_picker.disabled = picker_options.is_empty()
+				attachment_picker.item_selected.connect(func(_index: int): _keep_attachments_distinct(attachment_pickers, options))
 				column.add_child(attachment_picker)
 				attachment_pickers.append(attachment_picker)
 			row.add_child(column)
@@ -304,9 +313,11 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			var catalog: Array = catalogs[slot][weapon_index]
 			var weapon: Weapon = catalog[picker.selected]
 			var options: Array = attachment_options[[slot, weapon_index]]
-			for attachment_picker: OptionButton in attachment_pickers_by_weapon[[slot, weapon_index]]:
+			var weapon_pickers: Array = attachment_pickers_by_weapon[[slot, weapon_index]]
+			for picker_number in weapon_pickers.size():
+				var attachment_picker: OptionButton = weapon_pickers[picker_number]
 				if attachment_picker.selected > 0:
-					weapon.attachments.append(options[attachment_picker.selected - 1])
+					weapon.attachments.append(options[picker_number][attachment_picker.selected - 1])
 			chosen.append(weapon)
 		loadouts[slot] = chosen
 	return loadouts
@@ -318,17 +329,29 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 func _allowed_attachments(slot: int, weapon_index: int, type_name: String) -> Array[WeaponAttachment]:
 	var allowed: Array[WeaponAttachment] = []
 	for attachment in AttachmentCatalog.for_weapon(slot, weapon_index, type_name):
-		if not restrict_to_owned or owned_attachments.has(attachment.attachment_name):
+		# The real weapon parts (WeaponData) are not bought in the campaign shop yet, so they are not restricted.
+		if not restrict_to_owned or attachment.ability_text != "" or owned_attachments.has(attachment.attachment_name):
 			allowed.append(attachment)
 	return allowed
 
 
+func _has_real_parts(attachments: Array[WeaponAttachment]) -> bool:
+	for attachment in attachments:
+		if attachment.ability_text != "":
+			return true
+	return false
+
+
 ## The same attachment can't be equipped twice on one weapon: if two pickers show the same
 ## choice, the later one goes back to "none".
-func _keep_attachments_distinct(attachment_pickers: Array[OptionButton]) -> void:
-	var taken: Array[int] = []
-	for attachment_picker in attachment_pickers:
-		if attachment_picker.selected > 0 and taken.has(attachment_picker.selected):
+func _keep_attachments_distinct(attachment_pickers: Array[OptionButton], options: Array) -> void:
+	var taken: Array[WeaponAttachment] = []
+	for picker_number in attachment_pickers.size():
+		var attachment_picker := attachment_pickers[picker_number]
+		if attachment_picker.selected <= 0:
+			continue
+		var chosen: WeaponAttachment = options[picker_number][attachment_picker.selected - 1]
+		if taken.has(chosen):
 			attachment_picker.select(0)
-		elif attachment_picker.selected > 0:
-			taken.append(attachment_picker.selected)
+		else:
+			taken.append(chosen)

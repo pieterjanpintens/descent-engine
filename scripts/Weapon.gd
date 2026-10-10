@@ -20,6 +20,10 @@ extends Resource
 ## Premade secondary abilities equipped at embark (at most WeaponAttachment.MAX_PER_WEAPON,
 ## none by default) - each may trigger when attacking with this weapon.
 @export var attachments: Array[WeaponAttachment] = []
+## The weapon's own secondary ability from the game's real data (WeaponData): its name and rule text. Information
+## for the table only - nothing in the engine applies it. Empty for the placeholder weapons.
+@export var ability_name: String = ""
+@export_multiline var ability_text: String = ""
 
 
 ## One-line description for pickers, e.g. "Spear (damage 3, Pierce, reach)".

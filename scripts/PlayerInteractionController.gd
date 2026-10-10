@@ -500,8 +500,10 @@ func _weapon_subtitle(hero_slot: int, weapon_index: int, weapon: Weapon) -> Stri
 	if weapon.reach:
 		parts.append("reach")
 	var text := "%s - %s" % [WeaponCatalog.type_of(hero_slot, weapon_index), ", ".join(parts)]
+	if weapon.ability_name != "":
+		text += "\n%s: %s" % [weapon.ability_name, weapon.ability_text]
 	for attachment in weapon.attachments:
-		text += "\n+ " + attachment.summary()
+		text += "\n+ " + attachment.detail()
 	return text
 
 
