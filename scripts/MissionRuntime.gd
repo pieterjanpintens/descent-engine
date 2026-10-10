@@ -402,6 +402,9 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		if not attack_types.has(extra_kind):
 			attack_types.append(extra_kind)
 	var final_successes: int = successes + int(modifiers.get("extra_successes", 0))
+	# Is the monster's defense ability working in this attack? (Spiral Bolts / Star Metal Offhand+ switch it off)
+	var ability_on: bool = bool(modifiers.get("defense_ability_active", monster.defense_ability_off == 0))
+	var defense_lines: Array[String] = []
 	# Who attacked is remembered for the Retaliate/Suppress target rules.
 	if hero_slot >= 0:
 		monster.last_attacker = hero_slot
@@ -411,7 +414,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	var conditions_applied: Array[int] = []
 	var conditions_resisted: Array[int] = []  # refused: the monster is immune to them
 	for condition in apply_conditions:
-		if monster.condition_immunities.has(condition):
+		if monster.is_condition_immune(condition, 1 if ability_on else 0):
 			conditions_resisted.append(condition)
 		elif not monster.conditions.has(condition):
 			monster.conditions.append(condition)
@@ -432,6 +435,9 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 			immune = true
 			if not monster.known_immunities.has(kind):
 				monster.known_immunities.append(kind)
+	if ability_on and DefenseRules.blocks_damage(monster, attack_types):
+		immune = true
+		defense_lines.append("this attack cannot damage it")
 	if bonus > 0:
 		bonus += int(modifiers.get("weakness_bonus_extra", 0))
 	var own_damage: int = weapon.damage * (2 if modifiers.get("damage_double", false) else 1) + int(modifiers.get("damage_delta", 0))
@@ -443,7 +449,13 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		exposed_bonus = floori(base_total * EXPOSED_DAMAGE_PERCENT / 100.0)
 	var bonus_damage := 0 if immune else int(modifiers.get("bonus_damage", 0))
 	var damage := base_total + exposed_bonus + bonus_damage
-	var defense_roll := 0 if (immune or modifiers.get("ignore_defense", false)) else randi_range(0, monster.effective_defense())
+	var defense_value := monster.effective_defense()
+	if ability_on:
+		var during := DefenseRules.defense_during(monster, attack_types)
+		if during > 0:
+			defense_value += during
+			defense_lines.append("defense +%d during this attack" % during)
+	var defense_roll := 0 if (immune or modifiers.get("ignore_defense", false)) else randi_range(0, defense_value)
 	var dealt := maxi(damage - defense_roll, 0)
 	monster.hitpoints -= dealt
 	monster.attacked_this_round = true
@@ -460,6 +472,9 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		release_monster(monster.id)
 	else:
 		monsters_changed.emit()  # the M view shows HP
+	if ability_on:
+		defense_lines.append_array(DefenseRules.after_attack(self, monster))
+	result["defense_lines"] = defense_lines
 	return result
 
 
@@ -487,7 +502,7 @@ func heal_monster(monster: RuntimeMonster, amount: int) -> int:
 
 ## Adds a condition; false if the monster is immune to it or already has it.
 func add_condition(monster: RuntimeMonster, kind: int) -> bool:
-	if monster.condition_immunities.has(kind) or monster.conditions.has(kind):
+	if monster.is_condition_immune(kind) or monster.conditions.has(kind):
 		return false
 	monster.conditions.append(kind)
 	monsters_changed.emit()
@@ -530,6 +545,10 @@ func end_monster_phase_conditions() -> void:
 		monster.defense_round_penalty = 0
 		monster.attacked_this_round = false
 		monster.defense_ability_off = 0
+		monster.defense_round_bonus = 0
+		monster.damage_round_bonus = 0
+		monster.range_round_bonus = 0
+		monster.speed_round_bonus = 0
 		monster.shadowed_heroes.clear()
 		if monster.conditions.has(MonsterCondition.Kind.DOOMED):
 			monster.conditions.erase(MonsterCondition.Kind.DOOMED)

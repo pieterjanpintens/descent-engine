@@ -401,7 +401,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		"monster_name": monster.display_name(),
 		"hitpoints": monster.hitpoints,
 		"max_hitpoints": monster.max_hitpoints,
-		"defense": monster.defense,
+		"defense": monster.effective_defense(),
 		"damage_types": damage_types,
 		"weaknesses": monster.weaknesses,
 		"known_weaknesses": monster.known_weaknesses.duplicate(),
@@ -412,7 +412,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		"hero_size_units": HeroCatalog.size_units(hero_slot),
 		"monster_size_units": MonsterDisplay.size_units(monster.folder),
 		"monster_conditions": monster.conditions.duplicate(),
-		"monster_condition_immunities": monster.condition_immunities.duplicate(),
+		"monster_condition_immunities": monster.all_condition_immunities(),
 	}
 	var hero_art := _hero_art(hero_slot, weapon_index)
 	for key in hero_art:

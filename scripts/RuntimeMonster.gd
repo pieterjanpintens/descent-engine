@@ -55,6 +55,15 @@ var defense_round_penalty: int = 0
 var attacked_this_round: bool = false
 ## Spiral Bolts: 0 = the defense ability works, 1 = deactivated for the next attack, 2 = deactivated until the round ends.
 var defense_ability_off: int = 0
+## Defense ability effects (DefenseRules): signed bonuses until the monster phase ends, and what carries on.
+var defense_round_bonus: int = 0
+var damage_round_bonus: int = 0
+var range_round_bonus: int = 0
+var speed_round_bonus: int = 0
+## Damage added to this monster's NEXT activation (Martyr / Sacrifice); used up by that activation.
+var next_activation_damage: int = 0
+## A once-only defense ability effect (Martyr, Sacrifice, Voltaic Guard) has already happened.
+var defense_ability_fired: bool = false
 ## Hero slots this monster is less likely to target until the end of the round (Shadowstone Bracers).
 var shadowed_heroes: Array[int] = []
 ## What it does when Confused instead of attacking (empty = MonsterAction.defaults()).
@@ -65,7 +74,7 @@ var loot: Array[LootItem] = []
 
 ## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
 func effective_defense() -> int:
-	return maxi(defense - defense_round_penalty, 0)
+	return maxi(defense + defense_round_bonus - defense_round_penalty, 0)
 
 
 ## True if it carries `tag` (ignoring case).
@@ -82,16 +91,40 @@ func has_tag(tag: String) -> bool:
 ## Attack damage as it is NOW: an Enfeebled monster deals ENFEEBLED_DAMAGE_PERCENT% less,
 ## the reduction rounded up (3 -> 2, 10 -> 8).
 func effective_attack_power() -> int:
+	var total := attack_power + damage_round_bonus + next_activation_damage
 	if conditions.has(MonsterCondition.Kind.ENFEEBLED):
-		return maxi(attack_power - ceili(attack_power * MonsterCondition.ENFEEBLED_DAMAGE_PERCENT / 100.0), 0)
-	return attack_power
+		return maxi(total - ceili(total * MonsterCondition.ENFEEBLED_DAMAGE_PERCENT / 100.0), 0)
+	return total
+
+
+## Attack range as it is NOW (a defense ability can add to it until the round ends).
+func effective_attack_range() -> int:
+	return attack_range + range_round_bonus
 
 
 ## Speed as it is NOW: a Slowed monster's speed is SET to MonsterCondition.SLOWED_SPEED.
 func effective_speed() -> int:
 	if conditions.has(MonsterCondition.Kind.SLOWED):
-		return MonsterCondition.SLOWED_SPEED
-	return speed
+		return MonsterCondition.SLOWED_SPEED + speed_round_bonus
+	return speed + speed_round_bonus
+
+
+## True if the monster cannot get condition `kind`: its own immunities, or one its defense ability gives. `ability_on`:
+## -1 = as the ability is now, 0 = deactivated, 1 = working (an attack that is being resolved knows better).
+func is_condition_immune(kind: int, ability_on: int = -1) -> bool:
+	if condition_immunities.has(kind):
+		return true
+	var on := defense_ability_off == 0 if ability_on < 0 else ability_on == 1
+	return on and DefenseRules.immune_to(self, kind)
+
+
+## Every condition the monster is immune to right now (for the combat view's conditions dialog).
+func all_condition_immunities() -> Array[int]:
+	var result: Array[int] = []
+	for kind in MonsterCondition.all():
+		if is_condition_immune(kind):
+			result.append(kind)
+	return result
 
 
 ## The custom name if one was set, else the type's generic name ("Bandit").
@@ -129,7 +162,9 @@ func to_dict() -> Dictionary:
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
 		"last_attacker": last_attacker, "tags": tags.duplicate(), "defense_round_penalty": defense_round_penalty,
-		"attacked_this_round": attacked_this_round, "defense_ability_off": defense_ability_off, "shadowed_heroes": shadowed_heroes.duplicate(),
+		"attacked_this_round": attacked_this_round, "defense_ability_off": defense_ability_off,
+		"defense_round_bonus": defense_round_bonus, "damage_round_bonus": damage_round_bonus, "range_round_bonus": range_round_bonus,
+		"speed_round_bonus": speed_round_bonus, "next_activation_damage": next_activation_damage, "defense_ability_fired": defense_ability_fired, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
 		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot),
@@ -165,6 +200,12 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.defense_round_penalty = d.get("defense_round_penalty", 0)
 	m.attacked_this_round = d.get("attacked_this_round", false)
 	m.defense_ability_off = d.get("defense_ability_off", 0)
+	m.defense_round_bonus = d.get("defense_round_bonus", 0)
+	m.damage_round_bonus = d.get("damage_round_bonus", 0)
+	m.range_round_bonus = d.get("range_round_bonus", 0)
+	m.speed_round_bonus = d.get("speed_round_bonus", 0)
+	m.next_activation_damage = d.get("next_activation_damage", 0)
+	m.defense_ability_fired = d.get("defense_ability_fired", false)
 	m.shadowed_heroes = _int_array(d.get("shadowed_heroes", []))
 	m.condition_immunities = _int_array(d.get("condition_immunities", []))
 	m.attack_power = d.get("attack_power", 3)

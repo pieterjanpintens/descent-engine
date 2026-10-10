@@ -37,6 +37,7 @@ class Plan:
 	var extra_types: Array[int] = []
 	var damage_delta := 0
 	var weapon_damage := 0  ## the weapon's own damage per success (for percentages)
+	var ability_active := true  ## the monster's defense ability works in this attack
 	var defense_off_set := false  ## a part deactivated the defense ability for later attacks (Spiral Bolts)
 	var bonus_damage := 0  ## flat extra damage of the whole attack (before the defense roll)
 	var damage_double := false
@@ -53,6 +54,7 @@ class Plan:
 		return {
 			"extra_types": extra_types, "damage_delta": damage_delta, "damage_double": damage_double,
 			"extra_successes": extra_successes, "weakness_bonus_extra": weakness_bonus_extra, "ignore_defense": ignore_defense,
+			"defense_ability_active": ability_active,
 			"bonus_damage": bonus_damage,
 		}
 
@@ -63,16 +65,23 @@ func plan(weapon: Weapon, monster: RuntimeMonster, a_conditions: Array) -> Plan:
 	var p := Plan.new()
 	p.monster = monster
 	p.weapon_damage = weapon.damage
+	p.ability_active = monster.defense_ability_off == 0
 	p.attack_types = weapon.damage_types.duplicate()
 	p.state_conditions = monster.conditions.duplicate()
 	for condition in a_conditions:
-		if not monster.condition_immunities.has(condition) and not p.state_conditions.has(condition):
+		if not monster.is_condition_immune(condition, 1 if p.ability_active else 0) and not p.state_conditions.has(condition):
 			p.state_conditions.append(condition)
 	var parts: Array[WeaponAttachment] = weapon.attachments.duplicate()
 	parts.sort_custom(func(a: WeaponAttachment, b: WeaponAttachment) -> bool: return a.part_slot < b.part_slot)
 	for part in parts:
 		var spec := _spec_for(part)
 		var chance := part.chance + (MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT / 100.0 if p.state_conditions.has(MonsterCondition.Kind.DAZED) else 0.0)
+		# Specter: weapon secondary effects are half as likely (or cannot occur) - while its defense ability works.
+		var factor := DefenseRules.part_chance_factor(monster) if p.ability_active else 1.0
+		if factor <= 0.0:
+			p.not_triggered.append(part.attachment_name)
+			continue
+		chance *= factor
 		var forced: bool = spec["always_if_weak"] and _weak_to_attack(p)
 		if not forced and randf() >= chance:
 			p.not_triggered.append(part.attachment_name)
@@ -139,8 +148,11 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 			"deactivate_defense":
 				p.monster.defense_ability_off = maxi(p.monster.defense_ability_off, int(e["n"]))
 				p.defense_off_set = true
+				if int(e["n"]) >= 2:
+					p.ability_active = false  # "until the end of the round": this attack too
 				applied.append("defense ability deactivated %s" % ("until the end of the round" if int(e["n"]) >= 2 else "for the next attack"))
 			"ignore_defense_ability":
+				p.ability_active = false
 				applied.append("the defense ability is ignored in this attack")
 			"bonus_damage":
 				var round_number := int(runtime.get_variables_state().get("round_number", 1))
@@ -164,7 +176,7 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 				for i in int(e["count"]):
 					var candidates: Array[int] = []
 					for kind in MonsterCondition.all():
-						if not p.state_conditions.has(kind) and not p.monster.condition_immunities.has(kind):
+						if not p.state_conditions.has(kind) and not p.monster.is_condition_immune(kind, 1 if p.ability_active else 0):
 							candidates.append(kind)
 					if candidates.is_empty():
 						break
@@ -284,7 +296,7 @@ func _weak_to_attack(p: Plan) -> bool:
 
 ## Adds `kind` to the conditions the target gets: nothing if it is immune (said so) or already has it.
 func _add_condition(p: Plan, kind: int, applied: Array[String]) -> void:
-	if p.monster.condition_immunities.has(kind):
+	if p.monster.is_condition_immune(kind, 1 if p.ability_active else 0):
 		applied.append("immune to %s" % MonsterCondition.display_name(kind))
 	elif not p.state_conditions.has(kind):
 		p.state_conditions.append(kind)
@@ -479,7 +491,10 @@ func finish(p: Plan, r: Dictionary) -> void:
 			p.lines.append("%s: loot x%d (+%s)" % [str(e["part"]), int(e["n"]), extra] if extra != "" else "%s: the enemy has no loot" % str(e["part"]))
 	r["hitpoints"] = target.hitpoints
 	r["defeated"] = target.hitpoints <= 0
-	r["part_lines"] = p.lines
+	var defense_lines: Array[String] = []
+	for line in r.get("defense_lines", []):
+		defense_lines.append("Defense ability: %s" % str(line))
+	r["part_lines"] = defense_lines + p.lines
 	r["part_notes"] = p.notes
 	r["parts_not_triggered"] = p.not_triggered
 	r["attack_types"] = p.attack_types

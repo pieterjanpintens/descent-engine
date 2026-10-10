@@ -21,7 +21,12 @@ static func choose_target(monster: RuntimeMonster, roster: Array[int], context: 
 	if roster.is_empty():
 		return -1
 	var chosen := -1
+	# Duelist (defense ability): the last hero who attacked it first.
+	if monster.defense_ability_off == 0 and DefenseRules.retaliates(monster) and roster.has(monster.last_attacker):
+		chosen = monster.last_attacker
 	for rule in monster.target_rules:
+		if chosen != -1:
+			break
 		var picked := _apply(rule, monster, roster, context, rng)
 		if picked != -1:
 			chosen = picked

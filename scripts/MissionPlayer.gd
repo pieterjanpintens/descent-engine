@@ -955,7 +955,7 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 	if monster.conditions.has(MonsterCondition.Kind.CONFUSED):
 		await _monster_action(monster, who)
 		return
-	var range_text := "melee" if monster.attack_range == 0 else "range %d%s" % [monster.attack_range, ", reach" if monster.attack_reach else ""]
+	var range_text := "melee" if monster.effective_attack_range() == 0 else "range %d%s" % [monster.effective_attack_range(), ", reach" if monster.attack_reach else ""]
 	var ability_lines: Array[String] = []
 	for ability in monster.attack_abilities:
 		ability_lines.append(ability.ability_name if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [ability.ability_name, MonsterAbility.behavior_name(ability.behavior).to_lower()])
@@ -967,6 +967,8 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		var text := "%s attacks %s!%s\nDamage %d - %s - Speed %d" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
 		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
 			text += "\n(Enfeebled: damage reduced from %d)" % monster.attack_power
+		if monster.next_activation_damage > 0:
+			text += "\n(+%d damage from a defense ability this activation)" % monster.next_activation_damage
 		if not ability_lines.is_empty():
 			text += "\n" + "\n".join(ability_lines)
 		var cfg := MonsterDisplay.preview_data(monster.folder)
@@ -974,6 +976,7 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		if not await _show_monster_dialog(monster, cfg, who, "attack %s" % hero_name):
 			return
 		journal.add("Monster attack", ["%s attacks %s (damage %d, %s)." % [who, hero_name, monster.effective_attack_power(), range_text]])
+		monster.next_activation_damage = 0  # used up by this activation
 		# Abilities that build on the outcome need the table's feedback.
 		if monster.has_attack_behavior(MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE):
 			if await dialog.ask_yes_no("Did %s deal damage to %s?" % [monster.display_name(), hero_name]):

@@ -109,7 +109,7 @@ func _refresh() -> void:
 	_suppress = true
 	for kind in _condition_boxes:
 		var box: CheckBox = _condition_boxes[kind]
-		var immune := _monster.condition_immunities.has(kind)
+		var immune := _monster.is_condition_immune(kind)
 		box.button_pressed = _monster.conditions.has(kind)
 		box.disabled = immune
 		box.text = MonsterCondition.display_name(kind) + ("  (immune)" if immune else "")
