@@ -52,6 +52,7 @@ SPEC = {
     ("Sword", "C", "Remembrance Hilt"): ([dict(type="wound_health", n=1)], [dict(type="wound_health", n=4)], {}),
     ("Hammer", "B", "Inventor's Haft"): ([message()], None, {}),
     ("Warbell", "C", "Majestic Haft"): ([message()], None, {}),
+    ("Hammer", "C", "Magpie's Grip"): ([dict(type="random_consumable")], [dict(type="random_consumable", upgraded=True)], {}),
     ("Hammer", "B", "Kehlik Haft"): ([dict(type="copy_other")], None, {}),
     ("Hammer", "C", "Devastator's Grip"): ([weak_bonus(1)], [weak_bonus(2)], {}),
     ("Crossbow", "B", "Mammoth Stock"): ([dmg(flat=1), succ(1, to=TAG("Large"))], [dmg(flat=1), succ(2, to=TAG("Large"))], {}),

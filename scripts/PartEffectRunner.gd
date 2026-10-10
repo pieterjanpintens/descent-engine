@@ -120,6 +120,21 @@ func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachmen
 
 Check whether it applies and carry it out on the board (a condition can be applied from the monster screen)." % [hero_name, part.attachment_name, part.ability_text])
 				applied.append("the table carries it out")
+			"random_consumable":
+				var found: String = ItemData.random_consumable(bool(e.get("upgraded", false)))
+				await _before_ask()
+				if found != "":
+					await dialog.ask_ok("%s - %s triggered!
+
+%s gains a random %sconsumable: %s
+
+Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.get("upgraded", false)) else "", found])
+					applied.append("gains %s" % found)
+				else:
+					await dialog.ask_ok("%s - %s triggered!
+
+%s" % [hero_name, part.attachment_name, part.ability_text])
+					applied.append("the table picks a consumable")
 			"bonus_damage":
 				var round_number := int(runtime.get_variables_state().get("round_number", 1))
 				var extra := floori(round_number / float(e["round_div"]))

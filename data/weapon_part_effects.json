@@ -185,6 +185,20 @@
    }
   ]
  },
+ "WEAPON_PART_C_HAMMER_5": {
+  "name": "Magpie's Grip",
+  "effects": [
+   {
+    "type": "random_consumable"
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "random_consumable",
+    "upgraded": true
+   }
+  ]
+ },
  "WEAPON_PART_B_HAMMER_3": {
   "name": "Kehlik Haft",
   "effects": [
