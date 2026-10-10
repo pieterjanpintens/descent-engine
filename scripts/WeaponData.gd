@@ -30,8 +30,8 @@ const TYPE_TO_GAME_WEAPON := {
 ## The game's damage `Traits` numbers -> Vulnerability.Kind. 0-2 are certain (hammers / swords / bows and knives);
 ## confirmed by the user: 4 (Wing Blade+ = Anemos), 6 (Rebound Hammer+ = Terros), 7 (Ancestral Blade = Lumos), 8
 ## (Relentless Gauntlet+ = Umbros), 9 (Dragonsbane+ = Vigos), 10 (Life-Drinking Gauntlet+ = Mortos) and 3 (Sunburst+ =
-## Lumos and Ignos). Only 5 (water: Ice Storm) is still a guess from the part name. 11 (Warping Wand+) is unknown - the
-## game also has Fortunos and Toxos damage icons, not in our kinds yet - and is skipped.
+## Lumos and Ignos) and 11 (Warping Wand+ = Toxos). Only 5 (water: Ice Storm) is still a guess from the part name. The
+## game also has a Fortunos damage icon, no weapon part uses it yet, so it is not one of our kinds.
 const TRAIT_TO_KIND := {
 	0: Vulnerability.Kind.CRUSH,
 	1: Vulnerability.Kind.SLASH,
@@ -44,6 +44,7 @@ const TRAIT_TO_KIND := {
 	8: Vulnerability.Kind.UMBROS,
 	9: Vulnerability.Kind.VIGOS,
 	10: Vulnerability.Kind.MORTOS,
+	11: Vulnerability.Kind.TOXOS,
 }
 
 ## The game data only says 0 melee / 1 reach / 2 ranged (`RangeApproximation`, per weapon type) - the real distance is
