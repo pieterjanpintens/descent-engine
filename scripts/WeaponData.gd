@@ -43,9 +43,15 @@ const TRAIT_TO_KIND := {
 	8: Vulnerability.Kind.MORTOS,
 }
 
-## The game gives a weapon's reach as 0 melee / 1 reach / 2 ranged, without a distance; ranged weapons get this
-## placeholder range (squares).
-const RANGED_PLACEHOLDER_RANGE := 5
+## The game data only says 0 melee / 1 reach / 2 ranged (`RangeApproximation`, per weapon type) - the real distance is
+## not in the files we can read (no range field on parts or abilities, no range in any text; the part pictures don't
+## show it either, so it is probably game code). Ranged weapons therefore get this range (squares), known from play...
+const RANGED_RANGE := 4
+## ...except these parts, whose range is known to differ (part id -> range): the Oakroot Wand (and its upgrade) has 5.
+const RANGE_BY_PART := {
+	"WEAPON_PART_A_WAND_2": 5,
+	"WEAPON_PART_A_WAND_2_UPGRADED": 5,
+}
 
 static var _loaded := false
 static var _weapons: Dictionary = {}    # game weapon id -> entry
@@ -142,7 +148,7 @@ static func _build(game_weapon: Dictionary) -> Array[Weapon]:
 		weapon.damage_types = kinds
 		var range_class := int(game_weapon["RangeApproximation"])
 		weapon.reach = range_class == 1
-		weapon.weapon_range = RANGED_PLACEHOLDER_RANGE if range_class == 2 else 0
+		weapon.weapon_range = RANGE_BY_PART.get(part["_id"], RANGED_RANGE) if range_class == 2 else 0
 		var ability: Dictionary = _abilities.get(part["Ability"], {})
 		if not ability.is_empty():
 			weapon.ability_name = _text(ability["KeyName"], "")
