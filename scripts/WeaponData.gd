@@ -27,11 +27,12 @@ const TYPE_TO_GAME_WEAPON := {
 	"Dual Blades": "WEAPON_DUAL_BLADES",
 }
 
-## The game's damage `Traits` numbers -> Vulnerability.Kind. 0-2 are certain (hammers / swords / bows and knives), and
-## 4 (Wing Blade+), 6 (Rebound Hammer+) and 7 (Ancestral Blade) are confirmed by the user; 3, 5 and 8 were read from the
-## part names that carry them (Ashen, Sunburst = fire, Wing Blade, Howling = wind, Ice Storm =
-## water, Quaking = earth, Crystal, Sunburst = light, Shrieking, Fear = dead) and are an educated guess. 9, 10 and 11
-## (Hungry, Dragonsbane, Life Drinking, Warping...) have no kind of ours yet and are skipped.
+## The game's damage `Traits` numbers -> Vulnerability.Kind. 0-2 are certain (hammers / swords / bows and knives);
+## confirmed by the user: 4 (Wing Blade+ = Anemos), 6 (Rebound Hammer+ = Terros), 7 (Ancestral Blade = Lumos), 8
+## (Relentless Gauntlet+ = Umbros) and 10 (Life-Drinking Gauntlet+ = Mortos). 3 (fire: Ashen, Sunforged, Sunburst)
+## and 5 (water: Ice Storm) are still guesses from part names. 9 (Dragonsbane+, Hungry Blades+, Grasp of Fear+) and 11
+## (Warping Wand+) are unknown - the game also has Fortunos, Toxos and Vigos damage icons, not in our kinds yet - and
+## are skipped.
 const TRAIT_TO_KIND := {
 	0: Vulnerability.Kind.CRUSH,
 	1: Vulnerability.Kind.SLASH,
@@ -41,7 +42,8 @@ const TRAIT_TO_KIND := {
 	5: Vulnerability.Kind.AQUOS,
 	6: Vulnerability.Kind.TERROS,
 	7: Vulnerability.Kind.LUMOS,
-	8: Vulnerability.Kind.MORTOS,
+	8: Vulnerability.Kind.UMBROS,
+	10: Vulnerability.Kind.MORTOS,
 }
 
 ## The game data only says 0 melee / 1 reach / 2 ranged (`RangeApproximation`, per weapon type) - the real distance is
