@@ -425,8 +425,8 @@ func _plus_box() -> CheckBox:
 
 func _with_plus(picker: OptionButton, plus: CheckBox) -> HBoxContainer:
 	var row := HBoxContainer.new()
+	row.add_child(plus)  # in FRONT of its picker, so it can't be read as belonging to the weapon in the next column
 	row.add_child(picker)
-	row.add_child(plus)
 	return row
 
 
