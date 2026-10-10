@@ -7720,3 +7720,9 @@ These cost real debugging time — worth not re-learning them:
 	monster's `loot` becomes materials, then add: material inventory in the campaign state, crafting/shop prices from the recipes
 	(387 recipes exported), potions (consumables with once-per-mission use, hero limits, "+"), armor (27 + "+"), trinkets (20 + "+").
 	Armor and potions are only LISTED so far.
+22. **Cap loot by its real gold worth**: the loot multipliers (Salvager Haft x2/x3, Forgik/Shadow-Weave/Goldbloom drops) count materials, but
+	materials are not equal - an essence (Anemos/Aquos/Ignos/Terros 25, Fortunos/Lumos/Mortos/Toxos/Umbros/Vigos 30 gold in the game
+	data) is worth ~5-6x a common material (Bone/Cloth/Curios/Herbs/Leather/Metal/Minerals 5). Put an upper bound on what a monster's
+	loot (and a mission) may be worth in gold - e.g. a x3 on a monster carrying essences should not be able to exceed it, or the
+	multiplier should be applied to the common materials only. Needs a value per material (`LootMaterials`, from `item_data` `Value`) and
+	a cap rule to decide with the drop rules (open item 21).
