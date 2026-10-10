@@ -12,6 +12,10 @@ Writes:
     localization_en.json  every English text whose key starts with WEAPON (names and descriptions of weapons, parts
                         and abilities; `<style=...>` markup left as in the game).
 
+    images/...          every weapon image (part icons, armory and promo pictures, the part icon sheet), at the container
+                        path the game uses minus "assets/d3/" - a part's TextureAssetPath/ArmoryAssetPath/PromoAssetPath
+                        match them case-insensitively (the files are lower case).
+
 The numbers are the game's raw values (enums such as Class, Traits and RangeApproximation are not decoded yet).
 
 Requires: pip install UnityPy
@@ -60,6 +64,7 @@ def main() -> int:
     result = {"weapons": [], "parts": [], "abilities": []}
     seen = set()
     localization = {}
+    images = 0
     for name in sorted(os.listdir(bundles)):
         path = os.path.join(bundles, name)
         if not os.path.isfile(path):
@@ -68,6 +73,19 @@ def main() -> int:
             env = UnityPy.load(path)
         except Exception:
             continue
+        for container_path, pointer in env.container.items():
+            lowered = container_path.lower()
+            if "weapon" in lowered and lowered.endswith(".png") and "glossaryterms" not in lowered:
+                target = os.path.join(OUTPUT, "images", lowered.replace("assets/d3/", "", 1))
+                if os.path.exists(target):
+                    continue
+                try:
+                    image = pointer.read().image
+                except Exception:
+                    continue
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                image.save(target)
+                images += 1
         ids = {}  # path id -> _id, for resolving references inside this file
         found = []  # (kind, tree)
         for obj in env.objects:
@@ -111,8 +129,8 @@ def main() -> int:
         json.dump(result, handle, indent=1, ensure_ascii=False)
     with open(os.path.join(OUTPUT, "localization_en.json"), "w", encoding="utf-8") as handle:
         json.dump(dict(sorted(localization.items())), handle, indent=1, ensure_ascii=False)
-    print("weapons %d, parts %d, abilities %d, texts %d -> %s" % (
-        len(result["weapons"]), len(result["parts"]), len(result["abilities"]), len(localization), OUTPUT))
+    print("weapons %d, parts %d, abilities %d, texts %d, images %d -> %s" % (
+        len(result["weapons"]), len(result["parts"]), len(result["abilities"]), len(localization), images, OUTPUT))
     return 0 if result["weapons"] else 1
 
 
