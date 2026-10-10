@@ -661,6 +661,22 @@ func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
 	return dropped
 
 
+## A defeated monster's loot counts `times` times (weapon part Salvager Haft: "gain more loot"): the loot it still
+## carries is handed over again `times - 1` more times. Returns the extra materials as text ("" when none).
+func multiply_loot(monster: RuntimeMonster, times: int) -> String:
+	var gained := loot_materials(monster)
+	var parts: Array[String] = []
+	for key in gained:
+		var extra := int(gained[key]) * maxi(times - 1, 0)
+		if extra <= 0:
+			continue
+		collected_loot[key] = int(collected_loot.get(key, 0)) + extra
+		parts.append("%dx %s" % [extra, LootMaterials.display_name(key)])
+	if not parts.is_empty():
+		loot_collected.emit(monster.display_name(), "+" + ", ".join(parts))
+	return ", ".join(parts)
+
+
 ## The materials `monster` drops: LootMaterials key -> count.
 static func loot_materials(monster: RuntimeMonster) -> Dictionary:
 	var gained := {}

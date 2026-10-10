@@ -26,6 +26,21 @@
    }
   ]
  },
+ "WEAPON_PART_B_HAMMER_5": {
+  "name": "Salvager Haft",
+  "effects": [
+   {
+    "type": "loot_times",
+    "n": 2
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "loot_times",
+    "n": 3
+   }
+  ]
+ },
  "WEAPON_PART_B_HAMMER_3": {
   "name": "Kehlik Haft",
   "effects": [

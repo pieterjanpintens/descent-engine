@@ -97,6 +97,8 @@ func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachmen
 				p.post.append({"type": "conditions_others", "kinds": e["kinds"], "tag": tag, "part": part.attachment_name})
 			"drop_loot":
 				p.post.append({"type": "drop_loot", "n": int(e["n"]), "part": part.attachment_name})
+			"loot_times":
+				p.post.append({"type": "loot_times", "n": int(e["n"]), "part": part.attachment_name})
 			"random_status":
 				if e.get("only_if_none", false) and not p.state_conditions.is_empty():
 					continue
@@ -270,8 +272,12 @@ func _before_ask() -> void:
 ## defeated entries are brought up to date and the lines are added to `plan.lines`.
 func finish(p: Plan, r: Dictionary) -> void:
 	var target := p.monster
+	var loot_times: Array[Dictionary] = []
 	for e: Dictionary in p.post:
 		var part_name := str(e["part"])
+		if str(e["type"]) == "loot_times":
+			loot_times.append(e)  # judged after every other effect: it only counts if the enemy ends up defeated
+			continue
 		var said := ""
 		match str(e["type"]):
 			"conditions_after":
@@ -373,6 +379,12 @@ func finish(p: Plan, r: Dictionary) -> void:
 					said = "trigger %d (every %dth: %d damage to every enemy)" % [count, int(e["every"]), int(e["damage_all"])]
 		if said != "":
 			p.lines.append("%s: %s" % [part_name, said])
+	for e in loot_times:
+		if _alive(target):
+			p.lines.append("%s: the enemy is not defeated, no extra loot" % str(e["part"]))
+		else:
+			var extra := runtime.multiply_loot(target, int(e["n"]))
+			p.lines.append("%s: loot x%d (+%s)" % [str(e["part"]), int(e["n"]), extra] if extra != "" else "%s: the enemy has no loot" % str(e["part"]))
 	r["hitpoints"] = target.hitpoints
 	r["defeated"] = target.hitpoints <= 0
 	r["part_lines"] = p.lines

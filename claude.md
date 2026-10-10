@@ -6545,7 +6545,7 @@ counter is per card (base part id) per mission and counts the current trigger; S
 after the damage; Nightsky Wrap asks for the fatigue number; "Spiked Grip+/Cruel Bracers+: if no statuses, apply a
 random status" is decided after the per-status damage is counted; Thrumming String's receiver is a random other
 monster (immunity is reported).
-**Loot parts (2026-10-10)**: Forgik Haft, Shadow-Weave Gloves and Goldbloom Lacing ("the enemy drops a small amount of loot", same text on the "+" side) use the new `drop_loot` effect (post phase): while the enemy is still alive it drops `n` = 1 random material unit NOW (`MissionRuntime.drop_loot()`; goes to `collected_loot` like a defeat's loot and is taken off the monster so a later defeat doesn't give it twice); if the hit defeats it, everything dropped anyway. **Interpretation to check: "small amount" = 1 material.** Salvager Haft ("if defeated, gain MORE / significantly more loot") is NOT implemented: since a defeat already gives ALL listed loot, "more" has no defined meaning/amount until the drop rules are known.
+**Loot parts (2026-10-10)**: Forgik Haft, Shadow-Weave Gloves and Goldbloom Lacing ("the enemy drops a small amount of loot", same text on the "+" side) use the new `drop_loot` effect (post phase): while the enemy is still alive it drops `n` = 1 random material unit NOW (`MissionRuntime.drop_loot()`; goes to `collected_loot` like a defeat's loot and is taken off the monster so a later defeat doesn't give it twice); if the hit defeats it, everything dropped anyway. **Interpretation to check: "small amount" = 1 material.** Salvager Haft ("if the enemy is defeated, gain more loot", "significantly more" on the "+" side) uses `loot_times` (judged after every other effect, only if the enemy ends up defeated): the loot counts x2 (base) / x3 (+) - `MissionRuntime.multiply_loot()` hands the remaining loot over again `n - 1` times. **Amounts given by the user (2x / 3x).**
 **Not implemented - no system for it**: 
 consumables (Magpie's Grip), companions / contraptions / umbra tokens (Mothwing Ornament, Tinker's Grip, Duskstrike Belt),
 skills (Inventor's Haft, Majestic Haft), monster defensive abilities having no behaviour (Spiral Bolts; the "defensive
@@ -7712,7 +7712,7 @@ These cost real debugging time — worth not re-learning them:
 	number), Roiling Haft (does the current trigger count), Wildbloom Belt (rounding of "half the enemies", which ones), Excoriation
 	("25% of its health": current or max, rounding), Drakewing Gloves ("max health -10%": rounding, current health too?), Shadowstone
 	Bracers (needs a rule in the monster targeting), Dragonscale Haft uses the tag "Dragon" while Overwhelm / Chosen Foe use
-	"Dragonkind". Salvager Haft ("more loot" on defeat - amount undefined, see the loot parts note; the other three loot parts are done). Parts needing systems that don't exist:
+	"Dragonkind". Parts needing systems that don't exist:
 	consumables (Magpie's Grip), companions / contraptions / umbra tokens (Mothwing Ornament, Tinker's Grip, Duskstrike Belt), skills
 	(Inventor's/Majestic Haft), monster defensive abilities with behaviour (Spiral Bolts, Star Metal Offhand+), hero wound health
 	(Remembrance Hilt). The combat dialog flow with part abilities was not run in a Player session.
