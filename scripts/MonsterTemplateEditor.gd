@@ -691,6 +691,8 @@ func _rebuild_loot_rows() -> void:
 		name_edit.text_submitted.connect(func(_t: String): commit.call())
 		name_edit.focus_exited.connect(commit)
 		top.add_child(name_edit)
+		top.add_child(_caption("Gold"))
+		top.add_child(_level_spin(item, "gold", 0, 9999))
 		var remove := Button.new()
 		remove.text = "×"
 		remove.pressed.connect(func():

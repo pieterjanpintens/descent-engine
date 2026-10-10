@@ -306,6 +306,10 @@ func is_place_unlocked(place: CampaignPlace) -> bool:
 func _take_loot(summary: Dictionary, loot: Dictionary) -> void:
 	for material_name in loot:
 		var count := int(loot[material_name])
+		if material_name == LootMaterials.GOLD:
+			gold += count
+			summary["gold"] = int(summary.get("gold", 0)) + count
+			continue
 		add_material(str(material_name), count)
 		summary["materials"][material_name] = int(summary["materials"].get(material_name, 0)) + count
 

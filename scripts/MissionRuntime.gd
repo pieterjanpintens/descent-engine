@@ -662,16 +662,19 @@ func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
 
 
 ## A defeated monster's loot counts `times` times (weapon part Salvager Haft: "gain more loot"): the loot it still
-## carries is handed over again `times - 1` more times. Returns the extra materials as text ("" when none).
+## carries is handed over again `times - 1` more times - its gold and common materials only, not the essences
+## (worth 5-6x as much). Returns the extra materials as text ("" when none).
 func multiply_loot(monster: RuntimeMonster, times: int) -> String:
 	var gained := loot_materials(monster)
 	var parts: Array[String] = []
 	for key in gained:
+		if LootMaterials.ESSENCES.has(key):
+			continue  # only gold and the common materials are multiplied - essences are worth too much
 		var extra := int(gained[key]) * maxi(times - 1, 0)
 		if extra <= 0:
 			continue
 		collected_loot[key] = int(collected_loot.get(key, 0)) + extra
-		parts.append("%dx %s" % [extra, LootMaterials.display_name(key)])
+		parts.append("%d gold" % extra if key == LootMaterials.GOLD else "%dx %s" % [extra, LootMaterials.display_name(key)])
 	if not parts.is_empty():
 		loot_collected.emit(monster.display_name(), "+" + ", ".join(parts))
 	return ", ".join(parts)
@@ -685,6 +688,8 @@ static func loot_materials(monster: RuntimeMonster) -> Dictionary:
 			gained[key] = int(gained.get(key, 0)) + 1
 		for key in item.essences:
 			gained[key] = int(gained.get(key, 0)) + 1
+		if item.gold > 0:
+			gained[LootMaterials.GOLD] = int(gained.get(LootMaterials.GOLD, 0)) + item.gold
 	return gained
 
 
@@ -694,6 +699,9 @@ static func loot_text(monster: RuntimeMonster) -> String:
 	var parts: Array[String] = []
 	for key in gained:
 		var count := int(gained[key])
+		if key == LootMaterials.GOLD:
+			parts.append("%d gold" % count)
+			continue
 		parts.append(LootMaterials.display_name(key) if count == 1 else "%dx %s" % [count, LootMaterials.display_name(key)])
 	return ", ".join(parts)
 

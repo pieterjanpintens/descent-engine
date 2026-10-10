@@ -9,6 +9,8 @@ extends Resource
 @export var item_name: String = ""
 @export var common_materials: Array[String] = []
 @export var essences: Array[String] = []
+## Gold it is worth to the party (paid to the campaign when the mission is won).
+@export_range(0, 9999) var gold: int = 0
 
 
 func _init(p_name: String = "") -> void:
@@ -16,7 +18,7 @@ func _init(p_name: String = "") -> void:
 
 
 func to_dict() -> Dictionary:
-	return {"name": item_name, "common": common_materials.duplicate(), "essences": essences.duplicate()}
+	return {"name": item_name, "common": common_materials.duplicate(), "essences": essences.duplicate(), "gold": gold}
 
 
 static func from_dict(d: Dictionary) -> LootItem:
@@ -25,6 +27,7 @@ static func from_dict(d: Dictionary) -> LootItem:
 		item.common_materials.append(str(key))
 	for key in d.get("essences", []):
 		item.essences.append(str(key))
+	item.gold = int(d.get("gold", 0))
 	return item
 
 
