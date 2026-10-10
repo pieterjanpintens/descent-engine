@@ -53,6 +53,10 @@ const RANGE_BY_PART := {
 	"WEAPON_PART_A_WAND_2_UPGRADED": 5,
 	"WEAPON_PART_A_CROSSBOW_1": 3,  # True Aim Crossbow (the upgraded one has the normal 4)
 	"WEAPON_PART_A_CROSSBOW_2": 3,  # Dualpower Crossbow (the upgraded one has the normal 4)
+	"WEAPON_PART_A_CROSSBOW_3": 3,  # Elfweave Crossbow, both versions
+	"WEAPON_PART_A_CROSSBOW_3_UPGRADED": 3,
+	"WEAPON_PART_A_CROSSBOW_4": 3,  # Kickback Crossbow, both versions
+	"WEAPON_PART_A_CROSSBOW_4_UPGRADED": 3,
 	"WEAPON_PART_A_CROSSBOW_5_UPGRADED": 5,  # Longsight Crossbow+
 	"WEAPON_PART_A_RUNE_OF_BLADES": 3,
 	"WEAPON_PART_A_RUNE_OF_BLADES_UPGRADED": 3,
