@@ -61,6 +61,7 @@ const RANGE_BY_PART := {
 	"WEAPON_PART_A_CROSSBOW_4": 3,  # Kickback Crossbow, both versions
 	"WEAPON_PART_A_CROSSBOW_4_UPGRADED": 3,
 	"WEAPON_PART_A_CROSSBOW_5_UPGRADED": 5,  # Longsight Crossbow+
+	"WEAPON_PART_A_SUNBURST": 3,  # Sunburst (the upgraded one has the normal 4)
 	"WEAPON_PART_A_RUNE_OF_BLADES": 3,
 	"WEAPON_PART_A_RUNE_OF_BLADES_UPGRADED": 3,
 }
