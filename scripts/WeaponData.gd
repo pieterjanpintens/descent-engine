@@ -69,7 +69,28 @@ static var _parts_by_id: Dictionary = {}
 static var _abilities: Dictionary = {}  # ability id -> entry
 static var _texts: Dictionary = {}
 static var _cache: Dictionary = {}      # type name -> Array[Weapon]
+static var _icons: Dictionary = {}  # icon path -> Texture2D (or null: not exported)
 static var _attachment_cache: Dictionary = {}  # type name -> Array[WeaponAttachment]
+
+
+## The icon picture of a part (its `icon_path`) from the user's own export (import_weapon_data.py writes the pictures to
+## user://weapon_data/images/ under the game's path, lower case, without the leading "d3/"); null when it isn't there.
+static func icon_for(icon_path: String) -> Texture2D:
+	if icon_path == "":
+		return null
+	if _icons.has(icon_path):
+		return _icons[icon_path]
+	var relative := icon_path.to_lower()
+	if relative.begins_with("d3/"):
+		relative = relative.substr(3)
+	var file := DIRECTORY + "images/" + relative
+	var texture: Texture2D = null
+	if FileAccess.file_exists(file):
+		var image := Image.load_from_file(file)
+		if image != null:
+			texture = ImageTexture.create_from_image(image)
+	_icons[icon_path] = texture
+	return texture
 
 
 static func available() -> bool:
@@ -276,6 +297,7 @@ static func _attachment_from_part(part: Dictionary, type_name: String) -> Weapon
 	var ability: Dictionary = _abilities[part["Ability"]]
 	var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)
 	attachment.part_id = part["_id"]
+	attachment.icon_path = part["TextureAssetPath"]
 	attachment.part_slot = "B" if part["Slot"] == 1 else "C"
 	attachment.ability_name = _text(ability["KeyName"], "")
 	attachment.ability_text = _clean(_text(ability["KeyDesc"], ""))
@@ -303,6 +325,7 @@ static func _weapon_from_part(part: Dictionary, game_weapon: Dictionary) -> Weap
 	var weapon := Weapon.new()
 	weapon.weapon_name = _text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else "")
 	weapon.part_id = part["_id"]
+	weapon.icon_path = part["TextureAssetPath"]
 	weapon.base_part_id = part["BaseItemId"] if part["IsUpgrade"] == 1 else part["_id"]
 	weapon.damage = int(part["Damage"])
 	var kinds: Array[int] = []

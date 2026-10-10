@@ -284,7 +284,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			picker.tooltip_text = "Weapon %d (%s)" % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
-				picker.add_item(("Rune: " if weapon.is_rune else "") + weapon.summary())
+				_add_item(picker, ("Rune: " if weapon.is_rune else "") + weapon.summary(), weapon.icon_path)
 				if weapon.is_rune:
 					var fixed_parts: Array[String] = []
 					for fixed in weapon.attachments:
@@ -320,7 +320,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 				attachment_picker.add_theme_font_size_override("font_size", 12)
 				attachment_picker.add_item("Part %s: none" % part_slot)
 				for option in picker_options:
-					attachment_picker.add_item(option.summary())
+					_add_item(attachment_picker, option.summary(), option.icon_path)
 					if option.ability_text != "":
 						attachment_picker.set_item_tooltip(attachment_picker.item_count - 1, option.ability_text)
 				attachment_picker.disabled = picker_options.is_empty()
@@ -412,6 +412,17 @@ func _refresh_rune_availability(pickers: Dictionary, catalogs: Dictionary) -> vo
 				var weapon: Weapon = catalog[index]
 				if weapon.is_rune:
 					picker.set_item_disabled(index, holders.has(weapon.base_part_id) and holders[weapon.base_part_id] != picker)
+
+
+## Adds an entry with the part's picture (when the user's weapon-data export has it) to a picker and keeps the pictures small.
+func _add_item(picker: OptionButton, text: String, icon_path: String) -> void:
+	var icon := WeaponData.icon_for(icon_path)
+	if icon == null:
+		picker.add_item(text)
+		return
+	picker.add_icon_item(icon, text)
+	picker.add_theme_constant_override("icon_max_width", 28)
+	picker.get_popup().add_theme_constant_override("icon_max_width", 48)
 
 
 ## The small "+" check box that flips a card to its upgraded side.

@@ -28,6 +28,9 @@ extends Resource
 @export var part_id: String = ""
 ## part_id of the base side of the card: the same as part_id, or the base version's id for an upgraded ("+") weapon.
 @export var base_part_id: String = ""
+## The game's path of the part's icon picture ("D3/Weapon Parts/Sword/..."), shown in the pickers when the user's own
+## export has it (WeaponData.icon_for()); "" for placeholders.
+@export var icon_path: String = ""
 ## A rune (WeaponData.runes()): belongs to no hero, any hero can take it as Weapon 1 or Weapon 2 in place of their
 ## own weapon; its B and C parts are fixed (already in `attachments`).
 @export var is_rune: bool = false

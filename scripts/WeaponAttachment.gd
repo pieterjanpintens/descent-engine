@@ -27,6 +27,8 @@ const MAX_PER_WEAPON := 2
 @export var part_slot: String = ""
 ## The game's id of the part ("WEAPON_PART_B_SWORD_1") - what campaign offers and the owned list refer to.
 @export var part_id: String = ""
+## The game's path of the part's icon picture, see Weapon.icon_path.
+@export var icon_path: String = ""
 @export var ability_name: String = ""
 @export_multiline var ability_text: String = ""
 
