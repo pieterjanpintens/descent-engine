@@ -529,6 +529,7 @@ func end_monster_phase_conditions() -> void:
 	for monster in monsters:
 		monster.defense_round_penalty = 0
 		monster.attacked_this_round = false
+		monster.defense_ability_off = 0
 		monster.shadowed_heroes.clear()
 		if monster.conditions.has(MonsterCondition.Kind.DOOMED):
 			monster.conditions.erase(MonsterCondition.Kind.DOOMED)

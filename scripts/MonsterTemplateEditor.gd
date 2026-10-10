@@ -480,6 +480,31 @@ func _rebuild_name_rows(prop: String) -> void:
 				_save()
 			)
 			row.add_child(behavior_picker)
+		# Defense abilities can use the game's own ability (its text comes from the user's export).
+		if prop == "defense_abilities":
+			var game_picker := OptionButton.new()
+			game_picker.add_item("(own text)", 0)
+			game_picker.set_item_metadata(0, "")
+			var game_list := ItemData.defense_abilities()
+			for entry in game_list:
+				game_picker.add_item(str(entry["name"]), game_picker.item_count)
+				game_picker.set_item_metadata(game_picker.item_count - 1, str(entry["key"]))
+				game_picker.set_item_tooltip(game_picker.item_count - 1, str(entry["text"]))
+			var ability := item as MonsterAbility
+			for index in game_picker.item_count:
+				if str(game_picker.get_item_metadata(index)) == ability.game_key:
+					game_picker.select(index)
+			game_picker.tooltip_text = "The game's own defense ability: its text is shown when the monster is attacked (needs your own export of the game data)."
+			game_picker.item_selected.connect(func(index: int):
+				if _suppress:
+					return
+				ability.game_key = str(game_picker.get_item_metadata(index))
+				if ability.game_key != "" and ability.ability_name.strip_edges() == "":
+					ability.ability_name = game_picker.get_item_text(index)
+					edit.text = ability.ability_name
+				_save()
+			)
+			row.add_child(game_picker)
 		var remove := Button.new()
 		remove.text = "×"
 		remove.pressed.connect(func():

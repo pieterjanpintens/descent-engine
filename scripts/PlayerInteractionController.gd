@@ -387,7 +387,17 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	# monster's own arrays are mutated by resolve_attack(), and the outcome
 	# animation needs to know what was already discovered before it.
 	var damage_types: Array = [] if weapon == null else weapon.damage_types
+	# The monster's defense abilities (the game's texts): shown while attacking, or after the roll when the game says so.
+	# A deactivated one (Spiral Bolts) is shown as such instead.
+	var ability_deactivated := monster.defense_ability_off > 0
+	var consume_deactivation := monster.defense_ability_off == 1
+	var ability_before := monster.defense_ability_text(false)
+	var ability_after := monster.defense_ability_text(true)
+	if ability_deactivated:
+		ability_before = "Defense ability deactivated." if (ability_before != "" or ability_after != "") else ""
+		ability_after = ""
 	var cfg := {
+		"ability_text": ability_before,
 		"monster_name": monster.display_name(),
 		"hitpoints": monster.hitpoints,
 		"max_hitpoints": monster.max_hitpoints,
@@ -439,8 +449,12 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 			conditions.append(kind)
 	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot, plan.modifiers())
 	await runner.finish(plan, r)
+	if consume_deactivation and not plan.defense_off_set:
+		monster.defense_ability_off = 0  # "the next attack" was this one
 	# The same cfg with what the monster now has discovered.
 	var post_cfg := cfg.duplicate()
+	if ability_after != "":
+		post_cfg["ability_text"] = ability_after
 	post_cfg["damage_types"] = plan.attack_types
 	post_cfg["max_hitpoints"] = monster.max_hitpoints
 	post_cfg["known_weaknesses"] = monster.known_weaknesses.duplicate()

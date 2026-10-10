@@ -18,6 +18,21 @@ enum Behavior {
 
 @export var ability_name: String = ""
 @export var behavior: Behavior = Behavior.NONE
+## A defense ability of the game (ItemData.defense_abilities(), e.g. "ENEMY_DEFEND_GOLEM"): its text comes from the user's
+## own export of the game data and is shown to the table when the monster is attacked. Empty = only the name.
+@export var game_key: String = ""
+
+
+## The text shown to the table: the game's text for `game_key` (when the export has it), else the name.
+func shown_text() -> String:
+	var info := ItemData.defense_ability(game_key) if game_key != "" else {}
+	return str(info["text"]) if not info.is_empty() else ability_name
+
+
+## True when the game shows this ability's text after the attack roll instead of while attacking.
+func shows_after_attack() -> bool:
+	var info := ItemData.defense_ability(game_key) if game_key != "" else {}
+	return not info.is_empty() and bool(info["after"])
 
 
 static func behavior_name(behavior: int) -> String:
@@ -31,13 +46,14 @@ static func behavior_name(behavior: int) -> String:
 
 ## Plain-data form for SaveGame (RuntimeMonster.to_dict()).
 func to_dict() -> Dictionary:
-	return {"name": ability_name, "behavior": behavior}
+	return {"name": ability_name, "behavior": behavior, "game_key": game_key}
 
 
 static func from_dict(d: Dictionary) -> MonsterAbility:
 	var ability := MonsterAbility.new()
 	ability.ability_name = str(d.get("name", ""))
 	ability.behavior = int(d.get("behavior", Behavior.NONE)) as Behavior
+	ability.game_key = str(d.get("game_key", ""))
 	return ability
 
 

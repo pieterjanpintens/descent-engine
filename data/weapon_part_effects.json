@@ -1122,6 +1122,29 @@
    {
     "type": "ignore_defense"
    }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "ignore_defense"
+   },
+   {
+    "type": "ignore_defense_ability"
+   }
+  ]
+ },
+ "WEAPON_PART_C_CROSSBOW_2": {
+  "name": "Spiral Bolts",
+  "effects": [
+   {
+    "type": "deactivate_defense",
+    "n": 1
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "deactivate_defense",
+    "n": 2
+   }
   ]
  },
  "WEAPON_PART_B_DUAL_BLADES_5": {

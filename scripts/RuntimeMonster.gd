@@ -53,6 +53,8 @@ var tags: Array[String] = []
 var defense_round_penalty: int = 0
 ## Attacked by a hero earlier this round (Eastrider Guard); cleared when the monster phase ends.
 var attacked_this_round: bool = false
+## Spiral Bolts: 0 = the defense ability works, 1 = deactivated for the next attack, 2 = deactivated until the round ends.
+var defense_ability_off: int = 0
 ## Hero slots this monster is less likely to target until the end of the round (Shadowstone Bracers).
 var shadowed_heroes: Array[int] = []
 ## What it does when Confused instead of attacking (empty = MonsterAction.defaults()).
@@ -106,6 +108,16 @@ func display_name() -> String:
 	return name_prefix + base + name_postfix
 
 
+## What the table is told about this monster's defense abilities when it is attacked: the game's text of every ability
+## with one (`after` picks the ones shown after the attack roll). "" when none, or nothing for the moment.
+func defense_ability_text(after: bool) -> String:
+	var lines: Array[String] = []
+	for ability in defense_abilities:
+		if ability.game_key != "" and ability.shows_after_attack() == after:
+			lines.append(ability.shown_text())
+	return "\n".join(lines)
+
+
 ## Plain-data round trip for SaveGame - this class is RefCounted, not a
 ## Resource, so it can't be embedded directly in a Resource's exported
 ## field; a save just carries a Dictionary of these fields instead.
@@ -117,7 +129,7 @@ func to_dict() -> Dictionary:
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
 		"last_attacker": last_attacker, "tags": tags.duplicate(), "defense_round_penalty": defense_round_penalty,
-		"attacked_this_round": attacked_this_round, "shadowed_heroes": shadowed_heroes.duplicate(),
+		"attacked_this_round": attacked_this_round, "defense_ability_off": defense_ability_off, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
 		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot),
@@ -152,6 +164,7 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 		m.tags.append(str(tag))
 	m.defense_round_penalty = d.get("defense_round_penalty", 0)
 	m.attacked_this_round = d.get("attacked_this_round", false)
+	m.defense_ability_off = d.get("defense_ability_off", 0)
 	m.shadowed_heroes = _int_array(d.get("shadowed_heroes", []))
 	m.condition_immunities = _int_array(d.get("condition_immunities", []))
 	m.attack_power = d.get("attack_power", 3)

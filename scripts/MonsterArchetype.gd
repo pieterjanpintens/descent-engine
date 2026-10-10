@@ -97,7 +97,7 @@ func signature() -> String:
 	var abilities := func(list: Array[MonsterAbility]) -> Array:
 		var names: Array = []
 		for ability in list:
-			names.append([ability.ability_name, ability.behavior])
+			names.append([ability.ability_name, ability.behavior, ability.game_key])
 		return names
 	var scaling := func(list: Array[LevelValue]) -> Array:
 		var rows: Array = []

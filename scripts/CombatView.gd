@@ -885,6 +885,9 @@ func _update_conditions_button() -> void:
 ## is shown as rolled.
 func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 	_set_outcome_mode(true)
+	var ability_text: String = cfg.get("ability_text", "")
+	_info_panel.visible = ability_text != ""
+	_info_label.text = ability_text
 	# Dark grey behind the red fill, as wide as the health BEFORE the attack -
 	# the red shrinking over it leaves the lost part showing.
 	_hp_lost.size.x = HP_BOX_SIZE.x * clampf(float(_shown_hp) / float(maxi(_shown_max_hp, 1)), 0.0, 1.0)

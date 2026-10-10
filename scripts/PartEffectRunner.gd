@@ -37,6 +37,7 @@ class Plan:
 	var extra_types: Array[int] = []
 	var damage_delta := 0
 	var weapon_damage := 0  ## the weapon's own damage per success (for percentages)
+	var defense_off_set := false  ## a part deactivated the defense ability for later attacks (Spiral Bolts)
 	var bonus_damage := 0  ## flat extra damage of the whole attack (before the defense roll)
 	var damage_double := false
 	var extra_successes := 0
@@ -135,6 +136,12 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 
 %s" % [hero_name, part.attachment_name, part.ability_text])
 					applied.append("the table picks a consumable")
+			"deactivate_defense":
+				p.monster.defense_ability_off = maxi(p.monster.defense_ability_off, int(e["n"]))
+				p.defense_off_set = true
+				applied.append("defense ability deactivated %s" % ("until the end of the round" if int(e["n"]) >= 2 else "for the next attack"))
+			"ignore_defense_ability":
+				applied.append("the defense ability is ignored in this attack")
 			"bonus_damage":
 				var round_number := int(runtime.get_variables_state().get("round_number", 1))
 				var extra := floori(round_number / float(e["round_div"]))
