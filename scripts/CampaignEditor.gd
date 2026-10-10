@@ -1034,11 +1034,11 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_label("Offers:"))
-	var attachment_names: Array[String] = []
+	var attachment_ids: Array[String] = []
 	for attachment in AttachmentCatalog.all():
-		attachment_names.append(attachment.attachment_name)
+		attachment_ids.append(attachment.part_id)
 	for offer in place.offers:
-		_chapter_panel.add_child(_build_offer_block(place, offer, attachment_names))
+		_chapter_panel.add_child(_build_offer_block(place, offer, attachment_ids))
 	_chapter_panel.add_child(_button("Add offer", func():
 		var created := CampaignOffer.new()
 		created.id = _campaign.new_offer_id()
@@ -1050,7 +1050,7 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	_chapter_panel.add_child(_button("Delete place", func(): _delete_place(place)))
 
 
-func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_names: Array[String]) -> Control:
+func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_ids: Array[String]) -> Control:
 	var panel := PanelContainer.new()
 	var box := VBoxContainer.new()
 	panel.add_child(box)
@@ -1098,9 +1098,9 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_n
 	var attachment_option := OptionButton.new()
 	attachment_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	attachment_option.add_item("(nothing)")
-	for attachment_name in attachment_names:
-		attachment_option.add_item(attachment_name)
-	var attachment_index := attachment_names.find(offer.attachment)
+	for attachment_id in attachment_ids:
+		attachment_option.add_item(AttachmentCatalog.label(attachment_id))
+	var attachment_index := attachment_ids.find(offer.attachment)
 	if offer.attachment != "" and attachment_index < 0:
 		attachment_option.add_item("%s (unknown)" % offer.attachment)
 		attachment_option.select(attachment_option.item_count - 1)
@@ -1109,8 +1109,8 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_n
 	attachment_option.item_selected.connect(func(index: int):
 		if index == 0:
 			offer.attachment = ""
-		elif index <= attachment_names.size():
-			offer.attachment = attachment_names[index - 1]
+		elif index <= attachment_ids.size():
+			offer.attachment = attachment_ids[index - 1]
 		_mark_dirty()
 	)
 	give_row.add_child(attachment_option)

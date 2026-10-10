@@ -2,7 +2,7 @@ class_name CampaignOffer
 extends Resource
 
 ## One thing a place on the campaign map sells: it costs gold and/or materials and gives the
-## party a weapon attachment (AttachmentCatalog name - the "weapon part / upgrade" of the
+## party a weapon attachment (AttachmentCatalog part id - the "weapon part / upgrade" of the
 ## campaign; other kinds of reward can follow). `once` offers can be bought a single time.
 
 @export var id: String = ""

@@ -25,6 +25,8 @@ const MAX_PER_WEAPON := 2
 ## (the invented premade attachments). A real part has `ability_name`/`ability_text` from the game's data, which is
 ## information for the table only: it never triggers by itself (chance 0), the table applies it.
 @export var part_slot: String = ""
+## The game's id of the part ("WEAPON_PART_B_SWORD_1") - what campaign offers and the owned list refer to.
+@export var part_id: String = ""
 @export var ability_name: String = ""
 @export_multiline var ability_text: String = ""
 

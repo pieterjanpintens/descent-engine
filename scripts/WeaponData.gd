@@ -53,6 +53,7 @@ static var _parts: Array = []
 static var _abilities: Dictionary = {}  # ability id -> entry
 static var _texts: Dictionary = {}
 static var _cache: Dictionary = {}      # type name -> Array[Weapon]
+static var _attachment_cache: Dictionary = {}  # type name -> Array[WeaponAttachment]
 
 
 static func available() -> bool:
@@ -64,6 +65,7 @@ static func available() -> bool:
 static func reload() -> void:
 	_loaded = false
 	_cache.clear()
+	_attachment_cache.clear()
 	_weapons.clear()
 	_parts.clear()
 	_abilities.clear()
@@ -93,6 +95,10 @@ static func attachments_for_type(type_name: String) -> Array[WeaponAttachment]:
 	var game_id: String = TYPE_TO_GAME_WEAPON.get(type_name, "")
 	if game_id == "" or not _weapons.has(game_id):
 		return result
+	if _attachment_cache.has(type_name):
+		for cached: WeaponAttachment in _attachment_cache[type_name]:
+			result.append(cached.duplicate(true))
+		return result
 	var parts: Array = []
 	for part: Dictionary in _parts:
 		if part["Class"] == _weapons[game_id]["Class"] and (part["Slot"] == 1 or part["Slot"] == 2) and _abilities.has(part["Ability"]):
@@ -106,10 +112,12 @@ static func attachments_for_type(type_name: String) -> Array[WeaponAttachment]:
 	for part: Dictionary in parts:
 		var ability: Dictionary = _abilities[part["Ability"]]
 		var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)
+		attachment.part_id = part["_id"]
 		attachment.part_slot = "B" if part["Slot"] == 1 else "C"
 		attachment.ability_name = _text(ability["KeyName"], "")
 		attachment.ability_text = _clean(_text(ability["KeyDesc"], ""))
 		result.append(attachment)
+	_attachment_cache[type_name] = result.duplicate()
 	return result
 
 

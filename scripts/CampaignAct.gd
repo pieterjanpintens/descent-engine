@@ -112,9 +112,9 @@ func problems(mission_files: Array[String]) -> Array[String]:
 			finale_reachable = true
 	if not finale_reachable:
 		found.append("has no finale that can be reached")
-	var attachment_names: Array[String] = []
+	var attachment_ids: Array[String] = []
 	for attachment in AttachmentCatalog.all():
-		attachment_names.append(attachment.attachment_name)
+		attachment_ids.append(attachment.part_id)
 	for place in places:
 		if place.unlocked_by_chapter != "" and find_chapter(place.unlocked_by_chapter) == null:
 			found.append("place '%s' is unlocked by a chapter that no longer exists" % place.title)
@@ -123,6 +123,6 @@ func problems(mission_files: Array[String]) -> Array[String]:
 		for offer in place.offers:
 			if offer.attachment == "":
 				found.append("'%s' (at '%s') gives nothing" % [offer.title, place.title])
-			elif not attachment_names.has(offer.attachment):
+			elif not attachment_ids.has(offer.attachment):
 				found.append("'%s' (at '%s') gives an unknown attachment '%s'" % [offer.title, place.title, offer.attachment])
 	return found

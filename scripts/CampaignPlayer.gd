@@ -539,14 +539,17 @@ func _build_place_panel(place: CampaignPlace) -> void:
 		_side.add_child(buy)
 	if not _state.owned_attachments.is_empty():
 		_side.add_child(HSeparator.new())
-		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(_state.owned_attachments)))
+		var owned_labels: Array[String] = []
+		for part_id in _state.owned_attachments:
+			owned_labels.append(AttachmentCatalog.label(part_id))
+		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(owned_labels)))
 
 
-func _attachment_summary(attachment_name: String) -> String:
-	for attachment in AttachmentCatalog.all():
-		if attachment.attachment_name == attachment_name:
-			return attachment.summary()
-	return attachment_name
+func _attachment_summary(part_id: String) -> String:
+	var attachment := AttachmentCatalog.find(part_id)
+	if attachment == null:
+		return part_id
+	return "%s - %s" % [AttachmentCatalog.label(part_id), attachment.ability_text]
 
 
 func _buy(offer: CampaignOffer) -> void:

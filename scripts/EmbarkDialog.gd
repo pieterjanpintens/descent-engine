@@ -282,7 +282,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 				options.append(picker_options)
 				var attachment_picker := OptionButton.new()
 				attachment_picker.add_theme_font_size_override("font_size", 12)
-				attachment_picker.add_item("Part %s: none" % part_slot if _has_real_parts(all_options) else "Attachment %d: none" % (attachment_number + 1))
+				attachment_picker.add_item("Part %s: none" % part_slot)
 				for option in picker_options:
 					attachment_picker.add_item(option.summary())
 					if option.ability_text != "":
@@ -329,17 +329,9 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 func _allowed_attachments(slot: int, weapon_index: int, type_name: String) -> Array[WeaponAttachment]:
 	var allowed: Array[WeaponAttachment] = []
 	for attachment in AttachmentCatalog.for_weapon(slot, weapon_index, type_name):
-		# The real weapon parts (WeaponData) are not bought in the campaign shop yet, so they are not restricted.
-		if not restrict_to_owned or attachment.ability_text != "" or owned_attachments.has(attachment.attachment_name):
+		if not restrict_to_owned or owned_attachments.has(attachment.part_id):
 			allowed.append(attachment)
 	return allowed
-
-
-func _has_real_parts(attachments: Array[WeaponAttachment]) -> bool:
-	for attachment in attachments:
-		if attachment.ability_text != "":
-			return true
-	return false
 
 
 ## The same attachment can't be equipped twice on one weapon: if two pickers show the same

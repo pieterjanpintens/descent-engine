@@ -29,7 +29,7 @@ extends Resource
 @export var log_entries: Array[Dictionary] = []
 ## Crafting materials: name -> count.
 @export var materials: Dictionary = {}
-## Names of the weapon attachments (AttachmentCatalog) the party owns.
+## Part ids of the weapon attachments (AttachmentCatalog) the party owns.
 @export var owned_attachments: Array[String] = []
 ## The narration voice of each hero (hero name -> NarratorVoices id, "" = picked from the name). Asked once, when the
 ## campaign starts; no two heroes share one (HeroVoicesDialog).
