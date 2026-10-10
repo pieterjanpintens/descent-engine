@@ -51,11 +51,14 @@ const RANGED_RANGE := 4
 const RANGE_BY_PART := {
 	"WEAPON_PART_A_WAND_2": 5,
 	"WEAPON_PART_A_WAND_2_UPGRADED": 5,
+	"WEAPON_PART_A_RUNE_OF_BLADES": 3,
+	"WEAPON_PART_A_RUNE_OF_BLADES_UPGRADED": 3,
 }
 
 static var _loaded := false
 static var _weapons: Dictionary = {}    # game weapon id -> entry
 static var _parts: Array = []
+static var _parts_by_id: Dictionary = {}
 static var _abilities: Dictionary = {}  # ability id -> entry
 static var _texts: Dictionary = {}
 static var _cache: Dictionary = {}      # type name -> Array[Weapon]
@@ -74,6 +77,7 @@ static func reload() -> void:
 	_attachment_cache.clear()
 	_weapons.clear()
 	_parts.clear()
+	_parts_by_id.clear()
 	_abilities.clear()
 	_texts.clear()
 
@@ -116,15 +120,57 @@ static func attachments_for_type(type_name: String) -> Array[WeaponAttachment]:
 			return a["IsUpgrade"] < b["IsUpgrade"]
 		return str(a["_id"]) < str(b["_id"]))
 	for part: Dictionary in parts:
-		var ability: Dictionary = _abilities[part["Ability"]]
-		var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)
-		attachment.part_id = part["_id"]
-		attachment.part_slot = "B" if part["Slot"] == 1 else "C"
-		attachment.ability_name = _text(ability["KeyName"], "")
-		attachment.ability_text = _clean(_text(ability["KeyDesc"], ""))
-		result.append(attachment)
+		result.append(_attachment_from_part(part, type_name))
 	_attachment_cache[type_name] = result.duplicate()
 	return result
+
+
+## The rune weapons (and Dragonsbane): global weapons that belong to no hero. Unlike a normal weapon a rune has its B
+## and C part FIXED - they can't be chosen - so they come attached already. Base versions first, then the upgraded A
+## versions (which keep the same B and C). Fresh instances each call.
+static func runes() -> Array[Weapon]:
+	_load()
+	var result: Array[Weapon] = []
+	var upgraded: Array[Weapon] = []
+	var ids: Array = _weapons.keys()
+	ids.sort()
+	for game_id: String in ids:
+		var game_weapon: Dictionary = _weapons[game_id]
+		if game_weapon["IsGlobal"] != 1:
+			continue
+		var part_a := {}
+		var fixed_parts: Array[Dictionary] = []
+		for part_id: String in game_weapon["StartingWeaponParts"]:
+			var part: Dictionary = _parts_by_id.get(part_id, {})
+			if part.is_empty():
+				continue
+			if part["Slot"] == 0:
+				part_a = part
+			elif _abilities.has(part["Ability"]):
+				fixed_parts.append(part)
+		if part_a.is_empty():
+			continue
+		var variants: Array[Dictionary] = [part_a]
+		for part: Dictionary in _parts:
+			if part["BaseItemId"] == part_a["_id"]:
+				variants.append(part)
+		for variant in variants:
+			var weapon := _weapon_from_part(variant, game_weapon)
+			for fixed in fixed_parts:
+				weapon.attachments.append(_attachment_from_part(fixed, "Rune"))
+			(upgraded if variant["IsUpgrade"] == 1 else result).append(weapon)
+	result.append_array(upgraded)
+	return result
+
+
+static func _attachment_from_part(part: Dictionary, type_name: String) -> WeaponAttachment:
+	var ability: Dictionary = _abilities[part["Ability"]]
+	var attachment := WeaponAttachment.new(_text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else ""), MonsterCondition.Kind.DAZED, 0, type_name)
+	attachment.part_id = part["_id"]
+	attachment.part_slot = "B" if part["Slot"] == 1 else "C"
+	attachment.ability_name = _text(ability["KeyName"], "")
+	attachment.ability_text = _clean(_text(ability["KeyDesc"], ""))
+	return attachment
 
 
 static func _build(game_weapon: Dictionary) -> Array[Weapon]:
@@ -138,23 +184,29 @@ static func _build(game_weapon: Dictionary) -> Array[Weapon]:
 			return a["IsUpgrade"] < b["IsUpgrade"]
 		return str(a["_id"]) < str(b["_id"]))
 	for part: Dictionary in parts:
-		var weapon := Weapon.new()
-		weapon.weapon_name = _text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else "")
-		weapon.damage = int(part["Damage"])
-		var kinds: Array[int] = []
-		for trait_number in part["Traits"]:
-			if TRAIT_TO_KIND.has(int(trait_number)):
-				kinds.append(TRAIT_TO_KIND[int(trait_number)])
-		weapon.damage_types = kinds
-		var range_class := int(game_weapon["RangeApproximation"])
-		weapon.reach = range_class == 1
-		weapon.weapon_range = RANGE_BY_PART.get(part["_id"], RANGED_RANGE) if range_class == 2 else 0
-		var ability: Dictionary = _abilities.get(part["Ability"], {})
-		if not ability.is_empty():
-			weapon.ability_name = _text(ability["KeyName"], "")
-			weapon.ability_text = _clean(_text(ability["KeyDesc"], ""))
-		built.append(weapon)
+		built.append(_weapon_from_part(part, game_weapon))
 	return built
+
+
+
+## One Weapon from an A part: its name, damage, damage types, reach / range (from the weapon model) and ability.
+static func _weapon_from_part(part: Dictionary, game_weapon: Dictionary) -> Weapon:
+	var weapon := Weapon.new()
+	weapon.weapon_name = _text(part["KeyName"], part["m_Name"]) + ("+" if part["IsUpgrade"] == 1 else "")
+	weapon.damage = int(part["Damage"])
+	var kinds: Array[int] = []
+	for trait_number in part["Traits"]:
+		if TRAIT_TO_KIND.has(int(trait_number)):
+			kinds.append(TRAIT_TO_KIND[int(trait_number)])
+	weapon.damage_types = kinds
+	var range_class := int(game_weapon["RangeApproximation"])
+	weapon.reach = range_class == 1
+	weapon.weapon_range = RANGE_BY_PART.get(part["_id"], RANGED_RANGE) if range_class == 2 else 0
+	var ability: Dictionary = _abilities.get(part["Ability"], {})
+	if not ability.is_empty():
+		weapon.ability_name = _text(ability["KeyName"], "")
+		weapon.ability_text = _clean(_text(ability["KeyDesc"], ""))
+	return weapon
 
 
 static func _text(key: String, fallback: String) -> String:
@@ -189,6 +241,8 @@ static func _load() -> void:
 	for weapon: Dictionary in data.get("weapons", []):
 		_weapons[weapon["_id"]] = weapon
 	_parts = data.get("parts", [])
+	for part: Dictionary in _parts:
+		_parts_by_id[part["_id"]] = part
 	for ability: Dictionary in data.get("abilities", []):
 		_abilities[ability["_id"]] = ability
 	var texts = _read_json(DIRECTORY + "localization_en.json")
