@@ -34,6 +34,7 @@ var restrict_to_owned: bool = false
 var owned_attachments: Array[String] = []
 var owned_runes: Array[String] = []  # part ids of the runes the party owns (campaign only)
 var owned_weapons: Array[String] = []  # part ids of the weapon cards the party owns (campaign only)
+var upgraded_cards: Array[String] = []  # base ids of the owned cards that are upgraded (campaign only): shown "+", read-only
 
 var _slot_buttons: Array[Button] = []
 var _start_button: Button
@@ -295,6 +296,8 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			var weapon_plus := _plus_box()
 			weapon_plus.visible = not show_all
 			weapon_plus_boxes[[slot, weapon_index]] = weapon_plus
+			weapon_plus.button_pressed = not catalog.is_empty() and upgraded_cards.has(catalog[0].base_part_id)
+			picker.item_selected.connect(func(_index: int): weapon_plus.button_pressed = upgraded_cards.has(catalog[picker.selected].base_part_id))
 
 			var column := VBoxContainer.new()
 			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -325,8 +328,8 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 				attachment_picker.set_meta("free_disabled", picker_options.is_empty())
 				var part_plus := _plus_box()
 				part_plus.visible = not show_all
-				part_plus.disabled = picker_options.is_empty()
 				attachment_plus.append(part_plus)
+				attachment_picker.item_selected.connect(func(_index: int): part_plus.button_pressed = attachment_picker.selected > 0 and upgraded_cards.has(picker_options[attachment_picker.selected - 1].part_id))
 				column.add_child(_with_plus(attachment_picker, part_plus))
 				attachment_pickers.append(attachment_picker)
 			attachment_plus_boxes[[slot, weapon_index]] = attachment_plus
@@ -340,7 +343,6 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 						attachment_plus[picker_number].button_pressed = false
 					var free: bool = attachment_pickers[picker_number].get_meta("free_disabled")
 					attachment_pickers[picker_number].disabled = is_rune_selected or free
-					attachment_plus[picker_number].disabled = is_rune_selected or free
 				_refresh_rune_availability(pickers, catalogs)
 			)
 			row.add_child(column)
@@ -416,7 +418,8 @@ func _refresh_rune_availability(pickers: Dictionary, catalogs: Dictionary) -> vo
 func _plus_box() -> CheckBox:
 	var box := CheckBox.new()
 	box.text = "+"
-	box.tooltip_text = "Use the upgraded (+) side of this card"
+	box.tooltip_text = "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+	box.disabled = true  # read-only: the campaign decides which cards are flipped
 	return box
 
 

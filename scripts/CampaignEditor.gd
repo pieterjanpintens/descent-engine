@@ -1160,6 +1160,15 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 		_mark_dirty()
 	)
 	weapon_row.add_child(weapon_option)
+	var upgraded_check := CheckBox.new()
+	upgraded_check.text = "Upgraded (+)"
+	upgraded_check.tooltip_text = "What it gives comes with its + side up (also upgrades a card the party already owns)"
+	upgraded_check.button_pressed = offer.upgraded
+	upgraded_check.toggled.connect(func(on: bool):
+		offer.upgraded = on
+		_mark_dirty()
+	)
+	weapon_row.add_child(upgraded_check)
 	var once_check := CheckBox.new()
 	once_check.text = "Only once"
 	once_check.button_pressed = offer.once

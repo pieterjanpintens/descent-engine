@@ -85,19 +85,39 @@ func _section(title_text: String) -> GridContainer:
 	return grid
 
 
-func _check(text: String, owned: Array[String], id: String, tooltip: String) -> CheckBox:
+## A check box for owning the card `id` plus a "+" box for owning it upgraded (only while it is owned).
+func _check(text: String, owned: Array[String], id: String, tooltip: String) -> Control:
+	var row := HBoxContainer.new()
 	var box := CheckBox.new()
 	box.text = text
 	box.tooltip_text = tooltip
 	box.button_pressed = owned.has(id)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var plus := CheckBox.new()
+	plus.text = "+"
+	plus.tooltip_text = "Starts upgraded (+ side up)"
+	plus.button_pressed = _campaign.starting_upgrades.has(id)
+	plus.disabled = not owned.has(id)
 	box.toggled.connect(func(on: bool):
 		if on and not owned.has(id):
 			owned.append(id)
 		elif not on:
 			owned.erase(id)
+			_campaign.starting_upgrades.erase(id)
+			plus.button_pressed = false
+		plus.disabled = not on
 		_changed()
 	)
-	return box
+	plus.toggled.connect(func(on: bool):
+		if on and not _campaign.starting_upgrades.has(id):
+			_campaign.starting_upgrades.append(id)
+		elif not on:
+			_campaign.starting_upgrades.erase(id)
+		_changed()
+	)
+	row.add_child(box)
+	row.add_child(plus)
+	return row
 
 
 func _changed() -> void:

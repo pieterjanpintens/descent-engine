@@ -17,4 +17,6 @@ extends Resource
 @export var rune: String = ""
 ## Part id of the weapon card it gives ("" = none) - a base A part, see WeaponData.
 @export var weapon: String = ""
+## The card(s) it gives come with their upgraded "+" side up - buying it for a card the party already owns upgrades that card.
+@export var upgraded: bool = false
 @export var once: bool = true

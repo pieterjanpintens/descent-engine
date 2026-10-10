@@ -29,6 +29,8 @@ extends Resource
 @export var starting_weapons: Array[String] = []
 @export var starting_attachments: Array[String] = []
 @export var starting_runes: Array[String] = []
+## The starting cards that begin upgraded (their "+" side up) - base ids from the three lists above.
+@export var starting_upgrades: Array[String] = []
 ## The named speakers of this campaign's stories: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
 @export var characters: Array[NarratorCharacter] = []
 
