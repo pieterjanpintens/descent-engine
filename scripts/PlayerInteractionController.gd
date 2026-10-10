@@ -396,6 +396,9 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	if ability_deactivated:
 		ability_before = "Defense ability deactivated." if (ability_before != "" or ability_after != "") else ""
 		ability_after = ""
+	var reaction := monster.tactic_reaction_text(hero_name)
+	if reaction != "":
+		ability_before = (ability_before + "\n" if ability_before != "" else "") + reaction
 	var cfg := {
 		"ability_text": ability_before,
 		"monster_name": monster.display_name(),

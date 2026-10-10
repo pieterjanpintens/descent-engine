@@ -133,6 +133,19 @@ static func _build(enemy: Dictionary, activation: Dictionary, name: String) -> M
 		archetype.attack_abilities.append(ability)
 	if int(enemy.get("size", 0)) == 2:
 		archetype.tags.append("Large")
+	for entry: Dictionary in enemy.get("tactics", []):
+		var tactic := MonsterTactic.new()
+		tactic.tactic_name = str(entry.get("name", ""))
+		tactic.speed = int(entry.get("speed", 3))
+		tactic.damage_offset = int(entry.get("damage", 0)) - damage
+		tactic.attack_range = int(entry.get("range", 0)) if int(entry.get("range_type", 0)) != 0 else 0
+		tactic.hint_key = str(entry.get("hint_key", ""))
+		tactic.activation_key = str(entry.get("activation_key", ""))
+		tactic.pass_key = str(entry.get("pass_key", ""))
+		tactic.fail_key = str(entry.get("fail_key", ""))
+		tactic.reaction_key = str(entry.get("reaction_key", ""))
+		tactic.time_passes_key = str(entry.get("time_passes_key", ""))
+		archetype.tactics.append(tactic)
 	for table: Dictionary in enemy.get("loot", []):
 		var item := LootItem.new(_loot_name(str(table.get("name", ""))))
 		for material: String in table.get("common", []):

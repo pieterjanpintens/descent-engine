@@ -80,6 +80,33 @@ def main() -> int:
                 return candidate
         return ""
 
+    def tactic_record(tactic_id: str, numbers: dict) -> dict:
+        """A manual activation (a "tactic"): its numbers and the keys of its texts, found by the usual name patterns."""
+        candidates = [tactic_id + "_ACTIVATION"]
+        name = tactic_id
+        if "_TACTIC_" in tactic_id:
+            family, name = tactic_id.split("_TACTIC_", 1)
+            candidates.append("ENEMY_ACTIVATION_%s_%s" % (family, name))
+        if tactic_id.startswith("ENEMY_TACTIC_"):
+            name = tactic_id[len("ENEMY_TACTIC_"):]
+            candidates.append("ENEMY_ACTIVATION_" + name)
+        if tactic_id.startswith("ENEMY_ACTIVATION_"):
+            name = tactic_id[len("ENEMY_ACTIVATION_"):]
+            candidates.append(tactic_id)
+        activation_key = next((c for c in candidates if c in loc), "")
+
+        def first(options):
+            return next((o for o in options if o in loc), "")
+        return {
+            "id": tactic_id, "name": name.replace("_", " ").title(),
+            "speed": numbers.get("Speed"), "damage": numbers.get("Damage"), "range": numbers.get("Range"), "range_type": numbers.get("RangeType"),
+            "hint_key": first([tactic_id + "_HINT"]), "activation_key": activation_key,
+            "pass_key": first([activation_key + "_PASS", tactic_id + "_TEST_PASS"]) if activation_key else first([tactic_id + "_TEST_PASS"]),
+            "fail_key": first([activation_key + "_FAIL", tactic_id + "_TEST_FAIL"]) if activation_key else first([tactic_id + "_TEST_FAIL"]),
+            "reaction_key": first([tactic_id + "_PREEMPTIVE_DEFENSE"]),
+            "time_passes_key": first(["TACTIC_PHASE_DESCRIPTION_" + name.replace("TACTIC_", "")]),
+        }
+
     enemies = []
     for tree in trees.values():
         identifier = str(tree.get("_id", ""))
@@ -95,6 +122,11 @@ def main() -> int:
                 "range": a.get("Range"), "range_type": a.get("RangeType"), "healing": a.get("Healing"), "shield": a.get("Shield"),
                 "ability_key": ability_key(str(a.get("_id", ""))),
             })
+        tactics = []
+        for ref in tree.get("ManualActivations", []):
+            m = follow(ref)
+            if m is not None and m.get("_id"):
+                tactics.append(tactic_record(str(m["_id"]), m))
         loot = []
         for ref in tree.get("DefaultLoot", []):
             table = follow(ref)
@@ -113,7 +145,7 @@ def main() -> int:
             "id": identifier, "name": plain(loc.get(str(tree.get("KeyNameSingular", "")), "")),
             "type": tree.get("Type"), "size": tree.get("Size"), "named": bool(tree.get("IsNamed")), "villain": bool(tree.get("IsVillain")),
             "tiers": [{"tier": t["Tier"], "hp": t["StartingHealth"], "defense": t["Defense"], "attack": t["BaseAttack"]} for t in tree.get("Tiers", [])],
-            "activations": activations, "weaknesses": weak, "resistances": resist, "immune_mask": tree.get("ImmuneTo"),
+            "activations": activations, "tactics": tactics, "weaknesses": weak, "resistances": resist, "immune_mask": tree.get("ImmuneTo"),
             "defensive_key": tree.get("DefensiveKey", ""), "loot": loot,
         })
     enemies.sort(key=lambda e: e["id"])

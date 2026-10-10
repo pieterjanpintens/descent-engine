@@ -304,6 +304,8 @@ signal loot_collected(monster_name: String, text: String)
 ## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
 ## campaign when the mission is WON (CampaignState.apply_result()); saved with the game.
 var collected_loot: Dictionary = {}
+## Extra lines for the next "Time passes" dialog (abilities that change what the heroes may do in that step); shown once.
+var time_passes_notes: Array[String] = []
 ## Remembrance Hilt: the first hero wounded this round gets this health instead (0 = none); cleared when the monster
 ## phase ends (MissionPlayer._apply_wound() shows it and clears it earlier).
 var wound_health_override: int = 0
@@ -367,6 +369,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.confused_actions = resolved["confused_actions"]
 	created.loot = resolved["loot"]
 	created.defeat_text = resolved["defeat_text"]
+	created.tactics = resolved["tactics"]
 	created.chip = candidates[randi() % candidates.size()]
 	monsters.append(created)
 	monsters_changed.emit()

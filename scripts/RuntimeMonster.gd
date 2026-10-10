@@ -72,6 +72,9 @@ var confused_actions: Array[MonsterAction] = []
 var loot: Array[LootItem] = []
 ## Shown to the table when this monster is defeated (from its base template).
 var defeat_text: String = ""
+## Its tactics (from its base template) and the one prepared for the next monster phase (-1 = none).
+var tactics: Array[MonsterTactic] = []
+var prepared_tactic: int = -1
 
 
 ## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
@@ -143,6 +146,17 @@ func display_name() -> String:
 	return name_prefix + base + name_postfix
 
 
+## The prepared tactic, or null.
+func current_tactic() -> MonsterTactic:
+	return tactics[prepared_tactic] if prepared_tactic >= 0 and prepared_tactic < tactics.size() else null
+
+
+## What the prepared tactic does in response to a hero's attack (the game's "preemptive defense"), "" if nothing.
+func tactic_reaction_text(hero_name: String) -> String:
+	var tactic := current_tactic()
+	return tactic.reaction_text(display_name(), hero_name) if tactic != null else ""
+
+
 ## What the table is told about this monster's defense abilities when it is attacked: the game's text of every ability
 ## with one (`after` picks the ones shown after the attack roll). "" when none, or nothing for the moment.
 func defense_ability_text(after: bool) -> String:
@@ -169,7 +183,7 @@ func to_dict() -> Dictionary:
 		"speed_round_bonus": speed_round_bonus, "next_activation_damage": next_activation_damage, "defense_ability_fired": defense_ability_fired, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
-		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text,
+		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text, "prepared_tactic": prepared_tactic, "tactics": _to_dicts(tactics),
 	}
 
 
@@ -224,6 +238,9 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	for entry in d.get("loot", []):
 		m.loot.append(LootItem.from_dict(entry))
 	m.defeat_text = str(d.get("defeat_text", ""))
+	m.prepared_tactic = int(d.get("prepared_tactic", -1))
+	for entry in d.get("tactics", []):
+		m.tactics.append(MonsterTactic.from_dict(entry))
 	return m
 
 

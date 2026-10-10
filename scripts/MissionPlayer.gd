@@ -906,6 +906,8 @@ func _run_darkness_and_loop() -> void:
 	# Announce the change of hands, and wait for it before the monsters act.
 	phase_banner.show_phase("Monster Phase", MONSTER_PHASE_COLOR, PhaseSounds.monster_phase())
 	await phase_banner.finished
+	# Step 1 of the darkness phase: Time passes.
+	await _run_time_passes()
 	# Start of the monster phase: Afflicted monsters take their affliction damage.
 	await _apply_affliction()
 	# Every live monster takes its turn (picks a target, attacks). With none alive a
@@ -914,6 +916,9 @@ func _run_darkness_and_loop() -> void:
 		await get_tree().create_timer(darkness_phase_duration).timeout
 	else:
 		await _run_monster_attacks()
+
+	# Last step of the darkness phase: Tactics - one monster prepares a special activation for the next round.
+	await _run_tactics_step()
 
 	# End of the monster phase: conditions only last a round (Doomed ones keep the rest).
 	_runtime.end_monster_phase_conditions()
@@ -926,6 +931,70 @@ func _run_darkness_and_loop() -> void:
 	if not await _advance_to(RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE):
 		return
 	await _enter_player_phase()
+
+
+## "Time passes": the first step of the darkness phase. The heroes resolve infection and terror and may discard 1 fatigue;
+## a prepared tactic can replace that text (Dark Prayer), and abilities can add lines (MissionRuntime.time_passes_notes).
+func _run_time_passes() -> void:
+	var replaced: Array[String] = []
+	for monster in _runtime.monsters:
+		var tactic := monster.current_tactic()
+		if tactic != null and tactic.time_passes_text() != "":
+			replaced.append(tactic.time_passes_text().replace("{0}", ""))
+	var text := "Time passes.\n\n"
+	text += "\n".join(replaced) if not replaced.is_empty() else "Resolve infection and terror. Each hero may discard 1 fatigue."
+	for note in _runtime.time_passes_notes:
+		text += "\n" + note
+	_runtime.time_passes_notes.clear()
+	await dialog.ask_ok(text, true, false, "Time passes")
+
+
+## The last step of the darkness phase: Tactics. One random monster that has tactics (and is not Confused) prepares one,
+## unless a tactic is already waiting; the table gets its hint (never the tactic's name). The monster does it in the
+## NEXT monster phase instead of its normal activation (_monster_tactic()).
+func _run_tactics_step() -> void:
+	var eligible: Array[RuntimeMonster] = []
+	for monster in _runtime.monsters:
+		if monster.prepared_tactic >= 0:
+			return
+		if not monster.tactics.is_empty() and not monster.conditions.has(MonsterCondition.Kind.CONFUSED):
+			eligible.append(monster)
+	if eligible.is_empty():
+		return
+	var chosen: RuntimeMonster = eligible.pick_random()
+	chosen.prepared_tactic = randi() % chosen.tactics.size()
+	var hero_name := HeroCatalog.slot_name(player_roster.pick_random()) if not player_roster.is_empty() else "a hero"
+	var hint := chosen.current_tactic().hint_text(chosen.display_name(), hero_name)
+	if hint == "":
+		hint = "%s is up to something..." % chosen.display_name()
+	await dialog.ask_ok("Tactics\n\n" + hint, true, false, "Tactics")
+
+
+## A monster with a prepared tactic does it instead of its normal activation: the same dialog as an attack, with the
+## tactic's numbers and text; a test in the text is answered by the table (pass / fail) and the matching text is shown.
+func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
+	var tactic := monster.current_tactic()
+	monster.prepared_tactic = -1  # used up, whatever happens next
+	var slot := _runtime.choose_target(monster, player_roster, player_weapons)
+	if slot < 0:
+		return
+	var hero_name := HeroCatalog.slot_name(slot)
+	var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0)
+	var range_text := "melee" if tactic.attack_range == 0 else "range %d" % tactic.attack_range
+	var text := "%s: %s!\nTarget %s - Damage %d - %s - Speed %d" % [who, tactic.tactic_name, hero_name, damage, range_text, tactic.speed]
+	var activation := tactic.activation_text(monster.display_name(), hero_name)
+	if activation != "":
+		text += "\n\n" + activation
+	var cfg := MonsterDisplay.preview_data(monster.folder)
+	cfg["text"] = text
+	if not await _show_monster_dialog(monster, cfg, who, "perform %s" % tactic.tactic_name):
+		return
+	journal.add("Monster tactic", ["%s performs %s against %s." % [who, tactic.tactic_name, hero_name]])
+	if tactic.has_test():
+		var passed := await dialog.ask_yes_no("Did %s pass the test?" % hero_name)
+		var result := tactic.pass_text(monster.display_name(), hero_name) if passed else tactic.fail_text(monster.display_name(), hero_name)
+		if result != "":
+			await dialog.ask_ok(result, true, false, "Tactic")
 
 
 ## The monsters' turn: every live monster with an attack takes its turn in registry
@@ -955,6 +1024,9 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 	var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 	if monster.conditions.has(MonsterCondition.Kind.CONFUSED):
 		await _monster_action(monster, who)
+		return
+	if monster.current_tactic() != null:
+		await _monster_tactic(monster, who)
 		return
 	var range_text := "melee" if monster.effective_attack_range() == 0 else "range %d%s" % [monster.effective_attack_range(), ", reach" if monster.attack_reach else ""]
 	# What the monster's activation abilities do by themselves (ActivationRules), once per activation.

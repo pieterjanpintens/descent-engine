@@ -49,6 +49,7 @@ var _rule_rows: VBoxContainer
 var _action_rows: VBoxContainer
 var _action_hint: Label
 var _loot_rows: VBoxContainer
+var _tactic_rows: VBoxContainer
 var _check_boxes: Dictionary = {}  # prop -> Array[CheckBox], index = kind
 var _name_rows: Dictionary = {}  # prop -> VBoxContainer
 var _scaling_rows: Dictionary = {}  # prop -> VBoxContainer
@@ -209,6 +210,7 @@ func _ready() -> void:
 	_add_name_list(_base_only, "Defense abilities", "defense_abilities", "ability_name", func() -> Resource: return MonsterAbility.new())
 	_add_rule_list(_base_only)
 	_add_action_list(_base_only)
+	_add_tactic_list(_base_only)
 	_add_loot_list(_form)
 
 	var scaling_title := Label.new()
@@ -391,6 +393,7 @@ func _populate() -> void:
 		_rebuild_rule_rows()
 		_rebuild_action_rows()
 		_rebuild_loot_rows()
+		_rebuild_tactic_rows()
 		for prop in _name_rows:
 			_rebuild_name_rows(prop)
 		for prop in _scaling_rows:
@@ -710,6 +713,77 @@ func _rebuild_action_rows() -> void:
 		block.add_child(_action_text_field(action, "text", "What the monster does", true))
 		block.add_child(HSeparator.new())
 		_action_rows.add_child(block)
+
+
+## The base template's tactics (MonsterTactic): special activations the app prepares for a random monster at the end of a
+## monster phase and plays in the next one. Texts of the game's own tactics come from the import; own texts win.
+func _add_tactic_list(parent: Control) -> void:
+	var title_label := Label.new()
+	title_label.text = "Tactics (one is prepared on a random monster each round and played in the next monster phase):"
+	parent.add_child(title_label)
+	_tactic_rows = VBoxContainer.new()
+	parent.add_child(_tactic_rows)
+	var add := Button.new()
+	add.text = "Add tactic"
+	add.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	add.pressed.connect(func():
+		if _working == null:
+			return
+		var tactic := MonsterTactic.new()
+		tactic.tactic_name = "New tactic"
+		_working.tactics.append(tactic)
+		_save()
+		_rebuild_tactic_rows()
+	)
+	parent.add_child(add)
+
+
+func _rebuild_tactic_rows() -> void:
+	for child in _tactic_rows.get_children():
+		_tactic_rows.remove_child(child)
+		child.queue_free()
+	if _working == null:
+		return
+	for tactic in _working.tactics:
+		var block := VBoxContainer.new()
+		var top := HBoxContainer.new()
+		top.add_child(_tactic_field(tactic, "tactic_name", "Name", false))
+		top.add_child(_caption("Speed"))
+		top.add_child(_level_spin(tactic, "speed", 0, 99))
+		top.add_child(_caption("Damage +"))
+		top.add_child(_level_spin(tactic, "damage_offset", -99, 99))
+		top.add_child(_caption("Range"))
+		top.add_child(_level_spin(tactic, "attack_range", 0, 99))
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(func():
+			_working.tactics.erase(tactic)
+			_save()
+			_rebuild_tactic_rows()
+		)
+		top.add_child(remove)
+		block.add_child(top)
+		var hint := _tactic_field(tactic, "own_hint", "Hint shown at the end of the monster phase" + (" (empty: the game's text)" if tactic.hint_key != "" else ""), true)
+		block.add_child(hint)
+		var activation := _tactic_field(tactic, "own_activation", "Text shown when it happens" + (" (empty: the game's text)" if tactic.activation_key != "" else ""), true)
+		block.add_child(activation)
+		block.add_child(HSeparator.new())
+		_tactic_rows.add_child(block)
+
+
+func _tactic_field(tactic: MonsterTactic, prop: String, placeholder: String, expand: bool) -> LineEdit:
+	var edit := LineEdit.new()
+	edit.text = str(tactic.get(prop))
+	edit.placeholder_text = placeholder
+	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var commit := func():
+		if _suppress or str(tactic.get(prop)) == edit.text:
+			return
+		tactic.set(prop, edit.text)
+		_save()
+	edit.text_submitted.connect(func(_t: String): commit.call())
+	edit.focus_exited.connect(commit)
+	return edit
 
 
 ## What the monster drops (LootItem): a name plus the common materials and essences it is made of. Any template

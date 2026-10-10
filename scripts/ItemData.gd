@@ -73,6 +73,32 @@ static func attack_abilities() -> Array[Dictionary]:
 	return result
 
 
+## Any text of the export by its key, as plain text ("" when unknown).
+static func text(key: String) -> String:
+	_load()
+	return _clean(str(_texts.get(key, "")))
+
+
+## A tactic's text with its {N} placeholders filled. The game uses them differently from text to text: an index written
+## "the {N}" is the monster, the lowest other index is the hero, anything else (a number the data doesn't give) "[number]".
+static func fill_tactic(text: String, monster_name: String, hero_name: String) -> String:
+	var monster_indices := {}
+	for found in RegEx.create_from_string("(?i)\\bthe \\{(\\d)\\}").search_all(text):
+		monster_indices[found.get_string(1)] = true
+	var others: Array[String] = []
+	for found in RegEx.create_from_string("\\{(\\d)\\}").search_all(text):
+		var index := found.get_string(1)
+		if not monster_indices.has(index) and not others.has(index):
+			others.append(index)
+	others.sort()
+	var result := text
+	for index: String in monster_indices:
+		result = result.replace("{%s}" % index, monster_name)
+	for position in others.size():
+		result = result.replace("{%s}" % others[position], hero_name if position == 0 else "[number]")
+	return result
+
+
 ## One activation ability by its game key ({} when unknown or there is no export).
 static func attack_ability(key: String) -> Dictionary:
 	_load()

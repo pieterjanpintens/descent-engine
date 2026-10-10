@@ -77,6 +77,7 @@ func resolve() -> Dictionary:
 	var confused: Array[MonsterAction] = []
 	var drops: Array[LootItem] = []
 	var defeat := ""
+	var tactic_list: Array[MonsterTactic] = []
 	var range_value := 0
 	var reach_value := false
 	var sources := {}
@@ -96,6 +97,7 @@ func resolve() -> Dictionary:
 		_merge_rules(rules, base_archetype.target_rules)
 		confused = MonsterAction.copies(base_archetype.confused_actions)
 		defeat = base_archetype.defeat_text
+		tactic_list = MonsterTactic.copies(base_archetype.tactics)
 		drops.append_array(LootItem.copies(base_archetype.loot))
 		range_value = base_archetype.attack_range
 		reach_value = base_archetype.attack_reach
@@ -129,7 +131,7 @@ func resolve() -> Dictionary:
 		"weaknesses": weak, "resistances": resist, "immunities": immune,
 		"condition_immunities": condition_immune, "tags": tag_list,
 		"attack_abilities": attack_abils, "defense_abilities": defense_abils,
-		"target_rules": rules, "confused_actions": confused, "loot": drops, "defeat_text": defeat, "attack_range": range_value, "attack_reach": reach_value,
+		"target_rules": rules, "confused_actions": confused, "loot": drops, "defeat_text": defeat, "tactics": tactic_list, "attack_range": range_value, "attack_reach": reach_value,
 		"hitpoints": totals["hitpoints"], "attack_power": totals["attack_power"], "defense": totals["defense"],
 		"speed": totals["speed"],
 		"sources": sources,

@@ -58,7 +58,7 @@ def main() -> int:
                 text = data.m_Script if isinstance(data.m_Script, str) else bytes(data.m_Script).decode("utf-8", "ignore")
                 if text.startswith("Key,Type,Desc,English"):
                     for row in csv.DictReader(io.StringIO(text)):
-                        if (row["Key"].startswith(LOC_PREFIXES) or "DEFEN" in row["Key"].upper()) and row["English"]:
+                        if (row["Key"].startswith(LOC_PREFIXES) or "DEFEN" in row["Key"].upper() or "TACTIC" in row["Key"].upper()) and row["English"]:
                             localization[row["Key"]] = row["English"]
             elif obj.type.name == "MonoBehaviour":
                 try:
