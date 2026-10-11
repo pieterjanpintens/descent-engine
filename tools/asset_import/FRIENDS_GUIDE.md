@@ -9,13 +9,14 @@ never part of the app.
 
 1. **The game installed** on this PC (Steam, GOG or Epic).
 2. **Python 3** (https://www.python.org/downloads/ - tick "Add python.exe to PATH" in the installer).
-3. **This project's folder** (the downloaded source zip, unzipped anywhere). You only need `tools\asset_import\`.
+3. **The asset tools**: download **`Descent-Engine-asset-tools.zip`** from the same release page as the app and unzip it anywhere
+   (it is small - the tools plus the little project around them that they need). Developers can also use the full source zip.
 4. *Optional, for the monsters and heroes as 3D models:* **Godot 4.7.2** (https://godotengine.org/download/archive/ -
    the "Standard" Windows build; unzip it anywhere, no install). Without it you still get all the pictures.
 
 ## Steps
 
-1. Open the unzipped project and go into `tools\asset_import\`.
+1. Open the unzipped `Descent-Engine-asset-tools` folder and go into `tools\asset_import\`.
 2. Double-click **`import_all.bat`**.
    - It looks for the game in the usual Steam/GOG/Epic folders and for Godot in the usual places.
    - If it asks to install `UnityPy` (a Python package that reads the game's files), type `y` and press Enter.

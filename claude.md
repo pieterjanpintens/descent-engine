@@ -7029,6 +7029,13 @@ appears locally, for a user who separately owns the official game and runs
 
 ## CI / Release
 
+**Asset tools bundle (2026-10-11)**: every release also carries `Descent-Engine-asset-tools.zip` (job `package-asset-tools` in `release.yml`, built by
+`tools/package_asset_tools.py`, ~60 KB): a MINIMAL Godot project - a generated `project.godot` named "Descent-Engine" (the name decides the user folder the
+tools write into), the three scripts the tools parse as text (`autoload/OfficialAssetMap.gd`, `scripts/MonsterDisplay.gd`, `scripts/HeroCatalog.gd`, in folders with a `.gdignore`
+so Godot does not compile them) and `tools/asset_import/` (minus the dev-only `generate_shield_icons.py`) with `START-HERE.txt`. The two Godot steps (monster/hero meshes)
+run headless against that project folder. Verified locally: the bundle imports clean, the real `convert_staged_meshes.gd` converted a staged OBJ into the app's user folder,
+and the Python tools parse the bundled scripts (17 monsters, 61 official names, 6 heroes). Not run against the real game files.
+
 `.github/workflows/release.yml` builds and publishes a GitHub Release automatically.
 
 - **Trigger**: pushing a tag matching `v*.*.*` (e.g. `v1.0.0`), or manually via the

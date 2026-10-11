@@ -82,9 +82,25 @@ jobs:
           name: linux-build
           path: ${{ env.EXPORT_NAME }}-linux.zip
 
+  package-asset-tools:
+    name: Package asset tools
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the tools zip
+        run: python3 tools/package_asset_tools.py "Descent-Engine-asset-tools.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-tools
+          path: Descent-Engine-asset-tools.zip
+
   release:
     name: Create Release
-    needs: [export-windows, export-linux]
+    needs: [export-windows, export-linux, package-asset-tools]
     runs-on: ubuntu-24.04
     steps:
       - name: Download artifacts

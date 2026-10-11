@@ -15,7 +15,8 @@ A walkthrough of the campaign player (click to watch on YouTube):
 ## Setup for friends
 
 Want the real game art and the game's own monster, weapon and item data in the app? Follow the step-by-step guide for
-friends: [tools/asset_import/FRIENDS_GUIDE.md](tools/asset_import/FRIENDS_GUIDE.md). You need your own copy of the game;
+friends: [tools/asset_import/FRIENDS_GUIDE.md](tools/asset_import/FRIENDS_GUIDE.md). Every release has a small
+`Descent-Engine-asset-tools.zip` with the tools it needs. You need your own copy of the game;
 nothing is downloaded or shared.
 
 ## What it does
