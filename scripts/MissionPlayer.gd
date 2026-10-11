@@ -200,7 +200,7 @@ func _ready() -> void:
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	_runtime.monster_defeated.connect(_on_monster_defeated)
-	_runtime.loot_collected.connect(func(monster_name: String, text: String): journal.add("Loot", ["%s dropped: %s." % [monster_name, text]]))
+	_runtime.loot_collected.connect(_on_loot_collected)
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
 	if resume_save == null:
@@ -1293,7 +1293,7 @@ func _apply_affliction() -> void:
 		var monster: RuntimeMonster = entry["monster"]
 		var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 		if entry["defeated"]:
-			lines.append("%s takes %d affliction damage and is defeated! Remove it from the board.%s" % [who, entry["damage"], ("\nLoot for the party: %s." % MissionRuntime.loot_text(monster)) if MissionRuntime.loot_text(monster) != "" else ""])
+			lines.append("%s takes %d affliction damage and is defeated! Remove it from the board." % [who, entry["damage"]])
 		else:
 			lines.append("%s takes %d affliction damage (%d hitpoints left)." % [who, entry["damage"], entry["hitpoints"]])
 	await dialog.ask_ok("\n\n".join(lines), true, false, "Affliction")
@@ -1336,16 +1336,27 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 ## a hero lost all hitpoints. Confirms, adds the wound, and for the
 ## MissionRuntime.HERO_WOUND_LIMIT-th (third) wound loses the game. Logged to the
 ## quest log as "Wound".
-var _defeat_queue: Array[String] = []
+var _defeat_queue: Array[RuntimeMonster] = []
 var _defeat_busy := false
 
 
-## A monster with an "on defeat" text (its base template's) tells the table once the dialog it was defeated in (the combat
-## outcome, the manage dialog...) is closed; several in a row are shown one after the other.
+## What each monster has dropped so far (display name -> texts), for the defeat dialog - a part's early drop, the loot of
+## the defeat itself and a later "more loot" bonus all end up in it. Cleared when the dialog has shown them.
+var _loot_notes: Dictionary = {}
+
+
+func _on_loot_collected(monster_name: String, text: String) -> void:
+	journal.add("Loot", ["%s dropped: %s." % [monster_name, text]])
+	if not _loot_notes.has(monster_name):
+		_loot_notes[monster_name] = []
+	(_loot_notes[monster_name] as Array).append(text)
+
+
+## EVERY defeated monster tells the table so in an OK dialog - "<name> has been defeated", the loot it gave the party and, when
+## its base template has one, its "on defeat" text - once the dialog it was defeated in (the combat outcome, the manage dialog...)
+## is closed; several in a row are shown one after the other.
 func _on_monster_defeated(monster: RuntimeMonster) -> void:
-	if monster.defeat_text.strip_edges() == "":
-		return
-	_defeat_queue.append(monster.defeat_text.replace("{name}", monster.display_name()))
+	_defeat_queue.append(monster)
 	if _defeat_busy:
 		return
 	_defeat_busy = true
@@ -1354,8 +1365,16 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 		while quiet < 3:  # wait until no dialog is open for a few frames in a row
 			await get_tree().process_frame
 			quiet = quiet + 1 if not dialog.visible else 0
-		var text: String = _defeat_queue.pop_front()
-		await dialog.ask_ok(text, true, false, "Defeated")
+		var gone: RuntimeMonster = _defeat_queue.pop_front()
+		var shown_name := gone.display_name()
+		var lines: Array[String] = ["%s has been defeated." % shown_name]
+		var loot: Array = _loot_notes.get(shown_name, [])
+		_loot_notes.erase(shown_name)
+		if not loot.is_empty():
+			lines.append("\nLoot for the party: %s." % ", ".join(loot))
+		if gone.defeat_text.strip_edges() != "":
+			lines.append("\n" + gone.defeat_text.replace("{name}", shown_name))
+		await dialog.ask_ok("\n".join(lines), true, false, "Defeated")
 	_defeat_busy = false
 
 
