@@ -588,6 +588,7 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 	if mission_file == "" or not FileAccess.file_exists(path):
 		_say("The mission is missing from the campaign folder.")
 		return
+	GameState.clear_debug()
 	GameState.current_mission_path = path
 	GameState.load_save_path = ""
 	GameState.campaign_folder = _folder

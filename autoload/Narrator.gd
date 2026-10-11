@@ -54,7 +54,7 @@ func is_available() -> bool:
 
 
 func is_enabled() -> bool:
-	return PlayerSettings.narration_enabled and is_available()
+	return PlayerSettings.narration_enabled and is_available() and not DebugSession.skipping()
 
 
 func speak(text: String, characters: Array[NarratorCharacter] = []) -> void:

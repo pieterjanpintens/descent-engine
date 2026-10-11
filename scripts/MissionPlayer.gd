@@ -60,6 +60,8 @@ var los_mode: LineOfSightMode
 var stage_highlight: StageHighlight
 var journal := Journal.new()  ## quest log replay, see Journal.gd
 var interaction_labels: InteractionLabels  ## names of the currently interactable props
+var debug_panel: DebugPanel  ## only in a debug session (see DebugSession)
+var _snapshot_key := ""  ## the folder name of this mission's debug snapshots
 
 
 func _ready() -> void:
@@ -82,7 +84,16 @@ func _ready() -> void:
 		resume_save = MissionIO.load_game(GameState.load_save_path)
 		GameState.load_save_path = ""
 
-	if resume_save != null:
+	# A debug session plays the EDITOR's mission (unsaved tweaks included) - as a copy, since play changes the mission in place
+	# and the editor's own must stay as it was. A debug snapshot holds no mission, only the progress to put on it.
+	var snapshot_progress := {}
+	var progress_outcome := MissionProgress.new_outcome()
+	if GameState.debug_session and GameState.editor_mission != null and (resume_save == null or resume_save.mission == null):
+		mission = GameState.editor_mission.duplicate(true)
+		if resume_save != null:
+			snapshot_progress = resume_save.progress
+		_snapshot_key = DebugSession.mission_key(mission, GameState.editor_mission_path)
+	elif resume_save != null:
 		mission = resume_save.mission
 	else:
 		mission = MissionIO.load_mission(GameState.current_mission_path)
@@ -96,7 +107,11 @@ func _ready() -> void:
 		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
 		if campaign_state != null:
 			dialog.characters = campaign_state.speakers(mission.characters)
+	if not snapshot_progress.is_empty():
+		MissionProgress.apply_before_paint(mission, snapshot_progress, progress_outcome)
 	layered_map.apply_mission(mission, true)
+	if not snapshot_progress.is_empty():
+		MissionProgress.apply_after_paint(mission, layered_map, snapshot_progress, progress_outcome)
 	_add_ground_floor()
 	_add_bounding_box()
 	_style_end_phase_button()
@@ -112,6 +127,17 @@ func _ready() -> void:
 	dialog.get_parent().move_child(hud, 0)
 	hud.dialog = dialog
 	hud.back_to_menu = _on_back_button_pressed
+	if GameState.debug_session:
+		debug_panel = DebugPanel.new()
+		debug_panel.mission = mission
+		debug_panel.snapshot_key = _snapshot_key
+		debug_panel.take_snapshot = take_snapshot
+		debug_panel.restore_snapshot = restore_snapshot
+		debug_panel.back_to_editor = return_to_editor
+		debug_panel.reveal_group = show_stage
+		debug_panel.state_changed = _refresh_objective_label
+		dialog.get_parent().add_child(debug_panel)
+		hud.open_debug = debug_panel.toggle
 	hud.show_map = _set_monster_display_visible.bind(false)
 	hud.show_monsters = _set_monster_display_visible.bind(true)
 	journal.round_provider = func() -> int: return current_round
@@ -136,10 +162,18 @@ func _ready() -> void:
 	# there's any board state to interact with. Defines player count (the
 	# roster's size) and which character is player 1/2/3/... - equipment
 	# selection is explicitly deferred, see EmbarkDialog's own docstring.
+	var remembered := DebugSession.load_party() if DebugSession.active() else {}
+	if not remembered.is_empty():
+		var party_size: int = remembered["roster"].size()
+		if party_size < mission.min_players or party_size > mission.max_players:
+			remembered = {}  # the edited mission wants another party size - ask again
 	if resume_save != null:
 		# Already answered when this session was saved - nothing to ask again.
 		player_roster = resume_save.player_roster
 		player_weapons = resume_save.player_weapons
+	elif not remembered.is_empty():
+		player_roster.assign(remembered["roster"])
+		player_weapons = remembered["weapons"].duplicate(true)
 	else:
 		# Hero/weapon selection: nothing but the dialog - no ground, no view buttons.
 		_set_ground_decor_visible(false)
@@ -156,6 +190,8 @@ func _ready() -> void:
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
 		_set_ground_decor_visible(true)
 		hud.set_view_buttons_visible(true)
+		if DebugSession.active():
+			DebugSession.save_party(player_roster, player_weapons)
 	interaction_dock.set_roster(player_roster)
 	interaction_dock.hero_weapons = player_weapons
 
@@ -176,7 +212,11 @@ func _ready() -> void:
 		# monster registry, and which DAG branch is currently active.
 		current_round = resume_save.current_round
 		current_checkpoint = resume_save.current_checkpoint
-		_runtime.load_variables_state(resume_save.runtime_variables)
+		if resume_save.mission == null:
+			progress_outcome["report"].append_array(_runtime.restore_variables_checked(resume_save.runtime_variables))
+			_runtime.world_log.assign(progress_outcome["world"])
+		else:
+			_runtime.load_variables_state(resume_save.runtime_variables)
 		_runtime.collected_loot = resume_save.collected_loot.duplicate()
 		_runtime.wound_health_override = resume_save.wound_health_override
 		_runtime.restore_monsters(resume_save.monsters)
@@ -186,8 +226,12 @@ func _ready() -> void:
 		_runtime.part_trigger_counts = resume_save.part_trigger_counts.duplicate()
 		_runtime.affliction_bonus_round = resume_save.affliction_bonus_round
 		interaction_dock.refresh_wounds(_runtime.hero_wounds)
-		_runtime.load_current_objective_ids(resume_save.current_objective_ids)
+		var dropped_objectives := _runtime.load_current_objective_ids(resume_save.current_objective_ids)
+		if dropped_objectives > 0 and resume_save.mission == null:
+			progress_outcome["report"].append("%d of the current objectives no longer exist." % dropped_objectives)
 		journal.entries = resume_save.journal_entries
+	if debug_panel != null:
+		debug_panel.runtime = _runtime
 
 	# Name labels over everything a hero can interact with right now (parented
 	# to layered_map, so they hide with the world in the M monster view).
@@ -296,6 +340,13 @@ func _ready() -> void:
 		objective_label.visible = true
 		_refresh_objective_label()
 		_show_player_phase_ui()
+		if not resume_save.camera_view.is_empty():
+			camera.import_view(resume_save.camera_view)
+		if debug_panel != null and resume_save.mission == null:
+			debug_panel.toast("Snapshot loaded - round %d" % current_round)
+			var report: Array[String] = progress_outcome["report"]
+			if not report.is_empty():
+				await dialog.ask_ok("The snapshot was put on the edited mission, but:\n- " + "\n- ".join(report), true, false, "Snapshot")
 
 
 ## The Gear menu's "Save" item (hud.save_requested) - builds a SaveGame from
@@ -306,15 +357,30 @@ func _ready() -> void:
 ## backups already use - not literally shared code (that one is a two-tier
 ## rotating autosave; a game save is a deliberate, kept snapshot, no rotation).
 func save_game() -> void:
+	var save := _build_save(false)
+	var path := "user://saves/%s_%s.tres" % [mission.mission_name if mission.mission_name != "" else "untitled", save.saved_at]
+	if MissionIO.save_game(save, path):
+		await dialog.ask_ok("Saved.")
+	else:
+		await dialog.ask_ok("Failed to save - see the Output panel for details.")
+
+
+## Everything the Player holds, as a SaveGame. A normal save embeds the mission (see below); a debug SNAPSHOT holds none, only
+## the progress to put on the mission as the editor has it when the snapshot is loaded (MissionProgress).
+func _build_save(snapshot: bool) -> SaveGame:
 	var save := SaveGame.new()
-	# A deep copy, NOT the live `mission` itself - the live one was loaded from
-	# a mission file, so it still carries that file's resource_path, and
-	# ResourceSaver writes any sub-resource that has a path as an external
-	# REFERENCE to that file instead of embedding it. The save would then
-	# hold none of the in-place progress (revealed groups, fired triggers,
-	# used actions, removed/moved pieces) - loading it silently re-read the
-	# pristine mission. A duplicate has no path, so it embeds.
-	save.mission = mission.duplicate(true)
+	if snapshot:
+		save.progress = MissionProgress.capture(mission, _runtime.world_log)
+		save.camera_view = camera.export_view()
+	else:
+		# A deep copy, NOT the live `mission` itself - the live one was loaded from
+		# a mission file, so it still carries that file's resource_path, and
+		# ResourceSaver writes any sub-resource that has a path as an external
+		# REFERENCE to that file instead of embedding it. The save would then
+		# hold none of the in-place progress (revealed groups, fired triggers,
+		# used actions, removed/moved pieces) - loading it silently re-read the
+		# pristine mission. A duplicate has no path, so it embeds.
+		save.mission = mission.duplicate(true)
 	save.current_round = current_round
 	save.current_checkpoint = current_checkpoint
 	save.player_roster = player_roster.duplicate()
@@ -335,21 +401,62 @@ func save_game() -> void:
 	save.journal_entries = journal.entries.duplicate(true)
 
 	var d := Time.get_datetime_dict_from_system()
-	var timestamp := "%04d%02d%02d-%02d%02d%02d" % [d.year, d.month, d.day, d.hour, d.minute, d.second]
-	save.saved_at = timestamp
-	var mission_name := mission.mission_name if mission.mission_name != "" else "untitled"
-	var path := "user://saves/%s_%s.tres" % [mission_name, timestamp]
+	save.saved_at = "%04d%02d%02d-%02d%02d%02d" % [d.year, d.month, d.day, d.hour, d.minute, d.second]
+	return save
 
-	if MissionIO.save_game(save, path):
-		await dialog.ask_ok("Saved.")
-	else:
-		await dialog.ask_ok("Failed to save - see the Output panel for details.")
+
+# ---------------------------------------------------------------- debug session (see DebugSession)
+
+## Snapshots can be taken in the player phase with no dialog open - the same moments a normal Save allows, since a resume
+## always continues in the player phase.
+func _snapshot_allowed() -> bool:
+	return _runtime != null and current_checkpoint == RoundCheckpoint.Checkpoint.PLAYER_PHASE and not dialog.visible \
+		and end_phase_button.visible and not end_phase_button.disabled
+
+
+func take_snapshot(slot: String, quiet: bool = false) -> bool:
+	if not GameState.debug_session:
+		return false
+	if not _snapshot_allowed():
+		if not quiet:
+			debug_panel.toast("A snapshot can be taken in the player phase, with no dialog open.")
+		return false
+	var save := _build_save(true)
+	if not MissionIO.save_game(save, DebugSession.slot_path(_snapshot_key, slot)):
+		if not quiet:
+			debug_panel.toast("The snapshot could not be saved - see the Output panel.")
+		return false
+	if not quiet:
+		debug_panel.toast("Snapshot '%s' taken (round %d)." % [slot, current_round])
+	return true
+
+
+## Rolls back by reloading the Player scene onto the slot - it works whatever is open or pending at the moment.
+func restore_snapshot(slot: String) -> void:
+	if not GameState.debug_session:
+		return
+	if not DebugSession.slot_exists(_snapshot_key, slot):
+		debug_panel.toast("Snapshot '%s' is empty." % slot)
+		return
+	Narrator.stop()
+	GameState.load_save_path = DebugSession.slot_path(_snapshot_key, slot)
+	get_tree().reload_current_scene()
+
+
+## Back to the Creator with the editor's mission (and its undo history and camera) as it was; an automatic snapshot "auto"
+## is taken first when that is possible, so "Play from snapshot > Auto" continues where you left.
+func return_to_editor(take_auto: bool = true) -> void:
+	if take_auto:
+		take_snapshot("auto", true)
+	GameState.editor_returning = true
+	Narrator.stop()
+	get_tree().change_scene_to_file(GameState.CREATOR_SCENE)
 
 
 ## No-op if the mission doesn't have a spawn area authored - not every
 ## mission needs this yet (see MissionData.player_spawn_cells).
 func _show_spawn_area_and_confirm() -> void:
-	if mission.player_spawn_cells.is_empty():
+	if mission.player_spawn_cells.is_empty() or DebugSession.skipping():
 		return
 	layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
 	layered_map.set_spawn_overlay_visible(true)
@@ -404,7 +511,17 @@ func _apply_object_move(move: Dictionary) -> void:
 	if node is TilePlacement:
 		grid = layered_map.floor_grid if (node as TilePlacement).layer == TilePlacement.Layer.FLOOR else layered_map.underlay_grid
 	var shift := FootprintRegistry.origin_shift_1x1(mesh_name, grid.get_cell_item_basis(origin))
-	layered_map.move_node(move["id"], target - shift)
+	if layered_map.move_node(move["id"], target - shift):
+		_runtime.world_log.append(MissionProgress.move_entry(node))
+
+
+## REMOVE_OBJECT: takes a piece off the board (and notes it, see MissionRuntime.world_log).
+func _remove_object(id: String) -> void:
+	var node := mission.find_node_by_id(id)
+	if node == null:
+		return
+	_runtime.world_log.append(MissionProgress.remove_entry(node))
+	layered_map.remove_node(id)
 
 
 ## SPAWN_MONSTERS effect, in two steps: (1) tell the table which monsters
@@ -445,6 +562,13 @@ func _run_monster_spawn(request: Dictionary) -> void:
 			continue
 		spawned.append(registered)
 	if spawned.is_empty() and no_chip.is_empty() and no_base.is_empty():
+		return
+
+	if DebugSession.skipping():
+		var skipped := "%d monster(s) spawned." % spawned.size()
+		if not no_chip.is_empty() or not no_base.is_empty():
+			skipped += " Not spawned: %s." % ", ".join(no_chip + no_base)
+		debug_panel.toast(skipped)
 		return
 
 	# Step 1 - what to take out of the box, one line per monster with its
@@ -514,6 +638,16 @@ No free spawn tile for: %s - place them next to the others." % ", ".join(unplace
 ## exists yet to switch views on its own (see MonsterDisplay.gd's own doc).
 ## Remove/replace once something real drives this.
 func _unhandled_input(event: InputEvent) -> void:
+	if GameState.debug_session and event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F9:
+			take_snapshot("quick")
+			return
+		elif event.keycode == KEY_F10:
+			restore_snapshot("quick")
+			return
+		elif event.keycode == KEY_E and event.ctrl_pressed:
+			return_to_editor()
+			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
 		_set_monster_display_visible(not monster_display.visible)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and monster_display.visible and _runtime != null:
@@ -551,6 +685,9 @@ func _on_back_button_pressed() -> void:
 ## Leaves the mission: back to the campaign screen with `result` ({} = abandoned) when it was
 ## played as a campaign chapter (GameState.campaign_folder), else to the main menu.
 func _exit_mission(result: Dictionary) -> void:
+	if GameState.debug_session:
+		return_to_editor()
+		return
 	if GameState.campaign_folder != "":
 		GameState.campaign_result = result
 		get_tree().change_scene_to_file(GameState.CAMPAIGN_SCENE)
@@ -638,6 +775,7 @@ func show_stage(group_id: String) -> void:
 	# below checks this group's own (now-reachable) descendants.
 	var before := _visible_nodes()
 	group.visible = true
+	_runtime.world_log.append(MissionProgress.reveal_entry(group))
 	var new_pieces := _stage_pieces(before)
 	# Reveal piece by piece while the table is told how to set them up, one
 	# level at a time (lowest first); within a level: overlays (underlays),
@@ -668,7 +806,7 @@ func show_stage(group_id: String) -> void:
 			pages.append("Setting up '%s'\n%s%s - place these as shown:\n%s" % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
 			page_keys.append({"level": level, "bucket": bucket})
 
-	if not pages.is_empty():
+	if not pages.is_empty() and not DebugSession.skipping():
 		# Page index of a piece (its level + kind); pieces on later pages stay held back.
 		var page_of := func(piece: Dictionary) -> int:
 			for i in page_keys.size():
@@ -861,7 +999,8 @@ const MONSTER_PHASE_COLOR := Color(0.95, 0.3, 0.25)
 
 
 func _show_player_phase_ui() -> void:
-	phase_banner.show_phase("Player Phase", PLAYER_PHASE_COLOR, PhaseSounds.player_phase())
+	if not DebugSession.skipping():
+		phase_banner.show_phase("Player Phase", PLAYER_PHASE_COLOR, PhaseSounds.player_phase())
 	hud.set_save_enabled(true)  # redundant after _advance_to() itself, but this is resume's only path here
 	if current_round == 1:
 		phase_label.text = "Players spawn. Place your tokens, then play."
@@ -905,7 +1044,8 @@ func _run_darkness_and_loop() -> void:
 	darkness_overlay.visible = true
 	# Announce the change of hands, and wait for it before the monsters act.
 	phase_banner.show_phase("Monster Phase", MONSTER_PHASE_COLOR, PhaseSounds.monster_phase())
-	await phase_banner.finished
+	if not DebugSession.skipping():
+		await phase_banner.finished
 	# Step 1 of the darkness phase: Time passes.
 	await _run_time_passes()
 	# Start of the monster phase: Afflicted monsters take their affliction damage.
@@ -1181,7 +1321,7 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
-		layered_map.remove_node(removed_id)
+		_remove_object(removed_id)
 	for move in _runtime.drain_pending_object_moves():
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
@@ -1287,7 +1427,7 @@ func _on_objectives_progressed() -> void:
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
-		layered_map.remove_node(removed_id)
+		_remove_object(removed_id)
 	for move in _runtime.drain_pending_object_moves():
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():

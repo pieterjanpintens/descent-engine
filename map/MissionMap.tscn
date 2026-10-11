@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorAutosave.gd" id="13_autosave"]
 [ext_resource type="Script" path="res://scripts/CreatorToolbar.gd" id="14_toolbar"]
 [ext_resource type="Script" path="res://scripts/CreatorStatusBar.gd" id="15_statusbar"]
+[ext_resource type="Script" path="res://scripts/CreatorPlayMenu.gd" id="16_playmenu"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -73,6 +74,11 @@ layered_map = NodePath("../../../../LayeredMap")
 [node name="View" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("creator_controller")]
 script = ExtResource("12_viewmenu")
 creator_controller = NodePath("../../../../CreatorController")
+
+[node name="Play" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map", "save_load")]
+script = ExtResource("16_playmenu")
+layered_map = NodePath("../../../../LayeredMap")
+save_load = NodePath("../File")
 
 [node name="Toolbar" type="HBoxContainer" parent="CanvasLayer/MainLayout" node_paths=PackedStringArray("creator_controller", "layered_map")]
 layout_mode = 2

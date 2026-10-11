@@ -6755,6 +6755,51 @@ Needed by weapon parts that need a "system" (Mothwing Ornament, Tinker's Grip, D
 More concepts (and the rules: how they are placed, moved, removed, what their abilities do) are to be defined by the user before any
 of this is modelled.
 
+## Mission debugging (2026-10-11, branch `feature/mission-debug`)
+
+Goal: test one part of a mission quickly - get there, snapshot, try, roll back, tweak the mission in the editor, come back and load
+the snapshot onto the CHANGED mission. Plain missions only (not campaign chapters).
+
+**Flow.** The Creator has a **Play** menu (`CreatorPlayMenu`, `MenuBar/Play`): *Play* (Ctrl+Enter) starts the Player on the editor's
+mission as it is NOW (unsaved tweaks included, nothing is written to the file), *Play from snapshot* lists the slots, plus the *Fast start* switch and
+*Forget the remembered party*. Playing = a **debug session** (`GameState.debug_session`): `CreatorSaveLoad.start_play()` parks the editor's live
+`MissionData`, its file path, the undo history (`OperationHistory.export_state()`) and the camera (`FreeLookCamera.export_view()`) in `GameState`
+(`editor_*`), the Creator scene is freed, and `MissionPlayer` plays a **copy** (`duplicate(true)`) - the parked mission never changes. In the
+Player: **F9** snapshot into the "quick" slot, **F10** roll back to it, **Ctrl+E** (Gear menu > "Back to editor") back to the Creator, which
+`_restore_from_play()` takes everything back from `GameState` (mission, path, undo stack, camera) and clears the debug state. Leaving by game over
+or by the Gear menu does the same. Gear menu > **Debug** opens `DebugPanel`: the 7 slots (quick, auto, 1-5) with Take / Roll back, *set a variable*
+(`MissionRuntime.preset_variable()` / `set_variable()` for the writable builtin), *reveal a group* (`show_stage()`), Fast start, forget party, back to editor.
+The Creator's **Save** now writes straight to the file the mission came from / was last saved to (`CreatorSaveLoad.current_path`; **Save As...** Ctrl+Shift+S asks).
+
+**Snapshots hold progress, not a mission** (`SaveGame.mission == null`, `SaveGame.progress`, `camera_view`; files `user://debug/<key>/<slot>.tres`, key =
+`DebugSession.mission_key()` = file name of the mission, else its name; the same `SaveGame` class as a normal save, which still embeds the mission).
+`MissionProgress` (static): `capture()` = triggers fired (`MissionTrigger.id`, or `#index` for old missions without ids), prop actions used (prop id + action id),
+objectives achieved (`MissionObjective.id`, optional ones too) - read from the flags the runtime sets - plus the **world log**
+(`MissionRuntime.world_log`: `{op: reveal|remove|move, id, name, cell}` entries written in `MissionPlayer.show_stage()`, `_remove_object()`,
+`_apply_object_move()`; logged rather than diffed because a diff against a baseline goes stale when a snapshot is itself started from a snapshot).
+`apply_before_paint()` sets the flags and reveals groups, `apply_after_paint()` replays removals/moves through `LayeredMap` (so grid and data stay together); both
+fill an `outcome` {report, world}: what the edited mission no longer has is skipped and listed, the entries that applied become the new world log.
+Variables go through `MissionRuntime.restore_variables_checked()` (declared + same type = restored, new = default, gone/retyped = reported),
+the objective frontier through `load_current_objective_ids()` (now returns how many ids were gone). Monsters, wounds, loot, round etc. restore as in a normal
+resume - **live monsters keep the stats they were spawned with** (they are runtime entities; template edits only reach monsters spawned later). A non-empty
+report shows once as a dialog "The snapshot was put on the edited mission, but: ..." (and in the quest log); a clean load only toasts.
+
+**Snapshots are allowed** where a normal save is: player phase, no dialog open (`MissionPlayer._snapshot_allowed()`) - a resume always continues in the player phase.
+**Rolling back** = `GameState.load_save_path = slot` + `reload_current_scene()`: it works whatever dialog or await is pending (it all dies with the scene) and takes about a second.
+The *auto* slot is taken quietly whenever the Player hands over to the editor, if allowed.
+
+**Fast start** (`DebugSession.fast()`, default on, `user://debug/settings.cfg`, `DebugSession.skipping()` = a debug session AND fast): the embark
+screens are skipped with the party of the last debug embark (`DebugSession.save_party()`, `user://debug/party.tres`; asked again when the edited mission's
+min/max players don't fit it); the stage setup pages, spawn-area confirmation, monster placement dialogs (a toast says how many spawned), phase banners
+(not awaited) and narration (`Narrator.is_enabled()`) are skipped - the state changes themselves still happen.
+
+**Verified headlessly** (throwaway scenes, deleted): the real DemoMission2 - play, change variables / reveal a group / mark a trigger and an action / remove a prop, snapshot,
+roll back onto the same mission (everything back, editor mission untouched), load onto an edited mission (a deleted trigger, prop action, removed variable and a retyped one
+are reported, a new variable keeps its default); the whole Creator -> Player -> snapshot -> Creator -> Play from "auto" round trip (mission, path, undo history kept); the Debug panel,
+the HUD menu items, and that a normal save still embeds the mission and resumes without the debug machinery. **Not seen on screen**: the Play menu, the panel layout, the toasts, the
+hotkeys in a real window. **Not built (later)**: the live inspector (variables, trigger/objective state, a log of fired effects), snapshots in the monster phase, re-resolving live
+monsters from edited templates.
+
 ## Scene structure (post-refactor)
 
 Split into a minimal reusable piece plus two separate wrappers, specifically so

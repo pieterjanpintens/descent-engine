@@ -24,6 +24,8 @@ nothing is downloaded or shared.
   rooms, and add a story: objectives, triggers, variables, prop actions, tests and monster spawns.
 - **Mission Player** - plays a saved mission at the table: round and phase loop, rooms revealed as you explore, hero
   party and weapons, combat against monsters with weaknesses, resistances and conditions, wounds, and a quest log.
+- **Debugging missions** - *Play* in the Creator runs the mission you are editing without saving; in the Player F9 takes a snapshot, F10 rolls back to it,
+  Ctrl+E returns to the editor, and a snapshot loads onto the mission as you changed it.
 - **Campaigns** - missions as chapters on an act map, with branching paths, side quests, places to spend rewards, story
   chapters with questions and answers (that can branch), and variables shared with the missions.
 - **Narration (optional)** - the story can be read aloud with offline voices, a voice per character and per hero, and

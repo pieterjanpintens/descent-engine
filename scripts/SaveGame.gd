@@ -38,3 +38,7 @@ extends Resource
 @export var current_objective_ids: Array = []  ## Array[Array[String]] - MissionObjective.id per watched candidate group
 @export var journal_entries: Array[Dictionary] = []  ## Journal.entries, verbatim
 @export var saved_at: String = ""  ## for the load picker/display only
+## DEBUG SNAPSHOTS (see DebugSession): no mission copy (`mission` stays null) - the progress of the play (MissionProgress.capture())
+## goes onto the mission as the editor has it NOW. `camera_view` = FreeLookCamera.export_view() so a rollback lands where you were.
+@export var progress: Dictionary = {}
+@export var camera_view: Dictionary = {}

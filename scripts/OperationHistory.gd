@@ -59,6 +59,21 @@ const MELD_WINDOW_MSEC := 1500
 enum _EditAction { UNDO, REDO }
 
 
+## The undo/redo stacks, to survive a trip to the Player and back (the Creator scene is freed meanwhile).
+func export_state() -> Dictionary:
+	return {"operations": _operations.duplicate(), "cursor": _cursor}
+
+
+func import_state(state: Dictionary) -> void:
+	if state.is_empty():
+		return
+	_operations.clear()
+	for operation in state["operations"]:
+		_operations.append(operation)
+	_cursor = int(state["cursor"])
+	_update_menu_state()
+
+
 class Operation:
 	extends RefCounted
 	var label: String

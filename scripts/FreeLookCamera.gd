@@ -23,6 +23,20 @@ func _ready() -> void:
 	_pitch = rotation.x
 
 
+## The camera's place and look direction, for handing it over to another scene and back (debug snapshots, editor round trip).
+func export_view() -> Dictionary:
+	return {"position": global_position, "yaw": _yaw, "pitch": _pitch}
+
+
+func import_view(view: Dictionary) -> void:
+	if view.is_empty():
+		return
+	_yaw = float(view["yaw"])
+	_pitch = float(view["pitch"])
+	rotation = Vector3(_pitch, _yaw, 0)
+	global_position = view["position"]
+
+
 ## Repositions the camera to look at a world point (e.g. "jump to this
 ## placed tile" from CreatorPalette) - offsets back/up from the target so
 ## it's framed nicely rather than sitting exactly on top of it. Updates

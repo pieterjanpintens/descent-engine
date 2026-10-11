@@ -130,6 +130,27 @@ func load_variables_state(state: Dictionary) -> void:
 	_variables = state.duplicate()
 
 
+## Puts saved variable values onto a mission that may have been edited since (a debug snapshot, see MissionProgress): a
+## variable the mission still declares with the same type gets its value, a new one keeps its default, one that is gone
+## or changed type is skipped. Returns what could not be matched, for the report.
+func restore_variables_checked(state: Dictionary) -> Array[String]:
+	var report: Array[String] = []
+	for variable_name: String in state:
+		if BUILTIN_TYPES.has(variable_name):
+			_variables[variable_name] = state[variable_name]
+			continue
+		var declared: int = _declared_type(variable_name)
+		if declared == -1:
+			report.append("Variable '%s' no longer exists (it was %s)." % [variable_name, str(state[variable_name])])
+			continue
+		var coerced: Variant = _coerce(state[variable_name], declared as MissionVariable.Type)
+		if typeof(coerced) == TYPE_NIL:
+			report.append("Variable '%s' changed type - it has its default again." % variable_name)
+			continue
+		_variables[variable_name] = coerced
+	return report
+
+
 ## Replaces the live monster registry wholesale (SaveGame.monsters, each a
 ## RuntimeMonster.to_dict()) and re-derives _next_monster_number from the
 ## restored ids ("monster_N") so a monster spawned after loading never
@@ -168,18 +189,23 @@ func get_current_objective_ids() -> Array:
 ## that resolves to nothing (e.g. authoring changed since the save) is
 ## dropped rather than left empty; if everything drops, the roots-only
 ## seeding from _init() is left in place instead of being cleared out.
-func load_current_objective_ids(ids: Array) -> void:
+## Returns how many ids could not be found any more (an edited mission).
+func load_current_objective_ids(ids: Array) -> int:
 	var groups: Array = []
+	var dropped := 0
 	for id_list: Array in ids:
 		var group: Array = []
 		for id in id_list:
 			var node := mission.find_objective_by_id(id)
 			if node != null:
 				group.append(node)
+			else:
+				dropped += 1
 		if not group.is_empty():
 			groups.append(group)
 	if not groups.is_empty():
 		_current_groups = groups
+	return dropped
 
 
 func evaluate_condition(condition: Condition) -> bool:
@@ -306,6 +332,9 @@ signal loot_collected(monster_name: String, text: String)
 var collected_loot: Dictionary = {}
 ## Extra lines for the next "Time passes" dialog (abilities that change what the heroes may do in that step); shown once.
 var time_passes_notes: Array[String] = []
+## The groups revealed, pieces removed and moved so far, in order (MissionProgress entries) - what a debug snapshot needs to
+## put the same changes on an edited mission again. Written by MissionPlayer where they happen.
+var world_log: Array[Dictionary] = []
 ## Remembrance Hilt: the first hero wounded this round gets this health instead (0 = none); cleared when the monster
 ## phase ends (MissionPlayer._apply_wound() shows it and clears it earlier).
 var wound_health_override: int = 0

@@ -1,3 +1,4 @@
+class_name CreatorSaveLoad
 extends PopupMenu
 
 ## File menu (New/Save/Load/Back) for the Mission Creator, plus the
@@ -45,7 +46,11 @@ extends PopupMenu
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
-enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK }
+enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK, SAVE_AS }
+
+## The file the mission in the editor comes from / was last saved to ("" = never saved). Save writes straight to it; Save As asks.
+## Also the key of the debug snapshots (see DebugSession) and what a Play hands to the Player.
+var current_path: String = ""
 
 var _settings_dialog: CreatorSettingsDialog
 var _monster_template_editor: MonsterTemplateEditor
@@ -77,6 +82,7 @@ func _ready() -> void:
 	# Key-typed accel param without an explicit cast.
 	add_item("New", FileAction.NEW, (KEY_MASK_CTRL | KEY_N) as Key)
 	add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
+	add_item("Save As…", FileAction.SAVE_AS, (KEY_MASK_CTRL | KEY_MASK_SHIFT | KEY_S) as Key)
 	add_item("Load", FileAction.LOAD, (KEY_MASK_CTRL | KEY_O) as Key)
 	add_separator()
 	add_item("Monster Templates…", FileAction.MONSTER_TEMPLATES)
@@ -157,6 +163,10 @@ func _ready() -> void:
 	# do off this same signal.
 	layered_map.mission_objects_changed.connect(_on_mission_objects_changed)
 
+	# Coming back from a debug Play: take the editor's mission (and its undo history and camera) back as it was.
+	if GameState.editor_returning:
+		_restore_from_play.call_deferred()
+
 
 func _on_mission_objects_changed() -> void:
 	_refresh_player_count_fields()
@@ -175,6 +185,11 @@ func _on_id_pressed(id: int) -> void:
 		FileAction.NEW:
 			_on_new_button_pressed()
 		FileAction.SAVE:
+			if current_path != "":
+				_save_to(current_path)
+			else:
+				_on_save_button_pressed()
+		FileAction.SAVE_AS:
 			_on_save_button_pressed()
 		FileAction.LOAD:
 			_on_load_button_pressed()
@@ -209,6 +224,7 @@ func _on_new_button_pressed() -> void:
 	# apply_mission() emits mission_objects_changed, which
 	# _on_mission_objects_changed() above already turns into a field
 	# refresh - no need to call it explicitly here too.
+	current_path = ""
 	layered_map.apply_mission(MissionData.new())
 
 
@@ -232,12 +248,46 @@ func _save_to(path: String) -> void:
 	# state that could be sitting uncommitted.
 	_apply_player_count_fields()
 	MissionIO.save_mission(layered_map.mission, path)
+	current_path = path
+
+
+## Starts the Player on the mission as it is in the editor now, as a debug session (see DebugSession): the mission is handed
+## over in memory (nothing is saved), `snapshot_slot` = a slot to load onto it ("" = a fresh start). The Creator scene is freed
+## meanwhile, so everything it needs back - the mission, its path, the undo history, the camera - waits in GameState.
+func start_play(snapshot_slot: String) -> void:
+	_apply_player_count_fields()
+	GameState.clear_campaign()
+	GameState.editor_mission = layered_map.mission
+	GameState.editor_mission_path = current_path
+	GameState.editor_history = operation_history.export_state()
+	var camera := layered_map.get_viewport().get_camera_3d() as FreeLookCamera
+	GameState.editor_view = camera.export_view() if camera != null else {}
+	GameState.editor_returning = false
+	GameState.debug_session = true
+	GameState.current_mission_path = current_path
+	GameState.load_save_path = ""
+	if snapshot_slot != "":
+		GameState.load_save_path = DebugSession.slot_path(DebugSession.mission_key(layered_map.mission, current_path), snapshot_slot)
+	get_tree().change_scene_to_file(GameState.PLAYER_SCENE)
+
+
+func _restore_from_play() -> void:
+	var mission := GameState.editor_mission
+	if mission != null:
+		layered_map.apply_mission(mission)
+		current_path = GameState.editor_mission_path
+		operation_history.import_state(GameState.editor_history)
+		var camera := layered_map.get_viewport().get_camera_3d() as FreeLookCamera
+		if camera != null:
+			camera.import_view(GameState.editor_view)
+	GameState.clear_debug()
 
 
 func _load_from(path: String) -> void:
 	var loaded := MissionIO.load_mission(path)
 	if loaded == null:
 		return
+	current_path = path
 	# Bring the monster templates attached in this mission up to date with the
 	# library first (the library is the source of truth while editing; a copy
 	# whose library entry is gone is left alone).

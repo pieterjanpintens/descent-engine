@@ -64,6 +64,8 @@ var open_heroes: Callable
 var toggle_line_of_sight: Callable
 ## MissionPlayer.save_game() - the Gear menu's "Save" item.
 var save_requested: Callable
+## DebugPanel.toggle - the Gear menu's "Debug" item, only in a debug session (see DebugSession).
+var open_debug: Callable
 
 ## The official rulebook PDF, hosted by Fantasy Flight Games themselves -
 ## opened in the system browser (OS.shell_open()) by "Rules Reference", not
@@ -196,8 +198,10 @@ func _build_bottom_left() -> void:
 	# "+" between an untyped literal and a typed Array[String] produces a
 	# plain untyped Array, not Array[String] - _build_popup_menu() takes a
 	# typed one, so this builds it explicitly instead of via "+".
-	var gear_items: Array[String] = ["Back to Menu"]
+	var gear_items: Array[String] = ["Back to editor" if GameState.debug_session else "Back to Menu"]
 	gear_items.append_array(GEAR_ITEMS)
+	if GameState.debug_session:
+		gear_items.append("Debug")
 	_gear_menu = _build_popup_menu(gear_items)
 	_party_menu = _build_popup_menu(PARTY_ITEMS)
 
@@ -238,8 +242,14 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 		btn.text = item
 		btn.custom_minimum_size = Vector2(180, 36)
 		match item:
-			"Back to Menu":
+			"Back to Menu", "Back to editor":
 				btn.pressed.connect(_on_back_to_menu_pressed)
+			"Debug":
+				btn.pressed.connect(func():
+					_gear_menu.visible = false
+					if open_debug.is_valid():
+						open_debug.call()
+				)
 			"Options":
 				btn.pressed.connect(_on_options_pressed)
 			"Rules Reference":
