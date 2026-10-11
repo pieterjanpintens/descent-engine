@@ -82,6 +82,36 @@ jobs:
           name: linux-build
           path: ${{ env.EXPORT_NAME }}-linux.zip
 
+  export-macos:
+    name: macOS Export
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.7.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup export templates
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mkdir -v -p ~/.config/
+          mv /root/.config/godot ~/.config/godot
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+      # The "macOS" preset exports a universal (Intel + Apple silicon) .app inside a zip, ad-hoc signed by Godot's built-in
+      # signer - no Apple account, so macOS shows an "unidentified developer" warning on first launch (right-click > Open).
+      - name: macOS Build
+        run: |
+          mkdir -v -p build/macos
+          EXPORT_DIR="$(readlink -f build)"
+          godot --headless --verbose --export-release "macOS" "$EXPORT_DIR/macos/${EXPORT_NAME}-macos.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: build/macos/${{ env.EXPORT_NAME }}-macos.zip
+
   package-asset-tools:
     name: Package asset tools
     runs-on: ubuntu-24.04
@@ -100,7 +130,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [export-windows, export-linux, package-asset-tools]
+    needs: [export-windows, export-linux, export-macos, package-asset-tools]
     runs-on: ubuntu-24.04
     steps:
       - name: Download artifacts

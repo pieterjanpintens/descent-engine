@@ -1,7 +1,7 @@
 # Descent Engine
 
 Tools for designing and playing custom missions and campaigns for *Descent: Legends of the Dark*, built around the
-game's physical tiles, pillars and stairs. Made with Godot 4.7.2 (GDScript).
+game's physical tiles, pillars and stairs. Made with Godot 4.7.2 (GDScript). Releases have builds for Windows, Linux and macOS (the Mac build is not notarized: right-click > Open the first time).
 
 Unofficial fan project, not affiliated with Fantasy Flight Games or Asmodee. It ships none of the game's art or sounds,
 only placeholders.

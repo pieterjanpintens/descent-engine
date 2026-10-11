@@ -7059,23 +7059,14 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   release is created at all** (`needs` requires every listed job to succeed) —
   worth remembering before adding a new platform job: a broken/incomplete one
   would silently block releases for every OTHER platform too, not just itself.
-- **macOS is NOT set up and NOT wanted (2026-10-06, the user doesn't need it)** - the notes below are only for reference if that ever changes. **It needs more than just a new job** (confirmed
-  2026-09-15, requested but deliberately not scaffolded broken): the pinned
-  `barichello/godot-ci` image explicitly does **not** support macOS export
-  (its own README: "Automating Xcode projects is doable but not trivial... it
-  will happen eventually") — unlike Windows/Linux, a macOS build needs an actual
-  `macos-latest` GitHub-hosted runner with Godot + the macOS export templates
-  downloaded directly (not the container image), producing an **unsigned** `.app`
-  (no Apple Developer account/codesigning set up — end users will see a Gatekeeper
-  "unidentified developer" warning, standard for an unsigned open-source hobby
-  build). It ALSO needs a `"macOS"` preset added to `export_presets.cfg` first —
-  deliberately left to be added via the Godot editor itself (Project → Export →
-  Add… → macOS) rather than hand-authored here: a macOS preset's option block is
-  ~150 lines (codesign/notarization/privacy-manifest fields alone), and getting
-  one byte-exact for this project's pinned 4.7.2 without being able to launch the
-  editor and verify it risks a broken preset silently blocking every platform's
-  release per the `needs:` note above. Once that preset exists, the CI job itself
-  is a small, well-understood addition — ask if this doc is stale.
+- **macOS (2026-10-11)**: the `export-macos` job runs in the same `barichello/godot-ci:4.7.2` image as the others (Godot can export macOS from Linux) and
+  exports the `"macOS"` preset (`export_presets.cfg`, created in the editor: universal Intel + Apple silicon, bundle id
+  `github.com.pieterjanpintens.descent-engine`, `include_filter="data/*"` for the spell-check word list, a microphone usage text) straight to
+  `Descent-Engine-macos.zip` (a `.app` inside; the artifact is that zip, no re-zipping). **Ad-hoc signed** by Godot's built-in signer (`codesign/codesign=1`, empty identity) and
+  **not notarized** (no Apple developer account): macOS shows "unidentified developer" on the first launch - right-click > Open. The project setting
+  `textures/vram_compression/import_etc2_astc=true` (needed for the Apple silicon build, the `.import` files list the extra `etc2` format) is part of this. Verified with a real local
+  export (86 MB zip, `_CodeSignature` present, `data/` included); the only warning is the editor-only git plugin having no template library, same as the other platforms.
+  Not run on a Mac, and not run in CI yet. Voice control and narration setup say "isn't supported on macOS yet" (the installers only know Windows/Linux).
 
 ## Hard-won Godot 4 / GDScript lessons
 

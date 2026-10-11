@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7yrmr2rhkkqi"
 path.s3tc="res://.godot/imported/underlays_acid.png-9d693e2eadd4d71a714cede29cb2dfa6.s3tc.ctex"
+path.etc2="res://.godot/imported/underlays_acid.png-9d693e2eadd4d71a714cede29cb2dfa6.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/underlays_acid.png"
-dest_files=["res://.godot/imported/underlays_acid.png-9d693e2eadd4d71a714cede29cb2dfa6.s3tc.ctex"]
+dest_files=["res://.godot/imported/underlays_acid.png-9d693e2eadd4d71a714cede29cb2dfa6.s3tc.ctex", "res://.godot/imported/underlays_acid.png-9d693e2eadd4d71a714cede29cb2dfa6.etc2.ctex"]
 
 [params]
 

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfk0fx4p6bft4"
 path.s3tc="res://.godot/imported/underlays_water.png-41af29d5f5fe1f328c68a35c2755b6ec.s3tc.ctex"
+path.etc2="res://.godot/imported/underlays_water.png-41af29d5f5fe1f328c68a35c2755b6ec.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/underlays_water.png"
-dest_files=["res://.godot/imported/underlays_water.png-41af29d5f5fe1f328c68a35c2755b6ec.s3tc.ctex"]
+dest_files=["res://.godot/imported/underlays_water.png-41af29d5f5fe1f328c68a35c2755b6ec.s3tc.ctex", "res://.godot/imported/underlays_water.png-41af29d5f5fe1f328c68a35c2755b6ec.etc2.ctex"]
 
 [params]
 
