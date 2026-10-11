@@ -7059,6 +7059,9 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   release is created at all** (`needs` requires every listed job to succeed) —
   worth remembering before adding a new platform job: a broken/incomplete one
   would silently block releases for every OTHER platform too, not just itself.
+- **Checksums + license (2026-10-11)**: the release job writes `SHA256SUMS.txt` (`sha256sum *` over every file in `dist/`) and attaches it; the builds are deliberately
+  NOT code-signed (the user's decision: no paid certificates) - the README explains the SmartScreen / Gatekeeper warnings and how to verify a download. The project is **MIT** (`LICENSE`, the
+  user: "redistributable and free use, no claims towards me"); third-party parts (words_en list, ambientCG floor, Godot, git plugin) keep their own terms, noted in the README.
 - **macOS (2026-10-11)**: the `export-macos` job runs in the same `barichello/godot-ci:4.7.2` image as the others (Godot can export macOS from Linux) and
   exports the `"macOS"` preset (`export_presets.cfg`, created in the editor: universal Intel + Apple silicon, bundle id
   `github.com.pieterjanpintens.descent-engine`, `include_filter="data/*"` for the spell-check word list, a microphone usage text) straight to

@@ -139,6 +139,13 @@ jobs:
           path: dist
           merge-multiple: true
 
+      # SHA-256 of every file of the release, so downloads can be verified (the builds are not code-signed).
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
