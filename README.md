@@ -12,21 +12,63 @@ A walkthrough of the campaign player (click to watch on YouTube):
 
 [![Campaign walkthrough](https://img.youtube.com/vi/Ha-fwiLSWd0/hqdefault.jpg)](https://youtu.be/Ha-fwiLSWd0)
 
-## Downloads
+## Getting started
 
-Every release has builds for Windows, Linux and macOS, plus `Descent-Engine-asset-tools.zip` (see below) and `SHA256SUMS.txt`. The builds are
-**not code-signed**, so Windows SmartScreen and macOS will warn the first time: on Windows choose "More info > Run anyway"; on macOS open
-System Settings > Privacy & Security and press "Open Anyway" (or run `xattr -dr com.apple.quarantine Descent-Engine.app`).
+1. **Install the game on Steam** - *Descent: Legends of the Dark*. You only need it for the real art and data (step 5); without it the app works
+   with plain placeholder pictures.
+2. **Download the zip for your computer** from the [Releases page](../../releases/latest): `Descent-Engine-windows.zip`, `Descent-Engine-linux.zip`
+   or `Descent-Engine-macos.zip`.
+3. **Extract everything** from the zip into a folder of your own (keep the files together).
+4. **Run it.** The builds are not code-signed (signing certificates cost money and this project is free), so your computer warns about an
+   "unknown" program the first time. It is safe to run it anyway:
+   - **Windows**: run `Descent-Engine.exe`. SmartScreen says "Windows protected your PC": click **More info**, then **Run anyway**.
+   - **macOS**: open `Descent-Engine.app`. macOS refuses it once: open **System Settings > Privacy & Security**, scroll down and press **Open Anyway**
+     (older macOS: right-click the app > Open). Or run `xattr -dr com.apple.quarantine Descent-Engine.app` in a terminal once.
+   - **Linux**: make the file executable (`chmod +x Descent-Engine.x86_64`) and run it.
 
-To check a download against the published checksums: `sha256sum -c SHA256SUMS.txt --ignore-missing` (Linux), `shasum -a 256 -c SHA256SUMS.txt --ignore-missing`
-(macOS), or on Windows `certutil -hashfile <file> SHA256` and compare the hash with the one in `SHA256SUMS.txt`.
+   To check that a download is what we published, compare it with `SHA256SUMS.txt` from the same release: `sha256sum -c SHA256SUMS.txt --ignore-missing`
+   (Linux), `shasum -a 256 -c SHA256SUMS.txt --ignore-missing` (macOS), or `certutil -hashfile <file> SHA256` on Windows.
+5. **Import the game's art and data** (optional, needs the Steam install of step 1): in the main menu choose **Game assets** and press
+   **Import game assets**. The app finds the game by itself (or lets you pick its folder), downloads a small import tool the first time (about 25 MB)
+   and reads the art, monsters, weapons and items out of **your own copy**. It takes a few minutes; **restart the app** when it is done. Nothing of
+   the game is downloaded or shared - the copies stay on your computer (please do not share them either). On an Intel Mac the in-app import is not
+   available yet; the scripts in `tools/asset_import/` do the same by hand.
+6. **Voice and narration** (optional): in the main menu choose **Options** (in a mission: the gear menu > Options). There you can download:
+   - **Whisper** - speech recognition, so the table can give spoken commands ("hey DM, attack the green bandit"),
+   - **Piper** - narration, so the story is read aloud, with one base voice,
+   - extra **voice packs** (accents, plain English) so every hero and character can sound different.
 
-## Setup for friends
+   Each is a download of its own, started from that dialog; nothing is installed until you ask for it.
 
-Want the real game art and the game's own monster, weapon and item data in the app? Follow the step-by-step guide for
-friends: [tools/asset_import/FRIENDS_GUIDE.md](tools/asset_import/FRIENDS_GUIDE.md). Every release has a small
-`Descent-Engine-asset-tools.zip` with the tools it needs. You need your own copy of the game;
-nothing is downloaded or shared.
+### Where the files end up
+
+The app keeps everything it creates or downloads in its user folder (paste the path into the Explorer address bar / Finder's Go > Go to Folder):
+
+| | Folder |
+|---|---|
+| Windows | `%APPDATA%\Godot\app_userdata\Descent-Engine\` |
+| macOS | `~/Library/Application Support/Godot/app_userdata/Descent-Engine/` |
+| Linux | `~/.local/share/godot/app_userdata/Descent-Engine/` |
+
+In it: `missions/`, `campaigns/`, `saves/` and `campaign_saves/` (your own work and games), `official_assets/`, `monster_assets/`, `hero_assets/`, `weapon_data/`,
+`item_data/`, `monster_data/` (the game's art and data from step 5 - delete these folders to go back to the placeholders), `importer/` (the import tool),
+`whisper/` (speech recognition) and `piper/` (narration engine and voices).
+
+### How much disk space
+
+Roughly what the full experience takes:
+
+| | Size |
+|---|---|
+| The app (extracted from the zip; the zip is 54-86 MB) | ~170 MB |
+| The game's art and data (step 5) | ~65 MB |
+| The import tool it downloads (can be deleted afterwards) | ~45 MB |
+| Whisper (speech recognition) | ~220 MB |
+| Piper (engine + base voice) | ~100 MB |
+| All extra voice packs (accents + plain English) | ~860 MB |
+| **Everything in the user folder** | **~1.3 GB** (plus the ~170 MB app) |
+
+Without voices it is about 0.3 GB; the voice packs are what make it big, and each one is optional.
 
 ## What it does
 
