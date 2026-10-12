@@ -7103,6 +7103,10 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   `textures/vram_compression/import_etc2_astc=true` (needed for the Apple silicon build, the `.import` files list the extra `etc2` format) is part of this. Verified with a real local
   export (86 MB zip, `_CodeSignature` present, `data/` included); the only warning is the editor-only git plugin having no template library, same as the other platforms.
   Not run in CI yet; the exported `.app` itself has not been started on a Mac (the project runs in the editor's Godot on one).
+- **v0.0.16 confirmed by the user on a Mac with an emptied user folder (2026-10-12)**: the released app starts, the in-app asset import works (the import tool is
+  downloaded from the real GitHub release), and the voice downloads work. So the `sign-macos` job, the real download URL and the macOS import tool are proven in an exported
+  app. **Windows was tested by the user too and worked** (the import tool there included). The Mac build asks for microphone permission as it should (so the usage text alone is enough without the hardened runtime). Not reported
+  yet: a spoken command being recognised and narration being heard in the Mac build; anything on Linux (the import tool, and the narration SIGPIPE fix).
 - **macOS signing fixed (2026-10-12, branch `fix/macos-signing`)** - the v0.0.14 and v0.0.15 Mac builds did not start at all: macOS killed them at launch
   (SIGKILL, exit 137, no output, no crash report). Cause, proven by comparing releases on a Mac: Godot's built-in signer always sets the hardened-runtime flag, and an app
   it signs WITH entitlements (the three added for voice control) is killed; v0.0.13 (same signer, no entitlements) starts, and the same app re-signed with Apple's
