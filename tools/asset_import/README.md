@@ -44,6 +44,10 @@ UnityPy's `.image` resolves either the same way) - and saves them into Godot's
 %APPDATA%\Godot\app_userdata\Descent-Engine\official_assets\
 ```
 
+(macOS: `~/Library/Application Support/Godot/app_userdata/Descent-Engine/`, Linux:
+`~/.local/share/godot/app_userdata/Descent-Engine/` - every tool here gets the folder from `user_data.py`. On macOS and
+Linux run everything with `./import_all.sh`, which keeps UnityPy in its own `.venv`.)
+
 Re-run any time `OfficialAssetMap.gd` gains new entries. No Godot rebuild/export
 needed - it picks up new override files the next time the app starts.
 

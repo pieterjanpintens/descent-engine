@@ -43,8 +43,10 @@ import sys
 import os
 import UnityPy
 
+from user_data import user_data_dir
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_DIR = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\asset_dump")
+OUTPUT_DIR = user_data_dir("asset_dump")
 
 # Every object type worth trying to export outright - anything else just
 # gets a manifest line (name + container path), which is usually enough to

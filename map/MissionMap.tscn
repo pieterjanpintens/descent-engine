@@ -55,6 +55,7 @@ mouse_filter = 2
 
 [node name="MenuBar" type="MenuBar" parent="CanvasLayer/MainLayout"]
 layout_mode = 2
+prefer_global_menu = false
 
 [node name="File" type="PopupMenu" parent="CanvasLayer/MainLayout/MenuBar" node_paths=PackedStringArray("layered_map", "operation_history")]
 script = ExtResource("7_iyoar")

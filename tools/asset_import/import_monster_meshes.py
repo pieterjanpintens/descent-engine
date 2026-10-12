@@ -122,12 +122,14 @@ import shutil
 import subprocess
 import UnityPy
 
+from user_data import user_data_dir
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
 MONSTER_DISPLAY_GD = os.path.join(PROJECT_DIR, "scripts", "MonsterDisplay.gd")
 CONVERT_SCRIPT_RES_PATH = "res://tools/asset_import/convert_staged_meshes.gd"
 STAGING_DIR = os.path.join(PROJECT_DIR, "models", "original", "monster_staging")
-USER_DATA_DIR = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\monster_assets")
+USER_DATA_DIR = user_data_dir("monster_assets")
 
 
 def read_monster_folders_from_gd():
@@ -286,10 +288,10 @@ def stage_centurion_flat(env, monster_staging_dir, user_dir):
     os.makedirs(user_dir, exist_ok=True)
     if body_texture is not None:
         body_texture.image.save(os.path.join(user_dir, "flat_diffuse.png"))
-        print(f"  'centurion': saved body texture -> {user_dir}\\flat_diffuse.png")
+        print("  'centurion': saved body texture -> " + os.path.join(user_dir, "flat_diffuse.png"))
     if wings_texture is not None:
         wings_texture.image.save(os.path.join(user_dir, "flat_diffuse_wings.png"))
-        print(f"  'centurion': saved wings texture -> {user_dir}\\flat_diffuse_wings.png")
+        print("  'centurion': saved wings texture -> " + os.path.join(user_dir, "flat_diffuse_wings.png"))
     return True
 
 
@@ -340,7 +342,7 @@ def main():
             os.makedirs(user_dir, exist_ok=True)
             if texture is not None:
                 texture.image.save(os.path.join(user_dir, "diffuse.png"))
-                print(f"  '{folder}': saved plastic-pool texture -> {user_dir}\\diffuse.png")
+                print(f"  '{folder}': saved plastic-pool texture -> " + os.path.join(user_dir, "diffuse.png"))
             else:
                 print(f"  '{folder}': NO plastic-pool texture found - figure will render untextured")
         else:
@@ -368,7 +370,7 @@ def main():
         os.makedirs(user_dir, exist_ok=True)
         if flat_texture is not None:
             flat_texture.image.save(os.path.join(user_dir, "flat_diffuse.png"))
-            print(f"  '{folder}': saved flat card texture -> {user_dir}\\flat_diffuse.png")
+            print(f"  '{folder}': saved flat card texture -> " + os.path.join(user_dir, "flat_diffuse.png"))
         else:
             print(f"  '{folder}': NO flat card texture found - card will render untextured")
 
@@ -385,7 +387,7 @@ def main():
         print(f"\nCleaned up staging folder {STAGING_DIR}")
 
     print(f"\nDone. {len(staged)}/{len(folders)} monster mesh(es) converted to")
-    print(f"{USER_DATA_DIR}\\<folder>\\mesh.tres - Godot will pick these up next run.")
+    print(os.path.join(USER_DATA_DIR, "<folder>", "mesh.tres") + " - Godot will pick these up next run.")
 
 
 if __name__ == "__main__":

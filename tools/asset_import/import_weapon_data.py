@@ -30,7 +30,9 @@ import json
 import os
 import sys
 
-OUTPUT = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\weapon_data")
+from user_data import user_data_dir
+
+OUTPUT = user_data_dir("weapon_data")
 
 DROPPED_FIELDS = {"m_GameObject", "m_Enabled", "m_Script", "DamageCurve", "AttackSound", "SelectSound"}
 

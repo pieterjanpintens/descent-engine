@@ -63,12 +63,14 @@ import shutil
 import subprocess
 import UnityPy
 
+from user_data import user_data_dir
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
 HERO_CATALOG_GD = os.path.join(PROJECT_DIR, "scripts", "HeroCatalog.gd")
 CONVERT_SCRIPT_RES_PATH = "res://tools/asset_import/convert_staged_hero_meshes.gd"
 STAGING_DIR = os.path.join(PROJECT_DIR, "models", "original", "hero_staging")
-USER_DATA_DIR = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\hero_assets")
+USER_DATA_DIR = user_data_dir("hero_assets")
 
 PREFERRED_TEX_KEYS = ["_MainTex", "_Diffuse"]
 
@@ -224,7 +226,7 @@ def main():
             os.makedirs(user_dir, exist_ok=True)
             if texture is not None:
                 texture.image.save(os.path.join(user_dir, f"weapon_{weapon_index}_diffuse.png"))
-                print(f"  '{hero}' ({act}): saved texture -> {user_dir}\\weapon_{weapon_index}_diffuse.png")
+                print(f"  '{hero}' ({act}): saved texture -> " + os.path.join(user_dir, f"weapon_{weapon_index}_diffuse.png"))
             else:
                 print(f"  '{hero}' ({act}): NO texture found - mesh will render untextured")
         if any_staged:
@@ -243,7 +245,7 @@ def main():
         print(f"\nCleaned up staging folder {STAGING_DIR}")
 
     print(f"\nDone. {len(staged)}/{len(heroes)} hero(es) converted to")
-    print(f"{USER_DATA_DIR}\\<hero>\\weapon_<0|1>.tres - Godot will pick these up next run.")
+    print(os.path.join(USER_DATA_DIR, "<hero>", "weapon_<0|1>.tres") + " - Godot will pick these up next run.")
 
 
 if __name__ == "__main__":

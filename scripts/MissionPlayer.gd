@@ -645,7 +645,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_F10:
 			restore_snapshot("quick")
 			return
-		elif event.keycode == KEY_E and event.ctrl_pressed:
+		elif event.keycode == KEY_E and event.is_command_or_control_pressed():
 			return_to_editor()
 			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:

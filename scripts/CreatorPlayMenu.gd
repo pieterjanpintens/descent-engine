@@ -17,7 +17,7 @@ var _snapshots: PopupMenu
 
 
 func _ready() -> void:
-	add_item("Play", Action.PLAY, (KEY_MASK_CTRL | KEY_ENTER) as Key)
+	add_item("Play", Action.PLAY, (KEY_MASK_CMD_OR_CTRL | KEY_ENTER) as Key)
 	_snapshots = PopupMenu.new()
 	_snapshots.name = "Snapshots"
 	add_child(_snapshots)

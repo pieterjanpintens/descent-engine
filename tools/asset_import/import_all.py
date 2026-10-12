@@ -1,8 +1,8 @@
 """One command that runs every official-asset import for YOUR OWN copy of "Descent: Legends of the Dark".
 
 This repo ships none of the game's art. This wrapper only runs the three local import tools in this folder, in order,
-against the game install on your own machine, and puts the results in the game's per-user data folder
-(%APPDATA%\\Godot\\app_userdata\\Descent-Engine\\), where only you will ever see them:
+against the game install on your own machine, and puts the results in the app's per-user data folder (see user_data.py),
+where only you will ever see them:
 
     1. import_official_assets.py  - textures: floors, hazards, tokens, hero portraits, croptops, icons
     2. import_monster_meshes.py   - the monster figures and flat cards   (needs Godot 4.7.2)
@@ -11,9 +11,10 @@ against the game install on your own machine, and puts the results in the game's
     5. import_item_data.py        - materials, recipes, potions, armor, trinkets, enemy loot (JSON)
     6. import_monster_data.py     - the game's monsters: tiers, activations, weaknesses, abilities (JSON)
 
-Usage (Windows):
-    python import_all.py                      # finds the game and Godot by itself if it can
-    python import_all.py "<game folder>" "<Godot 4.7.2 exe>"
+Usage:
+    import_all.bat                 (Windows: double-click)
+    ./import_all.sh                (macOS / Linux: makes its own Python environment with UnityPy)
+    python import_all.py ["<game folder>" ["<Godot 4.7.2 program>"]]     # both are found automatically when possible
 
 `<game folder>` can be the game's install folder (the Steam folder, or any folder above the `bundles` folder) or the
 `bundles` folder itself. If no Godot is found, only step 1 runs (the textures); the 3D figures need Godot.
@@ -26,19 +27,31 @@ import shutil
 import subprocess
 import sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-OUTPUT = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine")
+from user_data import user_data_dir
 
-GAME_ROOTS = [
-    r"C:\Program Files (x86)\Steam\steamapps\common",
-    r"C:\Program Files\Steam\steamapps\common",
-    r"D:\SteamLibrary\steamapps\common",
-    r"E:\SteamLibrary\steamapps\common",
-    r"C:\Program Files\Epic Games",
-    r"C:\Program Files (x86)\Epic Games",
-    r"C:\GOG Games",
-    r"C:\Program Files (x86)\GOG Galaxy\Games",
-]
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUTPUT = user_data_dir()
+
+if os.name == "nt":
+    GAME_ROOTS = [
+        r"C:\Program Files (x86)\Steam\steamapps\common",
+        r"C:\Program Files\Steam\steamapps\common",
+        r"D:\SteamLibrary\steamapps\common",
+        r"E:\SteamLibrary\steamapps\common",
+        r"C:\Program Files\Epic Games",
+        r"C:\Program Files (x86)\Epic Games",
+        r"C:\GOG Games",
+        r"C:\Program Files (x86)\GOG Galaxy\Games",
+    ]
+elif sys.platform == "darwin":
+    GAME_ROOTS = [os.path.expanduser("~/Library/Application Support/Steam/steamapps/common"), "/Applications",
+                  os.path.expanduser("~/Applications")]
+else:
+    GAME_ROOTS = [os.path.expanduser("~/.steam/steam/steamapps/common"),
+                  os.path.expanduser("~/.local/share/Steam/steamapps/common"),
+                  os.path.expanduser("~/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common")]
+# The Steam folder is called "Legends of the Dark" on macOS, "Descent Legends of the Dark" elsewhere.
+GAME_PATTERNS = ["*Descent*", "*Legends of the Dark*"]
 
 
 def find_bundles(start: str) -> str:
@@ -55,10 +68,11 @@ def find_bundles(start: str) -> str:
 
 def autodetect_game() -> str:
     for root in GAME_ROOTS:
-        for candidate in glob.glob(os.path.join(root, "*Descent*")):
-            found = find_bundles(candidate)
-            if found:
-                return found
+        for pattern in GAME_PATTERNS:
+            for candidate in glob.glob(os.path.join(root, pattern)):
+                found = find_bundles(candidate)
+                if found:
+                    return found
     return ""
 
 
@@ -70,12 +84,26 @@ def find_godot() -> str:
         found = shutil.which(name)
         if found:
             return found
-    for pattern in (r"~\godot\**\Godot_v4.7*console.exe", r"~\Downloads\**\Godot_v4.7*console.exe",
-                    r"~\Desktop\**\Godot_v4.7*console.exe", r"C:\Godot*\**\Godot_v4.7*console.exe"):
-        hits = glob.glob(os.path.expanduser(pattern), recursive=True)
+    if os.name == "nt":
+        patterns = [r"~\godot\**\Godot_v4.7*console.exe", r"~\Downloads\**\Godot_v4.7*console.exe",
+                    r"~\Desktop\**\Godot_v4.7*console.exe", r"C:\Godot*\**\Godot_v4.7*console.exe"]
+    elif sys.platform == "darwin":  # the program inside the .app
+        patterns = ["/Applications/Godot*.app/Contents/MacOS/Godot", "~/Applications/Godot*.app/Contents/MacOS/Godot",
+                    "~/Downloads/Godot*.app/Contents/MacOS/Godot", "~/Desktop/Godot*.app/Contents/MacOS/Godot"]
+    else:
+        patterns = ["~/godot/**/Godot_v4.7*linux*", "~/Downloads/**/Godot_v4.7*linux*", "~/Desktop/**/Godot_v4.7*linux*",
+                    "~/.local/bin/Godot_v4.7*"]
+    for pattern in patterns:
+        hits = [hit for hit in glob.glob(os.path.expanduser(pattern), recursive=True) if os.path.isfile(hit)]
         if hits:
             return hits[0]
     return ""
+
+
+def godot_program(path: str) -> str:
+    """A macOS Godot.app is a folder: the program to run is inside it."""
+    inside = os.path.join(path, "Contents", "MacOS", "Godot")
+    return inside if os.path.isdir(path) and os.path.isfile(inside) else path
 
 
 def ensure_unitypy() -> bool:
@@ -96,24 +124,22 @@ def run(step: str, script: str, *args: str) -> bool:
 
 
 def main() -> int:
-    if os.name != "nt":
-        print("These import tools write to the Windows %APPDATA% folder, so this wrapper is Windows-only for now.")
-        return 1
+    sys.stdout.reconfigure(line_buffering=True)  # keep our lines in order with the steps' own output
     given_game = sys.argv[1] if len(sys.argv) > 1 else ""
     given_godot = sys.argv[2] if len(sys.argv) > 2 else ""
 
     bundles = find_bundles(given_game) if given_game else autodetect_game()
     if not bundles:
         print("Could not find the game's 'bundles' folder. Run again with the game folder as the first argument:")
-        print('    python import_all.py "C:\\...\\Descent Legends of the Dark"')
+        print('    "%s" "<game folder>"' % ("import_all.bat" if os.name == "nt" else "./import_all.sh"))
         return 1
     print("Game assets: %s" % bundles)
 
-    godot = given_godot or find_godot()
+    godot = godot_program(given_godot) if given_godot else find_godot()
     if godot:
         print("Godot: %s" % godot)
     else:
-        print("No Godot 4.7.2 found - only the textures will be imported (pass the Godot .exe as the second argument for the 3D figures).")
+        print("No Godot 4.7.2 found - only the textures will be imported (pass the Godot program as the second argument for the 3D figures).")
 
     if not ensure_unitypy():
         return 1

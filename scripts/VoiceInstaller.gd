@@ -11,8 +11,8 @@ extends Downloader
 ##
 ## Verified with the project's Godot 4.7.2: an extension AND a model loaded
 ## from user:// work (the model then transcribes). Not yet verified in an
-## EXPORTED build. Windows and Linux only (the macOS library is a .framework
-## directory - not handled).
+## EXPORTED build. On macOS the library is a .framework FOLDER (universal:
+## Intel + Apple silicon); every file of it is extracted.
 ##
 ## Add as a child of something in the tree (it awaits timers), then
 ## `await install()`; status text arrives via `progress` (see Downloader).
@@ -37,7 +37,7 @@ var vad_url := "https://huggingface.co/ggml-org/whisper-vad/resolve/main/" + VAD
 
 
 static func is_supported_platform() -> bool:
-	return OS.get_name() == "Windows" or OS.get_name() == "Linux"
+	return OS.get_name() in ["Windows", "Linux", "macOS"]
 
 
 ## True if everything needed is already in user data.
@@ -106,7 +106,7 @@ func _install_addon() -> bool:
 		if entry.ends_with("/"):
 			continue
 		var relative := entry.trim_prefix(prefix)
-		if relative != "godot_whisper.gdextension" and not (relative.begins_with("bin/") and _wanted_library(relative.get_file())):
+		if relative != "godot_whisper.gdextension" and not (relative.begins_with("bin/") and _wanted_library(relative.trim_prefix("bin/"))):
 			continue
 		var target := ProjectSettings.globalize_path(INSTALL_DIR + relative)
 		DirAccess.make_dir_recursive_absolute(target.get_base_dir())
@@ -127,11 +127,15 @@ func _install_addon() -> bool:
 
 
 ## This platform's normal (single-precision) library, e.g.
-## libgodot_whisper.windows.template_release.x86_64.dll.
-static func _wanted_library(file_name: String) -> bool:
-	if file_name.contains(".double."):
+## libgodot_whisper.windows.template_release.x86_64.dll. `path` is relative to the
+## addon's bin/ folder: a plain file name, or on macOS a file inside the .framework folder.
+static func _wanted_library(path: String) -> bool:
+	if path.contains(".double."):
 		return false
+	var file_name := path.get_file()
 	match OS.get_name():
+		"macOS":
+			return path.begins_with("libgodot_whisper.macos.template_release.universal.framework/")
 		"Windows":
 			return file_name.contains(".windows.") and file_name.ends_with(".x86_64.dll")
 		"Linux":

@@ -68,7 +68,7 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 20)
 	box.add_child(title)
 	var keys := Label.new()
-	keys.text = "F9 snapshot (quick)   F10 roll back (quick)   Ctrl+E back to the editor"
+	keys.text = "F9 snapshot (quick)   F10 roll back (quick)   %s+E back to the editor" % ("Cmd" if OS.get_name() == "macOS" else "Ctrl")
 	keys.modulate = Color(1, 1, 1, 0.6)
 	box.add_child(keys)
 

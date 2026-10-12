@@ -930,7 +930,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		# script's own doc comment for why. Deliberately doesn't check
 		# event.echo (OS key-repeat) - holding Ctrl+Z down to keep undoing
 		# is standard editor behavior.
-		if event.keycode == KEY_Z and event.ctrl_pressed:
+		if event.keycode == KEY_Z and event.is_command_or_control_pressed():
 			if event.shift_pressed:
 				operation_history.redo()
 			else:

@@ -27,12 +27,23 @@ never part of the app.
    ```
 
    The first path is the game's folder, the second is the Godot **console** `.exe` (leave it out if you have no Godot).
+   **macOS / Linux**: open a terminal in `tools/asset_import/` and run `./import_all.sh` (or `sh import_all.sh`). It makes its
+   own Python environment (a `.venv` folder next to it) and installs `UnityPy` there, so you only need Python 3 itself. The
+   game and Godot are found by themselves when the game is in the Steam library and `Godot.app` is in Applications; otherwise:
+
+   ```
+   ./import_all.sh "<game folder or the game's .app>" "/Applications/Godot.app"
+   ```
 4. Wait. Reading all the game files takes a few minutes and a lot of memory. When it prints **Done** with every step
    "ok", start the app - the real art is used automatically.
 
 ## Where the files go
 
-`%APPDATA%\Godot\app_userdata\Descent-Engine\` (paste that into the Explorer address bar). To go back to the
+- Windows: `%APPDATA%\Godot\app_userdata\Descent-Engine\` (paste that into the Explorer address bar)
+- macOS: `~/Library/Application Support/Godot/app_userdata/Descent-Engine/` (Finder: Go > Go to Folder)
+- Linux: `~/.local/share/godot/app_userdata/Descent-Engine/`
+
+To go back to the
 placeholders, delete the `official_assets`, `monster_assets`, `hero_assets`, `weapon_data`, `item_data` and `monster_data` folders in there.
 
 ## If something goes wrong

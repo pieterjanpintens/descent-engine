@@ -488,7 +488,7 @@ func _on_gui_input(event: InputEvent) -> void:
 ## range-select, Tree's own native handling for those is what
 ## multi-select exists for in the first place).
 func _on_left_click(event: InputEventMouseButton) -> void:
-	if event.ctrl_pressed or event.shift_pressed:
+	if event.is_command_or_control_pressed() or event.shift_pressed:
 		return
 	var item := get_item_at_position(event.position)
 	if item == null:

@@ -89,6 +89,7 @@ func _ready() -> void:
 	var bar := HBoxContainer.new()
 	root.add_child(bar)
 	var menu_bar := MenuBar.new()
+	menu_bar.prefer_global_menu = false  # macOS: keep the menus in the window, like on Windows and Linux
 	bar.add_child(menu_bar)
 	_file_menu = PopupMenu.new()
 	_file_menu.name = "File"
@@ -97,17 +98,17 @@ func _ready() -> void:
 	_open_menu.name = "OpenMenu"
 	_open_menu.index_pressed.connect(_on_open_index_pressed)
 	_file_menu.add_child(_open_menu)
-	_file_menu.add_item("New", FileAction.NEW, (KEY_MASK_CTRL | KEY_N) as Key)
+	_file_menu.add_item("New", FileAction.NEW, (KEY_MASK_CMD_OR_CTRL | KEY_N) as Key)
 	_file_menu.add_submenu_node_item("Open", _open_menu, FileAction.OPEN)
-	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
+	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
 	_file_menu.add_separator()
 	_file_menu.add_item("Back to Menu", FileAction.BACK)
 	_file_menu.id_pressed.connect(_on_file_action)
 	_edit_menu = PopupMenu.new()
 	_edit_menu.name = "Edit"
 	menu_bar.add_child(_edit_menu)
-	_edit_menu.add_item("Undo", EditAction.UNDO, (KEY_MASK_CTRL | KEY_Z) as Key)
-	_edit_menu.add_item("Redo", EditAction.REDO, (KEY_MASK_CTRL | KEY_MASK_SHIFT | KEY_Z) as Key)
+	_edit_menu.add_item("Undo", EditAction.UNDO, (KEY_MASK_CMD_OR_CTRL | KEY_Z) as Key)
+	_edit_menu.add_item("Redo", EditAction.REDO, (KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_Z) as Key)
 	_edit_menu.id_pressed.connect(_on_edit_action)
 	_update_edit_menu()
 	_status_label = Label.new()

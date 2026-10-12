@@ -23,3 +23,6 @@ __pycache__/
 
 # local share packages
 /dist/
+
+# The import tools' own Python environment (tools/asset_import/import_all.sh)
+.venv/

@@ -22,7 +22,9 @@ import json
 import os
 import sys
 
-OUTPUT = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\item_data")
+from user_data import user_data_dir
+
+OUTPUT = user_data_dir("item_data")
 DROPPED = {"m_GameObject", "m_Enabled", "m_Script"}
 LOC_PREFIXES = ("MAT_", "ARMOR_", "CSM_", "TRINKET", "ITEM_", "LOOT", "ENEMY_ACTIVATION_")
 

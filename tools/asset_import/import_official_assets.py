@@ -60,9 +60,11 @@ import os
 import re
 import UnityPy
 
+from user_data import user_data_dir
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSET_MAP_GD = os.path.join(SCRIPT_DIR, "..", "..", "autoload", "OfficialAssetMap.gd")
-OVERRIDE_DIR = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\official_assets")
+OVERRIDE_DIR = user_data_dir("official_assets")
 
 ## Container path per hero portrait (see the class doc above for why this is
 ## needed at all: the bare name alone is ambiguous between a hero's two

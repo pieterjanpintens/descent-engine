@@ -37,7 +37,8 @@ These tools copy the art and data out of YOUR OWN install of "Descent: Legends o
 Nothing is downloaded and nothing leaves your computer.
 
 1. Install Python 3 (tick "Add python.exe to PATH") and, for the 3D figures, Godot 4.7.2 (the Standard build, unzipped anywhere).
-2. Double-click  tools\\asset_import\\import_all.bat
+2. Windows: double-click  tools\\asset_import\\import_all.bat
+   macOS / Linux: run  sh tools/asset_import/import_all.sh  in a terminal (it sets up its own Python environment)
 3. Read tools\\asset_import\\FRIENDS_GUIDE.md if something goes wrong.
 
 Keep this folder as it is: the tools need the small project around them (project.godot, autoload, scripts).

@@ -105,9 +105,10 @@ func _ready() -> void:
 	# uncertain enough to route around back when this was first built).
 	# Also binding a native accelerator here on top of that would risk
 	# undo()/redo() firing twice per keypress.
-	add_item("Undo (Ctrl+Z)", _EditAction.UNDO)
+	var modifier := "Cmd" if OS.get_name() == "macOS" else "Ctrl"
+	add_item("Undo (%s+Z)" % modifier, _EditAction.UNDO)
 	_undo_item_index = get_item_index(_EditAction.UNDO)
-	add_item("Redo (Ctrl+Shift+Z)", _EditAction.REDO)
+	add_item("Redo (%s+Shift+Z)" % modifier, _EditAction.REDO)
 	_redo_item_index = get_item_index(_EditAction.REDO)
 	id_pressed.connect(_on_id_pressed)
 	_update_menu_state()

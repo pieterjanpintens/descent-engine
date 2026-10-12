@@ -8,8 +8,14 @@ extends Downloader
 ## recognition VoiceInstaller: releases stay small, every player fetches the ~90 MB once
 ## straight from the upstream sources and nothing is redistributed by this project.
 ##
-## Windows and Linux only. The Windows engine is a zip (extracted with ZIPReader); the
-## Linux one is a tar.gz, unpacked with the system `tar`.
+## The Windows engine is a zip (extracted with ZIPReader); the Linux and macOS ones are
+## tar.gz files, unpacked with the system `tar`.
+##
+## macOS: the upstream macOS release is incomplete - both its archives hold the same Intel
+## (x86_64) program WITHOUT the three libraries it needs. They are in the piper-phonemize
+## release, so that archive is downloaded too and its libraries are put next to the program
+## (about 45 MB more). The program has no search path for them, so it is started with
+## DYLD_LIBRARY_PATH set (see command()). On Apple silicon it runs under Rosetta.
 ##
 ## `await install()`; status text arrives via `progress`. Narrator (the autoload) is what
 ## actually runs the installed engine.
@@ -18,10 +24,17 @@ const INSTALL_DIR := "user://piper/"
 const VOICE_NAME := NarratorVoices.BASE_MODEL
 ## What the setup button tells the player.
 const DOWNLOAD_SIZE_TEXT := "about 90 MB"
+## Arguments: the library folder ("" = none), the program, then the program's own arguments.
+const UNIX_LAUNCH := 'lib="$1"; shift; if [ -n "$lib" ]; then export DYLD_LIBRARY_PATH="$lib"; fi; exec "$@" >/dev/null 2>&1'
+## macOS: one of the libraries the engine needs, used to tell a complete install.
+const MACOS_LIBRARY := "libespeak-ng.1.dylib"
 
 ## Overridable (tests point these at a local server).
 var engine_url_windows := "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip"
 var engine_url_linux := "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz"
+## macOS: the engine (an Intel program, whatever the archive is called) and the libraries it lacks.
+var engine_url_macos := "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_x64.tar.gz"
+var libraries_url_macos := "https://github.com/rhasspy/piper-phonemize/releases/download/2023.11.14-4/piper-phonemize_macos_x64.tar.gz"
 var voice_url := "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/" + VOICE_NAME + ".onnx"
 var voice_config_url := "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/" + VOICE_NAME + ".onnx.json"
 ## The root of the voices repository the optional extra voices come from (NarratorVoices.EXTRA_MODEL_PATHS are below it).
@@ -29,7 +42,14 @@ var extras_base_url := "https://huggingface.co/rhasspy/piper-voices/resolve/main
 
 
 static func is_supported_platform() -> bool:
-	return OS.get_name() == "Windows" or OS.get_name() == "Linux"
+	return OS.get_name() in ["Windows", "Linux", "macOS"]
+
+
+## macOS on Apple silicon: the engine is an Intel program, so Rosetta must be there.
+static func needs_rosetta() -> bool:
+	if OS.get_name() != "macOS" or Engine.get_architecture_name() != "arm64":
+		return false
+	return OS.execute("/usr/bin/arch", ["-x86_64", "/usr/bin/true"]) != 0
 
 
 ## The installed engine executable as an absolute OS path, "" when it isn't installed. The
@@ -38,8 +58,21 @@ static func engine_path() -> String:
 	var exe := "piper.exe" if OS.get_name() == "Windows" else "piper"
 	for candidate in [INSTALL_DIR + "piper/" + exe, INSTALL_DIR + exe]:
 		if FileAccess.file_exists(candidate):
+			if OS.get_name() == "macOS" and not FileAccess.file_exists(candidate.get_base_dir() + "/" + MACOS_LIBRARY):
+				continue  # the libraries of the second download are not there (yet)
 			return ProjectSettings.globalize_path(candidate)
 	return ""
+
+
+## The command line that starts the engine. Linux and macOS go through a small shell line that (1) throws the engine's
+## own output away - Narrator closes the pipe after sending the text, and the engine would be killed (SIGPIPE, exit
+## code 13) when it then prints the name of the file it wrote - and (2) on macOS points it at its libraries.
+static func command() -> PackedStringArray:
+	var engine := engine_path()
+	if OS.get_name() == "Windows":
+		return PackedStringArray([engine])
+	var libraries := engine.get_base_dir() if OS.get_name() == "macOS" else ""
+	return PackedStringArray(["/bin/sh", "-c", UNIX_LAUNCH, "piper", libraries, engine])
 
 
 static func is_installed() -> bool:
@@ -51,6 +84,9 @@ static func is_installed() -> bool:
 func install() -> bool:
 	if not is_supported_platform():
 		progress.emit("Narration setup isn't supported on %s yet." % OS.get_name())
+		return false
+	if needs_rosetta():
+		progress.emit("Narration needs Rosetta on this Mac: run 'softwareupdate --install-rosetta' in Terminal, then try again.")
 		return false
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(NarratorVoices.VOICE_DIR))
 	var voice := NarratorVoices.VOICE_DIR + VOICE_NAME + ".onnx"
@@ -97,19 +133,34 @@ func _install_models(paths: Dictionary, done_text: String) -> bool:
 
 
 func _install_engine() -> bool:
-	var windows := OS.get_name() == "Windows"
+	var system := OS.get_name()
+	var windows := system == "Windows"
 	var archive := INSTALL_DIR + ("engine.zip" if windows else "engine.tar.gz")
-	if not await _fetch(engine_url_windows if windows else engine_url_linux, archive, "", "narration engine"):
+	var url := engine_url_windows if windows else (engine_url_macos if system == "macOS" else engine_url_linux)
+	if not await _fetch(url, archive, "", "narration engine"):
 		return false
 	progress.emit("Unpacking the narration engine...")
-	var ok := _unpack_zip(archive) if windows else _unpack_tar(archive)
+	var ok := _unpack_zip(archive) if windows else _unpack_tar(archive, INSTALL_DIR)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(archive))
 	if not ok:
+		return false
+	if system == "macOS" and not await _install_macos_libraries():
 		return false
 	if engine_path() == "":
 		progress.emit("The narration engine download doesn't contain a piper executable.")
 		return false
 	return true
+
+
+## macOS: the libraries the engine archive lacks - the `lib` folder of the piper-phonemize archive, put next to the program.
+func _install_macos_libraries() -> bool:
+	var archive := INSTALL_DIR + "libraries.tar.gz"
+	if not await _fetch(libraries_url_macos, archive, "", "narration engine libraries"):
+		return false
+	progress.emit("Unpacking the narration engine libraries...")
+	var ok := _unpack_tar(archive, INSTALL_DIR + "piper/", ["--strip-components", "2", "piper-phonemize/lib"])
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(archive))
+	return ok
 
 
 ## Extracts every entry of the zip below INSTALL_DIR, keeping its folder structure.
@@ -134,11 +185,14 @@ func _unpack_zip(archive: String) -> bool:
 	return true
 
 
-## Linux: the release is a tar.gz, and Godot has no reader for it - the system `tar` unpacks it
-## (and keeps the executable bit).
-func _unpack_tar(archive: String) -> bool:
+## Linux / macOS: the release is a tar.gz, and Godot has no reader for it - the system `tar` unpacks it
+## (and keeps the executable bit and the links between the libraries). `extra` = more tar arguments.
+func _unpack_tar(archive: String, into: String, extra: Array = []) -> bool:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(into))
+	var arguments: Array = ["-xzf", ProjectSettings.globalize_path(archive), "-C", ProjectSettings.globalize_path(into)]
+	arguments.append_array(extra)
 	var output: Array = []
-	var code := OS.execute("tar", ["-xzf", ProjectSettings.globalize_path(archive), "-C", ProjectSettings.globalize_path(INSTALL_DIR)], output, true)
+	var code := OS.execute("tar", arguments, output, true)
 	if code != 0:
 		progress.emit("Couldn't unpack the narration engine (tar exit code %d)." % code)
 		return false

@@ -19,7 +19,9 @@ import os
 import re
 import sys
 
-OUTPUT = os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Descent-Engine\monster_data")
+from user_data import user_data_dir
+
+OUTPUT = user_data_dir("monster_data")
 DROPPED = {"m_GameObject", "m_Enabled", "m_Script"}
 
 

@@ -237,7 +237,7 @@ func _run_engine(job: Dictionary, wav: String, generation: int) -> bool:
 func _command() -> PackedStringArray:
 	if not command_override.is_empty():
 		return command_override
-	return PackedStringArray([PiperInstaller.engine_path()])
+	return PiperInstaller.command()
 
 
 ## Main thread: a piece is ready (wav == "" = it failed and is skipped).

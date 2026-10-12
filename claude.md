@@ -7029,6 +7029,14 @@ appears locally, for a user who separately owns the official game and runs
 
 ## CI / Release
 
+**Asset tools on macOS / Linux (2026-10-12)**: `tools/asset_import/import_all.sh` is the counterpart of `import_all.bat` - it makes a `.venv` next to itself
+(gitignored; a Homebrew Python refuses a system-wide `pip install`), installs UnityPy there and runs `import_all.py`. Every import tool now gets the app's user folder from
+`tools/asset_import/user_data.py` (`user_data_dir()`: `%APPDATA%\Godot\...` on Windows, `~/Library/Application Support/Godot/...` on macOS, `~/.local/share/godot/...` on Linux) instead of a
+hard-coded `%APPDATA%`; `import_all.py` lost its Windows-only check, looks for the game per platform (the macOS Steam folder is "Legends of the Dark", without "Descent"; the bundles are in
+`<game>.app/Contents/Resources/Data/StreamingAssets/bundles`) and for Godot per platform (`/Applications/Godot.app/Contents/MacOS/Godot`; a `.app` given as argument is accepted).
+**Run for real on this Mac** (Apple silicon, Python 3.15, Steam install): all six steps ok - 61/61 textures, 17/17 monsters, 6/6 heroes (12 meshes), weapon/item/monster data.
+Linux paths are untested. On this Mac Godot is `/Applications/Godot.app/Contents/MacOS/Godot` (4.7.2, not on the PATH).
+
 **Asset tools bundle (2026-10-11)**: every release also carries `Descent-Engine-asset-tools.zip` (job `package-asset-tools` in `release.yml`, built by
 `tools/package_asset_tools.py`, ~60 KB): a MINIMAL Godot project - a generated `project.godot` named "Descent-Engine" (the name decides the user folder the
 tools write into), the three scripts the tools parse as text (`autoload/OfficialAssetMap.gd`, `scripts/MonsterDisplay.gd`, `scripts/HeroCatalog.gd`, in folders with a `.gdignore`
@@ -7069,7 +7077,28 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   **not notarized** (no Apple developer account): macOS shows "unidentified developer" on the first launch - right-click > Open. The project setting
   `textures/vram_compression/import_etc2_astc=true` (needed for the Apple silicon build, the `.import` files list the extra `etc2` format) is part of this. Verified with a real local
   export (86 MB zip, `_CodeSignature` present, `data/` included); the only warning is the editor-only git plugin having no template library, same as the other platforms.
-  Not run on a Mac, and not run in CI yet. Voice control and narration setup say "isn't supported on macOS yet" (the installers only know Windows/Linux).
+  Not run in CI yet; the exported `.app` itself has not been started on a Mac (the project runs in the editor's Godot on one).
+- **Voice control and narration on macOS (2026-10-12)** - both installers now handle macOS (`is_supported_platform()`).
+  **Whisper**: the addon zip holds a universal `.framework` folder; `VoiceInstaller._wanted_library()` now gets the path below `bin/` and
+  extracts every file of `libgodot_whisper.macos.template_release.universal.framework/`. **Piper**: the upstream macOS release is broken - both
+  `piper_macos_*.tar.gz` hold the same Intel program without its three libraries (libespeak-ng, libpiper_phonemize, libonnxruntime) - so
+  `PiperInstaller` also downloads `piper-phonemize_macos_x64.tar.gz` (rhasspy/piper-phonemize 2023.11.14-4, ~27 MB) and unpacks its `lib/` next to the
+  program (`tar --strip-components 2`); `engine_path()` only counts the engine as installed when `libespeak-ng.1.dylib` is there. The program has no
+  rpath, so it needs `DYLD_LIBRARY_PATH`; on Apple silicon it runs under Rosetta (`needs_rosetta()` tells the player the `softwareupdate
+  --install-rosetta` command when it is missing). **`PiperInstaller.command()`** is what `Narrator` runs now: on Linux AND macOS a `/bin/sh -c` line
+  (`UNIX_LAUNCH`) that sets the library path and sends the engine's output to /dev/null - found on the Mac: Narrator closes the pipe after sending the
+  text, the engine then prints the wav name and died of SIGPIPE (exit 13), so every piece was skipped; **the same must have happened on Linux**
+  (never tested there; Windows has no SIGPIPE). The macOS export preset now has the entitlements `audio_input`, `disable_library_validation` and
+  `allow_dyld_environment_variables` (only matter under a hardened runtime). **Verified on this Mac (Apple silicon, Godot 4.7.2 editor binary,
+  headless) with the real downloads**: Piper installed by the game's installer and `Narrator.speak()` made and played two pieces (~3 s incl. Rosetta
+  start); Whisper installed (201 MB on disk), the extension loaded at runtime, and a Piper-spoken "Hey DM, hero two attack the green bandit" was
+  transcribed in 0.57 s (Metal) and parsed as an attack by hero 2. **Not verified**: a real microphone (macOS asks for permission), the Options
+  dialog buttons on screen, an exported `.app`, an Intel Mac, sound through a real device (headless = dummy driver).
+
+- **macOS menus and shortcuts (2026-10-12)**: both editor menu bars set `prefer_global_menu = false` (`map/MissionMap.tscn`, `CampaignEditor.gd`), so the menus sit in the
+  window like on Windows instead of in the macOS system menu bar. Menu accelerators use `KEY_MASK_CMD_OR_CTRL` and the manual key checks `is_command_or_control_pressed()`
+  (undo/redo in `CreatorController`, Cmd+E in `MissionPlayer`, Cmd+click in `CreatorOutline`): Cmd on macOS, Ctrl elsewhere; the "Undo (Cmd+Z)" / Debug panel hints follow.
+  Scripts load clean; not tried in a window.
 
 ## Hard-won Godot 4 / GDScript lessons
 

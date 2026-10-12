@@ -77,13 +77,13 @@ func _ready() -> void:
 	# already owns - giving those a SECOND, native binding risks firing
 	# twice per keypress, so those stay inline-text-only, see
 	# CreatorViewMenu.gd/OperationHistory.gd).
-	# (KEY_MASK_CTRL | KEY_N) is a plain int after the bitwise OR - GDScript
+	# (KEY_MASK_CMD_OR_CTRL | KEY_N) is a plain int after the bitwise OR - GDScript
 	# warns "Integer used when an enum value is expected" for add_item()'s
 	# Key-typed accel param without an explicit cast.
-	add_item("New", FileAction.NEW, (KEY_MASK_CTRL | KEY_N) as Key)
-	add_item("Save", FileAction.SAVE, (KEY_MASK_CTRL | KEY_S) as Key)
-	add_item("Save As…", FileAction.SAVE_AS, (KEY_MASK_CTRL | KEY_MASK_SHIFT | KEY_S) as Key)
-	add_item("Load", FileAction.LOAD, (KEY_MASK_CTRL | KEY_O) as Key)
+	add_item("New", FileAction.NEW, (KEY_MASK_CMD_OR_CTRL | KEY_N) as Key)
+	add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
+	add_item("Save As…", FileAction.SAVE_AS, (KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_S) as Key)
+	add_item("Load", FileAction.LOAD, (KEY_MASK_CMD_OR_CTRL | KEY_O) as Key)
 	add_separator()
 	add_item("Monster Templates…", FileAction.MONSTER_TEMPLATES)
 	add_item("Settings…", FileAction.SETTINGS)
