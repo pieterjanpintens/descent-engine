@@ -7099,6 +7099,14 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   `textures/vram_compression/import_etc2_astc=true` (needed for the Apple silicon build, the `.import` files list the extra `etc2` format) is part of this. Verified with a real local
   export (86 MB zip, `_CodeSignature` present, `data/` included); the only warning is the editor-only git plugin having no template library, same as the other platforms.
   Not run in CI yet; the exported `.app` itself has not been started on a Mac (the project runs in the editor's Godot on one).
+- **macOS signing fixed (2026-10-12, branch `fix/macos-signing`)** - the v0.0.14 and v0.0.15 Mac builds did not start at all: macOS killed them at launch
+  (SIGKILL, exit 137, no output, no crash report). Cause, proven by comparing releases on a Mac: Godot's built-in signer always sets the hardened-runtime flag, and an app
+  it signs WITH entitlements (the three added for voice control) is killed; v0.0.13 (same signer, no entitlements) starts, and the same app re-signed with Apple's
+  `codesign` (with or without those entitlements) starts. Fix: the three entitlements are off again in the preset, and a new release job **`sign-macos`** (macos-14 runner)
+  re-signs the export with Apple's tool - `codesign --force --deep --sign -`, plain ad-hoc, NO hardened runtime - and re-zips it with `ditto`; without the hardened runtime
+  the microphone (usage text only) and loading the downloaded speech library need no entitlements. `export-macos` now uploads `Descent-Engine-macos-unsigned.zip` (artifact
+  `macos-unsigned`), which the release job deletes before publishing. Verified locally: the v0.0.13 export re-signed, zipped and unzipped that way starts. The job itself has
+  not run in CI yet; microphone and speech library in the exported app are untested. **Do not turn entitlements on in the preset again.**
 - **Voice control and narration on macOS (2026-10-12)** - both installers now handle macOS (`is_supported_platform()`).
   **Whisper**: the addon zip holds a universal `.framework` folder; `VoiceInstaller._wanted_library()` now gets the path below `bin/` and
   extracts every file of `libgodot_whisper.macos.template_release.universal.framework/`. **Piper**: the upstream macOS release is broken - both
@@ -7109,8 +7117,7 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   --install-rosetta` command when it is missing). **`PiperInstaller.command()`** is what `Narrator` runs now: on Linux AND macOS a `/bin/sh -c` line
   (`UNIX_LAUNCH`) that sets the library path and sends the engine's output to /dev/null - found on the Mac: Narrator closes the pipe after sending the
   text, the engine then prints the wav name and died of SIGPIPE (exit 13), so every piece was skipped; **the same must have happened on Linux**
-  (never tested there; Windows has no SIGPIPE). The macOS export preset now has the entitlements `audio_input`, `disable_library_validation` and
-  `allow_dyld_environment_variables` (only matter under a hardened runtime). **Verified on this Mac (Apple silicon, Godot 4.7.2 editor binary,
+  (never tested there; Windows has no SIGPIPE). (The entitlements first added to the macOS preset for this were removed again - see the signing fix above.) **Verified on this Mac (Apple silicon, Godot 4.7.2 editor binary,
   headless) with the real downloads**: Piper installed by the game's installer and `Narrator.speak()` made and played two pieces (~3 s incl. Rosetta
   start); Whisper installed (201 MB on disk), the extension loaded at runtime, and a Piper-spoken "Hey DM, hero two attack the green bandit" was
   transcribed in 0.57 s (Metal) and parsed as an attack by hero 2. **Not verified**: a real microphone (macOS asks for permission), the Options

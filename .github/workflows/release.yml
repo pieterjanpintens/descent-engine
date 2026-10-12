@@ -106,11 +106,44 @@ jobs:
           EXPORT_DIR="$(readlink -f build)"
           godot --headless --verbose --export-release "macOS" "$EXPORT_DIR/macos/${EXPORT_NAME}-macos.zip"
 
+      # Not the release file yet: sign-macos below re-signs it on a Mac.
+      - name: Rename
+        run: mv "build/macos/${EXPORT_NAME}-macos.zip" "${EXPORT_NAME}-macos-unsigned.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-unsigned
+          path: ${{ env.EXPORT_NAME }}-macos-unsigned.zip
+
+  # Godot's built-in signer (the only one available in the Linux container) always turns the "hardened runtime" on.
+  # Under it the microphone and loading the downloaded speech library need entitlements, and an app that Godot
+  # signed WITH entitlements is killed by macOS the moment it starts (seen with v0.0.14 / v0.0.15). So the app is
+  # re-signed here with Apple's own codesign: plain ad-hoc, no hardened runtime, no entitlements needed.
+  sign-macos:
+    name: macOS Sign
+    needs: [export-macos]
+    runs-on: macos-14
+    steps:
+      - name: Download the export
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-unsigned
+
+      - name: Re-sign
+        run: |
+          mkdir app
+          ditto -x -k "${EXPORT_NAME}-macos-unsigned.zip" app
+          codesign --force --deep --sign - "app/${EXPORT_NAME}.app"
+          codesign --verify --deep --strict "app/${EXPORT_NAME}.app"
+          codesign -dv "app/${EXPORT_NAME}.app"
+          ditto -c -k --keepParent "app/${EXPORT_NAME}.app" "${EXPORT_NAME}-macos.zip"
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-build
-          path: build/macos/${{ env.EXPORT_NAME }}-macos.zip
+          path: ${{ env.EXPORT_NAME }}-macos.zip
 
   package-asset-tools:
     name: Package asset tools
@@ -163,7 +196,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [export-windows, export-linux, export-macos, package-asset-tools, build-importer]
+    needs: [export-windows, export-linux, sign-macos, package-asset-tools, build-importer]
     runs-on: ubuntu-24.04
     steps:
       - name: Download artifacts
@@ -171,6 +204,9 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+
+      - name: Drop the unsigned macOS export
+        run: rm -f dist/*-macos-unsigned.zip
 
       # SHA-256 of every file of the release, so downloads can be verified (the builds are not code-signed).
       - name: Checksums
