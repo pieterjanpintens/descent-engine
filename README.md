@@ -47,3 +47,7 @@ nothing is downloaded or shared.
 This covers the project's own code and art only. Third-party parts keep their own terms: the spell-check word list (`data/words_en.LICENSE.txt`), the
 concrete floor texture (ambientCG, CC0), the Godot engine (MIT) and the Godot git plugin in `addons/` (MIT). *Descent: Legends of the Dark* and
 everything of the game is the property of its owners; nothing of it is included here.
+
+## Credits
+
+Created by **Arutha**. Main menu concept art by **Ikkante** (used with their permission). The same list is in the app under Credits.

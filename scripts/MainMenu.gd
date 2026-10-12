@@ -14,8 +14,16 @@ extends Control
 @onready var editors_panel: Control = %EditorsPanel
 @onready var load_campaign_button: Button = %LoadCampaignButton
 
+## The credits page: [role, names] pairs - add a line here to credit someone.
+const CREDITS: Array = [
+	["Created by", "Arutha"],
+	["Concept art - main menu background", "Ikkante"],
+]
+const CREDITS_NOTE := "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+
 var _options_dialog: VoiceSettingsDialog
 var _assets_dialog: AssetImportDialog
+var _credits_panel: VBoxContainer
 
 
 ## Ensures both user:// folders exist before anything tries to browse them -
@@ -28,6 +36,50 @@ func _ready() -> void:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
 	load_campaign_button.disabled = not CampaignIO.has_saves()
+	_build_credits_panel()
+
+
+## The credits page - a third page of the same column as the main and editors pages, built from CREDITS.
+func _build_credits_panel() -> void:
+	_credits_panel = VBoxContainer.new()
+	_credits_panel.add_theme_constant_override("separation", 10)
+	_credits_panel.visible = false
+	for entry: Array in CREDITS:
+		var role := Label.new()
+		role.text = str(entry[0])
+		role.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		role.modulate = Color(0.85, 0.85, 0.85, 0.8)
+		_credits_panel.add_child(role)
+		var names := Label.new()
+		names.text = str(entry[1])
+		names.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		names.add_theme_font_size_override("font_size", 26)
+		_credits_panel.add_child(names)
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0, 8)
+		_credits_panel.add_child(gap)
+	var note := Label.new()
+	note.text = CREDITS_NOTE.replace("*", "")
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.custom_minimum_size = Vector2(440, 0)
+	note.modulate = Color(1, 1, 1, 0.85)
+	_credits_panel.add_child(note)
+	var back := Button.new()
+	back.text = "Back"
+	back.pressed.connect(_on_credits_back_pressed)
+	_credits_panel.add_child(back)
+	main_panel.get_parent().add_child(_credits_panel)
+
+
+func _on_credits_button_pressed() -> void:
+	main_panel.visible = false
+	_credits_panel.visible = true
+
+
+func _on_credits_back_pressed() -> void:
+	_credits_panel.visible = false
+	main_panel.visible = true
 
 
 ## Importing the real art and data from the player's own install of the game.

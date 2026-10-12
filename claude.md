@@ -6800,6 +6800,10 @@ the HUD menu items, and that a normal save still embeds the mission and resumes 
 hotkeys in a real window. **Not built (later)**: the live inspector (variables, trigger/objective state, a log of fired effects), snapshots in the monster phase, re-resolving live
 monsters from edited templates.
 
+**Main menu look + credits (2026-10-12)**: the main menu has a fan-made concept art background (`models/menu_background.jpg`, by Ikkante, committed with their permission; a
+cropped/scaled copy of a photo of a screen - there is a bit of moiré and a cursor icon in it; a clean export would be better) under a 50% dark `ColorRect`, and a **Credits** page (`MainMenu.CREDITS`, a list of
+[role, name] pairs built into a third page of the menu column by `_build_credits_panel()`): Created by Arutha, concept art by Ikkante. Add a line to `CREDITS` to credit someone.
+
 ## Scene structure (post-refactor)
 
 Split into a minimal reusable piece plus two separate wrappers, specifically so

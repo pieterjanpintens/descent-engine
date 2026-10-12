@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b4b20wrtuq1a6"]
 
 [ext_resource type="Script" uid="uid://dx66u7jfoolxh" path="res://scripts/MainMenu.gd" id="1_i26rj"]
+[ext_resource type="Texture2D" path="res://models/menu_background.jpg" id="2_background"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -10,6 +11,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_i26rj")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.03, 0.03, 0.08, 0.5)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -62,6 +85,10 @@ text = "Game assets"
 layout_mode = 2
 text = "Editors & Tools"
 
+[node name="CreditsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
+layout_mode = 2
+text = "Credits"
+
 [node name="ExitButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 layout_mode = 2
 text = "Exit"
@@ -111,6 +138,7 @@ filters = PackedStringArray("*.tres")
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/OptionsButton" to="." method="_on_options_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/AssetsButton" to="." method="_on_assets_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/EditorsButton" to="." method="_on_editors_button_pressed"]
+[connection signal="pressed" from="CenterContainer/Column/MainPanel/CreditsButton" to="." method="_on_credits_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/EditorsPanel/EditorButton" to="." method="_on_editor_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/EditorsPanel/CampaignEditorButton" to="." method="_on_campaign_editor_button_pressed"]
