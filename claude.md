@@ -7029,6 +7029,27 @@ appears locally, for a user who separately owns the official game and runs
 
 ## CI / Release
 
+**In-app asset import (2026-10-12, branch `feature/in-app-asset-import`)** - main menu **"Game assets"** -> `AssetImportDialog` (what is imported so far, the game folder -
+found by `AssetImporter.find_game()` in the usual Steam/GOG/Epic places per platform, or chosen with a native folder dialog; any folder above `bundles` works -, one
+"Import game assets" button, progress, a per-step result and "restart the app"). `AssetImporter` (`scripts/AssetImporter.gd`, a `Downloader`): (1) gets the import TOOL - the
+Python import tools packaged with PyInstaller (`tools/asset_import/asset_importer.py` = all six steps in one process; `build_importer.py` builds
+`Descent-Engine-importer-<windows-x86_64.zip|linux-x86_64.tar.gz|macos-arm64.tar.gz>`; release job `build-importer`, a matrix over ubuntu-22.04 / windows-latest / macos-14 with
+`continue-on-error` so a broken platform can't block a release) - downloaded on demand from `releases/latest/download/` into `user://importer/` (like Piper/Whisper; nothing of
+the game is downloaded); a `--protocol` number (`PROTOCOL` on both sides) makes an incompatible installed tool get replaced. **Run from the project with
+`tools/asset_import/.venv` present it runs the Python source instead - no download** (`use_project_source`; `command_override` is the test seam). (2) writes a manifest
+(official asset names from `OfficialAssetMap.MAP`, monster folders, hero names - the tools otherwise parse the project's .gd files, which an export doesn't have) and runs the
+tool with `--bundles --out <OS.get_user_data_dir()> --manifest --staging`; the tools take these from env vars (`DESCENT_USER_DIR`, `DESCENT_IMPORT_MANIFEST`,
+`DESCENT_STAGING_DIR`, see `user_data.py`); the tool prints `##STEP n/6 label`, `##RESULT label|ok|failed`, `##DONE` (stderr is merged into stdout so an unread pipe can't block it),
+read by a thread. (3) converts the staged `.obj` files itself: **`ObjMeshBuilder`** (`scripts/ObjMeshBuilder.gd`) - an exported game has no editor importers, so this mimics
+Godot's .obj importer (positions/normals as written, V flipped, the first two corners of every triangle swapped, fan triangulation, a surface per `usemtl` ONLY - `g`/`o` don't
+split -, tangents, index). **Checked against the editor-converted meshes for all 49 game meshes: same surface count, vertex and triangle counts, bounds, winding-vs-normal
+facing and tangents** (the only difference: an unnamed surface is called "Mesh" by the editor). The old route (`import_all.bat/.sh` + a Godot editor) still works unchanged.
+**Verified on this Mac for real**: from source (33 s for everything, 6/6 steps, 49 meshes) and with the PyInstaller build downloaded from a local server into an emptied
+user folder (61 textures, 72 monster files, 24 hero files, 427 weapon images - so image decoding works packaged; `--collect-all fmod_toolkit` is what it needed: UnityPy loads
+its audio library even to decode images, without it every image export fails silently). The dialog was opened headlessly (texts, bad-folder message). **Not verified**: the
+dialog on screen, the Windows and Linux builds of the tool (first built by CI at the next release), the real GitHub download URL (no release carries the tool yet), an
+exported app running it, Intel Macs (no build: the dialog says to use the asset tools), an app/tool version mismatch beyond the protocol number.
+
 **Asset tools on macOS / Linux (2026-10-12)**: `tools/asset_import/import_all.sh` is the counterpart of `import_all.bat` - it makes a `.venv` next to itself
 (gitignored; a Homebrew Python refuses a system-wide `pip install`), installs UnityPy there and runs `import_all.py`. Every import tool now gets the app's user folder from
 `tools/asset_import/user_data.py` (`user_data_dir()`: `%APPDATA%\Godot\...` on Windows, `~/Library/Application Support/Godot/...` on macOS, `~/.local/share/godot/...` on Linux) instead of a

@@ -5,6 +5,13 @@ let the app use its real art - floors, tokens, portraits, monsters and heroes - 
 install. Nothing is downloaded and nothing leaves your computer; the copies stay in your own user folder and are
 never part of the app.
 
+## The easy way: inside the app
+
+Start the app, choose **Game assets** in the main menu and press **Import game assets**. The app finds the game (or lets you
+choose its folder), downloads a small import tool the first time (about 25 MB) and does everything below by itself - no Python
+and no Godot needed. Restart the app afterwards. The rest of this guide is the manual route, for when that button isn't
+available on your computer (for example an Intel Mac) or doesn't work.
+
 ## What you need
 
 1. **The game installed** on this PC (Steam, GOG or Epic).

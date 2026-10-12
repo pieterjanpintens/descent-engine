@@ -63,7 +63,7 @@ import shutil
 import subprocess
 import UnityPy
 
-from user_data import user_data_dir
+from user_data import manifest_list, staging_dir, user_data_dir
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
@@ -86,6 +86,9 @@ def read_hero_names_from_gd():
     """Parses HeroCatalog.gd's HERO_NAMES array - never hand-duplicated,
     same "read the source of truth" convention as every other import
     script here."""
+    from_app = manifest_list("hero_names")
+    if from_app is not None:
+        return list(from_app)
     with open(HERO_CATALOG_GD, "r", encoding="utf-8") as f:
         text = f.read()
     match = re.search(r"const HERO_NAMES: Array\[String\] = \[(.*?)\]", text)
@@ -187,11 +190,16 @@ def run_godot(godot_exe, args, description):
 
 
 def main():
-    if len(sys.argv) != 3:
+    # Run by the app (DESCENT_STAGING_DIR): only stage the .obj files there - the app converts them itself.
+    app_staging = staging_dir("heroes")
+    if len(sys.argv) != (2 if app_staging else 3):
         print(__doc__)
         sys.exit(1)
     bundles_dir = sys.argv[1]
-    godot_exe = sys.argv[2]
+    godot_exe = "" if app_staging else sys.argv[2]
+    global STAGING_DIR
+    if app_staging:
+        STAGING_DIR = app_staging
 
     heroes = read_hero_names_from_gd()
     print(f"Looking for {len(heroes)} hero(es): {heroes}")
@@ -237,6 +245,9 @@ def main():
         shutil.rmtree(STAGING_DIR, ignore_errors=True)
         sys.exit(1)
 
+    if app_staging:
+        print(f"\nStaged {len(staged)} for the app to convert: {STAGING_DIR}")
+        return
     try:
         run_godot(godot_exe, ["--import"], "importing staged .obj files")
         run_godot(godot_exe, ["-s", CONVERT_SCRIPT_RES_PATH], "converting to .tres under user://")

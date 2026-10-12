@@ -60,7 +60,7 @@ import os
 import re
 import UnityPy
 
-from user_data import user_data_dir
+from user_data import manifest_list, user_data_dir
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSET_MAP_GD = os.path.join(SCRIPT_DIR, "..", "..", "autoload", "OfficialAssetMap.gd")
@@ -111,6 +111,9 @@ def read_official_names_from_gd():
     """Parses OfficialAssetMap.gd's MAP dict for the official asset names
     (the dict VALUES, e.g. "W1_Underlay_FetidPool") - never hand-duplicate
     this list, it must always match what the Godot side actually reads."""
+    from_app = manifest_list("official_assets")
+    if from_app is not None:
+        return dict(from_app)
     with open(ASSET_MAP_GD, "r") as f:
         text = f.read()
     match = re.search(r"const MAP: Dictionary = \{(.*?)\n\}", text, re.DOTALL)

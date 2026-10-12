@@ -128,9 +128,42 @@ jobs:
           name: asset-tools
           path: Descent-Engine-asset-tools.zip
 
+  # The standalone import tool the app downloads for its "Game assets" button (tools/asset_import/build_importer.py):
+  # the Python import tools + UnityPy packaged with PyInstaller, which cannot cross-compile - one runner per platform.
+  # continue-on-error: a platform whose build breaks must not block the whole release (the app then says importing
+  # isn't available there and the asset tools zip still works).
+  build-importer:
+    name: Import tool (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-14]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install UnityPy and PyInstaller
+        run: python -m pip install UnityPy pyinstaller
+
+      - name: Build the import tool
+        run: python tools/asset_import/build_importer.py importer-dist
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: importer-${{ matrix.os }}
+          path: importer-dist/*
+
   release:
     name: Create Release
-    needs: [export-windows, export-linux, export-macos, package-asset-tools]
+    needs: [export-windows, export-linux, export-macos, package-asset-tools, build-importer]
     runs-on: ubuntu-24.04
     steps:
       - name: Download artifacts

@@ -20,7 +20,7 @@ DEFAULT_OUTPUT = os.path.join(ROOT, TOP + ".zip")
 # The scripts the import tools read as text.
 PARSED_SCRIPTS = ["autoload/OfficialAssetMap.gd", "scripts/MonsterDisplay.gd", "scripts/HeroCatalog.gd"]
 # Dev-only tools of tools/asset_import that friends do not need.
-SKIP_TOOLS = {"generate_shield_icons.py"}
+SKIP_TOOLS = {"generate_shield_icons.py", "build_importer.py"}
 
 PROJECT_GODOT = """config_version=5
 
@@ -35,6 +35,9 @@ START_HERE = """Descent Engine - asset tools
 
 These tools copy the art and data out of YOUR OWN install of "Descent: Legends of the Dark" so the app can use it.
 Nothing is downloaded and nothing leaves your computer.
+
+The easy way is inside the app itself: main menu > "Game assets" > "Import game assets" (no Python needed).
+These tools are the manual route, for when that is not available on your computer.
 
 1. Install Python 3 (tick "Add python.exe to PATH") and, for the 3D figures, Godot 4.7.2 (the Standard build, unzipped anywhere).
 2. Windows: double-click  tools\\asset_import\\import_all.bat

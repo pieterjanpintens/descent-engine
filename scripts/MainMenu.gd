@@ -15,6 +15,7 @@ extends Control
 @onready var load_campaign_button: Button = %LoadCampaignButton
 
 var _options_dialog: VoiceSettingsDialog
+var _assets_dialog: AssetImportDialog
 
 
 ## Ensures both user:// folders exist before anything tries to browse them -
@@ -27,6 +28,14 @@ func _ready() -> void:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
 	load_campaign_button.disabled = not CampaignIO.has_saves()
+
+
+## Importing the real art and data from the player's own install of the game.
+func _on_assets_button_pressed() -> void:
+	if _assets_dialog == null:
+		_assets_dialog = AssetImportDialog.new()
+		add_child(_assets_dialog)
+	_assets_dialog.open()
 
 
 ## The same Options dialog as the Player's Gear menu (voice control, narration, voices). Nothing is listening in the

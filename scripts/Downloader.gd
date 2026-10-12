@@ -55,3 +55,37 @@ func _progress_text(label: String, http: HTTPRequest) -> String:
 	if total > 0:
 		return "Downloading %s... %d%% (%d / %d MB)" % [label, int(100.0 * http.get_downloaded_bytes() / total), int(done_mb), int(total / 1048576.0)]
 	return "Downloading %s... %d MB" % [label, int(done_mb)]
+
+
+## Unpacks a .zip below `into` (a user:// folder), keeping its folder structure. False (with a `progress` text) on failure.
+func _unzip(archive: String, into: String, label: String) -> bool:
+	var reader := ZIPReader.new()
+	if reader.open(archive) != OK:
+		progress.emit("The %s download isn't a valid zip." % label)
+		return false
+	for entry in reader.get_files():
+		if entry.ends_with("/"):
+			continue
+		var target := ProjectSettings.globalize_path(into.path_join(entry))
+		DirAccess.make_dir_recursive_absolute(target.get_base_dir())
+		var file := FileAccess.open(target, FileAccess.WRITE)
+		if file == null:
+			reader.close()
+			progress.emit("Couldn't write %s (error %d)." % [entry, FileAccess.get_open_error()])
+			return false
+		file.store_buffer(reader.read_file(entry))
+		file.close()
+	reader.close()
+	return true
+
+
+## Unpacks a .tar.gz below `into` with the system `tar` (Linux / macOS; Godot has no reader for it, and tar keeps the
+## executable bits and the links between libraries).
+func _untar(archive: String, into: String, label: String) -> bool:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(into))
+	var output: Array = []
+	var code := OS.execute("tar", ["-xzf", ProjectSettings.globalize_path(archive), "-C", ProjectSettings.globalize_path(into)], output, true)
+	if code != 0:
+		progress.emit("Couldn't unpack the %s (tar exit code %d)." % [label, code])
+		return false
+	return true
