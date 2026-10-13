@@ -73,6 +73,10 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "Load Campaign"
 
+[node name="CommunityButton" type="Button" parent="CenterContainer/Column/MainPanel"]
+layout_mode = 2
+text = "Community"
+
 [node name="OptionsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
 layout_mode = 2
 text = "Options"
@@ -135,6 +139,7 @@ filters = PackedStringArray("*.tres")
 
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/NewCampaignButton" to="." method="_on_new_campaign_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/LoadCampaignButton" to="." method="_on_load_campaign_button_pressed"]
+[connection signal="pressed" from="CenterContainer/Column/MainPanel/CommunityButton" to="." method="_on_community_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/OptionsButton" to="." method="_on_options_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/AssetsButton" to="." method="_on_assets_button_pressed"]
 [connection signal="pressed" from="CenterContainer/Column/MainPanel/EditorsButton" to="." method="_on_editors_button_pressed"]

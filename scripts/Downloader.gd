@@ -12,13 +12,16 @@ signal progress(text: String)
 ## Downloads `url` to `dest` (through a .part file, so an interrupted download
 ## never looks installed), verifying `sha256` when given. Skips the download if
 ## the file is already there and matches.
-func _fetch(url: String, dest: String, sha256: String, label: String) -> bool:
+## `max_bytes` > 0 caps the size of the body (the download stops with an error beyond it).
+func _fetch(url: String, dest: String, sha256: String, label: String, max_bytes: int = -1) -> bool:
 	if FileAccess.file_exists(dest) and (sha256 == "" or FileAccess.get_sha256(dest) == sha256):
 		return true
 	var part := dest + ".part"
 	var http := HTTPRequest.new()
 	http.use_threads = true
 	http.download_file = part
+	if max_bytes > 0:
+		http.body_size_limit = max_bytes
 	add_child(http)
 
 	var result := {"done": false, "code": 0, "status": 0}

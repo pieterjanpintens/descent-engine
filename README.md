@@ -70,6 +70,14 @@ Roughly what the full experience takes:
 
 Without voices it is about 0.3 GB; the voice packs are what make it big, and each one is optional.
 
+## Sharing missions and campaigns
+
+Main menu > **Community** installs missions and campaigns made by other players: import a package file (`.descentpkg`), paste a web address, or browse the
+[community list](https://github.com/pieterjanpintens/descent-engine-community). Packages are only game data - every file is checked before anything is installed - and each version is installed next to the
+others, so your own work and saved games are never touched. To share your own: **File > Export package...** in the mission or campaign editor, then
+**Publish to the community...** - the app submits it under your GitHub account (you sign in once with a code on github.com) and it appears for everyone once it
+is approved. Playing and installing never needs an account. Details: the [community repository](https://github.com/pieterjanpintens/descent-engine-community).
+
 ## What it does
 
 - **Mission Creator** - paint floors, hazards, props and pillars on a grid with the real tile shapes, group them into

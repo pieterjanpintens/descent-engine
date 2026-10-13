@@ -24,6 +24,7 @@ const SETTINGS_PATH := "user://configuration/player-settings.cfg"
 const _SECTION := "voice"
 const _GAMEPLAY := "gameplay"
 const _NARRATION := "narration"
+const _COMMUNITY := "community"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -40,6 +41,10 @@ var narration_enabled: bool = true
 ## The story teller: the voice (NarratorVoices id) that reads everything no character speaks. A player setting - never a
 ## mission's choice - and characters never get this voice.
 var storyteller_voice: String = NarratorVoices.BASE_ID
+## Community sharing: where the catalog of shared missions and campaigns is fetched from (see CommunityService), and the
+## author name the export dialog starts with.
+var community_catalog_url: String = CommunityService.DEFAULT_CATALOG_URL
+var community_author: String = ""
 
 
 func _ready() -> void:
@@ -60,6 +65,8 @@ func load_settings() -> void:
 	auto_camera_to_spawns = config.get_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
 	narration_enabled = config.get_value(_NARRATION, "narration_enabled", narration_enabled)
 	storyteller_voice = config.get_value(_NARRATION, "storyteller_voice", storyteller_voice)
+	community_catalog_url = config.get_value(_COMMUNITY, "catalog_url", community_catalog_url)
+	community_author = config.get_value(_COMMUNITY, "author", community_author)
 
 
 func save_settings() -> void:
@@ -71,6 +78,8 @@ func save_settings() -> void:
 	config.set_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
 	config.set_value(_NARRATION, "narration_enabled", narration_enabled)
 	config.set_value(_NARRATION, "storyteller_voice", storyteller_voice)
+	config.set_value(_COMMUNITY, "catalog_url", community_catalog_url)
+	config.set_value(_COMMUNITY, "author", community_author)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

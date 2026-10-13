@@ -23,6 +23,7 @@ const CREDITS_NOTE := "An unofficial fan project, free to use (MIT license).\n*D
 
 var _options_dialog: VoiceSettingsDialog
 var _assets_dialog: AssetImportDialog
+var _community_dialog: CommunityDialog
 var _credits_panel: VBoxContainer
 
 
@@ -80,6 +81,16 @@ func _on_credits_button_pressed() -> void:
 func _on_credits_back_pressed() -> void:
 	_credits_panel.visible = false
 	main_panel.visible = true
+
+
+## Shared missions and campaigns: what is installed, importing a package, browsing the catalog.
+func _on_community_button_pressed() -> void:
+	if _community_dialog == null:
+		_community_dialog = CommunityDialog.new()
+		_community_dialog.play_mission.connect(_on_mission_file_dialog_file_selected)
+		_community_dialog.open_campaigns.connect(_on_new_campaign_button_pressed)
+		add_child(_community_dialog)
+	_community_dialog.open()
 
 
 ## Importing the real art and data from the player's own install of the game.
