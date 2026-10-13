@@ -6804,6 +6804,52 @@ monsters from edited templates.
 cropped/scaled copy of a photo of a screen - there is a bit of moiré and a cursor icon in it; a clean export would be better) under a 50% dark `ColorRect`, and a **Credits** page (`MainMenu.CREDITS`, a list of
 [role, name] pairs built into a third page of the menu column by `_build_credits_panel()`): Created by Arutha, concept art by Ikkante. Add a line to `CREDITS` to credit someone.
 
+## Community sharing (2026-10-13, branch `feature/community-sharing`, not merged - to be tested by the user)
+
+Sharing missions and campaigns as **packages** (design agreed earlier, see the memory note): nothing is updated in place, a package is only data, and
+everything is checked as plain text BEFORE anything is loaded from it.
+
+**Package** (`SharePackage`, `scripts/SharePackage.gd`, static): a `.descentpkg` = a zip with `manifest.json` (`format` 1, `type` mission|campaign, `id` = stable
+`<author>.<name>` slug, `name`, `author`, `description`, `version` "1.0.0", `rights_confirmed` (the author states they may share the pictures), `files` {name: sha256})
+plus the files: a mission = `mission.tres` only; a campaign = `campaign.tres`, the mission `.tres` files and the pictures (png/jpg/webp) of the campaign folder (flat).
+`SharePackage.read(path)` verifies it all and returns `{ok, errors, manifest, files}`; nothing touches the disk. **What it checks**: the zip's central
+directory is read by hand (`_zip_index`) so the UNPACKED sizes are known before anything is decompressed (zip-bomb safe; no zip64, no encryption); file names (flat, no `..`,
+allowed extensions only: tres/json(manifest)/images), counts and sizes (64 MB package, 160 MB total, 8 MB per .tres, 16 MB per picture, 200 files), the manifest (valid id/version, every
+file listed with a matching sha256, nothing unlisted), pictures (magic bytes, really decodes, <= 8192 px) and - the important part - each `.tres` as TEXT
+(`validate_resource_text`): the file header must be `Resource` with the expected `script_class` (MissionData / Campaign), `ext_resource`s may only be `Script`s under
+`res://scripts/` that exist and extend `Resource` (the app's own data classes), `sub_resource`s only `type="Resource"`, no other section (`[node]`...), no `resource_path`/`script/source`
+property, and only plain-data constructors in values (`ALLOWED_CALLS`: Vector3i, Color, Array, ExtResource, ...; so `Object(...)` and `Resource("path")`, which could load code or other
+files, are refused). Strings are blanked first (`_blank_strings`, same length) so story text with `[Name]` tags or header-looking lines can't fool or false-trigger the check - headers are
+found by character offset. Real files (DemoMission2, both campaigns) pass. `build_mission(mission, meta, out)` / `build_campaign(folder, meta, out)` write a package and then run
+`read()` on it, so an exported package is always importable.
+
+**Installing** (`CommunityLibrary`, static): side by side, every version its own copy - mission -> `user://missions/community/<key>.tres`, campaign -> `user://campaigns/<key>/`
+(`key` = id and version with dots as `_`; it shows in the campaign library like any campaign); " (v1.0.0)" is added to `mission_name` / `campaign_name` inside the file (text edit
+after the checks) so versions can be told apart. Registry `user://community/installed.json` (entries whose files were deleted by hand are dropped when read). Same id + same version
+= "already installed"; a higher version is just another copy. `remove()` only deletes inside the places it installs to (a campaign's save games go too). `compare_versions()`.
+No in-place update, no migration.
+
+**Getting packages** (`CommunityService`, a `Downloader`): `fetch_catalog(url)` reads a catalog `index.json` (`{format 1, packages: [{id, type, name, author, description, version,
+url, sha256, size_bytes}]}`; entries that aren't valid or have no https url / sha256 are skipped; 2 MB cap) - the default catalog is `community/index.json` of THIS repository
+(raw.githubusercontent.com, `CommunityService.DEFAULT_CATALOG_URL`, changed by pull request so somebody looks at additions; `community/README.md` explains how to submit; the
+catalog address is editable in the dialog and kept in `PlayerSettings.community_catalog_url`); `download_package(url, sha256)` fetches a package (only https, a GitHub `blob` link is turned
+into the raw link, 64 MB cap through `Downloader._fetch(..., max_bytes)` = `HTTPRequest.body_size_limit`, checksum from the catalog verified). A catalog package must also have the
+id/version the catalog promised. Nothing is fetched without a click; no account, no server of ours.
+
+**UI**: main menu **Community** button -> `CommunityDialog` (modal): *Installed* tab (rows with Play / Open campaigns / Remove, "Import a package file…" (native file dialog) and a paste-an-https-address
+import) and *Browse online* tab (catalog address + Refresh, rows with Install / "Installed" / "Install this version (you have vX)"). Every import shows a summary first (what, author, size, picture
+rights statement, other installed versions) and installs only on OK; a refused package shows why. Export: **File > Export package…** in the mission editor (the mission as it is in the editor,
+no need to save) and the campaign editor (saves first) -> `PackageExportDialog` (name, author - remembered in `PlayerSettings.community_author` -, version, description, and for packages with pictures
+the required "I made them / may share them" checkbox; name/version/description remembered per mission/campaign in `user://community/export_memory.json`), then a save-file dialog; the result
+dialog shows a ready-made catalog entry (sha256, size; copied to the clipboard) to paste into `community/index.json`.
+
+**Verified headlessly** (throwaway scenes, deleted): export + read + install + load + remove of the real campaign and mission, side-by-side versions, ~15 hostile files (Object(, Resource(path),
+other scripts/scenes/user:// scripts, embedded GDScript, [node], resource_path, wrong class, zip-slip names, folders, executables, bad/missing checksums, bad id, fake picture, non-zip), text
+that only LOOKS like headers inside strings, the dialog flows (review, already installed, refusal, catalog mismatch, remove), catalog entry cleaning, downloads from a local server (checksum,
+size cap, no leftovers), the export dialog writing a valid package, and the main menu / campaign editor / mission editor opening the new dialogs. **Not verified**: the dialogs on screen, the native
+file dialogs, the real GitHub catalog URL (the file isn't on master until this branch is merged and pushed), downloading from a real GitHub release. **Not built**: "new version available" hints
+(the browse tab only shows what you have vs the listed version), signing/author identity (a package's author is just text), sharing monster templates separately (they are embedded in missions).
+
 ## Scene structure (post-refactor)
 
 Split into a minimal reusable piece plus two separate wrappers, specifically so

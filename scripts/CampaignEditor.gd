@@ -35,7 +35,7 @@ var _edit_menu: PopupMenu
 var _open_menu: PopupMenu
 var _open_folders: Array[String] = []
 
-enum FileAction { NEW, SAVE, BACK, OPEN }
+enum FileAction { NEW, SAVE, BACK, OPEN, EXPORT }
 enum EditAction { UNDO, REDO }
 
 ## Undo/redo works on whole-campaign snapshots (like the mission editor's OperationHistory):
@@ -68,6 +68,7 @@ var _suppress: bool = false
 var _new_dialog: ConfirmationDialog
 ## Asks "are you sure" before something destructive; `_confirm_action` runs when confirmed.
 var _confirm_dialog: ConfirmationDialog
+var _export_dialog: PackageExportDialog
 var _confirm_action: Callable
 var _new_name_edit: LineEdit
 var _image_dialog: FileDialog
@@ -101,6 +102,7 @@ func _ready() -> void:
 	_file_menu.add_item("New", FileAction.NEW, (KEY_MASK_CMD_OR_CTRL | KEY_N) as Key)
 	_file_menu.add_submenu_node_item("Open", _open_menu, FileAction.OPEN)
 	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
+	_file_menu.add_item("Export package…", FileAction.EXPORT)
 	_file_menu.add_separator()
 	_file_menu.add_item("Back to Menu", FileAction.BACK)
 	_file_menu.id_pressed.connect(_on_file_action)
@@ -291,6 +293,8 @@ func _ready() -> void:
 	_confirm_dialog.title = "Are you sure?"
 	_confirm_dialog.confirmed.connect(func(): _confirm_action.call())
 	add_child(_confirm_dialog)
+	_export_dialog = PackageExportDialog.new()
+	add_child(_export_dialog)
 
 	_image_dialog = FileDialog.new()
 	_image_dialog.title = "Choose the map image of this act"
@@ -359,6 +363,10 @@ func _on_file_action(id: int) -> void:
 			_new_dialog.popup_centered()
 		FileAction.SAVE:
 			_save()
+		FileAction.EXPORT:
+			if _campaign != null:
+				_save()
+				_export_dialog.open_campaign(_folder, _campaign.campaign_name)
 		FileAction.BACK:
 			_on_back_pressed()
 
@@ -1170,6 +1178,7 @@ func _refresh_all() -> void:
 	_body.visible = has_campaign
 	_welcome_label.visible = not has_campaign
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.SAVE), not has_campaign)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.EXPORT), not has_campaign)
 	if not has_campaign:
 		return
 	_suppress = true

@@ -70,6 +70,13 @@ Roughly what the full experience takes:
 
 Without voices it is about 0.3 GB; the voice packs are what make it big, and each one is optional.
 
+## Sharing missions and campaigns
+
+Main menu > **Community** installs missions and campaigns made by other players: import a package file (`.descentpkg`), paste a web address, or browse the
+[community list](community/index.json). Packages are only game data - every file is checked before anything is installed - and each version is installed next to the
+others, so your own work and saved games are never touched. To share your own: **File > Export package...** in the mission or campaign editor, then see
+[community/README.md](community/README.md).
+
 ## What it does
 
 - **Mission Creator** - paint floors, hazards, props and pillars on a grid with the real tile shapes, group them into

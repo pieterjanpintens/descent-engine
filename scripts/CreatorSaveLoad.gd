@@ -46,7 +46,7 @@ extends PopupMenu
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
-enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK, SAVE_AS }
+enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK, SAVE_AS, EXPORT_PACKAGE }
 
 ## The file the mission in the editor comes from / was last saved to ("" = never saved). Save writes straight to it; Save As asks.
 ## Also the key of the debug snapshots (see DebugSession) and what a Play hands to the Player.
@@ -55,6 +55,7 @@ var current_path: String = ""
 var _settings_dialog: CreatorSettingsDialog
 var _monster_template_editor: MonsterTemplateEditor
 var _notice_dialog: AcceptDialog
+var _export_dialog: PackageExportDialog
 var _objectives_dialog: ObjectivesDialog
 var _variables_dialog: MissionVariablesDialog
 var _characters_dialog: CharactersDialog
@@ -84,6 +85,7 @@ func _ready() -> void:
 	add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
 	add_item("Save As…", FileAction.SAVE_AS, (KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_S) as Key)
 	add_item("Load", FileAction.LOAD, (KEY_MASK_CMD_OR_CTRL | KEY_O) as Key)
+	add_item("Export package…", FileAction.EXPORT_PACKAGE)
 	add_separator()
 	add_item("Monster Templates…", FileAction.MONSTER_TEMPLATES)
 	add_item("Settings…", FileAction.SETTINGS)
@@ -105,6 +107,8 @@ func _ready() -> void:
 	add_child(_monster_template_editor)
 	_notice_dialog = AcceptDialog.new()
 	add_child(_notice_dialog)
+	_export_dialog = PackageExportDialog.new()
+	add_child(_export_dialog)
 
 	# Objectives DAG editor (reworked 2026-09-12 from a single LineEdit) -
 	# built once here and reused across opens, same pattern as
@@ -195,6 +199,10 @@ func _on_id_pressed(id: int) -> void:
 			_on_load_button_pressed()
 		FileAction.SETTINGS:
 			_settings_dialog.open()
+		FileAction.EXPORT_PACKAGE:
+			var mission := layered_map.mission
+			var suggested := mission.mission_name if mission.mission_name != "" else current_path.get_file().get_basename()
+			_export_dialog.open_mission(mission, suggested, current_path.get_file().get_basename() if current_path != "" else mission.mission_name)
 		FileAction.MONSTER_TEMPLATES:
 			_monster_template_editor.open()
 		FileAction.BACK:
