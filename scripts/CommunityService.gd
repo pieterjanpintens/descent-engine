@@ -8,7 +8,12 @@ extends Downloader
 ##
 ## index.json: {"format": 1, "packages": [{id, type, name, author, description, version, url, sha256, size_bytes}]}
 
-const DEFAULT_CATALOG_URL := "https://raw.githubusercontent.com/pieterjanpintens/descent-engine-community/main/index.json"
+const DEFAULT_CATALOG_URL := "https://raw.githubusercontent.com/pieterjanpintens/descent-engine-community/refs/heads/main/index.json"
+## Addresses an earlier version saved as the player's catalog address; they are replaced by the default when settings load.
+const OLD_CATALOG_URLS: Array[String] = [
+	"https://raw.githubusercontent.com/pieterjanpintens/descent-engine/master/community/index.json",
+	"https://raw.githubusercontent.com/pieterjanpintens/descent-engine-community/main/index.json",
+]
 const CATALOG_FILE := "user://community/index.json"
 const DOWNLOAD_FILE := "user://community/download.descentpkg"
 const MAX_CATALOG_BYTES := 2 * 1048576

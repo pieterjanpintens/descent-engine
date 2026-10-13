@@ -66,6 +66,8 @@ func load_settings() -> void:
 	narration_enabled = config.get_value(_NARRATION, "narration_enabled", narration_enabled)
 	storyteller_voice = config.get_value(_NARRATION, "storyteller_voice", storyteller_voice)
 	community_catalog_url = config.get_value(_COMMUNITY, "catalog_url", community_catalog_url)
+	if CommunityService.OLD_CATALOG_URLS.has(community_catalog_url):
+		community_catalog_url = CommunityService.DEFAULT_CATALOG_URL  # saved by an earlier version, now moved
 	community_author = config.get_value(_COMMUNITY, "author", community_author)
 
 
