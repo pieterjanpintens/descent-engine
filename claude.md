@@ -6806,6 +6806,32 @@ cropped/scaled copy of a photo of a screen - there is a bit of moiré and a curs
 
 ## Community sharing (2026-10-13, branch `feature/community-sharing`, not merged - to be tested by the user)
 
+**Publishing from the app (2026-10-13, same branch)** - the catalog side was manual (host the file yourself, paste an entry into `index.json` by pull request); now a
+contributor publishes with one button and players still need no account. **App**: `GitHubClient` (`scripts/GitHubClient.gd`, a Node) = GitHub's **device flow** sign-in
+(`begin_sign_in()` asks `github.com/login/device/code` for a short code, the player types it on github.com, `finish_sign_in()` polls `login/oauth/access_token`; handles
+pending / slow_down / expired / denied / `cancel()`) + `call_json()` (JSON API calls; `as_form` for the two sign-in endpoints); the token is kept in
+`user://community/github.json` ({token, login}, plain text), `sign_out()` deletes it. **`CLIENT_ID` is "" until the project's OAuth App exists** (github.com > Settings >
+Developer settings > OAuth Apps > New, tick "Enable Device Flow", paste the Client ID into `GitHubClient.CLIENT_ID`; it is public by design, the device flow has no secret) -
+while empty the dialog says publishing is not switched on. Scope `public_repo` (GitHub has nothing narrower for "pull request from a fork"). `CommunityPublisher`
+(extends it): `publish(path)` -> checks the package (`SharePackage.read`), refuses a version that is already listed, forks `pieterjanpintens/descent-engine-community` into the
+player's account (waits until the fork exists, `merge-upstream` so an old fork is current), makes branch `submit/<id>-<version>` (reset if it exists), uploads the one file to
+`packages/<id>/<id>-<version>.descentpkg` (contents API, base64; 45 MB cap `MAX_PUBLISH_BYTES`) and opens the pull request (a second publish of the same version updates the open
+one and returns its URL). `PublishDialog` (AcceptDialog: package summary, sign-in with the big code + "Open github.com", Publish, the request's link, Sign out) opens from the
+export result ("Publish to the community…" button in `PackageExportDialog`'s message; the old "paste this catalog entry" text is gone) and from the Community page's Installed tab
+("Publish a package file…").
+**Community repository** (`pieterjanpintens/descent-engine-community`, cloned next to this project; branch `in-app-publishing` there, not pushed): packages live IN the repository;
+`tools/build_index.py` + workflow `build-index.yml` (on push to main) regenerate `index.json` (url = raw.githubusercontent, sha256, size) and `owners.json` (id -> the GitHub login that
+first published it, taken from the merged pull request); `tools/check_submission.py` + workflow `check-submission.yml` (on `pull_request`: read-only token, no secrets, scripts taken
+from the base branch) allow a pull request only to ADD `packages/<id>/<id>-<version>.descentpkg` files whose manifest matches, by the id's owner; a second job runs the app's own check
+in the godot-ci container: **`tools/community/validate_packages.tscn`** in THIS project (`godot --headless --path <project> res://tools/community/validate_packages.tscn -- <folder>`;
+a scene, not `-s`, because the data classes need the autoloads; exit 1 when a package is refused or its file name isn't `<id>-<version>.descentpkg`). `external.json` (optional) lists
+packages hosted elsewhere. Moderation = the maintainer merges the pull request.
+**Verified**: the whole sign-in + publish sequence against a fake GitHub server (form-encoded device calls, polling, fork wait, branch, upload byte-identical, pull request, the
+re-publish path); the validator on a good package, a wrongly named one and a non-zip; the two Python tools in a throwaway git repository (good submission, wrong owner, edits to
+other files / existing packages, rebuild keeps the first owner). **Not verified**: anything against the real GitHub (needs the OAuth App and an account - sign-in, fork, the 45 MB
+upload limit, the pull request), the two workflows in GitHub Actions, the dialogs on screen. The validate job checks out this project's default branch, so it only works once this
+branch is merged.
+
 Sharing missions and campaigns as **packages** (design agreed earlier, see the memory note): nothing is updated in place, a package is only data, and
 everything is checked as plain text BEFORE anything is loaded from it.
 

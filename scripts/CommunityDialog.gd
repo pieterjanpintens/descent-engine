@@ -28,6 +28,8 @@ var _review_label: Label
 var _remove_dialog: ConfirmationDialog
 var _remove_entry: Dictionary = {}
 var _message_dialog: AcceptDialog
+var _publish_file_dialog: FileDialog
+var _publish_dialog: PublishDialog
 
 
 func _ready() -> void:
@@ -113,6 +115,17 @@ func _ready() -> void:
 	_message_dialog.min_size = Vector2i(520, 0)
 	add_child(_message_dialog)
 
+	_publish_dialog = PublishDialog.new()
+	add_child(_publish_dialog)
+	_publish_file_dialog = FileDialog.new()
+	_publish_file_dialog.title = "Choose the package to publish"
+	_publish_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	_publish_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	_publish_file_dialog.use_native_dialog = true
+	_publish_file_dialog.add_filter("*.%s" % SharePackage.EXTENSION, "Descent Engine package")
+	_publish_file_dialog.file_selected.connect(func(path: String): _publish_dialog.open_for(path))
+	add_child(_publish_file_dialog)
+
 	visible = false
 
 
@@ -142,6 +155,12 @@ func _build_installed_tab() -> Control:
 	var file_row := HBoxContainer.new()
 	var import_file := _action_button("Import a package file…", func(): _file_dialog.popup_centered_clamped(Vector2i(820, 560), 0.9))
 	file_row.add_child(import_file)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	file_row.add_child(spacer)
+	var publish_file := _action_button("Publish a package file…", func(): _publish_file_dialog.popup_centered_clamped(Vector2i(820, 560), 0.9))
+	publish_file.tooltip_text = "Submit a package you exported to the community list (needs a GitHub account)."
+	file_row.add_child(publish_file)
 	tab.add_child(file_row)
 	var url_row := HBoxContainer.new()
 	_url_edit = LineEdit.new()

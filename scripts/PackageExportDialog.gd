@@ -22,6 +22,8 @@ var _info_label: Label
 var _file_dialog: FileDialog
 var _message_dialog: AcceptDialog
 var _pending_meta: Dictionary = {}
+var _publish_dialog: PublishDialog
+var _last_package := ""
 
 
 func _ready() -> void:
@@ -65,13 +67,17 @@ func _ready() -> void:
 	_file_dialog.file_selected.connect(_on_file_chosen)
 	_message_dialog = AcceptDialog.new()
 	_message_dialog.min_size = Vector2i(520, 0)
+	_message_dialog.add_button("Publish to the community…", true, "publish")
+	_message_dialog.custom_action.connect(_on_message_action)
+	_publish_dialog = PublishDialog.new()
 	# the two helper windows hang on the main window, not on this dialog: a window with an exclusive child can't show a second one
 	get_tree().root.add_child.call_deferred(_file_dialog)
 	get_tree().root.add_child.call_deferred(_message_dialog)
+	get_tree().root.add_child.call_deferred(_publish_dialog)
 
 
 func _exit_tree() -> void:
-	for helper in [_file_dialog, _message_dialog]:
+	for helper in [_file_dialog, _message_dialog, _publish_dialog]:
 		if is_instance_valid(helper):
 			helper.queue_free()
 
@@ -140,8 +146,7 @@ func _on_confirmed() -> void:
 	elif _rights_box.visible and not _rights_box.button_pressed:
 		problem = "Packages with pictures can only be shared when you confirm you may share them."
 	if problem != "":
-		_message_dialog.dialog_text = problem
-		_message_dialog.popup_centered()
+		_show_message(problem)
 		_message_dialog.confirmed.connect(popup_centered, CONNECT_ONE_SHOT)
 		return
 	_pending_meta = {
@@ -164,29 +169,30 @@ func _on_file_chosen(path: String) -> void:
 	else:
 		problems = SharePackage.build_campaign(_folder, _pending_meta, target)
 	if not problems.is_empty():
-		_message_dialog.dialog_text = "The package could not be made:\n\n- %s" % "\n- ".join(problems.slice(0, 8))
-		_message_dialog.popup_centered()
+		_show_message("The package could not be made:\n\n- %s" % "\n- ".join(problems.slice(0, 8)))
 		return
 	PlayerSettings.community_author = _pending_meta["author"]
 	PlayerSettings.save_settings()
 	var memory := _load_memory()
 	memory[_memory_key] = {"name": _pending_meta["name"], "version": _pending_meta["version"], "description": _pending_meta["description"]}
 	_save_memory(memory)
-	var entry := {
-		"id": SharePackage.make_id(_pending_meta["author"], _pending_meta["name"]),
-		"type": _mode,
-		"name": _pending_meta["name"],
-		"author": _pending_meta["author"],
-		"description": _pending_meta["description"],
-		"version": _pending_meta["version"],
-		"url": "https://… where you uploaded the file",
-		"sha256": FileAccess.get_sha256(target),
-		"size_bytes": FileAccess.get_file_as_bytes(target).size(),
-	}
-	var entry_text := JSON.stringify(entry, "  ")
-	DisplayServer.clipboard_set(entry_text)
-	_message_dialog.dialog_text = "Saved %s\n\nShare this file with anyone - they import it from the Community page in the main menu.\n\nTo list it in the community catalog, upload the file somewhere (a GitHub release works well) and add this entry (copied to your clipboard) to index.json of the descent-engine-community repository on GitHub, as a pull request:\n\n%s" % [target, entry_text]
+	_last_package = target
+	_show_message("Saved %s\n\nShare this file with anyone - they import it from the Community page in the main menu.\n\nTo list it for everyone, press \"Publish to the community…\": the app submits it under your GitHub account, and it appears in the Community page once it is approved." % target, true)
+
+
+## `can_publish`: the message is about a package that was just written, so the Publish button makes sense.
+func _show_message(text: String, can_publish := false) -> void:
+	_message_dialog.dialog_text = text
+	for child in _message_dialog.get_ok_button().get_parent().get_children():
+		if child is Button and child != _message_dialog.get_ok_button():
+			(child as Button).visible = can_publish
 	_message_dialog.popup_centered()
+
+
+func _on_message_action(action: StringName) -> void:
+	if action == &"publish" and _last_package != "":
+		_message_dialog.hide()
+		_publish_dialog.open_for(_last_package)
 
 
 func _load_memory() -> Dictionary:
