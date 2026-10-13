@@ -61,21 +61,26 @@ func publish(package_path: String) -> Dictionary:
 	if existing["status"] != 404:
 		return _failed("The community repository could not be reached (%s)." % _problem(existing))
 
-	progress.emit("Preparing your copy of the community repository...")
-	var forked := await call_json(HTTPClient.METHOD_POST, upstream + "/forks", token, {"default_branch_only": true})
-	if forked["status"] != 202 and forked["status"] != 200:
-		return _failed("Your copy (fork) of the community repository could not be made (%s)." % _problem(forked))
-	var ready := false
-	for attempt in 30:  # a new fork takes a few seconds to appear
-		var probe := await call_json(HTTPClient.METHOD_GET, "%s/git/ref/heads/%s" % [fork, UPSTREAM_BRANCH], token)
-		if probe["status"] == 200:
-			ready = true
-			break
-		await get_tree().create_timer(fork_poll_seconds).timeout
-	if not ready:
-		return _failed("GitHub is still making your copy of the community repository - try again in a minute.")
-	# an older fork is brought up to date, so the pull request only holds this package
-	await call_json(HTTPClient.METHOD_POST, fork + "/merge-upstream", token, {"branch": UPSTREAM_BRANCH})
+	var own_repository := login.to_lower() == upstream_owner.to_lower()
+	if own_repository:
+		# the owner of the community repository can't fork it into their own account - and doesn't need to: the branch goes in the repository itself
+		fork = upstream
+	else:
+		progress.emit("Preparing your copy of the community repository...")
+		var forked := await call_json(HTTPClient.METHOD_POST, upstream + "/forks", token, {"default_branch_only": true})
+		if forked["status"] != 202 and forked["status"] != 200:
+			return _failed("Your copy (fork) of the community repository could not be made (%s)." % _problem(forked))
+		var ready := false
+		for attempt in 30:  # a new fork takes a few seconds to appear
+			var probe := await call_json(HTTPClient.METHOD_GET, "%s/git/ref/heads/%s" % [fork, UPSTREAM_BRANCH], token)
+			if probe["status"] == 200:
+				ready = true
+				break
+			await get_tree().create_timer(fork_poll_seconds).timeout
+		if not ready:
+			return _failed("GitHub is still making your copy of the community repository - try again in a minute.")
+		# an older fork is brought up to date, so the pull request only holds this package
+		await call_json(HTTPClient.METHOD_POST, fork + "/merge-upstream", token, {"branch": UPSTREAM_BRANCH})
 	var head := await call_json(HTTPClient.METHOD_GET, "%s/git/ref/heads/%s" % [fork, UPSTREAM_BRANCH], token)
 	var head_sha := str(((head["data"] as Dictionary).get("object", {}) as Dictionary).get("sha", "")) if typeof(head["data"]) == TYPE_DICTIONARY else ""
 	if head["status"] != 200 or head_sha == "":
@@ -90,10 +95,9 @@ func publish(package_path: String) -> Dictionary:
 
 	progress.emit("Uploading the package (%.1f MB)..." % (bytes.size() / 1048576.0))
 	var title := "%s %s (%s)" % [str(manifest["name"]), version, str(manifest["type"])]
-	var uploaded := await call_json(HTTPClient.METHOD_PUT, "%s/contents/%s" % [fork, file_path.uri_encode().replace("%2F", "/")], token, {
-		"message": "Add " + title, "content": Marshalls.raw_to_base64(bytes), "branch": branch})
-	if uploaded["status"] != 201 and uploaded["status"] != 200:
-		return _failed("The package could not be uploaded (%s)." % _problem(uploaded))
+	var uploaded := await _commit_file(fork, token, head_sha, branch, file_path, bytes, "Add " + title)
+	if uploaded != "":
+		return _failed("The package could not be uploaded (%s)." % uploaded)
 
 	progress.emit("Opening the pull request...")
 	var body := "**%s** %s - a %s by %s\n\n%s\n\n_Submitted from the Descent Engine app. sha256 `%s`, %d bytes._" % [
@@ -110,6 +114,43 @@ func publish(package_path: String) -> Dictionary:
 			progress.emit("Submitted (your open request was updated).")
 			return {"ok": true, "error": "", "url": str(((open_ones["data"] as Array)[0] as Dictionary).get("html_url", ""))}
 	return _failed("The pull request could not be opened (%s)." % _problem(opened))
+
+
+## Puts one file on `branch` with the git data calls (blob, tree, commit, branch update) instead of the one-call contents API:
+## the file is stored first on its own, and a check GitHub does on the push ("repository rule violation ... timed out") only
+## sees a small commit. Each call is tried once more after a pause when GitHub answers 409 or a server error. "" = done,
+## otherwise what went wrong.
+func _commit_file(repo: String, token: String, parent_sha: String, branch: String, file_path: String, bytes: PackedByteArray, message: String) -> String:
+	var blob := await _call_again(HTTPClient.METHOD_POST, repo + "/git/blobs", token, {"content": Marshalls.raw_to_base64(bytes), "encoding": "base64"})
+	if blob["status"] != 201:
+		return "storing the file: " + _problem(blob)
+	var parent := await _call_again(HTTPClient.METHOD_GET, "%s/git/commits/%s" % [repo, parent_sha], token)
+	if parent["status"] != 200 or typeof(parent["data"]) != TYPE_DICTIONARY:
+		return "reading the repository: " + _problem(parent)
+	var base_tree := str(((parent["data"] as Dictionary).get("tree", {}) as Dictionary).get("sha", ""))
+	var tree := await _call_again(HTTPClient.METHOD_POST, repo + "/git/trees", token, {
+		"base_tree": base_tree,
+		"tree": [{"path": file_path, "mode": "100644", "type": "blob", "sha": str((blob["data"] as Dictionary).get("sha", ""))}]})
+	if tree["status"] != 201:
+		return "building the commit: " + _problem(tree)
+	var commit := await _call_again(HTTPClient.METHOD_POST, repo + "/git/commits", token, {
+		"message": message, "tree": str((tree["data"] as Dictionary).get("sha", "")), "parents": [parent_sha]})
+	if commit["status"] != 201:
+		return "making the commit: " + _problem(commit)
+	var moved := await _call_again(HTTPClient.METHOD_PATCH, "%s/git/refs/heads/%s" % [repo, branch], token, {
+		"sha": str((commit["data"] as Dictionary).get("sha", "")), "force": true})
+	if moved["status"] != 200:
+		return "updating the branch: " + _problem(moved)
+	return ""
+
+
+## call_json(), once more after a pause when GitHub answers 409 (conflict / rule check timed out) or a server error.
+func _call_again(method: HTTPClient.Method, url: String, token: String, body: Variant = null) -> Dictionary:
+	var answer := await call_json(method, url, token, body)
+	if int(answer["status"]) == 409 or int(answer["status"]) >= 500:
+		await get_tree().create_timer(4.0).timeout
+		answer = await call_json(method, url, token, body)
+	return answer
 
 
 func _failed(text: String) -> Dictionary:
