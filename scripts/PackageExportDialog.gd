@@ -185,7 +185,7 @@ func _on_file_chosen(path: String) -> void:
 	}
 	var entry_text := JSON.stringify(entry, "  ")
 	DisplayServer.clipboard_set(entry_text)
-	_message_dialog.dialog_text = "Saved %s\n\nShare this file with anyone - they import it from the Community page in the main menu.\n\nTo list it in the community catalog, upload the file somewhere (a GitHub release works well) and add this entry (copied to your clipboard) to community/index.json in the project - see community/README.md:\n\n%s" % [target, entry_text]
+	_message_dialog.dialog_text = "Saved %s\n\nShare this file with anyone - they import it from the Community page in the main menu.\n\nTo list it in the community catalog, upload the file somewhere (a GitHub release works well) and add this entry (copied to your clipboard) to index.json of the descent-engine-community repository on GitHub, as a pull request:\n\n%s" % [target, entry_text]
 	_message_dialog.popup_centered()
 
 

@@ -165,7 +165,7 @@ func _build_browse_tab() -> Control:
 	_catalog_url_edit = LineEdit.new()
 	_catalog_url_edit.text = PlayerSettings.community_catalog_url
 	_catalog_url_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_catalog_url_edit.tooltip_text = "The list of shared packages. By default the one in this project's GitHub repository (community/index.json)."
+	_catalog_url_edit.tooltip_text = "The list of shared packages. By default the one in the descent-engine-community repository on GitHub."
 	url_row.add_child(_catalog_url_edit)
 	url_row.add_child(_action_button("Refresh", _on_refresh_catalog_pressed))
 	tab.add_child(url_row)

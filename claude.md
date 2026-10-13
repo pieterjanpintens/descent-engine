@@ -6830,8 +6830,9 @@ after the checks) so versions can be told apart. Registry `user://community/inst
 No in-place update, no migration.
 
 **Getting packages** (`CommunityService`, a `Downloader`): `fetch_catalog(url)` reads a catalog `index.json` (`{format 1, packages: [{id, type, name, author, description, version,
-url, sha256, size_bytes}]}`; entries that aren't valid or have no https url / sha256 are skipped; 2 MB cap) - the default catalog is `community/index.json` of THIS repository
-(raw.githubusercontent.com, `CommunityService.DEFAULT_CATALOG_URL`, changed by pull request so somebody looks at additions; `community/README.md` explains how to submit; the
+url, sha256, size_bytes}]}`; entries that aren't valid or have no https url / sha256 are skipped; 2 MB cap) - the default catalog is `index.json` of the SEPARATE repository `pieterjanpintens/descent-engine-community`
+(raw.githubusercontent.com `main`, `CommunityService.DEFAULT_CATALOG_URL`, changed by pull request so somebody looks at additions; its README explains how to submit; a local copy of it
+lives in `../descent-engine-community`, created 2026-10-13 - the remote repo has to be created and pushed before the URL works; the
 catalog address is editable in the dialog and kept in `PlayerSettings.community_catalog_url`); `download_package(url, sha256)` fetches a package (only https, a GitHub `blob` link is turned
 into the raw link, 64 MB cap through `Downloader._fetch(..., max_bytes)` = `HTTPRequest.body_size_limit`, checksum from the catalog verified). A catalog package must also have the
 id/version the catalog promised. Nothing is fetched without a click; no account, no server of ours.
@@ -6841,13 +6842,13 @@ import) and *Browse online* tab (catalog address + Refresh, rows with Install / 
 rights statement, other installed versions) and installs only on OK; a refused package shows why. Export: **File > Export package…** in the mission editor (the mission as it is in the editor,
 no need to save) and the campaign editor (saves first) -> `PackageExportDialog` (name, author - remembered in `PlayerSettings.community_author` -, version, description, and for packages with pictures
 the required "I made them / may share them" checkbox; name/version/description remembered per mission/campaign in `user://community/export_memory.json`), then a save-file dialog; the result
-dialog shows a ready-made catalog entry (sha256, size; copied to the clipboard) to paste into `community/index.json`.
+dialog shows a ready-made catalog entry (sha256, size; copied to the clipboard) to paste into that `index.json`.
 
 **Verified headlessly** (throwaway scenes, deleted): export + read + install + load + remove of the real campaign and mission, side-by-side versions, ~15 hostile files (Object(, Resource(path),
 other scripts/scenes/user:// scripts, embedded GDScript, [node], resource_path, wrong class, zip-slip names, folders, executables, bad/missing checksums, bad id, fake picture, non-zip), text
 that only LOOKS like headers inside strings, the dialog flows (review, already installed, refusal, catalog mismatch, remove), catalog entry cleaning, downloads from a local server (checksum,
 size cap, no leftovers), the export dialog writing a valid package, and the main menu / campaign editor / mission editor opening the new dialogs. **Not verified**: the dialogs on screen, the native
-file dialogs, the real GitHub catalog URL (the file isn't on master until this branch is merged and pushed), downloading from a real GitHub release. **Not built**: "new version available" hints
+file dialogs, the real GitHub catalog URL (until the community repository exists on GitHub it is a 404), downloading from a real GitHub release. **Not built**: "new version available" hints
 (the browse tab only shows what you have vs the listed version), signing/author identity (a package's author is just text), sharing monster templates separately (they are embedded in missions).
 
 ## Scene structure (post-refactor)
