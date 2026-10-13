@@ -11,7 +11,7 @@ extends Node
 
 ## The OAuth App of this project on GitHub (github.com > Settings > Developer settings > OAuth Apps, with "Enable Device Flow"
 ## ticked). A client id is public by design - the device flow has no secret. "" = publishing from the app is switched off.
-const CLIENT_ID := ""
+const CLIENT_ID := "Ov23likoWngVahiWxbg2"
 ## What the app asks for. GitHub has no narrower permission for "open a pull request from a fork": this one allows writing to
 ## the player's PUBLIC repositories. The app only ever touches their fork of the community repository.
 const SCOPE := "public_repo"

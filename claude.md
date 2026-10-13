@@ -6810,9 +6810,9 @@ cropped/scaled copy of a photo of a screen - there is a bit of moiré and a curs
 contributor publishes with one button and players still need no account. **App**: `GitHubClient` (`scripts/GitHubClient.gd`, a Node) = GitHub's **device flow** sign-in
 (`begin_sign_in()` asks `github.com/login/device/code` for a short code, the player types it on github.com, `finish_sign_in()` polls `login/oauth/access_token`; handles
 pending / slow_down / expired / denied / `cancel()`) + `call_json()` (JSON API calls; `as_form` for the two sign-in endpoints); the token is kept in
-`user://community/github.json` ({token, login}, plain text), `sign_out()` deletes it. **`CLIENT_ID` is "" until the project's OAuth App exists** (github.com > Settings >
-Developer settings > OAuth Apps > New, tick "Enable Device Flow", paste the Client ID into `GitHubClient.CLIENT_ID`; it is public by design, the device flow has no secret) -
-while empty the dialog says publishing is not switched on. Scope `public_repo` (GitHub has nothing narrower for "pull request from a fork"). `CommunityPublisher`
+`user://community/github.json` ({token, login}, plain text), `sign_out()` deletes it. `CLIENT_ID` is the project's OAuth App (created by the user 2026-10-13, device flow enabled; the id is public by design, the device flow has no secret; the
+app's callback URL is a dummy, the flow never redirects) - with an empty id the dialog says publishing is not switched on. Asking the REAL GitHub for a code with it works
+(checked: a 9-character code, github.com/login/device, 5 s interval). Scope `public_repo` (GitHub has nothing narrower for "pull request from a fork"). `CommunityPublisher`
 (extends it): `publish(path)` -> checks the package (`SharePackage.read`), refuses a version that is already listed, forks `pieterjanpintens/descent-engine-community` into the
 player's account (waits until the fork exists, `merge-upstream` so an old fork is current), makes branch `submit/<id>-<version>` (reset if it exists), uploads the one file to
 `packages/<id>/<id>-<version>.descentpkg` (contents API, base64; 45 MB cap `MAX_PUBLISH_BYTES`) and opens the pull request (a second publish of the same version updates the open
