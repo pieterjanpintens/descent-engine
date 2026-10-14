@@ -40,6 +40,7 @@ var _slot_buttons: Array[Button] = []
 var _start_button: Button
 var _party_panel: CenterContainer
 var _loadout_panel: CenterContainer
+var _loadout_scroll: ScrollContainer
 var _loadout_rows: VBoxContainer
 var _min_players: int = 1
 var _max_players: int = HeroCatalog.SLOT_COUNT
@@ -172,8 +173,14 @@ func _build_ui() -> void:
 	_bold_title(loadout_title)
 	loadout_vbox.add_child(loadout_title)
 
+	# Six heroes with three pickers per weapon is taller than the window: the list scrolls, Start stays in reach
+	# (_fit_loadout_scroll() sizes the scroll area to the window).
+	_loadout_scroll = ScrollContainer.new()
+	_loadout_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	loadout_vbox.add_child(_loadout_scroll)
 	_loadout_rows = VBoxContainer.new()
-	loadout_vbox.add_child(_loadout_rows)
+	_loadout_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_loadout_scroll.add_child(_loadout_rows)
 
 	var loadout_start := Button.new()
 	loadout_start.text = "Start"
@@ -237,6 +244,15 @@ func ask_roster(mission: MissionData) -> Array[int]:
 ## slot. Returns {hero slot index: Array[Weapon]} (two entries each, in
 ## Weapon 1/Weapon 2 order - that POSITION, not the type or the specific
 ## item chosen, is what decides the combat croptop/mesh shown).
+## Makes the list of heroes as tall as it needs, but never taller than the window leaves room for.
+func _fit_loadout_scroll() -> void:
+	_loadout_scroll.custom_minimum_size.y = 0.0
+	await get_tree().process_frame
+	var wanted := _loadout_rows.get_combined_minimum_size().y
+	var room := get_viewport_rect().size.y - 170.0  # the title, the Start button and some air around the box
+	_loadout_scroll.custom_minimum_size.y = minf(wanted, maxf(room, 160.0))
+
+
 func ask_loadouts(roster: Array[int]) -> Dictionary:
 	for child in _loadout_rows.get_children():
 		child.free()
@@ -282,6 +298,8 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 
 			var picker := OptionButton.new()
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			picker.fit_to_longest_item = false  # else the longest weapon text decides the width of the whole page
+			picker.clip_text = true
 			picker.tooltip_text = "Weapon %d (%s)" % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
 				_add_item(picker, ("Rune: " if weapon.is_rune else "") + weapon.summary(), weapon.icon_path)
@@ -317,6 +335,8 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 				options.append(picker_options)
 				var attachment_picker := OptionButton.new()
 				attachment_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				attachment_picker.fit_to_longest_item = false
+				attachment_picker.clip_text = true
 				attachment_picker.add_theme_font_size_override("font_size", 12)
 				attachment_picker.add_item("Part %s: none" % part_slot)
 				for option in picker_options:
@@ -356,6 +376,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	_party_panel.visible = false
 	_loadout_panel.visible = true
 	visible = true
+	_fit_loadout_scroll()
 	await _closed
 	visible = false
 

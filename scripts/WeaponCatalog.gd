@@ -38,7 +38,7 @@ const HERO_WEAPON_TYPES: Array = [
 	["Gloves", "Throwing Knives"],       # Chance
 	["Bow", "Sword"],                    # Galaden - swapped 2026-09-28, acti/actii mismatch confirmed visually
 	["Sword", "Warhammer"],              # Brynn - swapped 2026-09-28, acti/actii mismatch confirmed visually
-	["Staff", "War Bell"],               # Vaerix - swapped 2026-09-28, acti/actii mismatch confirmed visually
+	["Spear", "War Bell"],               # Vaerix - swapped 2026-09-28, acti/actii mismatch confirmed visually; Spear (not Staff) 2026-10-13
 	["Hammer", "Crossbow"],              # Kehli
 	["Staff", "Wand"],                   # Syrus
 ]
@@ -55,6 +55,7 @@ const WEAPONS_BY_TYPE: Dictionary = {
 	"Warhammer": ["Stonebreaker", "Skullcrusher", "Dawnhammer"],
 	"War Bell": ["Bronze War Bell", "Chiming Doom", "Resonant Toll"],
 	"Staff": ["Oaken Staff", "Emberwood Staff", "Moonlit Staff"],
+	"Spear": ["Hunter's Spear", "Ashwood Spear", "Wyrmtooth Lance"],
 	"Hammer": ["Iron Mallet", "Miner's Hammer", "Thunderhead"],
 	"Crossbow": ["True Aim Crossbow", "Rapid Bolt Crossbow", "Deadfall Crossbow"],
 	"Wand": ["Spark Wand", "Frostbite Wand", "Whispering Wand"],
