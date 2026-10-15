@@ -1,3 +1,7 @@
+## v0.0.22 - 2026-10-15
+- Releasing needs an author (your name or GitHub name): no more "anonymous" packages. The author is prefilled from your last name or GitHub sign-in.
+- The message after releasing wraps properly (it was very wide and cut off), and "Publish to the community" now comes before "Save package file".
+
 ## v0.0.21 - 2026-10-15
 - Fixed: a forked campaign is editable again (the editor stayed read-only after a fork).
 - The Community page is for getting packages: importing a file or web address now has its own "Import" tab, and the publish button is gone from that page (publishing stays in the Release dialog).
