@@ -48,6 +48,8 @@ var community_catalog_url: String = CommunityService.DEFAULT_CATALOG_URL
 var community_author: String = ""
 ## App updates: ask GitHub at the main menu whether a newer release exists (AppUpdater). Never installs anything by itself.
 var check_updates: bool = true
+## The version whose "What's new" the player has already been shown (so it opens by itself once after an update).
+var last_seen_version: String = ""
 
 
 func _ready() -> void:
@@ -73,6 +75,7 @@ func load_settings() -> void:
 		community_catalog_url = CommunityService.DEFAULT_CATALOG_URL  # saved by an earlier version, now moved
 	community_author = config.get_value(_COMMUNITY, "author", community_author)
 	check_updates = config.get_value(_UPDATES, "check_updates", check_updates)
+	last_seen_version = config.get_value(_UPDATES, "last_seen_version", last_seen_version)
 
 
 func save_settings() -> void:
@@ -87,6 +90,7 @@ func save_settings() -> void:
 	config.set_value(_COMMUNITY, "catalog_url", community_catalog_url)
 	config.set_value(_COMMUNITY, "author", community_author)
 	config.set_value(_UPDATES, "check_updates", check_updates)
+	config.set_value(_UPDATES, "last_seen_version", last_seen_version)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

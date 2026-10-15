@@ -28,6 +28,7 @@ var _credits_panel: VBoxContainer
 var _updater: AppUpdater
 var _update_button: Button
 var _update_dialog: UpdateDialog
+var _changelog_dialog: ChangelogDialog
 var _update_result: Dictionary = {}
 
 
@@ -49,8 +50,6 @@ func _ready() -> void:
 ## Development builds have no version and show nothing. The check asks GitHub once per run (and only if the player allows it).
 func _build_update_banner() -> void:
 	var current := AppUpdater.current_version()
-	if current == "":
-		return
 	AppUpdater.clean_up()
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
@@ -62,11 +61,27 @@ func _build_update_banner() -> void:
 	_update_button.visible = false
 	_update_button.pressed.connect(_on_update_button_pressed)
 	box.add_child(_update_button)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_END
+	box.add_child(row)
+	var news := Button.new()
+	news.text = "What's new"
+	news.flat = true
+	news.pressed.connect(_open_changelog)
+	row.add_child(news)
+	if current == "":
+		return  # a development build: no version, no update checks
 	var version := Label.new()
 	version.text = "Version %s" % current
-	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	version.modulate = Color(1, 1, 1, 0.55)
-	box.add_child(version)
+	row.add_child(version)
+	# after an update the list of changes opens once by itself (not on a fresh install)
+	if PlayerSettings.last_seen_version != current:
+		var first_run := PlayerSettings.last_seen_version == ""
+		PlayerSettings.last_seen_version = current
+		PlayerSettings.save_settings()
+		if not first_run:
+			_open_changelog()
 	if not PlayerSettings.check_updates:
 		return
 	var result := AppUpdater.last_check
@@ -75,6 +90,13 @@ func _build_update_banner() -> void:
 		add_child(_updater)
 		result = await _updater.check()
 	_show_update(result)
+
+
+func _open_changelog() -> void:
+	if _changelog_dialog == null:
+		_changelog_dialog = ChangelogDialog.new()
+		add_child(_changelog_dialog)
+	_changelog_dialog.open()
 
 
 func _show_update(result: Dictionary) -> void:

@@ -7218,6 +7218,10 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   **Verified headlessly on Windows** with a local test server and a fake install folder: check, checksum parsing/refusal, staging, and the REAL `update.bat` swapping files, keeping the backup and starting the
   app; the dialogs build. **Not verified**: the Linux and macOS helper scripts, a real GitHub release (first one with a version stamp is the next tag - the build running the update must itself be a stamped
   release, so the first update test needs two releases), the dialog on screen, an install in a protected folder.
+- **Changelog in the game (2026-10-15)** - `data/changelog.md` (hand-written, newest first: `## <version> - <date>` then `- ` bullets; shipped because every export preset includes `data/*`)
+  is shown by `ChangelogDialog` (`ChangelogDialog.entries()` parses it) from a "What's new" button at the bottom right of the main menu (also on development builds). A versioned build opens it once by itself
+  after an update (`PlayerSettings.last_seen_version`; a fresh install with no stored version just records it, no popup). **Add an entry to the file with every release** - it is not generated from git.
+  Headless-checked (parsing, dialog and menu build); not seen on screen.
 - **macOS signing fixed (2026-10-12, branch `fix/macos-signing`)** - the v0.0.14 and v0.0.15 Mac builds did not start at all: macOS killed them at launch
   (SIGKILL, exit 137, no output, no crash report). Cause, proven by comparing releases on a Mac: Godot's built-in signer always sets the hardened-runtime flag, and an app
   it signs WITH entitlements (the three added for voice control) is killed; v0.0.13 (same signer, no entitlements) starts, and the same app re-signed with Apple's
