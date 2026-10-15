@@ -1,3 +1,7 @@
+## v0.0.21 - 2026-10-15
+- Fixed: a forked campaign is editable again (the editor stayed read-only after a fork).
+- The Community page is for getting packages: importing a file or web address now has its own "Import" tab, and the publish button is gone from that page (publishing stays in the Release dialog).
+
 ## v0.0.20 - 2026-10-15
 - A "What's new" page in the main menu; it opens by itself once after an update.
 - New main menu background.
