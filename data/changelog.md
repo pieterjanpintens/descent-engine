@@ -1,3 +1,7 @@
+## v0.0.20 - 2026-10-15
+- A "What's new" page in the main menu; it opens by itself once after an update.
+- New main menu background.
+
 ## v0.0.19 - 2026-10-15
 - The app can update itself: when a newer version exists the main menu shows "Update available" and one click downloads, checks and installs it.
 - Releases: a campaign or mission can be released as a frozen, numbered version. Released versions are read-only and save games stay on the version they were started on.
@@ -5,7 +9,6 @@
 - Updating a save game to a newer release is an explicit action that writes a copy and tells you what would change; your original save is never touched.
 - Saves are written safely and keep a backup of the previous state; removing an installed release moves its saves aside instead of deleting them.
 - Weapon choice no longer shows the ability text, the embark loadout page scrolls, and Vaerix starts with a spear.
-- A "What's new" page (this one) in the main menu.
 
 ## v0.0.18 - 2026-10-13
 - Community: share missions and campaigns as packages, browse the online catalog, and publish from inside the app with a GitHub sign-in.
