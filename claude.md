@@ -6821,7 +6821,10 @@ player's account (waits until the fork exists, `merge-upstream` so an old fork i
 `packages/<id>/<id>-<version>.descentpkg` (contents API, base64; 45 MB cap `MAX_PUBLISH_BYTES`) and opens the pull request (a second publish of the same version updates the open
 one and returns its URL). `PublishDialog` (AcceptDialog: package summary, sign-in with the big code + "Open github.com", Publish, the request's link, Sign out) opens from the
 release result ("Publish to the community…" button in `PackageExportDialog`'s message; the old "paste this catalog entry" text is gone). The Community page's old
-"Publish a package file…" button was removed 2026-10-15 - that page is for getting packages only. The manual import (choose a file / paste an https address) moved from the bottom of
+"Publish a package file…" button was removed 2026-10-15 - that page is for getting packages only. **Package ids need an author (2026-10-15)**: a release made with an empty author got the id
+`anonymous.<name>` (a published file name `anonymous.finding-the-lost-scroll-1.0.1.descentpkg`) - not related to being signed in, the author field of the Release dialog decides it. Now the dialog
+refuses an empty author, prefills it from the last author name or else the saved GitHub login, re-derives a remembered `anonymous.` id as soon as there is an author (`_id_for()`; a real remembered id stays
+fixed so every version is the same package), the suggested version follows the author/name fields until the player types one, and `CommunityPublisher.publish()` refuses `anonymous.` ids. The manual import (choose a file / paste an https address) moved from the bottom of
 the Installed tab to its own third tab, **Import**, after Browse online (`_build_import_tab()`); installing still jumps back to the Installed tab.
 **Community repository** (`pieterjanpintens/descent-engine-community`, cloned next to this project; branch `in-app-publishing` there, not pushed): packages live IN the repository;
 `tools/build_index.py` + workflow `build-index.yml` (on push to main) regenerate `index.json` (url = raw.githubusercontent, sha256, size) and `owners.json` (id -> the GitHub login that

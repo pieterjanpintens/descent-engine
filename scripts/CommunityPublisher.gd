@@ -43,6 +43,8 @@ func publish(package_path: String) -> Dictionary:
 	var manifest: Dictionary = package["manifest"]
 	var id := str(manifest["id"])
 	var version := str(manifest["version"])
+	if id.begins_with(SharePackage.ANONYMOUS_AUTHOR + "."):
+		return _failed("This release has no author (its id starts with \"anonymous\"), so it can't go in the community list. Release it again with your name or GitHub name filled in as the author - the old release can stay or be removed on the Community page.")
 	var bytes := FileAccess.get_file_as_bytes(package_path)
 	if bytes.size() > MAX_PUBLISH_BYTES:
 		return _failed("This package is %d MB; the Publish button takes up to %d MB. Share the file itself instead." % [bytes.size() / 1048576, MAX_PUBLISH_BYTES / 1048576])

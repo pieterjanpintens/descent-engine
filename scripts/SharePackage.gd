@@ -426,11 +426,16 @@ static func _script_allowed(path: String) -> bool:
 
 # ------------------------------------------------------------------ building
 
+## What the author part of an id falls back to when no author was filled in. The release dialog no longer allows that, and the
+## community publisher refuses such ids (they would all be one shared namespace).
+const ANONYMOUS_AUTHOR := "anonymous"
+
+
 ## A stable id for the things an author shares: <author>.<name>, lower case.
 static func make_id(author: String, package_name: String) -> String:
 	var author_part := _slug(author)
 	if author_part == "":
-		author_part = "anonymous"
+		author_part = ANONYMOUS_AUTHOR
 	var name_part := _slug(package_name)
 	if name_part == "":
 		name_part = "untitled"

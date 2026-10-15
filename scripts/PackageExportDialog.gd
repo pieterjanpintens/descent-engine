@@ -23,6 +23,8 @@ var _info_label: Label
 var _file_dialog: FileDialog
 const MESSAGE_WIDTH := 540
 
+var _version_touched := false
+
 var _message_dialog: AcceptDialog
 var _message_label: Label
 var _publish_dialog: PublishDialog
@@ -40,6 +42,9 @@ func _ready() -> void:
 	_name_edit = _add_row(box, "Name")
 	_author_edit = _add_row(box, "Author")
 	_version_edit = _add_row(box, "Version")
+	_version_edit.text_changed.connect(func(_text: String): _version_touched = true)
+	_author_edit.text_changed.connect(_on_author_or_name_changed)
+	_name_edit.text_changed.connect(_on_author_or_name_changed)
 	var description_label := Label.new()
 	description_label.text = "Description"
 	box.add_child(description_label)
@@ -145,15 +150,35 @@ func open_campaign(folder: String, suggested_name: String) -> void:
 func _fill(suggested_name: String) -> void:
 	var memory := _load_memory().get(_memory_key, {}) as Dictionary
 	_name_edit.text = CommunityLibrary.strip_version_suffix(str(memory.get("name", suggested_name)))
-	_author_edit.text = PlayerSettings.community_author
+	# the author makes the package id ("<author>.<name>"): the name used last, else the GitHub account the player signed in with
+	var author := PlayerSettings.community_author
+	if author == "":
+		author = str(GitHubClient.saved_account().get("login", ""))
+	_author_edit.text = author
+	_author_edit.placeholder_text = "your name or GitHub name"
 	_description_edit.text = str(memory.get("description", ""))
+	_version_touched = false
 	_version_edit.text = _suggested_version()
 	_version_edit.tooltip_text = "Numbers separated by dots, like 1.0 or 1.2.1. It always starts one patch above your highest release of this package; a released version is never replaced."
 	popup_centered()
 
 
+## The author field decides the package id, so the suggested version follows it until the player types a version themselves.
+func _on_author_or_name_changed(_text: String) -> void:
+	if not _version_touched and _version_edit != null:
+		_version_edit.text = _suggested_version()
+
+
+## The package id: the one remembered for this draft (so every version is the same package), unless it was made while the author was
+## still empty ("anonymous.<name>") - that placeholder is replaced as soon as there is an author.
+func _id_for(author: String, package_name: String) -> String:
+	if _package_id != "" and not _package_id.begins_with(SharePackage.ANONYMOUS_AUTHOR + "."):
+		return _package_id
+	return SharePackage.make_id(author, package_name)
+
+
 func _suggested_version() -> String:
-	var id := _package_id if _package_id != "" else SharePackage.make_id(_author_edit.text.strip_edges(), _name_edit.text.strip_edges())
+	var id := _id_for(_author_edit.text.strip_edges(), _name_edit.text.strip_edges())
 	var newest := CommunityLibrary.newest_version(id)
 	return CommunityLibrary.next_version(newest) if newest != "" else "1.0.0"
 
@@ -164,6 +189,8 @@ func _on_confirmed() -> void:
 	var problem := ""
 	if package_name == "":
 		problem = "Give the package a name."
+	elif _author_edit.text.strip_edges() == "":
+		problem = "Fill in an author: your name or your GitHub name. It becomes part of the package's id, so it can't be left empty."
 	elif RegEx.create_from_string("^[0-9]+(\\.[0-9]+){0,3}$").search(version) == null:
 		problem = "The version must be numbers separated by dots, like 1.0 or 1.2.1."
 	elif _rights_box.visible and not _rights_box.button_pressed:
@@ -172,7 +199,7 @@ func _on_confirmed() -> void:
 		_show_message(problem, false, true)
 		return
 	var author := _author_edit.text.strip_edges()
-	var id := _package_id if _package_id != "" else SharePackage.make_id(author, package_name)
+	var id := _id_for(author, package_name)
 	var meta := {
 		"name": package_name,
 		"author": author,
