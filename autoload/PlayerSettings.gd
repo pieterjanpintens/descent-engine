@@ -25,6 +25,7 @@ const _SECTION := "voice"
 const _GAMEPLAY := "gameplay"
 const _NARRATION := "narration"
 const _COMMUNITY := "community"
+const _UPDATES := "updates"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -45,6 +46,8 @@ var storyteller_voice: String = NarratorVoices.BASE_ID
 ## author name the export dialog starts with.
 var community_catalog_url: String = CommunityService.DEFAULT_CATALOG_URL
 var community_author: String = ""
+## App updates: ask GitHub at the main menu whether a newer release exists (AppUpdater). Never installs anything by itself.
+var check_updates: bool = true
 
 
 func _ready() -> void:
@@ -69,6 +72,7 @@ func load_settings() -> void:
 	if CommunityService.OLD_CATALOG_URLS.has(community_catalog_url):
 		community_catalog_url = CommunityService.DEFAULT_CATALOG_URL  # saved by an earlier version, now moved
 	community_author = config.get_value(_COMMUNITY, "author", community_author)
+	check_updates = config.get_value(_UPDATES, "check_updates", check_updates)
 
 
 func save_settings() -> void:
@@ -82,6 +86,7 @@ func save_settings() -> void:
 	config.set_value(_NARRATION, "storyteller_voice", storyteller_voice)
 	config.set_value(_COMMUNITY, "catalog_url", community_catalog_url)
 	config.set_value(_COMMUNITY, "author", community_author)
+	config.set_value(_UPDATES, "check_updates", check_updates)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

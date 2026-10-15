@@ -30,6 +30,13 @@ jobs:
           mv /root/.config/godot ~/.config/godot
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
 
+      # The app reads its own version from here (AppUpdater.current_version()) to tell whether a newer release exists.
+      - name: Stamp the version
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then V="${GITHUB_REF_NAME}"; else V="dev"; fi
+          sed -i "s|^config/name=.*|&\nconfig/version=\"${V}\"|" project.godot
+          grep -n "^config/" project.godot
+
       - name: Windows Build
         run: |
           mkdir -v -p build/windows
@@ -64,6 +71,12 @@ jobs:
           mv /root/.config/godot ~/.config/godot
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
 
+      - name: Stamp the version
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then V="${GITHUB_REF_NAME}"; else V="dev"; fi
+          sed -i "s|^config/name=.*|&\nconfig/version=\"${V}\"|" project.godot
+          grep -n "^config/" project.godot
+
       - name: Linux Build
         run: |
           mkdir -v -p build/linux
@@ -97,6 +110,12 @@ jobs:
           mkdir -v -p ~/.config/
           mv /root/.config/godot ~/.config/godot
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+      - name: Stamp the version
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then V="${GITHUB_REF_NAME}"; else V="dev"; fi
+          sed -i "s|^config/name=.*|&\nconfig/version=\"${V}\"|" project.godot
+          grep -n "^config/" project.godot
 
       # The "macOS" preset exports a universal (Intel + Apple silicon) .app inside a zip, ad-hoc signed by Godot's built-in
       # signer - no Apple account, so macOS shows an "unidentified developer" warning on first launch (right-click > Open).

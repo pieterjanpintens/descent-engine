@@ -7207,6 +7207,17 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   downloaded from the real GitHub release), and the voice downloads work. So the `sign-macos` job, the real download URL and the macOS import tool are proven in an exported
   app. **Windows was tested by the user too and worked** (the import tool there included). The Mac build asks for microphone permission as it should (so the usage text alone is enough without the hardened runtime). Not reported
   yet: a spoken command being recognised and narration being heard in the Mac build; anything on Linux (the import tool, and the narration SIGPIPE fix).
+- **Auto-update (2026-10-15, branch `feature/auto-update`)** - a released build updates itself with one click. The release workflow stamps the tag into `project.godot`
+  (`config/version`, "dev" for a manual run; step "Stamp the version" in the three export jobs), `AppUpdater.current_version()` reads it (editor / dev builds have none = no checks, no banner).
+  `AppUpdater` (extends `Downloader`): `check()` asks `api.github.com/repos/<repo>/releases/latest` once per run (`last_check`, only when `PlayerSettings.check_updates`, default on, Options
+  checkbox) and gives `{tag, notes, page, assets, newer, blocked}`; `download_and_stage()` fetches `Descent-Engine-<windows|linux|macos>.zip` and `SHA256SUMS.txt`, verifies the zip's hash
+  (integrity only - the builds are not signed) and unpacks it to `user://updates/<tag>/staged` (macOS via `ditto`, which keeps the bundle intact); `apply()` writes a helper script (`update.bat` /
+  `update.sh`) that waits for this process to exit, copies the old files to `user://updates/backup`, copies the new ones over (restoring the backup if that fails) and starts the app again, and the
+  app quits. `cannot_install_reason()`: editor build, renamed executable, not an .app bundle, or an unwritable install folder (e.g. Program Files) -> `blocked`, and the `UpdateDialog` then only offers
+  the release page. Main menu: bottom-right "Version x" label and an "Update available: vX" button opening `UpdateDialog` (notes, "Install and restart", "Release page"); `clean_up()` removes old staging.
+  **Verified headlessly on Windows** with a local test server and a fake install folder: check, checksum parsing/refusal, staging, and the REAL `update.bat` swapping files, keeping the backup and starting the
+  app; the dialogs build. **Not verified**: the Linux and macOS helper scripts, a real GitHub release (first one with a version stamp is the next tag - the build running the update must itself be a stamped
+  release, so the first update test needs two releases), the dialog on screen, an install in a protected folder.
 - **macOS signing fixed (2026-10-12, branch `fix/macos-signing`)** - the v0.0.14 and v0.0.15 Mac builds did not start at all: macOS killed them at launch
   (SIGKILL, exit 137, no output, no crash report). Cause, proven by comparing releases on a Mac: Godot's built-in signer always sets the hardened-runtime flag, and an app
   it signs WITH entitlements (the three added for voice control) is killed; v0.0.13 (same signer, no entitlements) starts, and the same app re-signed with Apple's

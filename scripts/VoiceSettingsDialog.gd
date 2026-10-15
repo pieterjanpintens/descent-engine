@@ -87,6 +87,16 @@ func _ready() -> void:
 		PlayerSettings.save_settings())
 	vbox.add_child(camera_check)
 
+	if AppUpdater.current_version() != "":
+		var update_check := CheckBox.new()
+		update_check.text = "Check for a newer version of the app at the main menu"
+		update_check.tooltip_text = "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+		update_check.button_pressed = PlayerSettings.check_updates
+		update_check.toggled.connect(func(pressed: bool):
+			PlayerSettings.check_updates = pressed
+			PlayerSettings.save_settings())
+		vbox.add_child(update_check)
+
 	vbox.add_child(HSeparator.new())
 
 	var voice_title := Label.new()

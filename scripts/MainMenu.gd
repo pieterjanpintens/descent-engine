@@ -25,6 +25,10 @@ var _options_dialog: VoiceSettingsDialog
 var _assets_dialog: AssetImportDialog
 var _community_dialog: CommunityDialog
 var _credits_panel: VBoxContainer
+var _updater: AppUpdater
+var _update_button: Button
+var _update_dialog: UpdateDialog
+var _update_result: Dictionary = {}
 
 
 ## Ensures both user:// folders exist before anything tries to browse them -
@@ -38,6 +42,54 @@ func _ready() -> void:
 			DirAccess.make_dir_recursive_absolute(dir)
 	load_campaign_button.disabled = not CampaignIO.has_saves()
 	_build_credits_panel()
+	await _build_update_banner()
+
+
+## Bottom-right: the version of this build and, when a newer release exists, a button that opens the update dialog.
+## Development builds have no version and show nothing. The check asks GitHub once per run (and only if the player allows it).
+func _build_update_banner() -> void:
+	var current := AppUpdater.current_version()
+	if current == "":
+		return
+	AppUpdater.clean_up()
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
+	box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	box.alignment = BoxContainer.ALIGNMENT_END
+	add_child(box)
+	_update_button = Button.new()
+	_update_button.visible = false
+	_update_button.pressed.connect(_on_update_button_pressed)
+	box.add_child(_update_button)
+	var version := Label.new()
+	version.text = "Version %s" % current
+	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	version.modulate = Color(1, 1, 1, 0.55)
+	box.add_child(version)
+	if not PlayerSettings.check_updates:
+		return
+	var result := AppUpdater.last_check
+	if result.is_empty():
+		_updater = AppUpdater.new()
+		add_child(_updater)
+		result = await _updater.check()
+	_show_update(result)
+
+
+func _show_update(result: Dictionary) -> void:
+	if not bool(result.get("ok", false)) or not bool(result.get("newer", false)):
+		return
+	_update_result = result
+	_update_button.text = "Update available: %s" % str(result["tag"])
+	_update_button.visible = true
+
+
+func _on_update_button_pressed() -> void:
+	if _update_dialog == null:
+		_update_dialog = UpdateDialog.new()
+		add_child(_update_dialog)
+	_update_dialog.open_for(_update_result)
 
 
 ## The credits page - a third page of the same column as the main and editors pages, built from CREDITS.
