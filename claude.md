@@ -7216,8 +7216,8 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   app quits. `cannot_install_reason()`: editor build, renamed executable, not an .app bundle, or an unwritable install folder (e.g. Program Files) -> `blocked`, and the `UpdateDialog` then only offers
   the release page. Main menu: bottom-right "Version x" label and an "Update available: vX" button opening `UpdateDialog` (notes, "Install and restart", "Release page"); `clean_up()` removes old staging.
   **Verified headlessly on Windows** with a local test server and a fake install folder: check, checksum parsing/refusal, staging, and the REAL `update.bat` swapping files, keeping the backup and starting the
-  app; the dialogs build. **Not verified**: the Linux and macOS helper scripts, a real GitHub release (first one with a version stamp is the next tag - the build running the update must itself be a stamped
-  release, so the first update test needs two releases), the dialog on screen, an install in a protected folder.
+  app; the dialogs build. **Confirmed by the user on Windows (2026-10-15)**: a real v0.0.19 -> v0.0.20 update through GitHub worked end to end (so the release workflow's version stamp works too).
+  **Not verified**: the Linux and macOS helper scripts, an install in a protected folder (Program Files), the "What's new" popup after an update.
 - **Changelog in the game (2026-10-15)** - `data/changelog.md` (hand-written, newest first: `## <version> - <date>` then `- ` bullets; shipped because every export preset includes `data/*`)
   is shown by `ChangelogDialog` (`ChangelogDialog.entries()` parses it) from a "What's new" button at the bottom right of the main menu (also on development builds). A versioned build opens it once by itself
   after an update (`PlayerSettings.last_seen_version`; a fresh install with no stored version just records it, no popup). **Add an entry to the file with every release** - it is not generated from git.
