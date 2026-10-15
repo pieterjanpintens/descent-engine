@@ -12,6 +12,10 @@ A walkthrough of the campaign player (click to watch on YouTube):
 
 [![Campaign walkthrough](https://img.youtube.com/vi/Ha-fwiLSWd0/hqdefault.jpg)](https://youtu.be/Ha-fwiLSWd0)
 
+A getting started guide for players - installing, importing the game's art, and playing your first campaign:
+
+[![Getting started guide](https://img.youtube.com/vi/uQX28RRIPms/hqdefault.jpg)](https://youtu.be/uQX28RRIPms)
+
 ## Getting started
 
 1. **Install the game on Steam** - *Descent: Legends of the Dark*. You only need it for the real art and data (step 5); without it the app works
