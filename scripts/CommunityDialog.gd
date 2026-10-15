@@ -68,8 +68,10 @@ func _ready() -> void:
 	vbox.add_child(_tabs)
 	_tabs.add_child(_build_installed_tab())
 	_tabs.add_child(_build_browse_tab())
+	_tabs.add_child(_build_import_tab())
 	_tabs.set_tab_title(0, "Installed")
 	_tabs.set_tab_title(1, "Browse online")
+	_tabs.set_tab_title(2, "Import")
 
 	_status_label = _small_label("")
 	vbox.add_child(_status_label)
@@ -137,15 +139,23 @@ func _build_installed_tab() -> Control:
 	_installed_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_installed_box.add_theme_constant_override("separation", 6)
 	scroll.add_child(_installed_box)
+	return tab
 
-	tab.add_child(HSeparator.new())
+
+## A package you were handed (a file, or a link to one) instead of one from the online list.
+func _build_import_tab() -> Control:
+	var tab := VBoxContainer.new()
+	tab.name = "Import"
+	tab.add_theme_constant_override("separation", 10)
+	tab.add_child(_small_label("Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."))
 	var file_row := HBoxContainer.new()
-	var import_file := _action_button("Import a package file…", func(): _file_dialog.popup_centered_clamped(Vector2i(820, 560), 0.9))
-	file_row.add_child(import_file)
+	file_row.add_child(_action_button("Choose a package file…", func(): _file_dialog.popup_centered_clamped(Vector2i(820, 560), 0.9)))
 	tab.add_child(file_row)
+	tab.add_child(HSeparator.new())
+	tab.add_child(_small_label("Or a web address (https://…) of a package file:"))
 	var url_row := HBoxContainer.new()
 	_url_edit = LineEdit.new()
-	_url_edit.placeholder_text = "…or paste a web address (https://…) of a package file"
+	_url_edit.placeholder_text = "https://…"
 	_url_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_url_edit.text_submitted.connect(func(_text: String): _on_import_url_pressed())
 	url_row.add_child(_url_edit)
@@ -217,7 +227,7 @@ func _refresh_installed() -> void:
 	_clear(_installed_box)
 	var entries := CommunityLibrary.installed()
 	if entries.is_empty():
-		_installed_box.add_child(_small_label("Nothing installed yet. Import a package file, paste a web address, or browse online."))
+		_installed_box.add_child(_small_label("Nothing installed yet. Browse online, or use the Import tab for a package file or a web address."))
 		return
 	entries.reverse()
 	for entry in entries:
