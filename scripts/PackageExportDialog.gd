@@ -21,7 +21,10 @@ var _description_edit: TextEdit
 var _rights_box: CheckBox
 var _info_label: Label
 var _file_dialog: FileDialog
+const MESSAGE_WIDTH := 540
+
 var _message_dialog: AcceptDialog
+var _message_label: Label
 var _publish_dialog: PublishDialog
 var _last_package := ""
 
@@ -65,9 +68,14 @@ func _ready() -> void:
 	_file_dialog.add_filter("*.%s" % SharePackage.EXTENSION, "Descent Engine package")
 	_file_dialog.file_selected.connect(_on_file_chosen)
 	_message_dialog = AcceptDialog.new()
-	_message_dialog.min_size = Vector2i(520, 0)
-	_message_dialog.add_button("Save package file…", true, "save_file")
+	# The dialog's own label grows as wide as the longest line (and the text got cut off); a label of a fixed width that wraps does not.
+	_message_dialog.get_label().visible = false
+	_message_label = Label.new()
+	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_message_label.custom_minimum_size = Vector2(MESSAGE_WIDTH, 0)
+	_message_dialog.add_child(_message_label)
 	_message_dialog.add_button("Publish to the community…", true, "publish")
+	_message_dialog.add_button("Save package file…", true, "save_file")
 	_message_dialog.custom_action.connect(_on_message_action)
 	_publish_dialog = PublishDialog.new()
 	# the helper windows hang on the main window, not on this dialog: a window with an exclusive child can't show a second one
@@ -198,7 +206,7 @@ func _on_confirmed() -> void:
 ## `can_share`: the message is about a package that was just released, so the save / publish buttons make sense.
 ## `retry`: re-open this dialog when the message is closed (a form problem).
 func _show_message(text: String, can_share := false, retry := false) -> void:
-	_message_dialog.dialog_text = text
+	_message_label.text = text
 	for child in _message_dialog.get_ok_button().get_parent().get_children():
 		if child is Button and child != _message_dialog.get_ok_button():
 			(child as Button).visible = can_share
@@ -206,7 +214,10 @@ func _show_message(text: String, can_share := false, retry := false) -> void:
 		_message_dialog.confirmed.disconnect(popup_centered)
 	if retry:
 		_message_dialog.confirmed.connect(popup_centered, CONNECT_ONE_SHOT)
+	# shrink to the wrapped text first, or an earlier longer message leaves the box too big (or too small) for this one
+	_message_dialog.size = Vector2i(MESSAGE_WIDTH + 40, 0)
 	_message_dialog.popup_centered()
+	_message_dialog.reset_size.call_deferred()
 
 
 func _on_message_action(action: StringName) -> void:
