@@ -6,6 +6,9 @@ extends Resource
 ## counter and what the party owns. One save per campaign, in user://campaign_saves/.
 
 @export var campaign_folder: String = ""
+## Which package and version this save was started on ("" for a draft or an older save) - shown in the lists, and what an update starts from.
+@export var campaign_id: String = ""
+@export var campaign_version: String = ""
 ## The name of this save game (a campaign can have several playthroughs).
 @export var save_name: String = ""
 @export var current_act: int = 0

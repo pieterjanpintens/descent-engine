@@ -252,7 +252,7 @@ func _installed_row(entry: Dictionary) -> Control:
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(text)
 	var title := Label.new()
-	title.text = "%s   v%s" % [entry.get("name", ""), entry.get("version", "")]
+	title.text = "%s   v%s%s" % [entry.get("name", ""), entry.get("version", ""), "   (your release)" if entry.get("source", "") == "own" else ""]
 	text.add_child(title)
 	var meta := _small_label("%s%s" % ["Mission" if is_mission else "Campaign", " - by %s" % entry["author"] if str(entry.get("author", "")) != "" else ""])
 	text.add_child(meta)
@@ -268,6 +268,9 @@ func _installed_row(entry: Dictionary) -> Control:
 			open_campaigns.emit()
 	)
 	box.add_child(play)
+	var fork := _action_button("Fork to edit", func(): _fork(entry))
+	fork.tooltip_text = "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+	box.add_child(fork)
 	var remove := _action_button("Remove", func(): _ask_remove(entry))
 	box.add_child(remove)
 	return row
@@ -275,9 +278,28 @@ func _installed_row(entry: Dictionary) -> Control:
 
 func _ask_remove(entry: Dictionary) -> void:
 	_remove_entry = entry
-	var extra := "\nIts save games are removed too." if entry.get("type", "") == SharePackage.TYPE_CAMPAIGN else ""
+	var extra := ""
+	if entry.get("type", "") == SharePackage.TYPE_CAMPAIGN:
+		var saves := CampaignIO.save_keys(str(entry.get("path", "")).get_file()).size()
+		if saves > 0:
+			extra = "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted." % saves
 	_remove_dialog.dialog_text = "Remove \"%s\" version %s from this computer?%s" % [entry.get("name", ""), entry.get("version", ""), extra]
 	_remove_dialog.popup_centered()
+
+
+func _fork(entry: Dictionary) -> void:
+	var base_name := CommunityLibrary.strip_version_suffix(str(entry.get("name", "")))
+	if base_name == "":
+		base_name = "copy"
+	var made := ""
+	if entry.get("type", "") == SharePackage.TYPE_MISSION:
+		made = CommunityLibrary.fork_mission(str(entry["path"]), base_name)
+	else:
+		made = CampaignIO.fork(str(entry["path"]).get_file(), base_name)
+	if made == "":
+		_status_label.text = "Could not fork %s." % entry.get("name", "")
+	else:
+		_status_label.text = "Forked %s into your draft \"%s\" - open it in the %s editor." % [entry.get("name", ""), made.get_file().get_basename(), "mission" if entry.get("type", "") == SharePackage.TYPE_MISSION else "campaign"]
 
 
 func _on_remove_confirmed() -> void:

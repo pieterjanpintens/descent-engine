@@ -8,6 +8,11 @@ extends RefCounted
 const ROOT := "user://campaigns"
 const FILE_NAME := "campaign.tres"
 const SAVES_ROOT := "user://campaign_saves"
+const DRAFT_FILE := "draft.json"
+## Sub-folders of a campaign's save folder (never listed as save games): the previous state of each save, and saves of removed releases.
+const BACKUP_DIR := "_backups"
+const TEMP_DIR := "_tmp"
+const REMOVED_DIR := "_removed"
 ## A book cover is trimmed to this 2:3 portrait ratio (and scaled to this size) when imported.
 const COVER_SIZE := Vector2i(400, 600)
 
@@ -27,6 +32,66 @@ static func folder_path(folder: String) -> String:
 	return "%s/%s" % [ROOT, folder]
 
 
+## Whether `folder` is a frozen RELEASE: an installed package (one of the player's own releases or one from the community). A release is
+## never written to - saves are bound to its exact content. Every other campaign folder is a draft the author may change.
+static func is_release(folder: String) -> bool:
+	return not CommunityLibrary.entry_for_path(folder_path(folder)).is_empty()
+
+
+## The registry entry of release `folder` ({} for a draft).
+static func release_entry(folder: String) -> Dictionary:
+	return CommunityLibrary.entry_for_path(folder_path(folder))
+
+
+## Small facts about a DRAFT, kept next to it (not packed into packages): {package_id, forked_from_id, forked_from_version}.
+static func draft_info(folder: String) -> Dictionary:
+	var path := "%s/%s" % [folder_path(folder), DRAFT_FILE]
+	if not FileAccess.file_exists(path):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+
+
+static func write_draft_info(folder: String, info: Dictionary) -> void:
+	var file := FileAccess.open("%s/%s" % [folder_path(folder), DRAFT_FILE], FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(info, "\t"))
+		file.close()
+
+
+## Copies the release (or any campaign) `source` into a NEW draft called `new_name` and returns the new folder key ("" on failure).
+## No save games are copied; the " (v1.0.0)" an install adds to the name is dropped.
+static func fork(source: String, new_name: String) -> String:
+	var base := key_for(new_name)
+	if base == "":
+		base = "campaign"
+	var folder := base
+	var number := 2
+	while DirAccess.dir_exists_absolute(folder_path(folder)):
+		folder = "%s_%d" % [base, number]
+		number += 1
+	DirAccess.make_dir_recursive_absolute(folder_path(folder))
+	for file_name in DirAccess.get_files_at(folder_path(source)):
+		if file_name == DRAFT_FILE:
+			continue
+		if DirAccess.copy_absolute("%s/%s" % [folder_path(source), file_name], "%s/%s" % [folder_path(folder), file_name]) != OK:
+			push_error("Failed to copy %s while forking %s" % [file_name, source])
+			return ""
+	var campaign := load_campaign(folder)
+	if campaign == null:
+		return ""
+	campaign.campaign_name = new_name
+	if not save_campaign(campaign, folder):
+		return ""
+	var info := {}
+	var entry := release_entry(source)
+	if not entry.is_empty():
+		info["forked_from_id"] = entry.get("id", "")
+		info["forked_from_version"] = entry.get("version", "")
+	write_draft_info(folder, info)
+	return folder
+
+
 ## Every campaign folder that contains a campaign file, sorted.
 static func folder_names() -> Array[String]:
 	var names: Array[String] = []
@@ -39,6 +104,9 @@ static func folder_names() -> Array[String]:
 
 
 static func save_campaign(campaign: Campaign, folder: String) -> bool:
+	if is_release(folder):
+		push_error("Campaign %s is a release and is never changed - fork it to edit." % folder)
+		return false
 	DirAccess.make_dir_recursive_absolute(folder_path(folder))
 	var err := ResourceSaver.save(campaign, "%s/%s" % [folder_path(folder), FILE_NAME])
 	if err != OK:
@@ -67,19 +135,40 @@ static func saves_path(folder: String) -> String:
 ## A campaign save game (progress): user://campaign_saves/<campaign folder>/<save key>.tres - a
 ## campaign can have several, one per playthrough.
 static func save_state(state: CampaignState) -> bool:
-	DirAccess.make_dir_recursive_absolute(saves_path(state.campaign_folder))
-	var err := ResourceSaver.save(state, "%s/%s.tres" % [saves_path(state.campaign_folder), save_key(state.save_name)])
+	var folder_dir := saves_path(state.campaign_folder)
+	var key := save_key(state.save_name)
+	var target := "%s/%s.tres" % [folder_dir, key]
+	DirAccess.make_dir_recursive_absolute("%s/%s" % [folder_dir, TEMP_DIR])
+	DirAccess.make_dir_recursive_absolute("%s/%s" % [folder_dir, BACKUP_DIR])
+	# written next to the real file first and moved into place, so a failed write never destroys the save; the state it replaces is kept
+	var temp := "%s/%s/%s.tres" % [folder_dir, TEMP_DIR, key]
+	var err := ResourceSaver.save(state, temp)
 	if err != OK:
 		push_error("Failed to save campaign progress %s: %s" % [state.campaign_folder, error_string(err)])
+		return false
+	if FileAccess.file_exists(target):
+		DirAccess.copy_absolute(target, "%s/%s/%s.tres" % [folder_dir, BACKUP_DIR, key])
+	if DirAccess.rename_absolute(temp, target) != OK:
+		DirAccess.remove_absolute(target)
+		err = DirAccess.rename_absolute(temp, target)
+	if err != OK:
+		push_error("Failed to move campaign progress into place %s: %s" % [target, error_string(err)])
 	return err == OK
 
 
-## The save game with file name `key` of campaign `folder`, or null if there is none.
+## The save game with file name `key` of campaign `folder`, or null if there is none. A save that can't be read falls back to
+## the state it had before its last write.
 static func load_state(folder: String, key: String) -> CampaignState:
 	var path := "%s/%s.tres" % [saves_path(folder), key]
 	if not FileAccess.file_exists(path):
 		return null
-	return ResourceLoader.load(path, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
+	var state := ResourceLoader.load(path, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
+	if state == null:
+		var backup := "%s/%s/%s.tres" % [saves_path(folder), BACKUP_DIR, key]
+		if FileAccess.file_exists(backup):
+			push_warning("Save %s could not be read - using its previous state." % path)
+			state = ResourceLoader.load(backup, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
+	return state
 
 
 ## The file names (keys) of every save game of campaign `folder`, sorted.
@@ -100,6 +189,17 @@ static func has_saves() -> bool:
 		if not save_keys(folder).is_empty():
 			return true
 	return false
+
+
+## Moves every save game of `folder` out of the way (to _removed/<folder>/) instead of deleting them. Returns how many.
+static func archive_saves(folder: String) -> int:
+	var moved := 0
+	var target := "%s/%s/%s" % [SAVES_ROOT, REMOVED_DIR, folder]
+	for key in save_keys(folder):
+		DirAccess.make_dir_recursive_absolute(target)
+		if DirAccess.rename_absolute("%s/%s.tres" % [saves_path(folder), key], "%s/%s.tres" % [target, key]) == OK:
+			moved += 1
+	return moved
 
 
 static func delete_state(folder: String, key: String) -> void:
@@ -168,6 +268,8 @@ static func _link_problem(title: String, verb: String, link: MissionVariableMap,
 ## Copies a mission file into the campaign folder (so the campaign stays self-contained);
 ## returns the file name it got there, "" on failure. An existing file of that name is replaced.
 static func import_mission(folder: String, source_path: String) -> String:
+	if is_release(folder):
+		return ""
 	DirAccess.make_dir_recursive_absolute(folder_path(folder))
 	var file_name := source_path.get_file()
 	var err := DirAccess.copy_absolute(source_path, "%s/%s" % [folder_path(folder), file_name])
@@ -179,6 +281,8 @@ static func import_mission(folder: String, source_path: String) -> String:
 
 ## Copies an image into the campaign folder as the map of an act; returns its file name.
 static func import_map_image(folder: String, source_path: String, act_number: int) -> String:
+	if is_release(folder):
+		return ""
 	DirAccess.make_dir_recursive_absolute(folder_path(folder))
 	var file_name := "map_%d.%s" % [act_number, source_path.get_extension().to_lower()]
 	var err := DirAccess.copy_absolute(source_path, "%s/%s" % [folder_path(folder), file_name])
@@ -191,6 +295,8 @@ static func import_map_image(folder: String, source_path: String, act_number: in
 ## Imports `source_path` as the book cover of campaign `folder`: trimmed (centred) to the 2:3 cover ratio
 ## and scaled to COVER_SIZE, saved as cover.png. Returns the file name, "" on failure.
 static func import_cover_image(folder: String, source_path: String) -> String:
+	if is_release(folder):
+		return ""
 	var image := Image.load_from_file(source_path)
 	if image == null or image.is_empty():
 		return ""

@@ -6,6 +6,9 @@ extends RefCounted
 ## MissionIO.save_mission(...) / MissionIO.load_mission(...) directly.
 
 static func save_mission(mission: MissionData, path: String) -> bool:
+	if not CommunityLibrary.entry_for_path(path).is_empty():
+		push_error("%s is a release and is never changed - fork it to edit." % path)
+		return false
 	var dir := path.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):
 		var err := DirAccess.make_dir_recursive_absolute(dir)

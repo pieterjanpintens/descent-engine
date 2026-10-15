@@ -1755,6 +1755,8 @@ type resolves identically for both Galaden and Brynn, and a built
 `EmbarkDialog` shows Brynn's Warhammer column with all 3 invented items and
 a correctly separate "Sword" column for his second slot.
 
+**Vaerix's Staff slot is a Spear (2026-10-13)** - `HERO_WEAPON_TYPES[3]` is now `["Spear", "War Bell"]` (the user: the starting item should be a spear, not the Crook'd Staff); the game's Spear weapon starts with `WEAPON_PART_A_SPEAR_1` (Riverwatch Spear). Staff stays for Syrus. `WeaponData.hero_types()` therefore lists Spear too: an existing campaign's starting set has no spear yet (its Problems list says so - open Starting equipment and use "Fill with the basic set" or tick one).
+
 **Weapon 1/Weapon 2 order corrected for 3 heroes, 2026-09-28, follow-up
 report ("weapons of galaden, bryn and vairix must swap")** - the acti/actii
 assumption (index 0 = acti = Weapon 1) turned out backwards for these
@@ -6866,10 +6868,34 @@ id/version the catalog promised. Nothing is fetched without a click; no account,
 
 **UI**: main menu **Community** button -> `CommunityDialog` (modal): *Installed* tab (rows with Play / Open campaigns / Remove, "Import a package file…" (native file dialog) and a paste-an-https-address
 import) and *Browse online* tab (catalog address + Refresh, rows with Install / "Installed" / "Install this version (you have vX)"). Every import shows a summary first (what, author, size, picture
-rights statement, other installed versions) and installs only on OK; a refused package shows why. Export: **File > Export package…** in the mission editor (the mission as it is in the editor,
+rights statement, other installed versions) and installs only on OK; a refused package shows why. Export: **File > Release…** (earlier called Export package) in the mission editor (the mission as it is in the editor,
 no need to save) and the campaign editor (saves first) -> `PackageExportDialog` (name, author - remembered in `PlayerSettings.community_author` -, version, description, and for packages with pictures
 the required "I made them / may share them" checkbox; name/version/description remembered per mission/campaign in `user://community/export_memory.json`), then a save-file dialog; the result
 dialog shows a ready-made catalog entry (sha256, size; copied to the clipboard) to paste into that `index.json`.
+
+
+
+**Releases, drafts and forks - play mode vs develop mode (2026-10-14, branch `feature/release-modes`)** - "an installed version must never change, and a bug in a
+campaign must not strand a player's save". **Release** = anything in the `CommunityLibrary` registry (installed community packages AND the player's own releases,
+registry `source: "own"`); **draft** = every other campaign folder / mission file (all older work is automatically a draft, no migration). `CampaignIO.is_release(folder)` /
+`CommunityLibrary.entry_for_path(path)` answer "is it frozen?". **Read-only is enforced at the I/O layer**: `CampaignIO.save_campaign()` / `import_mission()` / `import_map_image()` /
+`import_cover_image()` and `MissionIO.save_mission()` refuse a release; the editors only explain it. **Release** (File > "Release…" in both editors, `PackageExportDialog`, now the release dialog):
+packs the draft (`SharePackage.build_*`, which re-reads it), checks it and installs it side by side (`CommunityLibrary.release_campaign()/release_mission()`); the package file is kept in
+`user://community/releases/<key>.descentpkg` so "Save package file…" / "Publish to the community…" ship exactly what was released. The version is always suggested one patch above the
+highest release of that package id (id remembered per draft in `user://campaigns/<key>/draft.json` or the export memory) and an existing version is refused. **Read-only editors**: opening a release in the
+campaign editor shows a banner, locks the map (`CampaignMapView.locked`), switches every control in the side panel off (re-applied twice a second) and disables Save/Release; the Open menu lists
+drafts, then a "Releases (read-only)" heading with the releases (`_open_folders` has "" for the heading). The mission editor does the same for files in `user://missions/community/`
+(`CreatorSaveLoad.read_only`, banner in the Toolbar, controller input off). **Fork** (`CampaignIO.fork()`, `CommunityLibrary.fork_mission()`; banner button, "Fork to edit" in the Community dialog): copies
+the release into a NEW draft (no save games, " (v1.0.0)" stripped from the name, `draft.json` {forked_from_id/version}). **Play mode**: `CampaignPlayer`'s library has a shelf of releases and a
+separate "In development" shelf of drafts; `CampaignState.campaign_id/campaign_version` record what a save was started on; saves on drafts are tagged "[playtest]" in the Load list.
+**Dangerous operations**: (1) a save is bound to an immutable release folder, so editing can't reach it; (2) **`SaveUpdater`**: a newer release of the same package id makes the Load list show "Update to vX…":
+`check()` blocks (errors: completed/available chapter, act or mission file missing in the new version) or warns (variables dropped/added, purchases/side quests gone), and `apply()` writes an updated
+COPY ("<name> (vX)") next to the new release - the original save is never touched, so there is nothing to undo; (3) `CampaignIO.save_state()` writes to `_tmp/` and moves into place, keeps the previous
+state in `_backups/<key>.tres`, and `load_state()` falls back to it when the save can't be read (the `_tmp`/`_backups`/`_removed` sub-folders are never listed as saves); (4) `CommunityLibrary.remove()` moves a
+campaign's saves to `user://campaign_saves/_removed/<folder>/` instead of deleting them and the dialog says how many. **Verified** headlessly in a throwaway user folder (31 logic checks: release, double release refused,
+write-to-release refused with byte-identical file, fork, atomic save + corrupt-save fallback, update check/copy/original untouched, removal archives, mission release/fork; and scene checks: editor read-only + fork, library shelves,
+load page, release dialog suggests the next version, community dialog, mission editor read-only + fork). **Not seen on screen**: banners, the Open menu headings, the shelves, the update confirm text. **Not built**: a "restore previous
+state" button for `_backups` (it only kicks in automatically for an unreadable save), moving a save back to an OLDER version, a manifest field recording what a fork came from.
 
 **Verified headlessly** (throwaway scenes, deleted): export + read + install + load + remove of the real campaign and mission, side-by-side versions, ~15 hostile files (Object(, Resource(path),
 other scripts/scenes/user:// scripts, embedded GDScript, [node], resource_path, wrong class, zip-slip names, folders, executables, bad/missing checksums, bad id, fake picture, non-zip), text

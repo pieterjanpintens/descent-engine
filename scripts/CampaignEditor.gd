@@ -33,7 +33,13 @@ var _tabs: TabContainer
 var _file_menu: PopupMenu
 var _edit_menu: PopupMenu
 var _open_menu: PopupMenu
+## One entry per item of the Open menu: the campaign folder, "" for a heading.
 var _open_folders: Array[String] = []
+## The campaign on screen is a RELEASE (frozen, played by saves): it can be looked at, not changed - fork it to edit.
+var _read_only := false
+var _banner: HBoxContainer
+var _banner_label: Label
+var _lock_timer := 0.0
 
 enum FileAction { NEW, SAVE, BACK, OPEN, EXPORT }
 enum EditAction { UNDO, REDO }
@@ -102,7 +108,7 @@ func _ready() -> void:
 	_file_menu.add_item("New", FileAction.NEW, (KEY_MASK_CMD_OR_CTRL | KEY_N) as Key)
 	_file_menu.add_submenu_node_item("Open", _open_menu, FileAction.OPEN)
 	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
-	_file_menu.add_item("Export package…", FileAction.EXPORT)
+	_file_menu.add_item("Release…", FileAction.EXPORT)
 	_file_menu.add_separator()
 	_file_menu.add_item("Back to Menu", FileAction.BACK)
 	_file_menu.id_pressed.connect(_on_file_action)
@@ -121,6 +127,14 @@ func _ready() -> void:
 	_welcome_label = Label.new()
 	_welcome_label.text = "Create a new campaign or open an existing one."
 	root.add_child(_welcome_label)
+
+	_banner = HBoxContainer.new()
+	_banner.visible = false
+	_banner_label = Label.new()
+	_banner_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	_banner.add_child(_banner_label)
+	_banner.add_child(_button("Fork to edit", _on_fork_pressed))
+	root.add_child(_banner)
 
 	# --- body: the map (as big as possible) | tabs on the right: Campaign / Selection
 	var split := HSplitContainer.new()
@@ -349,11 +363,25 @@ func _ready() -> void:
 # ---------------------------------------------------------------- campaign files
 
 func _refresh_open_list() -> void:
-	_open_folders = CampaignIO.folder_names()
+	_open_folders = []
 	_open_menu.clear()
-	for folder in _open_folders:
-		_open_menu.add_radio_check_item(folder)
-		_open_menu.set_item_checked(_open_menu.item_count - 1, folder == _folder)
+	var releases: Array[String] = []
+	for folder in CampaignIO.folder_names():
+		if CampaignIO.is_release(folder):
+			releases.append(folder)
+		else:
+			_add_open_item(folder, folder)
+	if not releases.is_empty():
+		_open_menu.add_separator("Releases (read-only)")
+		_open_folders.append("")
+		for folder in releases:
+			_add_open_item(folder, "%s  (v%s)" % [CampaignIO.release_entry(folder).get("name", folder), CampaignIO.release_entry(folder).get("version", "?")])
+
+
+func _add_open_item(folder: String, label: String) -> void:
+	_open_menu.add_radio_check_item(label)
+	_open_menu.set_item_checked(_open_menu.item_count - 1, folder == _folder)
+	_open_folders.append(folder)
 
 
 func _on_file_action(id: int) -> void:
@@ -364,7 +392,7 @@ func _on_file_action(id: int) -> void:
 		FileAction.SAVE:
 			_save()
 		FileAction.EXPORT:
-			if _campaign != null:
+			if _campaign != null and not _read_only:
 				_save()
 				_export_dialog.open_campaign(_folder, _campaign.campaign_name)
 		FileAction.BACK:
@@ -390,7 +418,7 @@ func _on_new_confirmed() -> void:
 
 
 func _on_open_index_pressed(index: int) -> void:
-	if index < 0 or index >= _open_folders.size():
+	if index < 0 or index >= _open_folders.size() or _open_folders[index] == "":
 		return
 	_save_if_dirty()
 	_load_folder(_open_folders[index])
@@ -403,6 +431,7 @@ func _load_folder(folder: String) -> void:
 		return
 	_campaign = campaign
 	_folder = folder
+	_read_only = CampaignIO.is_release(folder)
 	_act_index = 0 if not campaign.acts.is_empty() else -1
 	_selected = null
 	_selected_place = null
@@ -415,16 +444,66 @@ func _load_folder(folder: String) -> void:
 	_refresh_open_list()
 	_refresh_all()
 	_status_label.text = "Opened %s" % folder
+	_apply_read_only()
 
 
 func _save() -> void:
-	if _campaign == null:
+	if _campaign == null or _read_only:
 		return
 	if CampaignIO.save_campaign(_campaign, _folder):
 		_dirty = false
 		_status_label.text = "Saved %s" % _folder
 	else:
 		_status_label.text = "Could not save!"
+
+
+## A release is frozen: banner, locked map, and every control in the side panel switched off (checked again twice a second,
+## because the selection panel is rebuilt as the selection changes). The hard guarantee is CampaignIO, which refuses to write a release.
+func _apply_read_only() -> void:
+	_banner.visible = _read_only
+	_map_view.locked = _read_only
+	if _read_only:
+		var entry := CampaignIO.release_entry(_folder)
+		_banner_label.text = "Release v%s - read-only: it is what save games play, so it is never changed.   " % str(entry.get("version", "?"))
+		_status_label.text = "Release v%s (read-only)" % str(entry.get("version", "?"))
+		_lock_controls(_tabs)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.SAVE), _read_only or _campaign == null)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.EXPORT), _read_only or _campaign == null)
+
+
+func _process(delta: float) -> void:
+	if not _read_only:
+		return
+	_lock_timer += delta
+	if _lock_timer > 0.5:
+		_lock_timer = 0.0
+		_lock_controls(_tabs)
+
+
+func _lock_controls(node: Node) -> void:
+	if node is BaseButton:
+		(node as BaseButton).disabled = true
+	elif node is LineEdit:
+		(node as LineEdit).editable = false
+	elif node is TextEdit:
+		(node as TextEdit).editable = false
+	elif node is SpinBox:
+		(node as SpinBox).editable = false
+	for child in node.get_children():
+		_lock_controls(child)
+
+
+func _on_fork_pressed() -> void:
+	if _campaign == null or not _read_only:
+		return
+	var base_name := CommunityLibrary.strip_version_suffix(_campaign.campaign_name)
+	var forked := CampaignIO.fork(_folder, base_name if base_name != "" else "campaign")
+	if forked == "":
+		_say("The campaign could not be forked.")
+		return
+	_refresh_open_list()
+	_load_folder(forked)
+	_status_label.text = "Forked into your draft '%s'" % forked
 
 
 func _save_if_dirty() -> void:
@@ -438,6 +517,8 @@ func _on_back_pressed() -> void:
 
 
 func _mark_dirty() -> void:
+	if _read_only:
+		return
 	_dirty = true
 	_status_label.text = "Unsaved changes"
 	_record_edit()

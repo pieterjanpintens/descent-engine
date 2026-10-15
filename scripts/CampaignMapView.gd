@@ -35,6 +35,8 @@ var act: CampaignAct
 var texture: Texture2D
 var selected_id: String = ""
 var read_only: bool = false
+## The editor shows a RELEASE: everything is visible and selectable but pins can not be dragged.
+var locked: bool = false
 var statuses: Dictionary = {}
 ## The side quests to show (the owner decides which: the editor lists the ones of this act, the player the
 ## ones on offer), each as an orange star.
@@ -206,7 +208,7 @@ func _gui_input(event: InputEvent) -> void:
 		if event.pressed:
 			var hit := _item_at(event.position)
 			if hit != null:
-				_dragging = hit if not read_only else null
+				_dragging = hit if not read_only and not locked else null
 				selected_id = hit.get("id")
 				if hit is CampaignPlace:
 					place_selected.emit(selected_id)

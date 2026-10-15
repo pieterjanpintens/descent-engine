@@ -23,6 +23,12 @@ extends Control
 ## the XP counter scaling the missions' monsters.
 
 const MENU_SCENE := "res://ui/MainMenu.tscn"
+const UPDATE_BLOCKED := "This save game cannot be moved to v%s:" + NL2 + "- %s" + NL2 + "It stays as it is; you can keep playing it on its own version."
+const UPDATE_ASK := "Make a copy of '%s' on v%s?" + NL2 + "The original save game is not changed - you can always go back to it."
+const UPDATE_NOTE := NL2 + "Note:" + NL + "- %s"
+const NL := "\n"
+const NL2 := "\n\n"
+const BULLET_JOIN := "\n- "
 const BOOK_SIZE := Vector2(190, 340)
 const BOOK_COVER_SIZE := Vector2(170, 255)  ## the 2:3 cover ratio of CampaignIO.COVER_SIZE
 
@@ -35,6 +41,8 @@ var _selected_id: String = ""
 var _narrative_dialog: PlayerDialog
 var _library_page: Control
 var _library_books: HFlowContainer
+var _draft_books: HFlowContainer
+var _draft_header: Label
 var _load_page: Control
 var _load_list: VBoxContainer
 var _play_page: Control
@@ -147,25 +155,43 @@ func _build_library_page() -> Control:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	page.add_child(scroll)
-	_library_books = HFlowContainer.new()
-	_library_books.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_library_books.add_theme_constant_override("h_separation", 20)
-	_library_books.add_theme_constant_override("v_separation", 20)
-	scroll.add_child(_library_books)
+	var shelves := VBoxContainer.new()
+	shelves.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	shelves.add_theme_constant_override("separation", 16)
+	scroll.add_child(shelves)
+	_library_books = _flow()
+	shelves.add_child(_library_books)
+	_draft_header = _label("In development - drafts that may still change or break (saves made on them are playtests)")
+	_draft_header.modulate = Color(1.0, 0.85, 0.4)
+	shelves.add_child(_draft_header)
+	_draft_books = _flow()
+	shelves.add_child(_draft_books)
 	return page
 
 
+func _flow() -> HFlowContainer:
+	var flow := HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 20)
+	flow.add_theme_constant_override("v_separation", 20)
+	return flow
+
+
+## The library has two shelves: RELEASES (play mode - frozen versions, what you normally play) and drafts still in development.
 func _show_library() -> void:
-	for child in _library_books.get_children():
-		_library_books.remove_child(child)
-		child.queue_free()
+	for shelf in [_library_books, _draft_books]:
+		for child in shelf.get_children():
+			shelf.remove_child(child)
+			child.queue_free()
 	var folders := CampaignIO.folder_names()
 	for folder in folders:
 		var campaign := CampaignIO.load_campaign(folder)
 		if campaign != null:
-			_library_books.add_child(_book(folder, campaign))
-	if folders.is_empty():
-		_library_books.add_child(_wrapped("No campaigns yet - make one in the Campaign Editor (Editors & Tools in the main menu)."))
+			(_library_books if CampaignIO.is_release(folder) else _draft_books).add_child(_book(folder, campaign))
+	if _library_books.get_child_count() == 0:
+		_library_books.add_child(_wrapped("No released campaigns yet - install one from the Community page, or release one of your own in the Campaign Editor (File > Release)."))
+	_draft_header.visible = _draft_books.get_child_count() > 0
+	_draft_books.visible = _draft_header.visible
 	_show_page(_library_page)
 
 
@@ -268,17 +294,48 @@ func _show_load() -> void:
 	_show_page(_load_page)
 
 
+## Check the newer release against the save and show what would change; only after the player agrees is a COPY written.
+func _offer_update(old_campaign: Campaign, saved: CampaignState, newer: Dictionary) -> void:
+	var new_folder := str(newer["path"]).get_file()
+	var new_campaign := CampaignIO.load_campaign(new_folder)
+	if new_campaign == null:
+		_say("The newer version could not be opened.")
+		return
+	var report := SaveUpdater.check(saved, old_campaign, new_campaign, new_folder)
+	var errors: Array = report["errors"]
+	var warnings: Array = report["warnings"]
+	if not errors.is_empty():
+		_say(UPDATE_BLOCKED % [newer["version"], BULLET_JOIN.join(errors)])
+		return
+	var text := UPDATE_ASK % [saved.save_name, newer["version"]]
+	if not warnings.is_empty():
+		text += UPDATE_NOTE % BULLET_JOIN.join(warnings)
+	_ask(text, func():
+		if SaveUpdater.apply(saved, newer, new_campaign) == null:
+			_say("The updated copy could not be saved.")
+		else:
+			_say("Done. The updated copy is in the list.")
+		_show_load()
+	)
+
+
 func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignState) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	row.add_child(_cover(folder, campaign, BOOK_COVER_SIZE * 0.5))
 	var progress := "Campaign complete" if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
 		else campaign.acts[saved.current_act].act_name
-	var info := _label("%s\n%s  -  %s,  XP %d,  gold %d" % [saved.save_name if saved.save_name != "" else key, campaign.campaign_name, progress, saved.experience, saved.gold])
+	var tag := "" if CampaignIO.is_release(folder) else "   [playtest - on a draft that may change]"
+	var info := _label("%s%s\n%s  -  %s,  XP %d,  gold %d" % [saved.save_name if saved.save_name != "" else key, tag, campaign.campaign_name, progress, saved.experience, saved.gold])
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(info)
 	row.add_child(_button("Resume", func(): await _resume(folder, key)))
+	var newer := SaveUpdater.newer_release(folder)
+	if not newer.is_empty():
+		var update := _button("Update to v%s…" % newer["version"], func(): _offer_update(campaign, saved, newer))
+		update.tooltip_text = "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+		row.add_child(update)
 	row.add_child(_button("Delete", func():
 		_ask("Delete the save game '%s'?" % saved.save_name, func():
 			CampaignIO.delete_state(folder, key)
@@ -373,6 +430,8 @@ func _begin(folder: String, save_name: String) -> bool:
 		return false
 	var state := CampaignState.new()
 	state.campaign_folder = folder
+	state.campaign_id = str(CampaignIO.release_entry(folder).get("id", ""))
+	state.campaign_version = str(CampaignIO.release_entry(folder).get("version", ""))
 	state.save_name = save_name
 	state.ensure_started(campaign)
 	_use(campaign, state)

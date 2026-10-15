@@ -51,6 +51,10 @@ enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK, SAVE_AS, E
 ## The file the mission in the editor comes from / was last saved to ("" = never saved). Save writes straight to it; Save As asks.
 ## Also the key of the debug snapshots (see DebugSession) and what a Play hands to the Player.
 var current_path: String = ""
+## The mission is a RELEASE (frozen, played by saves): it can be looked at and play-tested but not saved - fork it to edit.
+var read_only := false
+var _banner: HBoxContainer
+var _banner_label: Label
 
 var _settings_dialog: CreatorSettingsDialog
 var _monster_template_editor: MonsterTemplateEditor
@@ -85,7 +89,7 @@ func _ready() -> void:
 	add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
 	add_item("Save As…", FileAction.SAVE_AS, (KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_S) as Key)
 	add_item("Load", FileAction.LOAD, (KEY_MASK_CMD_OR_CTRL | KEY_O) as Key)
-	add_item("Export package…", FileAction.EXPORT_PACKAGE)
+	add_item("Release…", FileAction.EXPORT_PACKAGE)
 	add_separator()
 	add_item("Monster Templates…", FileAction.MONSTER_TEMPLATES)
 	add_item("Settings…", FileAction.SETTINGS)
@@ -189,6 +193,8 @@ func _on_id_pressed(id: int) -> void:
 		FileAction.NEW:
 			_on_new_button_pressed()
 		FileAction.SAVE:
+			if read_only:
+				return
 			if current_path != "":
 				_save_to(current_path)
 			else:
@@ -200,9 +206,13 @@ func _on_id_pressed(id: int) -> void:
 		FileAction.SETTINGS:
 			_settings_dialog.open()
 		FileAction.EXPORT_PACKAGE:
+			if read_only:
+				_notice_dialog.dialog_text = "This mission is a release (read-only). Fork it to make a draft, then release that."
+				_notice_dialog.popup_centered()
+				return
 			var mission := layered_map.mission
 			var suggested := mission.mission_name if mission.mission_name != "" else current_path.get_file().get_basename()
-			_export_dialog.open_mission(mission, suggested, current_path.get_file().get_basename() if current_path != "" else mission.mission_name)
+			_export_dialog.open_mission(mission, suggested, current_path.get_file().get_basename() if current_path != "" else mission.mission_name, current_path)
 		FileAction.MONSTER_TEMPLATES:
 			_monster_template_editor.open()
 		FileAction.BACK:
@@ -233,6 +243,7 @@ func _on_new_button_pressed() -> void:
 	# _on_mission_objects_changed() above already turns into a field
 	# refresh - no need to call it explicitly here too.
 	current_path = ""
+	_update_read_only()
 	layered_map.apply_mission(MissionData.new())
 
 
@@ -244,6 +255,10 @@ func _on_mission_file_dialog_file_selected(path: String) -> void:
 
 
 func _save_to(path: String) -> void:
+	if not CommunityLibrary.entry_for_path(path).is_empty():
+		_notice_dialog.dialog_text = "That file is a release and is never changed. Save under another name, or fork it."
+		_notice_dialog.popup_centered()
+		return
 	if layered_map.mission.mission_name == "":
 		layered_map.mission.mission_name = path.get_file().get_basename()
 	# Player-count fields are live-synced (see _on_min_players_changed()
@@ -257,6 +272,49 @@ func _save_to(path: String) -> void:
 	_apply_player_count_fields()
 	MissionIO.save_mission(layered_map.mission, path)
 	current_path = path
+	_update_read_only()
+
+
+## Read-only mode follows the file: a release (CommunityLibrary registry) is frozen.
+func _update_read_only() -> void:
+	var entry := CommunityLibrary.entry_for_path(current_path) if current_path != "" else {}
+	read_only = not entry.is_empty()
+	set_item_disabled(get_item_index(FileAction.SAVE), read_only)
+	set_item_disabled(get_item_index(FileAction.EXPORT_PACKAGE), read_only)
+	var scene := get_tree().current_scene
+	var controller := scene.get_node_or_null("CreatorController") if scene != null else null
+	if controller != null:
+		controller.set_process_unhandled_input(not read_only)
+		if read_only:
+			controller.set_draw_mode(false)
+	if read_only and _banner == null:
+		var toolbar := scene.find_child("Toolbar", true, false) if scene != null else null
+		if toolbar != null:
+			_banner = HBoxContainer.new()
+			_banner_label = Label.new()
+			_banner_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+			_banner.add_child(_banner_label)
+			var fork_button := Button.new()
+			fork_button.text = "Fork to edit"
+			fork_button.pressed.connect(_on_fork_pressed)
+			_banner.add_child(fork_button)
+			toolbar.add_child(_banner)
+	if _banner != null:
+		_banner.visible = read_only
+		if read_only:
+			_banner_label.text = "Release v%s - read-only   " % str(entry.get("version", "?"))
+
+
+func _on_fork_pressed() -> void:
+	var new_name := CommunityLibrary.strip_version_suffix(layered_map.mission.mission_name)
+	var path := CommunityLibrary.fork_mission(current_path, new_name if new_name != "" else "mission")
+	if path == "":
+		_notice_dialog.dialog_text = "The mission could not be forked."
+		_notice_dialog.popup_centered()
+		return
+	_load_from(path)
+	_notice_dialog.dialog_text = "Forked to %s - this is your own draft now." % path
+	_notice_dialog.popup_centered()
 
 
 ## Starts the Player on the mission as it is in the editor now, as a debug session (see DebugSession): the mission is handed
@@ -284,6 +342,7 @@ func _restore_from_play() -> void:
 	if mission != null:
 		layered_map.apply_mission(mission)
 		current_path = GameState.editor_mission_path
+		_update_read_only()
 		operation_history.import_state(GameState.editor_history)
 		var camera := layered_map.get_viewport().get_camera_3d() as FreeLookCamera
 		if camera != null:
@@ -296,10 +355,11 @@ func _load_from(path: String) -> void:
 	if loaded == null:
 		return
 	current_path = path
+	_update_read_only()
 	# Bring the monster templates attached in this mission up to date with the
 	# library first (the library is the source of truth while editing; a copy
 	# whose library entry is gone is left alone).
-	var updated := MonsterArchetypeLibrary.sync_mission(loaded)
+	var updated := 0 if read_only else MonsterArchetypeLibrary.sync_mission(loaded)
 	# apply_mission() emits mission_objects_changed, which
 	# _on_mission_objects_changed() above already turns into a field
 	# refresh - no need to call it explicitly here too.

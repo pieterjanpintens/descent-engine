@@ -481,7 +481,7 @@ static func _write(package_type: String, files: Dictionary, meta: Dictionary, ou
 	var manifest := {
 		"format": FORMAT,
 		"type": package_type,
-		"id": make_id(author, package_name),
+		"id": str(meta["id"]) if str(meta.get("id", "")) != "" else make_id(author, package_name),
 		"name": package_name,
 		"author": author,
 		"description": clean_text(str(meta.get("description", "")), 2000, true),
