@@ -40,6 +40,9 @@ var _read_only := false
 var _banner: HBoxContainer
 var _banner_label: Label
 var _lock_timer := 0.0
+var _map_toolbar: HBoxContainer
+## Controls switched off while a release is on screen: instance id -> the value they had (disabled / editable), so a draft can switch them back on.
+var _locked_state: Dictionary = {}
 
 enum FileAction { NEW, SAVE, BACK, OPEN, EXPORT }
 enum EditAction { UNDO, REDO }
@@ -156,11 +159,11 @@ func _ready() -> void:
 	map_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map_column.size_flags_stretch_ratio = 4.0
 	split.add_child(map_column)
-	var map_toolbar := HBoxContainer.new()
-	map_column.add_child(map_toolbar)
-	map_toolbar.add_child(_button("Add chapter", _on_add_chapter_pressed))
-	map_toolbar.add_child(_button("Add place", _on_add_place_pressed))
-	map_toolbar.add_child(_button("Add side quest", _on_add_side_quest_pressed))
+	_map_toolbar = HBoxContainer.new()
+	map_column.add_child(_map_toolbar)
+	_map_toolbar.add_child(_button("Add chapter", _on_add_chapter_pressed))
+	_map_toolbar.add_child(_button("Add place", _on_add_place_pressed))
+	_map_toolbar.add_child(_button("Add side quest", _on_add_side_quest_pressed))
 	map_column.add_child(_map_view)
 
 	_tabs = TabContainer.new()
@@ -466,7 +469,9 @@ func _apply_read_only() -> void:
 		var entry := CampaignIO.release_entry(_folder)
 		_banner_label.text = "Release v%s - read-only: it is what save games play, so it is never changed.   " % str(entry.get("version", "?"))
 		_status_label.text = "Release v%s (read-only)" % str(entry.get("version", "?"))
-		_lock_controls(_tabs)
+		_lock_all()
+	else:
+		_unlock_all()
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.SAVE), _read_only or _campaign == null)
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.EXPORT), _read_only or _campaign == null)
 
@@ -477,20 +482,52 @@ func _process(delta: float) -> void:
 	_lock_timer += delta
 	if _lock_timer > 0.5:
 		_lock_timer = 0.0
-		_lock_controls(_tabs)
+		_lock_all()
 
 
+func _lock_all() -> void:
+	_lock_controls(_tabs)
+	_lock_controls(_map_toolbar)
+
+
+## Remembers what each control had before it was switched off (once), so leaving read-only mode restores it exactly - a control that was
+## disabled for its own reasons (a "move up" at the top of a list) stays disabled.
 func _lock_controls(node: Node) -> void:
+	var id := node.get_instance_id()
 	if node is BaseButton:
+		if not _locked_state.has(id):
+			_locked_state[id] = (node as BaseButton).disabled
 		(node as BaseButton).disabled = true
 	elif node is LineEdit:
+		if not _locked_state.has(id):
+			_locked_state[id] = (node as LineEdit).editable
 		(node as LineEdit).editable = false
 	elif node is TextEdit:
+		if not _locked_state.has(id):
+			_locked_state[id] = (node as TextEdit).editable
 		(node as TextEdit).editable = false
 	elif node is SpinBox:
+		if not _locked_state.has(id):
+			_locked_state[id] = (node as SpinBox).editable
 		(node as SpinBox).editable = false
 	for child in node.get_children():
 		_lock_controls(child)
+
+
+func _unlock_all() -> void:
+	for id: int in _locked_state:
+		var node := instance_from_id(id)
+		if node == null or not is_instance_valid(node):
+			continue
+		if node is BaseButton:
+			(node as BaseButton).disabled = bool(_locked_state[id])
+		elif node is LineEdit:
+			(node as LineEdit).editable = bool(_locked_state[id])
+		elif node is TextEdit:
+			(node as TextEdit).editable = bool(_locked_state[id])
+		elif node is SpinBox:
+			(node as SpinBox).editable = bool(_locked_state[id])
+	_locked_state.clear()
 
 
 func _on_fork_pressed() -> void:
