@@ -1,3 +1,6 @@
+## v0.0.23 - 2026-10-16
+- New logo on the main menu, and the credits now list the 2D art (logo and background).
+
 ## v0.0.22 - 2026-10-15
 - Releasing needs an author (your name or GitHub name): no more "anonymous" packages. The author is prefilled from your last name or GitHub sign-in.
 - The message after releasing wraps properly (it was very wide and cut off), and "Publish to the community" now comes before "Save package file".
