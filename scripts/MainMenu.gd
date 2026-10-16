@@ -17,7 +17,7 @@ extends Control
 ## The credits page: [role, names] pairs - add a line here to credit someone.
 const CREDITS: Array = [
 	["Created by", "Arutha"],
-	["Concept art - main menu background", "Ikkante"],
+	["2D art - logo and main menu background", "Ikkante"],
 ]
 const CREDITS_NOTE := "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
 

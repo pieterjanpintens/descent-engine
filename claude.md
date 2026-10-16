@@ -6802,9 +6802,10 @@ the HUD menu items, and that a normal save still embeds the mission and resumes 
 hotkeys in a real window. **Not built (later)**: the live inspector (variables, trigger/objective state, a log of fired effects), snapshots in the monster phase, re-resolving live
 monsters from edited templates.
 
-**Main menu look + credits (2026-10-12)**: the main menu has a fan-made concept art background (`models/menu_background.jpg`, by Ikkante, committed with their permission; a
-cropped/scaled copy of a photo of a screen - there is a bit of moiré and a cursor icon in it; a clean export would be better) under a 50% dark `ColorRect`, and a **Credits** page (`MainMenu.CREDITS`, a list of
-[role, name] pairs built into a third page of the menu column by `_build_credits_panel()`): Created by Arutha, concept art by Ikkante. Add a line to `CREDITS` to credit someone.
+**Main menu look + credits (2026-10-12, updated 2026-10-16)**: the main menu has a background picture (`models/menu_background.png`, since 2026-10-16 the Brynn-at-the-campfire art; the first one, a
+crop of a photo of a screen, was `menu_background.jpg`) under a 50% dark `ColorRect`, and a **logo** (`models/logo.png`, "ASCENT" in orange lettering, 1403x344, shown as a `TextureRect` named `Title` of the menu column at 480x118
+instead of the old "Descent Engine" text), and a **Credits** page (`MainMenu.CREDITS`, a list of [role, name] pairs built into a third page of the menu column by `_build_credits_panel()`): Created by Arutha, "2D art - logo and main
+menu background" by Ikkante (the user's "2D content guy"; the background and logo credit is assumed to be Ikkante for both new pictures - correct it if not). Add a line to `CREDITS` to credit someone.
 
 ## Community sharing (2026-10-13, branch `feature/community-sharing`, not merged - to be tested by the user)
 
@@ -7958,4 +7959,8 @@ These cost real debugging time — worth not re-learning them:
 	monster's `loot` becomes materials, then add: material inventory in the campaign state, crafting/shop prices from the recipes
 	(387 recipes exported), potions (consumables with once-per-mission use, hero limits, "+"), armor (27 + "+"), trinkets (20 + "+").
 	Armor and potions are only LISTED so far.
+23. **TODO (user, 2026-10-16): rebrand the app as "Ascent" and give it a subtitle.** The logo already says ASCENT, but everything else still says "Descent Engine" (window title / `config/name`, the export name
+	`Descent-Engine` and so the release file names + the user data folder, README, in-app texts, the OfficialAssetMap/asset-tools bundle that relies on the project name). Renaming `config/name` also changes the
+	**user data folder** (`user://` lives under the project name), which would orphan every player's saves, imported assets, voices and settings - needs a migration or keeping the old folder name via `config/use_custom_user_dir`
+	with `custom_user_dir_name`; and the auto-updater matches release files by `Descent-Engine-<platform>.zip`. A subtitle (e.g. under the logo on the main menu) still has to be chosen. Not started - the user wants to focus on more props first.
 22. **Cap loot by its real gold worth** (partly done: the Salvager Haft multiplier skips the essences): the remaining part is a real upper bound on what a monster's loot / a mission may be worth in gold - materials are not equal (essences Anemos/Aquos/Ignos/Terros 25, Fortunos/Lumos/Mortos/Toxos/Umbros/Vigos 30 gold in the game data vs 5 for Bone/Cloth/Curios/Herbs/Leather/Metal/Minerals). Needs a value per material (`LootMaterials`, from `item_data` `Value`) and a cap rule, to decide with the drop rules (open item 21).

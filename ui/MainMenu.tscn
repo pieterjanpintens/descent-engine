@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dx66u7jfoolxh" path="res://scripts/MainMenu.gd" id="1_i26rj"]
 [ext_resource type="Texture2D" path="res://models/menu_background.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://models/logo.png" id="3_logo"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -47,11 +48,12 @@ custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="CenterContainer/Column"]
+[node name="Title" type="TextureRect" parent="CenterContainer/Column"]
+custom_minimum_size = Vector2(480, 118)
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "Descent Engine"
-horizontal_alignment = 1
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Spacer" type="Control" parent="CenterContainer/Column"]
 custom_minimum_size = Vector2(0, 16)
