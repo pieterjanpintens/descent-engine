@@ -23,6 +23,7 @@ var build_effects: Callable
 
 var _selected := 0
 var _list_box: VBoxContainer
+var _header: HBoxContainer
 var _detail: VBoxContainer
 
 
@@ -38,7 +39,7 @@ func _ready() -> void:
 	margin.add_child(split)
 
 	var left := VBoxContainer.new()
-	left.custom_minimum_size.x = 300
+	left.custom_minimum_size.x = 240
 	split.add_child(left)
 	left.add_child(_banner("STEPS", Color(0.25, 0.25, 0.3), 18))
 	var list_scroll := ScrollContainer.new()
@@ -58,10 +59,18 @@ func _ready() -> void:
 	))
 	left.add_child(_button("Close", hide))
 
+	# Right side: the step's own buttons in a fixed header (always visible, whatever the width of the content below), then the
+	# scrolling detail. The condition and effect rows wrap; the scroll only goes sideways if something is still wider.
+	var right := VBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	split.add_child(right)
+	_header = HBoxContainer.new()
+	right.add_child(_header)
 	var detail_scroll := ScrollContainer.new()
 	detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	split.add_child(detail_scroll)
+	detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	right.add_child(detail_scroll)
 	_detail = VBoxContainer.new()
 	_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail.add_theme_constant_override("separation", 8)
@@ -77,7 +86,29 @@ func open_for(p_chapter: CampaignChapter, p_campaign: Campaign, p_mark_dirty: Ca
 	_selected = 0
 	chapter.ensure_step_ids()
 	refresh()
-	popup_centered_ratio(0.97)
+	_show_full_screen()
+
+
+## Covers the whole game window and cannot be resized (no title bar either - the Close button is on the left).
+func _show_full_screen() -> void:
+	borderless = true
+	unresizable = true
+	var root := get_tree().root
+	if not root.size_changed.is_connected(_fit_to_screen):
+		root.size_changed.connect(_fit_to_screen)
+	popup(Rect2i(Vector2i.ZERO, _screen_size()))
+
+
+func _fit_to_screen() -> void:
+	if visible:
+		position = Vector2i.ZERO
+		size = _screen_size()
+
+
+## The size of the game window in the units the embedded windows use. With the project's stretch mode (canvas_items) these are NOT
+## the window's pixels: a maximized 1920x1080 window is a 1152x648 area, so root.size would make this window far too big.
+func _screen_size() -> Vector2i:
+	return Vector2i(get_tree().root.get_visible_rect().size)
 
 
 ## Rebuilds the step list and the selected step (after a structural change, or when the campaign editor changed
@@ -134,14 +165,17 @@ func _rebuild_detail() -> void:
 	for child in _detail.get_children():
 		_detail.remove_child(child)
 		child.queue_free()
+	for child in _header.get_children():
+		_header.remove_child(child)
+		child.queue_free()
 	if chapter.steps.is_empty():
 		_detail.add_child(_hint("Add a step on the left to start the story."))
 		return
 	var index := _selected
 	var step := chapter.steps[index]
 
-	# --- banner with the step's own actions
-	var banner_row := HBoxContainer.new()
+	# --- banner with the step's own actions (in the fixed header: the title gives way, the buttons never fall off)
+	var banner_row := _header
 	banner_row.add_child(_banner("STEP %d of %d" % [index + 1, chapter.steps.size()], BANNER_STEP, 22, true))
 	var up := _button("↑ Move up", func(): _move_step(index, -1))
 	up.disabled = index == 0
@@ -155,7 +189,6 @@ func _rebuild_detail() -> void:
 		_changed()
 		refresh()
 	))
-	_detail.add_child(banner_row)
 
 	# --- 1 story
 	_detail.add_child(_section("1 · Story", "What the party reads. Put words in [Name]...[/Name] to give them to a character's voice; text in (round brackets) is shown but never spoken."))
@@ -315,6 +348,8 @@ func _banner(text: String, color: Color, font_size: int, inline: bool = false) -
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
+	label.clip_text = true
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	panel.add_child(label)
 	return panel
 
@@ -370,4 +405,21 @@ func _text_edit(height: float, text: String, placeholder: String) -> TextEdit:
 	edit.text = text
 	edit.placeholder_text = placeholder
 	NarrationHighlight.apply(edit, campaign.characters)
+	AiAssist.attach(edit, _ai_context, campaign.characters)  # only visible when the author switched AI help on in Options
 	return edit
+
+
+## Where the text being written sits - given to the AI help as background.
+func _ai_context() -> String:
+	var lines: Array[String] = ["Campaign: " + campaign.campaign_name]
+	if campaign.intro != "":
+		lines.append("Campaign introduction: " + campaign.intro.left(600))
+	lines.append("Chapter: " + chapter.title)
+	if _selected >= 0 and _selected < chapter.steps.size():
+		var step: NarrativeStep = chapter.steps[_selected]
+		if step.text != "":
+			lines.append("Current story step: " + step.text.left(800))
+		if step.question != "":
+			lines.append("The question asked: " + step.question)
+	return "
+".join(lines)

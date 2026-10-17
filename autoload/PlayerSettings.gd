@@ -26,6 +26,7 @@ const _GAMEPLAY := "gameplay"
 const _NARRATION := "narration"
 const _COMMUNITY := "community"
 const _UPDATES := "updates"
+const _AI := "ai"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -50,6 +51,15 @@ var community_author: String = ""
 var check_updates: bool = true
 ## The version whose "What's new" the player has already been shown (so it opens by itself once after an update).
 var last_seen_version: String = ""
+## Optional AI writing help in the editors (AiClient / AiAssist). Off by default; the author's OWN Anthropic API key, kept in plain text
+## in this file in their own user folder (never in a package, save game or release). Nothing is sent unless an AI button is pressed.
+var ai_enabled: bool = false
+var ai_api_key: String = ""
+var ai_model: String = "claude-sonnet-5-5"
+## Which way the AI is reached: "api" = the author's own API key; "claude_code" = the Claude Code program on this PC (it uses the author's own
+## Claude sign-in, nothing is paid per request here). `ai_claude_path` = where that program is ("" = look for it).
+var ai_provider: String = "api"
+var ai_claude_path: String = ""
 
 
 func _ready() -> void:
@@ -76,6 +86,11 @@ func load_settings() -> void:
 	community_author = config.get_value(_COMMUNITY, "author", community_author)
 	check_updates = config.get_value(_UPDATES, "check_updates", check_updates)
 	last_seen_version = config.get_value(_UPDATES, "last_seen_version", last_seen_version)
+	ai_enabled = config.get_value(_AI, "enabled", ai_enabled)
+	ai_api_key = config.get_value(_AI, "api_key", ai_api_key)
+	ai_model = config.get_value(_AI, "model", ai_model)
+	ai_provider = config.get_value(_AI, "provider", ai_provider)
+	ai_claude_path = config.get_value(_AI, "claude_path", ai_claude_path)
 
 
 func save_settings() -> void:
@@ -91,6 +106,11 @@ func save_settings() -> void:
 	config.set_value(_COMMUNITY, "author", community_author)
 	config.set_value(_UPDATES, "check_updates", check_updates)
 	config.set_value(_UPDATES, "last_seen_version", last_seen_version)
+	config.set_value(_AI, "enabled", ai_enabled)
+	config.set_value(_AI, "api_key", ai_api_key)
+	config.set_value(_AI, "model", ai_model)
+	config.set_value(_AI, "provider", ai_provider)
+	config.set_value(_AI, "claude_path", ai_claude_path)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

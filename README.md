@@ -94,6 +94,10 @@ is approved. Playing and installing never needs an account. Details: the [commun
   chapters with questions and answers (that can branch), and variables shared with the missions.
 - **Narration (optional)** - the story can be read aloud with offline voices, a voice per character and per hero, and
   the table can give spoken commands. Both are downloaded from inside the app on request.
+- **AI writing help (optional, off by default)** - with your own Anthropic API key, an AI menu on the story text boxes can
+  fix, improve or continue your writing. You always see the suggestion first; text is only sent when you choose an action.
+  Either paste an API key, or use Claude Code on your PC (install it once with `npm install -g @anthropic-ai/claude-code`, then
+  run `claude auth login`) to use your own Claude account.
 
 ## License
 

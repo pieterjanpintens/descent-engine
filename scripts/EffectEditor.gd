@@ -191,7 +191,7 @@ func _build_math_operand_editor(effect: Effect, prefix: String) -> Control:
 ## the nested optional-objective editor, or the nested effect-conditions
 ## editor).
 func build_condition_row(conditions_list: Array[Condition], condition: Condition, on_changed: Callable) -> Control:
-	var row := HBoxContainer.new()
+	var row := HFlowContainer.new()  # wraps when the editor is narrow
 
 	var var_option := _build_variable_name_option(condition.variable_name, func(new_name: String):
 		_commit_field("Edit condition variable", func(): condition.variable_name = new_name)
@@ -258,7 +258,7 @@ func build_condition_row(conditions_list: Array[Condition], condition: Condition
 ## what lets this same row-builder recurse into a Test's own branches (see
 ## the RUN_TEST widget group below and _open_test_editor()).
 func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: Callable) -> Control:
-	var row := HBoxContainer.new()
+	var row := HFlowContainer.new()  # wraps when the editor is narrow
 
 	var type_option := OptionButton.new()
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],

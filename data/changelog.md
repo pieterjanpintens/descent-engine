@@ -1,3 +1,6 @@
+## Next
+- Optional AI writing help in the campaign editor's story texts (your own Anthropic API key, set in Options; off by default).
+
 ## v0.0.24 - 2026-10-16
 - New props for missions: fence (a see-through gate), cart, chest, pot, table and well.
 - Campaign shop (first version): places on the map can be a market (buy and sell materials), a recipe shop with a rotating stock, or a smithy where you forge weapon cards and parts from recipes and materials. Needs the game's data import.
