@@ -7225,6 +7225,15 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
   **Confirmed by the user on macOS too (2026-10-16)**: the update works there (the `ditto` + `update.sh` bundle swap), and an updated app **does not trigger the Gatekeeper "unidentified developer" approval again** - expected, because the zip is downloaded by the app itself (`HTTPRequest`, no browser) and unpacked with `ditto`, so the files never get the `com.apple.quarantine` attribute that a browser download adds; only the very first manual install needs the right-click > Open step.
   **The "What's new" popup after an update also worked (user, 2026-10-16).**
   **Not verified**: the Linux helper script, an install in a protected folder (Program Files).
+  **One download at a time + bad-connection fix (2026-10-17)** - reported: the Wi-Fi dropped, the user started the download again, it succeeded, progress of the FIRST one kept
+  coming in, and the restart hung. Causes: closing and reopening the dialog reset `_busy`, so a second `download_and_stage()` ran next to the stalled first one (both writing the same
+  `.part` file), and the stalled request was THREADED - `cancel_request()` and freeing a threaded `HTTPRequest` (which quitting the app does) block until its stuck socket read returns,
+  so the app never exited and `update.sh`/`update.bat` gave up after 90 s. Fixes, all in `Downloader` (so voice/narration/importer/community downloads get them too): requests are no
+  longer threaded (`use_threads = false`, 1 MB `download_chunk_size`; a local 100 MB file still took 0.9 s), a download that receives nothing for `stall_timeout_sec` (30 s) is stopped
+  with "stopped receiving data - check the connection", a static `_active_parts` set refuses a second download of the same file, and `cancel_downloads()` (also run from `_exit_tree()`)
+  stops them. `AppUpdater.download_and_stage()` refuses while another updater is staging (static `_staging`). `UpdateDialog`: reopening while it works just shows it again, the cancel
+  button reads "Cancel download" while downloading and closing the dialog cancels it, and every download is cancelled before `apply()` and quitting. Verified headlessly against a local
+  server that stalls (stopped after the timeout, a concurrent second download refused, cancel returns at once, a retry succeeds). Not tried with a real dropping Wi-Fi or on Windows.
 - **Changelog in the game (2026-10-15)** - `data/changelog.md` (hand-written, newest first: `## <version> - <date>` then `- ` bullets; shipped because every export preset includes `data/*`)
   is shown by `ChangelogDialog` (`ChangelogDialog.entries()` parses it) from a "What's new" button at the bottom right of the main menu (also on development builds). A versioned build opens it once by itself
   after an update (`PlayerSettings.last_seen_version`; a fresh install with no stored version just records it, no popup). **Add an entry to the file with every release** - it is not generated from git.
@@ -7262,6 +7271,9 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
 
 These cost real debugging time — worth not re-learning them:
 
+- **A threaded `HTTPRequest` (`use_threads = true`) can't be cancelled while its connection is stuck**: `cancel_request()`, freeing it and quitting the app all
+  wait for the thread, which sits in a blocking socket read until data comes - on a dead Wi-Fi connection effectively forever (found 2026-10-17, the update restart hung on
+  it). Use non-threaded requests with a big `download_chunk_size`, plus our own no-progress timeout.
 - **`--headless --import` is NOT a complete compile check for scripts nothing has loaded yet** (found 2026-10-07): it catches parse
   errors (bad indentation, unknown identifiers) when global classes are registered, but type-INFERENCE errors (`var x := <untyped
   expression>`, e.g. from `event.position` on an untyped `InputEvent`) only surface once the script is actually analysed/loaded - a

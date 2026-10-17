@@ -132,9 +132,32 @@ func check() -> Dictionary:
 	return result
 
 
+## True while some updater is downloading/unpacking an update - only one may run at a time.
+static var _staging := false
+var _owns_staging := false
+
+
 ## Downloads and verifies the new version for this platform and unpacks it into a staging folder.
-## {ok, error, staged (an absolute path)}.
+## {ok, error, staged (an absolute path)}. Refused while another update download is running.
 func download_and_stage(release: Dictionary) -> Dictionary:
+	if _staging:
+		return {"ok": false, "error": "An update is already being downloaded."}
+	_staging = true
+	_owns_staging = true
+	var result := await _download_and_stage(release)
+	_staging = false
+	_owns_staging = false
+	return result
+
+
+func _exit_tree() -> void:
+	super()
+	if _owns_staging:
+		_staging = false
+		_owns_staging = false
+
+
+func _download_and_stage(release: Dictionary) -> Dictionary:
 	var assets: Dictionary = release.get("assets", {})
 	var name := asset_name()
 	if not assets.has(name) or not assets.has(SUMS_FILE):

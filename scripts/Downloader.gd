@@ -8,6 +8,31 @@ extends Node
 
 signal progress(text: String)
 
+## A download that receives nothing for this long (a dead Wi-Fi connection) is stopped and reported as failed instead of
+## waiting forever.
+var stall_timeout_sec := 30.0
+
+## Every .part file being written right now, over all downloaders: a second download of the same file is refused, so two
+## requests can never write into one file (e.g. a retry while the first, stalled one is still running).
+static var _active_parts: Dictionary = {}
+var _requests: Array[HTTPRequest] = []
+
+
+## Stops every download this node has running; each waiting _fetch() returns false. Also done when the node leaves the tree.
+func cancel_downloads() -> void:
+	for http in _requests.duplicate():
+		http.set_meta("cancelled", true)
+		http.cancel_request()
+		_active_parts.erase(str(http.get_meta("part", "")))
+
+
+func is_downloading() -> bool:
+	return not _requests.is_empty()
+
+
+func _exit_tree() -> void:
+	cancel_downloads()
+
 
 ## Downloads `url` to `dest` (through a .part file, so an interrupted download
 ## never looks installed), verifying `sha256` when given. Skips the download if
@@ -17,12 +42,23 @@ func _fetch(url: String, dest: String, sha256: String, label: String, max_bytes:
 	if FileAccess.file_exists(dest) and (sha256 == "" or FileAccess.get_sha256(dest) == sha256):
 		return true
 	var part := dest + ".part"
+	var part_key := ProjectSettings.globalize_path(part)
+	if _active_parts.has(part_key):
+		progress.emit("The %s is already being downloaded." % label)
+		return false
+	_active_parts[part_key] = true
 	var http := HTTPRequest.new()
-	http.use_threads = true
+	http.set_meta("part", part_key)
+	# Not threaded: a threaded request blocks cancel_request() - and freeing it, which also happens when the app quits - until
+	# its stuck network read returns, which on a dead connection can be never (that is how an update restart once hung).
+	# Polled from the main loop instead, a big chunk per frame keeps it fast.
+	http.use_threads = false
+	http.download_chunk_size = 1048576
 	http.download_file = part
 	if max_bytes > 0:
 		http.body_size_limit = max_bytes
 	add_child(http)
+	_requests.append(http)
 
 	var result := {"done": false, "code": 0, "status": 0}
 	http.request_completed.connect(func(status: int, code: int, _headers: PackedStringArray, _body: PackedByteArray):
@@ -32,13 +68,32 @@ func _fetch(url: String, dest: String, sha256: String, label: String, max_bytes:
 	)
 	var error := http.request(url)
 	if error != OK:
-		http.queue_free()
+		_release_request(http)
 		progress.emit("Couldn't start the %s download (error %d)." % [label, error])
 		return false
+	var last_bytes := -1
+	var last_change := Time.get_ticks_msec()
+	var stopped := ""
 	while not result["done"]:
+		if http.has_meta("cancelled"):
+			stopped = "The %s download was cancelled." % label
+			break
+		var bytes := http.get_downloaded_bytes()
+		if bytes != last_bytes:
+			last_bytes = bytes
+			last_change = Time.get_ticks_msec()
+		elif Time.get_ticks_msec() - last_change > stall_timeout_sec * 1000.0:
+			stopped = "The %s download stopped receiving data - check the connection and try again." % label
+			break
 		progress.emit(_progress_text(label, http))
 		await get_tree().create_timer(0.25).timeout
-	http.queue_free()
+	if stopped != "" or not result["done"]:
+		http.cancel_request()
+	_release_request(http)
+	if stopped != "":
+		DirAccess.remove_absolute(part_key)
+		progress.emit(stopped)
+		return false
 
 	if result["status"] != HTTPRequest.RESULT_SUCCESS or result["code"] != 200:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(part))
@@ -50,6 +105,12 @@ func _fetch(url: String, dest: String, sha256: String, label: String, max_bytes:
 		return false
 	DirAccess.rename_absolute(ProjectSettings.globalize_path(part), ProjectSettings.globalize_path(dest))
 	return true
+
+
+func _release_request(http: HTTPRequest) -> void:
+	_requests.erase(http)
+	_active_parts.erase(str(http.get_meta("part", "")))
+	http.queue_free()
 
 
 func _progress_text(label: String, http: HTTPRequest) -> String:

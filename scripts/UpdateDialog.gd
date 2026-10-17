@@ -14,6 +14,8 @@ var _notes: Label
 var _status: Label
 var _page_button: Button
 var _busy := false
+## Set when the player closes the dialog or presses "Cancel download" while it works.
+var _cancelled := false
 ## Test seam: don't quit the app after the helper was started.
 var quit_after_apply := true
 
@@ -44,10 +46,15 @@ func _ready() -> void:
 	_page_button = add_button("Release page", false, "page")
 	custom_action.connect(_on_custom_action)
 	confirmed.connect(_on_confirmed)
+	canceled.connect(_on_canceled)
 
 
 ## `release` = a result of AppUpdater.check() that is newer.
 func open_for(release: Dictionary) -> void:
+	if _busy:
+		# a download is running: show it again instead of starting a second one
+		popup_centered()
+		return
 	_release = release
 	_busy = false
 	var blocked := str(release.get("blocked", ""))
@@ -60,6 +67,7 @@ func open_for(release: Dictionary) -> void:
 	get_ok_button().disabled = blocked != ""
 	get_ok_button().visible = blocked == ""
 	get_cancel_button().disabled = false
+	cancel_button_text = "Later"
 	popup_centered()
 
 
@@ -77,16 +85,24 @@ func _on_confirmed() -> void:
 	if _busy:
 		return
 	_busy = true
-	# the dialog stays open while it works
+	_cancelled = false
+	# the dialog stays open while it works; closing it (or "Cancel download") stops the download
 	popup_centered()
 	get_ok_button().disabled = true
-	get_cancel_button().disabled = true
+	get_cancel_button().disabled = false
+	cancel_button_text = "Cancel download"
 	_status.text = "Downloading the update…"
 	var staged := await updater.download_and_stage(_release)
+	if _cancelled:
+		_busy = false
+		return
 	if not staged["ok"]:
 		_finish_failed(str(staged["error"]))
 		return
 	_status.text = "Installing… the app closes and starts again by itself."
+	get_cancel_button().disabled = true
+	# nothing may still be downloading when the app quits, or quitting waits on it and the helper gives up
+	updater.cancel_downloads()
 	if not updater.apply(str(staged["staged"])):
 		_finish_failed("The update could not be started.")
 		return
@@ -94,9 +110,16 @@ func _on_confirmed() -> void:
 		get_tree().quit()
 
 
+func _on_canceled() -> void:
+	if _busy:
+		_cancelled = true
+		updater.cancel_downloads()
+
+
 func _finish_failed(message: String) -> void:
 	_busy = false
 	_status.text = "%s\n\nNothing was changed. You can try again, or download the update from the release page." % message
 	get_ok_button().disabled = false
 	get_cancel_button().disabled = false
+	cancel_button_text = "Later"
 	popup_centered()
