@@ -512,7 +512,7 @@ func _refresh_view() -> void:
 			_map_view.statuses[chapter.id] = _status_of(chapter.id)
 		_map_view.hidden_place_ids = []
 		for place in act.places:
-			if not _state.is_place_unlocked(place):
+			if not _state.is_place_open(place):
 				_map_view.hidden_place_ids.append(place.id)
 		_map_view.side_quests = _state.visible_side_quests(_campaign)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
@@ -530,7 +530,7 @@ func _rebuild_side() -> void:
 	if _campaign == null or act == null:
 		return
 	var place := act.find_place(_selected_id)
-	if place != null and _state.is_place_unlocked(place):
+	if place != null and _state.is_place_open(place):
 		_build_place_panel(place)
 		return
 	var quest := _campaign.find_side_quest(_selected_id)
@@ -579,6 +579,40 @@ func _build_place_panel(place: CampaignPlace) -> void:
 	if place.description != "":
 		_side.add_child(_wrapped(place.description))
 	_side.add_child(_label("You have %d gold%s." % [_state.gold, (" and " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]))
+	match place.kind:
+		CampaignPlace.Kind.MARKET:
+			_build_market_panel()
+		CampaignPlace.Kind.RECIPE_SHOP:
+			_build_recipe_shop_panel(place)
+		CampaignPlace.Kind.SMITHY:
+			_build_smithy_panel()
+		_:
+			_build_offers_panel(place)
+	if not _state.owned_attachments.is_empty():
+		_side.add_child(HSeparator.new())
+		var owned_labels: Array[String] = []
+		for part_id in _state.owned_attachments:
+			owned_labels.append(AttachmentCatalog.label(part_id))
+		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(owned_labels)))
+	if not _state.owned_weapons.is_empty():
+		var weapon_labels: Array[String] = []
+		for weapon_id in _state.owned_weapons:
+			weapon_labels.append(WeaponData.weapon_label(weapon_id) + (" +" if _state.upgraded_cards.has(weapon_id) else ""))
+		_side.add_child(_wrapped("Owned weapons: %s" % ", ".join(weapon_labels)))
+	if not _state.owned_armors.is_empty():
+		var armor_labels: Array[String] = []
+		for armor_id in _state.owned_armors:
+			armor_labels.append(ArmorData.label(armor_id) + (" +" if _state.upgraded_cards.has(armor_id) else ""))
+		_side.add_child(_wrapped("Owned armor: %s" % ", ".join(armor_labels)))
+	if not _state.owned_runes.is_empty():
+		var rune_labels: Array[String] = []
+		for rune_id in _state.owned_runes:
+			rune_labels.append(WeaponData.rune_label(rune_id))
+		_side.add_child(_wrapped("Owned runes: %s" % ", ".join(rune_labels)))
+
+
+## An ordinary place: its authored offers, each with a Buy button.
+func _build_offers_panel(place: CampaignPlace) -> void:
 	if place.offers.is_empty():
 		_side.add_child(_label("Nothing for sale here."))
 	for offer in place.offers:
@@ -598,26 +632,109 @@ func _build_place_panel(place: CampaignPlace) -> void:
 			_side.add_child(_label("Gives the weapon: %s%s" % [WeaponData.weapon_label(offer.weapon), " (+)" if offer.upgraded else ""]))
 		if offer.rune != "":
 			_side.add_child(_label("Gives the rune: %s" % WeaponData.rune_label(offer.rune)))
+		if offer.armor != "":
+			_side.add_child(_wrapped("Gives the armor: %s%s - %s" % [ArmorData.label(offer.armor), " (+)" if offer.upgraded else "", ArmorData.rule_text(offer.armor, offer.upgraded)]))
 		var bought := offer.once and _state.purchased_offers.has(offer.id)
 		var buy := _button("Bought" if bought else "Buy", func(): _buy(offer))
 		buy.disabled = not _state.can_buy(offer)
 		_side.add_child(buy)
-	if not _state.owned_attachments.is_empty():
+
+
+## The market: every material can be bought at its full value and sold at the campaign's sell percentage.
+func _build_market_panel() -> void:
+	_side.add_child(HSeparator.new())
+	if _campaign.sell_percent <= 0:
+		_side.add_child(_wrapped("The market sells materials but does not buy them."))
+	var grid := GridContainer.new()
+	grid.columns = 4
+	for header in ["Material", "Have", "", ""]:
+		grid.add_child(_label(header))
+	var keys: Array[String] = []
+	keys.append_array(LootMaterials.COMMON)
+	keys.append_array(LootMaterials.ESSENCES)
+	for key in keys:
+		var have := int(_state.materials.get(key, 0))
+		var price := LootMaterials.value(key)
+		var sell_price := _state.sell_price(_campaign, key)
+		grid.add_child(_label(LootMaterials.display_name(key)))
+		grid.add_child(_label(str(have)))
+		var buy := _button("Buy (%d)" % price, func(): _market_trade(key, true))
+		buy.disabled = _state.gold < price
+		grid.add_child(buy)
+		var sell := _button("Sell (%d)" % sell_price, func(): _market_trade(key, false))
+		sell.disabled = have <= 0 or sell_price <= 0
+		grid.add_child(sell)
+	_side.add_child(grid)
+
+
+func _market_trade(key: String, buying: bool) -> void:
+	if (_state.buy_material(key) if buying else _state.sell_material(_campaign, key)):
+		_save()
+		_refresh_view()
+
+
+## The recipe shop: what is on sale now (recipes the author listed, then the rotating stock), what leaves after the next
+## chapter, and a vague rumour of what may arrive.
+func _build_recipe_shop_panel(place: CampaignPlace) -> void:
+	_side.add_child(HSeparator.new())
+	if not RecipeData.available():
+		_side.add_child(_wrapped("No recipes are known: import the game's data first (Game assets in the main menu)."))
+		return
+	var view := _state.shop_view(place)
+	if view["entries"].is_empty():
+		_side.add_child(_label("No recipes for sale right now."))
+	for entry: Dictionary in view["entries"]:
+		var recipe := RecipeData.find(str(entry["id"]))
+		_side.add_child(_label(RecipeData.label(recipe)))
+		if entry["leaving"]:
+			var leaving := _label("Leaves after the next chapter!")
+			leaving.modulate = Color(1.0, 0.7, 0.3)
+			_side.add_child(leaving)
+		_add_recipe_details(recipe)
+		var buy := _button(("Buy (%d gold)" if recipe["direct"] else "Buy recipe (%d gold)") % int(recipe["price"]), func(): _buy_recipe(str(entry["id"])))
+		buy.disabled = not _state.can_buy_recipe(str(entry["id"]))
+		_side.add_child(buy)
 		_side.add_child(HSeparator.new())
-		var owned_labels: Array[String] = []
-		for part_id in _state.owned_attachments:
-			owned_labels.append(AttachmentCatalog.label(part_id))
-		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(owned_labels)))
-	if not _state.owned_weapons.is_empty():
-		var weapon_labels: Array[String] = []
-		for weapon_id in _state.owned_weapons:
-			weapon_labels.append(WeaponData.weapon_label(weapon_id) + (" +" if _state.upgraded_cards.has(weapon_id) else ""))
-		_side.add_child(_wrapped("Owned weapons: %s" % ", ".join(weapon_labels)))
-	if not _state.owned_runes.is_empty():
-		var rune_labels: Array[String] = []
-		for rune_id in _state.owned_runes:
-			rune_labels.append(WeaponData.rune_label(rune_id))
-		_side.add_child(_wrapped("Owned runes: %s" % ", ".join(rune_labels)))
+	if view["rumour"] != "":
+		var rumour := _wrapped(str(view["rumour"]))
+		rumour.modulate = Color(0.8, 0.8, 1.0)
+		_side.add_child(rumour)
+
+
+## Under a recipe's title: what an armor does (its rule text, the "+" side's for an upgrade) and what forging needs.
+func _add_recipe_details(recipe: Dictionary) -> void:
+	if RecipeData.card_kind(str(recipe["card"])) == "armor":
+		_side.add_child(_wrapped(ArmorData.rule_text(str(recipe["card"]), recipe["upgrade"])))
+	if not recipe["ingredients"].is_empty():
+		_side.add_child(_wrapped("Needs: %s" % CampaignState.format_materials(recipe["ingredients"])))
+
+
+func _buy_recipe(recipe_id: String) -> void:
+	if _state.buy_recipe(recipe_id):
+		_save()
+		_refresh_view()
+
+
+## The smithy: forge the items of the recipes the party owns from materials.
+func _build_smithy_panel() -> void:
+	_side.add_child(HSeparator.new())
+	var recipes := _state.forgeable_recipes()
+	if recipes.is_empty():
+		_side.add_child(_wrapped("You know no recipe that makes something new. Recipes are sold in the recipe shops."))
+		return
+	for recipe in recipes:
+		_side.add_child(_label(RecipeData.label(recipe)))
+		_add_recipe_details(recipe)
+		var forge := _button("Forge", func(): _forge(str(recipe["id"])))
+		forge.disabled = not _state.can_forge(str(recipe["id"]))
+		_side.add_child(forge)
+		_side.add_child(HSeparator.new())
+
+
+func _forge(recipe_id: String) -> void:
+	if _state.forge(recipe_id):
+		_save()
+		_refresh_view()
 
 
 func _attachment_summary(part_id: String) -> String:

@@ -13,6 +13,19 @@ const COMMON: Array[String] = ["bone", "cloth", "curios", "herbs", "leather", "m
 const ESSENCES: Array[String] = ["anemos", "aquos", "fortunos", "ignos", "lumos", "mortos", "terros", "toxos", "umbros", "vigos"]
 
 
+## What a material is worth in gold (the game's `Value`): the price the market sells it for; the market buys it back at
+## the campaign's sell percentage of this.
+const VALUES := {
+	"bone": 5, "cloth": 5, "curios": 5, "herbs": 5, "leather": 5, "metal": 5, "minerals": 5,
+	"anemos": 25, "aquos": 25, "ignos": 25, "terros": 25,
+	"fortunos": 30, "lumos": 30, "mortos": 30, "toxos": 30, "umbros": 30, "vigos": 30,
+}
+
+
+static func value(key: String) -> int:
+	return int(VALUES.get(key, 0))
+
+
 static func display_name(key: String) -> String:
 	return key.capitalize()
 

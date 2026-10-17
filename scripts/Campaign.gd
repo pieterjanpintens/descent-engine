@@ -31,8 +31,12 @@ extends Resource
 @export var starting_runes: Array[String] = []
 ## The starting cards that begin upgraded (their "+" side up) - base ids from the three lists above.
 @export var starting_upgrades: Array[String] = []
+## Base ids of the armor cards the party owns at mission 0 (ArmorData).
+@export var starting_armors: Array[String] = []
 ## The named speakers of this campaign's stories: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
 @export var characters: Array[NarratorCharacter] = []
+## What a market pays for a material, as a percentage of its value in gold (0 = the market does not buy).
+@export var sell_percent: int = 50
 
 ## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only.
 const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]

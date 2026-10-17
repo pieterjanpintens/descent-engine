@@ -38,12 +38,22 @@ extends Resource
 @export var owned_runes: Array[String] = []
 ## Part ids of the weapon cards the party owns (base ids; a card and its "+" side are one card).
 @export var owned_weapons: Array[String] = []
+## Base ids of the armor cards the party owns (ArmorData). Armor effects are resolved at the table; the app only tracks
+## ownership (and the "+" side in upgraded_cards).
+@export var owned_armors: Array[String] = []
 ## The owned cards (weapon, part or rune base ids) that are upgraded: their "+" side is up. Permanent, like flipping
 ## the physical card; set by the starting set and by shop offers marked "upgraded".
 @export var upgraded_cards: Array[String] = []
 ## The narration voice of each hero (hero name -> NarratorVoices id, "" = picked from the name). Asked once, when the
 ## campaign starts; no two heroes share one (HeroVoicesDialog).
 @export var hero_voices: Dictionary = {}
+## Ids of the recipes the party has bought (RecipeData); the smithy forges from these.
+@export var owned_recipes: Array[String] = []
+## Rotation steps so far: one for every won chapter or side quest (see advance_shops()).
+@export var shop_steps: int = 0
+## Per recipe shop (place id): its rotating stock and its random seed - see ShopRotation. Kept in the save so the stock
+## is the same after reloading.
+@export var shop_state: Dictionary = {}
 
 
 ## The heroes as speakers, with this save game's voices.
@@ -168,6 +178,7 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	add_log("Side quest: %s" % quest.title, pages)
 	await apply_mission_outputs(campaign, quest.mission_outputs, mission_values)
 	await apply_effects(campaign, quest.win_effects)
+	advance_shops(campaign)
 	summary["xp"] = experience
 	return summary
 
@@ -186,6 +197,7 @@ func ensure_started(campaign: Campaign) -> void:
 		owned_weapons = campaign.starting_weapons.duplicate()
 		owned_attachments = campaign.starting_attachments.duplicate()
 		owned_runes = campaign.starting_runes.duplicate()
+		owned_armors = campaign.starting_armors.duplicate()
 		upgraded_cards = campaign.starting_upgrades.duplicate()
 		add_log(campaign.campaign_name, [campaign.intro if campaign.intro != "" else "The story begins."])
 	_begin_act(campaign, current_act)
@@ -258,6 +270,8 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		summary["act_complete"] = true
 		_begin_act(campaign, current_act + 1)
 		summary["campaign_complete"] = campaign_complete
+	if won:
+		advance_shops(campaign)
 	summary["xp"] = experience
 	for next_id in available_chapters:
 		var next_chapter := campaign.acts[current_act].find_chapter(next_id) if current_act < campaign.acts.size() else null
@@ -299,9 +313,11 @@ func _is_closed(act: CampaignAct, chapter: CampaignChapter) -> bool:
 	return false
 
 
-## Whether `place` can be visited: its unlocking chapter (if any) has been won.
-func is_place_unlocked(place: CampaignPlace) -> bool:
-	return place.unlocked_by_chapter == "" or completed_chapters.has(place.unlocked_by_chapter)
+## Whether `place` can be visited now: its unlocking chapter (if any) has been won and its closing chapter (if any) has not.
+func is_place_open(place: CampaignPlace) -> bool:
+	if place.unlocked_by_chapter != "" and not completed_chapters.has(place.unlocked_by_chapter):
+		return false
+	return place.closes_after_chapter == "" or not completed_chapters.has(place.closes_after_chapter)
 
 
 ## The materials the party took from defeated monsters during a WON mission go into the stock (and the summary).
@@ -344,12 +360,205 @@ func buy(offer: CampaignOffer) -> bool:
 		owned_runes.append(offer.rune)
 	if offer.weapon != "" and not owned_weapons.has(offer.weapon):
 		owned_weapons.append(offer.weapon)
+	if offer.armor != "" and not owned_armors.has(offer.armor):
+		owned_armors.append(offer.armor)
 	if offer.upgraded:
-		for card_id in [offer.attachment, offer.rune, offer.weapon]:
+		for card_id in [offer.attachment, offer.rune, offer.weapon, offer.armor]:
 			if card_id != "" and not upgraded_cards.has(card_id):
 				upgraded_cards.append(card_id)
 	if offer.once:
 		purchased_offers.append(offer.id)
+	return true
+
+
+# ---------------------------------------------------------------- market, recipe shop and smithy
+
+## What the market pays for one `material_key`: the campaign's sell percentage of its value, rounded down.
+func sell_price(campaign: Campaign, material_key: String) -> int:
+	return floori(LootMaterials.value(material_key) * clampi(campaign.sell_percent, 0, 100) / 100.0)
+
+
+## Buys `count` of a material at its full value.
+func buy_material(material_key: String, count: int = 1) -> bool:
+	var price := LootMaterials.value(material_key) * count
+	if count <= 0 or price <= 0 or gold < price:
+		return false
+	gold -= price
+	add_material(material_key, count)
+	return true
+
+
+## Sells `count` of a material for the campaign's sell price (false when the party has too few or nothing is paid).
+func sell_material(campaign: Campaign, material_key: String, count: int = 1) -> bool:
+	var price := sell_price(campaign, material_key) * count
+	if count <= 0 or price <= 0 or int(materials.get(material_key, 0)) < count:
+		return false
+	add_material(material_key, -count)
+	gold += price
+	return true
+
+
+## Whether the party already has this card (a weapon card, a part B / C or a rune).
+func owns_card(card_id: String) -> bool:
+	match RecipeData.card_kind(card_id):
+		"armor":
+			return owned_armors.has(card_id)
+		"rune":
+			return owned_runes.has(card_id)
+		"weapon":
+			return owned_weapons.has(card_id)
+		_:
+			return owned_attachments.has(card_id)
+
+
+## Whether the recipe still has something to make: a new card the party lacks, or an upgrade for a card it owns that is not
+## upgraded yet.
+func recipe_target_open(recipe: Dictionary) -> bool:
+	var card := str(recipe["card"])
+	if recipe["upgrade"]:
+		return owns_card(card) and not upgraded_cards.has(card)
+	return not owns_card(card)
+
+
+## The recipe ids that may appear in `place`'s rotating stock now: not owned, not listed by hand, still useful and (if the
+## shop asks for it) reached in the game's own terms.
+func _recipe_pool(place: CampaignPlace) -> Array[String]:
+	var listed: Array[String] = []
+	for entry in place.listed_recipes:
+		listed.append(entry.recipe_id)
+	var pool: Array[String] = []
+	for recipe in RecipeData.all():
+		var id := str(recipe["id"])
+		if owned_recipes.has(id) or listed.has(id) or not recipe_target_open(recipe):
+			continue
+		if place.respect_game_requirements and (int(recipe["xp"]) >= 99 or int(recipe["xp"]) > experience or int(recipe["act"]) > current_act):
+			continue
+		pool.append(id)
+	return pool
+
+
+func _rotate_shop(place: CampaignPlace) -> void:
+	var shop: Dictionary = shop_state.get(place.id, {})
+	if not shop.has("seed"):
+		shop["seed"] = randi()
+	var next := ShopRotation.rotate(shop, shop_steps, _recipe_pool(place), maxi(place.stock_size, 0), maxi(place.min_stay, 1), int(shop["seed"]))
+	next["seed"] = shop["seed"]
+	shop_state[place.id] = next
+
+
+## One rotation step - called when the party wins a chapter or a side quest: every recipe shop of the current act the party
+## can visit rotates (a shop met for the first time gets its first stock). A lost mission or a replay does not rotate.
+func advance_shops(campaign: Campaign) -> void:
+	shop_steps += 1
+	if current_act < 0 or current_act >= campaign.acts.size():
+		return
+	for place in campaign.acts[current_act].places:
+		if place.kind == CampaignPlace.Kind.RECIPE_SHOP and is_place_open(place):
+			_rotate_shop(place)
+
+
+## What a recipe shop has on sale now: {"entries": [{id, leaving, listed}], "rumour": String}. `leaving` = it goes at the
+## next rotation; the rumour is a vague hint of what may arrive then ("" when nothing is announced).
+func shop_view(place: CampaignPlace) -> Dictionary:
+	if not shop_state.has(place.id):
+		_rotate_shop(place)
+	var entries: Array[Dictionary] = []
+	for listed in place.listed_recipes:
+		var recipe := RecipeData.find(listed.recipe_id)
+		if recipe.is_empty() or owned_recipes.has(listed.recipe_id):
+			continue
+		if listed.unlocked_by_chapter != "" and not completed_chapters.has(listed.unlocked_by_chapter):
+			continue
+		entries.append({"id": listed.recipe_id, "leaving": false, "listed": true})
+	var shop: Dictionary = shop_state[place.id]
+	for entry: Dictionary in shop.get("stock", []):
+		var recipe := RecipeData.find(str(entry["id"]))
+		if not recipe.is_empty() and not owned_recipes.has(entry["id"]) and recipe_target_open(recipe):
+			entries.append({"id": entry["id"], "leaving": bool(entry.get("leaving", false)), "listed": false})
+	var hints: Array[String] = []
+	for id: String in shop.get("incoming", []):
+		var recipe := RecipeData.find(id)
+		if not recipe.is_empty() and hints.size() < 2:
+			hints.append(RecipeData.hint(recipe))
+	return {"entries": entries, "rumour": "" if hints.is_empty() else "Rumour: %s may arrive soon." % " and ".join(hints)}
+
+
+func can_buy_recipe(recipe_id: String) -> bool:
+	var recipe := RecipeData.find(recipe_id)
+	if recipe.is_empty() or gold < int(recipe["price"]):
+		return false
+	# a direct entry (a base armor) is bought as the card itself; a recipe is bought once
+	return not owns_card(str(recipe["card"])) if recipe["direct"] else not owned_recipes.has(recipe_id)
+
+
+## Buys a recipe for its price; it leaves every shop (the pool no longer holds it). A direct entry (a base armor) gives the
+## card at once instead of a recipe.
+func buy_recipe(recipe_id: String) -> bool:
+	if not can_buy_recipe(recipe_id):
+		return false
+	var recipe := RecipeData.find(recipe_id)
+	gold -= int(recipe["price"])
+	if recipe["direct"]:
+		owned_armors.append(str(recipe["card"]))
+	else:
+		owned_recipes.append(recipe_id)
+	_remove_from_shops(recipe_id)
+	return true
+
+
+## A bought recipe is no longer offered anywhere: it leaves the stock and the announced arrivals of every recipe shop (several
+## shops may offer the same recipe). The emptied slot is refilled at the next rotation, not at once. A recipe a shop lists by
+## hand is hidden by shop_view() as long as it is owned.
+func _remove_from_shops(recipe_id: String) -> void:
+	for place_id in shop_state:
+		var shop: Dictionary = shop_state[place_id]
+		var stock: Array[Dictionary] = []
+		for entry: Dictionary in shop.get("stock", []):
+			if str(entry["id"]) != recipe_id:
+				stock.append(entry)
+		shop["stock"] = stock
+		var incoming: Array[String] = []
+		for id: String in shop.get("incoming", []):
+			if id != recipe_id:
+				incoming.append(id)
+		shop["incoming"] = incoming
+
+
+## The owned recipes that still have something to make.
+func forgeable_recipes() -> Array[Dictionary]:
+	var list: Array[Dictionary] = []
+	for recipe_id in owned_recipes:
+		var recipe := RecipeData.find(recipe_id)
+		if not recipe.is_empty() and recipe_target_open(recipe):
+			list.append(recipe)
+	return list
+
+
+func can_forge(recipe_id: String) -> bool:
+	var recipe := RecipeData.find(recipe_id)
+	return not recipe.is_empty() and owned_recipes.has(recipe_id) and recipe_target_open(recipe) and has_materials(recipe["ingredients"])
+
+
+## Forges the item of an owned recipe: pays the materials, and the party gets the new card or flips the owned one to its "+".
+func forge(recipe_id: String) -> bool:
+	if not can_forge(recipe_id):
+		return false
+	var recipe := RecipeData.find(recipe_id)
+	for material_name in recipe["ingredients"]:
+		add_material(str(material_name), -int(recipe["ingredients"][material_name]))
+	var card := str(recipe["card"])
+	if recipe["upgrade"]:
+		upgraded_cards.append(card)
+	else:
+		match RecipeData.card_kind(card):
+			"armor":
+				owned_armors.append(card)
+			"rune":
+				owned_runes.append(card)
+			"weapon":
+				owned_weapons.append(card)
+			_:
+				owned_attachments.append(card)
 	return true
 
 

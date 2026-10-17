@@ -267,6 +267,22 @@ static func weapon_type_of_part(part_id: String) -> String:
 	return ""
 
 
+## The display name of any A/B/C part id ("Warden's Blade"), the id itself when unknown.
+static func part_name(part_id: String) -> String:
+	_load()
+	var part: Dictionary = _parts_by_id.get(part_id, {})
+	if part.is_empty():
+		return part_id
+	return _text(part["KeyName"], part["m_Name"])
+
+
+## "A", "B" or "C" for a part id like WEAPON_PART_B_SWORD_1 ("" when it isn't a weapon part id).
+static func part_slot(part_id: String) -> String:
+	if not part_id.begins_with("WEAPON_PART_") or part_id.length() < 13:
+		return ""
+	return part_id.substr(12, 1)
+
+
 ## "Warden's Blade (Sword)" for shop pickers and texts; the id itself when unknown.
 static func weapon_label(part_id: String) -> String:
 	_load()

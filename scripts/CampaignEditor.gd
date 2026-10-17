@@ -25,6 +25,7 @@ var _effect_editor: EffectEditor
 var _variables_dialog: MissionVariablesDialog
 var _characters_dialog: CharactersDialog
 var _starting_set_dialog: StartingSetDialog
+var _sell_spin: SpinBox
 var _story_window: NarrativeWindow
 var _dirty: bool = false
 
@@ -208,6 +209,21 @@ func _ready() -> void:
 		_mark_dirty()
 		_update_problems()
 	)))
+	var sell_row := HBoxContainer.new()
+	left.add_child(sell_row)
+	sell_row.add_child(_label("Markets pay (% of value):"))
+	var sell_spin := SpinBox.new()
+	sell_spin.min_value = 0
+	sell_spin.max_value = 100
+	sell_spin.value = _campaign.sell_percent if _campaign != null else 50
+	sell_spin.tooltip_text = "What a market pays for a material you sell, as a percentage of its gold value (0 = markets do not buy). Buying always costs the full value."
+	sell_spin.value_changed.connect(func(value: float):
+		if _campaign != null:
+			_campaign.sell_percent = int(value)
+			_mark_dirty()
+	)
+	_sell_spin = sell_spin
+	sell_row.add_child(sell_spin)
 	left.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
 		mutate.call()
 		_mark_dirty()
@@ -762,6 +778,8 @@ func _delete_chapter(chapter: CampaignChapter) -> void:
 	for place in act.places:
 		if place.unlocked_by_chapter == chapter.id:
 			place.unlocked_by_chapter = ""
+		if place.closes_after_chapter == chapter.id:
+			place.closes_after_chapter = ""
 	for quest in _campaign.side_quests:
 		quest.chapter_ids.erase(chapter.id)
 	_selected = null
@@ -1157,22 +1175,141 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	)
 	_chapter_panel.add_child(unlock_option)
 
+	_chapter_panel.add_child(_label("Closes when this chapter is won:"))
+	var closes_option := OptionButton.new()
+	closes_option.add_item("(stays open)")
+	var closes_index := 0
+	for i in act.chapters.size():
+		closes_option.add_item(act.chapters[i].title)
+		if act.chapters[i].id == place.closes_after_chapter:
+			closes_index = i + 1
+	closes_option.select(closes_index)
+	closes_option.item_selected.connect(func(index: int):
+		place.closes_after_chapter = act.chapters[index - 1].id if index >= 1 else ""
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(closes_option)
+
+	_chapter_panel.add_child(_label("This place is:"))
+	var kind_option := OptionButton.new()
+	for kind_name in ["Offers (authored)", "Market (buy and sell materials)", "Recipe shop (rotating recipes)", "Smithy (forge from recipes)"]:
+		kind_option.add_item(kind_name)
+	kind_option.select(place.kind)
+	kind_option.item_selected.connect(func(index: int):
+		place.kind = index as CampaignPlace.Kind
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	)
+	_chapter_panel.add_child(kind_option)
+
 	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label("Offers:"))
-	var attachment_ids: Array[String] = []
-	for attachment in AttachmentCatalog.all():
-		attachment_ids.append(attachment.part_id)
-	for offer in place.offers:
-		_chapter_panel.add_child(_build_offer_block(place, offer, attachment_ids))
-	_chapter_panel.add_child(_button("Add offer", func():
-		var created := CampaignOffer.new()
-		created.id = _campaign.new_offer_id()
-		place.offers.append(created)
+	match place.kind:
+		CampaignPlace.Kind.MARKET:
+			_chapter_panel.add_child(_wrapped_label("Players buy any material here at its full gold value and sell materials at the campaign's sell percentage (Campaign tab)."))
+		CampaignPlace.Kind.SMITHY:
+			_chapter_panel.add_child(_wrapped_label("Players forge the items of recipes they own from materials. Recipes are sold in a recipe shop."))
+		CampaignPlace.Kind.RECIPE_SHOP:
+			_build_recipe_shop_settings(act, place)
+		_:
+			_chapter_panel.add_child(_label("Offers:"))
+			var attachment_ids: Array[String] = []
+			for attachment in AttachmentCatalog.all():
+				attachment_ids.append(attachment.part_id)
+			for offer in place.offers:
+				_chapter_panel.add_child(_build_offer_block(place, offer, attachment_ids))
+			_chapter_panel.add_child(_button("Add offer", func():
+				var created := CampaignOffer.new()
+				created.id = _campaign.new_offer_id()
+				place.offers.append(created)
+				_mark_dirty()
+				_rebuild_chapter_panel()
+			))
+	_chapter_panel.add_child(HSeparator.new())
+	_chapter_panel.add_child(_button("Delete place", func(): _delete_place(place)))
+
+
+func _wrapped_label(text: String) -> Label:
+	var label := _label(text)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
+
+
+## The settings of a recipe shop: the rotating stock (size, how long a recipe is guaranteed to stay, whether the game's own
+## XP / act requirements apply) and the recipes put in by hand (always on sale, or after a chapter is won).
+func _build_recipe_shop_settings(act: CampaignAct, place: CampaignPlace) -> void:
+	if not RecipeData.available():
+		_chapter_panel.add_child(_wrapped_label("No recipe data found - import the game's data first (Game assets in the main menu). The shop will be empty until then."))
+	_chapter_panel.add_child(_wrapped_label("Recipes rotate each time the party wins a chapter or a side quest."))
+	var size_row := HBoxContainer.new()
+	_chapter_panel.add_child(size_row)
+	size_row.add_child(_label("Stock size:"))
+	size_row.add_child(_reward_spin(place.stock_size, func(value: int): place.stock_size = value))
+	size_row.add_child(_label("Stays at least:"))
+	var stay_spin := _reward_spin(place.min_stay, func(value: int): place.min_stay = maxi(value, 1))
+	stay_spin.tooltip_text = "How many rotation steps (won chapters / side quests) a recipe is guaranteed to stay."
+	size_row.add_child(stay_spin)
+	var requirements_check := CheckBox.new()
+	requirements_check.text = "Respect the game's XP / act requirements"
+	requirements_check.tooltip_text = "Only recipes whose XP requirement the party's XP counter has reached, from the current act or earlier. Off = any recipe can appear."
+	requirements_check.button_pressed = place.respect_game_requirements
+	requirements_check.toggled.connect(func(on: bool):
+		place.respect_game_requirements = on
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(requirements_check)
+	_chapter_panel.add_child(_label("Recipes put in by hand:"))
+	var recipe_ids: Array[String] = []
+	var recipe_labels: Array[String] = []
+	var order: Array[Dictionary] = RecipeData.all().duplicate()
+	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return RecipeData.label(a) < RecipeData.label(b))
+	for recipe in order:
+		recipe_ids.append(str(recipe["id"]))
+		recipe_labels.append(RecipeData.label(recipe))
+	for listed in place.listed_recipes:
+		var row := HBoxContainer.new()
+		_chapter_panel.add_child(row)
+		var recipe_option := OptionButton.new()
+		recipe_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		recipe_option.clip_text = true
+		for label_text in recipe_labels:
+			recipe_option.add_item(label_text)
+		var recipe_index := recipe_ids.find(listed.recipe_id)
+		if recipe_index >= 0:
+			recipe_option.select(recipe_index)
+		else:
+			recipe_option.add_item("(unknown recipe)")
+			recipe_option.select(recipe_option.item_count - 1)
+		recipe_option.item_selected.connect(func(index: int):
+			if index < recipe_ids.size():
+				listed.recipe_id = recipe_ids[index]
+				_mark_dirty()
+		)
+		row.add_child(recipe_option)
+		var chapter_option := OptionButton.new()
+		chapter_option.add_item("always")
+		var chapter_index := 0
+		for i in act.chapters.size():
+			chapter_option.add_item("after: " + act.chapters[i].title)
+			if act.chapters[i].id == listed.unlocked_by_chapter:
+				chapter_index = i + 1
+		chapter_option.select(chapter_index)
+		chapter_option.item_selected.connect(func(index: int):
+			listed.unlocked_by_chapter = act.chapters[index - 1].id if index >= 1 else ""
+			_mark_dirty()
+		)
+		row.add_child(chapter_option)
+		row.add_child(_button("×", func():
+			place.listed_recipes.erase(listed)
+			_mark_dirty()
+			_rebuild_chapter_panel()
+		))
+	_chapter_panel.add_child(_button("Add recipe", func():
+		var created := ShopListedRecipe.new()
+		created.recipe_id = recipe_ids[0] if not recipe_ids.is_empty() else ""
+		place.listed_recipes.append(created)
 		_mark_dirty()
 		_rebuild_chapter_panel()
 	))
-	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_button("Delete place", func(): _delete_place(place)))
 
 
 func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_ids: Array[String]) -> Control:
@@ -1278,6 +1415,27 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 		_mark_dirty()
 	)
 	weapon_row.add_child(upgraded_check)
+	var armor_row := HBoxContainer.new()
+	box.add_child(armor_row)
+	armor_row.add_child(_label("Armor card:"))
+	var armor_option := OptionButton.new()
+	armor_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	armor_option.add_item("(no armor)")
+	var armor_ids: Array[String] = []
+	for armor in ArmorData.all():
+		armor_ids.append(str(armor["id"]))
+		armor_option.add_item(ArmorData.label(str(armor["id"])))
+	var armor_index := armor_ids.find(offer.armor)
+	if offer.armor != "" and armor_index < 0:
+		armor_option.add_item("%s (unknown)" % offer.armor)
+		armor_option.select(armor_option.item_count - 1)
+	else:
+		armor_option.select(armor_index + 1 if armor_index >= 0 else 0)
+	armor_option.item_selected.connect(func(index: int):
+		offer.armor = armor_ids[index - 1] if index >= 1 and index <= armor_ids.size() else ""
+		_mark_dirty()
+	)
+	armor_row.add_child(armor_option)
 	var once_check := CheckBox.new()
 	once_check.text = "Only once"
 	once_check.button_pressed = offer.once
@@ -1302,6 +1460,7 @@ func _refresh_all() -> void:
 	_suppress = true
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
+	_sell_spin.set_value_no_signal(_campaign.sell_percent)
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")
 	_cover_preview.texture = CampaignIO.image_texture(_folder, _campaign.cover_image)
 	_cover_preview.visible = _cover_preview.texture != null

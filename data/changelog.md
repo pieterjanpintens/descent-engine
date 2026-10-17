@@ -1,3 +1,9 @@
+## v0.0.24 - 2026-10-16
+- New props for missions: fence (a see-through gate), cart, chest, pot, table and well.
+- Campaign shop (first version): places on the map can be a market (buy and sell materials), a recipe shop with a rotating stock, or a smithy where you forge weapon cards and parts from recipes and materials. Needs the game's data import.
+- Armor cards: part of a campaign's starting equipment, given by authored offers, sold in the recipe shop (with upgrades forged at the smithy). Their effects stay at the table.
+- Places can close again after a chapter, and a bought recipe disappears from every shop.
+
 ## v0.0.23 - 2026-10-16
 - New logo on the main menu, and the credits now list the 2D art (logo and background).
 

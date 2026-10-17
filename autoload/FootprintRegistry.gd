@@ -518,6 +518,17 @@ const FOOTPRINTS: Dictionary = {
 	#   x
 	#   x   <- assumed origin (bottom)
 	"gate": [Vector3i(0, 0, -1), Vector3i(0, 0, 0)],
+	# Fence - the see-through variant of the gate: identical footprint.
+	"fence": [Vector3i(0, 0, -1), Vector3i(0, 0, 0)],
+	# Furniture (models/furniture.glb). Meshes measured: pivot on the far corner
+	# like everything else, extending toward -X/-Z. Cart and table are 2x1 tile
+	# squares along X (R rotates them); chest, pot and well are 1x1 (the default,
+	# listed for visibility).
+	"cart": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
+	"table": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
+	"chest": [Vector3i.ZERO],
+	"pot": [Vector3i.ZERO],
+	"well": [Vector3i.ZERO],
 	# Archway - single column, 4x1 tile-squares. Origin is the marked cell:
 	#   x
 	#   x
@@ -596,6 +607,7 @@ const LOGICAL_OVERRIDES: Dictionary = {
 	# items would get, just spelled out here since these names don't follow
 	# that prefix convention.
 	"gate": {"walkable": true, "blocks_los": false},
+	"fence": {"walkable": true, "blocks_los": false},
 	"archway": {"walkable": true, "blocks_los": false},
 	# Tree blocks movement and sightline like a pillar.
 	"tree": {"walkable": false, "blocks_los": true},

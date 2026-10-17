@@ -120,11 +120,15 @@ func problems(mission_files: Array[String]) -> Array[String]:
 			found.append("place '%s' is unlocked by a chapter that no longer exists" % place.title)
 		elif place.unlocked_by_chapter != "" and find_chapter(place.unlocked_by_chapter).is_finale:
 			found.append("place '%s' is unlocked by a finale - winning it ends the act, so it could never be visited" % place.title)
+		if place.closes_after_chapter != "" and find_chapter(place.closes_after_chapter) == null:
+			found.append("place '%s' is closed by a chapter that no longer exists" % place.title)
 		for offer in place.offers:
-			if offer.attachment == "" and offer.rune == "" and offer.weapon == "":
+			if offer.attachment == "" and offer.rune == "" and offer.weapon == "" and offer.armor == "":
 				found.append("'%s' (at '%s') gives nothing" % [offer.title, place.title])
+			elif offer.armor != "" and ArmorData.available() and ArmorData.find(offer.armor).is_empty():
+				found.append("'%s' (at '%s') gives an unknown armor '%s'" % [offer.title, place.title, offer.armor])
 			elif offer.rune != "" and WeaponData.find_rune(offer.rune) == null:
 				found.append("'%s' (at '%s') gives an unknown rune '%s'" % [offer.title, place.title, offer.rune])
-			elif not attachment_ids.has(offer.attachment):
+			elif offer.attachment != "" and not attachment_ids.has(offer.attachment):
 				found.append("'%s' (at '%s') gives an unknown attachment '%s'" % [offer.title, place.title, offer.attachment])
 	return found

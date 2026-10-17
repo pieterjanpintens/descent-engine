@@ -70,6 +70,12 @@ func _rebuild() -> void:
 	var rune_grid := _section("Runes")
 	for rune in WeaponData.runes():
 		rune_grid.add_child(_check(rune.weapon_name, _campaign.starting_runes, rune.part_id, rune.ability_text))
+	if ArmorData.available():
+		var armor_grid := _section("Armor")
+		for armor in ArmorData.all():
+			armor_grid.add_child(_check(ArmorData.label(str(armor["id"])), _campaign.starting_armors, str(armor["id"]), "%s
+
++ side: %s" % [armor["text"], armor["plus_text"]]))
 
 
 ## A folded section titled `title_text` holding a two-column grid.
