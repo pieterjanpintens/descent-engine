@@ -25,7 +25,7 @@ extends Resource
 ## others close for good (1 -> 2 xor 3 -> 4). Without it all of them stay open (any order).
 @export var exclusive_links: bool = false
 ## What winning the chapter gives the party: experience points (the party's counter) and gold.
-@export var reward_xp: int = 1
+@export var reward_xp: int = 0
 ## Counter for NarrativeStep ids (never reused, so a deleted step's id can't point at a newer one).
 @export var next_step_number: int = 1
 @export var reward_gold: int = 0

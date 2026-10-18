@@ -15,7 +15,7 @@ extends Resource
 @export_multiline var story_after: String = ""
 ## Fraction 0..1 of the map image of the act it is shown on (the act of the chapter it is linked to).
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
-@export var reward_xp: int = 1
+@export var reward_xp: int = 0
 @export var reward_gold: int = 0
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}

@@ -547,7 +547,7 @@ func _rebuild_side() -> void:
 	var title := _label(chapter.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
-	_side.add_child(_label("Reward: +%d XP%s" % [chapter.reward_xp, (", %d gold" % chapter.reward_gold) if chapter.reward_gold > 0 else ""]))
+	_side.add_child(_label("Reward: " + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
 	if chapter.story_before != "":
 		_side.add_child(_wrapped(chapter.story_before))
 	var play := _button("Read this chapter" if chapter.is_narrative else "Play this chapter", func(): _play(chapter))
@@ -563,7 +563,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	var title := _label(quest.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
-	_side.add_child(_label("Reward: +%d XP%s" % [quest.reward_xp, (", %d gold" % quest.reward_gold) if quest.reward_gold > 0 else ""]))
+	_side.add_child(_label("Reward: " + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
 	if quest.story_before != "":
 		_side.add_child(_wrapped(quest.story_before))
 	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
@@ -862,7 +862,12 @@ func _apply_result(result: Dictionary) -> void:
 	var lines: Array[String] = []
 	lines.append("Victory!" if won else "Defeat.")
 	if won:
-		lines.append("+%d XP (now %d), +%d gold%s." % [summary["xp_gained"], summary["xp"], summary["gold"], (", " + CampaignState.format_materials(summary["materials"])) if not summary["materials"].is_empty() else ""])
+		var parts: Array[String] = []
+		if summary["xp_gained"] > 0 or summary["gold"] > 0 or summary["materials"].is_empty():
+			parts.append(CampaignState.reward_text(summary["xp_gained"], summary["gold"]) + (" (XP now %d)" % summary["xp"] if summary["xp_gained"] > 0 else ""))
+		if not summary["materials"].is_empty():
+			parts.append(CampaignState.format_materials(summary["materials"]))
+		lines.append(", ".join(parts) + ".")
 		if summary["story_after"] != "":
 			lines.append("\n" + summary["story_after"])
 	elif summary["next"].is_empty():

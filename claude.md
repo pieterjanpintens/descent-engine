@@ -6597,7 +6597,7 @@ step after it. Editor: shared `_build_conditions_section()` (also used by side q
 **Delete confirmations (2026-10-07)**: deleting a chapter or removing an act asks first (`CampaignEditor._confirm()`, one shared `ConfirmationDialog`); side quests and places still delete immediately. Also fixed: removing the last act no longer errors (an untyped `[]` in a ternary was assigned to the typed `side_quests` array - `_no_quests()`).
 
 **Experience counter (2026-10-07, replaces the first "hero model")** - the game has no real XP system and no modelled abilities, so what
-carries over between missions is ONE party-wide counter: `CampaignState.experience` (int, default 0). It goes up by the chapter's `reward_xp` (authored per chapter in the editor, default 1)
+carries over between missions is ONE party-wide counter: `CampaignState.experience` (int, default 0). It goes up by the chapter's `reward_xp` (authored per chapter in the editor, default 0 since 2026-10-18 - experience is rare; wins show "no reward" unless they give XP, gold or materials)
 for every WON chapter (a loss gives nothing), and an act can force it to a number when it begins (`CampaignAct.start_experience`, -1 = keep;
 "levels the board again" - applied by `_begin_act()`, so also at the start of the first act and after the last chapter of the previous one).
 It is always visible in the campaign screen's top bar ("XP: N | Gold: ..."), the chapter panel shows the reward, and the result dialog says
@@ -6617,7 +6617,7 @@ the heroes and weapons as usual). **When the mission ends** `MissionPlayer._exit
 `{won, roster, chapter_id}`, or with `{}` for Back to Menu = abandoned) stores `GameState.campaign_result` and returns to the campaign screen instead of the
 main menu; the screen reopens that campaign, applies the result and clears the context (a mission started from the main menu - Play Mission/Load
 Game - clears any campaign context). **Rules** (`CampaignState.apply_result()`, the same logic the screen uses): the party is at a FRONTIER
-(`available_chapters`; the start chapter at first). A WIN completes the chapter, raises the XP counter by the chapter's `reward_xp` (default 1) and gives `reward_gold` to the party
+(`available_chapters`; the start chapter at first). A WIN completes the chapter, raises the XP counter by the chapter's `reward_xp` (default 0) and gives `reward_gold` to the party
 (per-chapter field, default 0, set in the editor's chapter panel), and replaces the chapter in the frontier by the targets of its "on win"/
 "always" links (several = the table chooses); winning a **finale** (or a chapter with nowhere to go) completes the act and starts the next one, after the
 last act the campaign is complete. A LOSS: an "on lose"/"always" link replaces the chapter, otherwise the chapter is simply offered again (no XP/gold on a
@@ -6637,7 +6637,7 @@ chapters>" on top, then the entries newest first, click one to re-read it. Compi
 
 **Side quests (2026-10-07)** - optional extras. `CampaignSideQuest` (`scripts/CampaignSideQuest.gd`, id "sq_N" from `Campaign.new_side_quest_id()`) lives in
 `Campaign.side_quests` - NOT in an act, never part of the path, no links between quests (yet). Like a chapter it has a `mission_file`, `story_before/after`,
-`map_position`, `reward_xp` (1) / `reward_gold` / `reward_materials`; in addition `chapter_ids` (the chapters it is offered at) and `conditions`
+`map_position`, `reward_xp` (0) / `reward_gold` / `reward_materials`; in addition `chapter_ids` (the chapters it is offered at) and `conditions`
 (`Array[Condition]`). **Visible** (`CampaignState.is_side_quest_visible()`): not won (`completed_side_quests`), the party can play one of its chapters now
 (`available_chapters`) AND its conditions hold - so it disappears when the party moves on. **Conditions** reuse the mission editor's condition rows (`EffectEditor.build_condition_row()` with `campaign_variables` set to
 `Campaign.all_variables()`) over the campaign variables (next paragraph); evaluation is `CampaignState.conditions_hold()` = `MissionRuntime.evaluate_conditions()`

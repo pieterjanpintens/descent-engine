@@ -1,3 +1,6 @@
+## Next
+- Winning a chapter or side quest gives no experience by default any more (experience is rare); set the reward in the editor when a win should give some. Rewards read "no reward" when there is none.
+
 ## v0.0.25 - 2026-10-18
 - A writing workspace for campaigns (button in the campaign editor): private notes (story bible, style, characters...) and one manuscript per act, saved as you type.
 - From the manuscript, an optional AI can propose a plan of acts, chapters, characters and variables. You review it, then build the accepted items into the campaign in one undo step; narrative chapters get their story pages from the manuscript, and mission chapters get a brief and an empty mission file with objectives and variables (no map).
