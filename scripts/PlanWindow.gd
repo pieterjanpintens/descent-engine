@@ -33,6 +33,7 @@ var _count_label: Label
 var _note_label: Label
 var _confirm: ConfirmationDialog
 var _build_button: Button
+var _brief_window: BriefWindow
 var _build_confirm: ConfirmationDialog
 var _rebuilding := false
 
@@ -220,6 +221,32 @@ func _build() -> void:
 	_rebuild()
 
 
+func _open_brief(act: Dictionary, chapter: Dictionary) -> void:
+	if _brief_window == null:
+		_brief_window = BriefWindow.new()
+		add_child(_brief_window)
+	_brief_window.open_for(campaign, folder, read_only, act, chapter, _on_brief_edited, _on_brief_campaign_changed)
+	if not _brief_window.visibility_changed.is_connected(_on_brief_visibility):
+		_brief_window.visibility_changed.connect(_on_brief_visibility)
+
+
+func _on_brief_edited() -> void:
+	_save_timer.start()
+
+
+## A mission file was made: the campaign changed (the editor records an undo step); the plan keeps the new brief state.
+func _on_brief_campaign_changed() -> void:
+	_save_now()
+	if on_changed.is_valid():
+		on_changed.call()
+
+
+func _on_brief_visibility() -> void:
+	if not _brief_window.visible:
+		_save_now()
+		_rebuild()  # the Brief button shows a tick once there is a brief
+
+
 func _say(message: String) -> void:
 	_note_label.text = message
 	_note_label.visible = true
@@ -266,7 +293,7 @@ func _act_block(act: Dictionary) -> Control:
 	box.add_child(intro)
 	var titles := _chapter_titles(act)
 	for chapter in act["chapters"]:
-		box.add_child(_chapter_block(chapter, titles))
+		box.add_child(_chapter_block(chapter, titles, act))
 	return panel
 
 
@@ -277,7 +304,7 @@ func _chapter_titles(act: Dictionary) -> Dictionary:
 	return titles
 
 
-func _chapter_block(chapter: Dictionary, titles: Dictionary) -> Control:
+func _chapter_block(chapter: Dictionary, titles: Dictionary, act: Dictionary) -> Control:
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.22, 0.22, 0.26)
@@ -296,10 +323,16 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary) -> Control:
 	kind.item_selected.connect(func(index: int):
 		chapter["kind"] = CampaignPlan.KINDS[index]
 		_changed()
+		_rebuild.call_deferred()  # a mission chapter gets a Brief button
 	)
 	kind.disabled = read_only
 	row.add_child(kind)
 	row.add_child(_line(chapter["title"], func(text: String): chapter["title"] = text))
+	if chapter["kind"] == "mission":
+		var has_brief := MissionBrief.has_content(chapter["brief"])
+		var brief_button := _button("Brief…" if not has_brief else "Brief ✓", func(): _open_brief(act, chapter))
+		brief_button.tooltip_text = "The goal, objectives, variables and monsters of this mission - the AI can write a first version, and an empty mission file can be made from it."
+		row.add_child(brief_button)
 	var flags: Array[String] = []
 	if chapter["start"]:
 		flags.append("start")

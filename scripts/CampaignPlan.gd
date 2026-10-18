@@ -138,6 +138,7 @@ static func _normalize(raw: Dictionary, fresh: bool, manuscripts: Array[Dictiona
 				"links": [], "accepted": _flag(chapter_raw, "accepted", true), "exists": _flag(chapter_raw, "exists", false), "built": _text(chapter_raw.get("built", ""), 80),
 				"synced_text": _text(chapter_raw.get("synced_text", ""), PlanSync.MAX_TEXT), "built_text": _text(chapter_raw.get("built_text", ""), PlanSync.MAX_TEXT),
 				"built_fp": _text(chapter_raw.get("built_fp", ""), 40),
+				"brief": MissionBrief.normalize(chapter_raw["brief"])["brief"] if typeof(chapter_raw.get("brief")) == TYPE_DICTIONARY else MissionBrief.empty(),
 			}
 			if fresh:
 				chapter["section_file"] = ""
@@ -154,6 +155,7 @@ static func _normalize(raw: Dictionary, fresh: bool, manuscripts: Array[Dictiona
 				chapter["synced_text"] = ""
 				chapter["built_text"] = ""
 				chapter["built_fp"] = ""
+				chapter["brief"] = MissionBrief.empty()
 			chapter["links_raw"] = chapter_raw.get("links", [])
 			act["chapters"].append(chapter)
 		_finish_links(act, dropped)
@@ -239,6 +241,11 @@ static func _fix_start_and_finale(act: Dictionary) -> void:
 		chapters[0]["start"] = true
 	if not has_finale:
 		chapters[chapters.size() - 1]["finale"] = true
+
+
+## A variable as {name, type, default, purpose} with every field checked, or {} when the name is not usable.
+static func clean_variable(raw: Variant) -> Dictionary:
+	return _variable(raw)
 
 
 static func _variable(raw: Variant) -> Dictionary:
