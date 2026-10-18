@@ -31,6 +31,10 @@ extends Control
 ##   var i: int = await dialog.ask_choice("Do what?", ["Pick fruit", "Climb"])  # -1 = Cancel
 
 const PANEL_WIDTH := 480.0
+## A choice with several or long answers: a wider box with the answers in a scrolling list (see ask_choice()).
+const CHOICE_PANEL_WIDTH := 760.0
+const CHOICE_LIST_THRESHOLD := 3  ## more options than this, or any longer than CHOICE_SHORT_LENGTH, = the list layout
+const CHOICE_SHORT_LENGTH := 24
 const LARGE_MARGIN := 80.0  ## ask_ok(..., large = true): gap to every screen edge
 const LARGE_FONT_SIZE := 28
 
@@ -38,6 +42,8 @@ signal _closed(result: Variant)
 
 var _label: Label
 var _button_row: HBoxContainer
+var _choice_scroll: ScrollContainer
+var _choice_list: VBoxContainer
 var _count_input: SpinBox
 var _attack_preview: CombatMeshPreview
 var _image_row: HBoxContainer
@@ -130,6 +136,17 @@ func _build_ui() -> void:
 	_count_input.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	vbox.add_child(_count_input)
 
+	# The answers of a choice with many or long options: one per line, wrapping, in a list that scrolls when it is taller than the screen.
+	_choice_scroll = ScrollContainer.new()
+	_choice_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_choice_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_choice_scroll.visible = false
+	vbox.add_child(_choice_scroll)
+	_choice_list = VBoxContainer.new()
+	_choice_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_choice_list.add_theme_constant_override("separation", 6)
+	_choice_scroll.add_child(_choice_list)
+
 	_button_row = HBoxContainer.new()
 	_button_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(_button_row)
@@ -157,7 +174,7 @@ var _panel: Control
 ## Normal: a 480px box centered near the top. Large: fills most of the
 ## screen (margins on every side), with bigger, vertically centered text -
 ## used for moments that deserve the table's full attention (a hit).
-func _apply_panel_layout(large: bool) -> void:
+func _apply_panel_layout(large: bool, width: float = PANEL_WIDTH) -> void:
 	if large:
 		_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_panel.custom_minimum_size = Vector2.ZERO
@@ -167,9 +184,9 @@ func _apply_panel_layout(large: bool) -> void:
 		_panel.offset_bottom = -LARGE_MARGIN
 	else:
 		_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-		_panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0)
-		_panel.offset_left = -PANEL_WIDTH / 2.0
-		_panel.offset_right = PANEL_WIDTH / 2.0
+		_panel.custom_minimum_size = Vector2(width, 0)
+		_panel.offset_left = -width / 2.0
+		_panel.offset_right = width / 2.0
 		_panel.offset_top = 16.0
 		_panel.offset_bottom = 0.0
 	if _label == null:  # first call, from _build_ui(), before the label exists
@@ -427,7 +444,13 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 		specs.append({"text": NarrationMarkup.plain(option_labels[i], characters), "result": i, "disabled": disabled})
 	if allow_cancel:
 		specs.append({"text": "Cancel", "result": -1})
-	_set_buttons(specs)
+	var as_list := option_labels.size() > CHOICE_LIST_THRESHOLD
+	for label in option_labels:
+		if NarrationMarkup.plain(label, characters).length() > CHOICE_SHORT_LENGTH:
+			as_list = true
+	if as_list:
+		_apply_panel_layout(false, minf(CHOICE_PANEL_WIDTH, get_viewport_rect().size.x - 40.0))
+	_set_buttons(specs, as_list)
 	var names: Array[String] = []
 	for label in option_labels:
 		names.append(VoiceAnswerParser.option_name(NarrationMarkup.plain(label, characters)))
@@ -435,9 +458,23 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 	if narrate:
 		Narrator.speak(text, characters)
 	visible = true
+	if as_list:
+		_fit_choice_list()
 	var result: int = await _closed
 	visible = false
+	if as_list:
+		_apply_panel_layout(false)  # back to the normal box width for the next dialog
 	return result
+
+
+## Gives the answer list the height it needs, but never more than fits on screen with the question and the Cancel button
+## (the list scrolls beyond that). Waits for two layout passes: a wrapping button only knows its height once it has its width.
+func _fit_choice_list() -> void:
+	_choice_scroll.custom_minimum_size.y = 0
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var room := get_viewport_rect().size.y - 16.0 - _label.get_combined_minimum_size().y - _button_row.get_combined_minimum_size().y - 100.0
+	_choice_scroll.custom_minimum_size.y = clampf(_choice_list.get_combined_minimum_size().y, 80.0, maxf(room, 120.0))
 
 
 ## `on_page` (optional) is called with the page index every time a page is
@@ -484,16 +521,30 @@ func _show_narrative_page() -> void:
 	_set_buttons(specs)
 
 
-func _set_buttons(specs: Array) -> void:
+## `as_list` (ask_choice() with several or long answers): the answers go one per line in the scrolling list, wrapping to the width of the
+## box; Cancel (result -1) stays in the button row below it so it is always visible. Everything else is one row of buttons.
+func _set_buttons(specs: Array, as_list: bool = false) -> void:
 	for child in _button_row.get_children():
 		child.queue_free()
+	for child in _choice_list.get_children():
+		_choice_list.remove_child(child)
+		child.queue_free()
+	_choice_scroll.visible = as_list
 	_buttons.clear()
 	for spec in specs:
 		var btn := Button.new()
 		btn.text = spec["text"]
 		btn.disabled = spec.get("disabled", false)
 		btn.pressed.connect(_on_button_pressed.bind(spec["result"]))
-		_button_row.add_child(btn)
+		var in_list: bool = as_list and not (typeof(spec["result"]) == TYPE_INT and spec["result"] == -1)
+		if in_list:
+			btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			btn.custom_minimum_size.x = 200.0  # a wrapping button needs a width to start from
+			_choice_list.add_child(btn)
+		else:
+			_button_row.add_child(btn)
 		_buttons.append(btn)
 
 
