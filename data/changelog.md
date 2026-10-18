@@ -1,4 +1,4 @@
-## Next
+## v0.0.26 - 2026-10-18
 - Playtest a campaign from the campaign editor: File > Playtest from the start (Ctrl+Enter) or Continue playtest opens it in the player on a 'Playtest' save, with a 'Back to editor' button. For campaigns you are editing (not releases) the player also has 'Auto-win missions' and, on every chapter and side quest, 'Count as won' / 'Count as lost' (a lost one follows the 'on lose' link) so you can click through a campaign and test both ways.
 - A choice with many or long answers (a narrative question with 8 answers) now shows them one per line, wrapped, in a wider box that scrolls when needed, with Cancel always visible. Short choices (up to 3 short answers) stay in one row.
 - The campaign introduction dialog is no longer wider than the screen: long texts wrap, and the dialog is titled with the campaign's name.
