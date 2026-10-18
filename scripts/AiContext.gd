@@ -32,7 +32,7 @@ static func build(folder: String, focus: String, options: Dictionary = {}) -> Di
 			if title != "" and section["body"] != "" and _mentions(focus, title):
 				candidates.append({"label": "%s: %s" % [_title(file_name), title], "file": file_name, "text": "%s\n%s" % [title, section["body"]]})
 	for file_name: String in options.get("extra_files", []):
-		var text := CampaignNotes.read(folder, file_name).strip_edges()
+		var text := _meaningful(CampaignNotes.read(folder, file_name), file_name)
 		if text != "" and not _has_file(candidates, file_name):
 			candidates.append({"label": _title(file_name), "file": file_name, "text": text})
 	var excluded: Array = options.get("exclude_files", [])

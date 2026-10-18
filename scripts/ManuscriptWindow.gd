@@ -34,6 +34,7 @@ var _count_label: Label
 var _context_label: Label
 var _banner: Label
 var _edit: TextEdit
+var _plan_window: PlanWindow
 var _name_dialog: ConfirmationDialog
 var _name_edit: LineEdit
 var _name_error: Label
@@ -103,6 +104,7 @@ func _ready() -> void:
 	_count_label = Label.new()
 	_count_label.add_theme_color_override("font_color", HINT_COLOR)
 	top.add_child(_count_label)
+	top.add_child(_button("Plan…", _open_plan))
 	_status_label = Label.new()
 	_status_label.add_theme_color_override("font_color", HINT_COLOR)
 	_status_label.custom_minimum_size.x = 90
@@ -197,6 +199,15 @@ func _fit_to_screen() -> void:
 
 
 # ---------------------------------------------------------------- files
+
+## The campaign plan (what the AI proposes from the manuscript). The manuscript is saved first - the plan is made from the files.
+func _open_plan() -> void:
+	_save_now()
+	if _plan_window == null:
+		_plan_window = PlanWindow.new()
+		add_child(_plan_window)
+	_plan_window.open_for(campaign, folder, read_only)
+
 
 func _open_file(file_name: String) -> void:
 	_save_now()
