@@ -136,6 +136,8 @@ static func _normalize(raw: Dictionary, fresh: bool, manuscripts: Array[Dictiona
 				"section_fp": _text(chapter_raw.get("section_fp", ""), 40),
 				"start": bool(chapter_raw.get("start", false)), "finale": bool(chapter_raw.get("finale", false)),
 				"links": [], "accepted": _flag(chapter_raw, "accepted", true), "exists": _flag(chapter_raw, "exists", false), "built": _text(chapter_raw.get("built", ""), 80),
+				"synced_text": _text(chapter_raw.get("synced_text", ""), PlanSync.MAX_TEXT), "built_text": _text(chapter_raw.get("built_text", ""), PlanSync.MAX_TEXT),
+				"built_fp": _text(chapter_raw.get("built_fp", ""), 40),
 			}
 			if fresh:
 				chapter["section_file"] = ""
@@ -149,6 +151,9 @@ static func _normalize(raw: Dictionary, fresh: bool, manuscripts: Array[Dictiona
 				chapter["exists"] = existing_chapters.has(title.to_lower())
 				chapter["accepted"] = not chapter["exists"]
 				chapter["built"] = ""
+				chapter["synced_text"] = ""
+				chapter["built_text"] = ""
+				chapter["built_fp"] = ""
 			chapter["links_raw"] = chapter_raw.get("links", [])
 			act["chapters"].append(chapter)
 		_finish_links(act, dropped)

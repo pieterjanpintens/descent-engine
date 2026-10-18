@@ -37,6 +37,8 @@ var _context_label: Label
 var _banner: Label
 var _edit: TextEdit
 var _plan_window: PlanWindow
+var _sync_window: SyncWindow
+var _sync_button: Button
 var _name_dialog: ConfirmationDialog
 var _name_edit: LineEdit
 var _name_error: Label
@@ -107,6 +109,9 @@ func _ready() -> void:
 	_count_label.add_theme_color_override("font_color", HINT_COLOR)
 	top.add_child(_count_label)
 	top.add_child(_button("Plan…", _open_plan))
+	_sync_button = _button("Sync", _open_sync)
+	_sync_button.tooltip_text = "Chapters made from the manuscript that are out of step with it."
+	top.add_child(_sync_button)
 	_status_label = Label.new()
 	_status_label.add_theme_color_override("font_color", HINT_COLOR)
 	_status_label.custom_minimum_size.x = 90
@@ -210,6 +215,28 @@ func _open_plan() -> void:
 		_plan_window = PlanWindow.new()
 		add_child(_plan_window)
 	_plan_window.open_for(campaign, folder, read_only, on_changed)
+
+
+## The sync check: which chapters built from the manuscript no longer match it (or the other way round).
+func _open_sync() -> void:
+	_save_now()
+	if _sync_window == null:
+		_sync_window = SyncWindow.new()
+		add_child(_sync_window)
+	if not _sync_window.resolved.is_connected(_refresh_side):
+		_sync_window.resolved.connect(_refresh_side)
+	_sync_window.open_for(campaign, folder, read_only, on_changed, _reload_current)
+
+
+## Reads the open file from disk again (the sync check changed it).
+func _reload_current() -> void:
+	var line := _edit.get_caret_line()
+	_loading = true
+	_edit.text = CampaignNotes.read(folder, _file)
+	_loading = false
+	_dirty = false
+	_edit.set_caret_line(mini(line, _edit.get_line_count() - 1))
+	_refresh_side()
 
 
 func _open_file(file_name: String) -> void:
@@ -338,7 +365,11 @@ func _words_text() -> String:
 
 ## The section list of the open file and the "context used" line under the text.
 func _refresh_side() -> void:
+	_save_now()  # the sync check reads the files
 	_count_label.text = _words_text()
+	var drifted := _drifted_sections()
+	_sync_button.text = "Sync (%d)" % drifted["count"] if drifted["count"] > 0 else "Sync"
+	_sync_button.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3) if drifted["count"] > 0 else Color(1, 1, 1))
 	for child in _sections_box.get_children():
 		_sections_box.remove_child(child)
 		child.queue_free()
@@ -352,6 +383,11 @@ func _refresh_side() -> void:
 		button.text = section["title"]
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.clip_text = true
+		if drifted["titles"].has(section["title"]):
+			button.text = "● " + section["title"]
+			button.tooltip_text = PlanSync.state_text(drifted["titles"][section["title"]])
+			button.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
+			button.add_theme_color_override("font_hover_color", Color(1.0, 0.7, 0.3))
 		button.pressed.connect(func():
 			_edit.set_caret_line(line)
 			_edit.set_caret_column(0)
@@ -367,6 +403,19 @@ func _refresh_side() -> void:
 		if part["included"]:
 			labels.append(part["label"])
 	_context_label.text = "AI background from your notes: %s" % (", ".join(labels) if not labels.is_empty() else "nothing yet - fill in the style guide, story bible or character notes.")
+
+
+## {count: chapters out of step over the whole campaign, titles: {section title: state} for the open file}.
+func _drifted_sections() -> Dictionary:
+	var result := {"count": 0, "titles": {}}
+	if campaign == null or folder == "" or not FileAccess.file_exists(CampaignPlan.plan_path(folder)):
+		return result
+	var entries := PlanSync.check(CampaignPlan.load_plan(folder), campaign, folder)
+	result["count"] = PlanSync.drift_count(entries)
+	for entry in entries:
+		if entry["state"] != "in_sync" and entry["chapter_plan"]["section_file"] == _file:
+			result["titles"][entry["chapter_plan"]["section_title"]] = entry["state"]
+	return result
 
 
 # ---------------------------------------------------------------- AI background

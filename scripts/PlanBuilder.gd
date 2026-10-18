@@ -122,8 +122,9 @@ static func _build_chapters(act: CampaignAct, act_plan: Dictionary, wanted: Arra
 		chapter.title = chapter_plan["title"]
 		chapter.is_narrative = chapter_plan["kind"] == "narrative"
 		chapter.is_finale = chapter_plan["finale"]
+		var body := _section_body(chapter_plan, folder)
 		if chapter.is_narrative:
-			for text in _step_texts(chapter_plan, folder):
+			for text in paginate(body if body.strip_edges() != "" else chapter_plan["summary"]):
 				var step := NarrativeStep.new()
 				step.id = chapter.new_step_id()
 				step.text = text
@@ -131,6 +132,7 @@ static func _build_chapters(act: CampaignAct, act_plan: Dictionary, wanted: Arra
 				made["steps"] += 1
 		act.chapters.append(chapter)
 		chapter_plan["built"] = chapter.id
+		PlanSync.remember(chapter_plan, body, chapter)  # the starting point of the manuscript sync check
 		ids[chapter_plan["key"]] = chapter.id
 		created.append(chapter)
 		created_plans.append(chapter_plan)
@@ -155,18 +157,14 @@ static func _build_chapters(act: CampaignAct, act_plan: Dictionary, wanted: Arra
 		act.start_chapter_id = act.chapters[0].id
 
 
-## The text of a narrative chapter's steps: its manuscript section split into pages of about STEP_TARGET_CHARS (whole
-## paragraphs), else the plan's summary as one draft page.
-static func _step_texts(chapter_plan: Dictionary, folder: String) -> Array[String]:
-	var body := ""
+## The text of the manuscript section a chapter is linked to, as it is now ("" when it has none). A narrative chapter's pages are
+## made from it (split into pages of about STEP_TARGET_CHARS, whole paragraphs; the plan's summary when there is no section).
+static func _section_body(chapter_plan: Dictionary, folder: String) -> String:
 	if chapter_plan["section_file"] != "":
 		for section in CampaignNotes.sections(CampaignNotes.read(folder, chapter_plan["section_file"])):
 			if section["title"] == chapter_plan["section_title"]:
-				body = section["body"]
-				break
-	if body.strip_edges() == "":
-		body = chapter_plan["summary"]
-	return paginate(body)
+				return section["body"]
+	return ""
 
 
 ## Splits a text into pages: consecutive paragraphs are joined until a page reaches the target length.

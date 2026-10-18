@@ -165,3 +165,25 @@ static func fingerprint(text: String) -> String:
 	regex.compile("\\s+")
 	var normalized := regex.sub(text.strip_edges(), " ", true)
 	return normalized.sha256_text().substr(0, 16)
+
+
+## `text` with the body of the `## title` section replaced by `new_body` (the heading stays; the first section with that title
+## wins). Returns "" when there is no such section - an empty text is never a valid result of a replacement.
+static func replace_section(text: String, title: String, new_body: String) -> String:
+	var found := sections(text)
+	var lines := text.split("\n")
+	for i in found.size():
+		if found[i]["title"] != title or title == "":
+			continue
+		var first: int = found[i]["start_line"] + 1
+		var last: int = found[i + 1]["start_line"] if i + 1 < found.size() else lines.size()
+		var result: Array[String] = []
+		for line_index in first:
+			result.append(lines[line_index])
+		result.append("")
+		result.append(new_body.strip_edges())
+		result.append("")
+		for line_index in range(last, lines.size()):
+			result.append(lines[line_index])
+		return "\n".join(result).strip_edges() + "\n"
+	return ""
