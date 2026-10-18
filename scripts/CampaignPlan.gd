@@ -327,16 +327,20 @@ static func _text(value: Variant, max_length: int) -> String:
 	return cleaned.left(max_length)
 
 
-## {accepted, total} over the acts, chapters, characters and variables (not counting items that exist already).
+## {accepted, total} over the acts' chapters, characters and variables that still have to be decided (items already built are left out).
 static func counts(plan: Dictionary) -> Dictionary:
 	var accepted := 0
 	var total := 0
 	for act in plan.get("acts", []):
 		for chapter in act["chapters"]:
+			if chapter["built"] != "":
+				continue
 			total += 1
 			accepted += 1 if chapter["accepted"] else 0
 	for list_name in ["characters", "variables"]:
 		for item in plan.get(list_name, []):
+			if item["built"] != "":
+				continue
 			total += 1
 			accepted += 1 if item["accepted"] else 0
 	return {"accepted": accepted, "total": total}

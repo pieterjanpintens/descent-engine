@@ -624,6 +624,8 @@ func _step_history(from: Array[Campaign], to: Array[Campaign]) -> void:
 	_status_label.text = "Unsaved changes"
 	if _story_window != null:
 		_story_window.hide()  # it points at the chapter of the campaign that was swapped out
+	if _manuscript_window != null:
+		_manuscript_window.hide()  # and this one at the campaign that was swapped out
 	_update_edit_menu()
 	_refresh_all()
 
@@ -1761,7 +1763,10 @@ func _open_manuscript_window() -> void:
 	if _manuscript_window == null:
 		_manuscript_window = ManuscriptWindow.new()
 		add_child(_manuscript_window)
-	_manuscript_window.open_for(_campaign, _folder, _read_only)
+	_manuscript_window.open_for(_campaign, _folder, _read_only, func():
+		_mark_dirty()
+		_refresh_all()
+	)
 
 
 func _open_story_window(chapter: CampaignChapter) -> void:

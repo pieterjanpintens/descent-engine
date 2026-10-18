@@ -20,6 +20,8 @@ var campaign: Campaign
 var folder := ""
 ## A release: nothing can be written.
 var read_only := false
+## Called after the plan builder changed the campaign (the campaign editor records an undo step and refreshes).
+var on_changed: Callable
 
 var _file := ""
 var _dirty := false
@@ -147,9 +149,10 @@ func _ready() -> void:
 
 ## Opens the workspace of the campaign in `p_folder`. `p_read_only` = a release: nothing can be written (and the notes folder is not
 ## made).
-func open_for(p_campaign: Campaign, p_folder: String, p_read_only: bool = false) -> void:
+func open_for(p_campaign: Campaign, p_folder: String, p_read_only: bool = false, p_on_changed: Callable = Callable()) -> void:
 	if visible:
 		_save_now()
+	on_changed = p_on_changed
 	campaign = p_campaign
 	folder = p_folder
 	read_only = p_read_only
@@ -206,7 +209,7 @@ func _open_plan() -> void:
 	if _plan_window == null:
 		_plan_window = PlanWindow.new()
 		add_child(_plan_window)
-	_plan_window.open_for(campaign, folder, read_only)
+	_plan_window.open_for(campaign, folder, read_only, on_changed)
 
 
 func _open_file(file_name: String) -> void:

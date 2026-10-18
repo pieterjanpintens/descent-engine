@@ -4,8 +4,10 @@ extends Window
 ## The review list of the campaign PLAN (CampaignPlan): opened from the writing workspace ("Plan…"). "Generate plan" asks the AI
 ## (optional, AiClient.is_configured()) to work the manuscript and notes out into acts, chapters, characters and variables;
 ## the author then accepts or rejects every item and edits what is wrong. The plan is saved by itself in the campaign's
-## `notes/plan.json` (private). Nothing here changes the campaign - building real chapters from the accepted items is the next
-## step (the Build button is a placeholder). Full screen like the other writing windows.
+## `notes/plan.json` (private). "Build accepted items" then creates the real acts, chapters, narrative steps, characters and
+## variables from what is ticked (PlanBuilder, no AI) as ONE change of the campaign (`on_changed` = the campaign editor's undo
+## step and refresh); what was built is marked in the plan, so building again never copies it. Full screen like the other writing
+## windows.
 
 const SAVE_DELAY_SEC := 0.8
 const SECTION_COLOR := Color(0.95, 0.80, 0.45)
@@ -18,6 +20,8 @@ var folder := ""
 var read_only := false
 ## Tests give the generator a stub client before pressing Generate.
 var generator: PlanGenerator
+## Called after the campaign was changed (the campaign editor records an undo step and refreshes its screens).
+var on_changed: Callable
 
 var _plan: Dictionary = CampaignPlan.empty()
 var _save_timer: Timer
@@ -28,6 +32,8 @@ var _status_label: Label
 var _count_label: Label
 var _note_label: Label
 var _confirm: ConfirmationDialog
+var _build_button: Button
+var _build_confirm: ConfirmationDialog
 var _rebuilding := false
 
 
@@ -73,10 +79,9 @@ func _ready() -> void:
 	top.add_child(_count_label)
 	top.add_child(_button("Accept all new", func(): _set_all(true)))
 	top.add_child(_button("Reject all", func(): _set_all(false)))
-	var build := _button("Build accepted items (next step)", func(): pass)
-	build.disabled = true
-	build.tooltip_text = "Creating the chapters, characters and variables from the accepted items is the next step of the workspace."
-	top.add_child(build)
+	_build_button = _button("Build accepted items", _on_build_pressed)
+	_build_button.tooltip_text = "Creates the ticked chapters, characters and variables in the campaign (one undo step in the campaign editor)."
+	top.add_child(_build_button)
 	top.add_child(_button("Close", hide))
 
 	_status_label = Label.new()
@@ -104,9 +109,15 @@ func _ready() -> void:
 	_confirm.ok_button_text = "Replace"
 	_confirm.confirmed.connect(_generate)
 	add_child(_confirm)
+	_build_confirm = ConfirmationDialog.new()
+	_build_confirm.title = "Build the accepted items?"
+	_build_confirm.ok_button_text = "Build"
+	_build_confirm.confirmed.connect(_build)
+	add_child(_build_confirm)
 
 
-func open_for(p_campaign: Campaign, p_folder: String, p_read_only: bool = false) -> void:
+func open_for(p_campaign: Campaign, p_folder: String, p_read_only: bool = false, p_on_changed: Callable = Callable()) -> void:
+	on_changed = p_on_changed
 	campaign = p_campaign
 	folder = p_folder
 	read_only = p_read_only
@@ -181,6 +192,34 @@ func _generate() -> void:
 	_rebuild()
 
 
+func _on_build_pressed() -> void:
+	if read_only:
+		return
+	var preview := PlanBuilder.preview(_plan, campaign)
+	var parts: Array[String] = []
+	for entry in [["acts", "act"], ["chapters", "chapter"], ["characters", "character"], ["variables", "variable"]]:
+		if preview[entry[0]] > 0:
+			parts.append("%d %s%s" % [preview[entry[0]], entry[1], "" if preview[entry[0]] == 1 else "s"])
+	if parts.is_empty():
+		_say("Nothing to build: tick the items you want first (items already in the campaign or built before are skipped).")
+		return
+	_build_confirm.dialog_text = "This adds %s to the campaign. Narrative chapters get story pages from the manuscript; mission chapters start without a mission file. You can undo it in the campaign editor. Continue?" % ", ".join(parts)
+	_build_confirm.popup_centered()
+
+
+func _build() -> void:
+	var result := PlanBuilder.build(_plan, campaign, folder)
+	_save_now()
+	if on_changed.is_valid():
+		on_changed.call()
+	var made: Dictionary = result["made"]
+	var text := "Built %d chapter(s) (%d story pages), %d act(s), %d character(s), %d variable(s)." % [made["chapters"], made["steps"], made["acts"], made["characters"], made["variables"]]
+	if not result["skipped"].is_empty():
+		text += " Skipped: " + "; ".join(result["skipped"].slice(0, 4))
+	_status_label.text = text
+	_rebuild()
+
+
 func _say(message: String) -> void:
 	_note_label.text = message
 	_note_label.visible = true
@@ -249,7 +288,7 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary) -> Control:
 	panel.add_child(box)
 	var row := HBoxContainer.new()
 	box.add_child(row)
-	row.add_child(_check(chapter, "accepted", not chapter["exists"] and not read_only))
+	row.add_child(_check(chapter, "accepted", not chapter["exists"] and chapter["built"] == "" and not read_only))
 	var kind := OptionButton.new()
 	for label in KIND_LABELS:
 		kind.add_item(label)
@@ -266,7 +305,9 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary) -> Control:
 		flags.append("start")
 	if chapter["finale"]:
 		flags.append("finale")
-	if chapter["exists"]:
+	if chapter["built"] != "":
+		flags.append("built")
+	elif chapter["exists"]:
 		flags.append("already in the campaign")
 	if not flags.is_empty():
 		row.add_child(_inline_hint(" · ".join(flags)))
@@ -284,20 +325,22 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary) -> Control:
 
 func _character_row(character: Dictionary) -> Control:
 	var row := HBoxContainer.new()
-	row.add_child(_check(character, "accepted", not character["exists"] and not read_only))
+	row.add_child(_check(character, "accepted", not character["exists"] and character["built"] == "" and not read_only))
 	var name_edit := _line(character["name"], func(text: String): character["name"] = text)
 	name_edit.custom_minimum_size.x = 160
 	name_edit.size_flags_horizontal = Control.SIZE_FILL
 	row.add_child(name_edit)
 	row.add_child(_line(character["description"], func(text: String): character["description"] = text))
-	if character["exists"]:
+	if character["built"] != "":
+		row.add_child(_inline_hint("built"))
+	elif character["exists"]:
 		row.add_child(_inline_hint("already in the campaign"))
 	return row
 
 
 func _variable_row(variable: Dictionary) -> Control:
 	var row := HFlowContainer.new()
-	row.add_child(_check(variable, "accepted", not variable["exists"] and not read_only))
+	row.add_child(_check(variable, "accepted", not variable["exists"] and variable["built"] == "" and not read_only))
 	var name_edit := _line(variable["name"], func(text: String): variable["name"] = text.strip_edges().to_lower().replace(" ", "_"))
 	name_edit.custom_minimum_size.x = 170
 	name_edit.size_flags_horizontal = Control.SIZE_FILL
@@ -328,7 +371,9 @@ func _variable_row(variable: Dictionary) -> Control:
 	var purpose := _line(variable["purpose"], func(text: String): variable["purpose"] = text)
 	purpose.custom_minimum_size.x = 300
 	row.add_child(purpose)
-	if variable["exists"]:
+	if variable["built"] != "":
+		row.add_child(_inline_hint("built"))
+	elif variable["exists"]:
 		row.add_child(_inline_hint("already in the campaign"))
 	return row
 
@@ -340,10 +385,10 @@ func _set_all(accepted: bool) -> void:
 		return
 	for act in _plan.get("acts", []):
 		for chapter in act["chapters"]:
-			chapter["accepted"] = accepted and not chapter["exists"]
+			chapter["accepted"] = accepted and not chapter["exists"] and chapter["built"] == ""
 	for list_name in ["characters", "variables"]:
 		for item in _plan.get(list_name, []):
-			item["accepted"] = accepted and not item["exists"]
+			item["accepted"] = accepted and not item["exists"] and item["built"] == ""
 	_changed()
 	_rebuild()
 
@@ -365,6 +410,8 @@ func _save_now() -> void:
 
 func _update_counts() -> void:
 	var counts := CampaignPlan.counts(_plan)
+	var preview := PlanBuilder.preview(_plan, campaign) if campaign != null else {}
+	_build_button.disabled = read_only or campaign == null or preview.values().all(func(count): return count == 0)
 	_count_label.text = "" if counts["total"] == 0 else "%d of %d accepted" % [counts["accepted"], counts["total"]]
 
 
