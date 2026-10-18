@@ -22,6 +22,8 @@ extends RefCounted
 
 const FORMAT := 1
 const FILE_NAME := "plan.json"
+## The plan as it was before the last time it was replaced by a new one (kept so that a bad answer never costs the old plan).
+const BACKUP_NAME := "plan.previous.json"
 const MAX_ACTS := 12
 const MAX_CHAPTERS := 30
 const MAX_CHARACTERS := 60
@@ -34,6 +36,63 @@ const TYPES := ["bool", "int", "float", "string"]
 
 static func plan_path(folder: String) -> String:
 	return "%s/%s" % [CampaignNotes.notes_path(folder), FILE_NAME]
+
+
+static func backup_path(folder: String) -> String:
+	return "%s/%s" % [CampaignNotes.notes_path(folder), BACKUP_NAME]
+
+
+static func has_backup(folder: String) -> bool:
+	return FileAccess.file_exists(backup_path(folder))
+
+
+## Keeps the plan file as the "previous plan" (call it before a new plan replaces it). False when there is no plan file or it can't be copied.
+static func backup_plan(folder: String) -> bool:
+	if CampaignIO.is_release(folder) or not FileAccess.file_exists(plan_path(folder)):
+		return false
+	return DirAccess.copy_absolute(plan_path(folder), backup_path(folder)) == OK
+
+
+## Swaps the current plan and the previous plan (so it can be undone by doing it again). False when there is no previous plan.
+static func swap_with_backup(folder: String) -> bool:
+	if CampaignIO.is_release(folder) or not has_backup(folder):
+		return false
+	var current := FileAccess.get_file_as_bytes(plan_path(folder)) if FileAccess.file_exists(plan_path(folder)) else PackedByteArray()
+	var previous := FileAccess.get_file_as_bytes(backup_path(folder))
+	var plan_file := FileAccess.open(plan_path(folder), FileAccess.WRITE)
+	if plan_file == null:
+		return false
+	plan_file.store_buffer(previous)
+	plan_file.close()
+	var backup_file := FileAccess.open(backup_path(folder), FileAccess.WRITE)
+	if backup_file == null:
+		return false
+	backup_file.store_buffer(current)
+	backup_file.close()
+	return true
+
+
+## Adds the characters and variables of `other` that `plan` does not have yet (by name); returns how many. For a new answer of the AI
+## that found nothing new for the chapters: the chapters of the current plan stay, the new items are still welcome.
+static func add_missing_items(plan: Dictionary, other: Dictionary) -> int:
+	var added := 0
+	var names := {}
+	for character in plan["characters"]:
+		names[str(character["name"]).to_lower()] = true
+	for character in other.get("characters", []):
+		if not names.has(str(character["name"]).to_lower()):
+			names[str(character["name"]).to_lower()] = true
+			plan["characters"].append(character)
+			added += 1
+	var variable_names := {}
+	for variable in plan["variables"]:
+		variable_names[variable["name"]] = true
+	for variable in other.get("variables", []):
+		if not variable_names.has(variable["name"]):
+			variable_names[variable["name"]] = true
+			plan["variables"].append(variable)
+			added += 1
+	return added
 
 
 static func empty() -> Dictionary:

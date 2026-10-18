@@ -1,4 +1,5 @@
 ## Next
+- Making a new plan no longer risks the old one: the previous plan is kept (button 'Previous plan' swaps back), and if the AI finds nothing new for the chapters your plan stays and only new characters and variables are added.
 - In the plan you can now combine several chapters of one act into one (tick 'combine', then 'Combine selected'): their summaries, manuscript sections and mission briefs are merged, and the links around the group stay. Handy for a long mission that was split into many chapters; keep the narrative chapters before and after as the intro and outro.
 - Winning a chapter or side quest gives no experience by default any more (experience is rare); set the reward in the editor when a win should give some. Rewards read "no reward" when there is none.
 

@@ -34,6 +34,7 @@ var _note_label: Label
 var _confirm: ConfirmationDialog
 var _build_button: Button
 var _combine_button: Button
+var _previous_button: Button
 var _combine_dialog: ConfirmationDialog
 var _combine_title: LineEdit
 ## The chapters ticked for combining: they must all be in one act (`_combine_act` = its index in the plan, -1 = none ticked).
@@ -86,6 +87,10 @@ func _ready() -> void:
 	top.add_child(_count_label)
 	top.add_child(_button("Accept all new", func(): _set_all(true)))
 	top.add_child(_button("Reject all", func(): _set_all(false)))
+	_previous_button = _button("Previous plan", _on_previous_pressed)
+	_previous_button.visible = false
+	_previous_button.tooltip_text = "Brings back the plan from before the last time a new plan was made (press again to go forward)."
+	top.add_child(_previous_button)
 	_combine_button = _button("Combine selected", _on_combine_pressed)
 	_combine_button.disabled = true
 	_combine_button.tooltip_text = "Tick 'combine' on two or more chapters of one act to merge them into one chapter (their texts are merged)."
@@ -116,7 +121,7 @@ func _ready() -> void:
 
 	_confirm = ConfirmationDialog.new()
 	_confirm.title = "Replace the plan?"
-	_confirm.dialog_text = "Making a new plan replaces the current one, including what you accepted, rejected or edited. Continue?"
+	_confirm.dialog_text = "Making a new plan replaces the current one, including what you accepted, rejected or edited. The current plan is kept as the 'Previous plan'. Continue?"
 	_confirm.ok_button_text = "Replace"
 	_confirm.confirmed.connect(_generate)
 	add_child(_confirm)
@@ -154,6 +159,7 @@ func open_for(p_campaign: Campaign, p_folder: String, p_read_only: bool = false,
 	_note_label.visible = false
 	_status_label.text = ""
 	_refresh_generate_button()
+	_refresh_previous_button()
 	_rebuild()
 	_show_full_screen()
 
@@ -211,12 +217,42 @@ func _generate() -> void:
 		_status_label.text = ""
 		_say(str(result["error"]))
 		return
-	_plan = result["plan"]
-	_status_label.text = "Plan made - review it below."
+	var new_plan: Dictionary = result["plan"]
+	if not _plan["acts"].is_empty() and new_plan["acts"].is_empty():
+		# Nothing new for the chapters (they are probably all in the campaign already): the plan stays, only new items are added.
+		var added := CampaignPlan.add_missing_items(_plan, new_plan)
+		_status_label.text = "The AI found nothing new for the chapters."
+		_say("The AI proposed no new acts or chapters - they are probably all in the campaign already. Your plan was kept%s." % (", and %d new character/variable item(s) were added to it" % added if added > 0 else ""))
+		_changed()
+		_rebuild()
+		return
+	_save_now()
+	CampaignPlan.backup_plan(folder)  # a new plan replaces the old one: keep the old one
+	_plan = new_plan
+	_status_label.text = "Plan made - review it below. The earlier plan is kept: use 'Previous plan' to go back."
+	_refresh_previous_button()
 	var dropped: Array = result["dropped"]
 	if not dropped.is_empty():
 		_say("%d part(s) of the AI's answer were left out because they were not usable: %s" % [dropped.size(), "; ".join(dropped.slice(0, 5))])
 	_changed()
+	_rebuild()
+
+
+func _refresh_previous_button() -> void:
+	_previous_button.visible = not read_only and folder != "" and CampaignPlan.has_backup(folder)
+
+
+## Swaps the plan with the previous one.
+func _on_previous_pressed() -> void:
+	_save_now()
+	if not CampaignPlan.swap_with_backup(folder):
+		_say("There is no previous plan.")
+		return
+	_plan = CampaignPlan.load_plan(folder)
+	_combine_act = -1
+	_combine_keys.clear()
+	_note_label.visible = false
+	_status_label.text = "Swapped with the previous plan (press again to go back)."
 	_rebuild()
 
 
