@@ -339,23 +339,43 @@ static func section_text(folder: String, chapter_plan: Dictionary) -> String:
 	return "\n\n".join(pieces)
 
 
-## Combines chapters of one act of the plan into ONE: their texts are merged (summaries, manuscript sections, briefs), the first
-## chapter's place and key are kept, the links to and from the group are kept (links inside it disappear) and the other chapters
-## are removed from the plan. `keys` = the chapter keys; `title` = the new title. Only chapters that are not built yet can be combined.
-## Returns {ok, error, key}.
-static func combine(act: Dictionary, keys: Array, title: String) -> Dictionary:
+## Why these chapters of a plan act cannot be combined ("" = they can).
+static func combine_problem(act: Dictionary, keys: Array, title: String, allow_built: bool = false) -> String:
 	var chosen: Array = []
 	for chapter in act["chapters"]:
 		if keys.has(chapter["key"]):
 			chosen.append(chapter)
 	if chosen.size() < 2:
-		return {"ok": false, "error": "Select at least two chapters of the same act.", "key": ""}
+		return "Select at least two chapters of the same act."
+	var built := 0
 	for chapter in chosen:
-		if chapter["built"] != "" or chapter["exists"]:
-			return {"ok": false, "error": "'%s' is already in the campaign and cannot be combined." % chapter["title"], "key": ""}
+		if chapter["exists"]:
+			return "'%s' was already in the campaign before the plan and cannot be combined." % chapter["title"]
+		if chapter["built"] != "":
+			built += 1
+	if built > 0 and built != chosen.size():
+		return "Built and not yet built chapters cannot be combined together. Combine the built ones with each other, and the others with each other."
+	if built > 0 and not allow_built:
+		return "These chapters are already built into the campaign."
+	if _text(title, 100) == "":
+		return "The combined chapter needs a title."
+	return ""
+
+
+## Combines chapters of one act of the plan into ONE: their texts are merged (summaries, manuscript sections, briefs), the first
+## chapter's place and key are kept, the links to and from the group are kept (links inside it disappear) and the other chapters
+## are removed from the plan. `keys` = the chapter keys; `title` = the new title. Chapters that are not built yet are combined here only;
+## BUILT chapters (`allow_built`) are combined in the campaign too (CampaignCombine) - the caller does that first and then calls this
+## so the plan follows (the first chapter keeps its built id). Built and unbuilt chapters cannot be mixed. Returns {ok, error, key}.
+static func combine(act: Dictionary, keys: Array, title: String, allow_built: bool = false) -> Dictionary:
+	var problem := combine_problem(act, keys, title, allow_built)
+	if problem != "":
+		return {"ok": false, "error": problem, "key": ""}
+	var chosen: Array = []
+	for chapter in act["chapters"]:
+		if keys.has(chapter["key"]):
+			chosen.append(chapter)
 	var clean_title := _text(title, 100)
-	if clean_title == "":
-		return {"ok": false, "error": "The combined chapter needs a title.", "key": ""}
 	var first: Dictionary = chosen[0]
 	var group := {}
 	for chapter in chosen:
@@ -403,6 +423,7 @@ static func combine(act: Dictionary, keys: Array, title: String) -> Dictionary:
 	first["synced_text"] = ""
 	first["built_text"] = ""
 	first["built_fp"] = ""
+	first["brief"]["built_file"] = ""
 	# The other chapters go; whoever linked to one of them now links to the combined chapter.
 	var remaining: Array = []
 	for chapter in act["chapters"]:

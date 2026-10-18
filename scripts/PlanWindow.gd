@@ -14,6 +14,7 @@ const SECTION_COLOR := Color(0.95, 0.80, 0.45)
 const HINT_COLOR := Color(0.65, 0.65, 0.7)
 const WARN_COLOR := Color(1.0, 0.7, 0.3)
 const KIND_LABELS := ["Narrative", "Mission"]
+const _COMBINE_TEXT := "The selected chapters become one: their summaries, manuscript sections and briefs are merged, the first one's place is kept, and the links around the group stay. Narrative chapters you want as an intro or outro can stay separate. Title of the combined chapter:"
 
 var campaign: Campaign
 var folder := ""
@@ -37,6 +38,7 @@ var _combine_button: Button
 var _previous_button: Button
 var _combine_dialog: ConfirmationDialog
 var _combine_title: LineEdit
+var _combine_text: Label
 ## The chapters ticked for combining: they must all be in one act (`_combine_act` = its index in the plan, -1 = none ticked).
 var _combine_act := -1
 var _combine_keys: Array[String] = []
@@ -130,7 +132,8 @@ func _ready() -> void:
 	_combine_dialog.ok_button_text = "Combine"
 	var combine_box := VBoxContainer.new()
 	var combine_text := Label.new()
-	combine_text.text = "The selected chapters become one: their summaries, manuscript sections and briefs are merged, the first one's place is kept, and the links around the group stay. Narrative chapters you want as an intro or outro can stay separate. Title of the combined chapter:"
+	combine_text.text = _COMBINE_TEXT
+	_combine_text = combine_text
 	combine_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	combine_text.custom_minimum_size.x = 440
 	combine_box.add_child(combine_text)
@@ -277,21 +280,88 @@ func _on_combine_pressed() -> void:
 	if read_only or _combine_act < 0 or _combine_keys.size() < 2:
 		return
 	var act: Dictionary = _plan["acts"][_combine_act]
+	var built := 0
+	var titled := false
 	for chapter in act["chapters"]:
 		if _combine_keys.has(chapter["key"]):
-			_combine_title.text = chapter["title"]  # the first of them in the plan
-			break
+			if not titled:
+				_combine_title.text = chapter["title"]  # the first of them in the plan
+				titled = true
+			if chapter["built"] != "":
+				built += 1
+	var problem := CampaignPlan.combine_problem(act, _combine_keys, "x", true)
+	if problem == "" and built > 0:
+		problem = _built_problem(act)
+	if problem != "":
+		_say(problem)
+		return
+	_combine_text.text = _COMBINE_TEXT + ("\n\nThese chapters are already in the campaign: they are combined there too (one undo step in the campaign editor). Missions that are still empty are replaced by ONE new empty mission made from the merged brief; the old empty files are moved to a '_combined' folder. Missions with a drawn map cannot be merged." if built > 0 else "")
 	_combine_dialog.popup_centered()
 	_combine_title.grab_focus()
 	_combine_title.select_all()
 
 
+## The campaign chapters behind the ticked built chapters of `act`, or [] when one is missing.
+func _campaign_chapters(act: Dictionary) -> Array:
+	var chapters: Array = []
+	for chapter_plan in act["chapters"]:
+		if _combine_keys.has(chapter_plan["key"]):
+			var found: CampaignChapter = null
+			for campaign_act in campaign.acts:
+				found = campaign_act.find_chapter(chapter_plan["built"])
+				if found != null:
+					break
+			if found == null:
+				return []
+			chapters.append(found)
+	return chapters
+
+
+## Why built chapters cannot be combined in the campaign ("" = they can).
+func _built_problem(act: Dictionary) -> String:
+	var chapters := _campaign_chapters(act)
+	if chapters.is_empty():
+		return "A selected chapter is no longer in the campaign (it was deleted or its id changed)."
+	return CampaignCombine.problem(campaign, folder, chapters)
+
+
 func _combine() -> void:
-	var result := CampaignPlan.combine(_plan["acts"][_combine_act], _combine_keys, _combine_title.text)
-	if not result["ok"]:
-		_say(str(result["error"]))
+	var act: Dictionary = _plan["acts"][_combine_act]
+	var problem := CampaignPlan.combine_problem(act, _combine_keys, _combine_title.text, true)
+	var built := false
+	for chapter_plan in act["chapters"]:
+		if _combine_keys.has(chapter_plan["key"]) and chapter_plan["built"] != "":
+			built = true
+	if problem == "" and built:
+		problem = _built_problem(act)
+	if problem != "":
+		_say(problem)
 		return
 	var count := _combine_keys.size()
+	if built:
+		_save_now()
+		CampaignPlan.backup_plan(folder)  # the plan can be brought back with 'Previous plan'
+		var briefs: Array = []
+		for chapter_plan in act["chapters"]:
+			if _combine_keys.has(chapter_plan["key"]):
+				briefs.append(chapter_plan["brief"])
+		var done := CampaignCombine.combine(campaign, folder, _campaign_chapters(act), _combine_title.text, MissionBrief.merge(briefs))
+		if not done["ok"]:
+			_say(str(done["error"]))
+			return
+		var merged := CampaignPlan.combine(act, _combine_keys, _combine_title.text, true)
+		for chapter_plan in act["chapters"]:
+			if chapter_plan["key"] == merged["key"]:
+				chapter_plan["brief"]["built_file"] = done["mission_file"]
+				PlanSync.remember(chapter_plan, CampaignPlan.section_text(folder, chapter_plan), done["chapter"])
+		_save_now()
+		if on_changed.is_valid():
+			on_changed.call()
+	else:
+		var result := CampaignPlan.combine(act, _combine_keys, _combine_title.text)
+		if not result["ok"]:
+			_say(str(result["error"]))
+			return
 	_combine_act = -1
 	_combine_keys.clear()
 	_note_label.visible = false
@@ -439,7 +509,7 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary, act: Dictionary) ->
 	var combine_box := CheckBox.new()
 	combine_box.text = "combine"
 	combine_box.tooltip_text = "Tick two or more chapters of this act and press 'Combine selected' to merge them into one."
-	combine_box.disabled = read_only or chapter["built"] != "" or chapter["exists"]
+	combine_box.disabled = read_only or chapter["exists"]
 	combine_box.button_pressed = _combine_act == act_index and _combine_keys.has(chapter["key"])
 	combine_box.toggled.connect(func(pressed: bool): _on_combine_ticked(act_index, chapter["key"], pressed))
 	row.add_child(combine_box)
