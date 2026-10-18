@@ -13,10 +13,11 @@ extends RefCounted
 ##    monsters: [{name, count, notes}], map_notes, key_moments: [String], built_file}
 ## `built_file` = the mission file made from it ("" = none yet). Never instantiated.
 
-const MAX_OBJECTIVES := 10
-const MAX_VARIABLES := 20
-const MAX_MONSTERS := 20
-const MAX_MOMENTS := 12
+## Sized for a brief of several combined chapters (PlanWindow "Combine selected"), not just one.
+const MAX_OBJECTIVES := 24
+const MAX_VARIABLES := 40
+const MAX_MONSTERS := 40
+const MAX_MOMENTS := 40
 const KINDS := ["win", "lose", "optional"]
 ## Variable names the skeleton mission makes for its objectives - a brief's own variables may not use them.
 const RESERVED_PREFIXES := ["objective_", "failure_", "optional_"]
@@ -89,6 +90,43 @@ static func normalize(raw: Dictionary) -> Dictionary:
 	if not has_win and brief["goal"] != "":
 		brief["objectives"].insert(0, {"kind": "win", "description": brief["goal"].left(300)})
 	return {"brief": brief, "dropped": dropped}
+
+
+## Several briefs as one, for chapters that are combined: goals and map notes follow each other, the objectives, monsters and key moments
+## are put one after the other (a repeated objective or key moment only once), the variables are united (the first of a name wins).
+## `built_file` is left empty - the combined chapter has no mission file yet.
+static func merge(briefs: Array) -> Dictionary:
+	var merged := empty()
+	var goals: Array[String] = []
+	var notes: Array[String] = []
+	var seen_objectives := {}
+	var seen_variables := {}
+	var seen_moments := {}
+	for brief in briefs:
+		if typeof(brief) != TYPE_DICTIONARY:
+			continue
+		if brief.get("goal", "") != "":
+			goals.append(brief["goal"])
+		if brief.get("map_notes", "") != "":
+			notes.append(brief["map_notes"])
+		for objective in brief.get("objectives", []):
+			var key: String = "%s|%s" % [objective["kind"], str(objective["description"]).to_lower()]
+			if not seen_objectives.has(key):
+				seen_objectives[key] = true
+				merged["objectives"].append(objective.duplicate())
+		for variable in brief.get("variables", []):
+			if not seen_variables.has(variable["name"]):
+				seen_variables[variable["name"]] = true
+				merged["variables"].append(variable.duplicate())
+		for monster in brief.get("monsters", []):
+			merged["monsters"].append(monster.duplicate())
+		for moment in brief.get("key_moments", []):
+			if not seen_moments.has(str(moment).to_lower()):
+				seen_moments[str(moment).to_lower()] = true
+				merged["key_moments"].append(moment)
+	merged["goal"] = "\n".join(goals)
+	merged["map_notes"] = "\n\n".join(notes)
+	return merged
 
 
 static func _reserved(variable_name: String) -> bool:

@@ -89,14 +89,9 @@ static func user_prompt(folder: String, campaign: Campaign, act_plan: Dictionary
 	return "\n\n".join(parts)
 
 
-## The manuscript section a chapter comes from, as it is now.
+## The manuscript sections a chapter comes from (several for a combined chapter), as they are now.
 static func _section_text(folder: String, chapter_plan: Dictionary) -> String:
-	if chapter_plan["section_file"] == "":
-		return ""
-	for section in CampaignNotes.sections(CampaignNotes.read(folder, chapter_plan["section_file"])):
-		if section["title"] == chapter_plan["section_title"]:
-			return str(section["body"]).left(20000)
-	return ""
+	return CampaignPlan.section_text(folder, chapter_plan).left(20000)
 
 
 static func _fail(message: String) -> Dictionary:

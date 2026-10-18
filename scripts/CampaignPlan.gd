@@ -12,7 +12,8 @@ extends RefCounted
 ## A plan is a Dictionary:
 ##   {format, generated, sources: {file: fingerprint},
 ##    acts: [{name, intro, accepted, chapters: [{key, title, kind "narrative"|"mission", summary,
-##            section_file, section_title, section_fp, start, finale, links: [{to, outcome "win"|"lose"|"any"}],
+##            section_file, section_title, extra_sections [{file, title}] (more manuscript sections of a combined chapter),
+##            section_fp, start, finale, links: [{to, outcome "win"|"lose"|"any"}],
 ##            accepted, exists, built}]}],
 ##    characters: [{name, description, accepted, exists, built}],
 ##    variables: [{name, type "bool"|"int"|"float"|"string", default, purpose, accepted, exists, built}]}
@@ -136,6 +137,7 @@ static func _normalize(raw: Dictionary, fresh: bool, manuscripts: Array[Dictiona
 				"section_fp": _text(chapter_raw.get("section_fp", ""), 40),
 				"start": bool(chapter_raw.get("start", false)), "finale": bool(chapter_raw.get("finale", false)),
 				"links": [], "accepted": _flag(chapter_raw, "accepted", true), "exists": _flag(chapter_raw, "exists", false), "built": _text(chapter_raw.get("built", ""), 80),
+				"extra_sections": _clean_sections(chapter_raw.get("extra_sections")),
 				"synced_text": _text(chapter_raw.get("synced_text", ""), PlanSync.MAX_TEXT), "built_text": _text(chapter_raw.get("built_text", ""), PlanSync.MAX_TEXT),
 				"built_fp": _text(chapter_raw.get("built_fp", ""), 40),
 				"brief": MissionBrief.normalize(chapter_raw["brief"])["brief"] if typeof(chapter_raw.get("brief")) == TYPE_DICTIONARY else MissionBrief.empty(),
@@ -152,6 +154,7 @@ static func _normalize(raw: Dictionary, fresh: bool, manuscripts: Array[Dictiona
 				chapter["exists"] = existing_chapters.has(title.to_lower())
 				chapter["accepted"] = not chapter["exists"]
 				chapter["built"] = ""
+				chapter["extra_sections"] = []
 				chapter["synced_text"] = ""
 				chapter["built_text"] = ""
 				chapter["built_fp"] = ""
@@ -241,6 +244,125 @@ static func _fix_start_and_finale(act: Dictionary) -> void:
 		chapters[0]["start"] = true
 	if not has_finale:
 		chapters[chapters.size() - 1]["finale"] = true
+
+
+## [{file, title}] with every field checked (a saved plan may be edited by hand).
+static func _clean_sections(raw: Variant) -> Array:
+	var result: Array = []
+	if typeof(raw) != TYPE_ARRAY:
+		return result
+	for entry in raw.slice(0, 12):
+		if typeof(entry) == TYPE_DICTIONARY and _text(entry.get("file", ""), 80) != "" and _text(entry.get("title", ""), 120) != "":
+			result.append({"file": _text(entry["file"], 80), "title": _text(entry["title"], 120)})
+	return result
+
+
+## Every manuscript section a chapter comes from, in reading order: [{file, title}] (the main one first, then the sections of the
+## chapters that were combined into it). Empty when the chapter has no manuscript section.
+static func section_refs(chapter_plan: Dictionary) -> Array:
+	var refs: Array = []
+	if chapter_plan.get("section_file", "") != "" and chapter_plan.get("section_title", "") != "":
+		refs.append({"file": chapter_plan["section_file"], "title": chapter_plan["section_title"]})
+	for extra in chapter_plan.get("extra_sections", []):
+		refs.append(extra)
+	return refs
+
+
+## The text of those sections as they are now, one after the other ("" when none is found).
+static func section_text(folder: String, chapter_plan: Dictionary) -> String:
+	var pieces: Array[String] = []
+	for ref in section_refs(chapter_plan):
+		for section in CampaignNotes.sections(CampaignNotes.read(folder, ref["file"])):
+			if section["title"] == ref["title"]:
+				if str(section["body"]).strip_edges() != "":
+					pieces.append(str(section["body"]).strip_edges())
+				break
+	return "\n\n".join(pieces)
+
+
+## Combines chapters of one act of the plan into ONE: their texts are merged (summaries, manuscript sections, briefs), the first
+## chapter's place and key are kept, the links to and from the group are kept (links inside it disappear) and the other chapters
+## are removed from the plan. `keys` = the chapter keys; `title` = the new title. Only chapters that are not built yet can be combined.
+## Returns {ok, error, key}.
+static func combine(act: Dictionary, keys: Array, title: String) -> Dictionary:
+	var chosen: Array = []
+	for chapter in act["chapters"]:
+		if keys.has(chapter["key"]):
+			chosen.append(chapter)
+	if chosen.size() < 2:
+		return {"ok": false, "error": "Select at least two chapters of the same act.", "key": ""}
+	for chapter in chosen:
+		if chapter["built"] != "" or chapter["exists"]:
+			return {"ok": false, "error": "'%s' is already in the campaign and cannot be combined." % chapter["title"], "key": ""}
+	var clean_title := _text(title, 100)
+	if clean_title == "":
+		return {"ok": false, "error": "The combined chapter needs a title.", "key": ""}
+	var first: Dictionary = chosen[0]
+	var group := {}
+	for chapter in chosen:
+		group[chapter["key"]] = true
+	var summaries: Array[String] = []
+	var briefs: Array = []
+	var kind := "narrative"
+	var accepted := false
+	var start := false
+	var finale := false
+	var sections: Array = []
+	var links: Array = []
+	var seen_links := {}
+	for chapter in chosen:
+		if chapter["summary"] != "":
+			summaries.append(chapter["summary"])
+		briefs.append(chapter["brief"])
+		if chapter["kind"] == "mission":
+			kind = "mission"
+		accepted = accepted or chapter["accepted"]
+		start = start or chapter["start"]
+		finale = finale or chapter["finale"]
+		for ref in section_refs(chapter):
+			if not sections.has(ref):
+				sections.append(ref)
+		for link in chapter["links"]:
+			if group.has(link["to"]):
+				continue  # a link inside the group
+			var link_key: String = "%s>%s" % [link["to"], link["outcome"]]
+			if not seen_links.has(link_key):
+				seen_links[link_key] = true
+				links.append({"to": link["to"], "outcome": link["outcome"]})
+	first["title"] = clean_title
+	first["kind"] = kind
+	first["summary"] = _text("\n\n".join(summaries), 1500 * chosen.size())
+	first["accepted"] = accepted
+	first["start"] = start
+	first["finale"] = finale
+	first["links"] = links
+	first["brief"] = MissionBrief.merge(briefs)
+	first["section_file"] = sections[0]["file"] if not sections.is_empty() else ""
+	first["section_title"] = sections[0]["title"] if not sections.is_empty() else ""
+	first["extra_sections"] = sections.slice(1) if sections.size() > 1 else []
+	first["section_fp"] = ""
+	first["synced_text"] = ""
+	first["built_text"] = ""
+	first["built_fp"] = ""
+	# The other chapters go; whoever linked to one of them now links to the combined chapter.
+	var remaining: Array = []
+	for chapter in act["chapters"]:
+		if chapter == first or not group.has(chapter["key"]):
+			remaining.append(chapter)
+	act["chapters"] = remaining
+	for chapter in act["chapters"]:
+		if group.has(chapter["key"]):
+			continue
+		var retargeted: Array = []
+		var seen := {}
+		for link in chapter["links"]:
+			var target: String = first["key"] if group.has(link["to"]) else link["to"]
+			var link_key: String = "%s>%s" % [target, link["outcome"]]
+			if not seen.has(link_key):
+				seen[link_key] = true
+				retargeted.append({"to": target, "outcome": link["outcome"]})
+		chapter["links"] = retargeted
+	return {"ok": true, "error": "", "key": first["key"]}
 
 
 ## A variable as {name, type, default, purpose} with every field checked, or {} when the name is not usable.

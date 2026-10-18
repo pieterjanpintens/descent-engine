@@ -413,8 +413,10 @@ func _drifted_sections() -> Dictionary:
 	var entries := PlanSync.check(CampaignPlan.load_plan(folder), campaign, folder)
 	result["count"] = PlanSync.drift_count(entries)
 	for entry in entries:
-		if entry["state"] != "in_sync" and entry["chapter_plan"]["section_file"] == _file:
-			result["titles"][entry["chapter_plan"]["section_title"]] = entry["state"]
+		if entry["state"] != "in_sync":
+			for ref in entry["refs"]:  # a combined chapter marks every section it comes from
+				if ref["file"] == _file:
+					result["titles"][ref["title"]] = entry["state"]
 	return result
 
 

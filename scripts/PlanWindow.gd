@@ -33,6 +33,12 @@ var _count_label: Label
 var _note_label: Label
 var _confirm: ConfirmationDialog
 var _build_button: Button
+var _combine_button: Button
+var _combine_dialog: ConfirmationDialog
+var _combine_title: LineEdit
+## The chapters ticked for combining: they must all be in one act (`_combine_act` = its index in the plan, -1 = none ticked).
+var _combine_act := -1
+var _combine_keys: Array[String] = []
 var _brief_window: BriefWindow
 var _build_confirm: ConfirmationDialog
 var _rebuilding := false
@@ -80,6 +86,10 @@ func _ready() -> void:
 	top.add_child(_count_label)
 	top.add_child(_button("Accept all new", func(): _set_all(true)))
 	top.add_child(_button("Reject all", func(): _set_all(false)))
+	_combine_button = _button("Combine selected", _on_combine_pressed)
+	_combine_button.disabled = true
+	_combine_button.tooltip_text = "Tick 'combine' on two or more chapters of one act to merge them into one chapter (their texts are merged)."
+	top.add_child(_combine_button)
 	_build_button = _button("Build accepted items", _on_build_pressed)
 	_build_button.tooltip_text = "Creates the ticked chapters, characters and variables in the campaign (one undo step in the campaign editor)."
 	top.add_child(_build_button)
@@ -110,6 +120,21 @@ func _ready() -> void:
 	_confirm.ok_button_text = "Replace"
 	_confirm.confirmed.connect(_generate)
 	add_child(_confirm)
+	_combine_dialog = ConfirmationDialog.new()
+	_combine_dialog.title = "Combine chapters"
+	_combine_dialog.ok_button_text = "Combine"
+	var combine_box := VBoxContainer.new()
+	var combine_text := Label.new()
+	combine_text.text = "The selected chapters become one: their summaries, manuscript sections and briefs are merged, the first one's place is kept, and the links around the group stay. Narrative chapters you want as an intro or outro can stay separate. Title of the combined chapter:"
+	combine_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	combine_text.custom_minimum_size.x = 440
+	combine_box.add_child(combine_text)
+	_combine_title = LineEdit.new()
+	_combine_title.custom_minimum_size.x = 440
+	combine_box.add_child(_combine_title)
+	_combine_dialog.add_child(combine_box)
+	_combine_dialog.confirmed.connect(_combine)
+	add_child(_combine_dialog)
 	_build_confirm = ConfirmationDialog.new()
 	_build_confirm.title = "Build the accepted items?"
 	_build_confirm.ok_button_text = "Build"
@@ -123,6 +148,8 @@ func open_for(p_campaign: Campaign, p_folder: String, p_read_only: bool = false,
 	folder = p_folder
 	read_only = p_read_only
 	_plan = CampaignPlan.load_plan(folder)
+	_combine_act = -1
+	_combine_keys.clear()
 	title = "Plan - %s" % campaign.campaign_name
 	_note_label.visible = false
 	_status_label.text = ""
@@ -189,6 +216,50 @@ func _generate() -> void:
 	var dropped: Array = result["dropped"]
 	if not dropped.is_empty():
 		_say("%d part(s) of the AI's answer were left out because they were not usable: %s" % [dropped.size(), "; ".join(dropped.slice(0, 5))])
+	_changed()
+	_rebuild()
+
+
+## Ticking chapters for combining: only one act at a time (ticking in another act starts a new selection).
+func _on_combine_ticked(act_index: int, key: String, pressed: bool) -> void:
+	var switched := _combine_act != -1 and _combine_act != act_index
+	if _combine_act != act_index:
+		_combine_act = act_index
+		_combine_keys.clear()
+	if pressed and not _combine_keys.has(key):
+		_combine_keys.append(key)
+	elif not pressed:
+		_combine_keys.erase(key)
+	if _combine_keys.is_empty():
+		_combine_act = -1
+	_update_counts()
+	if switched and not _rebuilding:
+		_rebuild.call_deferred()  # the ticks in the other act are cleared
+
+
+func _on_combine_pressed() -> void:
+	if read_only or _combine_act < 0 or _combine_keys.size() < 2:
+		return
+	var act: Dictionary = _plan["acts"][_combine_act]
+	for chapter in act["chapters"]:
+		if _combine_keys.has(chapter["key"]):
+			_combine_title.text = chapter["title"]  # the first of them in the plan
+			break
+	_combine_dialog.popup_centered()
+	_combine_title.grab_focus()
+	_combine_title.select_all()
+
+
+func _combine() -> void:
+	var result := CampaignPlan.combine(_plan["acts"][_combine_act], _combine_keys, _combine_title.text)
+	if not result["ok"]:
+		_say(str(result["error"]))
+		return
+	var count := _combine_keys.size()
+	_combine_act = -1
+	_combine_keys.clear()
+	_note_label.visible = false
+	_status_label.text = "Combined %d chapters into '%s'." % [count, _combine_title.text.strip_edges()]
 	_changed()
 	_rebuild()
 
@@ -328,6 +399,14 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary, act: Dictionary) ->
 	kind.disabled = read_only
 	row.add_child(kind)
 	row.add_child(_line(chapter["title"], func(text: String): chapter["title"] = text))
+	var act_index: int = _plan["acts"].find(act)
+	var combine_box := CheckBox.new()
+	combine_box.text = "combine"
+	combine_box.tooltip_text = "Tick two or more chapters of this act and press 'Combine selected' to merge them into one."
+	combine_box.disabled = read_only or chapter["built"] != "" or chapter["exists"]
+	combine_box.button_pressed = _combine_act == act_index and _combine_keys.has(chapter["key"])
+	combine_box.toggled.connect(func(pressed: bool): _on_combine_ticked(act_index, chapter["key"], pressed))
+	row.add_child(combine_box)
 	if chapter["kind"] == "mission":
 		var has_brief := MissionBrief.has_content(chapter["brief"])
 		var brief_button := _button("Brief…" if not has_brief else "Brief ✓", func(): _open_brief(act, chapter))
@@ -352,7 +431,8 @@ func _chapter_block(chapter: Dictionary, titles: Dictionary, act: Dictionary) ->
 		box.add_child(_hint("Next: " + ", ".join(facts)))
 	if chapter["section_title"] != "":
 		var act_number := int(chapter["section_file"].get_basename().trim_prefix(CampaignNotes.MANUSCRIPT_PREFIX))
-		box.add_child(_hint("From the manuscript: act %d › %s" % [act_number, chapter["section_title"]]))
+		var more: String = "" if chapter["extra_sections"].is_empty() else " (+%d more sections)" % chapter["extra_sections"].size()
+		box.add_child(_hint("From the manuscript: act %d › %s%s" % [act_number, chapter["section_title"], more]))
 	return panel
 
 
@@ -445,6 +525,8 @@ func _update_counts() -> void:
 	var counts := CampaignPlan.counts(_plan)
 	var preview := PlanBuilder.preview(_plan, campaign) if campaign != null else {}
 	_build_button.disabled = read_only or campaign == null or preview.values().all(func(count): return count == 0)
+	_combine_button.disabled = read_only or _combine_keys.size() < 2
+	_combine_button.text = "Combine selected" if _combine_keys.is_empty() else "Combine selected (%d)" % _combine_keys.size()
 	_count_label.text = "" if counts["total"] == 0 else "%d of %d accepted" % [counts["accepted"], counts["total"]]
 
 

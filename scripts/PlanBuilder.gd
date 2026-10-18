@@ -212,11 +212,7 @@ static func _find_back_edges(act: CampaignAct, id: String, state: Dictionary, ba
 ## The text of the manuscript section a chapter is linked to, as it is now ("" when it has none). A narrative chapter's pages are
 ## made from it (split into pages of about STEP_TARGET_CHARS, whole paragraphs; the plan's summary when there is no section).
 static func _section_body(chapter_plan: Dictionary, folder: String) -> String:
-	if chapter_plan["section_file"] != "":
-		for section in CampaignNotes.sections(CampaignNotes.read(folder, chapter_plan["section_file"])):
-			if section["title"] == chapter_plan["section_title"]:
-				return section["body"]
-	return ""
+	return CampaignPlan.section_text(folder, chapter_plan)
 
 
 ## Splits a text into pages: consecutive paragraphs are joined until a page reaches the target length.

@@ -180,7 +180,7 @@ func _show_selected() -> void:
 	_title_label.text = plan_chapter["title"]
 	_state_label.text = PlanSync.state_text(state)
 	if plan_chapter["section_title"] != "":
-		_state_label.text += "  (manuscript: act %d › %s)" % [plan_chapter["section_file"].get_basename().trim_prefix(CampaignNotes.MANUSCRIPT_PREFIX).to_int(), plan_chapter["section_title"]]
+		_state_label.text += "  (manuscript: act %d › %s%s)" % [plan_chapter["section_file"].get_basename().trim_prefix(CampaignNotes.MANUSCRIPT_PREFIX).to_int(), plan_chapter["section_title"], "" if entry["single_section"] else " + %d more" % plan_chapter["extra_sections"].size()]
 	if state == "manuscript_changed" or state == "both_changed":
 		_detail.add_child(_comparison("The manuscript section - what changed since the chapter was made", plan_chapter.get("synced_text", ""), entry["section_now"]))
 	if state == "chapter_changed" or state == "both_changed":
@@ -199,7 +199,10 @@ func _show_selected() -> void:
 			_buttons.add_child(update)
 			_buttons.add_child(_button("Mark as reviewed (keep both as they are)", _do_review))
 		"chapter_changed":
-			_buttons.add_child(_button("Update the manuscript from the chapter…", func(): _ask("Replace the text of the manuscript section '%s' with the chapter's story text? Your manuscript text of that section is overwritten." % plan_chapter["section_title"], _do_update_manuscript)))
+			if not entry["single_section"]:
+				_detail.add_child(_note("This chapter combines several manuscript sections, so its text cannot be written back into one place. Change the manuscript by hand, then mark as reviewed."))
+			else:
+				_buttons.add_child(_button("Update the manuscript from the chapter…", func(): _ask("Replace the text of the manuscript section '%s' with the chapter's story text? Your manuscript text of that section is overwritten." % plan_chapter["section_title"], _do_update_manuscript)))
 			_buttons.add_child(_button("Mark as reviewed (keep both as they are)", _do_review))
 		"both_changed":
 			_buttons.add_child(_button("Mark as reviewed (I combined them by hand)", _do_review))
