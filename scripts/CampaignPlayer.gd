@@ -23,6 +23,9 @@ extends Control
 ## the XP counter scaling the missions' monsters.
 
 const MENU_SCENE := "res://ui/MainMenu.tscn"
+const EDITOR_SCENE := "res://ui/CampaignEditor.tscn"
+## The playtest save game made by the campaign editor's Playtest.
+const PLAYTEST_SAVE := "Playtest"
 const UPDATE_BLOCKED := "This save game cannot be moved to v%s:" + NL2 + "- %s" + NL2 + "It stays as it is; you can keep playing it on its own version."
 const UPDATE_ASK := "Make a copy of '%s' on v%s?" + NL2 + "The original save game is not changed - you can always go back to it."
 const UPDATE_NOTE := NL2 + "Note:" + NL + "- %s"
@@ -54,6 +57,9 @@ var _notice: AcceptDialog
 var _log_dialog: LogDialog
 var _name_dialog: ConfirmationDialog
 var _name_edit: LineEdit
+## Playtest tools (only for drafts - a campaign that is not a release): back to the editor, and missions counted as won without playing.
+var _editor_button: Button
+var _auto_win_check: CheckBox
 var _confirm: ConfirmationDialog
 var _confirm_action: Callable
 
@@ -121,6 +127,12 @@ func _ready() -> void:
 		_show_load()
 	else:
 		_show_library()
+	# Started by the campaign editor's Playtest: straight into the campaign on the "Playtest" save.
+	if GameState.campaign_playtest != "":
+		var playtest_folder := GameState.campaign_playtest
+		var fresh := GameState.campaign_playtest_fresh
+		GameState.campaign_playtest = ""
+		_start_playtest(playtest_folder, fresh)
 	# Coming back from a mission played as a chapter: reopen that save game and apply the outcome.
 	if GameState.campaign_folder != "":
 		var folder := GameState.campaign_folder
@@ -373,8 +385,19 @@ func _build_play_page() -> Control:
 	var page := VBoxContainer.new()
 	var bar := HBoxContainer.new()
 	page.add_child(bar)
-	bar.add_child(_button("‹ Main menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
+	bar.add_child(_button("‹ Main menu", func():
+		GameState.campaign_from_editor = false
+		get_tree().change_scene_to_file(MENU_SCENE)
+	))
+	_editor_button = _button("‹ Back to editor", _back_to_editor)
+	_editor_button.visible = false
+	bar.add_child(_editor_button)
 	bar.add_child(_button("Campaign Log", func(): _log_dialog.open()))
+	_auto_win_check = CheckBox.new()
+	_auto_win_check.text = "Auto-win missions"
+	_auto_win_check.tooltip_text = "Playtest: pressing Play on a mission counts it as won at once, without playing it. Narrative chapters are still read. Use 'count as lost' on a chapter to test a lost mission."
+	_auto_win_check.visible = false
+	bar.add_child(_auto_win_check)
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -421,6 +444,65 @@ func _ask(text: String, action: Callable) -> void:
 
 
 # ---------------------------------------------------------------- campaign
+
+## The campaign editor's Playtest: opens the "Playtest" save game of `folder` - from the start (the old one is replaced), or the
+## existing one when `fresh` is false (a new one if there is none).
+func _start_playtest(folder: String, fresh: bool) -> void:
+	var key := CampaignIO.save_key(PLAYTEST_SAVE)
+	if fresh or not CampaignIO.save_keys(folder).has(key):
+		CampaignIO.delete_state(folder, key)
+		_begin(folder, PLAYTEST_SAVE)
+	else:
+		_open_save(folder, key)
+
+
+## Whether the campaign is being edited (a draft) rather than a release: only then the playtest tools are offered.
+func _is_draft() -> bool:
+	return _folder != "" and not CampaignIO.is_release(_folder)
+
+
+## Back to the campaign editor, which reopens this campaign.
+func _back_to_editor() -> void:
+	GameState.campaign_editor_folder = _folder
+	GameState.campaign_from_editor = false
+	get_tree().change_scene_to_file(EDITOR_SCENE)
+
+
+## Playtest: a chapter or side quest counts as won or lost without playing it - through the same rules as a played one (rewards, effects,
+## links, the lose branch), so a branch can be tried both ways. A win also sets the yes/no campaign variables the chapter takes over from
+## its mission, since the mission that would have set them is not played.
+func _playtest_result(id: String, won: bool) -> void:
+	var outputs: Array[MissionVariableMap] = []
+	var quest := _campaign.find_side_quest(id)
+	if quest != null:
+		outputs = quest.mission_outputs
+	else:
+		for act in _campaign.acts:
+			var chapter := act.find_chapter(id)
+			if chapter != null:
+				outputs = chapter.mission_outputs
+				break
+	var values := {}
+	if won:
+		for mapping in outputs:
+			for variable in _campaign.all_variables():
+				if variable.name == mapping.campaign_variable and variable.type == MissionVariable.Type.BOOL:
+					values[mapping.mission_variable] = true
+	await _apply_result({"won": won, "chapter_id": id, "mission_variables": values, "loot": {}})
+
+
+## The playtest buttons at the top of a chapter's or side quest's panel, above its long story text so they stay in view (drafts only).
+func _add_playtest_buttons(id: String) -> void:
+	if not _is_draft():
+		return
+	var row := HFlowContainer.new()
+	var tag := _label("Playtest:")
+	tag.modulate = Color(1.0, 0.7, 0.3)
+	row.add_child(tag)
+	row.add_child(_button("Count as won", func(): _playtest_result(id, true)))
+	row.add_child(_button("Count as lost", func(): _playtest_result(id, false)))
+	_side.add_child(row)
+
 
 ## Starts a fresh playthrough of campaign `folder` as save game `save_name`.
 func _begin(folder: String, save_name: String) -> bool:
@@ -476,6 +558,8 @@ func _use(campaign: Campaign, state: CampaignState) -> void:
 	_save()
 	_refresh_view()
 	_show_page(_play_page)
+	_editor_button.visible = GameState.campaign_from_editor
+	_auto_win_check.visible = _is_draft()
 
 
 func _save() -> void:
@@ -548,6 +632,7 @@ func _rebuild_side() -> void:
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
 	_side.add_child(_label("Reward: " + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
+	_add_playtest_buttons(chapter.id)
 	if chapter.story_before != "":
 		_side.add_child(_wrapped(chapter.story_before))
 	var play := _button("Read this chapter" if chapter.is_narrative else "Play this chapter", func(): _play(chapter))
@@ -564,6 +649,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
 	_side.add_child(_label("Reward: " + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
+	_add_playtest_buttons(quest.id)
 	if quest.story_before != "":
 		_side.add_child(_wrapped(quest.story_before))
 	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
@@ -760,6 +846,9 @@ func _play(chapter: CampaignChapter) -> void:
 ## Starts the mission `mission_file` of the chapter or side quest `id`; `inputs` are the campaign variables
 ## handed to the mission's own variables.
 func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariableMap]) -> void:
+	if _auto_win_check.button_pressed and _is_draft():
+		_playtest_result(id, true)  # playtest: counted as won without playing
+		return
 	var path := "%s/%s" % [CampaignIO.folder_path(_folder), mission_file]
 	if mission_file == "" or not FileAccess.file_exists(path):
 		_say("The mission is missing from the campaign folder.")

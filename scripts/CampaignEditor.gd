@@ -46,7 +46,8 @@ var _map_toolbar: HBoxContainer
 ## Controls switched off while a release is on screen: instance id -> the value they had (disabled / editable), so a draft can switch them back on.
 var _locked_state: Dictionary = {}
 
-enum FileAction { NEW, SAVE, BACK, OPEN, EXPORT }
+enum FileAction { NEW, SAVE, BACK, OPEN, EXPORT, PLAYTEST, PLAYTEST_CONTINUE }
+const PLAYER_SCENE := "res://ui/CampaignPlayer.tscn"
 enum EditAction { UNDO, REDO }
 
 ## Undo/redo works on whole-campaign snapshots (like the mission editor's OperationHistory):
@@ -114,6 +115,9 @@ func _ready() -> void:
 	_file_menu.add_submenu_node_item("Open", _open_menu, FileAction.OPEN)
 	_file_menu.add_item("Save", FileAction.SAVE, (KEY_MASK_CMD_OR_CTRL | KEY_S) as Key)
 	_file_menu.add_item("Release…", FileAction.EXPORT)
+	_file_menu.add_separator()
+	_file_menu.add_item("Playtest from the start", FileAction.PLAYTEST, (KEY_MASK_CMD_OR_CTRL | KEY_ENTER) as Key)
+	_file_menu.add_item("Continue playtest", FileAction.PLAYTEST_CONTINUE)
 	_file_menu.add_separator()
 	_file_menu.add_item("Back to Menu", FileAction.BACK)
 	_file_menu.id_pressed.connect(_on_file_action)
@@ -379,6 +383,11 @@ func _ready() -> void:
 
 	_refresh_open_list()
 	_refresh_all()
+	# Back from a playtest: open the campaign that was being played again.
+	if GameState.campaign_editor_folder != "":
+		var folder := GameState.campaign_editor_folder
+		GameState.campaign_editor_folder = ""
+		_load_folder(folder)
 
 
 # ---------------------------------------------------------------- campaign files
@@ -416,6 +425,10 @@ func _on_file_action(id: int) -> void:
 			if _campaign != null and not _read_only:
 				_save()
 				_export_dialog.open_campaign(_folder, _campaign.campaign_name)
+		FileAction.PLAYTEST:
+			_start_playtest(true)
+		FileAction.PLAYTEST_CONTINUE:
+			_start_playtest(false)
 		FileAction.BACK:
 			_on_back_pressed()
 
@@ -566,6 +579,18 @@ func _on_fork_pressed() -> void:
 func _save_if_dirty() -> void:
 	if _dirty:
 		_save()
+
+
+## Plays the campaign being edited in the campaign player, on a "Playtest" save game (from the start, or where the last playtest stopped).
+## What is saved is what is played; the player has cheat buttons for drafts and a "Back to editor" button.
+func _start_playtest(fresh: bool) -> void:
+	if _campaign == null:
+		return
+	_save_if_dirty()
+	GameState.campaign_playtest = _folder
+	GameState.campaign_playtest_fresh = fresh
+	GameState.campaign_from_editor = true
+	get_tree().change_scene_to_file(PLAYER_SCENE)
 
 
 func _on_back_pressed() -> void:

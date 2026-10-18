@@ -49,6 +49,16 @@ func clear_debug() -> void:
 	editor_returning = false
 
 
+## Playtest from the campaign editor: the campaign folder the campaign player should open on a throwaway "Playtest" save ("" = none),
+## and whether that save starts again from the beginning.
+var campaign_playtest: String = ""
+var campaign_playtest_fresh: bool = true
+## True during a playtest that was started from the editor: the player offers "Back to editor" (also after a mission was played).
+var campaign_from_editor: bool = false
+## Set by the player's "Back to editor": the campaign the editor reopens.
+var campaign_editor_folder: String = ""
+
+
 func clear_campaign() -> void:
 	campaign_folder = ""
 	campaign_save = ""
