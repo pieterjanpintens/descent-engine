@@ -905,6 +905,9 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	return button
 
 
-func _say(message: String) -> void:
+func _say(message: String, title: String = "Notice") -> void:
+	_notice.title = title
+	# Wrapped to a readable width: a long text (a campaign introduction) with no wrapping made the dialog wider than the screen.
+	_notice.dialog_autowrap = true
 	_notice.dialog_text = message
-	_notice.popup_centered()
+	_notice.popup_centered_clamped(Vector2i(620, 0), 0.8)
