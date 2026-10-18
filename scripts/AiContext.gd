@@ -16,7 +16,7 @@ const BY_MENTION := ["characters.md", "locations.md", "glossary.md"]
 
 
 ## options: {"disabled": Array[String] of part labels to leave out, "budget": int, "extra_files": Array[String] of note files to add
-## in whole}. `focus` = the text being worked on (plus anything else that names things, e.g. the chapter title).
+## in whole, "exclude_files": Array[String] of note files to leave out (e.g. the file being edited - it IS the text)}. `focus` = the text being worked on (plus anything else that names things, e.g. the chapter title).
 ## Returns {"text": String, "parts": [{label, file, chars, included (bool), reason}]}.
 static func build(folder: String, focus: String, options: Dictionary = {}) -> Dictionary:
 	var disabled: Array = options.get("disabled", [])
@@ -35,6 +35,8 @@ static func build(folder: String, focus: String, options: Dictionary = {}) -> Di
 		var text := CampaignNotes.read(folder, file_name).strip_edges()
 		if text != "" and not _has_file(candidates, file_name):
 			candidates.append({"label": _title(file_name), "file": file_name, "text": text})
+	var excluded: Array = options.get("exclude_files", [])
+	candidates = candidates.filter(func(candidate: Dictionary): return not excluded.has(candidate["file"]))
 	var parts: Array[Dictionary] = []
 	var pieces: Array[String] = []
 	var used := 0

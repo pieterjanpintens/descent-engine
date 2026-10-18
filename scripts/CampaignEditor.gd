@@ -27,6 +27,7 @@ var _characters_dialog: CharactersDialog
 var _starting_set_dialog: StartingSetDialog
 var _sell_spin: SpinBox
 var _story_window: NarrativeWindow
+var _manuscript_window: ManuscriptWindow
 var _dirty: bool = false
 
 var _status_label: Label
@@ -205,6 +206,7 @@ func _ready() -> void:
 		mutate.call()
 		_mark_dirty()
 	)))
+	left.add_child(_button("Writing workspace…", _open_manuscript_window))
 	left.add_child(_button("Starting equipment…", func(): _starting_set_dialog.open_for(_campaign, func():
 		_mark_dirty()
 		_update_problems()
@@ -448,6 +450,8 @@ func _load_folder(folder: String) -> void:
 	if campaign == null:
 		_say("Could not open '%s'." % folder)
 		return
+	if _manuscript_window != null:
+		_manuscript_window.hide()  # saves what is being written; it belongs to the campaign that is being swapped out
 	_campaign = campaign
 	_folder = folder
 	_read_only = CampaignIO.is_release(folder)
@@ -1749,6 +1753,15 @@ func _build_narrative_section(chapter: CampaignChapter) -> void:
 	var edit := _button("Edit story…  (full screen)", func(): _open_story_window(chapter))
 	edit.custom_minimum_size.y = 40
 	_chapter_panel.add_child(edit)
+
+
+func _open_manuscript_window() -> void:
+	if _campaign == null or _folder == "":
+		return
+	if _manuscript_window == null:
+		_manuscript_window = ManuscriptWindow.new()
+		add_child(_manuscript_window)
+	_manuscript_window.open_for(_campaign, _folder, _read_only)
 
 
 func _open_story_window(chapter: CampaignChapter) -> void:
