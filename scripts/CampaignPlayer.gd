@@ -366,7 +366,7 @@ func _on_new_name_confirmed() -> void:
 	if _begin(_folder, save_name):
 		await _ensure_hero_voices()
 		var act := _current_act()
-		_say("%s\n\n%s\n\n%s" % [_campaign.campaign_name, _campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""])
+		_say("%s\n\n%s" % [_campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""], _campaign.campaign_name)
 
 
 func _build_play_page() -> Control:
