@@ -148,13 +148,65 @@ static func _build_chapters(act: CampaignAct, act_plan: Dictionary, wanted: Arra
 			campaign_link.target_id = ids[link["to"]]
 			campaign_link.outcome = {"win": CampaignLink.Outcome.WIN, "lose": CampaignLink.Outcome.LOSE}.get(link["outcome"], CampaignLink.Outcome.ANY)
 			created[i].links.append(campaign_link)
-	# Pins in a row across the map, alternating a little up and down, so they don't all sit on top of each other.
-	var total := act.chapters.size()
-	for i in total:
-		if created.has(act.chapters[i]):
-			act.chapters[i].map_position = Vector2(0.5 if total == 1 else 0.1 + 0.8 * i / float(total - 1), 0.5 + (0.12 if i % 2 == 0 else -0.12))
+	# Pins across the map by how far along the story a chapter is, so the arrows run left to right.
+	var layout := _layout(act)
+	for chapter in created:
+		chapter.map_position = layout.get(chapter.id, chapter.map_position)
 	if act.start_chapter_id == "" and not act.chapters.is_empty():
 		act.start_chapter_id = act.chapters[0].id
+
+
+## Map positions for the chapters of an act: x by the chapter's layer (the longest way to it from the start along the links that lead
+## further into the story - links back to a chapter still being walked, like a retry, are ignored), y spread over the chapters of a layer, with
+## a small up and down between neighbouring layers so the titles overlap less. Returns {chapter id: Vector2}.
+static func _layout(act: CampaignAct) -> Dictionary:
+	var start := act.start_chapter_id if act.find_chapter(act.start_chapter_id) != null else (act.chapters[0].id if not act.chapters.is_empty() else "")
+	var back := {}  # "from>to" of every link that leads back to a chapter still being walked (a retry loop)
+	_find_back_edges(act, start, {}, back)
+	var layer := {start: 0}
+	for pass_number in act.chapters.size() + 1:
+		for chapter in act.chapters:
+			if not layer.has(chapter.id):
+				continue
+			for link in chapter.links:
+				if act.find_chapter(link.target_id) != null and not back.has(chapter.id + ">" + link.target_id):
+					layer[link.target_id] = maxi(layer.get(link.target_id, 0), layer[chapter.id] + 1)
+	var next_layer := 0
+	for chapter in act.chapters:  # chapters the start cannot reach go in a layer of their own at the end
+		if not layer.has(chapter.id):
+			layer[chapter.id] = -1
+		next_layer = maxi(next_layer, layer[chapter.id] + 1)
+	for chapter in act.chapters:
+		if layer[chapter.id] == -1:
+			layer[chapter.id] = next_layer
+	var members := {}
+	for chapter in act.chapters:
+		if not members.has(layer[chapter.id]):
+			members[layer[chapter.id]] = []
+		members[layer[chapter.id]].append(chapter.id)
+	var layers: int = members.size()
+	var result := {}
+	for layer_index: int in members:
+		var ids: Array = members[layer_index]
+		for i in ids.size():
+			var x := 0.5 if layers == 1 else 0.07 + 0.86 * layer_index / float(maxi(layers - 1, 1))
+			var y := 0.5 + (0.0 if ids.size() == 1 else 0.7 * ((i + 0.5) / float(ids.size()) - 0.5))
+			if ids.size() == 1:
+				y += 0.1 if layer_index % 2 == 0 else -0.1
+			result[ids[i]] = Vector2(x, clampf(y, 0.08, 0.92))
+	return result
+
+
+static func _find_back_edges(act: CampaignAct, id: String, state: Dictionary, back: Dictionary) -> void:
+	state[id] = 1  # on the walk
+	for link in act.find_chapter(id).links:
+		if act.find_chapter(link.target_id) == null:
+			continue
+		if state.get(link.target_id, 0) == 1:
+			back[id + ">" + link.target_id] = true
+		elif not state.has(link.target_id):
+			_find_back_edges(act, link.target_id, state, back)
+	state[id] = 2
 
 
 ## The text of the manuscript section a chapter is linked to, as it is now ("" when it has none). A narrative chapter's pages are
