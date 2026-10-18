@@ -1,5 +1,12 @@
-## Next
-- Optional AI writing help in the campaign editor's story texts (your own Anthropic API key, set in Options; off by default).
+## v0.0.25 - 2026-10-18
+- A writing workspace for campaigns (button in the campaign editor): private notes (story bible, style, characters...) and one manuscript per act, saved as you type.
+- From the manuscript, an optional AI can propose a plan of acts, chapters, characters and variables. You review it, then build the accepted items into the campaign in one undo step; narrative chapters get their story pages from the manuscript, and mission chapters get a brief and an empty mission file with objectives and variables (no map).
+- A sync check tells you when the manuscript and the chapters made from it drift apart, shows what changed, and never overwrites anything without asking.
+- Optional AI writing help in the story texts (fix, improve, shorten, continue...). Off by default; use your own Anthropic API key or the Claude Code program on your PC. Set it up in Options, which now has General, Voice and AI tabs.
+- The story editor now uses the whole window, and its condition and effect rows wrap instead of running off the screen.
+- New props for missions: small table (1x1) and barricade (2x1).
+- Chapter pins from a built plan are laid out left to right along the story.
+- Downloads (updates, voices, tools) now stop with a clear message after 30 seconds without data, and only one runs at a time, so a dropped connection no longer hangs the app.
 
 ## v0.0.24 - 2026-10-16
 - New props for missions: fence (a see-through gate), cart, chest, pot, table and well.
