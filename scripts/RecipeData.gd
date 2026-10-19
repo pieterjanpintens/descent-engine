@@ -44,6 +44,24 @@ static func reload() -> void:
 	_rune_ids = {}
 
 
+## The game gates its recipes by an XP number (4, 5, 6...); the campaign calls that a TIER: tier 1 = 4 XP, tier 2 = 5 XP, and so on.
+## 0 = story only (the game never hands it out by itself).
+const TIER_BASE_XP := 3
+
+
+static func tier(recipe: Dictionary) -> int:
+	var xp := int(recipe["xp"])
+	return 0 if xp >= 99 else maxi(xp - TIER_BASE_XP, 1)
+
+
+## The highest tier any recipe has (1 when there is no data).
+static func highest_tier() -> int:
+	var highest := 1
+	for recipe in all():
+		highest = maxi(highest, tier(recipe))
+	return highest
+
+
 ## "armor", "rune", "weapon" (an A part), "B" or "C" for the card a recipe is about.
 static func card_kind(card_id: String) -> String:
 	_load()
@@ -53,6 +71,11 @@ static func card_kind(card_id: String) -> String:
 		return "rune"
 	var slot := WeaponData.part_slot(card_id)
 	return "weapon" if slot == "A" else slot
+
+
+## The picture of the card a recipe makes (weapon, part, rune or armor), null when there is none.
+static func card_image(card_id: String) -> Texture2D:
+	return ArmorData.image(card_id) if card_kind(card_id) == "armor" else WeaponData.part_icon(card_id)
 
 
 ## "Warden's Blade (Sword)", "Northrider Guard (Sword, part B)", "Rune: Ice Storm" - what the recipe is for.

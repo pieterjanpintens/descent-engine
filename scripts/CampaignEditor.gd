@@ -811,6 +811,8 @@ func _delete_chapter(chapter: CampaignChapter) -> void:
 			place.unlocked_by_chapter = ""
 		if place.closes_after_chapter == chapter.id:
 			place.closes_after_chapter = ""
+		if place.reopens_after_chapter == chapter.id:
+			place.reopens_after_chapter = ""
 	for quest in _campaign.side_quests:
 		quest.chapter_ids.erase(chapter.id)
 	_selected = null
@@ -1139,6 +1141,7 @@ func _on_add_place_pressed() -> void:
 	var place := CampaignPlace.new()
 	place.id = _campaign.new_place_id()
 	place.title = "Place %d" % (act.places.size() + 1)
+	place.kind = CampaignPlace.Kind.MARKET  # new places start as a market (the saved default stays Offers for older campaigns)
 	place.map_position = Vector2(0.8 - 0.08 * (act.places.size() % 6), 0.8 - 0.06 * (act.places.size() % 6))
 	act.places.append(place)
 	_selected_place = place
@@ -1221,15 +1224,40 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	)
 	_chapter_panel.add_child(closes_option)
 
+	_chapter_panel.add_child(_label("Opens again when this chapter is won (stock is kept):"))
+	var reopens_option := OptionButton.new()
+	reopens_option.add_item("(stays closed)")
+	var reopens_index := 0
+	for i in act.chapters.size():
+		reopens_option.add_item(act.chapters[i].title)
+		if act.chapters[i].id == place.reopens_after_chapter:
+			reopens_index = i + 1
+	reopens_option.select(reopens_index)
+	reopens_option.item_selected.connect(func(index: int):
+		place.reopens_after_chapter = act.chapters[index - 1].id if index >= 1 else ""
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(reopens_option)
+
 	_chapter_panel.add_child(_label("This place is:"))
 	var kind_option := OptionButton.new()
-	for kind_name in ["Offers (authored)", "Market (buy and sell materials)", "Recipe shop (rotating recipes)", "Smithy (forge from recipes)"]:
-		kind_option.add_item(kind_name)
-	kind_option.select(place.kind)
+	# Market first (the usual choice); the item ids are the saved enum values, so the order here is free to change.
+	kind_option.add_item("Market (buy and sell materials)", CampaignPlace.Kind.MARKET)
+	kind_option.add_item("Recipe shop (rotating recipes)", CampaignPlace.Kind.RECIPE_SHOP)
+	kind_option.add_item("Smithy (forge from recipes)", CampaignPlace.Kind.SMITHY)
+	kind_option.add_item("Offers (authored)", CampaignPlace.Kind.OFFERS)
+	kind_option.select(kind_option.get_item_index(place.kind))
 	kind_option.item_selected.connect(func(index: int):
-		place.kind = index as CampaignPlace.Kind
-		_mark_dirty()
-		_rebuild_chapter_panel()
+		var new_kind := kind_option.get_item_id(index) as CampaignPlace.Kind
+		if new_kind == place.kind:
+			return
+		# Changing the type removes what only the old type uses (authored offers / hand-listed recipes) - asked first when there is any.
+		var count := place.offers.size() + place.listed_recipes.size()
+		if count == 0:
+			_change_place_kind(place, new_kind)
+		else:
+			kind_option.select(kind_option.get_item_index(place.kind))
+			_confirm("Change this place's type? Its %d offer(s) / listed recipe(s) will be deleted." % count, func(): _change_place_kind(place, new_kind))
 	)
 	_chapter_panel.add_child(kind_option)
 
@@ -1259,6 +1287,14 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	_chapter_panel.add_child(_button("Delete place", func(): _delete_place(place)))
 
 
+func _change_place_kind(place: CampaignPlace, new_kind: CampaignPlace.Kind) -> void:
+	place.kind = new_kind
+	place.offers.clear()
+	place.listed_recipes.clear()
+	_mark_dirty()
+	_rebuild_chapter_panel()
+
+
 func _wrapped_label(text: String) -> Label:
 	var label := _label(text)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1266,7 +1302,7 @@ func _wrapped_label(text: String) -> Label:
 
 
 ## The settings of a recipe shop: the rotating stock (size, how long a recipe is guaranteed to stay, whether the game's own
-## XP / act requirements apply) and the recipes put in by hand (always on sale, or after a chapter is won).
+## tier range is) and the recipes put in by hand (always on sale, or after a chapter is won).
 func _build_recipe_shop_settings(act: CampaignAct, place: CampaignPlace) -> void:
 	if not RecipeData.available():
 		_chapter_panel.add_child(_wrapped_label("No recipe data found - import the game's data first (Game assets in the main menu). The shop will be empty until then."))
@@ -1279,15 +1315,17 @@ func _build_recipe_shop_settings(act: CampaignAct, place: CampaignPlace) -> void
 	var stay_spin := _reward_spin(place.min_stay, func(value: int): place.min_stay = maxi(value, 1))
 	stay_spin.tooltip_text = "How many rotation steps (won chapters / side quests) a recipe is guaranteed to stay."
 	size_row.add_child(stay_spin)
-	var requirements_check := CheckBox.new()
-	requirements_check.text = "Respect the game's XP / act requirements"
-	requirements_check.tooltip_text = "Only recipes whose XP requirement the party's XP counter has reached, from the current act or earlier. Off = any recipe can appear."
-	requirements_check.button_pressed = place.respect_game_requirements
-	requirements_check.toggled.connect(func(on: bool):
-		place.respect_game_requirements = on
-		_mark_dirty()
-	)
-	_chapter_panel.add_child(requirements_check)
+	var highest := RecipeData.highest_tier()
+	while place.tier_weights.size() < highest:
+		place.tier_weights.append(0)
+	var tier_title := _label("Chance per tier (relative, 0 = never):")
+	tier_title.tooltip_text = "How likely a recipe of each tier is to be in the stock. Tier 1 is the cheapest, most common recipes (the game's 4 XP gate), tier 2 the 5 XP gate, and so on. The numbers are relative: 50 / 30 / 15 / 4 / 1 means half of the stock is tier 1 and a tier 5 recipe only turns up now and then. Story-only recipes never appear by themselves - list them by hand below."
+	_chapter_panel.add_child(tier_title)
+	var tier_row := HFlowContainer.new()
+	_chapter_panel.add_child(tier_row)
+	for tier in range(1, highest + 1):
+		tier_row.add_child(_label("Tier %d:" % tier))
+		tier_row.add_child(_reward_spin(place.tier_weights[tier - 1], func(value: int): place.tier_weights[tier - 1] = value))
 	_chapter_panel.add_child(_label("Recipes put in by hand:"))
 	var recipe_ids: Array[String] = []
 	var recipe_labels: Array[String] = []

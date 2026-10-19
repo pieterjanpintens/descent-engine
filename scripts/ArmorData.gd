@@ -42,6 +42,12 @@ static func reload() -> void:
 	_by_id = {}
 
 
+## The armor's picture (from the user's own export), null when it isn't there.
+static func image(armor_id: String) -> Texture2D:
+	var armor := find(armor_id)
+	return ItemData.image_for(str(armor.get("image", ""))) if not armor.is_empty() else null
+
+
 ## "Duskplate (Heavy)" - the armor's name and class; the id itself when unknown.
 static func label(armor_id: String) -> String:
 	var armor := find(armor_id)
@@ -94,6 +100,7 @@ static func _load() -> void:
 			"price": int(raw.get("Value", 0)),
 			"xp": int(raw.get("XPRequiredForDrop", 99)),
 			"act": int(raw.get("_act", 0)),
+			"image": str(raw.get("TextureAssetPath", "")),
 		}
 		_base.append(armor)
 		_by_id[id] = armor

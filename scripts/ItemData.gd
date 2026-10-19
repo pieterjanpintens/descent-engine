@@ -9,6 +9,33 @@ static var _consumables: Array = []
 static var _texts: Dictionary = {}
 static var _attack: Dictionary = {}  ## game key -> {key, name, text} (activation abilities)
 static var _defense: Dictionary = {}  ## game key -> {key, name, text, after, enemies}
+static var _images: Dictionary = {}  ## picture path -> Texture2D (or null: not exported)
+
+
+## A picture of an armor, material, consumable or trinket from the user's own export (import_item_data.py writes them to
+## user://item_data/images/ under the game's path, lower case, without the leading "d3/"); `path` is the item's
+## TextureAssetPath. null when it isn't there.
+static func image_for(path: String) -> Texture2D:
+	if path == "":
+		return null
+	if _images.has(path):
+		return _images[path]
+	var relative := path.to_lower()
+	if relative.begins_with("d3/"):
+		relative = relative.substr(3)
+	var file := "user://item_data/images/" + relative
+	var texture: Texture2D = null
+	if FileAccess.file_exists(file):
+		var image := Image.load_from_file(file)
+		if image != null:
+			texture = ImageTexture.create_from_image(image)
+	_images[path] = texture
+	return texture
+
+
+## The picture of a crafting material by its key ("metal").
+static func material_image(key: String) -> Texture2D:
+	return image_for("d3/crafting materials/%s/%s.png" % [key, key])
 
 
 ## The display name of a random consumable: a base one, or an upgraded ("+") one when `upgraded`. Any of them can come

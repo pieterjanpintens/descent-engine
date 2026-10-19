@@ -122,6 +122,14 @@ func problems(mission_files: Array[String]) -> Array[String]:
 			found.append("place '%s' is unlocked by a finale - winning it ends the act, so it could never be visited" % place.title)
 		if place.closes_after_chapter != "" and find_chapter(place.closes_after_chapter) == null:
 			found.append("place '%s' is closed by a chapter that no longer exists" % place.title)
+		if place.reopens_after_chapter != "":
+			var reopener := find_chapter(place.reopens_after_chapter)
+			if reopener == null:
+				found.append("place '%s' is reopened by a chapter that no longer exists" % place.title)
+			elif reopener.is_finale:
+				found.append("place '%s' is reopened by a finale - winning it ends the act, so it could never be visited" % place.title)
+			elif place.closes_after_chapter == "":
+				found.append("place '%s' reopens, but it never closes" % place.title)
 		for offer in place.offers:
 			if offer.attachment == "" and offer.rune == "" and offer.weapon == "" and offer.armor == "":
 				found.append("'%s' (at '%s') gives nothing" % [offer.title, place.title])

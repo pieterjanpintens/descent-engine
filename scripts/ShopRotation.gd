@@ -12,7 +12,8 @@ const LEAVE_CHANCE := 0.5
 
 
 ## Moves `shop` to `step`. `pool` = the recipe ids that may appear (not owned, not listed by hand, eligible), in a stable order.
-static func rotate(shop: Dictionary, step: int, pool: Array[String], size: int, min_stay: int, seed_value: int) -> Dictionary:
+## `weights` (optional): id -> how likely that recipe is to be drawn (missing = 1).
+static func rotate(shop: Dictionary, step: int, pool: Array[String], size: int, min_stay: int, seed_value: int, weights: Dictionary = {}) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value * 1000003 + step
 	var stock: Array[Dictionary] = []
@@ -32,7 +33,7 @@ static func rotate(shop: Dictionary, step: int, pool: Array[String], size: int, 
 			stock.append({"id": id, "since": step, "leaving": false})
 			present.append(id)
 	# 3. still short (first fill, or an announced recipe fell through): draw at random
-	for id in _shuffled(_candidates(pool, present, removed), rng):
+	for id in _shuffled(_candidates(pool, present, removed), rng, weights):
 		if stock.size() >= size:
 			break
 		stock.append({"id": id, "since": step, "leaving": false})
@@ -46,7 +47,7 @@ static func rotate(shop: Dictionary, step: int, pool: Array[String], size: int, 
 	# 5. announce the arrivals for the next rotation: one for every slot that opens up
 	var incoming: Array[String] = []
 	var slots := size - (stock.size() - leaving)
-	for id in _shuffled(_candidates(pool, present, []), rng):
+	for id in _shuffled(_candidates(pool, present, []), rng, weights):
 		if incoming.size() >= slots:
 			break
 		incoming.append(id)
@@ -61,11 +62,15 @@ static func _candidates(pool: Array[String], present: Array[String], excluded: A
 	return list
 
 
-static func _shuffled(list: Array[String], rng: RandomNumberGenerator) -> Array[String]:
-	var result := list.duplicate()
-	for i in range(result.size() - 1, 0, -1):
-		var j := rng.randi_range(0, i)
-		var swap: String = result[i]
-		result[i] = result[j]
-		result[j] = swap
+## A random order in which the likelier recipes tend to come first (a weighted shuffle: every recipe gets the key -ln(u) / weight and the
+## smallest keys go first). The random numbers are used in list order, so the same seed always gives the same order.
+static func _shuffled(list: Array[String], rng: RandomNumberGenerator, weights: Dictionary = {}) -> Array[String]:
+	var keyed: Array[Dictionary] = []
+	for id in list:
+		var weight := maxf(float(weights.get(id, 1.0)), 0.0001)
+		keyed.append({"id": id, "key": -log(maxf(rng.randf(), 0.000001)) / weight})
+	keyed.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["key"] < b["key"])
+	var result: Array[String] = []
+	for entry in keyed:
+		result.append(str(entry["id"]))
 	return result

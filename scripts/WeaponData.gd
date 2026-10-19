@@ -267,6 +267,13 @@ static func weapon_type_of_part(part_id: String) -> String:
 	return ""
 
 
+## The icon picture of any A/B/C part id (weapon, rune or part), null when the export has none.
+static func part_icon(part_id: String) -> Texture2D:
+	_load()
+	var part: Dictionary = _parts_by_id.get(part_id, {})
+	return icon_for(str(part.get("TextureAssetPath", ""))) if not part.is_empty() else null
+
+
 ## The display name of any A/B/C part id ("Warden's Blade"), the id itself when unknown.
 static func part_name(part_id: String) -> String:
 	_load()

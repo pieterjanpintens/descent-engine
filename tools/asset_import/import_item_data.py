@@ -9,6 +9,8 @@ Writes:
                              "trinkets": [...], "enemy_loot": [...]} - the game's own fields, references resolved to ids
                              (a recipe's ingredients become {"material": "MAT_METAL", "qty": 4}).
     localization_en.json    the English names / descriptions of those items (keys MAT_*, ARMOR_*, CSM_*, TRINKET*...).
+    images/...              the pictures of materials, armor, consumables and trinkets, at the container path the game uses
+                            minus "assets/d3/" and in lower case (an item's TextureAssetPath matches it case-insensitively).
 
 Requires: pip install UnityPy
 
@@ -26,6 +28,7 @@ from user_data import user_data_dir
 
 OUTPUT = user_data_dir("item_data")
 DROPPED = {"m_GameObject", "m_Enabled", "m_Script"}
+IMAGE_FOLDERS = ("/armor/", "/crafting materials/", "/consumables/", "/trinkets/")
 LOC_PREFIXES = ("MAT_", "ARMOR_", "CSM_", "TRINKET", "ITEM_", "LOOT", "ENEMY_ACTIVATION_")
 
 
@@ -46,6 +49,7 @@ def main() -> int:
 
     trees = {}  # path id -> compact typetree of every MonoBehaviour (so references can be resolved across bundles)
     localization = {}
+    images = 0
     for name in sorted(os.listdir(bundles)):
         path = os.path.join(bundles, name)
         if not os.path.isfile(path):
@@ -54,6 +58,19 @@ def main() -> int:
             env = UnityPy.load(path)
         except Exception:
             continue
+        for container_path, pointer in env.container.items():
+            lowered = container_path.lower()
+            if lowered.endswith(".png") and lowered.startswith("assets/d3/") and "glossaryterms" not in lowered and any(folder in lowered for folder in IMAGE_FOLDERS):
+                target = os.path.join(OUTPUT, "images", lowered.replace("assets/d3/", "", 1))
+                if os.path.exists(target):
+                    continue
+                try:
+                    image = pointer.read().image
+                except Exception:
+                    continue
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                image.save(target)
+                images += 1
         for obj in env.objects:
             if obj.type.name == "TextAsset":
                 data = obj.read()
@@ -120,9 +137,9 @@ def main() -> int:
         json.dump(result, handle, indent=1, ensure_ascii=False)
     with open(os.path.join(OUTPUT, "localization_en.json"), "w", encoding="utf-8") as handle:
         json.dump(dict(sorted(localization.items())), handle, indent=1, ensure_ascii=False)
-    print("materials %d, recipes %d, consumables %d, armors %d, trinkets %d, enemies with loot %d, texts %d -> %s" % (
+    print("materials %d, recipes %d, consumables %d, armors %d, trinkets %d, enemies with loot %d, texts %d, images %d -> %s" % (
         len(result["materials"]), len(result["recipes"]), len(result["consumables"]), len(result["armors"]),
-        len(result["trinkets"]), len(result["enemy_loot"]), len(localization), OUTPUT))
+        len(result["trinkets"]), len(result["enemy_loot"]), len(localization), images, OUTPUT))
     return 0
 
 

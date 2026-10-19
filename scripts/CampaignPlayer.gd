@@ -49,17 +49,17 @@ var _draft_header: Label
 var _load_page: Control
 var _load_list: VBoxContainer
 var _play_page: Control
-var _status_label: Label
-var _heading_label: Label
+var _hud: CampaignHud
 var _map_view: CampaignMapView
+## The panel of the chapter / side quest / place that was clicked on the map: a popup (_detail_dialog) holding `_side`.
+var _detail_dialog: AcceptDialog
 var _side: VBoxContainer
+var _options_dialog: VoiceSettingsDialog
 var _notice: AcceptDialog
 var _log_dialog: LogDialog
+var _inventory_dialog: InventoryDialog
 var _name_dialog: ConfirmationDialog
 var _name_edit: LineEdit
-## Playtest tools (only for drafts - a campaign that is not a release): back to the editor, and missions counted as won without playing.
-var _editor_button: Button
-var _auto_win_check: CheckBox
 var _confirm: ConfirmationDialog
 var _confirm_action: Callable
 
@@ -76,13 +76,33 @@ func _ready() -> void:
 	_library_page = _build_library_page()
 	_load_page = _build_load_page()
 	_play_page = _build_play_page()
-	for page in [_library_page, _load_page, _play_page]:
+	for page in [_library_page, _load_page]:
 		page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		root.add_child(page)
+	# The map page covers the whole screen (no margin): the map is centred in it and the HUD floats over it.
+	_play_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_play_page)
 
 	_notice = AcceptDialog.new()
 	_notice.min_size = Vector2i(480, 0)
 	add_child(_notice)
+	_detail_dialog = AcceptDialog.new()
+	_detail_dialog.ok_button_text = "Close"
+	_detail_dialog.min_size = Vector2i(560, 420)
+	var detail_scroll := ScrollContainer.new()
+	detail_scroll.custom_minimum_size = Vector2(560, 380)
+	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_detail_dialog.add_child(detail_scroll)
+	_side = VBoxContainer.new()
+	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_side.add_theme_constant_override("separation", 6)
+	detail_scroll.add_child(_side)
+	_detail_dialog.visibility_changed.connect(_on_detail_visibility_changed)
+	_notice.visibility_changed.connect(func():
+		if not _notice.visible:
+			Narrator.stop()
+	)
+	add_child(_detail_dialog)
 	_log_dialog = LogDialog.new()
 	_log_dialog.heading = "Campaign Log"
 	_log_dialog.current_label = "You can play"
@@ -98,6 +118,9 @@ func _ready() -> void:
 					titles.append(chapter.title)
 		return titles
 	add_child(_log_dialog)
+	_inventory_dialog = InventoryDialog.new()
+	_inventory_dialog.state_provider = func() -> CampaignState: return _state
+	add_child(_inventory_dialog)
 	_name_dialog = ConfirmationDialog.new()
 	_name_dialog.min_size = Vector2i(440, 0)
 	_name_dialog.ok_button_text = "Start"
@@ -377,64 +400,70 @@ func _on_new_name_confirmed() -> void:
 		return
 	if _begin(_folder, save_name):
 		await _ensure_hero_voices()
-		var act := _current_act()
-		_say("%s\n\n%s" % [_campaign.intro, ("%s\n%s" % [act.act_name, act.intro]) if act != null else ""], _campaign.campaign_name)
+		if _campaign.intro != "":
+			await _announce(_campaign.intro, _campaign.campaign_name, _campaign.intro)
+		await _announce_act()
 
 
+## The map page: the map fills the whole screen (centred, scaled to fit), the HUD floats over it. Clicking a pin opens a popup
+## with that chapter, side quest or place instead of a sidebar.
 func _build_play_page() -> Control:
-	var page := VBoxContainer.new()
-	var bar := HBoxContainer.new()
-	page.add_child(bar)
-	bar.add_child(_button("‹ Main menu", func():
-		GameState.campaign_from_editor = false
-		get_tree().change_scene_to_file(MENU_SCENE)
-	))
-	_editor_button = _button("‹ Back to editor", _back_to_editor)
-	_editor_button.visible = false
-	bar.add_child(_editor_button)
-	bar.add_child(_button("Campaign Log", func(): _log_dialog.open()))
-	_auto_win_check = CheckBox.new()
-	_auto_win_check.text = "Auto-win missions"
-	_auto_win_check.tooltip_text = "Playtest: pressing Play on a mission counts it as won at once, without playing it. Narrative chapters are still read. Use 'count as lost' on a chapter to test a lost mission."
-	_auto_win_check.visible = false
-	bar.add_child(_auto_win_check)
-	_status_label = Label.new()
-	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	bar.add_child(_status_label)
-
-	_heading_label = Label.new()
-	_heading_label.add_theme_font_size_override("font_size", 22)
-	page.add_child(_heading_label)
-
-	var split := HSplitContainer.new()
-	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	page.add_child(split)
+	var page := Control.new()
 	_map_view = CampaignMapView.new()
 	_map_view.read_only = true
-	_map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_map_view.custom_minimum_size = Vector2(320, 320)
-	_map_view.chapter_selected.connect(func(id: String):
-		_selected_id = id
-		_rebuild_side()
+	_map_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_map_view.chapter_selected.connect(_on_map_item_selected)
+	_map_view.place_selected.connect(_on_map_item_selected)
+	_map_view.side_quest_selected.connect(_on_map_item_selected)
+	page.add_child(_map_view)
+	_hud = CampaignHud.new()
+	_hud.back_to_menu_pressed.connect(func():
+		GameState.campaign_from_editor = false
+		get_tree().change_scene_to_file(MENU_SCENE)
 	)
-	_map_view.place_selected.connect(func(id: String):
-		_selected_id = id
-		_rebuild_side()
-	)
-	_map_view.side_quest_selected.connect(func(id: String):
-		_selected_id = id
-		_rebuild_side()
-	)
-	split.add_child(_map_view)
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size.x = 360
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	split.add_child(scroll)
-	_side = VBoxContainer.new()
-	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_side)
+	_hud.back_to_editor_pressed.connect(_back_to_editor)
+	_hud.log_pressed.connect(func(): _log_dialog.open())
+	_hud.inventory_pressed.connect(func(): _inventory_dialog.open())
+	_hud.options_pressed.connect(_open_options)
+	_hud.rules_pressed.connect(func(): OS.shell_open(PlayerHud.RULES_REFERENCE_URL))
+	page.add_child(_hud)
 	return page
+
+
+## The same Options dialog as the main menu and the mission player (voice, narration, AI). Nothing listens here, so the dialog
+## (live = false) only saves the settings and installs the voice packs.
+func _open_options() -> void:
+	if _options_dialog == null:
+		var listener := VoiceListener.new()  # never started: it is only asked what is installed
+		add_child(listener)
+		_options_dialog = VoiceSettingsDialog.new()
+		_options_dialog.voice_listener = listener
+		_options_dialog.live = false
+		add_child(_options_dialog)
+	_options_dialog.open()
+
+
+## A pin on the map was clicked: show its panel in the popup.
+func _on_map_item_selected(id: String) -> void:
+	_selected_id = id
+	_map_view.selected_id = id
+	_map_view.queue_redraw()
+	_rebuild_side()
+	if _side.get_child_count() > 0:
+		# A fixed, narrow width and (nearly) the whole height of the window: the lists grow downwards and scroll, never sideways.
+		var screen := get_viewport_rect().size
+		_detail_dialog.max_size = Vector2i(660, int(screen.y * 0.94))
+		_detail_dialog.popup_centered(Vector2i(640, int(screen.y * 0.9)))
+
+
+## Closing the popup deselects the pin.
+func _on_detail_visibility_changed() -> void:
+	if not _detail_dialog.visible:
+		Narrator.stop()
+	if not _detail_dialog.visible and _selected_id != "":
+		_selected_id = ""
+		_map_view.selected_id = ""
+		_map_view.queue_redraw()
 
 
 func _ask(text: String, action: Callable) -> void:
@@ -451,7 +480,8 @@ func _start_playtest(folder: String, fresh: bool) -> void:
 	var key := CampaignIO.save_key(PLAYTEST_SAVE)
 	if fresh or not CampaignIO.save_keys(folder).has(key):
 		CampaignIO.delete_state(folder, key)
-		_begin(folder, PLAYTEST_SAVE)
+		if _begin(folder, PLAYTEST_SAVE):
+			_announce_act()
 	else:
 		_open_save(folder, key)
 
@@ -558,8 +588,7 @@ func _use(campaign: Campaign, state: CampaignState) -> void:
 	_save()
 	_refresh_view()
 	_show_page(_play_page)
-	_editor_button.visible = GameState.campaign_from_editor
-	_auto_win_check.visible = _is_draft()
+	_hud.set_playtest_tools(GameState.campaign_from_editor, _is_draft())
 
 
 func _save() -> void:
@@ -586,11 +615,11 @@ func _refresh_view() -> void:
 		return
 	var act := _current_act()
 	if _state.campaign_complete or act == null:
-		_heading_label.text = "%s - campaign complete! (%s)" % [_campaign.campaign_name, _state.save_name]
+		_hud.set_heading(_campaign.campaign_name, "Campaign complete! (%s)" % _state.save_name)
 		_map_view.side_quests = []
 		_map_view.show_act(null, null)
 	else:
-		_heading_label.text = "%s - %s (%s)" % [_campaign.campaign_name, act.act_name, _state.save_name]
+		_hud.set_heading(_campaign.campaign_name, "%s (%s)" % [act.act_name, _state.save_name])
 		_map_view.statuses = {}
 		for chapter in act.chapters:
 			_map_view.statuses[chapter.id] = _status_of(chapter.id)
@@ -600,7 +629,7 @@ func _refresh_view() -> void:
 				_map_view.hidden_place_ids.append(place.id)
 		_map_view.side_quests = _state.visible_side_quests(_campaign)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
-	_status_label.text = "XP: %d  |  Gold: %d%s" % [_state.experience, _state.gold, ("  |  " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]
+	_hud.set_status("XP: %d  |  Gold: %d" % [_state.experience, _state.gold])
 	_rebuild_side()
 
 
@@ -612,29 +641,29 @@ func _rebuild_side() -> void:
 		child.queue_free()
 	var act := _current_act()
 	if _campaign == null or act == null:
+		_detail_dialog.hide()
 		return
 	var place := act.find_place(_selected_id)
 	if place != null and _state.is_place_open(place):
+		_detail_dialog.title = place.title
 		_build_place_panel(place)
 		return
 	var quest := _campaign.find_side_quest(_selected_id)
 	if quest != null and _state.is_side_quest_visible(_campaign, quest):
+		_detail_dialog.title = "Side quest"
 		_build_side_quest_panel(quest)
 		return
 	var chapter := act.find_chapter(_selected_id)
-	if chapter == null:
-		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
+	if chapter == null or _status_of(chapter.id) != "available":
+		_detail_dialog.hide()  # nothing (valid) selected: no popup
 		return
-	if _status_of(chapter.id) != "available":
-		_side.add_child(_wrapped(act.intro if act.intro != "" else "Select a chapter on the map."))
-		return
+	_detail_dialog.title = "Chapter"
 	var title := _label(chapter.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
 	_side.add_child(_label("Reward: " + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
 	_add_playtest_buttons(chapter.id)
-	if chapter.story_before != "":
-		_side.add_child(_wrapped(chapter.story_before))
+	_add_story(chapter.story_before)
 	var play := _button("Read this chapter" if chapter.is_narrative else "Play this chapter", func(): _play(chapter))
 	play.disabled = chapter.steps.is_empty() if chapter.is_narrative else chapter.mission_file == ""
 	_side.add_child(play)
@@ -650,8 +679,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	_side.add_child(title)
 	_side.add_child(_label("Reward: " + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
 	_add_playtest_buttons(quest.id)
-	if quest.story_before != "":
-		_side.add_child(_wrapped(quest.story_before))
+	_add_story(quest.story_before)
 	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
 	play.disabled = quest.mission_file == ""
 	_side.add_child(play)
@@ -664,7 +692,9 @@ func _build_place_panel(place: CampaignPlace) -> void:
 	_side.add_child(title)
 	if place.description != "":
 		_side.add_child(_wrapped(place.description))
-	_side.add_child(_label("You have %d gold%s." % [_state.gold, (" and " + CampaignState.format_materials(_state.materials)) if not _state.materials.is_empty() else ""]))
+	# the market and the smithy show the party's materials as pictures and the recipe shop is about gold: only the offers list them in text
+	var has_materials := not _state.materials.is_empty() and place.kind == CampaignPlace.Kind.OFFERS
+	_side.add_child(_label("You have %d gold%s." % [_state.gold, (" and " + CampaignState.format_materials(_state.materials)) if has_materials else ""]))
 	match place.kind:
 		CampaignPlace.Kind.MARKET:
 			_build_market_panel()
@@ -674,27 +704,7 @@ func _build_place_panel(place: CampaignPlace) -> void:
 			_build_smithy_panel()
 		_:
 			_build_offers_panel(place)
-	if not _state.owned_attachments.is_empty():
-		_side.add_child(HSeparator.new())
-		var owned_labels: Array[String] = []
-		for part_id in _state.owned_attachments:
-			owned_labels.append(AttachmentCatalog.label(part_id))
-		_side.add_child(_wrapped("Owned attachments: %s" % ", ".join(owned_labels)))
-	if not _state.owned_weapons.is_empty():
-		var weapon_labels: Array[String] = []
-		for weapon_id in _state.owned_weapons:
-			weapon_labels.append(WeaponData.weapon_label(weapon_id) + (" +" if _state.upgraded_cards.has(weapon_id) else ""))
-		_side.add_child(_wrapped("Owned weapons: %s" % ", ".join(weapon_labels)))
-	if not _state.owned_armors.is_empty():
-		var armor_labels: Array[String] = []
-		for armor_id in _state.owned_armors:
-			armor_labels.append(ArmorData.label(armor_id) + (" +" if _state.upgraded_cards.has(armor_id) else ""))
-		_side.add_child(_wrapped("Owned armor: %s" % ", ".join(armor_labels)))
-	if not _state.owned_runes.is_empty():
-		var rune_labels: Array[String] = []
-		for rune_id in _state.owned_runes:
-			rune_labels.append(WeaponData.rune_label(rune_id))
-		_side.add_child(_wrapped("Owned runes: %s" % ", ".join(rune_labels)))
+
 
 
 ## An ordinary place: its authored offers, each with a Buy button.
@@ -731,26 +741,27 @@ func _build_market_panel() -> void:
 	_side.add_child(HSeparator.new())
 	if _campaign.sell_percent <= 0:
 		_side.add_child(_wrapped("The market sells materials but does not buy them."))
-	var grid := GridContainer.new()
-	grid.columns = 4
-	for header in ["Material", "Have", "", ""]:
-		grid.add_child(_label(header))
 	var keys: Array[String] = []
 	keys.append_array(LootMaterials.COMMON)
 	keys.append_array(LootMaterials.ESSENCES)
+	var flow := HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 8)
 	for key in keys:
 		var have := int(_state.materials.get(key, 0))
 		var price := LootMaterials.value(key)
 		var sell_price := _state.sell_price(_campaign, key)
-		grid.add_child(_label(LootMaterials.display_name(key)))
-		grid.add_child(_label(str(have)))
-		var buy := _button("Buy (%d)" % price, func(): _market_trade(key, true))
+		var buttons := VBoxContainer.new()
+		buttons.add_theme_constant_override("separation", 2)
+		var buy := _button("Buy  %d" % price, func(): _market_trade(key, true))
 		buy.disabled = _state.gold < price
-		grid.add_child(buy)
-		var sell := _button("Sell (%d)" % sell_price, func(): _market_trade(key, false))
+		buttons.add_child(buy)
+		var sell := _button("Sell  %d" % sell_price, func(): _market_trade(key, false))
 		sell.disabled = have <= 0 or sell_price <= 0
-		grid.add_child(sell)
-	_side.add_child(grid)
+		buttons.add_child(sell)
+		flow.add_child(ItemTile.build(ItemTile.data(LootMaterials.display_name(key), ItemData.material_image(key), false, have, "%s - buy for %d gold, sell for %d" % [LootMaterials.display_name(key), price, sell_price]), buttons))
+	_side.add_child(flow)
 
 
 func _market_trade(key: String, buying: bool) -> void:
@@ -771,28 +782,50 @@ func _build_recipe_shop_panel(place: CampaignPlace) -> void:
 		_side.add_child(_label("No recipes for sale right now."))
 	for entry: Dictionary in view["entries"]:
 		var recipe := RecipeData.find(str(entry["id"]))
-		_side.add_child(_label(RecipeData.label(recipe)))
-		if entry["leaving"]:
-			var leaving := _label("Leaves after the next chapter!")
-			leaving.modulate = Color(1.0, 0.7, 0.3)
-			_side.add_child(leaving)
-		_add_recipe_details(recipe)
-		var buy := _button(("Buy (%d gold)" if recipe["direct"] else "Buy recipe (%d gold)") % int(recipe["price"]), func(): _buy_recipe(str(entry["id"])))
+		var buy := _button(("Buy  %d gold" if recipe["direct"] else "Buy recipe  %d gold") % int(recipe["price"]), func(): _buy_recipe(str(entry["id"])))
 		buy.disabled = not _state.can_buy_recipe(str(entry["id"]))
-		_side.add_child(buy)
-		_side.add_child(HSeparator.new())
+		_side.add_child(_recipe_card(recipe, "Leaves after the next chapter!" if entry["leaving"] else "", buy))
 	if view["rumour"] != "":
 		var rumour := _wrapped(str(view["rumour"]))
 		rumour.modulate = Color(0.8, 0.8, 1.0)
 		_side.add_child(rumour)
 
 
-## Under a recipe's title: what an armor does (its rule text, the "+" side's for an upgrade) and what forging needs.
-func _add_recipe_details(recipe: Dictionary) -> void:
-	if RecipeData.card_kind(str(recipe["card"])) == "armor":
-		_side.add_child(_wrapped(ArmorData.rule_text(str(recipe["card"]), recipe["upgrade"])))
+## A recipe as a card: the picture of what it makes on the left, on the right its tier, a note (what is about to change), what an armor
+## does, the materials it needs (red when the party has too few) and the action button (Buy recipe / Forge).
+func _recipe_card(recipe: Dictionary, note: String, action: Button) -> Control:
+	var card_id := str(recipe["card"])
+	var panel := ItemTile.card_panel()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	panel.add_child(row)
+	row.add_child(ItemTile.build(ItemTile.data(RecipeData.card_label(card_id), RecipeData.card_image(card_id), bool(recipe["upgrade"]), -1, RecipeData.label(recipe))))
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 4)
+	row.add_child(info)
+	var tier := RecipeData.tier(recipe)
+	var tier_label := _label(("Upgrade - tier %d" if recipe["upgrade"] else "Recipe - tier %d") % tier if tier > 0 else "Story recipe")
+	tier_label.modulate = Color(1, 1, 1, 0.6)
+	info.add_child(tier_label)
+	if note != "":
+		var note_label := _label(note)
+		note_label.modulate = Color(1.0, 0.7, 0.3)
+		info.add_child(note_label)
+	if RecipeData.card_kind(card_id) == "armor":
+		var rules := _wrapped(ArmorData.rule_text(card_id, recipe["upgrade"]))
+		rules.custom_minimum_size.x = 260.0  # a wrapping label needs a width to start from
+		info.add_child(rules)
 	if not recipe["ingredients"].is_empty():
-		_side.add_child(_wrapped("Needs: %s" % CampaignState.format_materials(recipe["ingredients"])))
+		var needs := HFlowContainer.new()
+		needs.add_theme_constant_override("h_separation", 8)
+		for key: String in recipe["ingredients"]:
+			needs.add_child(ItemTile.ingredient_chip(key, int(recipe["ingredients"][key]), int(_state.materials.get(key, 0))))
+		info.add_child(needs)
+	action.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	info.add_child(action)
+	return panel
 
 
 func _buy_recipe(recipe_id: String) -> void:
@@ -804,17 +837,30 @@ func _buy_recipe(recipe_id: String) -> void:
 ## The smithy: forge the items of the recipes the party owns from materials.
 func _build_smithy_panel() -> void:
 	_side.add_child(HSeparator.new())
+	# the party's material stock, as pictures
+	_side.add_child(_label("Your materials:"))
+	var stock := HFlowContainer.new()
+	stock.add_theme_constant_override("h_separation", 12)
+	stock.add_theme_constant_override("v_separation", 4)
+	var any_material := false
+	for key: String in LootMaterials.COMMON + LootMaterials.ESSENCES:
+		var have := int(_state.materials.get(key, 0))
+		if have > 0:
+			stock.add_child(ItemTile.stock_chip(key, have))
+			any_material = true
+	if any_material:
+		_side.add_child(stock)
+	else:
+		_side.add_child(_wrapped("None yet - materials come from defeated monsters, missions and the market."))
+	_side.add_child(HSeparator.new())
 	var recipes := _state.forgeable_recipes()
 	if recipes.is_empty():
 		_side.add_child(_wrapped("You know no recipe that makes something new. Recipes are sold in the recipe shops."))
 		return
 	for recipe in recipes:
-		_side.add_child(_label(RecipeData.label(recipe)))
-		_add_recipe_details(recipe)
 		var forge := _button("Forge", func(): _forge(str(recipe["id"])))
 		forge.disabled = not _state.can_forge(str(recipe["id"]))
-		_side.add_child(forge)
-		_side.add_child(HSeparator.new())
+		_side.add_child(_recipe_card(recipe, "", forge))
 
 
 func _forge(recipe_id: String) -> void:
@@ -837,6 +883,7 @@ func _buy(offer: CampaignOffer) -> void:
 
 
 func _play(chapter: CampaignChapter) -> void:
+	_detail_dialog.hide()
 	if chapter.is_narrative:
 		_play_narrative(chapter)
 		return
@@ -846,7 +893,8 @@ func _play(chapter: CampaignChapter) -> void:
 ## Starts the mission `mission_file` of the chapter or side quest `id`; `inputs` are the campaign variables
 ## handed to the mission's own variables.
 func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariableMap]) -> void:
-	if _auto_win_check.button_pressed and _is_draft():
+	_detail_dialog.hide()
+	if _hud.auto_win_check.button_pressed and _is_draft():
 		_playtest_result(id, true)  # playtest: counted as won without playing
 		return
 	var path := "%s/%s" % [CampaignIO.folder_path(_folder), mission_file]
@@ -938,6 +986,7 @@ func _speak_answer(answer: NarrativeAnswer) -> void:
 # ---------------------------------------------------------------- results
 
 func _apply_result(result: Dictionary) -> void:
+	_detail_dialog.hide()
 	var won: bool = result.get("won", false)
 	var finished_id := str(result.get("chapter_id", ""))
 	var summary: Dictionary
@@ -949,6 +998,7 @@ func _apply_result(result: Dictionary) -> void:
 	_selected_id = ""
 	_refresh_view()
 	var lines: Array[String] = []
+	var story_after := ""
 	lines.append("Victory!" if won else "Defeat.")
 	if won:
 		var parts: Array[String] = []
@@ -959,18 +1009,18 @@ func _apply_result(result: Dictionary) -> void:
 		lines.append(", ".join(parts) + ".")
 		if summary["story_after"] != "":
 			lines.append("\n" + summary["story_after"])
+			story_after = str(summary["story_after"])
 	elif summary["next"].is_empty():
 		lines.append("The party has to try this chapter again.")
 	if summary["act_complete"]:
 		lines.append("\nAct complete!")
-		var act := _current_act()
 		if summary["campaign_complete"]:
 			lines.append("The campaign is complete - congratulations!")
-		elif act != null:
-			lines.append("Next act: %s\n%s" % [act.act_name, act.intro])
 	if not summary["next"].is_empty():
 		lines.append("\nAvailable now: %s" % ", ".join(summary["next"]))
-	_say("\n".join(lines))
+	await _announce("\n".join(lines), "Notice", story_after)
+	if summary["act_complete"] and not summary["campaign_complete"]:
+		await _announce_act()  # the next act begins
 
 
 # ---------------------------------------------------------------- helpers
@@ -994,9 +1044,49 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	return button
 
 
+## A notice that waits until it is closed (so several can follow each other).
+## `narrate` (optional): the story text read aloud while the notice is open (the narrator, when it is set up and switched on).
+func _announce(message: String, title: String = "Notice", narrate: String = "") -> void:
+	_say(message, title)
+	if narrate != "":
+		_speak(narrate)
+	while _notice.visible:
+		await _notice.visibility_changed
+
+
+## The popup that opens an act: its name as the title, its introduction as the text (nothing when the act has no introduction).
+func _announce_act() -> void:
+	var act := _current_act()
+	if act != null and act.intro.strip_edges() != "":
+		await _announce(act.intro, act.act_name, act.intro)
+
+
+## The characters whose tags the texts may contain: the campaign's own and the heroes (with their chosen voices).
+func _speakers() -> Array[NarratorCharacter]:
+	if _campaign == null or _state == null:
+		return []
+	return _state.speakers(_campaign.characters)
+
+
+## Reads a story text aloud in the story teller's and the characters' voices (nothing unless narration is set up and on).
+func _speak(text: String) -> void:
+	if Narrator.is_enabled():
+		Narrator.speak(text, _speakers())
+
+
+## A story text of a chapter or side quest in its panel, without voice tags, with a button to hear it when narration is on.
+func _add_story(text: String) -> void:
+	if text == "":
+		return
+	_side.add_child(_wrapped(NarrationMarkup.plain(text, _speakers())))
+	if Narrator.is_enabled():
+		_side.add_child(_button("▶ Read aloud", func(): _speak(text)))
+
+
 func _say(message: String, title: String = "Notice") -> void:
+	_detail_dialog.hide()  # two exclusive popups at once are not allowed
 	_notice.title = title
 	# Wrapped to a readable width: a long text (a campaign introduction) with no wrapping made the dialog wider than the screen.
 	_notice.dialog_autowrap = true
-	_notice.dialog_text = message
+	_notice.dialog_text = NarrationMarkup.plain(message, _speakers())  # voice tags are not shown
 	_notice.popup_centered_clamped(Vector2i(620, 0), 0.8)

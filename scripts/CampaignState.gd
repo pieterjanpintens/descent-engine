@@ -323,11 +323,13 @@ func _is_closed(act: CampaignAct, chapter: CampaignChapter) -> bool:
 	return false
 
 
-## Whether `place` can be visited now: its unlocking chapter (if any) has been won and its closing chapter (if any) has not.
+## Whether `place` can be visited now: its unlocking chapter (if any) has been won and its closing chapter (if any) has not - or, once closed, its reopening chapter (if any) has been won.
 func is_place_open(place: CampaignPlace) -> bool:
 	if place.unlocked_by_chapter != "" and not completed_chapters.has(place.unlocked_by_chapter):
 		return false
-	return place.closes_after_chapter == "" or not completed_chapters.has(place.closes_after_chapter)
+	if place.closes_after_chapter == "" or not completed_chapters.has(place.closes_after_chapter):
+		return true
+	return place.reopens_after_chapter != "" and completed_chapters.has(place.reopens_after_chapter)
 
 
 ## The materials the party took from defeated monsters during a WON mission go into the stock (and the summary).
@@ -441,17 +443,32 @@ func _recipe_pool(place: CampaignPlace) -> Array[String]:
 		var id := str(recipe["id"])
 		if owned_recipes.has(id) or listed.has(id) or not recipe_target_open(recipe):
 			continue
-		if place.respect_game_requirements and (int(recipe["xp"]) >= 99 or int(recipe["xp"]) > experience or int(recipe["act"]) > current_act):
+		if place.tier_weight(RecipeData.tier(recipe)) <= 0:
 			continue
 		pool.append(id)
 	return pool
+
+
+## How likely each recipe of `pool` is to be drawn: its tier's weight shared by the recipes of that tier in the pool, so the chance that a
+## draw comes from a tier follows the tier weights whatever the number of recipes in it.
+func _recipe_weights(place: CampaignPlace, pool: Array[String]) -> Dictionary:
+	var per_tier := {}
+	for id in pool:
+		var tier := RecipeData.tier(RecipeData.find(id))
+		per_tier[tier] = int(per_tier.get(tier, 0)) + 1
+	var weights := {}
+	for id in pool:
+		var tier := RecipeData.tier(RecipeData.find(id))
+		weights[id] = float(place.tier_weight(tier)) / float(per_tier[tier])
+	return weights
 
 
 func _rotate_shop(place: CampaignPlace) -> void:
 	var shop: Dictionary = shop_state.get(place.id, {})
 	if not shop.has("seed"):
 		shop["seed"] = randi()
-	var next := ShopRotation.rotate(shop, shop_steps, _recipe_pool(place), maxi(place.stock_size, 0), maxi(place.min_stay, 1), int(shop["seed"]))
+	var pool := _recipe_pool(place)
+	var next := ShopRotation.rotate(shop, shop_steps, pool, maxi(place.stock_size, 0), maxi(place.min_stay, 1), int(shop["seed"]), _recipe_weights(place, pool))
 	next["seed"] = shop["seed"]
 	shop_state[place.id] = next
 
