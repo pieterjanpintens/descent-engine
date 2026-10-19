@@ -179,6 +179,8 @@ static func combine(campaign: Campaign, folder: String, chapters: Array, title: 
 			place.unlocked_by_chapter = first.id
 		if group.has(place.closes_after_chapter):
 			place.closes_after_chapter = first.id
+		if group.has(place.reopens_after_chapter):
+			place.reopens_after_chapter = first.id
 	for quest in campaign.side_quests:
 		var ids: Array[String] = []
 		for chapter_id in quest.chapter_ids:
