@@ -188,6 +188,7 @@ func _attach_ai() -> void:
 			_edit.remove_child(child)
 			child.free()
 	AiAssist.attach(_edit, _ai_context, campaign.characters)
+	SpeechDictation.attach(_edit, campaign.characters)
 
 
 ## Covers the whole game window and cannot be resized (see NarrativeWindow for why the size comes from the visible rect).

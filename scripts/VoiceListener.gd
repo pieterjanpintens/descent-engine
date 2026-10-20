@@ -185,8 +185,8 @@ func is_available() -> bool:
 	_available = ProjectSettings.get_setting("audio/driver/enable_input", false) \
 		and (ClassDB.class_exists(NATIVE_CLASS) or VoiceInstaller.load_extension())
 	if _available:
-		_language_model = _load_model(false)
-		_vad_model = _load_model(true)
+		_language_model = load_model(false)
+		_vad_model = load_model(true)
 		_available = _language_model != null
 	return _available
 
@@ -405,7 +405,7 @@ func _transcribe_recording(frames: PackedVector2Array, prompt: String) -> void:
 
 
 func _on_recording_transcribed(text: String) -> void:
-	var heard := _strip_noise_markers(text)
+	var heard := strip_noise_markers(text)
 	if push_to_talk:
 		if heard == "":
 			_set_status("Didn't catch anything - hold %s and try again" % OS.get_keycode_string(PTT_KEY))
@@ -423,7 +423,7 @@ func _finish_thread() -> void:
 
 
 ## Whisper writes "[BLANK_AUDIO]", "<|...|>", "♪ ... ♪" for silence/noise/music.
-func _strip_noise_markers(message: String) -> String:
+static func strip_noise_markers(message: String) -> String:
 	for pair in [["[", "]"], ["<", ">"], ["♪", "♪"], ["(", ")"]]:
 		var begin := message.find(pair[0])
 		while begin != -1:
@@ -473,8 +473,9 @@ func _setup_microphone() -> void:
 ## VAD one has "silero" in its name; every other .bin is a language model, and of
 ## those the one matching the EARLIEST entry of PREFERRED_MODELS wins (then any
 ## other, alphabetically) - so a small fast model is used even while a big one
-## is also present. Returns null if none found.
-func _load_model(vad: bool) -> Resource:
+## is also present. Returns "" if none found. Static (and cheap: no loading) so
+## SpeechDictation can ask whether voice is set up without a VoiceListener.
+static func model_path(vad: bool) -> String:
 	var paths: Dictionary = {}  # file name -> directory it was found in (first dir wins)
 	for model_dir in MODEL_DIRS:
 		var dir := DirAccess.open(model_dir)
@@ -486,7 +487,7 @@ func _load_model(vad: bool) -> Resource:
 			if name.ends_with(".bin") and name.containsn("silero") == vad and not paths.has(name):
 				paths[name] = model_dir
 	if paths.is_empty():
-		return null
+		return ""
 	var names: Array[String] = []
 	names.assign(paths.keys())
 	names.sort()
@@ -498,8 +499,17 @@ func _load_model(vad: bool) -> Resource:
 				if rank < best_rank and name.containsn(PREFERRED_MODELS[rank]):
 					best_rank = rank
 					best = name
-		print("Voice: language model = ", best, " (of ", names, ")")
-	return load(paths[best] + best)
+	return paths[best] + best
+
+
+## The model found by model_path(), loaded; null if there is none.
+static func load_model(vad: bool) -> Resource:
+	var path := model_path(vad)
+	if path == "":
+		return null
+	if not vad:
+		print("Voice: language model = ", path.get_file())
+	return load(path)
 
 
 ## Hint text for Whisper: the wake phrase and example commands, which helps
