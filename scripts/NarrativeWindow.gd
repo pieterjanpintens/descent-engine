@@ -406,6 +406,7 @@ func _text_edit(height: float, text: String, placeholder: String) -> TextEdit:
 	edit.placeholder_text = placeholder
 	NarrationHighlight.apply(edit, campaign.characters)
 	AiAssist.attach(edit, _ai_context, campaign.characters)  # only visible when the author switched AI help on in Options
+	SpeechDictation.attach(edit, campaign.characters)  # only visible when voice is set up (Options > Voice)
 	return edit
 
 

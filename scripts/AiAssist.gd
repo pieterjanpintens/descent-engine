@@ -47,19 +47,7 @@ static func attach(target: TextEdit, context_provider: Callable = Callable(), sp
 func _ready() -> void:
 	_client = AiClient.new()
 	add_child(_client)
-	_row = HBoxContainer.new()
-	# Pinned to the top-right corner of the text box. Anchors set by hand (the box has no size yet when this runs), and the row is
-	# added deferred: the box may itself still be setting up its children (it is attached before it enters the tree), and a
-	# parent that is busy refuses add_child().
-	_row.anchor_left = 1.0
-	_row.anchor_right = 1.0
-	_row.anchor_top = 0.0
-	_row.anchor_bottom = 0.0
-	_row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_row.offset_left = -4.0
-	_row.offset_right = -4.0
-	_row.offset_top = 2.0
-	edit.add_child.call_deferred(_row)
+	_row = TextBoxCorner.row(edit)  # shared with the other helpers of the box (e.g. dictation)
 	_cancel_button = Button.new()
 	_cancel_button.text = "Cancel"
 	_cancel_button.visible = false
@@ -103,7 +91,7 @@ func _ready() -> void:
 
 ## The button only exists for authors who switched AI help on.
 func _refresh() -> void:
-	_row.visible = AiClient.is_configured()
+	_menu_button.visible = AiClient.is_configured()
 
 
 func _on_action_chosen(index: int) -> void:
