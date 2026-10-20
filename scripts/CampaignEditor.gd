@@ -14,6 +14,11 @@ extends Control
 
 const MENU_SCENE := "res://ui/MainMenu.tscn"
 
+## The tabs of the side panel: General (campaign / book / story), Acts, Selection (the chapter, place or side quest picked on the map).
+const TAB_GENERAL := 0
+const TAB_ACTS := 1
+const TAB_SELECTION := 2
+
 var _campaign: Campaign
 var _folder: String = ""
 var _act_index: int = -1
@@ -72,7 +77,11 @@ var _map_label: Label
 var _cover_label: Label
 var _cover_preview: TextureRect
 var _cover_dialog: FileDialog
-var _problems_label: Label
+var _problems_button: Button
+var _problems_dialog: AcceptDialog
+var _problems_list: VBoxContainer
+var _problem_lines: Array[String] = []
+var _materials_dialog: MaterialsDialog
 var _map_view: CampaignMapView
 var _chapter_panel: VBoxContainer
 var _suppress: bool = false
@@ -132,6 +141,12 @@ func _ready() -> void:
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	bar.add_child(_status_label)
+	_problems_button = Button.new()
+	_problems_button.flat = true
+	_problems_button.visible = false
+	_problems_button.tooltip_text = "What is wrong or unfinished in this campaign. Click to read the list."
+	_problems_button.pressed.connect(_open_problems_dialog)
+	bar.add_child(_problems_button)
 
 	_welcome_label = Label.new()
 	_welcome_label.text = "Create a new campaign or open an existing one."
@@ -176,15 +191,10 @@ func _ready() -> void:
 	_tabs.custom_minimum_size.x = 360
 	split.add_child(_tabs)
 
-	var left_scroll := ScrollContainer.new()
-	left_scroll.name = "Campaign"
-	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_tabs.add_child(left_scroll)
-	var left := VBoxContainer.new()
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_scroll.add_child(left)
-
-	left.add_child(_label("Campaign name:"))
+	# --- General: the campaign itself, its book, and the story tools
+	var general := _tab_page("General")
+	_section(general, "Campaign")
+	general.add_child(_label("Name:"))
 	_campaign_name_edit = LineEdit.new()
 	_campaign_name_edit.text_changed.connect(func(text: String):
 		if _suppress or _campaign == null:
@@ -192,8 +202,8 @@ func _ready() -> void:
 		_campaign.campaign_name = text
 		_mark_dirty()
 	)
-	left.add_child(_campaign_name_edit)
-	left.add_child(_label("Introduction:"))
+	general.add_child(_campaign_name_edit)
+	general.add_child(_label("Introduction:"))
 	_campaign_intro_edit = _text_edit(80)
 	_campaign_intro_edit.text_changed.connect(func():
 		if _suppress or _campaign == null:
@@ -201,22 +211,43 @@ func _ready() -> void:
 		_campaign.intro = _campaign_intro_edit.text
 		_mark_dirty()
 	)
-	left.add_child(_campaign_intro_edit)
-	var cover_row := HBoxContainer.new()
-	left.add_child(cover_row)
-	cover_row.add_child(_button("Book cover…", func(): _cover_dialog.popup_centered_ratio(0.6)))
-	cover_row.add_child(_button("Clear cover", _on_clear_cover_pressed))
-	left.add_child(_button("Variables…", func(): _variables_dialog.open_for_list(_campaign.variables, func(_label: String, mutate: Callable):
+	general.add_child(_campaign_intro_edit)
+
+	_section(general, "Book")
+	var book_row := HBoxContainer.new()
+	book_row.add_theme_constant_override("separation", 12)
+	general.add_child(book_row)
+	_cover_preview = TextureRect.new()
+	_cover_preview.custom_minimum_size = Vector2(120, 180)
+	_cover_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_cover_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	book_row.add_child(_cover_preview)
+	var book_column := VBoxContainer.new()
+	book_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	book_row.add_child(book_column)
+	book_column.add_child(_button("Book cover…", func(): _cover_dialog.popup_centered_ratio(0.6)))
+	book_column.add_child(_button("Clear cover", _on_clear_cover_pressed))
+	_cover_label = _wrapped_label("")
+	_cover_label.custom_minimum_size.x = 150.0  # a wrapping label needs a width to start from
+	book_column.add_child(_cover_label)
+
+	_section(general, "Story")
+	general.add_child(_button("Writing workspace…", _open_manuscript_window))
+	general.add_child(_button("Variables…", func(): _variables_dialog.open_for_list(_campaign.variables, func(_label: String, mutate: Callable):
 		mutate.call()
 		_mark_dirty()
 	)))
-	left.add_child(_button("Writing workspace…", _open_manuscript_window))
-	left.add_child(_button("Starting equipment…", func(): _starting_set_dialog.open_for(_campaign, func():
+	general.add_child(_button("Starting equipment…", func(): _starting_set_dialog.open_for(_campaign, func():
 		_mark_dirty()
 		_update_problems()
 	)))
+	general.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
+		mutate.call()
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	, _campaign.narrative_texts)))
 	var sell_row := HBoxContainer.new()
-	left.add_child(sell_row)
+	general.add_child(sell_row)
 	sell_row.add_child(_label("Markets pay (% of value):"))
 	var sell_spin := SpinBox.new()
 	sell_spin.min_value = 0
@@ -230,22 +261,10 @@ func _ready() -> void:
 	)
 	_sell_spin = sell_spin
 	sell_row.add_child(sell_spin)
-	left.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
-		mutate.call()
-		_mark_dirty()
-		_rebuild_chapter_panel()
-	, _campaign.narrative_texts)))
-	_cover_label = _label("")
-	left.add_child(_cover_label)
-	_cover_preview = TextureRect.new()
-	_cover_preview.custom_minimum_size = Vector2(120, 180)
-	_cover_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_cover_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_cover_preview.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	left.add_child(_cover_preview)
 
-	left.add_child(HSeparator.new())
-	left.add_child(_label("Acts:"))
+	# --- Acts: the list and what belongs to the act picked in it
+	var left := _tab_page("Acts")
+	_section(left, "Acts")
 	_acts_list = ItemList.new()
 	_acts_list.custom_minimum_size.y = 110
 	_acts_list.item_selected.connect(func(index: int):
@@ -263,7 +282,8 @@ func _ready() -> void:
 	act_buttons.add_child(_button("↑", func(): _move_act(-1)))
 	act_buttons.add_child(_button("↓", func(): _move_act(1)))
 
-	left.add_child(_label("Act name:"))
+	_section(left, "Selected act")
+	left.add_child(_label("Name:"))
 	_act_name_edit = LineEdit.new()
 	_act_name_edit.text_changed.connect(func(text: String):
 		var act := _current_act()
@@ -274,7 +294,7 @@ func _ready() -> void:
 		_mark_dirty()
 	)
 	left.add_child(_act_name_edit)
-	left.add_child(_label("Act introduction:"))
+	left.add_child(_label("Introduction:"))
 	_act_intro_edit = _text_edit(80)
 	_act_intro_edit.text_changed.connect(func():
 		var act := _current_act()
@@ -304,12 +324,6 @@ func _ready() -> void:
 	map_row.add_child(_button("Clear map", _on_clear_map_pressed))
 	_map_label = _label("")
 	left.add_child(_map_label)
-	left.add_child(HSeparator.new())
-	left.add_child(_label("Problems:"))
-	_problems_label = _label("")
-	_problems_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_problems_label.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4))
-	left.add_child(_problems_label)
 
 	var right_scroll := ScrollContainer.new()
 	right_scroll.name = "Selection"
@@ -361,6 +375,21 @@ func _ready() -> void:
 
 	_notice = AcceptDialog.new()
 	add_child(_notice)
+	_materials_dialog = MaterialsDialog.new()
+	add_child(_materials_dialog)
+	_problems_dialog = AcceptDialog.new()
+	_problems_dialog.title = "Problems"
+	_problems_dialog.ok_button_text = "Close"
+	_problems_dialog.min_size = Vector2i(520, 300)
+	var problems_scroll := ScrollContainer.new()
+	problems_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	problems_scroll.custom_minimum_size = Vector2(500, 260)
+	_problems_list = VBoxContainer.new()
+	_problems_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_problems_list.add_theme_constant_override("separation", 6)
+	problems_scroll.add_child(_problems_list)
+	_problems_dialog.add_child(problems_scroll)
+	add_child(_problems_dialog)
 
 	# The conditions of a side quest are edited with the mission editor's own condition rows, over the
 	# campaign's values.
@@ -768,7 +797,7 @@ func _on_add_chapter_pressed() -> void:
 	_selected = chapter
 	_selected_place = null
 	_selected_quest = null
-	_tabs.current_tab = 1
+	_tabs.current_tab = TAB_SELECTION
 	_mark_dirty()
 	_refresh_act()
 
@@ -780,7 +809,7 @@ func _on_map_chapter_selected(chapter_id: String) -> void:
 	_selected = act.find_chapter(chapter_id)
 	_selected_place = null
 	_selected_quest = null
-	_tabs.current_tab = 1
+	_tabs.current_tab = TAB_SELECTION
 	_rebuild_chapter_panel()
 
 
@@ -869,7 +898,7 @@ func _on_add_side_quest_pressed() -> void:
 	_selected = null
 	_selected_place = null
 	_selected_quest = quest
-	_tabs.current_tab = 1
+	_tabs.current_tab = TAB_SELECTION
 	_mark_dirty()
 	_refresh_act()
 
@@ -878,7 +907,7 @@ func _on_map_side_quest_selected(quest_id: String) -> void:
 	_selected = null
 	_selected_place = null
 	_selected_quest = _campaign.find_side_quest(quest_id)
-	_tabs.current_tab = 1
+	_tabs.current_tab = TAB_SELECTION
 	_rebuild_chapter_panel()
 
 
@@ -894,8 +923,7 @@ func _bind_variable_editor(editor: EffectEditor) -> void:
 
 
 func _build_mapping_section(heading: String, maps: Array[MissionVariableMap], mission_file: String, from_mission: bool) -> void:
-	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label(heading))
+	_chapter_panel.add_child(_sub_heading(heading))
 	var declared := CampaignIO.mission_variables(_folder, mission_file)
 	var campaign_side := _campaign.writable_variables() if from_mission else _campaign.all_variables()
 	var left_list := declared if from_mission else campaign_side
@@ -1005,8 +1033,7 @@ func _build_effects_section(heading: String, effects: Array[Effect], parent: Con
 	var into: Container = parent if parent != null else _chapter_panel
 	var changed: Callable = rebuild if rebuild.is_valid() else _rebuild_chapter_panel
 	if heading != "":
-		into.add_child(HSeparator.new())
-		into.add_child(_label(heading))
+		into.add_child(_sub_heading(heading))
 	_bind_variable_editor(_effect_editor)
 	_effect_editor.variables_changed = changed
 	_effect_editor.campaign_variables = _campaign.writable_variables()
@@ -1035,6 +1062,7 @@ func _delete_side_quest(quest: CampaignSideQuest) -> void:
 func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	_map_view.selected_id = quest.id
 	_map_view.queue_redraw()
+	_section(_chapter_panel, "Mission")
 	_chapter_panel.add_child(_label("Side quest title:"))
 	var title_edit := LineEdit.new()
 	title_edit.text = quest.title
@@ -1044,7 +1072,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	)
 	_chapter_panel.add_child(title_edit)
 
-	_chapter_panel.add_child(_label("Mission:"))
+	_chapter_panel.add_child(_label("Mission file:"))
 	var mission_row := HBoxContainer.new()
 	_chapter_panel.add_child(mission_row)
 	var files := CampaignIO.mission_files(_folder)
@@ -1068,36 +1096,12 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 		_mission_dialog.popup_centered_ratio(0.6)
 	))
 
-	var reward_row := HBoxContainer.new()
-	_chapter_panel.add_child(reward_row)
-	reward_row.add_child(_label("Win gives XP:"))
-	reward_row.add_child(_reward_spin(quest.reward_xp, func(value: int): quest.reward_xp = value))
-	reward_row.add_child(_label("gold:"))
-	reward_row.add_child(_reward_spin(quest.reward_gold, func(value: int): quest.reward_gold = value))
-	var materials_row := HBoxContainer.new()
-	_chapter_panel.add_child(materials_row)
-	materials_row.add_child(_label("Materials won:"))
-	materials_row.add_child(_materials_grid(quest.reward_materials))
+	_section(_chapter_panel, "Variables")
+	_build_mapping_section("Give to the mission when it starts:", quest.mission_inputs, quest.mission_file, false)
+	_build_mapping_section("Take over from the mission when it ends:", quest.mission_outputs, quest.mission_file, true)
 
-	_chapter_panel.add_child(_label("Story before:"))
-	var before_edit := _text_edit(80)
-	before_edit.text = quest.story_before
-	before_edit.text_changed.connect(func():
-		quest.story_before = before_edit.text
-		_mark_dirty()
-	)
-	_chapter_panel.add_child(before_edit)
-	_chapter_panel.add_child(_label("Story after:"))
-	var after_edit := _text_edit(80)
-	after_edit.text = quest.story_after
-	after_edit.text_changed.connect(func():
-		quest.story_after = after_edit.text
-		_mark_dirty()
-	)
-	_chapter_panel.add_child(after_edit)
-
-	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label("Offered while the party is at one of these chapters:"))
+	_section(_chapter_panel, "Offered")
+	_chapter_panel.add_child(_sub_heading("While the party is at one of these chapters:"))
 	for act in _campaign.acts:
 		for chapter in act.chapters:
 			var check := CheckBox.new()
@@ -1113,13 +1117,38 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 				_map_view.queue_redraw()
 			)
 			_chapter_panel.add_child(check)
-
 	_build_conditions_section("Only offered when:", quest.conditions)
 
-	_build_mapping_section("Give to the mission when it starts:", quest.mission_inputs, quest.mission_file, false)
-	_build_mapping_section("Take over from the mission when it ends:", quest.mission_outputs, quest.mission_file, true)
+	_section(_chapter_panel, "Before mission")
+	_chapter_panel.add_child(_sub_heading("Story:"))
+	var before_edit := _text_edit(80)
+	before_edit.text = quest.story_before
+	before_edit.text_changed.connect(func():
+		quest.story_before = before_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(before_edit)
+
+	_section(_chapter_panel, "After mission")
+	_chapter_panel.add_child(_sub_heading("Story:"))
+	var after_edit := _text_edit(80)
+	after_edit.text = quest.story_after
+	after_edit.text_changed.connect(func():
+		quest.story_after = after_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(after_edit)
 	_build_effects_section("When won, set:", quest.win_effects)
 	_build_effects_section("When lost, set:", quest.lose_effects)
+	_chapter_panel.add_child(_sub_heading("Loot (when won):"))
+	var reward_row := HBoxContainer.new()
+	_chapter_panel.add_child(reward_row)
+	reward_row.add_child(_label("XP:"))
+	reward_row.add_child(_reward_spin(quest.reward_xp, func(value: int): quest.reward_xp = value))
+	reward_row.add_child(_label("Gold:"))
+	reward_row.add_child(_reward_spin(quest.reward_gold, func(value: int): quest.reward_gold = value))
+	_chapter_panel.add_child(_materials_row("Materials:", quest.reward_materials))
+
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete side quest", func(): _delete_side_quest(quest)))
 
@@ -1146,7 +1175,7 @@ func _on_add_place_pressed() -> void:
 	act.places.append(place)
 	_selected_place = place
 	_selected = null
-	_tabs.current_tab = 1
+	_tabs.current_tab = TAB_SELECTION
 	_mark_dirty()
 	_refresh_act()
 
@@ -1157,7 +1186,7 @@ func _on_map_place_selected(place_id: String) -> void:
 		return
 	_selected_place = act.find_place(place_id)
 	_selected = null
-	_tabs.current_tab = 1
+	_tabs.current_tab = TAB_SELECTION
 	_rebuild_chapter_panel()
 
 
@@ -1264,7 +1293,7 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	_chapter_panel.add_child(HSeparator.new())
 	match place.kind:
 		CampaignPlace.Kind.MARKET:
-			_chapter_panel.add_child(_wrapped_label("Players buy any material here at its full gold value and sell materials at the campaign's sell percentage (Campaign tab)."))
+			_chapter_panel.add_child(_wrapped_label("Players buy any material here at its full gold value and sell materials at the campaign's sell percentage (General tab)."))
 		CampaignPlace.Kind.SMITHY:
 			_chapter_panel.add_child(_wrapped_label("Players forge the items of recipes they own from materials. Recipes are sold in a recipe shop."))
 		CampaignPlace.Kind.RECIPE_SHOP:
@@ -1412,8 +1441,7 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 	box.add_child(cost_row)
 	cost_row.add_child(_label("Gold:"))
 	cost_row.add_child(_reward_spin(offer.cost_gold, func(value: int): offer.cost_gold = value))
-	cost_row.add_child(_label("Materials:"))
-	cost_row.add_child(_materials_grid(offer.cost_materials))
+	box.add_child(_materials_row("Materials:", offer.cost_materials))
 	var give_row := HBoxContainer.new()
 	box.add_child(give_row)
 	give_row.add_child(_label("Gives:"))
@@ -1522,6 +1550,7 @@ func _refresh_all() -> void:
 	var has_campaign := _campaign != null
 	_body.visible = has_campaign
 	_welcome_label.visible = not has_campaign
+	_problems_button.visible = has_campaign
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.SAVE), not has_campaign)
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.EXPORT), not has_campaign)
 	if not has_campaign:
@@ -1573,8 +1602,31 @@ func _update_problems() -> void:
 		lines.append(problem)
 	for problem in CampaignIO.mission_link_problems(_campaign, _folder):
 		lines.append(problem)
-	_problems_label.text = "\n".join(lines) if not lines.is_empty() else "none"
+	_problem_lines = lines
+	_problems_button.text = "⚠ Problems (%d)" % lines.size() if not lines.is_empty() else "No problems"
+	_problems_button.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4) if not lines.is_empty() else Color(0.6, 0.85, 0.6))
+	if _problems_dialog.visible:
+		_fill_problems_dialog()
 	_map_view.queue_redraw()
+
+
+func _open_problems_dialog() -> void:
+	_fill_problems_dialog()
+	_problems_dialog.popup_centered_clamped(Vector2i(560, 380), 0.9)
+
+
+func _fill_problems_dialog() -> void:
+	for child in _problems_list.get_children():
+		_problems_list.remove_child(child)
+		child.free()
+	if _problem_lines.is_empty():
+		_problems_list.add_child(_label("No problems - everything the checks look at is in order."))
+		return
+	for line in _problem_lines:
+		var label := _wrapped_label("• " + line)
+		label.custom_minimum_size.x = 480.0  # a wrapping label needs a width to start from
+		label.add_theme_color_override("font_color", Color(1.0, 0.75, 0.55))
+		_problems_list.add_child(label)
 
 
 func _rebuild_chapter_panel() -> void:
@@ -1600,6 +1652,8 @@ func _rebuild_chapter_panel() -> void:
 	_map_view.selected_id = chapter.id
 	_map_view.queue_redraw()
 
+	# ---- Mission
+	_section(_chapter_panel, "Mission")
 	_chapter_panel.add_child(_label("Chapter title:"))
 	var title_edit := LineEdit.new()
 	title_edit.text = chapter.title
@@ -1626,7 +1680,7 @@ func _rebuild_chapter_panel() -> void:
 	if chapter.is_narrative:
 		_build_narrative_section(chapter)
 	else:
-		_chapter_panel.add_child(_label("Mission:"))
+		_chapter_panel.add_child(_label("Mission file:"))
 		var mission_row := HBoxContainer.new()
 		_chapter_panel.add_child(mission_row)
 		var files := CampaignIO.mission_files(_folder)
@@ -1671,62 +1725,16 @@ func _rebuild_chapter_panel() -> void:
 		_map_view.queue_redraw()
 	)
 	_chapter_panel.add_child(finale_check)
-	var act_of_chapter := _current_act()
-	var join_check := CheckBox.new()
-	join_check.text = "Wait for all chapters that lead here"
-	join_check.tooltip_text = "Playable only once every chapter linking to it is won (fan-out, then join). Don't use it after exclusive branches."
-	join_check.button_pressed = chapter.wait_for_all
-	join_check.toggled.connect(func(on: bool):
-		chapter.wait_for_all = on
-		_mark_dirty()
-		_map_view.queue_redraw()
-	)
-	# Only meaningful where several arrows meet (a ticked box always stays visible so it can be unticked).
-	if chapter.wait_for_all or (act_of_chapter != null and act_of_chapter.predecessors(chapter.id).size() >= 2):
-		_chapter_panel.add_child(join_check)
-	var choice_check := CheckBox.new()
-	choice_check.text = "Its links are a choice (only one can be played)"
-	choice_check.tooltip_text = "Once the party has won one of the chapters this one links to, the others close for good."
-	choice_check.button_pressed = chapter.exclusive_links
-	choice_check.toggled.connect(func(on: bool):
-		chapter.exclusive_links = on
-		_mark_dirty()
-		_map_view.queue_redraw()
-	)
-	if chapter.exclusive_links or chapter.links.size() >= 2:
-		_chapter_panel.add_child(choice_check)
 
-	var reward_row := HBoxContainer.new()
-	_chapter_panel.add_child(reward_row)
-	reward_row.add_child(_label("Win gives XP:"))
-	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
-	reward_row.add_child(_label("gold:"))
-	reward_row.add_child(_reward_spin(chapter.reward_gold, func(value: int): chapter.reward_gold = value))
+	# ---- Variables (what is handed to the mission and taken back from it)
+	if not chapter.is_narrative:
+		_section(_chapter_panel, "Variables")
+		_build_mapping_section("Give to the mission when it starts:", chapter.mission_inputs, chapter.mission_file, false)
+		_build_mapping_section("Take over from the mission when it ends:", chapter.mission_outputs, chapter.mission_file, true)
 
-	var materials_row := HBoxContainer.new()
-	_chapter_panel.add_child(materials_row)
-	materials_row.add_child(_label("Materials won:"))
-	materials_row.add_child(_materials_grid(chapter.reward_materials))
-
-	_chapter_panel.add_child(_label("Story before the mission:"))
-	var before_edit := _text_edit(80)
-	before_edit.text = chapter.story_before
-	before_edit.text_changed.connect(func():
-		chapter.story_before = before_edit.text
-		_mark_dirty()
-	)
-	_chapter_panel.add_child(before_edit)
-	_chapter_panel.add_child(_label("Story after the mission:"))
-	var after_edit := _text_edit(80)
-	after_edit.text = chapter.story_after
-	after_edit.text_changed.connect(func():
-		chapter.story_after = after_edit.text
-		_mark_dirty()
-	)
-	_chapter_panel.add_child(after_edit)
-
-	_chapter_panel.add_child(HSeparator.new())
-	_chapter_panel.add_child(_label("Next (no link for an outcome = play this chapter again):"))
+	# ---- Links (the arrows on the map)
+	_section(_chapter_panel, "Links")
+	_chapter_panel.add_child(_sub_heading("Next (no link for an outcome = play this chapter again):"))
 	var others: Array[CampaignChapter] = []
 	for other in act.chapters:
 		if other != chapter:
@@ -1745,13 +1753,63 @@ func _rebuild_chapter_panel() -> void:
 	)
 	add_link.disabled = others.is_empty()
 	_chapter_panel.add_child(add_link)
+	var join_check := CheckBox.new()
+	join_check.text = "Wait for all chapters that lead here"
+	join_check.tooltip_text = "Playable only once every chapter linking to it is won (fan-out, then join). Don't use it after exclusive branches."
+	join_check.button_pressed = chapter.wait_for_all
+	join_check.toggled.connect(func(on: bool):
+		chapter.wait_for_all = on
+		_mark_dirty()
+		_map_view.queue_redraw()
+	)
+	# Only meaningful where several arrows meet (a ticked box always stays visible so it can be unticked).
+	if chapter.wait_for_all or act.predecessors(chapter.id).size() >= 2:
+		_chapter_panel.add_child(join_check)
+	var choice_check := CheckBox.new()
+	choice_check.text = "Its links are a choice (only one can be played)"
+	choice_check.tooltip_text = "Once the party has won one of the chapters this one links to, the others close for good."
+	choice_check.button_pressed = chapter.exclusive_links
+	choice_check.toggled.connect(func(on: bool):
+		chapter.exclusive_links = on
+		_mark_dirty()
+		_map_view.queue_redraw()
+	)
+	if chapter.exclusive_links or chapter.links.size() >= 2:
+		_chapter_panel.add_child(choice_check)
 
-	if not chapter.is_narrative:
-		_build_mapping_section("Give to the mission when it starts:", chapter.mission_inputs, chapter.mission_file, false)
-		_build_mapping_section("Take over from the mission when it ends:", chapter.mission_outputs, chapter.mission_file, true)
+	# ---- Before mission
+	_section(_chapter_panel, "Before mission")
+	_chapter_panel.add_child(_sub_heading("Story:"))
+	var before_edit := _text_edit(80)
+	before_edit.text = chapter.story_before
+	before_edit.text_changed.connect(func():
+		chapter.story_before = before_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(before_edit)
+
+	# ---- After mission
+	_section(_chapter_panel, "After mission")
+	_chapter_panel.add_child(_sub_heading("Story:"))
+	var after_edit := _text_edit(80)
+	after_edit.text = chapter.story_after
+	after_edit.text_changed.connect(func():
+		chapter.story_after = after_edit.text
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(after_edit)
 	_build_effects_section("When won, set:", chapter.win_effects)
 	if not chapter.is_narrative:
 		_build_effects_section("When lost, set:", chapter.lose_effects)
+	_chapter_panel.add_child(_sub_heading("Loot (when won):"))
+	var reward_row := HBoxContainer.new()
+	_chapter_panel.add_child(reward_row)
+	reward_row.add_child(_label("XP:"))
+	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
+	reward_row.add_child(_label("Gold:"))
+	reward_row.add_child(_reward_spin(chapter.reward_gold, func(value: int): chapter.reward_gold = value))
+	_chapter_panel.add_child(_materials_row("Materials:", chapter.reward_materials))
+
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete chapter", func(): _on_delete_chapter_pressed(chapter)))
 
@@ -1839,31 +1897,79 @@ func _open_story_window(chapter: CampaignChapter) -> void:
 	_story_window.open_for(chapter, _campaign, _mark_dirty, _build_conditions_section, _build_effects_section)
 
 
-## Edits a materials dictionary (LootMaterials key -> count) IN PLACE: a counter per material, 0 = none.
-## Used for what a chapter / side quest gives and what an offer costs.
-func _materials_grid(materials: Dictionary) -> Control:
-	var flow := HFlowContainer.new()
-	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var keys: Array[String] = []
-	keys.append_array(LootMaterials.COMMON)
-	keys.append_array(LootMaterials.ESSENCES)
-	for key in keys:
-		var cell := HBoxContainer.new()
-		cell.add_child(_label(LootMaterials.display_name(key) + ":"))
-		var spin := SpinBox.new()
-		spin.min_value = 0
-		spin.max_value = 99
-		spin.value = int(materials.get(key, 0))
-		spin.value_changed.connect(func(value: float):
-			if int(value) > 0:
-				materials[key] = int(value)
-			else:
-				materials.erase(key)
+## A materials dictionary (LootMaterials key -> count) as a row: the heading, a small picture chip per material (or "none") and an
+## "Edit…" button that opens the inventory-style MaterialsDialog. The dictionary is changed in place. Used for what a chapter / side
+## quest gives and what an offer costs.
+func _materials_row(heading: String, materials: Dictionary) -> Control:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var top := HBoxContainer.new()
+	column.add_child(top)
+	var title := _label(heading)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(title)
+	var chips := HFlowContainer.new()
+	chips.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chips.add_theme_constant_override("h_separation", 10)
+	column.add_child(chips)
+	var refresh := func():
+		for child in chips.get_children():
+			chips.remove_child(child)
+			child.free()
+		var any := false
+		var keys: Array[String] = []
+		keys.append_array(LootMaterials.COMMON)
+		keys.append_array(LootMaterials.ESSENCES)
+		for key in keys:
+			var count := int(materials.get(key, 0))
+			if count > 0:
+				chips.add_child(ItemTile.stock_chip(key, count))
+				any = true
+		if not any:
+			var none := _label("none")
+			none.modulate = Color(1, 1, 1, 0.6)
+			chips.add_child(none)
+	top.add_child(_button("Edit…", func():
+		_materials_dialog.open_for(heading.trim_suffix(":"), materials, func():
 			_mark_dirty()
-		)
-		cell.add_child(spin)
-		flow.add_child(cell)
-	return flow
+			refresh.call()
+		, _read_only)
+	))
+	refresh.call()
+	return column
+
+
+## A page of the side panel: a scrolling column named `tab_name`, added to the tabs.
+func _tab_page(tab_name: String) -> VBoxContainer:
+	var scroll := ScrollContainer.new()
+	scroll.name = tab_name
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_tabs.add_child(scroll)
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 4)
+	scroll.add_child(column)
+	return column
+
+
+## A heading inside a page: the same blue as the inventory's headings, a line under it.
+func _section(parent: Container, title: String) -> void:
+	if parent.get_child_count() > 0:
+		var gap := Control.new()
+		gap.custom_minimum_size.y = 8
+		parent.add_child(gap)
+	var heading := _label(title)
+	heading.add_theme_font_size_override("font_size", 16)
+	heading.modulate = Color(0.56, 0.79, 0.9)
+	parent.add_child(heading)
+	parent.add_child(HSeparator.new())
+
+
+## A smaller, dimmed heading inside a section.
+func _sub_heading(text: String) -> Label:
+	var label := _label(text)
+	label.modulate = Color(1, 1, 1, 0.75)
+	return label
 
 
 func _label(text: String) -> Label:
