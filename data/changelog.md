@@ -1,3 +1,7 @@
+## v0.0.28 - 2026-10-20
+- New props: a big and a small ladder (both 1x1), in the Prop tab of the mission editor.
+- Fixed a harmless "Unicode parsing error / Unexpected NUL character" message that Godot printed on every start.
+
 ## v0.0.27 - 2026-10-19
 - The smithy shows your material stock as pictures with amounts on top, and each recipe shows how much you have of every material it needs (green = enough, red = too few). The popup of a place is now a fixed, narrow width and uses nearly the whole height of the window; lists grow downwards and scroll.
 - The recipe shop and the smithy show their recipes as cards: the picture of the item on the left, the tier, what an armor does, the materials it needs as small pictures (red when you have too few) and the Buy recipe / Forge button.
