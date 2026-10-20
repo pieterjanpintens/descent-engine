@@ -628,6 +628,10 @@ func _refresh_view() -> void:
 			if not _state.is_place_open(place):
 				_map_view.hidden_place_ids.append(place.id)
 		_map_view.side_quests = _state.visible_side_quests(_campaign)
+		_map_view.ending_quest_ids = []
+		for quest in _map_view.side_quests:
+			if _state.vanishing_chapter(_campaign, quest) != "":
+				_map_view.ending_quest_ids.append(quest.id)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
 	_hud.set_status("XP: %d  |  Gold: %d" % [_state.experience, _state.gold])
 	_rebuild_side()
@@ -677,6 +681,11 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	var title := _label(quest.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
+	var vanishing := _state.vanishing_chapter(_campaign, quest)
+	if vanishing != "":
+		var warning := _wrapped("Ending soon: this side quest is gone once \"%s\" is won." % vanishing)
+		warning.modulate = Color(1.0, 0.45, 0.4)
+		_side.add_child(warning)
 	_side.add_child(_label("Reward: " + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
 	_add_playtest_buttons(quest.id)
 	_add_story(quest.story_before)
@@ -990,6 +999,9 @@ func _apply_result(result: Dictionary) -> void:
 	var won: bool = result.get("won", false)
 	var finished_id := str(result.get("chapter_id", ""))
 	var summary: Dictionary
+	var quests_before: Array[String] = []
+	for quest in _state.visible_side_quests(_campaign):
+		quests_before.append(quest.id)
 	if _campaign.find_side_quest(finished_id) != null:
 		summary = await _state.apply_side_quest_result(_campaign, finished_id, won, result.get("mission_variables", {}), result.get("loot", {}))
 	else:
@@ -1016,8 +1028,14 @@ func _apply_result(result: Dictionary) -> void:
 		lines.append("\nAct complete!")
 		if summary["campaign_complete"]:
 			lines.append("The campaign is complete - congratulations!")
+	var new_quests: Array[String] = []  # only side quests that came up with this result, not the ones that were already on offer
+	for quest in _state.visible_side_quests(_campaign):
+		if not quests_before.has(quest.id):
+			new_quests.append(quest.title)
 	if not summary["next"].is_empty():
 		lines.append("\nAvailable now: %s" % ", ".join(summary["next"]))
+	if not new_quests.is_empty():
+		lines.append("%sNew side quest%s: %s" % ["" if not summary["next"].is_empty() else "\n", "s" if new_quests.size() > 1 else "", ", ".join(new_quests)])
 	await _announce("\n".join(lines), "Notice", story_after)
 	if summary["act_complete"] and not summary["campaign_complete"]:
 		await _announce_act()  # the next act begins
