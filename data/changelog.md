@@ -1,3 +1,9 @@
+## v0.0.29 - 2026-10-20
+- Campaign editor: the side panel now has three tabs - General (campaign, book cover, story tools), Acts and Selection. The Problems list moved to a button in the menu bar that shows how many there are and opens a dialog.
+- Campaign editor: the Selection tab is grouped into sections - Mission, Variables, Links, Before mission and After mission (story, when won / lost, loot). Side quests got the same layout.
+- Campaign editor: materials (what a chapter gives, what an offer costs) are edited in an inventory-style dialog with a picture and a counter per material.
+- Narration: 61 more voices (more English regional, Scottish, Irish, American, Canadian, Indian and other accents) from the model of the extra voices - no extra download, so campaigns with many characters get distinct voices.
+
 ## v0.0.28 - 2026-10-20
 - New props: a big and a small ladder (both 1x1), in the Prop tab of the mission editor.
 - Fixed a harmless "Unicode parsing error / Unexpected NUL character" message that Godot printed on every start.
