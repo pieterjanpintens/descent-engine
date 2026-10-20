@@ -630,7 +630,7 @@ func _refresh_view() -> void:
 		_map_view.side_quests = _state.visible_side_quests(_campaign)
 		_map_view.ending_quest_ids = []
 		for quest in _map_view.side_quests:
-			if _state.vanishing_chapter(_campaign, quest) != "":
+			if quest.warn_when_ending and _state.vanishing_chapter(_campaign, quest) != "":
 				_map_view.ending_quest_ids.append(quest.id)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
 	_hud.set_status("XP: %d  |  Gold: %d" % [_state.experience, _state.gold])
@@ -681,7 +681,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	var title := _label(quest.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
-	var vanishing := _state.vanishing_chapter(_campaign, quest)
+	var vanishing := _state.vanishing_chapter(_campaign, quest) if quest.warn_when_ending else ""
 	if vanishing != "":
 		var warning := _wrapped("Ending soon: this side quest is gone once \"%s\" is won." % vanishing)
 		warning.modulate = Color(1.0, 0.45, 0.4)

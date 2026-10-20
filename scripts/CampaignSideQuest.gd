@@ -24,6 +24,8 @@ extends Resource
 ## Only offered while all of these hold (implicit AND; empty = always). They compare the campaign's
 ## variables (Campaign.all_variables(): experience, gold, act_number and the declared ones).
 @export var conditions: Array[Condition] = []
+## Whether the player is warned (a red "ENDING" tag on the map, a line in its panel) when winning the chapter it is offered at would take it away. Authors can switch it off to keep it a surprise.
+@export var warn_when_ending: bool = true
 ## Set when the side quest is won / lost (Set Variable and Math effects over the campaign's variables).
 ## Mission variables copied into campaign variables when the mission ends, before the effects below.
 @export var mission_outputs: Array[MissionVariableMap] = []
