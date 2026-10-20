@@ -7630,6 +7630,7 @@ These cost real debugging time — worth not re-learning them:
 - Furniture props `cart`, `chest`, `pot`, `table`, `well` (added 2026-10-16, `furniture.tscn` / `models/furniture.glb`, merged into `descent-meshes.tres`
   as items 58-62): `cart` and `table` are 2x1 tile squares along X, the other three 1x1 (`FootprintRegistry.FOOTPRINTS`); no logical overrides, no component limits.
 - Furniture props `small-table` (1x1) and `barricade` (2x1 along X, like `table`) (added 2026-10-18, same `furniture.tscn` / `models/furniture.glb`): registered in `FootprintRegistry.FOOTPRINTS`; they only become paintable once the two meshes are added to `descent-meshes.tres` (the mesh library) - no logical overrides, no component limits.
+- Props `big-ladder` and `small-ladder` (added 2026-10-20, 1x1, same `furniture.tscn` / `models/furniture.glb`; the meshes are items 65/66 of `descent-meshes.tres`): registered in `FootprintRegistry.FOOTPRINTS`, paintable in the Prop tab - no logical overrides (plain props), no component limits. Pivot/orientation not checked in the editor.
 - Prop `fence` (added 2026-10-16) — the see-through variant of the gate: same 2×1 footprint
   and same walkable/non-LOS-blocking defaults (`FootprintRegistry`); mesh comes from `props.tscn`.
 - Props `gate` (2×1 column, origin unmarked/assumed at the bottom cell — worth

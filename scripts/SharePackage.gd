@@ -305,7 +305,7 @@ static func _image_problem(data: PackedByteArray) -> String:
 ## ("MissionData" / "Campaign"). Returns the problems found; empty = the file only uses the project's own data classes.
 static func validate_resource_text(text: String, expected_class: String) -> Array[String]:
 	var problems: Array[String] = []
-	if text.contains("\u0000"):
+	if text.contains(String.chr(0)):
 		problems.append("binary data in a text file.")
 		return problems
 	var scan := _blank_strings(text)

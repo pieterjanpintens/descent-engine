@@ -523,7 +523,7 @@ const FOOTPRINTS: Dictionary = {
 	# Furniture (models/furniture.glb). Meshes measured: pivot on the far corner
 	# like everything else, extending toward -X/-Z. Cart, table and barricade are
 	# 2x1 tile squares along X (R rotates them); chest, pot, well and small-table
-	# are 1x1 (the default, listed for visibility).
+	# are 1x1 (the default, listed for visibility), as are the two ladders.
 	"cart": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
 	"table": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
 	"barricade": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
@@ -531,6 +531,8 @@ const FOOTPRINTS: Dictionary = {
 	"pot": [Vector3i.ZERO],
 	"well": [Vector3i.ZERO],
 	"small-table": [Vector3i.ZERO],
+	"big-ladder": [Vector3i.ZERO],
+	"small-ladder": [Vector3i.ZERO],
 	# Archway - single column, 4x1 tile-squares. Origin is the marked cell:
 	#   x
 	#   x
