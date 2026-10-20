@@ -1,3 +1,8 @@
+## v0.0.30 - 2026-10-20
+- Campaign: when a chapter or side quest ends, the result popup lists the side quests that just came up ("New side quest: ..."); quests that were already on offer are not repeated.
+- Campaign: a side quest that is about to disappear (winning the chapter it is offered at takes it away) gets a red ENDING tag on the map and a warning in its panel. Authors can switch the warning off per side quest.
+- Campaign playtest: "Back to Editor" is now in the Gear menu, where "Back to Menu" is in normal play. The Auto-win checkbox is gone (use "Count as won / lost" on a chapter instead), and the playtest tools only show when a draft is opened from the editor - a draft played from the main menu is just played.
+
 ## v0.0.29 - 2026-10-20
 - Campaign editor: the side panel now has three tabs - General (campaign, book cover, story tools), Acts and Selection. The Problems list moved to a button in the menu bar that shows how many there are and opens a dialog.
 - Campaign editor: the Selection tab is grouped into sections - Mission, Variables, Links, Before mission and After mission (story, when won / lost, loot). Side quests got the same layout.

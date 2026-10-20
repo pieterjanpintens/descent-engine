@@ -196,7 +196,7 @@ func _build_library_page() -> Control:
 	scroll.add_child(shelves)
 	_library_books = _flow()
 	shelves.add_child(_library_books)
-	_draft_header = _label("In development - drafts that may still change or break (saves made on them are playtests)")
+	_draft_header = _label("In development - drafts that may still change or break")
 	_draft_header.modulate = Color(1.0, 0.85, 0.4)
 	shelves.add_child(_draft_header)
 	_draft_books = _flow()
@@ -360,7 +360,7 @@ func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignS
 	row.add_child(_cover(folder, campaign, BOOK_COVER_SIZE * 0.5))
 	var progress := "Campaign complete" if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
 		else campaign.acts[saved.current_act].act_name
-	var tag := "" if CampaignIO.is_release(folder) else "   [playtest - on a draft that may change]"
+	var tag := "" if CampaignIO.is_release(folder) else "   [draft - may change]"
 	var info := _label("%s%s\n%s  -  %s,  XP %d,  gold %d" % [saved.save_name if saved.save_name != "" else key, tag, campaign.campaign_name, progress, saved.experience, saved.gold])
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -486,9 +486,15 @@ func _start_playtest(folder: String, fresh: bool) -> void:
 		_open_save(folder, key)
 
 
-## Whether the campaign is being edited (a draft) rather than a release: only then the playtest tools are offered.
+## Whether the campaign is a draft (being edited) rather than a release.
 func _is_draft() -> bool:
 	return _folder != "" and not CampaignIO.is_release(_folder)
+
+
+## Playtest mode: a draft that was opened from the campaign editor. Only then the playtest tools (Count as won / lost, Back to Editor)
+## are offered - a draft played from the main menu, like any campaign, is just played.
+func _in_playtest() -> bool:
+	return GameState.campaign_from_editor and _is_draft()
 
 
 ## Back to the campaign editor, which reopens this campaign.
@@ -521,9 +527,9 @@ func _playtest_result(id: String, won: bool) -> void:
 	await _apply_result({"won": won, "chapter_id": id, "mission_variables": values, "loot": {}})
 
 
-## The playtest buttons at the top of a chapter's or side quest's panel, above its long story text so they stay in view (drafts only).
+## The playtest buttons at the top of a chapter's or side quest's panel, above its long story text so they stay in view (playtest mode only).
 func _add_playtest_buttons(id: String) -> void:
-	if not _is_draft():
+	if not _in_playtest():
 		return
 	var row := HFlowContainer.new()
 	var tag := _label("Playtest:")
@@ -588,7 +594,7 @@ func _use(campaign: Campaign, state: CampaignState) -> void:
 	_save()
 	_refresh_view()
 	_show_page(_play_page)
-	_hud.set_playtest_tools(GameState.campaign_from_editor, _is_draft())
+	_hud.set_playtest_tools(GameState.campaign_from_editor)
 
 
 func _save() -> void:
@@ -628,6 +634,10 @@ func _refresh_view() -> void:
 			if not _state.is_place_open(place):
 				_map_view.hidden_place_ids.append(place.id)
 		_map_view.side_quests = _state.visible_side_quests(_campaign)
+		_map_view.ending_quest_ids = []
+		for quest in _map_view.side_quests:
+			if quest.warn_when_ending and _state.vanishing_chapter(_campaign, quest) != "":
+				_map_view.ending_quest_ids.append(quest.id)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
 	_hud.set_status("XP: %d  |  Gold: %d" % [_state.experience, _state.gold])
 	_rebuild_side()
@@ -677,6 +687,11 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	var title := _label(quest.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
+	var vanishing := _state.vanishing_chapter(_campaign, quest) if quest.warn_when_ending else ""
+	if vanishing != "":
+		var warning := _wrapped("Ending soon: this side quest is gone once \"%s\" is won." % vanishing)
+		warning.modulate = Color(1.0, 0.45, 0.4)
+		_side.add_child(warning)
 	_side.add_child(_label("Reward: " + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
 	_add_playtest_buttons(quest.id)
 	_add_story(quest.story_before)
@@ -894,9 +909,6 @@ func _play(chapter: CampaignChapter) -> void:
 ## handed to the mission's own variables.
 func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariableMap]) -> void:
 	_detail_dialog.hide()
-	if _hud.auto_win_check.button_pressed and _is_draft():
-		_playtest_result(id, true)  # playtest: counted as won without playing
-		return
 	var path := "%s/%s" % [CampaignIO.folder_path(_folder), mission_file]
 	if mission_file == "" or not FileAccess.file_exists(path):
 		_say("The mission is missing from the campaign folder.")
@@ -990,6 +1002,9 @@ func _apply_result(result: Dictionary) -> void:
 	var won: bool = result.get("won", false)
 	var finished_id := str(result.get("chapter_id", ""))
 	var summary: Dictionary
+	var quests_before: Array[String] = []
+	for quest in _state.visible_side_quests(_campaign):
+		quests_before.append(quest.id)
 	if _campaign.find_side_quest(finished_id) != null:
 		summary = await _state.apply_side_quest_result(_campaign, finished_id, won, result.get("mission_variables", {}), result.get("loot", {}))
 	else:
@@ -1016,8 +1031,14 @@ func _apply_result(result: Dictionary) -> void:
 		lines.append("\nAct complete!")
 		if summary["campaign_complete"]:
 			lines.append("The campaign is complete - congratulations!")
+	var new_quests: Array[String] = []  # only side quests that came up with this result, not the ones that were already on offer
+	for quest in _state.visible_side_quests(_campaign):
+		if not quests_before.has(quest.id):
+			new_quests.append(quest.title)
 	if not summary["next"].is_empty():
 		lines.append("\nAvailable now: %s" % ", ".join(summary["next"]))
+	if not new_quests.is_empty():
+		lines.append("%sNew side quest%s: %s" % ["" if not summary["next"].is_empty() else "\n", "s" if new_quests.size() > 1 else "", ", ".join(new_quests)])
 	await _announce("\n".join(lines), "Notice", story_after)
 	if summary["act_complete"] and not summary["campaign_complete"]:
 		await _announce_act()  # the next act begins

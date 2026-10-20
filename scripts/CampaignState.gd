@@ -148,6 +148,27 @@ func is_side_quest_visible(campaign: Campaign, quest: CampaignSideQuest) -> bool
 	return at_chapter and conditions_hold(campaign, quest.conditions)
 
 
+## The title of the chapter whose win would take `quest` off the map, or "" when it is not about to go: the quest is offered at
+## exactly one chapter the party can play now and winning that chapter does not lead to another chapter of the quest.
+## (A quest offered at several playable chapters stays while one of them is left; its conditions are not looked at.)
+func vanishing_chapter(campaign: Campaign, quest: CampaignSideQuest) -> String:
+	if not is_side_quest_visible(campaign, quest) or current_act >= campaign.acts.size():
+		return ""
+	var here: Array[String] = []
+	for chapter_id in quest.chapter_ids:
+		if available_chapters.has(chapter_id):
+			here.append(chapter_id)
+	if here.size() != 1:
+		return ""
+	var chapter := campaign.acts[current_act].find_chapter(here[0])
+	if chapter == null:
+		return ""
+	for link in chapter.links:
+		if link.outcome != CampaignLink.Outcome.LOSE and quest.chapter_ids.has(link.target_id):
+			return ""
+	return chapter.title
+
+
 func visible_side_quests(campaign: Campaign) -> Array[CampaignSideQuest]:
 	var visible: Array[CampaignSideQuest] = []
 	for quest in campaign.side_quests:

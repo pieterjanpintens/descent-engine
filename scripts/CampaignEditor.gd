@@ -1118,6 +1118,15 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 			)
 			_chapter_panel.add_child(check)
 	_build_conditions_section("Only offered when:", quest.conditions)
+	var warn_check := CheckBox.new()
+	warn_check.text = "Warn the player when it is about to disappear"
+	warn_check.tooltip_text = "Shows a red ENDING tag on the map and a line in the quest's panel when winning the chapter it is offered at would take it away."
+	warn_check.button_pressed = quest.warn_when_ending
+	warn_check.toggled.connect(func(on: bool):
+		quest.warn_when_ending = on
+		_mark_dirty()
+	)
+	_chapter_panel.add_child(warn_check)
 
 	_section(_chapter_panel, "Before mission")
 	_chapter_panel.add_child(_sub_heading("Story:"))

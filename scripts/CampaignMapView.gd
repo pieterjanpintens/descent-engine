@@ -41,6 +41,8 @@ var statuses: Dictionary = {}
 ## The side quests to show (the owner decides which: the editor lists the ones of this act, the player the
 ## ones on offer), each as an orange star.
 var side_quests: Array[CampaignSideQuest] = []
+## Ids of the side quests (player only) that are about to go: they get an "ENDING" tag.
+var ending_quest_ids: Array[String] = []
 var hidden_place_ids: Array[String] = []
 
 var _dragging: Resource  ## the CampaignChapter or CampaignPlace being dragged
@@ -161,12 +163,12 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 
 ## A small tag next to a pin (editor only): "ALL" = waits for every chapter leading to it, "XOR" = its links are
 ## a choice. Text, since fonts can't be trusted to have symbols for this.
-func _draw_badge(anchor: Vector2, text: String) -> void:
+func _draw_badge(anchor: Vector2, text: String, border: Color = Color(0.95, 0.8, 0.25)) -> void:
 	var font := ThemeDB.fallback_font
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
 	var box := Rect2(anchor - Vector2(width / 2.0 + 3.0, 11.0), Vector2(width + 6.0, 14.0))
 	draw_rect(box, Color(0.1, 0.1, 0.14, 0.9))
-	draw_rect(box, Color(0.95, 0.8, 0.25), false, 1.0)
+	draw_rect(box, border, false, 1.0)
 	draw_string(font, anchor + Vector2(-width / 2.0, 0.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color.WHITE)
 
 
@@ -191,6 +193,8 @@ func _draw_side_quest(quest: CampaignSideQuest) -> void:
 	var outline := star.duplicate()
 	outline.append(star[0])
 	draw_polyline(outline, Color.WHITE if quest.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if quest.id == selected_id else 2.0, true)
+	if ending_quest_ids.has(quest.id):
+		_draw_badge(center + Vector2(0, -PIN_RADIUS - 6.0), "ENDING", Color(0.95, 0.3, 0.25))
 	_draw_label(center, quest.title if quest.title != "" else "(unnamed side quest)")
 
 

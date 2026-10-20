@@ -3,7 +3,7 @@ extends Control
 
 ## The chrome over the full-screen campaign map, in the same style as the mission player's HUD (PlayerHud): a Gear and a Party
 ## toggle bottom-left that each pop a stacked menu above themselves, the campaign / act name top-left, XP and gold top-right,
-## and - for a playtest from the editor only - a small bar of playtest tools on top (Back to editor, Auto-win missions).
+## and - for a playtest from the editor - "Back to Editor" in the Gear menu in the place of "Back to Menu".
 ##
 ## It only builds the pieces and sends signals; CampaignPlayer owns what they do. Built in code, added as a plain child of the
 ## play page (mouse_filter IGNORE, so the map below still gets every click that does not hit one of the pieces).
@@ -22,13 +22,11 @@ const MENU_WIDTH := 180.0
 ## The pieces CampaignPlayer switches on and off.
 var back_to_menu_button: Button
 var back_to_editor_button: Button
-var auto_win_check: CheckBox
 
 var _heading_panel: PanelContainer
 var _title_label: Label
 var _act_label: Label
 var _status_label: Label
-var _playtest_bar: HBoxContainer
 var _gear_menu: VBoxContainer
 var _party_menu: VBoxContainer
 
@@ -38,7 +36,6 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_top_left()
 	_build_top_right()
-	_build_playtest_bar()
 	_build_bottom_left()
 
 
@@ -54,12 +51,9 @@ func set_status(text: String) -> void:
 	_status_label.text = text
 
 
-## Shows the playtest tools (a draft opened from the editor): `from_editor` = Back to editor, `cheats` = Auto-win.
-func set_playtest_tools(from_editor: bool, cheats: bool) -> void:
+## A playtest started from the editor: the Gear menu has "Back to Editor" instead of "Back to Menu".
+func set_playtest_tools(from_editor: bool) -> void:
 	back_to_editor_button.visible = from_editor
-	auto_win_check.visible = cheats
-	_playtest_bar.visible = from_editor or cheats
-	# a playtest leaves through Back to editor, not through the main menu
 	back_to_menu_button.visible = not from_editor
 
 
@@ -114,26 +108,6 @@ func _build_top_right() -> void:
 	panel.add_child(_status_label)
 
 
-## The playtest tools, centred on top, only for a campaign being edited.
-func _build_playtest_bar() -> void:
-	_playtest_bar = HBoxContainer.new()
-	_playtest_bar.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_playtest_bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_playtest_bar.offset_top = MARGIN
-	_playtest_bar.add_theme_constant_override("separation", 12)
-	_playtest_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_playtest_bar.visible = false
-	add_child(_playtest_bar)
-	back_to_editor_button = Button.new()
-	back_to_editor_button.text = "‹ Back to editor"
-	back_to_editor_button.pressed.connect(func(): back_to_editor_pressed.emit())
-	_playtest_bar.add_child(back_to_editor_button)
-	auto_win_check = CheckBox.new()
-	auto_win_check.text = "Auto-win missions"
-	auto_win_check.tooltip_text = "Playtest: pressing Play on a mission counts it as won at once, without playing it. Narrative chapters are still read. Use 'count as lost' on a chapter to test a lost mission."
-	_playtest_bar.add_child(auto_win_check)
-
-
 # ---------------------------------------------------------------- bottom-left
 
 func _build_bottom_left() -> void:
@@ -160,6 +134,9 @@ func _build_bottom_left() -> void:
 	toggles.add_child(party)
 
 	_gear_menu = _popup_menu()
+	# a playtest started from the editor leaves through "Back to editor" instead of "Back to Menu" (the same place in the menu)
+	back_to_editor_button = _menu_item(_gear_menu, "Back to Editor", func(): back_to_editor_pressed.emit())
+	back_to_editor_button.visible = false
 	back_to_menu_button = _menu_item(_gear_menu, "Back to Menu", func(): back_to_menu_pressed.emit())
 	_menu_item(_gear_menu, "Options", func(): options_pressed.emit())
 	_menu_item(_gear_menu, "Rules Reference", func(): rules_pressed.emit())
