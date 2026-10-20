@@ -66,8 +66,8 @@ func whisper_prompt() -> String:
 	var prompt := "A fantasy adventure story, with dialogue."
 	var names: Array[String] = []
 	for character in characters:
-		if character.name != "":
-			names.append(character.name)
+		if character.character_name != "":
+			names.append(character.character_name)
 	if not names.is_empty():
 		prompt += " The characters are %s." % ", ".join(names.slice(0, 12))
 	return prompt
