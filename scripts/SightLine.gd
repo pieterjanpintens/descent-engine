@@ -30,8 +30,6 @@ static func prepare(result: Dictionary) -> Dictionary:
 			blockers[cell] = []
 		blockers[cell].append(Vector2(float(key.y), float(tops[key])))
 	var floors: Dictionary = {}  # height -> {Vector2i fine cell: true}
-	var counts: Dictionary = {}  # Vector3i (square x, height, square z) -> fine cells with floor
-	var cpt := FootprintRegistry.CELLS_PER_TILE
 	for piece: Dictionary in result["pieces"]:
 		if piece["layer"] != "floor":
 			continue
@@ -40,6 +38,14 @@ static func prepare(result: Dictionary) -> Dictionary:
 			floors[height] = {}
 		for cell: Vector3i in piece["cells"]:
 			floors[height][Vector2i(cell.x, cell.z)] = true
+	return context_from(blockers, floors)
+
+
+## The context from its two raw parts: `blockers` (Vector2i fine cell -> Array of Vector2(base height, top height)) and `floors` (height ->
+## {Vector2i fine cell: true}). The squares (x, height, z in game units) are the ones with a complete floor.
+static func context_from(blockers: Dictionary, floors: Dictionary) -> Dictionary:
+	var counts: Dictionary = {}  # Vector3i (square x, height, square z) -> fine cells with floor
+	var cpt := FootprintRegistry.CELLS_PER_TILE
 	for height: int in floors:
 		for cell: Vector2i in floors[height]:
 			var square := Vector3i(floori(float(cell.x) / cpt), height, floori(float(cell.y) / cpt))

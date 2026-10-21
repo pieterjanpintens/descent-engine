@@ -102,6 +102,50 @@ static func sight_offsets(mesh: String) -> Array[Vector3i]:
 	return FootprintRegistry.get_footprint(mesh)
 
 
+## The same sight rule for a piece that is already PLACED: `cells` are its absolute fine cells (origin + rotated footprint). All of them for
+## a blocking piece, only the two end posts for an archway (the squares at both ends of its long axis), none for the others.
+static func sight_cells_from_footprint(mesh: String, cells: Array[Vector3i]) -> Array[Vector3i]:
+	if not blocks_sight(mesh):
+		var none: Array[Vector3i] = []
+		return none
+	if mesh != "archway" or cells.is_empty():
+		return cells
+	var low := Vector2i(cells[0].x, cells[0].z)
+	var high := low
+	for cell in cells:
+		low = Vector2i(mini(low.x, cell.x), mini(low.y, cell.z))
+		high = Vector2i(maxi(high.x, cell.x), maxi(high.y, cell.z))
+	var span := FootprintRegistry.CELLS_PER_TILE
+	var along_z := high.y - low.y >= high.x - low.x
+	var posts: Array[Vector3i] = []
+	for cell in cells:
+		var value := cell.z if along_z else cell.x
+		var first := low.y if along_z else low.x
+		var last := high.y if along_z else high.x
+		if value < first + span or value > last - span:
+			posts.append(cell)
+	return posts
+
+
+## A placed stair's HIGH end (absolute fine cells): the origin is the low point, so it is the cells farthest from the origin along the
+## stair's long axis (its 2x1 end, see support_offsets).
+static func stair_high_end(origin: Vector3i, cells: Array[Vector3i]) -> Array[Vector3i]:
+	var low := Vector2i(cells[0].x, cells[0].z)
+	var high := low
+	for cell in cells:
+		low = Vector2i(mini(low.x, cell.x), mini(low.y, cell.z))
+		high = Vector2i(maxi(high.x, cell.x), maxi(high.y, cell.z))
+	var along_z := high.y - low.y >= high.x - low.x
+	var farthest := 0
+	for cell in cells:
+		farthest = maxi(farthest, absi((cell.z - origin.z) if along_z else (cell.x - origin.x)))
+	var end: Array[Vector3i] = []
+	for cell in cells:
+		if absi((cell.z - origin.z) if along_z else (cell.x - origin.x)) == farthest:
+			end.append(cell)
+	return end
+
+
 static func climb_rises(mesh: String) -> Array:
 	return CLIMB_RISES.get(mesh, [])
 
