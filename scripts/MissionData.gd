@@ -85,10 +85,8 @@ extends Resource
 ## shown, round 1 just starts) - not every mission needs this authored yet.
 @export var player_spawn_cells: Array[Vector3i] = []
 
-## Virtual walls that block LINE OF SIGHT only (new 2026-10-21): tile squares, same 1-based coordinates as player_spawn_cells (the y is the
-## level the square was drawn on and is ignored). Each square acts as an infinitely high wall for MissionSight/SightLine on every level;
-## it blocks nothing else (walking, placing, range). Drawn in the Creator with the Misc tab's "LOS Blocker" tool, never shown in the Player.
-@export var los_blocker_cells: Array[Vector3i] = []
+## Virtual line-of-sight walls (see LosBlocker): entities that can sit in a group/stage, so they only count once revealed.
+@export var los_blockers: Array[LosBlocker] = []
 
 ## The ROOTS of a DAG of MissionObjective nodes - not necessarily WIN/LOSE
 ## leaves themselves, see MissionObjective's own doc for the full design
@@ -155,6 +153,9 @@ func find_node_by_id(id: String) -> OutlineNode:
 	for spawn in monster_spawns:
 		if spawn.id == id:
 			return spawn
+	for blocker in los_blockers:
+		if blocker.id == id:
+			return blocker
 	return null
 
 

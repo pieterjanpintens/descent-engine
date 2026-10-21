@@ -90,26 +90,43 @@ func _ready() -> void:
 	_blocker_overlay = _make_overlay_node(_blocker_overlay_mesh)
 
 
-## The violet LOS blocker squares (tile-square cells). Pass an empty array to clear.
-func set_blocker_overlay_cells(cells: Array[Vector3i]) -> void:
+## Id of the blocker the Creator is drawing into (drawn more opaque), see CreatorController.active_los_blocker_id.
+var blocker_overlay_active_id: String = ""
+
+
+## The violet LOS blocker squares in the Creator: every blocker, visible in its stage or not (the author edits hidden stages too).
+func refresh_blocker_overlay() -> void:
 	_blocker_overlay_mesh.clear_surfaces()
-	if cells.is_empty():
+	var any := false
+	for blocker in mission.los_blockers:
+		if not blocker.cells.is_empty():
+			any = true
+			break
+	if not any:
 		_blocker_overlay.visible = false
 		return
 	_blocker_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-	for cell in cells:
-		var corners := get_tile_square_world_corners(cell)
-		for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
-			_blocker_overlay_mesh.surface_set_color(LOS_BLOCKER_COLOR)
-			_blocker_overlay_mesh.surface_add_vertex(v)
+	for blocker in mission.los_blockers:
+		var color := LOS_BLOCKER_COLOR
+		color.a = 0.65 if blocker.id == blocker_overlay_active_id else 0.35
+		for cell in blocker.cells:
+			var corners := get_tile_square_world_corners(cell)
+			for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+				_blocker_overlay_mesh.surface_set_color(color)
+				_blocker_overlay_mesh.surface_add_vertex(v)
 	_blocker_overlay_mesh.surface_end()
 	_blocker_overlay.global_transform = Transform3D.IDENTITY
 	_blocker_overlay.visible = true
 
 
 ## The Player's view of the LOS blockers: a fine line along the outer edge of each blocked area (adjacent squares merge into one outline),
-## on the floor, so the table can see where shots are blocked. Pass an empty array to clear.
-func set_blocker_lines(cells: Array[Vector3i]) -> void:
+## on the floor, so the table can see where shots are blocked. Only blockers in force count (MissionData.is_effectively_visible: one in a
+## stage that has not been revealed yet shows nothing). Call again after a stage is revealed (repaint_visible_entries() does).
+func refresh_blocker_lines() -> void:
+	var cells: Array[Vector3i] = []
+	for blocker in mission.los_blockers:
+		if mission.is_effectively_visible(blocker):
+			cells.append_array(blocker.cells)
 	if _blocker_lines == null:
 		_blocker_lines_mesh = ImmediateMesh.new()
 		_blocker_lines = _make_overlay_node(_blocker_lines_mesh)
@@ -118,10 +135,14 @@ func set_blocker_lines(cells: Array[Vector3i]) -> void:
 		_blocker_lines.visible = false
 		return
 	var squares: Dictionary = {}
+	var unique: Array[Vector3i] = []
 	for cell in cells:
-		squares[Vector2i(cell.x, cell.z)] = true
+		var key := Vector2i(cell.x, cell.z)
+		if not squares.has(key):  # several blockers may cover the same square: one outline
+			squares[key] = true
+			unique.append(cell)
 	_blocker_lines_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
-	for cell in cells:
+	for cell in unique:
 		var corners := get_tile_square_world_corners(cell)
 		var centre := (corners[0] + corners[2]) * 0.5
 		for i in 4:
@@ -643,9 +664,11 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	# showing. The Player shows it itself, before round 1.
 	if _spawn_overlay != null and not respect_visibility:
 		set_spawn_overlay_cells(mission.player_spawn_cells)
-	# Virtual LOS walls: Creator only, never revealed to the table.
+	# Virtual LOS walls: the Creator draws them all as a fill; the Player shows a fine outline of the ones in force.
 	if _blocker_overlay != null and not respect_visibility:
-		set_blocker_overlay_cells(mission.los_blocker_cells)
+		refresh_blocker_overlay()
+	elif respect_visibility:
+		refresh_blocker_lines()
 
 	# A whole new mission's worth of interactables/groups just got swapped
 	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its
@@ -705,6 +728,7 @@ func repaint_visible_entries() -> void:
 	underlay_grid.clear()
 	prop_grid.clear()
 	_paint_all()
+	refresh_blocker_lines()
 
 
 ## MeshLibrary only looks up items by numeric id, not name - this does the

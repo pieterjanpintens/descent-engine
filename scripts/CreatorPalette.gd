@@ -44,7 +44,9 @@ var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 var _misc_button: Button
 var _misc_container: VBoxContainer
 var _player_start_button: Button
-var _los_blocker_button: Button
+var _active_blocker_option: OptionButton
+var _active_blocker_ids: Array[String] = []
+var _blocker_option_rebuild_queued: bool = false
 var _active_spawn_option: OptionButton
 var _active_spawn_ids: Array[String] = []
 var _spawn_option_rebuild_queued: bool = false
@@ -61,7 +63,7 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
-	creator_controller.los_blocker_paint_mode_changed.connect(func(enabled: bool): _los_blocker_button.button_pressed = enabled)
+	creator_controller.active_los_blocker_changed.connect(_queue_blocker_option_rebuild.unbind(1))
 	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# "Show unavailable" moved to the persistent toolbar 2026-09-14 (see
 	# CreatorToolbar.gd) - this palette just reacts to the controller-owned
@@ -75,6 +77,7 @@ func _ready() -> void:
 	# toggling "Show unavailable") happened to force a rebuild. Fixed 2026-09-10.
 	layered_map.mission_objects_changed.connect(_queue_mesh_grid_rebuild)
 	layered_map.mission_objects_changed.connect(_queue_spawn_option_rebuild)
+	layered_map.mission_objects_changed.connect(_queue_blocker_option_rebuild)
 
 	_side_panel = get_parent() as TabContainer
 	if _side_panel != null:
@@ -98,8 +101,40 @@ func _on_side_panel_tab_changed(tab_index: int) -> void:
 		creator_controller.set_los_blocker_paint_mode(false)
 
 
-func _on_los_blocker_tool_pressed() -> void:
+func _on_new_blocker_pressed() -> void:
+	creator_controller.create_los_blocker()
 	creator_controller.set_los_blocker_paint_mode(true)
+
+
+func _on_active_blocker_selected(index: int) -> void:
+	if index >= 0 and index < _active_blocker_ids.size():
+		creator_controller.set_active_los_blocker(_active_blocker_ids[index])
+		creator_controller.set_los_blocker_paint_mode(true)
+
+
+func _queue_blocker_option_rebuild() -> void:
+	if _blocker_option_rebuild_queued:
+		return
+	_blocker_option_rebuild_queued = true
+	_rebuild_active_blocker_option.call_deferred()
+
+
+func _rebuild_active_blocker_option() -> void:
+	_blocker_option_rebuild_queued = false
+	_active_blocker_option.clear()
+	_active_blocker_ids.clear()
+	var mission := creator_controller.layered_map.mission
+	if mission == null:
+		return
+	var selected := -1
+	for i in mission.los_blockers.size():
+		var blocker: LosBlocker = mission.los_blockers[i]
+		var label := blocker.reference_name if blocker.reference_name != "" else "LOS Blocker %d" % (i + 1)
+		_active_blocker_option.add_item("%s (%d squares)" % [label, blocker.cells.size()])
+		_active_blocker_ids.append(blocker.id)
+		if blocker.id == creator_controller.active_los_blocker_id:
+			selected = i
+	_active_blocker_option.selected = selected
 
 
 func _build_ui() -> void:
@@ -161,14 +196,6 @@ func _build_ui() -> void:
 	_player_start_button.pressed.connect(_on_player_start_tool_pressed)
 	_misc_container.add_child(_player_start_button)
 
-	# Virtual line-of-sight wall: click tile squares to add/remove them (see MissionData.los_blocker_cells).
-	_los_blocker_button = Button.new()
-	_los_blocker_button.text = "LOS Blocker"
-	_los_blocker_button.toggle_mode = true
-	_los_blocker_button.tooltip_text = "Draw squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Only the Creator shows them."
-	_los_blocker_button.pressed.connect(_on_los_blocker_tool_pressed)
-	_misc_container.add_child(_los_blocker_button)
-
 	# No tool button: choosing a spawn in the dropdown below (or "New
 	# spawn") is what engages the monster spawn draw mode.
 	var monster_spawn_label := Label.new()
@@ -191,6 +218,25 @@ func _build_ui() -> void:
 	new_spawn_button.text = "New spawn"
 	new_spawn_button.pressed.connect(_on_new_spawn_pressed)
 	spawn_row.add_child(new_spawn_button)
+
+	# Virtual line-of-sight walls (LosBlocker entities - they can be put in a stage group). Choosing one in the dropdown, or "New blocker",
+	# engages the tool; click tile squares to add/remove them.
+	var blocker_label := Label.new()
+	blocker_label.text = "LOS Blocker"
+	blocker_label.tooltip_text = "Squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Put the blocker in a stage group to keep it secret until that stage is revealed."
+	_misc_container.add_child(blocker_label)
+	var blocker_row := VBoxContainer.new()
+	_misc_container.add_child(blocker_row)
+	_active_blocker_option = OptionButton.new()
+	_active_blocker_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_active_blocker_option.clip_text = true
+	_active_blocker_option.fit_to_longest_item = false
+	_active_blocker_option.item_selected.connect(_on_active_blocker_selected)
+	blocker_row.add_child(_active_blocker_option)
+	var new_blocker_button := Button.new()
+	new_blocker_button.text = "New blocker"
+	new_blocker_button.pressed.connect(_on_new_blocker_pressed)
+	blocker_row.add_child(new_blocker_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -

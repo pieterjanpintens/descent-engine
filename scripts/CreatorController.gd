@@ -118,6 +118,7 @@ signal spawn_paint_mode_changed(enabled: bool)
 ## MissionData.monster_spawns cells, red instead of yellow.
 signal monster_spawn_paint_mode_changed(enabled: bool)
 signal los_blocker_paint_mode_changed(enabled: bool)
+signal active_los_blocker_changed(id: String)
 signal active_monster_spawn_changed(id: String)
 
 ## Same idea for move_mode (M key, or set_move_mode() - new 2026-09-18) -
@@ -221,9 +222,11 @@ var monster_spawn_paint_mode: bool = false
 ## Which MonsterSpawn the monster spawn tool draws into, see
 ## set_active_monster_spawn().
 var active_monster_spawn_id: String = ""
-## Draws MissionData.los_blocker_cells (virtual line-of-sight walls, e.g. to stop shots across open space). Shares the spawn tools'
+## Draws the squares of the ACTIVE LosBlocker (virtual line-of-sight walls, e.g. to stop shots across open space). Shares the spawn tools'
 ## hover/ghost; mutually exclusive with draw/spawn/monster spawn/move like they are. Set from the Palette's Misc tab (no hotkey).
 var los_blocker_paint_mode: bool = false
+## Which LosBlocker the tool draws into, see set_active_los_blocker().
+var active_los_blocker_id: String = ""
 var _spawn_hovered_cell: Vector3i = Vector3i.ZERO
 var _spawn_has_hover: bool = false
 var _spawn_ghost: MeshInstance3D
@@ -305,7 +308,7 @@ func _ready() -> void:
 	layered_map.set_spawn_overlay_cells(layered_map.mission.player_spawn_cells)
 	layered_map.set_spawn_overlay_visible(true)
 	layered_map.refresh_monster_spawn_overlay()
-	layered_map.set_blocker_overlay_cells(layered_map.mission.los_blocker_cells)
+	layered_map.refresh_blocker_overlay()
 
 
 ## Computes the real GridMap orientation index for each of the four flat
@@ -1098,20 +1101,55 @@ func _toggle_spawn_cell_at_cursor() -> void:
 	)
 
 
-## Toggles the hovered tile square in/out of mission.los_blocker_cells (one undo step per click), see MissionData.los_blocker_cells.
+## Toggles the hovered tile square in/out of the ACTIVE LosBlocker (one undo step per click); with no active blocker one is created first so
+## the first click just works. Blockers MAY overlap: the same square can belong to several (e.g. one wall seen from two sides, each side
+## bound to a different stage that can be revealed in any order) - each counts only while its own stage is revealed.
 func _toggle_los_blocker_cell_at_cursor() -> void:
 	if not _spawn_has_hover:
 		return
 	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
-	operation_history.record("Toggle LOS blocker", func():
-		var cells := layered_map.mission.los_blocker_cells
-		var index := cells.find(tile_square)
+	if _find_los_blocker(active_los_blocker_id) == null:
+		create_los_blocker()
+	var target := _find_los_blocker(active_los_blocker_id)
+	operation_history.record("Toggle LOS blocker square", func():
+		var index := target.cells.find(tile_square)
 		if index == -1:
-			cells.append(tile_square)
+			target.cells.append(tile_square)
 		else:
-			cells.remove_at(index)
-		layered_map.set_blocker_overlay_cells(cells)
+			target.cells.remove_at(index)
 	)
+	layered_map.refresh_blocker_overlay()
+	layered_map.notify_objects_changed()
+
+
+func _find_los_blocker(id: String) -> LosBlocker:
+	for blocker in layered_map.mission.los_blockers:
+		if blocker.id == id:
+			return blocker
+	return null
+
+
+## Creates an empty LosBlocker (in the current working group, so it lands in the stage being built) and makes it the active one. One undo step.
+func create_los_blocker() -> String:
+	var blocker := LosBlocker.new()
+	operation_history.record("New LOS blocker", func():
+		blocker.id = layered_map.mission.allocate_object_id()
+		blocker.parent_id = working_group_id
+		layered_map.mission.los_blockers.append(blocker)
+	)
+	layered_map.notify_objects_changed()
+	set_active_los_blocker(blocker.id)
+	return blocker.id
+
+
+## Which LosBlocker the tool draws into (the Palette's dropdown, or selecting one in the outline tree). Tool state, not undo-tracked.
+func set_active_los_blocker(id: String) -> void:
+	if active_los_blocker_id == id:
+		return
+	active_los_blocker_id = id
+	layered_map.blocker_overlay_active_id = id
+	layered_map.refresh_blocker_overlay()
+	active_los_blocker_changed.emit(id)
 
 
 ## Only meaningful WHILE dragging (_move_dragging_id != "") - move mode

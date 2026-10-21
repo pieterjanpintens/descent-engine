@@ -244,8 +244,11 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
 	for child in _spawn_tiles_box.get_children():
 		child.queue_free()
-	_spawn_tiles_box.visible = type == CreatorOutline.SelectionType.MONSTER_SPAWN
+	_spawn_tiles_box.visible = type == CreatorOutline.SelectionType.MONSTER_SPAWN or type == CreatorOutline.SelectionType.LOS_BLOCKER
 	if not _spawn_tiles_box.visible:
+		return
+	if type == CreatorOutline.SelectionType.LOS_BLOCKER:
+		_rebuild_blocker_squares(_current_node as LosBlocker)
 		return
 	var spawn := _current_node as MonsterSpawn
 	var header := Label.new()
@@ -272,6 +275,36 @@ func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
 		remove.pressed.connect(_on_spawn_tile_removed.bind(spawn, i))
 		row.add_child(remove)
 		_spawn_tiles_box.add_child(row)
+
+
+## A LosBlocker's squares: "(x, y, z)" with a remove button (order does not matter).
+func _rebuild_blocker_squares(blocker: LosBlocker) -> void:
+	var header := Label.new()
+	header.text = "Squares (draw with the Misc tab's LOS Blocker; put it in a stage group to reveal it with that stage):"
+	header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	header.custom_minimum_size.x = 200.0
+	_spawn_tiles_box.add_child(header)
+	for i in blocker.cells.size():
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		label.text = FootprintRegistry.format_game_position(FootprintRegistry.tile_square_to_game_position(blocker.cells[i]))
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(_on_blocker_square_removed.bind(blocker, i))
+		row.add_child(remove)
+		_spawn_tiles_box.add_child(row)
+
+
+func _on_blocker_square_removed(blocker: LosBlocker, index: int) -> void:
+	if index < 0 or index >= blocker.cells.size():
+		return
+	operation_history.record("Remove LOS blocker square", func():
+		blocker.cells.remove_at(index)
+	)
+	layered_map.refresh_blocker_overlay()
+	layered_map.notify_objects_changed()
 
 
 func _on_spawn_tile_moved(spawn: MonsterSpawn, index: int, delta: int) -> void:
@@ -386,6 +419,10 @@ func _resolve_node(type: CreatorOutline.SelectionType, id: String) -> OutlineNod
 			for spawn in layered_map.mission.monster_spawns:
 				if spawn.id == id:
 					return spawn
+		CreatorOutline.SelectionType.LOS_BLOCKER:
+			for blocker in layered_map.mission.los_blockers:
+				if blocker.id == id:
+					return blocker
 	return null
 
 
@@ -417,6 +454,8 @@ func _fallback_name(type: CreatorOutline.SelectionType) -> String:
 			return (_current_node as TilePlacement).mesh_item_name
 		CreatorOutline.SelectionType.MONSTER_SPAWN:
 			return "Monster Spawn"
+		CreatorOutline.SelectionType.LOS_BLOCKER:
+			return "LOS Blocker"
 		_:
 			return "(unnamed group)"
 

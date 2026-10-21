@@ -28,15 +28,18 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 			if not blockers.has(key):
 				blockers[key] = []
 			blockers[key].append(Vector2(float(base), float(base) + BuildRules.piece_height(entry.mesh_item_name)))
-	# Virtual LOS walls (MissionData.los_blocker_cells): an infinitely high wall over the whole tile square (1-based square -> its 2x2 fine cells), on every level.
+	# Virtual LOS walls (LosBlocker) in force: an infinitely high wall over the whole tile square (1-based square -> its 2x2 fine cells), on every level.
 	var cpt_fine := FootprintRegistry.CELLS_PER_TILE
-	for tile: Vector3i in mission.los_blocker_cells:
-		for dx in cpt_fine:
-			for dz in cpt_fine:
-				var fine := Vector2i((tile.x - 1) * cpt_fine + dx, (tile.z - 1) * cpt_fine + dz)
-				if not blockers.has(fine):
-					blockers[fine] = []
-				blockers[fine].append(Vector2(-1000.0, 1000.0))
+	for blocker in mission.los_blockers:
+		if held_back.has(blocker) or not mission.is_effectively_visible(blocker):
+			continue
+		for tile: Vector3i in blocker.cells:
+			for dx in cpt_fine:
+				for dz in cpt_fine:
+					var fine := Vector2i((tile.x - 1) * cpt_fine + dx, (tile.z - 1) * cpt_fine + dz)
+					if not blockers.has(fine):
+						blockers[fine] = []
+					blockers[fine].append(Vector2(-1000.0, 1000.0))
 	var sight := SightLine.context_from(blockers, floors)
 	var squares: Dictionary = {}
 	for square: Vector3i in sight["squares"]:
