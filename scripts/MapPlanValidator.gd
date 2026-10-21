@@ -416,6 +416,8 @@ static func _check_connected(pieces: Array[Dictionary], floor_cells: Dictionary,
 	# the walkable cells: floor, minus whatever solid stands on it
 	var walkable: Dictionary = floor_cells.duplicate()
 	for piece in pieces:
+		if BuildRules.OPENABLE.has(piece["mesh"]):
+			continue  # a gate or fence is removed by interacting with it: it does not cut the floor for good
 		for cell in piece["solid_cells"]:
 			walkable.erase(Vector3i(cell.x, piece["height"], cell.z))
 	# label every walkable island: touching cells at one height
@@ -594,7 +596,7 @@ static func format_issues(result: Dictionary) -> String:
 
 
 ## A text picture of the pieces at one HEIGHT at tile-square resolution (x to the right, z downwards): '.' floor, '#' solid prop (or an
-## archway's end post), 'g' a passable gate / fence / archway middle, 'o' any other passable prop (stairs, tokens), '~' hazard with no floor over it, 'S' a hero's start, 'M' a monster spawn, 'C' a Centurion
+## archway's end post), 'g' a gate / fence (solid, but opens) or an archway's passage, 'o' any other passable prop (stairs, tokens), '~' hazard with no floor over it, 'S' a hero's start, 'M' a monster spawn, 'C' a Centurion
 ## (2x2), ' ' empty. Creatures win over props, props over floor. Props show at the height of the floor they stand on.
 static func render_ascii(result: Dictionary, height: int = 0) -> String:
 	var bounds: Rect2i = result["bounds"]
@@ -614,9 +616,11 @@ static func render_ascii(result: Dictionary, height: int = 0) -> String:
 			if piece["layer"] == "underlay":
 				symbol = "~"
 			elif piece["layer"] == "prop":
-				if solid_here.has(cell):
+				if BuildRules.OPENABLE.has(piece["mesh"]):
+					symbol = "g"
+				elif solid_here.has(cell):
 					symbol = "#"
-				elif BuildRules.CEILING_RISES.has(piece["mesh"]) or piece["mesh"] == "fence":
+				elif piece["mesh"] == "archway":
 					symbol = "g"
 				else:
 					symbol = "o"
