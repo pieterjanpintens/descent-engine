@@ -54,7 +54,7 @@ static func known_meshes() -> Dictionary:
 ##   "ok": bool                  - no errors (warnings don't count),
 ##   "errors": Array[Dictionary], "warnings": Array[Dictionary]   - each {severity, code, piece, message}; `piece` = index in plan["pieces"] or -1,
 ##   "pieces": Array[Dictionary] - the pieces that were readable, normalised: {index, mesh, layer, x, z, height, quarter_turns, name,
-##                                 fine_origin (Vector3i), cells (Array[Vector3i], every fine cell it covers), support_cells, solid_cells},
+##                                 fine_origin (Vector3i), cells (Array[Vector3i], every fine cell it covers), support_cells, solid_cells, sight_cells},
 ##   "starts" / "spawns": Array[Dictionary] - the readable creature entries, {x, z, height, creature, squares},
 ##   "usage": Dictionary         - physical group -> copies used,
 ##   "bounds": Rect2i            - the area covered, in tile squares (empty plan: zero size),
@@ -172,10 +172,14 @@ static func _read_piece(entry: Variant, index: int, result: Dictionary) -> Dicti
 	if layer == "prop":
 		for offset in FootprintRegistry.rotate_footprint(BuildRules.solid_offsets(mesh), basis):
 			solid_cells.append(origin + Vector3i(offset.x, 0, offset.z))
+	var sight_cells: Array[Vector3i] = []
+	if layer == "prop":
+		for offset in FootprintRegistry.rotate_footprint(BuildRules.sight_offsets(mesh), basis):
+			sight_cells.append(origin + Vector3i(offset.x, 0, offset.z))
 	return {
 		"index": index, "mesh": mesh, "layer": layer,
 		"x": fx, "z": fz, "height": height, "quarter_turns": turns, "name": piece_name,
-		"fine_origin": origin, "cells": cells, "support_cells": support_cells, "solid_cells": solid_cells,
+		"fine_origin": origin, "cells": cells, "support_cells": support_cells, "solid_cells": solid_cells, "sight_cells": sight_cells,
 	}
 
 
@@ -511,6 +515,18 @@ static func _check_connected(pieces: Array[Dictionary], floor_cells: Dictionary,
 			parts.append("group %d: height%s %s, about %d squares" % [number, "s" if heights.size() > 1 else "", ", ".join(heights.map(func(h): return str(h))), int(round(float(groups[root]["cells"]) / 4.0))])
 			number += 1
 		_add(result, "error", "disconnected_floor", -1, "The walkable floor is in %d separate groups that do not connect (%s). Floors at different heights connect only through a stair or ladder." % [groups.size(), "; ".join(parts)])
+
+
+## Everything that blocks sight, for a line-of-sight check: fine cell (x, base height, z) -> the height its top reaches (base + the piece's own
+## height). Floors above block sight too (a floor's underside), but they are in `pieces` already. Plain data so the Player can use it too.
+static func sight_blockers(result: Dictionary) -> Dictionary:
+	var blockers: Dictionary = {}
+	for piece: Dictionary in result["pieces"]:
+		var top: float = float(piece["height"]) + BuildRules.piece_height(piece["mesh"])
+		for cell: Vector3i in piece["sight_cells"]:
+			var key := Vector3i(cell.x, piece["height"], cell.z)
+			blockers[key] = maxf(float(blockers.get(key, 0.0)), top)
+	return blockers
 
 
 ## Copies used per physical piece (the two faces of a tile, or of a hazard card, are ONE piece) against what the box has.

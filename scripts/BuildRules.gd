@@ -70,6 +70,38 @@ static func solid_offsets(mesh: String) -> Array[Vector3i]:
 	return posts
 
 
+## Vision. How tall each piece is above the floor it stands on, in height units (measured from the meshes: mesh height / 3.6). A piece BLOCKS
+## SIGHT when it is taller than a standing figure (FIGURE_HEIGHT, 2): tree 3.96, tall pillar 3.83, archway 3.83, gate 2.76 and medium
+## pillar 2.22 block; the fence (1.96, see-through by design), well 1.83, mini pillar 1.28, stairs and everything furniture-sized do not.
+## Ladders are open frames, so they never block even though a big one is 3.55 tall.
+const PIECE_HEIGHTS := {
+	"mini": 1.28, "medium": 2.22, "tall": 3.83, "stair": 0.94, "gate": 2.76, "archway": 3.83, "fence": 1.96,
+	"barricade": 0.78, "table": 0.66, "small-table": 0.64, "tree": 3.96, "cart": 0.63, "chest": 0.62, "pot": 0.76, "well": 1.83,
+	"big-ladder": 3.55, "small-ladder": 1.77, "exploration": 0.06, "interact": 0.06, "umbra": 0.06,
+}
+const SEE_THROUGH := ["big-ladder", "small-ladder"]
+
+
+static func piece_height(mesh: String) -> float:
+	return float(PIECE_HEIGHTS.get(mesh, 0.0))
+
+
+## Whether a piece blocks the line of sight of a standing figure (see PIECE_HEIGHTS).
+static func blocks_sight(mesh: String) -> bool:
+	return piece_height(mesh) > FIGURE_HEIGHT and not SEE_THROUGH.has(mesh)
+
+
+## The fine-cell offsets (unrotated, same space as support_offsets) of the part of a piece that blocks sight: all of it for a blocking piece
+## (an archway only its two end posts - the passage is open), none for the others.
+static func sight_offsets(mesh: String) -> Array[Vector3i]:
+	if not blocks_sight(mesh):
+		var none: Array[Vector3i] = []
+		return none
+	if mesh == "archway":
+		return solid_offsets(mesh)
+	return FootprintRegistry.get_footprint(mesh)
+
+
 static func climb_rises(mesh: String) -> Array:
 	return CLIMB_RISES.get(mesh, [])
 
@@ -113,5 +145,6 @@ static func describe() -> String:
 		"Figures are 2 units tall: a square where a hero or monster stands needs 2 free units above it. The Centurion is 6 tall and covers 2x2 squares and needs 6 free units over all four - never under a bridge, floor or gateway.",
 		"Pieces other than floors stand on a floor at their own height.",
 		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
+		"Sight: a piece blocks the line of sight of a standing figure when it is taller than the figure (2 units): trees, tall and medium pillars, gates and an archway's two end posts block; fences, wells, mini pillars, stairs, furniture and ladders do not. A floor above also blocks sight from below.",
 		"Floors at different heights only connect through a stair (its high end touches the upper floor) or a ladder: a small ladder climbs 1 unit, a big ladder 1 or 2; the upper floor must touch the ladder's square.",
 	])
