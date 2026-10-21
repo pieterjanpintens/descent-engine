@@ -110,6 +110,21 @@ static func sight_cells_from_footprint(mesh: String, cells: Array[Vector3i]) -> 
 		return none
 	if mesh != "archway" or cells.is_empty():
 		return cells
+	return _end_posts(cells)
+
+
+## The solid part of a PLACED piece (absolute fine cells): all of it, none for the PASSABLE ones, the two end posts of an archway.
+static func solid_cells_from_footprint(mesh: String, cells: Array[Vector3i]) -> Array[Vector3i]:
+	if PASSABLE.has(mesh):
+		var none: Array[Vector3i] = []
+		return none
+	if mesh != "archway" or cells.is_empty():
+		return cells
+	return _end_posts(cells)
+
+
+## The squares at both ends of a long thin footprint (an archway's two posts).
+static func _end_posts(cells: Array[Vector3i]) -> Array[Vector3i]:
 	var low := Vector2i(cells[0].x, cells[0].z)
 	var high := low
 	for cell in cells:
@@ -187,6 +202,7 @@ static func describe() -> String:
 		"- gate or archway: the top holds a floor 3 units above.",
 		"Bridges and overhangs are allowed: floors may lie over other floors if they are supported and have that much room.",
 		"Figures are 2 units tall: a square where a hero or monster stands needs 2 free units above it. The Centurion is 6 tall and covers 2x2 squares and needs 6 free units over all four - never under a bridge, floor or gateway.",
+		"The heroes need start squares: at least one, and one for every hero that may play (the map's maximum number of players, 1 to 6).",
 		"Pieces other than floors stand on a floor at their own height.",
 		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
 		"Sight: two squares see each other when a line can be drawn from ANY corner of one to ANY corner of the other without being stopped (a line grazing the edge of a piece passes, but not between two pieces that touch). The line runs at figure height (2 units) above each figure's own floor, so a piece blocks only if its top is above that line: trees, tall and medium pillars, gates and an archway's two end posts block (the archway's two middle squares are open); fences (see-through), wells, mini pillars, stairs, furniture and ladders do not.",

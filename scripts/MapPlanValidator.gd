@@ -12,7 +12,8 @@ extends RefCounted
 ## THE PLAN (JSON-friendly, everything plain numbers/strings):
 ##   {
 ##     "pieces": [ {"mesh": "1a", "x": 0, "z": 0, "rotation": 0, "height": 0, "name": ""}, ... ],
-##     "player_start": [ {"x": 1, "z": 1, "height": 0}, ... ],                     (optional; one tile square each)
+##     "max_players": 4,                                                           (optional, 1-6, default 6: the most heroes that may play)
+##     "player_start": [ {"x": 1, "z": 1, "height": 0}, ... ],                     (REQUIRED: one tile square for every hero up to max_players)
 ##     "spawns": [ {"x": 3, "z": 2, "height": 0, "creature": "figure"|"centaur"}, ... ]   (optional)
 ##   }
 ## - `mesh`: a name from the mesh library (floor tile faces "1a".."21b", hazards water/acid/lava/spikes, props gate/tree/tall/...).
@@ -83,12 +84,26 @@ static func validate(plan: Variant) -> Dictionary:
 			pieces.append(piece)
 	result["pieces"] = pieces
 
+	var heroes := 6
+	var players_value: Variant = plan.get("max_players", 6)
+	if _is_number(players_value) and _is_multiple(float(players_value), 1.0) and int(players_value) >= 1 and int(players_value) <= 6:
+		heroes = int(players_value)
+	else:
+		_add(result, "error", "bad_format", -1, "\"max_players\" must be a whole number from 1 to 6 (the most heroes that may play).")
+	_run_checks(pieces, _creatures_from_plan(plan, result), heroes, result)
+	return result
+
+
+## The checks every map goes through, whether it came from a plan or from a loaded mission. `pieces` are normalised (see validate()) and
+## carry a `label` the messages use; `creatures` = [{label, kind, creature}]; `heroes` = the most heroes that may play (max players).
+static func _run_checks(pieces: Array[Dictionary], creatures: Array[Dictionary], heroes: int, result: Dictionary) -> void:
 	var floor_cells := _cells_of(pieces, "floor")
 	_check_overlaps(pieces, result)
 	var standing := _check_props_on_floor(pieces, floor_cells, result)
 	var support := _support_map(pieces, standing)
 	_check_floor_support(pieces, support, result)
-	_check_creatures(plan, pieces, floor_cells, result)
+	_check_start_squares(creatures, heroes, result)
+	_check_creatures(creatures, pieces, floor_cells, result)
 	_check_connected(pieces, floor_cells, standing, result)
 	_check_limits(pieces, result)
 	_check_names(pieces, result)
@@ -100,7 +115,177 @@ static func validate(plan: Variant) -> Dictionary:
 	sorted_heights.sort()
 	result["heights"] = sorted_heights
 	result["ok"] = (result["errors"] as Array).is_empty()
+
+
+# ---------------------------------------------------------------- a loaded mission
+
+## Checks a MISSION (what the Creator has on screen) with the same rules as a plan: pieces are the placed floor tiles, hazards and props, their
+## height is their level (origin_cell.y - one level is one height unit), the heroes' start squares and the monster spawn squares are the
+## creatures (all as ordinary figures: which monster is spawned where is decided by effects). Everything counts, revealed or not. Messages
+## name pieces the way the Creator shows them ("tree" at 3, 2 - their game position - plus their reference name when they have one), and each
+## piece in the result carries its `node_id`, `fine_origin` and `layer`, so a list of problems can jump to what it is about.
+static func validate_mission(mission: MissionData) -> Dictionary:
+	var result := {"ok": false, "errors": [], "warnings": [], "pieces": [], "starts": [], "spawns": [], "usage": {}, "bounds": Rect2i(), "heights": []}
+	var pieces: Array[Dictionary] = []
+	var cells_by_origin: Dictionary = {}  # origin -> Array[Vector3i]
+	for occupied in [mission.floor_occupied_cells, mission.underlay_occupied_cells]:
+		for fine: Vector3i in occupied:
+			var origin: Vector3i = occupied[fine]
+			if not cells_by_origin.has(origin):
+				cells_by_origin[origin] = []
+			cells_by_origin[origin].append(fine)
+	for placement in mission.floor_placements:
+		_add_tile_piece(pieces, placement, "floor", cells_by_origin)
+	for placement in mission.underlay_placements:
+		_add_tile_piece(pieces, placement, "underlay", cells_by_origin)
+	for entry in mission.interactables:
+		var cells: Array[Vector3i] = []
+		for offset in entry.footprint:
+			cells.append(entry.origin_cell + Vector3i(offset.x, 0, offset.z))
+		if cells.is_empty():
+			continue
+		var mesh := entry.mesh_item_name
+		var support_cells: Array[Vector3i] = []
+		if BuildRules.is_support(mesh):
+			support_cells = BuildRules.stair_high_end(entry.origin_cell, cells) if mesh == "stair" else cells
+		var piece := _mission_piece(pieces.size(), mesh, "prop", entry, cells)
+		piece["support_cells"] = support_cells
+		piece["solid_cells"] = BuildRules.solid_cells_from_footprint(mesh, cells)
+		piece["sight_cells"] = BuildRules.sight_cells_from_footprint(mesh, cells)
+		pieces.append(piece)
+	result["pieces"] = pieces
+	var creatures: Array[Dictionary] = []
+	var number := 1
+	for cell in mission.player_spawn_cells:
+		creatures.append(_mission_creature("Player start %d" % number, "start", cell))
+		number += 1
+	number = 1
+	for spawn in mission.monster_spawns:
+		var name_text: String = spawn.reference_name if spawn.reference_name != "" else "Monster spawn %d" % number
+		var tile := 1
+		for cell in spawn.cells:
+			creatures.append(_mission_creature("%s, tile %d" % [name_text, tile], "spawn", cell))
+			tile += 1
+		number += 1
+	_run_checks(pieces, creatures, maxi(mission.max_players, 1), result)
+	_check_objectives(mission, result)
+	result["ok"] = (result["errors"] as Array).is_empty()
 	return result
+
+
+## A mission has to be winnable: at least one objective, and some branch must END in an objective whose outcome is Win (the game only ends
+## through a leaf). A win that nothing gates (no conditions all the way from a root) is reached at once; a condition on a variable that was
+## never declared can never be true, so the objective behind it can never be reached.
+static func _check_objectives(mission: MissionData, result: Dictionary) -> void:
+	if mission.objectives.is_empty():
+		_add(result, "error", "no_win_condition", -1, "The mission has no win condition: add an objective (Objectives...) - the game can only be won through an objective at the end of a branch whose outcome is Win.")
+		return
+	var nodes: Array[MissionObjective] = []
+	var seen: Dictionary = {}
+	var queue: Array[MissionObjective] = mission.objectives.duplicate()
+	while not queue.is_empty():
+		var node: MissionObjective = queue.pop_front()
+		if seen.has(node):
+			continue
+		seen[node] = true
+		nodes.append(node)
+		queue.append_array(node.children)
+		queue.append_array(node.optional_objectives)
+	var wins: Array[MissionObjective] = []
+	for node in nodes:
+		if node.children.is_empty() and node.outcome == MissionObjective.Outcome.WIN and not _is_optional(mission, node):
+			wins.append(node)
+	if wins.is_empty():
+		_add(result, "error", "no_win_condition", -1, "The mission can't be won: there are objectives, but no branch ends in an objective whose outcome is Win (the last objective of a branch decides the outcome).")
+	else:
+		# reached at once: a chain of objectives without conditions starting at a root
+		var instant: Dictionary = {}
+		var walk: Array[MissionObjective] = mission.objectives.duplicate()
+		while not walk.is_empty():
+			var node: MissionObjective = walk.pop_front()
+			if instant.has(node) or not node.conditions.is_empty():
+				continue
+			instant[node] = true
+			walk.append_array(node.children)
+		for node in wins:
+			if instant.has(node):
+				_add(result, "warning", "win_at_once", -1, "The win objective %s has no conditions anywhere on the way to it, so the mission is won as soon as it starts." % _objective_label(node))
+	var declared: Dictionary = {}
+	for key in MissionRuntime.BUILTIN_TYPES:
+		declared[key] = true
+	for variable in mission.custom_variables:
+		declared[variable.name] = true
+	for node in nodes:
+		for condition in node.conditions:
+			if not declared.has(condition.variable_name):
+				_add(result, "error", "undeclared_variable", -1, "The objective %s checks the variable \"%s\", which is not declared (Variables...), so it can never be true." % [_objective_label(node), condition.variable_name])
+
+
+static func _is_optional(mission: MissionData, node: MissionObjective) -> bool:
+	var queue: Array[MissionObjective] = mission.objectives.duplicate()
+	var seen: Dictionary = {}
+	while not queue.is_empty():
+		var current: MissionObjective = queue.pop_front()
+		if seen.has(current):
+			continue
+		seen[current] = true
+		if current.optional_objectives.has(node):
+			return true
+		queue.append_array(current.children)
+	return false
+
+
+static func _objective_label(node: MissionObjective) -> String:
+	var text := node.description.strip_edges()
+	if text == "":
+		return "(no description)"
+	return "\"%s\"" % (text if text.length() <= 48 else text.substr(0, 45) + "...")
+
+
+static func _add_tile_piece(pieces: Array[Dictionary], placement: TilePlacement, layer: String, cells_by_origin: Dictionary) -> void:
+	var cells: Array[Vector3i] = []
+	for fine: Vector3i in cells_by_origin.get(placement.origin_cell, []):
+		cells.append(fine)
+	if cells.is_empty():
+		return
+	var piece := _mission_piece(pieces.size(), placement.mesh_item_name, layer, placement, cells)
+	piece["support_cells"] = [] as Array[Vector3i]
+	piece["solid_cells"] = [] as Array[Vector3i]
+	piece["sight_cells"] = [] as Array[Vector3i]
+	pieces.append(piece)
+
+
+## A piece the way the validator wants it, from a placed node (a TilePlacement or an InteractableEntry) and its absolute fine cells.
+static func _mission_piece(index: int, mesh: String, layer: String, node: OutlineNode, cells: Array[Vector3i]) -> Dictionary:
+	var low := Vector2i(cells[0].x, cells[0].z)
+	for cell in cells:
+		low = Vector2i(mini(low.x, cell.x), mini(low.y, cell.z))
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var origin: Vector3i = node.get("origin_cell")
+	var piece := {
+		"index": index, "mesh": mesh, "layer": layer, "mission": true,
+		"x": float(low.x) / cpt, "z": float(low.y) / cpt, "height": origin.y, "quarter_turns": 0, "name": node.reference_name,
+		"fine_origin": origin, "cells": cells, "node_id": node.id,
+	}
+	var where := "%s, %s" % [_num(piece["x"]), _num(piece["z"])]
+	if origin.y > 0:
+		where += ", height %d" % origin.y
+	var title := "\"%s\" at %s" % [mesh, where]
+	piece["label"] = ("\"%s\" (%s)" % [node.reference_name, title]) if node.reference_name != "" else title
+	return piece
+
+
+## A creature on a spawn cell: those are 1-based tile squares at a level (see MissionData.player_spawn_cells), the validator wants 0-based.
+static func _mission_creature(label: String, kind: String, cell: Vector3i) -> Dictionary:
+	return {"label": label, "kind": kind, "creature": {
+		"x": cell.x - 1, "z": cell.z - 1, "height": cell.y, "creature": "figure",
+		"squares": 1, "need": BuildRules.FIGURE_HEIGHT,
+	}}
+
+
+## True for a piece that came from a mission (its label is already the short form; used to lower-case the second piece in a sentence).
+static func _mission_labels(piece: Dictionary) -> bool:
+	return piece.has("mission")
 
 
 # ---------------------------------------------------------------- reading one piece
@@ -176,11 +361,13 @@ static func _read_piece(entry: Variant, index: int, result: Dictionary) -> Dicti
 	if layer == "prop":
 		for offset in FootprintRegistry.rotate_footprint(BuildRules.sight_offsets(mesh), basis):
 			sight_cells.append(origin + Vector3i(offset.x, 0, offset.z))
-	return {
+	var piece := {
 		"index": index, "mesh": mesh, "layer": layer,
 		"x": fx, "z": fz, "height": height, "quarter_turns": turns, "name": piece_name,
 		"fine_origin": origin, "cells": cells, "support_cells": support_cells, "solid_cells": solid_cells, "sight_cells": sight_cells,
 	}
+	piece["label"] = "Piece %d %s" % [index, _describe(piece)]
+	return piece
 
 
 static func _is_number(value: Variant) -> bool:
@@ -237,7 +424,7 @@ static func _check_overlaps(pieces: Array[Dictionary], result: Dictionary) -> vo
 					if not reported.has(pair):
 						reported[pair] = true
 						_add(result, "error" if layer != "prop" else "warning", "%s_overlap" % layer, piece["index"],
-							"Piece %d %s overlaps piece %d %s (both %s%s)." % [piece["index"], _describe(piece), other["index"], _describe(other), layer, " pieces" if layer == "prop" else " tiles"])
+							"%s overlaps %s (both %s%s)." % [piece["label"], str(other["label"]).to_lower() if _mission_labels(piece) else other["label"], layer, " pieces" if layer == "prop" else " tiles"])
 				else:
 					owner_of[key] = piece
 
@@ -268,7 +455,7 @@ static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictio
 				missing += 1
 		if missing > 0:
 			_add(result, "error", "floating_prop", piece["index"],
-				"Piece %d %s is not fully on floor: %d of its %d cells have no floor tile under them at height %d." % [piece["index"], _describe(piece), missing, (piece["cells"] as Array).size(), piece["height"]])
+				"%s is not fully on floor: %d of its %d cells have no floor tile under them at height %d." % [piece["label"], missing, (piece["cells"] as Array).size(), piece["height"]])
 		else:
 			standing[piece["index"]] = true
 	return standing
@@ -302,12 +489,49 @@ static func _check_floor_support(pieces: Array[Dictionary], support: Dictionary,
 				break
 		if not held:
 			_add(result, "error", "unsupported_floor", piece["index"],
-				"Piece %d %s is a floor at height %d but nothing holds it up: it needs a pillar, a stair's high end or a gateway top reaching exactly height %d under at least one of its squares (the support must itself stand on floor)." % [piece["index"], _describe(piece), piece["height"], piece["height"]])
+				"%s is a floor at height %d but nothing holds it up: it needs a pillar, a stair's high end or a gateway top reaching exactly height %d under at least one of its squares (the support must itself stand on floor)." % [piece["label"], piece["height"], piece["height"]])
+
+
+## The heroes need squares to start on: at least one start square, and one for every hero that may play (the most players the map allows).
+static func _check_start_squares(creatures: Array[Dictionary], heroes: int, result: Dictionary) -> void:
+	var squares := 0
+	for entry in creatures:
+		if entry["kind"] == "start":
+			squares += 1
+	if squares == 0:
+		_add(result, "error", "no_start", -1, "There are no player start squares: the heroes need somewhere to start (%d square%s for up to %d hero%s)." % [heroes, "" if heroes == 1 else "s", heroes, "" if heroes == 1 else "es"])
+	elif squares < heroes:
+		_add(result, "error", "too_few_starts", -1, "Only %d player start square%s but up to %d heroes may play: there must be a start square for every hero (draw %d more, or lower the maximum number of players)." % [squares, "" if squares == 1 else "s", heroes, heroes - squares])
+
+
+## The plan's creatures as [{label, kind: "start"|"spawn", creature}] - read and checked for format here.
+static func _creatures_from_plan(plan: Dictionary, result: Dictionary) -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	var starts: Variant = plan.get("player_start", [])
+	if typeof(starts) != TYPE_ARRAY:
+		_add(result, "error", "bad_format", -1, "\"player_start\" must be a list of {x, z} squares.")
+	else:
+		for i in starts.size():
+			var creature := _read_creature(starts[i], "Player start %d" % i, "figure", result)
+			if not creature.is_empty():
+				found.append({"label": "Player start %d" % i, "kind": "start", "creature": creature})
+	var spawns: Variant = plan.get("spawns", [])
+	if typeof(spawns) != TYPE_ARRAY:
+		_add(result, "error", "bad_format", -1, "\"spawns\" must be a list of {x, z, creature} squares.")
+	else:
+		if spawns.size() + (starts.size() if typeof(starts) == TYPE_ARRAY else 0) > MAX_CREATURES:
+			_add(result, "error", "too_many_pieces", -1, "Too many creatures (the most allowed is %d)." % MAX_CREATURES)
+			return found
+		for i in spawns.size():
+			var creature := _read_creature(spawns[i], "Spawn %d" % i, "", result)
+			if not creature.is_empty():
+				found.append({"label": "Spawn %d" % i, "kind": "spawn", "creature": creature})
+	return found
 
 
 ## Heroes and monsters: they stand on floor at their height, not inside a blocking prop, with enough free height above them.
-static func _check_creatures(plan: Dictionary, pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> void:
-	var blocked: Dictionary = {}  # (x, height, z) -> piece index that blocks walking there
+static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> void:
+	var blocked: Dictionary = {}  # (x, height, z) -> label of the piece that blocks walking there
 	var ceilings: Dictionary = {}  # Vector2i fine column -> Array[int] heights of solid things (floors above, gateway tops)
 	for key: Vector3i in floor_cells:
 		var column := Vector2i(key.x, key.z)
@@ -318,38 +542,17 @@ static func _check_creatures(plan: Dictionary, pieces: Array[Dictionary], floor_
 		if piece["layer"] != "prop":
 			continue
 		for cell in piece["solid_cells"]:
-			blocked[Vector3i(cell.x, piece["height"], cell.z)] = piece["index"]
+			blocked[Vector3i(cell.x, piece["height"], cell.z)] = piece["label"]
 		if BuildRules.CEILING_RISES.has(piece["mesh"]):
 			for cell in piece["cells"]:
 				var column := Vector2i(cell.x, cell.z)
 				if not ceilings.has(column):
 					ceilings[column] = []
 				ceilings[column].append(piece["height"] + int(BuildRules.CEILING_RISES[piece["mesh"]]))
-
 	var taken: Dictionary = {}  # (square x, height, square z) -> label, to warn about two creatures on one square
-	var starts: Variant = plan.get("player_start", [])
-	if typeof(starts) != TYPE_ARRAY:
-		_add(result, "error", "bad_format", -1, "\"player_start\" must be a list of {x, z} squares.")
-	else:
-		for i in starts.size():
-			var creature := _read_creature(starts[i], "Player start %d" % i, "figure", result)
-			if creature.is_empty():
-				continue
-			(result["starts"] as Array).append(creature)
-			_check_creature(creature, "Player start %d" % i, floor_cells, blocked, ceilings, taken, result)
-	var spawns: Variant = plan.get("spawns", [])
-	if typeof(spawns) != TYPE_ARRAY:
-		_add(result, "error", "bad_format", -1, "\"spawns\" must be a list of {x, z, creature} squares.")
-	else:
-		if spawns.size() + (starts.size() if typeof(starts) == TYPE_ARRAY else 0) > MAX_CREATURES:
-			_add(result, "error", "too_many_pieces", -1, "Too many creatures (the most allowed is %d)." % MAX_CREATURES)
-			return
-		for i in spawns.size():
-			var creature := _read_creature(spawns[i], "Spawn %d" % i, "", result)
-			if creature.is_empty():
-				continue
-			(result["spawns"] as Array).append(creature)
-			_check_creature(creature, "Spawn %d" % i, floor_cells, blocked, ceilings, taken, result)
+	for entry in creatures:
+		(result["starts"] if entry["kind"] == "start" else result["spawns"]).append(entry["creature"])
+		_check_creature(entry["creature"], entry["label"], floor_cells, blocked, ceilings, taken, result)
 
 
 ## A creature entry as {x, z, height, creature, squares (side length in squares), need (free height units)}; empty when unusable.
@@ -386,7 +589,7 @@ static func _check_creature(creature: Dictionary, label: String, floor_cells: Di
 	var height: int = creature["height"]
 	var need: int = creature["need"]
 	var off_floor := false
-	var blocker := -1
+	var blocker := ""
 	var room := 1 << 20
 	for sx in side:
 		for sz in side:
@@ -407,8 +610,8 @@ static func _check_creature(creature: Dictionary, label: String, floor_cells: Di
 	var where := "(%d, %d, height %d)" % [creature["x"], creature["z"], height]
 	if off_floor:
 		_add(result, "error", "creature_off_floor", -1, "%s %s is not on floor at height %d." % [label, where, height])
-	elif blocker != -1:
-		_add(result, "error", "creature_blocked", -1, "%s %s is inside piece %d, which blocks walking." % [label, where, blocker])
+	elif blocker != "":
+		_add(result, "error", "creature_blocked", -1, "%s %s is inside %s, which blocks walking." % [label, where, blocker])
 	elif room < need:
 		_add(result, "error", "no_headroom", -1, "%s %s has only %d height units free above it but a %s needs %d - never put it under a bridge, floor or gateway." % [label, where, room, "Centurion" if creature["creature"] == "centaur" else "figure", need])
 
@@ -549,9 +752,9 @@ static func _check_names(pieces: Array[Dictionary], result: Dictionary) -> void:
 		if piece_name == "":
 			continue
 		if seen.has(piece_name):
-			_add(result, "warning", "duplicate_name", piece["index"], "Piece %d %s has the same name \"%s\" as piece %d." % [piece["index"], _describe(piece), piece_name, seen[piece_name]])
+			_add(result, "warning", "duplicate_name", piece["index"], "%s has the same name \"%s\" as %s." % [piece["label"], piece_name, seen[piece_name]])
 		else:
-			seen[piece_name] = piece["index"]
+			seen[piece_name] = piece["label"]
 
 
 # ---------------------------------------------------------------- helpers
@@ -581,8 +784,13 @@ static func _bounds(pieces: Array[Dictionary]) -> Rect2i:
 	return Rect2i(first, last - first + Vector2i.ONE)
 
 
+## 3 for 3.0, 2.5 stays 2.5.
+static func _num(value: float) -> String:
+	return str(roundi(value)) if is_equal_approx(value, roundf(value)) else String.num(value)
+
+
 static func _describe(piece: Dictionary) -> String:
-	var where := "%s, %s" % [String.num(piece["x"]), String.num(piece["z"])]
+	var where := "%s, %s" % [_num(piece["x"]), _num(piece["z"])]
 	if piece["height"] > 0:
 		where += ", height %d" % piece["height"]
 	return "(\"%s\" at %s)" % [piece["mesh"], where]

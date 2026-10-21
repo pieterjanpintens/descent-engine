@@ -397,6 +397,11 @@ func _on_object_picked(_kind: String, id: String) -> void:
 	_emit_selection_changed(false)
 
 
+## Selects the tree item with this id from outside (the toolbar's problems list: "Show"); no camera jump.
+func select_id(id: String) -> void:
+	_on_object_picked("", id)
+
+
 func _on_item_edited() -> void:
 	var item := get_edited()
 	if item == null:
