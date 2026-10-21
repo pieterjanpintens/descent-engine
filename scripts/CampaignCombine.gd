@@ -26,7 +26,8 @@ static func act_of(campaign: Campaign, chapter: CampaignChapter) -> CampaignAct:
 ## Whether a mission has anything beyond objectives and variables (a map, events, spawn areas).
 static func has_content(mission: MissionData) -> bool:
 	return not mission.floor_placements.is_empty() or not mission.underlay_placements.is_empty() or not mission.interactables.is_empty() \
-		or not mission.monster_spawns.is_empty() or not mission.triggers.is_empty() or not mission.player_spawn_cells.is_empty()
+		or not mission.monster_spawns.is_empty() or not mission.triggers.is_empty() or not mission.player_spawn_cells.is_empty() \
+		or not mission.los_blocker_cells.is_empty()
 
 
 ## Why these chapters cannot be combined ("" = they can).

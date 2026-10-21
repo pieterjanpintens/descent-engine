@@ -44,6 +44,7 @@ var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 var _misc_button: Button
 var _misc_container: VBoxContainer
 var _player_start_button: Button
+var _los_blocker_button: Button
 var _active_spawn_option: OptionButton
 var _active_spawn_ids: Array[String] = []
 var _spawn_option_rebuild_queued: bool = false
@@ -60,6 +61,7 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
+	creator_controller.los_blocker_paint_mode_changed.connect(func(enabled: bool): _los_blocker_button.button_pressed = enabled)
 	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# "Show unavailable" moved to the persistent toolbar 2026-09-14 (see
 	# CreatorToolbar.gd) - this palette just reacts to the controller-owned
@@ -93,6 +95,11 @@ func _on_side_panel_tab_changed(tab_index: int) -> void:
 		creator_controller.set_draw_mode(false)
 		creator_controller.set_spawn_paint_mode(false)
 		creator_controller.set_monster_spawn_paint_mode(false)
+		creator_controller.set_los_blocker_paint_mode(false)
+
+
+func _on_los_blocker_tool_pressed() -> void:
+	creator_controller.set_los_blocker_paint_mode(true)
 
 
 func _build_ui() -> void:
@@ -153,6 +160,14 @@ func _build_ui() -> void:
 	_player_start_button.toggle_mode = true
 	_player_start_button.pressed.connect(_on_player_start_tool_pressed)
 	_misc_container.add_child(_player_start_button)
+
+	# Virtual line-of-sight wall: click tile squares to add/remove them (see MissionData.los_blocker_cells).
+	_los_blocker_button = Button.new()
+	_los_blocker_button.text = "LOS Blocker"
+	_los_blocker_button.toggle_mode = true
+	_los_blocker_button.tooltip_text = "Draw squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Only the Creator shows them."
+	_los_blocker_button.pressed.connect(_on_los_blocker_tool_pressed)
+	_misc_container.add_child(_los_blocker_button)
 
 	# No tool button: choosing a spawn in the dropdown below (or "New
 	# spawn") is what engages the monster spawn draw mode.

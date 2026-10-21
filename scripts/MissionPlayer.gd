@@ -110,6 +110,7 @@ func _ready() -> void:
 	if not snapshot_progress.is_empty():
 		MissionProgress.apply_before_paint(mission, snapshot_progress, progress_outcome)
 	layered_map.apply_mission(mission, true)
+	layered_map.set_blocker_lines(mission.los_blocker_cells)  # a fine line on the floor where line of sight is blocked
 	if not snapshot_progress.is_empty():
 		MissionProgress.apply_after_paint(mission, layered_map, snapshot_progress, progress_outcome)
 	_add_ground_floor()

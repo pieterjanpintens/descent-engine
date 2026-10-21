@@ -60,6 +60,14 @@ var monster_overlay_active_id: String = ""
 ## Number labels for the monster spawn tiles (Creator only).
 var _monster_labels: Node3D
 
+## Violet overlay for MissionData.los_blocker_cells (virtual line-of-sight walls, Creator only).
+var _blocker_overlay: MeshInstance3D
+var _blocker_overlay_mesh: ImmediateMesh
+const LOS_BLOCKER_COLOR := Color(0.55, 0.3, 0.95, 0.5)
+var _blocker_lines: MeshInstance3D
+var _blocker_lines_mesh: ImmediateMesh
+const BLOCKER_LINE_COLOR := Color(0.8, 0.65, 1.0, 0.9)
+
 
 func _ready() -> void:
 	# Only position differs between layers - cell_size and XZ cell
@@ -78,6 +86,62 @@ func _ready() -> void:
 
 	_setup_spawn_overlay()
 	_setup_monster_overlay()
+	_blocker_overlay_mesh = ImmediateMesh.new()
+	_blocker_overlay = _make_overlay_node(_blocker_overlay_mesh)
+
+
+## The violet LOS blocker squares (tile-square cells). Pass an empty array to clear.
+func set_blocker_overlay_cells(cells: Array[Vector3i]) -> void:
+	_blocker_overlay_mesh.clear_surfaces()
+	if cells.is_empty():
+		_blocker_overlay.visible = false
+		return
+	_blocker_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for cell in cells:
+		var corners := get_tile_square_world_corners(cell)
+		for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+			_blocker_overlay_mesh.surface_set_color(LOS_BLOCKER_COLOR)
+			_blocker_overlay_mesh.surface_add_vertex(v)
+	_blocker_overlay_mesh.surface_end()
+	_blocker_overlay.global_transform = Transform3D.IDENTITY
+	_blocker_overlay.visible = true
+
+
+## The Player's view of the LOS blockers: a fine line along the outer edge of each blocked area (adjacent squares merge into one outline),
+## on the floor, so the table can see where shots are blocked. Pass an empty array to clear.
+func set_blocker_lines(cells: Array[Vector3i]) -> void:
+	if _blocker_lines == null:
+		_blocker_lines_mesh = ImmediateMesh.new()
+		_blocker_lines = _make_overlay_node(_blocker_lines_mesh)
+	_blocker_lines_mesh.clear_surfaces()
+	if cells.is_empty():
+		_blocker_lines.visible = false
+		return
+	var squares: Dictionary = {}
+	for cell in cells:
+		squares[Vector2i(cell.x, cell.z)] = true
+	_blocker_lines_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+	for cell in cells:
+		var corners := get_tile_square_world_corners(cell)
+		var centre := (corners[0] + corners[2]) * 0.5
+		for i in 4:
+			var a: Vector3 = corners[i]
+			var b: Vector3 = corners[(i + 1) % 4]
+			# which neighbouring square lies across this edge (world X/Z = tile x/z)?
+			var outward := (a + b) * 0.5 - centre
+			var neighbour := Vector2i(cell.x, cell.z)
+			if absf(outward.x) > absf(outward.z):
+				neighbour.x += 1 if outward.x > 0.0 else -1
+			else:
+				neighbour.y += 1 if outward.z > 0.0 else -1
+			if squares.has(neighbour):
+				continue
+			for v in [a, b]:
+				_blocker_lines_mesh.surface_set_color(BLOCKER_LINE_COLOR)
+				_blocker_lines_mesh.surface_add_vertex(v)
+	_blocker_lines_mesh.surface_end()
+	_blocker_lines.global_transform = Transform3D.IDENTITY
+	_blocker_lines.visible = true
 
 
 func _setup_spawn_overlay() -> void:
@@ -579,6 +643,9 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	# showing. The Player shows it itself, before round 1.
 	if _spawn_overlay != null and not respect_visibility:
 		set_spawn_overlay_cells(mission.player_spawn_cells)
+	# Virtual LOS walls: Creator only, never revealed to the table.
+	if _blocker_overlay != null and not respect_visibility:
+		set_blocker_overlay_cells(mission.los_blocker_cells)
 
 	# A whole new mission's worth of interactables/groups just got swapped
 	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its
