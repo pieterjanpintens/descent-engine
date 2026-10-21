@@ -2,11 +2,10 @@ class_name LineOfSightMode
 extends Node3D
 
 ## Line of sight / range tool - toggled from the Gear menu's "Line of Sight". While active, a left click on a floor tile square (on ANY level)
-## marks it as a figure standing there, and every square that figure can SEE gets a coloured number: the shortest route to it in steps
-## (what a ranged attack's range is counted in; stairs and ladders count as a step up, holes are walked around, solid pieces are not in the
-## way). Squares without a line of sight get NO number. Colours: 1 green, 2 yellow, 3-4 orange, 5+ red.
+## marks it as a figure standing there, and every square that figure can SEE gets a coloured number: the range to it: the shortest horizontal / vertical
+## route in squares (holes are walked around, solid pieces are not in the way); height does not count. Squares without a line of sight get NO number. Colours: 1 green, 2 yellow, 3-4 orange, 5+ red.
 ##
-## Sight is the author's rule (SightLine): corner to corner, at figure height, blocked by trees, tall / medium pillars, gates and an
+## Sight is the author's rule (SightLine; the Options setting picks centre to corner by default), at figure height, blocked by trees, tall / medium pillars, gates and an
 ## archway's end posts, never through a floor, no limit up or down; the levels are the heights (MissionSight). Squares of revealed floor and
 ## hazard placements only. Lives under layered_map so it hides with the world in the monster view. Not seen in a running Player.
 
@@ -17,7 +16,6 @@ var mission: MissionData
 var active: bool = false
 
 var _labels: Array[Node3D] = []
-var _last_start: Variant = null
 
 
 func set_active(on: bool) -> void:
@@ -29,18 +27,12 @@ func set_active(on: bool) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not active or not is_visible_in_tree():
 		return
-	# experiment: L cycles how strict the sight rule is (SightLine.Mode) and redraws the last click
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
-		SightLine.mode = (SightLine.mode + 1) % SightLine.Mode.size()
-		get_viewport().set_input_as_handled()
-		if _last_start != null:
-			_show(_last_start, MissionSight.build(mission, layered_map.held_back))
-		return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return
+	SightLine.mode = PlayerSettings.sight_rule
 	var data := MissionSight.build(mission, layered_map.held_back)
 	var start: Variant = _square_under_cursor(camera, event.position, data["squares"])
 	if start == null:
@@ -81,7 +73,6 @@ func _plane_y(height: int) -> float:
 
 func _show(start: Vector3i, data: Dictionary) -> void:
 	_clear()
-	_last_start = start
 	var distance := MissionSight.routes(data, start)
 	var seen: Dictionary = {}
 	for square in SightLine.visible_from(data["sight"], Vector2i(start.x, start.z), start.y):
@@ -95,9 +86,7 @@ func _add_label(square: Vector3i, distance: int) -> void:
 	# the layered map counts tile squares from 1, the sight code from 0
 	var corners := layered_map.get_tile_square_world_corners(Vector3i(square.x + 1, square.y, square.z + 1))
 	var label := Label3D.new()
-	label.text = ("X
-" + SightLine.mode_name() + "
-(L = change)") if distance == 0 else str(distance)
+	label.text = "X" if distance == 0 else str(distance)
 	label.modulate = _color_for(distance)
 	label.outline_modulate = Color(0, 0, 0, 0.9)
 	label.outline_size = 12

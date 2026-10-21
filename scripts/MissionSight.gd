@@ -38,28 +38,35 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 ## The shortest route (in steps) from `start` (x, height, z) to every square it can reach: one step to a touching square at the same height,
 ## and one step along a stair or ladder to the height above. Solid pieces are NOT in the way (they can be destroyed or opened).
 static func routes(data: Dictionary, start: Vector3i) -> Dictionary:
+	# RANGE: the shortest horizontal / vertical route in squares between the two columns (holes are walked around). HEIGHT DOES NOT COUNT:
+	# a square one or two levels up or down is as far away as the same square on the ground, and levels do not have to be walkable to each
+	# other (a shot does not need a stair), so every square of every level gets the number of its column. A square on another level in
+	# the viewer's own column gets 1 (the viewer's own square is 0).
 	var squares: Dictionary = data["squares"]
-	var neighbours: Dictionary = {}
-	for link: Array in data["links"]:
-		for pair in [[link[0], link[1]], [link[1], link[0]]]:
-			if not neighbours.has(pair[0]):
-				neighbours[pair[0]] = []
-			neighbours[pair[0]].append(pair[1])
-	var distance: Dictionary = {start: 0}
-	var queue: Array[Vector3i] = [start]
+	var columns: Dictionary = {}
+	for square: Vector3i in squares:
+		columns[Vector2i(square.x, square.z)] = true
+	var origin := Vector2i(start.x, start.z)
+	var column_distance: Dictionary = {origin: 0}
+	var queue: Array[Vector2i] = [origin]
 	var head := 0
 	while head < queue.size():
 		var current := queue[head]
 		head += 1
-		var next_squares: Array[Vector3i] = []
-		for step in [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
-			next_squares.append(current + step)
-		for extra: Vector3i in neighbours.get(current, []):
-			next_squares.append(extra)
-		for next in next_squares:
-			if squares.has(next) and not distance.has(next):
-				distance[next] = distance[current] + 1
+		for step in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var next: Vector2i = current + step
+			if columns.has(next) and not column_distance.has(next):
+				column_distance[next] = column_distance[current] + 1
 				queue.append(next)
+	var distance: Dictionary = {}
+	for square: Vector3i in squares:
+		var column := Vector2i(square.x, square.z)
+		if column_distance.has(column):
+			distance[square] = column_distance[column]
+	for square: Vector3i in distance.keys():
+		if distance[square] == 0 and square != start:
+			distance[square] = 1
+	distance[start] = 0
 	return distance
 
 

@@ -19,12 +19,12 @@ extends RefCounted
 const EYE_HEIGHT := float(BuildRules.FIGURE_HEIGHT)
 const EPS := 1e-6
 
-## Which points of the two squares a sight line may start / end at (experiment/los-strictness; the Player's tool cycles it with L):
+## Which points of the two squares a sight line may start / end at (the Player's tool takes it from the Options setting PlayerSettings.sight_rule):
 ## CORNER_TO_CORNER = the Descent 2 rule (any corner of one square to any corner of the other, 16 lines - loose),
 ## CENTER_TO_CORNER = from the middle of the viewer's square to any corner of the target (4 lines),
 ## CENTER_TO_CENTER = one line from middle to middle (strictest).
 enum Mode { CORNER_TO_CORNER, CENTER_TO_CORNER, CENTER_TO_CENTER }
-static var mode: int = Mode.CORNER_TO_CORNER
+static var mode: int = Mode.CENTER_TO_CORNER
 
 
 static func mode_name(value: int = -1) -> String:
