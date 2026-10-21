@@ -653,6 +653,9 @@ func _delete_group(group_id: String) -> void:
 		for spawn in mission.monster_spawns:
 			if spawn.parent_id == group_id:
 				spawn.parent_id = group.parent_id
+		for blocker in mission.los_blockers:
+			if blocker.parent_id == group_id:
+				blocker.parent_id = group.parent_id
 		mission.groups.erase(group)
 	)
 	layered_map.notify_objects_changed()
@@ -718,5 +721,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			placement.parent_id = new_parent_id
 		elif spawn != null:
 			spawn.parent_id = new_parent_id
+		elif los_blocker != null:
+			los_blocker.parent_id = new_parent_id
 	)
 	layered_map.notify_objects_changed()
