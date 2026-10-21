@@ -35,7 +35,7 @@ const MAX_COORDINATE := 64.0
 const MAX_HEIGHT := 9
 const MAX_NAME_LENGTH := 60
 const MAX_CREATURES := 200
-const MESH_LIBRARY_PATH := "res://descent-meshes.tres"
+const MESH_LIBRARY_PATH := "res://descent-meshes.res"
 
 static var _known_meshes: Dictionary = {}
 
