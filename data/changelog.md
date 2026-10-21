@@ -1,3 +1,9 @@
+## v0.0.31 - 2026-10-21
+- Mission editor: new LOS Blocker tool (Misc tab) - draw squares that block line of sight like an infinitely high wall, e.g. to stop shots across open space. A blocker can sit in a stage group so it only counts once that stage is revealed, and blockers may overlap. In the Player the walls are drawn as a hand-drawn charcoal line on the floor.
+- Mission editor: a Problems button in the toolbar checks the map (pieces floating over nothing, unreachable floor, no start squares, no way to win, ...) and can jump to the piece.
+- Line of sight tool in the Player: uses 3D sight rules (tall pieces, floors, bridges); the rule (centre to corner by default, corner to corner, centre to centre) is an Options setting. Range numbers count diagonals and ignore height.
+- Opening the mission editor or Player from the editor build is about 4x faster (the mesh library is now a binary file).
+
 ## v0.0.30 - 2026-10-20
 - Campaign: when a chapter or side quest ends, the result popup lists the side quests that just came up ("New side quest: ..."); quests that were already on offer are not repeated.
 - Campaign: a side quest that is about to disappear (winning the chapter it is offered at takes it away) gets a red ENDING tag on the map and a warning in its panel. Authors can switch the warning off per side quest.
