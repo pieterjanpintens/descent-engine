@@ -17,6 +17,7 @@ var mission: MissionData
 var active: bool = false
 
 var _labels: Array[Node3D] = []
+var _last_start: Variant = null
 
 
 func set_active(on: bool) -> void:
@@ -27,6 +28,13 @@ func set_active(on: bool) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not active or not is_visible_in_tree():
+		return
+	# experiment: L cycles how strict the sight rule is (SightLine.Mode) and redraws the last click
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
+		SightLine.mode = (SightLine.mode + 1) % SightLine.Mode.size()
+		get_viewport().set_input_as_handled()
+		if _last_start != null:
+			_show(_last_start, MissionSight.build(mission, layered_map.held_back))
 		return
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
@@ -73,6 +81,7 @@ func _plane_y(height: int) -> float:
 
 func _show(start: Vector3i, data: Dictionary) -> void:
 	_clear()
+	_last_start = start
 	var distance := MissionSight.routes(data, start)
 	var seen: Dictionary = {}
 	for square in SightLine.visible_from(data["sight"], Vector2i(start.x, start.z), start.y):
@@ -86,7 +95,9 @@ func _add_label(square: Vector3i, distance: int) -> void:
 	# the layered map counts tile squares from 1, the sight code from 0
 	var corners := layered_map.get_tile_square_world_corners(Vector3i(square.x + 1, square.y, square.z + 1))
 	var label := Label3D.new()
-	label.text = "X" if distance == 0 else str(distance)
+	label.text = ("X
+" + SightLine.mode_name() + "
+(L = change)") if distance == 0 else str(distance)
 	label.modulate = _color_for(distance)
 	label.outline_modulate = Color(0, 0, 0, 0.9)
 	label.outline_size = 12

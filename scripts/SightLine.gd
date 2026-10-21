@@ -1,7 +1,7 @@
 class_name SightLine
 extends RefCounted
 
-## Line of sight between two tile squares, by the author's rule: corner to corner - if a line can be drawn between ANY corner of one square
+## Line of sight between two tile squares, by default the Descent 2 rule: corner to corner - if a line can be drawn between ANY corner of one square
 ## and ANY corner of the other without being stopped, the squares see each other. Pure data and math (no scene, no autoload except the
 ## BuildRules constants), so the Player's line-of-sight tool can use exactly the same code as the plan validator. Experimental, branch
 ## experiment/ai-map-generation.
@@ -18,6 +18,22 @@ extends RefCounted
 
 const EYE_HEIGHT := float(BuildRules.FIGURE_HEIGHT)
 const EPS := 1e-6
+
+## Which points of the two squares a sight line may start / end at (experiment/los-strictness; the Player's tool cycles it with L):
+## CORNER_TO_CORNER = the Descent 2 rule (any corner of one square to any corner of the other, 16 lines - loose),
+## CENTER_TO_CORNER = from the middle of the viewer's square to any corner of the target (4 lines),
+## CENTER_TO_CENTER = one line from middle to middle (strictest).
+enum Mode { CORNER_TO_CORNER, CENTER_TO_CORNER, CENTER_TO_CENTER }
+static var mode: int = Mode.CORNER_TO_CORNER
+
+
+static func mode_name(value: int = -1) -> String:
+	match (mode if value < 0 else value):
+		Mode.CENTER_TO_CORNER:
+			return "centre to corner"
+		Mode.CENTER_TO_CENTER:
+			return "centre to centre"
+	return "corner to corner"
 
 
 ## Everything can_see() needs, from a MapPlanValidator.validate() result: {blockers, floors, squares}. Build it once, ask many times.
@@ -63,8 +79,8 @@ static func can_see(context: Dictionary, from_square: Vector2i, from_height: int
 		return true
 	var a := float(from_height) + EYE_HEIGHT
 	var b := float(to_height) + EYE_HEIGHT
-	for from_corner in _corners(from_square):
-		for to_corner in _corners(to_square):
+	for from_corner in _points(from_square, true):
+		for to_corner in _points(to_square, false):
 			if _clear(context, from_corner, a, to_corner, b):
 				return true
 	return false
@@ -109,6 +125,14 @@ static func render(result: Dictionary, square: Vector2i, height: int) -> String:
 
 
 # ---------------------------------------------------------------- the line itself
+
+## The points of a square a line may use in the current mode (`viewer` = the square the line starts in).
+static func _points(square: Vector2i, viewer: bool) -> Array[Vector2]:
+	var centre: Array[Vector2] = [Vector2(square.x + 0.5, square.y + 0.5)]
+	if mode == Mode.CENTER_TO_CENTER or (mode == Mode.CENTER_TO_CORNER and viewer):
+		return centre
+	return _corners(square)
+
 
 static func _corners(square: Vector2i) -> Array[Vector2]:
 	return [
