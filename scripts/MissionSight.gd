@@ -35,10 +35,13 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 	return {"sight": sight, "squares": squares, "links": _links(props, squares)}
 
 
+## The 8 neighbours of a column: moving diagonally costs one step like any other.
+const STEPS_8: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
+
 ## The shortest route (in steps) from `start` (x, height, z) to every square it can reach: one step to a touching square at the same height,
 ## and one step along a stair or ladder to the height above. Solid pieces are NOT in the way (they can be destroyed or opened).
 static func routes(data: Dictionary, start: Vector3i) -> Dictionary:
-	# RANGE: the shortest horizontal / vertical route in squares between the two columns (holes are walked around). HEIGHT DOES NOT COUNT:
+	# RANGE: the shortest route in squares, diagonals included (every square touching the start's corner or edge is 1, like a circle expanding) between the two columns (holes are walked around). HEIGHT DOES NOT COUNT:
 	# a square one or two levels up or down is as far away as the same square on the ground, and levels do not have to be walkable to each
 	# other (a shot does not need a stair), so every square of every level gets the number of its column. A square on another level in
 	# the viewer's own column gets 1 (the viewer's own square is 0).
@@ -53,7 +56,7 @@ static func routes(data: Dictionary, start: Vector3i) -> Dictionary:
 	while head < queue.size():
 		var current := queue[head]
 		head += 1
-		for step in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		for step in STEPS_8:
 			var next: Vector2i = current + step
 			if columns.has(next) and not column_distance.has(next):
 				column_distance[next] = column_distance[current] + 1

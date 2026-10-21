@@ -2,8 +2,8 @@ class_name LineOfSightMode
 extends Node3D
 
 ## Line of sight / range tool - toggled from the Gear menu's "Line of Sight". While active, a left click on a floor tile square (on ANY level)
-## marks it as a figure standing there, and every square that figure can SEE gets a coloured number: the range to it: the shortest horizontal / vertical
-## route in squares (holes are walked around, solid pieces are not in the way); height does not count. Squares without a line of sight get NO number. Colours: 1 green, 2 yellow, 3-4 orange, 5+ red.
+## marks it as a figure standing there, and every square that figure can SEE gets a coloured number: the range to it: the shortest route in squares, diagonals
+## included (every square touching the viewer's is 1) (holes are walked around, solid pieces are not in the way); height does not count. Squares without a line of sight get NO number. Colours: 1 green, 2 yellow, 3-4 orange, 5+ red.
 ##
 ## Sight is the author's rule (SightLine; the Options setting picks centre to corner by default), at figure height, blocked by trees, tall / medium pillars, gates and an
 ## archway's end posts, never through a floor, no limit up or down; the levels are the heights (MissionSight). Squares of revealed floor and
