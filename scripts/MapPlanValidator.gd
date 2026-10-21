@@ -410,16 +410,12 @@ static func _check_creature(creature: Dictionary, label: String, floor_cells: Di
 
 
 ## The walkable floor should be one connected area: floors at one height connect by touching, floors at different heights only through a
-## stair (its high end touches the upper floor) or a ladder (the upper floor touches the ladder's square). Several separate groups is a
-## warning, since a plan may build a part up on purpose.
+## stair (its high end touches the upper floor) or a ladder (the upper floor touches the ladder's square). Solid pieces are ignored here
+## (see below). Several separate groups is an ERROR - a part of the map nobody can reach is a design flaw.
 static func _check_connected(pieces: Array[Dictionary], floor_cells: Dictionary, standing: Dictionary, result: Dictionary) -> void:
-	# the walkable cells: floor, minus whatever solid stands on it
-	var walkable: Dictionary = floor_cells.duplicate()
-	for piece in pieces:
-		if BuildRules.OPENABLE.has(piece["mesh"]):
-			continue  # a gate or fence is removed by interacting with it: it does not cut the floor for good
-		for cell in piece["solid_cells"]:
-			walkable.erase(Vector3i(cell.x, piece["height"], cell.z))
+	# Walkable = all the floor. Solid pieces are NOT taken out: gates open, barricades get destroyed, and a room walled off for good would be
+	# pointless, so only the floor itself (touching tiles, stairs, ladders) decides whether the map hangs together.
+	var walkable: Dictionary = floor_cells
 	# label every walkable island: touching cells at one height
 	var island_of: Dictionary = {}  # Vector3i -> island id
 	var island_height: Array[int] = []
@@ -514,7 +510,7 @@ static func _check_connected(pieces: Array[Dictionary], floor_cells: Dictionary,
 			heights.sort()
 			parts.append("group %d: height%s %s, about %d squares" % [number, "s" if heights.size() > 1 else "", ", ".join(heights.map(func(h): return str(h))), int(round(float(groups[root]["cells"]) / 4.0))])
 			number += 1
-		_add(result, "warning", "disconnected_floor", -1, "The walkable floor is in %d separate groups that do not connect (%s). Floors at different heights connect only through a stair or ladder." % [groups.size(), "; ".join(parts)])
+		_add(result, "error", "disconnected_floor", -1, "The walkable floor is in %d separate groups that do not connect (%s). Floors at different heights connect only through a stair or ladder." % [groups.size(), "; ".join(parts)])
 
 
 ## Copies used per physical piece (the two faces of a tile, or of a hazard card, are ONE piece) against what the box has.
@@ -596,7 +592,7 @@ static func format_issues(result: Dictionary) -> String:
 
 
 ## A text picture of the pieces at one HEIGHT at tile-square resolution (x to the right, z downwards): '.' floor, '#' solid prop (or an
-## archway's end post), 'g' a gate / fence (solid, but opens) or an archway's passage, 'o' any other passable prop (stairs, tokens), '~' hazard with no floor over it, 'S' a hero's start, 'M' a monster spawn, 'C' a Centurion
+## archway's end post), 'x' a removable solid (gate, fence, barricade), 'g' an archway's passage, 'o' any other passable prop (stairs, tokens), '~' hazard with no floor over it, 'S' a hero's start, 'M' a monster spawn, 'C' a Centurion
 ## (2x2), ' ' empty. Creatures win over props, props over floor. Props show at the height of the floor they stand on.
 static func render_ascii(result: Dictionary, height: int = 0) -> String:
 	var bounds: Rect2i = result["bounds"]
@@ -604,7 +600,7 @@ static func render_ascii(result: Dictionary, height: int = 0) -> String:
 		return ""
 	var cpt := FootprintRegistry.CELLS_PER_TILE
 	var grid: Dictionary = {}  # Vector2i tile square -> char
-	var rank := {"~": 1, ".": 2, "o": 3, "g": 4, "#": 5, "S": 6, "M": 6, "C": 7}
+	var rank := {"~": 1, ".": 2, "o": 3, "g": 4, "x": 5, "#": 5, "S": 6, "M": 6, "C": 7}
 	for piece: Dictionary in result["pieces"]:
 		if piece["height"] != height:
 			continue
@@ -616,8 +612,8 @@ static func render_ascii(result: Dictionary, height: int = 0) -> String:
 			if piece["layer"] == "underlay":
 				symbol = "~"
 			elif piece["layer"] == "prop":
-				if BuildRules.OPENABLE.has(piece["mesh"]):
-					symbol = "g"
+				if BuildRules.REMOVABLE.has(piece["mesh"]):
+					symbol = "x"
 				elif solid_here.has(cell):
 					symbol = "#"
 				elif piece["mesh"] == "archway":

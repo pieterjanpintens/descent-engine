@@ -42,9 +42,10 @@ const CLIMB_RISES := {
 ## MIDDLE two squares are the passage (see solid_offsets).
 const PASSABLE := ["stair", "exploration", "interact", "umbra"]
 
-## Gates and fences are SOLID (nobody stands in or walks through them) but they remove themselves when interacted with. So they block
-## placing a figure, yet the walkable-floor check treats them as openable (a room behind a gate is not "disconnected").
-const OPENABLE := ["gate", "fence"]
+## Gates and fences are SOLID (nobody stands in or walks through them) but remove themselves when interacted with, and barricades are
+## typically destroyed. They only block placing a figure: no walking check takes solid pieces into account (a room closed off by them
+## would be pointless, so it is not modelled). Listed so the pictures can mark them.
+const REMOVABLE := ["gate", "fence", "barricade"]
 
 
 ## The fine-cell offsets (unrotated, same space as support_offsets) of the part of a piece that BLOCKS walking and standing: all of it for
@@ -111,6 +112,6 @@ static func describe() -> String:
 		"Bridges and overhangs are allowed: floors may lie over other floors if they are supported and have that much room.",
 		"Figures are 2 units tall: a square where a hero or monster stands needs 2 free units above it. The Centurion is 6 tall and covers 2x2 squares and needs 6 free units over all four - never under a bridge, floor or gateway.",
 		"Pieces other than floors stand on a floor at their own height.",
-		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors). The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
+		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
 		"Floors at different heights only connect through a stair (its high end touches the upper floor) or a ladder: a small ladder climbs 1 unit, a big ladder 1 or 2; the upper floor must touch the ladder's square.",
 	])
