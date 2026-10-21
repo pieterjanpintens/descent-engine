@@ -442,12 +442,15 @@ static func _inside(inner: Dictionary, outer: Dictionary) -> bool:
 	return true
 
 
-## A prop has to stand on floor: every cell it covers needs floor at its own height. Returns the indices of the props that do (only those
+## A prop has to stand on floor: every cell it covers needs floor at its own height (pillars and gateways at height 0 may stand on bare ground). Returns the indices of the props that do (only those
 ## can hold anything up or help anyone climb).
 static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> Dictionary:
 	var standing: Dictionary = {}
 	for piece in pieces:
 		if piece["layer"] != "prop":
+			continue
+		if piece["height"] == 0 and BuildRules.stands_on_ground(piece["mesh"]):
+			standing[piece["index"]] = true  # pillars and gateways may stand on the bare ground
 			continue
 		var missing := 0
 		for cell in piece["cells"]:
