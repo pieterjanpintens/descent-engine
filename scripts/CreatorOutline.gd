@@ -73,8 +73,8 @@ extends Tree
 ## tab is active) - this script still needs to keep that state consistent
 ## whenever ITS OWN group-CRUD actions could orphan it.
 
-enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN }
-enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP }
+enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER }
+enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER }
 
 signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
 
@@ -176,6 +176,9 @@ func _migrate_missing_ids() -> void:
 	for spawn in mission.monster_spawns:
 		if spawn.id == "":
 			spawn.id = mission.allocate_object_id()
+	for blocker in mission.los_blockers:
+		if blocker.id == "":
+			blocker.id = mission.allocate_object_id()
 
 
 func _rebuild_tree() -> void:
@@ -235,6 +238,14 @@ func _rebuild_tree() -> void:
 		spawn_item.set_text(0, spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d (%d tiles)" % [spawn_index + 1, spawn.cells.size()])
 		spawn_item.set_metadata(0, {"type": SelectionType.MONSTER_SPAWN, "id": spawn.id})
 		_id_to_item[spawn.id] = spawn_item
+
+	for blocker_index in mission.los_blockers.size():
+		var blocker: LosBlocker = mission.los_blockers[blocker_index]
+		var blocker_parent: TreeItem = _id_to_item.get(blocker.parent_id, root_item)
+		var blocker_item := create_item(blocker_parent)
+		blocker_item.set_text(0, blocker.reference_name if blocker.reference_name != "" else "LOS Blocker %d (%d squares)" % [blocker_index + 1, blocker.cells.size()])
+		blocker_item.set_metadata(0, {"type": SelectionType.LOS_BLOCKER, "id": blocker.id})
+		_id_to_item[blocker.id] = blocker_item
 
 	# Re-select whatever was selected before this rebuild - ALL of it, not
 	# just one item. Floor/underlay edits already fire mission_objects_changed
@@ -377,6 +388,20 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 					if jump_camera:
 						creator_controller.jump_to_cell(fine_origin, layered_map.floor_grid)
 					return
+		SelectionType.LOS_BLOCKER:
+			var blocker := _find_blocker_by_id(id)
+			if blocker != null:
+				creator_controller.set_active_los_blocker(blocker.id)
+				if not blocker.cells.is_empty():
+					var first_square := blocker.cells[0]
+					var fine_start := FootprintRegistry.tile_square_to_fine_far_corner(first_square)
+					var square_offsets: Array[Vector3i] = []
+					for cell in blocker.cells:
+						square_offsets.append(cell - first_square)
+					creator_controller.highlight_footprint(fine_start, FootprintRegistry.expand_footprint(square_offsets), layered_map.floor_grid)
+					if jump_camera:
+						creator_controller.jump_to_cell(fine_start, layered_map.floor_grid)
+					return
 	creator_controller.clear_selection_highlight()
 
 
@@ -395,6 +420,11 @@ func _on_object_picked(_kind: String, id: String) -> void:
 	scroll_to_item(item)
 	_recompute_selected_ids()
 	_emit_selection_changed(false)
+
+
+## Selects the tree item with this id from outside (the toolbar's problems list: "Show"); no camera jump.
+func select_id(id: String) -> void:
+	_on_object_picked("", id)
 
 
 func _on_item_edited() -> void:
@@ -426,6 +456,13 @@ func _find_spawn_by_id(id: String) -> MonsterSpawn:
 	for spawn in layered_map.mission.monster_spawns:
 		if spawn.id == id:
 			return spawn
+	return null
+
+
+func _find_blocker_by_id(id: String) -> LosBlocker:
+	for blocker in layered_map.mission.los_blockers:
+		if blocker.id == id:
+			return blocker
 	return null
 
 
@@ -511,6 +548,10 @@ func _populate_context_menu(type: SelectionType) -> void:
 			_add_move_to_submenu()
 		SelectionType.OBJECT, SelectionType.TILE, SelectionType.MONSTER_SPAWN:
 			_add_move_to_submenu()
+		SelectionType.LOS_BLOCKER:
+			_add_move_to_submenu()
+			_context_menu.add_separator()
+			_context_menu.add_item("Delete LOS Blocker", _ContextAction.DELETE_BLOCKER)
 
 
 func _add_move_to_submenu() -> void:
@@ -564,6 +605,8 @@ func _on_context_menu_id_pressed(id: int) -> void:
 			_begin_rename_group(_context_target_id)
 		_ContextAction.DELETE_GROUP:
 			_delete_group(_context_target_id)
+		_ContextAction.DELETE_BLOCKER:
+			_delete_blocker(_context_target_id)
 
 
 func _create_group(parent_id: String) -> void:
@@ -610,6 +653,9 @@ func _delete_group(group_id: String) -> void:
 		for spawn in mission.monster_spawns:
 			if spawn.parent_id == group_id:
 				spawn.parent_id = group.parent_id
+		for blocker in mission.los_blockers:
+			if blocker.parent_id == group_id:
+				blocker.parent_id = group.parent_id
 		mission.groups.erase(group)
 	)
 	layered_map.notify_objects_changed()
@@ -621,6 +667,20 @@ func _delete_group(group_id: String) -> void:
 	# above, rather than reset all the way to root.
 	if creator_controller.working_group_id == group_id:
 		creator_controller.set_working_group(group.parent_id)
+
+
+## Deletes a LOS blocker entity (the only entity type deletable from the tree: it has no GridMap presence, so removing it is just data).
+func _delete_blocker(blocker_id: String) -> void:
+	var blocker := _find_blocker_by_id(blocker_id)
+	if blocker == null:
+		return
+	operation_history.record("Delete LOS blocker", func():
+		layered_map.mission.los_blockers.erase(blocker)
+	)
+	if creator_controller.active_los_blocker_id == blocker_id:
+		creator_controller.set_active_los_blocker("")
+	creator_controller.layered_map.refresh_blocker_overlay()
+	layered_map.notify_objects_changed()
 
 
 func _on_move_to_menu_id_pressed(id: int) -> void:
@@ -635,6 +695,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 	var entry: InteractableEntry = null
 	var placement: TilePlacement = null
 	var spawn: MonsterSpawn = null
+	var los_blocker: LosBlocker = null
 	match _context_target_type:
 		SelectionType.GROUP:
 			group = _find_group_by_id(_context_target_id)
@@ -644,9 +705,11 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			placement = _find_tile_by_id(_context_target_id)
 		SelectionType.MONSTER_SPAWN:
 			spawn = _find_spawn_by_id(_context_target_id)
+		SelectionType.LOS_BLOCKER:
+			los_blocker = _find_blocker_by_id(_context_target_id)
 		_:
 			return
-	if group == null and entry == null and placement == null and spawn == null:
+	if group == null and entry == null and placement == null and spawn == null and los_blocker == null:
 		return
 
 	operation_history.record("Move to group", func():
@@ -658,5 +721,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			placement.parent_id = new_parent_id
 		elif spawn != null:
 			spawn.parent_id = new_parent_id
+		elif los_blocker != null:
+			los_blocker.parent_id = new_parent_id
 	)
 	layered_map.notify_objects_changed()

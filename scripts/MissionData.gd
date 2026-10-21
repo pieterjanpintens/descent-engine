@@ -85,6 +85,9 @@ extends Resource
 ## shown, round 1 just starts) - not every mission needs this authored yet.
 @export var player_spawn_cells: Array[Vector3i] = []
 
+## Virtual line-of-sight walls (see LosBlocker): entities that can sit in a group/stage, so they only count once revealed.
+@export var los_blockers: Array[LosBlocker] = []
+
 ## The ROOTS of a DAG of MissionObjective nodes - not necessarily WIN/LOSE
 ## leaves themselves, see MissionObjective's own doc for the full design
 ## (reworked 2026-09-12 from a flat list). Plural roots are fine - e.g. a
@@ -150,6 +153,9 @@ func find_node_by_id(id: String) -> OutlineNode:
 	for spawn in monster_spawns:
 		if spawn.id == id:
 			return spawn
+	for blocker in los_blockers:
+		if blocker.id == id:
+			return blocker
 	return null
 
 

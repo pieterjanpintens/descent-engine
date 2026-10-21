@@ -60,6 +60,21 @@ var monster_overlay_active_id: String = ""
 ## Number labels for the monster spawn tiles (Creator only).
 var _monster_labels: Node3D
 
+## Violet overlay for MissionData.los_blocker_cells (virtual line-of-sight walls, Creator only).
+var _blocker_overlay: MeshInstance3D
+var _blocker_overlay_mesh: ImmediateMesh
+const LOS_BLOCKER_COLOR := Color(0.55, 0.3, 0.95, 0.5)
+var _blocker_lines: MeshInstance3D
+var _blocker_lines_mesh: ImmediateMesh
+## The Player's wall outline is drawn like charcoal: near-black, a wobbly path, uneven thickness and a second thinner grainy pass.
+const BLOCKER_LINE_COLOR := Color(0.03, 0.025, 0.02, 0.96)
+## A faint pale smudge drawn under the stroke so black still reads on a dark floor (like charcoal dust).
+const BLOCKER_DUST_COLOR := Color(0.78, 0.74, 0.66, 0.1)
+const CHARCOAL_STEP := 0.12        # world units between the points of a stroke (fine, so it reads as smooth, not blocky)
+const CHARCOAL_LATTICE := 1.1      # world units between the random values the wobble is interpolated from
+const CHARCOAL_WOBBLE := 0.1      # how far the stroke may wander off the straight edge
+const CHARCOAL_WIDTH := 0.24       # base thickness of the main stroke
+
 
 func _ready() -> void:
 	# Only position differs between layers - cell_size and XZ cell
@@ -78,6 +93,160 @@ func _ready() -> void:
 
 	_setup_spawn_overlay()
 	_setup_monster_overlay()
+	_blocker_overlay_mesh = ImmediateMesh.new()
+	_blocker_overlay = _make_overlay_node(_blocker_overlay_mesh)
+
+
+## Id of the blocker the Creator is drawing into (drawn more opaque), see CreatorController.active_los_blocker_id.
+var blocker_overlay_active_id: String = ""
+
+
+## The violet LOS blocker squares in the Creator: every blocker, visible in its stage or not (the author edits hidden stages too).
+func refresh_blocker_overlay() -> void:
+	_blocker_overlay_mesh.clear_surfaces()
+	var any := false
+	for blocker in mission.los_blockers:
+		if not blocker.cells.is_empty():
+			any = true
+			break
+	if not any:
+		_blocker_overlay.visible = false
+		return
+	_blocker_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for blocker in mission.los_blockers:
+		var color := LOS_BLOCKER_COLOR
+		color.a = 0.65 if blocker.id == blocker_overlay_active_id else 0.35
+		for cell in blocker.cells:
+			var corners := get_tile_square_world_corners(cell)
+			for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+				_blocker_overlay_mesh.surface_set_color(color)
+				_blocker_overlay_mesh.surface_add_vertex(v)
+	_blocker_overlay_mesh.surface_end()
+	_blocker_overlay.global_transform = Transform3D.IDENTITY
+	_blocker_overlay.visible = true
+
+
+## The Player's view of the LOS blockers: a fine line along the outer edge of each blocked area (adjacent squares merge into one outline),
+## on the floor, so the table can see where shots are blocked. Only blockers in force count (MissionData.is_effectively_visible: one in a
+## stage that has not been revealed yet shows nothing). Call again after a stage is revealed (repaint_visible_entries() does).
+func refresh_blocker_lines() -> void:
+	var cells: Array[Vector3i] = []
+	for blocker in mission.los_blockers:
+		if mission.is_effectively_visible(blocker):
+			cells.append_array(blocker.cells)
+	if _blocker_lines == null:
+		_blocker_lines_mesh = ImmediateMesh.new()
+		_blocker_lines = _make_overlay_node(_blocker_lines_mesh)
+	_blocker_lines_mesh.clear_surfaces()
+	if cells.is_empty():
+		_blocker_lines.visible = false
+		return
+	var squares: Dictionary = {}
+	var unique: Array[Vector3i] = []
+	for cell in cells:
+		var key := Vector2i(cell.x, cell.z)
+		if not squares.has(key):  # several blockers may cover the same square: one outline
+			squares[key] = true
+			unique.append(cell)
+	# the outer edges of the blocked area, merged into straight runs so a long wall is ONE stroke (no joints at every square)
+	var runs: Dictionary = {}  # [axis, rounded constant coordinate] -> Array of Vector2(min, max) along the axis
+	var height := 0.0
+	for cell in unique:
+		var corners := get_tile_square_world_corners(cell)
+		var centre := (corners[0] + corners[2]) * 0.5
+		height = corners[0].y
+		for i in 4:
+			var a: Vector3 = corners[i]
+			var b: Vector3 = corners[(i + 1) % 4]
+			# which neighbouring square lies across this edge (world X/Z = tile x/z)?
+			var outward := (a + b) * 0.5 - centre
+			var neighbour := Vector2i(cell.x, cell.z)
+			if absf(outward.x) > absf(outward.z):
+				neighbour.x += 1 if outward.x > 0.0 else -1
+			else:
+				neighbour.y += 1 if outward.z > 0.0 else -1
+			if squares.has(neighbour):
+				continue
+			var along_x := absf(b.x - a.x) > absf(b.z - a.z)
+			var constant := a.z if along_x else a.x
+			var run_key := [0 if along_x else 1, roundi(constant * 100.0)]
+			if not runs.has(run_key):
+				runs[run_key] = []
+			var lo := minf(a.x, b.x) if along_x else minf(a.z, b.z)
+			var hi := maxf(a.x, b.x) if along_x else maxf(a.z, b.z)
+			runs[run_key].append(Vector2(lo, hi))
+	_blocker_lines_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for run_key: Array in runs:
+		var spans: Array = runs[run_key]
+		spans.sort_custom(func(p: Vector2, q: Vector2) -> bool: return p.x < q.x)
+		var current: Vector2 = spans[0]
+		for i in range(1, spans.size() + 1):
+			if i < spans.size() and (spans[i] as Vector2).x <= current.y + 0.01:
+				current.y = maxf(current.y, (spans[i] as Vector2).y)
+				continue
+			var constant_value := float(run_key[1]) / 100.0
+			var p0 := Vector3(current.x, height, constant_value) if run_key[0] == 0 else Vector3(constant_value, height, current.x)
+			var p1 := Vector3(current.y, height, constant_value) if run_key[0] == 0 else Vector3(constant_value, height, current.y)
+			_add_charcoal_stroke(p0, p1, 3, CHARCOAL_WIDTH * 1.8, 1.0, 0.04, BLOCKER_DUST_COLOR)  # faint dust underneath
+			_add_charcoal_stroke(p0, p1, 1, CHARCOAL_WIDTH, 1.0, 0.0, BLOCKER_LINE_COLOR)
+			_add_charcoal_stroke(p0, p1, 2, CHARCOAL_WIDTH * 0.45, 0.6, 0.05, BLOCKER_LINE_COLOR)  # thinner grainy pass, slightly off the first
+			if i < spans.size():
+				current = spans[i]
+	_blocker_lines_mesh.surface_end()
+	_blocker_lines.global_transform = Transform3D.IDENTITY
+	_blocker_lines.visible = true
+
+
+## One hand-drawn charcoal stroke from `a` to `b` (world points): a ribbon lying on the floor whose path wanders a little, whose thickness and
+## opacity vary along its length, and which tapers into the corners. All randomness comes from a hash of the edge's position, so the same wall
+## always looks the same (it does not shimmer when the outline is rebuilt). `seed` differs per pass, `offset` shifts the pass sideways.
+func _add_charcoal_stroke(a: Vector3, b: Vector3, seed: int, width: float, alpha: float, offset: float, color: Color) -> void:
+	var length := a.distance_to(b)
+	if length < 0.001:
+		return
+	var dir := (b - a) / length
+	var perp := Vector3(-dir.z, 0.0, dir.x)
+	# stretch past the corners a little so two strokes meeting at a corner overlap instead of leaving a notch
+	var start := a - dir * width * 0.4
+	var span := length + width * 0.8
+	var steps := maxi(2, ceili(span / CHARCOAL_STEP))
+	var key := Vector3i(roundi(a.x * 20.0), roundi(a.z * 20.0), seed + roundi(b.x * 20.0) * 31 + roundi(b.z * 20.0) * 17)
+	var lift := Vector3(0.0, 0.004 * (seed if seed < 3 else 0), 0.0)  # the dust pass lies lowest
+	var left_prev := Vector3.ZERO
+	var right_prev := Vector3.ZERO
+	var alpha_prev := 0.0
+	for i in steps + 1:
+		var t := float(i) / steps
+		var along := span * t
+		var taper := pow(sin(PI * t), 0.25)  # 0 at both ends so the stroke starts and stops softly
+		var wander := (_charcoal_noise(key, along / CHARCOAL_LATTICE, 0) * 2.0 - 1.0) * CHARCOAL_WOBBLE * taper
+		var thick := width * (0.8 + 0.45 * _charcoal_noise(key, along / (CHARCOAL_LATTICE * 1.6), 1)) * (0.7 + 0.3 * taper)
+		var fade := alpha * (0.8 + 0.2 * _charcoal_noise(key, along / (CHARCOAL_LATTICE * 0.5), 2))
+		var centre := start + dir * along + perp * (wander + offset * (_charcoal_noise(key, along / CHARCOAL_LATTICE, 3) * 2.0 - 1.0)) + lift
+		var left := centre + perp * thick * 0.5
+		var right := centre - perp * thick * 0.5
+		if i > 0:
+			var c0 := color
+			c0.a *= alpha_prev
+			var c1 := color
+			c1.a *= fade
+			for corner in [[left_prev, c0], [right_prev, c0], [left, c1], [right_prev, c0], [right, c1], [left, c1]]:
+				_blocker_lines_mesh.surface_set_color(corner[1])
+				_blocker_lines_mesh.surface_add_vertex(corner[0])
+		left_prev = left
+		right_prev = right
+		alpha_prev = fade
+
+
+## Smooth random value 0..1 at `x` along a line (value noise: hashed values at whole numbers, eased in between). `key` identifies the line,
+## `channel` the quantity (wander, thickness, opacity ...).
+func _charcoal_noise(key: Vector3i, x: float, channel: int) -> float:
+	var k := floori(x)
+	var f := x - k
+	f = f * f * (3.0 - 2.0 * f)
+	var v0 := float(hash(Vector4i(key.x, key.y, key.z, k * 8 + channel)) & 0xFFFF) / 65535.0
+	var v1 := float(hash(Vector4i(key.x, key.y, key.z, (k + 1) * 8 + channel)) & 0xFFFF) / 65535.0
+	return lerpf(v0, v1, f)
 
 
 func _setup_spawn_overlay() -> void:
@@ -579,6 +748,11 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	# showing. The Player shows it itself, before round 1.
 	if _spawn_overlay != null and not respect_visibility:
 		set_spawn_overlay_cells(mission.player_spawn_cells)
+	# Virtual LOS walls: the Creator draws them all as a fill; the Player shows a fine outline of the ones in force.
+	if _blocker_overlay != null and not respect_visibility:
+		refresh_blocker_overlay()
+	elif respect_visibility:
+		refresh_blocker_lines()
 
 	# A whole new mission's worth of interactables/groups just got swapped
 	# in (New/Load in the Creator) - CreatorOutline.gd needs to rebuild its
@@ -638,6 +812,7 @@ func repaint_visible_entries() -> void:
 	underlay_grid.clear()
 	prop_grid.clear()
 	_paint_all()
+	refresh_blocker_lines()
 
 
 ## MeshLibrary only looks up items by numeric id, not name - this does the

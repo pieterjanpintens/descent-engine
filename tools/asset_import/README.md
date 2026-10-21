@@ -89,7 +89,7 @@ Adding a new placeholder-texture-path entry to `OfficialAssetMap.gd`'s `MAP` dic
 is enough for the importer and the runtime swap to both pick it up automatically -
 nothing else to touch, *except*: `OfficialAssetOverrides._apply_to_item()`
 currently only handles single-surface meshes (verified true for everything matched
-so far). Some meshes in `descent-meshes.tres` (the "medium"/"mini" pillars) do have
+so far). Some meshes in `descent-meshes.res` (the "medium"/"mini" pillars) do have
 multiple surfaces/materials - if a future entry needs one of those, that function
 needs extending to loop surfaces rather than just touching surface 0.
 

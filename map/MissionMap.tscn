@@ -81,11 +81,12 @@ script = ExtResource("16_playmenu")
 layered_map = NodePath("../../../../LayeredMap")
 save_load = NodePath("../File")
 
-[node name="Toolbar" type="HBoxContainer" parent="CanvasLayer/MainLayout" node_paths=PackedStringArray("creator_controller", "layered_map")]
+[node name="Toolbar" type="HBoxContainer" parent="CanvasLayer/MainLayout" node_paths=PackedStringArray("creator_controller", "layered_map", "creator_outline")]
 layout_mode = 2
 script = ExtResource("14_toolbar")
 creator_controller = NodePath("../../../CreatorController")
 layered_map = NodePath("../../../LayeredMap")
+creator_outline = NodePath("../EditorArea/SidePanel/Outline/Split/OutlineTree")
 
 [node name="EditorArea" type="HBoxContainer" parent="CanvasLayer/MainLayout"]
 layout_mode = 2

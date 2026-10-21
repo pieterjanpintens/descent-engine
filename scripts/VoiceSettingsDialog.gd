@@ -92,6 +92,20 @@ func _ready() -> void:
 		PlayerSettings.save_settings())
 	general.add_child(camera_check)
 
+	var sight_label := Label.new()
+	sight_label.text = "Line of sight rule"
+	general.add_child(sight_label)
+	var sight_option := OptionButton.new()
+	sight_option.add_item("Centre to corner (recommended)", SightLine.Mode.CENTER_TO_CORNER)
+	sight_option.add_item("Corner to corner (loose, Descent 2)", SightLine.Mode.CORNER_TO_CORNER)
+	sight_option.add_item("Centre to centre (strict)", SightLine.Mode.CENTER_TO_CENTER)
+	sight_option.select(sight_option.get_item_index(PlayerSettings.sight_rule))
+	sight_option.tooltip_text = "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+	sight_option.item_selected.connect(func(index: int):
+		PlayerSettings.sight_rule = sight_option.get_item_id(index)
+		PlayerSettings.save_settings())
+	general.add_child(sight_option)
+
 	if AppUpdater.current_version() != "":
 		var update_check := CheckBox.new()
 		update_check.text = "Check for a newer version of the app at the main menu"
