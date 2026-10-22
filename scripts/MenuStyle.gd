@@ -30,7 +30,7 @@ static func font(weight: int = 900) -> Font:
 
 
 ## A Label with the logo-style shadow (Button has no shadow in its theme, Label does): near black, extruded under the letters.
-static func shadow_label(text: String, size: int, color: Color, shadow_color: Color = SHADOW_COLOR) -> Label:
+static func shadow_label(text: String, size: int, color: Color, shadow_color: Color = SHADOW_COLOR, shadow: bool = true) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -39,6 +39,8 @@ static func shadow_label(text: String, size: int, color: Color, shadow_color: Co
 	label.add_theme_font_override("font", font())
 	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", color)
+	if not shadow:
+		return label
 	# like the logo: a solid shadow extruded under the letters (light from above), none on top
 	label.add_theme_color_override("font_shadow_color", shadow_color)
 	label.add_theme_constant_override("shadow_offset_x", 1)
@@ -102,7 +104,7 @@ static func framed_button(text: String, wide: bool, size: Vector2, on_pressed: C
 		button.add_theme_stylebox_override(state, style)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	if text != "":
-		var label := shadow_label(text, 20, TEXT_COLOR, Color(0.03, 0.1, 0.25, 1.0))
+		var label := shadow_label(text, 20, TEXT_COLOR, SHADOW_COLOR, false)
 		label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		button.add_child(label)
 	button.pressed.connect(on_pressed)
