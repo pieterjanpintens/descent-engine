@@ -12,7 +12,7 @@ extends Control
 @onready var save_dialog: FileDialog = %SaveFileDialog
 var main_panel: VBoxContainer
 var editors_panel: VBoxContainer
-var _load_entry: Button
+var _load_entry: Control
 
 ## The credits page: [role, names] pairs - add a line here to credit someone.
 const CREDITS: Array = [
@@ -43,7 +43,7 @@ func _ready() -> void:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
 	_build_menu()
-	_load_entry.disabled = not CampaignIO.has_saves()
+	MenuStyle.set_entry_disabled(_load_entry, not CampaignIO.has_saves())
 	_build_credits_panel()
 	await _build_update_banner()
 
@@ -84,7 +84,7 @@ func _build_menu() -> void:
 
 	main_panel = _page(column)
 	var load_box := MenuStyle.entry("Load game", _on_load_campaign_button_pressed)
-	_load_entry = load_box.get_child(0) as Button
+	_load_entry = load_box
 	main_panel.add_child(load_box)
 	main_panel.add_child(MenuStyle.entry("New game", _on_new_campaign_button_pressed))
 	main_panel.add_child(MenuStyle.entry("Editor", _on_editors_button_pressed))
