@@ -82,6 +82,10 @@ var _problems_dialog: AcceptDialog
 var _problems_list: VBoxContainer
 var _problem_lines: Array[String] = []
 var _materials_dialog: LootDialog
+var _potion_spin: SpinBox
+var _brooch_option: OptionButton
+var _brooch_properties: Button
+var _brooch_dialog: MonsterPropertiesDialog
 var _map_view: CampaignMapView
 var _chapter_panel: VBoxContainer
 var _suppress: bool = false
@@ -261,6 +265,60 @@ func _ready() -> void:
 	)
 	_sell_spin = sell_spin
 	sell_row.add_child(sell_spin)
+	var potion_row := HBoxContainer.new()
+	general.add_child(potion_row)
+	potion_row.add_child(_label("Consumables per player:"))
+	var potion_spin := SpinBox.new()
+	potion_spin.min_value = 0
+	potion_spin.max_value = 20
+	potion_spin.value = _campaign.consumables_per_player if _campaign != null else 3
+	potion_spin.tooltip_text = "How many crafted consumables each player may take into a mission (shown at embark, 3 normally). Crafted consumables are available again every mission."
+	potion_spin.value_changed.connect(func(value: float):
+		if _campaign != null:
+			_campaign.consumables_per_player = int(value)
+			_mark_dirty()
+	)
+	_potion_spin = potion_spin
+	potion_row.add_child(potion_spin)
+	var brooch_row := HBoxContainer.new()
+	general.add_child(brooch_row)
+	brooch_row.add_child(_label("Tarnished Brooch monster:"))
+	_brooch_option = OptionButton.new()
+	_brooch_option.tooltip_text = "The monster that spawns with the first monster of a mission when a hero wears the Tarnished Brooch. The wearer must defeat it 3 times (over all missions) to unlock the Brooch's + side. None = the Brooch is out of the game in this campaign."
+	_brooch_option.add_item("(none - no Brooch)", -1)
+	for monster_index in MonsterDisplay.REAL_MONSTERS.size():
+		_brooch_option.add_item(str(MonsterDisplay.REAL_MONSTERS[monster_index]["name"]), monster_index)
+	_brooch_option.item_selected.connect(func(index: int):
+		if _campaign == null:
+			return
+		var id := _brooch_option.get_item_id(index)
+		if id < 0:
+			_campaign.brooch_monster = null
+		else:
+			if _campaign.brooch_monster == null:
+				_campaign.brooch_monster = MonsterTemplate.create_with_default_base()
+				if _campaign.brooch_monster == null:
+					OS.alert("Every monster needs a base template. Create one first (Monster Templates in the mission editor).", "No base template")
+					_refresh_brooch_row()
+					return
+			_campaign.brooch_monster.folder = str(MonsterDisplay.REAL_MONSTERS[id]["folder"])
+		_mark_dirty()
+		_refresh_brooch_row()
+	)
+	brooch_row.add_child(_brooch_option)
+	_brooch_properties = _button("Properties…", func():
+		if _campaign == null or _campaign.brooch_monster == null:
+			return
+		if _brooch_dialog == null:
+			_brooch_dialog = MonsterPropertiesDialog.new()
+			add_child(_brooch_dialog)
+		_brooch_dialog.commit_field = func(_label_text: String, mutate: Callable):
+			mutate.call()
+			_mark_dirty()
+		_brooch_dialog.on_changed = func(): _refresh_brooch_row()
+		_brooch_dialog.open_for(_campaign.brooch_monster)
+	)
+	brooch_row.add_child(_brooch_properties)
 
 	# --- Acts: the list and what belongs to the act picked in it
 	var left := _tab_page("Acts")
@@ -1281,6 +1339,7 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	kind_option.add_item("Market (buy and sell materials)", CampaignPlace.Kind.MARKET)
 	kind_option.add_item("Recipe shop (rotating recipes)", CampaignPlace.Kind.RECIPE_SHOP)
 	kind_option.add_item("Smithy (forge from recipes)", CampaignPlace.Kind.SMITHY)
+	kind_option.add_item("Alchemist (brew potions from recipes)", CampaignPlace.Kind.ALCHEMIST)
 	kind_option.add_item("Offers (authored)", CampaignPlace.Kind.OFFERS)
 	kind_option.select(kind_option.get_item_index(place.kind))
 	kind_option.item_selected.connect(func(index: int):
@@ -1303,6 +1362,8 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 			_chapter_panel.add_child(_wrapped_label("Players buy any material here at its full gold value and sell materials at the campaign's sell percentage (General tab)."))
 		CampaignPlace.Kind.SMITHY:
 			_chapter_panel.add_child(_wrapped_label("Players forge the items of recipes they own from materials. Recipes are sold in a recipe shop."))
+		CampaignPlace.Kind.ALCHEMIST:
+			_chapter_panel.add_child(_wrapped_label("Players brew consumables (potions) from recipes they own and materials, as often as they like. Potion recipes are sold in a recipe shop or found as loot. Crafted potions are never used up: they are available again in every mission."))
 		CampaignPlace.Kind.RECIPE_SHOP:
 			_build_recipe_shop_settings(act, place)
 		_:
@@ -1540,6 +1601,27 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 		_mark_dirty()
 	)
 	armor_row.add_child(armor_option)
+	var trinket_row := HBoxContainer.new()
+	box.add_child(trinket_row)
+	trinket_row.add_child(_label("Trinket card:"))
+	var trinket_option := OptionButton.new()
+	trinket_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	trinket_option.add_item("(no trinket)")
+	var trinket_ids: Array[String] = []
+	for trinket in TrinketData.all():
+		trinket_ids.append(str(trinket["id"]))
+		trinket_option.add_item(TrinketData.label(str(trinket["id"])))
+	var trinket_index := trinket_ids.find(offer.trinket)
+	if offer.trinket != "" and trinket_index < 0:
+		trinket_option.add_item("%s (unknown)" % offer.trinket)
+		trinket_option.select(trinket_option.item_count - 1)
+	else:
+		trinket_option.select(trinket_index + 1 if trinket_index >= 0 else 0)
+	trinket_option.item_selected.connect(func(index: int):
+		offer.trinket = trinket_ids[index - 1] if index >= 1 and index <= trinket_ids.size() else ""
+		_mark_dirty()
+	)
+	trinket_row.add_child(trinket_option)
 	var once_check := CheckBox.new()
 	once_check.text = "Only once"
 	once_check.button_pressed = offer.once
@@ -1566,6 +1648,8 @@ func _refresh_all() -> void:
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
 	_sell_spin.set_value_no_signal(_campaign.sell_percent)
+	_potion_spin.set_value_no_signal(_campaign.consumables_per_player)
+	_refresh_brooch_row()
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")
 	_cover_preview.texture = CampaignIO.image_texture(_folder, _campaign.cover_image)
 	_cover_preview.visible = _cover_preview.texture != null
@@ -1595,6 +1679,19 @@ func _refresh_act() -> void:
 	_update_problems()
 
 
+func _refresh_brooch_row() -> void:
+	if _brooch_option == null or _campaign == null:
+		return
+	var monster := _campaign.brooch_monster
+	var selected := 0
+	if monster != null:
+		for monster_index in MonsterDisplay.REAL_MONSTERS.size():
+			if MonsterDisplay.REAL_MONSTERS[monster_index]["folder"] == monster.folder:
+				selected = _brooch_option.get_item_index(monster_index)
+	_brooch_option.select(selected)
+	_brooch_properties.disabled = monster == null
+
+
 func _update_problems() -> void:
 	if _campaign == null:
 		return
@@ -1606,6 +1703,8 @@ func _update_problems() -> void:
 	for problem in _campaign.side_quest_problems(files):
 		lines.append(problem)
 	for problem in _campaign.starting_set_problems():
+		lines.append(problem)
+	for problem in _campaign.brooch_problems():
 		lines.append(problem)
 	for problem in CampaignIO.mission_link_problems(_campaign, _folder):
 		lines.append(problem)

@@ -1,0 +1,279 @@
+{
+ "TRINKET1_ID": {
+  "name": "Bloodthirsty Bracers",
+  "effects": [
+   {
+    "type": "bonus_flat",
+    "n": 3,
+    "to": {
+     "damaged": true
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "bonus_flat",
+    "n": 5,
+    "to": {
+     "damaged": true
+    }
+   }
+  ]
+ },
+ "TRINKET12_ID": {
+  "name": "War Rune",
+  "effects": [
+   {
+    "type": "damage",
+    "flat": 1,
+    "to": {
+     "most_health": true
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage",
+    "flat": 2,
+    "to": {
+     "most_health": true
+    }
+   }
+  ]
+ },
+ "TRINKET9_ID": {
+  "name": "Stormbound Pendant",
+  "effects": [
+   {
+    "type": "bonus_roll",
+    "min": 1,
+    "max": 7,
+    "to": {
+     "not_attacked": true
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "bonus_roll",
+    "min": 1,
+    "max": 9,
+    "to": {
+     "not_attacked": true
+    }
+   }
+  ]
+ },
+ "TRINKET15_ID": {
+  "name": "Cracked Mirror",
+  "effects": [
+   {
+    "type": "random_status",
+    "count": 1,
+    "to": {
+     "not_attacked": true
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "LUMOS"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   },
+   {
+    "type": "random_status",
+    "count": 1,
+    "to": {
+     "not_attacked": true
+    }
+   }
+  ]
+ },
+ "TRINKET20_ID": {
+  "name": "Rusted Nail",
+  "effects": [
+   {
+    "type": "random_damage_type"
+   },
+   {
+    "type": "reveal_weakness"
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "random_damage_type"
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   },
+   {
+    "type": "reveal_weakness"
+   }
+  ]
+ },
+ "TRINKET8_ID": {
+  "name": "Shadow Bracers",
+  "effects": [
+   {
+    "type": "bonus_flat",
+    "n": 7,
+    "to": {
+     "quest_attacks_below": 3
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ],
+    "to": {
+     "quest_attacks_below": 3
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "bonus_flat",
+    "n": 10,
+    "to": {
+     "quest_attacks_below": 4
+    }
+   },
+   {
+    "type": "conditions",
+    "kinds": [
+     "DAZED"
+    ],
+    "to": {
+     "quest_attacks_below": 4
+    }
+   }
+  ]
+ },
+ "TRINKET7_ID": {
+  "name": "Mana Weave",
+  "effects": [
+   {
+    "type": "chance_bonus",
+    "pct": 5,
+    "to": {
+     "first_attack_round": true
+    }
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "AQUOS"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   },
+   {
+    "type": "chance_bonus",
+    "pct": 5,
+    "to": {
+     "first_attack_round": true
+    }
+   }
+  ]
+ },
+ "TRINKET13_ID": {
+  "name": "Bolt of Blood",
+  "effects": [
+   {
+    "type": "kill_chain",
+    "pct": 10
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "VIGOS"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   },
+   {
+    "type": "kill_chain",
+    "pct": 10
+   }
+  ]
+ },
+ "TRINKET19_ID": {
+  "name": "Prescient Charm",
+  "effects": [],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "FORTUNOS"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   }
+  ]
+ },
+ "TRINKET11_ID": {
+  "name": "Wanderer's Stone",
+  "effects": [],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "ANEMOS"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   }
+  ]
+ },
+ "TRINKET16_ID": {
+  "name": "Fae Crystal",
+  "effects": [
+   {
+    "type": "benefit",
+    "chance": 30
+   }
+  ],
+  "upgraded_effects": [
+   {
+    "type": "benefit",
+    "chance": 50
+   }
+  ]
+ },
+ "TRINKET5_ID": {
+  "name": "Ironbound Rune",
+  "effects": [],
+  "upgraded_effects": [
+   {
+    "type": "damage_types",
+    "kinds": [
+     "TERROS"
+    ]
+   },
+   {
+    "type": "damage",
+    "flat": 1
+   }
+  ]
+ }
+}

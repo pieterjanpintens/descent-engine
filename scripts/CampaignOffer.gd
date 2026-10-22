@@ -19,6 +19,8 @@ extends Resource
 @export var weapon: String = ""
 ## Base id of the armor card (ArmorData) it gives, "" = none.
 @export var armor: String = ""
+## Base id of the trinket card (TrinketData) it gives, "" = none.
+@export var trinket: String = ""
 ## The card(s) it gives come with their upgraded "+" side up - buying it for a card the party already owns upgrades that card.
 @export var upgraded: bool = false
 @export var once: bool = true

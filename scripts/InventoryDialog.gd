@@ -2,13 +2,13 @@ class_name InventoryDialog
 extends Control
 
 ## The party's inventory in a campaign: gold always visible on top, then tabs for weapons (weapon cards, runes and the B / C
-## parts), armor, consumables, recipes and materials. Read-only - buying, selling and forging happen at the places on the map.
+## parts), armor, trinkets, consumables, recipes and materials. Read-only - buying, selling and forging happen at the places on the map.
 ## Built in code, modal scrim like LogDialog; open() rebuilds the tabs from the state the owner hands over.
 ##
 ## Every item is a tile in a wrapping grid: its picture (from the user's own game export; a coloured tile with the first letter
 ## when the picture is not there), the name under it, a "+" badge when upgraded and a count for materials.
 ##
-## Consumables are not part of campaigns yet (the state has nothing to hold them), so that tab only says so.
+## Consumables are potions the party brewed: a tile with a count each (a potion and its "+" version are separate tiles).
 
 ## Assigned by the owner: returns the CampaignState to show.
 var state_provider: Callable
@@ -78,7 +78,8 @@ func open() -> void:
 	_gold_label.text = "Gold: %d" % state.gold
 	_add_tab("Weapons", _weapon_items(state))
 	_add_tab("Armor", _armor_items(state))
-	_add_tab("Consumables", [], "The party carries no consumables - campaigns do not hand them out yet.")
+	_add_tab("Trinkets", _trinket_items(state), "The party owns no trinkets yet - they are bought in a recipe shop or found.")
+	_add_tab("Consumables", _consumable_items(state), "The party carries no consumables - brew them at an alchemist from potion recipes.")
 	_add_tab("Recipes", _recipe_items(state), "No recipes yet - they are bought at a recipe shop.")
 	_add_tab("Materials", _material_items(state))
 	if keep_tab >= 0 and keep_tab < _tabs.get_tab_count():
@@ -127,6 +128,15 @@ func _tile_data(title: String, texture: Texture2D, upgraded: bool = false, count
 	return ItemTile.data(title, texture, upgraded, count, tooltip)
 
 
+func _consumable_items(state: CampaignState) -> Array:
+	var items: Array = []
+	for id: String in state.consumables:
+		var count := state.consumable_count(id)
+		if count > 0:
+			items.append(_tile_data(ConsumableData.label(id).trim_suffix(" +"), ConsumableData.image(id), ConsumableData.is_upgraded(id), count, ConsumableData.label(id) + "\n" + ConsumableData.rule_text(id)))
+	return items
+
+
 func _weapon_items(state: CampaignState) -> Array:
 	var items: Array = []
 	if not state.owned_weapons.is_empty():
@@ -149,6 +159,14 @@ func _armor_items(state: CampaignState) -> Array:
 	for armor_id in state.owned_armors:
 		var armor := ArmorData.find(armor_id)
 		items.append(_tile_data(str(armor.get("name", armor_id)), ArmorData.image(armor_id), state.upgraded_cards.has(armor_id), -1, ArmorData.label(armor_id)))
+	return items
+
+
+func _trinket_items(state: CampaignState) -> Array:
+	var items: Array = []
+	for trinket_id in state.owned_trinkets:
+		var upgraded := state.upgraded_cards.has(trinket_id)
+		items.append(_tile_data(TrinketData.label(trinket_id), TrinketData.image(trinket_id), upgraded, -1, TrinketData.label(trinket_id) + "\n" + TrinketData.rule_text(trinket_id, upgraded)))
 	return items
 
 

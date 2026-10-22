@@ -33,10 +33,37 @@ extends Resource
 @export var starting_upgrades: Array[String] = []
 ## Base ids of the armor cards the party owns at mission 0 (ArmorData).
 @export var starting_armors: Array[String] = []
+## Base ids of the trinket cards the party owns at mission 0 (TrinketData).
+@export var starting_trinkets: Array[String] = []
 ## The named speakers of this campaign's stories: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
 @export var characters: Array[NarratorCharacter] = []
 ## What a market pays for a material, as a percentage of its value in gold (0 = the market does not buy).
 @export var sell_percent: int = 50
+## How many consumables each player may take into a mission (3 normally). The crafted consumables are available again every mission; the app shows
+## the limit at embark but does not enforce it - the table keeps its own play area.
+@export var consumables_per_player: int = 3
+## The monster that spawns together with the first monster of a mission when a hero wears the Tarnished Brooch (see TrinketData.BROOCH_ID).
+## null = the Brooch is out of the game in this campaign.
+@export var brooch_monster: MonsterTemplate
+
+## Problems with the Tarnished Brooch: given out without a monster, or a monster without a base template.
+func brooch_problems() -> Array[String]:
+	var found: Array[String] = []
+	if brooch_monster != null and brooch_monster.base_archetype == null:
+		found.append("The Tarnished Brooch monster has no base template")
+	if brooch_monster == null:
+		var given := starting_trinkets.has(TrinketData.BROOCH_ID)
+		for act in acts:
+			for chapter in act.chapters:
+				given = given or chapter.reward_cards.has(TrinketData.BROOCH_ID)
+			for place in act.places:
+				for offer in place.offers:
+					given = given or offer.trinket == TrinketData.BROOCH_ID
+		for quest in side_quests:
+			given = given or quest.reward_cards.has(TrinketData.BROOCH_ID)
+		if given:
+			found.append("The Tarnished Brooch is given out, but the campaign defines no Brooch monster (General tab) - it stays out of the game")
+	return found
 
 ## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only.
 const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]

@@ -99,13 +99,14 @@ static func load_party() -> Dictionary:
 	var save := MissionIO.load_game(PARTY_FILE)
 	if save == null or save.player_roster.is_empty():
 		return {}
-	return {"roster": save.player_roster, "weapons": save.player_weapons}
+	return {"roster": save.player_roster, "weapons": save.player_weapons, "trinkets": save.player_trinkets}
 
 
-static func save_party(roster: Array[int], weapons: Dictionary) -> void:
+static func save_party(roster: Array[int], weapons: Dictionary, trinkets: Dictionary = {}) -> void:
 	var save := SaveGame.new()
 	save.player_roster = roster.duplicate()
 	save.player_weapons = weapons.duplicate(true)
+	save.player_trinkets = trinkets.duplicate(true)
 	MissionIO.save_game(save, PARTY_FILE)
 
 

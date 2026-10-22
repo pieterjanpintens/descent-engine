@@ -484,7 +484,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
 	var part_lines: Array = r.get("part_lines", [])
 	if not part_lines.is_empty():
-		text += "\nWeapon parts: " + "; ".join(part_lines)
+		text += "\nWeapon parts and trinket: " + "; ".join(part_lines)
 	var part_notes: Array = r.get("part_notes", [])
 	if not part_notes.is_empty():
 		text += "\nAt the table: " + " | ".join(part_notes)
@@ -573,6 +573,8 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	objectives_progressed.emit()
 	if objective != null:
 		game_over_requested.emit(objective)
+	else:
+		await mission_runtime.interaction_boon(hero_name)  # Mage-Sight Goggles
 	print("%s used '%s' on '%s' (%s)" % [hero_name, action.description, label, entry.mesh_item_name])
 
 

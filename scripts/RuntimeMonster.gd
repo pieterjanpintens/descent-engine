@@ -51,6 +51,12 @@ var tags: Array[String] = []
 ## Defense taken off until the end of this round by weapon part abilities (cleared when the monster phase ends,
 ## MissionRuntime.end_monster_phase_conditions()); permanent reductions change `defense` itself.
 var defense_round_penalty: int = 0
+## Extra percentage points of damage an Enfeebled monster loses (Heart Thorn Root, worn by any hero). Set by MissionRuntime; not saved.
+var enfeeble_extra_percent: int = 0
+## The Tarnished Brooch's monster: set when it spawned with the first monster for the hero wearing the Brooch (`brooch_wearer` = that hero's
+## slot); only the wearer defeating it counts towards unlocking the "+" side.
+var brooch_target: bool = false
+var brooch_wearer: int = -1
 ## Attacked by a hero earlier this round (Eastrider Guard); cleared when the monster phase ends.
 var attacked_this_round: bool = false
 ## Spiral Bolts: 0 = the defense ability works, 1 = deactivated for the next attack, 2 = deactivated until the round ends.
@@ -98,7 +104,7 @@ func has_tag(tag: String) -> bool:
 func effective_attack_power() -> int:
 	var total := attack_power + damage_round_bonus + next_activation_damage
 	if conditions.has(MonsterCondition.Kind.ENFEEBLED):
-		return maxi(total - ceili(total * MonsterCondition.ENFEEBLED_DAMAGE_PERCENT / 100.0), 0)
+		return maxi(total - ceili(total * (MonsterCondition.ENFEEBLED_DAMAGE_PERCENT + enfeeble_extra_percent) / 100.0), 0)
 	return total
 
 
@@ -178,7 +184,7 @@ func to_dict() -> Dictionary:
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
 		"conditions": conditions.duplicate(), "condition_immunities": condition_immunities.duplicate(),
 		"last_attacker": last_attacker, "tags": tags.duplicate(), "defense_round_penalty": defense_round_penalty,
-		"attacked_this_round": attacked_this_round, "defense_ability_off": defense_ability_off,
+		"brooch_target": brooch_target, "brooch_wearer": brooch_wearer, "attacked_this_round": attacked_this_round, "defense_ability_off": defense_ability_off,
 		"defense_round_bonus": defense_round_bonus, "damage_round_bonus": damage_round_bonus, "range_round_bonus": range_round_bonus,
 		"speed_round_bonus": speed_round_bonus, "next_activation_damage": next_activation_damage, "defense_ability_fired": defense_ability_fired, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
@@ -215,6 +221,8 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 		m.tags.append(str(tag))
 	m.defense_round_penalty = d.get("defense_round_penalty", 0)
 	m.attacked_this_round = d.get("attacked_this_round", false)
+	m.brooch_target = d.get("brooch_target", false)
+	m.brooch_wearer = int(d.get("brooch_wearer", -1))
 	m.defense_ability_off = d.get("defense_ability_off", 0)
 	m.defense_round_bonus = d.get("defense_round_bonus", 0)
 	m.damage_round_bonus = d.get("damage_round_bonus", 0)

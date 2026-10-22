@@ -14,6 +14,8 @@ extends Resource
 ## Optional: cards (weapon / part / rune / armor ids) and recipes (RecipeData ids) the party gets when this drops.
 @export var cards: Array[String] = []
 @export var recipes: Array[String] = []
+## Consumable ids the party can use in this mission only when this drops (not added to the inventory).
+@export var usable: Array[String] = []
 
 
 func _init(p_name: String = "") -> void:
@@ -21,7 +23,7 @@ func _init(p_name: String = "") -> void:
 
 
 func to_dict() -> Dictionary:
-	return {"name": item_name, "common": common_materials.duplicate(), "essences": essences.duplicate(), "gold": gold, "cards": cards.duplicate(), "recipes": recipes.duplicate()}
+	return {"name": item_name, "common": common_materials.duplicate(), "essences": essences.duplicate(), "gold": gold, "cards": cards.duplicate(), "recipes": recipes.duplicate(), "usable": usable.duplicate()}
 
 
 static func from_dict(d: Dictionary) -> LootItem:
@@ -35,6 +37,8 @@ static func from_dict(d: Dictionary) -> LootItem:
 		item.cards.append(str(card_id))
 	for recipe_id in d.get("recipes", []):
 		item.recipes.append(str(recipe_id))
+	for usable_id in d.get("usable", []):
+		item.usable.append(str(usable_id))
 	return item
 
 

@@ -33,7 +33,8 @@ func _ready() -> void:
 
 ## `materials` is changed directly; `on_change` is called after every edit (the editor marks things dirty and redraws its summary).
 ## `with_gold` adds a Gold counter (kept under LootMaterials.GOLD in `materials`). `lists` may hold "cards" and/or "recipes" (Array[String],
-## changed in place) to offer those pickers too.
+## changed in place) to offer those pickers too; "usable" (consumable ids) is only for mission loot (the Loot effect and monster drops): the
+## consumable can be used during that mission and is never added to the inventory.
 func open_for(heading: String, materials: Dictionary, on_change: Callable, read_only: bool = false, with_gold: bool = false, lists: Dictionary = {}) -> void:
 	_materials = materials
 	_on_change = on_change
@@ -58,6 +59,8 @@ func _build() -> void:
 		_add_id_list("Cards (weapons, parts, runes, armor)", _lists["cards"], card_choices())
 	if _lists.has("recipes"):
 		_add_id_list("Recipes", _lists["recipes"], recipe_choices())
+	if _lists.has("usable"):
+		_add_id_list("Usable in this mission only (consumables; not added to the inventory - the table puts them in their play area)", _lists["usable"], ConsumableData.choices())
 
 
 func _changed() -> void:
@@ -167,6 +170,8 @@ static func card_choices() -> Dictionary:
 		choices[rune.part_id] = "Rune: " + rune.weapon_name
 	for armor in ArmorData.all():
 		choices[str(armor["id"])] = "Armor: " + ArmorData.label(str(armor["id"]))
+	for trinket in TrinketData.all():
+		choices[str(trinket["id"])] = "Trinket: " + str(trinket["name"])
 	return choices
 
 

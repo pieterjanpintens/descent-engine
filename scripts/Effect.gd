@@ -213,6 +213,9 @@ enum MathOperator {
 @export var loot_cards: Array[String] = []
 ## Recipe ids (RecipeData) the party learns.
 @export var loot_recipes: Array[String] = []
+## Consumable ids (ConsumableData) the party can use during THIS mission only: not added to the inventory, the popup tells the table to put
+## them in their play area. Repeats are counted.
+@export var loot_usable: Array[String] = []
 ## Heading of the popup / quest log entry ("Chest"), blank = "Loot".
 @export var loot_title: String = ""
 ## A custom line shown above the list ("Under the rotten planks you find...").

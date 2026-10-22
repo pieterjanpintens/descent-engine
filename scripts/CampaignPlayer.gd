@@ -589,6 +589,7 @@ func _open_save(folder: String, key: String) -> bool:
 func _use(campaign: Campaign, state: CampaignState) -> void:
 	_campaign = campaign
 	_state = state
+	_state.bind_campaign(_campaign)
 	_folder = state.campaign_folder
 	_selected_id = ""
 	_save()
@@ -717,6 +718,8 @@ func _build_place_panel(place: CampaignPlace) -> void:
 			_build_recipe_shop_panel(place)
 		CampaignPlace.Kind.SMITHY:
 			_build_smithy_panel()
+		CampaignPlace.Kind.ALCHEMIST:
+			_build_alchemist_panel()
 		_:
 			_build_offers_panel(place)
 
@@ -745,6 +748,8 @@ func _build_offers_panel(place: CampaignPlace) -> void:
 			_side.add_child(_label("Gives the rune: %s" % WeaponData.rune_label(offer.rune)))
 		if offer.armor != "":
 			_side.add_child(_wrapped("Gives the armor: %s%s - %s" % [ArmorData.label(offer.armor), " (+)" if offer.upgraded else "", ArmorData.rule_text(offer.armor, offer.upgraded)]))
+		if offer.trinket != "":
+			_side.add_child(_wrapped("Gives the trinket: %s%s - %s" % [TrinketData.label(offer.trinket), " (+)" if offer.upgraded else "", TrinketData.rule_text(offer.trinket, offer.upgraded)]))
 		var bought := offer.once and _state.purchased_offers.has(offer.id)
 		var buy := _button("Bought" if bought else "Buy", func(): _buy(offer))
 		buy.disabled = not _state.can_buy(offer)
@@ -815,7 +820,7 @@ func _recipe_card(recipe: Dictionary, note: String, action: Button) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	panel.add_child(row)
-	row.add_child(ItemTile.build(ItemTile.data(RecipeData.card_label(card_id), RecipeData.card_image(card_id), bool(recipe["upgrade"]), -1, RecipeData.label(recipe))))
+	row.add_child(ItemTile.build(ItemTile.data(RecipeData.card_label(card_id), RecipeData.card_image(card_id), bool(recipe["upgrade"]) or ConsumableData.is_upgraded(card_id), -1, RecipeData.label(recipe))))
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_theme_constant_override("separation", 4)
@@ -828,6 +833,14 @@ func _recipe_card(recipe: Dictionary, note: String, action: Button) -> Control:
 		var note_label := _label(note)
 		note_label.modulate = Color(1.0, 0.7, 0.3)
 		info.add_child(note_label)
+	if RecipeData.card_kind(card_id) == "consumable":
+		var potion_rules := _wrapped(ConsumableData.rule_text(card_id))
+		potion_rules.custom_minimum_size.x = 260.0
+		info.add_child(potion_rules)
+	if RecipeData.card_kind(card_id) == "trinket":
+		var trinket_rules := _wrapped(TrinketData.rule_text(card_id, recipe["upgrade"]))
+		trinket_rules.custom_minimum_size.x = 260.0
+		info.add_child(trinket_rules)
 	if RecipeData.card_kind(card_id) == "armor":
 		var rules := _wrapped(ArmorData.rule_text(card_id, recipe["upgrade"]))
 		rules.custom_minimum_size.x = 260.0  # a wrapping label needs a width to start from
@@ -852,7 +865,39 @@ func _buy_recipe(recipe_id: String) -> void:
 ## The smithy: forge the items of the recipes the party owns from materials.
 func _build_smithy_panel() -> void:
 	_side.add_child(HSeparator.new())
-	# the party's material stock, as pictures
+	_add_material_strip()
+	var recipes := _state.forgeable_recipes()
+	if recipes.is_empty():
+		_side.add_child(_wrapped("You know no recipe that makes something new. Recipes are sold in the recipe shops."))
+		return
+	for recipe in recipes:
+		var forge := _button("Forge", func(): _forge(str(recipe["id"])))
+		forge.disabled = not _state.can_forge(str(recipe["id"]))
+		_side.add_child(_recipe_card(recipe, "", forge))
+
+
+## The alchemist: brew consumables (potions) from the recipes the party owns; the party carries a count of each.
+func _build_alchemist_panel() -> void:
+	_side.add_child(HSeparator.new())
+	_add_material_strip()
+	var recipes := _state.brewable_recipes()
+	if recipes.is_empty():
+		_side.add_child(_wrapped("You know no potion recipe. Recipes are sold in the recipe shops or found as loot."))
+		return
+	for recipe in recipes:
+		var brew := _button("Brew", func(): _brew(str(recipe["id"])))
+		brew.disabled = not _state.can_brew(str(recipe["id"]))
+		_side.add_child(_recipe_card(recipe, "You carry %d." % _state.consumable_count(str(recipe["card"])), brew))
+
+
+func _brew(recipe_id: String) -> void:
+	if _state.brew(recipe_id):
+		_save()
+		_refresh_view()
+
+
+## "Your materials:" and the party's stock as pictures.
+func _add_material_strip() -> void:
 	_side.add_child(_label("Your materials:"))
 	var stock := HFlowContainer.new()
 	stock.add_theme_constant_override("h_separation", 12)
@@ -868,14 +913,6 @@ func _build_smithy_panel() -> void:
 	else:
 		_side.add_child(_wrapped("None yet - materials come from defeated monsters, missions and the market."))
 	_side.add_child(HSeparator.new())
-	var recipes := _state.forgeable_recipes()
-	if recipes.is_empty():
-		_side.add_child(_wrapped("You know no recipe that makes something new. Recipes are sold in the recipe shops."))
-		return
-	for recipe in recipes:
-		var forge := _button("Forge", func(): _forge(str(recipe["id"])))
-		forge.disabled = not _state.can_forge(str(recipe["id"]))
-		_side.add_child(_recipe_card(recipe, "", forge))
 
 
 func _forge(recipe_id: String) -> void:

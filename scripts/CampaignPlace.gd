@@ -21,8 +21,8 @@ extends Resource
 
 ## What the place is. OFFERS = the authored offers above (a camp, a special seller). MARKET = buy and sell crafting
 ## materials for gold. RECIPE_SHOP = sells recipes from a rotating stock (see ShopRotation). SMITHY = forges items from
-## recipes the party owns and materials.
-enum Kind { OFFERS, MARKET, RECIPE_SHOP, SMITHY }
+## recipes the party owns and materials. ALCHEMIST = the same for consumable (potion) recipes: brews potions.
+enum Kind { OFFERS, MARKET, RECIPE_SHOP, SMITHY, ALCHEMIST }
 @export var kind: Kind = Kind.OFFERS
 ## Recipe shop: how many recipes the rotating stock holds, and how many rotation steps (won chapters / side quests) a
 ## recipe is guaranteed to stay.

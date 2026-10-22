@@ -10,6 +10,8 @@ extends RefCounted
 ##      the hero (an injury, fatigue) and choices of another monster are asked here.
 ##   2. MissionRuntime.resolve_attack() works the damage out with Plan.modifiers().
 ##   3. finish(): the effects that come after the damage (direct damage, permanent reductions, spreading statuses...).
+##   0. (before the parts) the trinket the hero wears: it applies its effects at once, no chance roll (data/trinket_effects.json,
+##      the same effect kinds as the parts plus a few of its own: bonus_flat, bonus_roll, random_damage_type, chance_bonus).
 ##   4. The caller shows Plan.lines (what the app did) and Plan.notes (the full ability text of every triggered part:
 ##      what the app cannot do - heroes' cards, positions, loot... - the table does).
 ## What each part does is written in data/weapon_part_effects.json (keyed by the base part id; "upgraded_effects" for
@@ -18,10 +20,13 @@ extends RefCounted
 ## other part (B copies C and C copies B) without rolling its chance.
 
 const SPEC_PATH := "res://data/weapon_part_effects.json"
+const TRINKET_SPEC_PATH := "res://data/trinket_effects.json"
 const UPGRADED_SUFFIX := "_UPGRADED"
 
 static var _spec: Dictionary = {}
 static var _spec_loaded := false
+static var _trinket_spec: Dictionary = {}
+static var _trinket_spec_loaded := false
 
 var runtime: MissionRuntime
 var dialog: PlayerDialog
@@ -39,6 +44,7 @@ class Plan:
 	var weapon_damage := 0  ## the weapon's own damage per success (for percentages)
 	var ability_active := true  ## the monster's defense ability works in this attack
 	var defense_off_set := false  ## a part deactivated the defense ability for later attacks (Spiral Bolts)
+	var chance_bonus := 0.0  ## added to the chance of every weapon part (Mana Weave)
 	var bonus_damage := 0  ## flat extra damage of the whole attack (before the defense roll)
 	var damage_double := false
 	var extra_successes := 0
@@ -71,11 +77,12 @@ func plan(weapon: Weapon, monster: RuntimeMonster, a_conditions: Array) -> Plan:
 	for condition in a_conditions:
 		if not monster.is_condition_immune(condition, 1 if p.ability_active else 0) and not p.state_conditions.has(condition):
 			p.state_conditions.append(condition)
+	await _apply_trinket(p)
 	var parts: Array[WeaponAttachment] = weapon.attachments.duplicate()
 	parts.sort_custom(func(a: WeaponAttachment, b: WeaponAttachment) -> bool: return a.part_slot < b.part_slot)
 	for part in parts:
 		var spec := _spec_for(part)
-		var chance := part.chance + (MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT / 100.0 if p.state_conditions.has(MonsterCondition.Kind.DAZED) else 0.0)
+		var chance := part.chance + p.chance_bonus + (MonsterCondition.DAZED_ATTACHMENT_BONUS_PERCENT / 100.0 if p.state_conditions.has(MonsterCondition.Kind.DAZED) else 0.0)
 		# Specter: weapon secondary effects are half as likely (or cannot occur) - while its defense ability works.
 		var factor := DefenseRules.part_chance_factor(monster) if p.ability_active else 1.0
 		if factor <= 0.0:
@@ -98,6 +105,41 @@ func plan(weapon: Weapon, monster: RuntimeMonster, a_conditions: Array) -> Plan:
 		if part.ability_text != "" and not told_in_dialog:
 			p.notes.append("%s: %s" % [part.attachment_name, part.ability_text])
 	return p
+
+
+## The trinket the attacking hero wears (MissionRuntime.hero_trinkets): its effects are applied before the weapon parts, as if it were a part that
+## always triggers. A line is added only when something actually happened (a condition that did not hold adds nothing).
+func _apply_trinket(p: Plan) -> void:
+	if hero_slot < 0 or not runtime.hero_trinkets.has(hero_slot):
+		return
+	var worn: Dictionary = runtime.hero_trinkets[hero_slot]
+	var upgraded := bool(worn.get("upgraded", false))
+	var effects := _trinket_effects(str(worn.get("id", "")), upgraded)
+	if effects.is_empty():
+		return
+	var pseudo := WeaponAttachment.new()
+	pseudo.attachment_name = TrinketData.label(str(worn["id"])) + (" +" if upgraded else "")
+	pseudo.part_id = str(worn["id"])
+	pseudo.chance = 1.0
+	pseudo.ability_text = TrinketData.rule_text(str(worn["id"]), upgraded)
+	var applied: Array[String] = []
+	var no_parts: Array[WeaponAttachment] = []
+	await _apply(effects, pseudo, no_parts, p, applied, 0)
+	if not applied.is_empty():
+		p.lines.append("Trinket %s: %s" % [pseudo.attachment_name, ", ".join(applied)])
+
+
+static func _trinket_effects(trinket_id: String, upgraded: bool) -> Array:
+	if not _trinket_spec_loaded:
+		_trinket_spec_loaded = true
+		if FileAccess.file_exists(TRINKET_SPEC_PATH):
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string(TRINKET_SPEC_PATH))
+			if parsed is Dictionary:
+				_trinket_spec = parsed
+	var entry: Dictionary = _trinket_spec.get(trinket_id, {})
+	if upgraded and entry.has("upgraded_effects"):
+		return entry["upgraded_effects"]
+	return entry.get("effects", [])
 
 
 func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachment], p: Plan, applied: Array[String], depth: int) -> void:
@@ -154,6 +196,26 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 			"ignore_defense_ability":
 				p.ability_active = false
 				applied.append("the defense ability is ignored in this attack")
+			"bonus_flat":
+				p.bonus_damage += int(e["n"])
+				applied.append("+%d damage" % int(e["n"]))
+			"bonus_roll":
+				var rolled := randi_range(int(e["min"]), int(e["max"]))
+				p.bonus_damage += rolled
+				applied.append("+%d damage (rolled %d-%d)" % [rolled, int(e["min"]), int(e["max"])])
+			"random_damage_type":
+				var open_types: Array[int] = []
+				for kind in Vulnerability.all():
+					if not p.attack_types.has(kind):
+						open_types.append(kind)
+				if not open_types.is_empty():
+					var picked: int = open_types.pick_random()
+					p.attack_types.append(picked)
+					p.extra_types.append(picked)
+					applied.append("attack gains %s" % Vulnerability.display_name(picked))
+			"chance_bonus":
+				p.chance_bonus += float(e["pct"]) / 100.0
+				applied.append("weapon part chances +%d%%" % int(e["pct"]))
 			"bonus_damage":
 				var round_number := int(runtime.get_variables_state().get("round_number", 1))
 				var extra := floori(round_number / float(e["round_div"]))
@@ -277,6 +339,17 @@ func _holds(cond: Dictionary, part: WeaponAttachment, p: Plan) -> bool:
 		return p.monster.has_tag(str(cond["tag"]))
 	if cond.get("not_attacked", false):
 		return not p.monster.attacked_this_round
+	if cond.get("damaged", false):
+		return p.monster.hitpoints < p.monster.max_hitpoints
+	if cond.get("most_health", false):  # strictly more current hitpoints than every other enemy
+		for other in runtime.monsters:
+			if other != p.monster and other.hitpoints >= p.monster.hitpoints:
+				return false
+		return true
+	if cond.has("quest_attacks_below"):  # this hero's attacks so far this mission (the current one is not counted yet)
+		return int(runtime.hero_attacks_made.get(hero_slot, 0)) < int(cond["quest_attacks_below"])
+	if cond.get("first_attack_round", false):
+		return int(runtime.hero_attacks_round.get(hero_slot, 0)) == 0
 	if cond.has("already"):
 		return p.state_conditions.has(MonsterCondition.Kind[str(cond["already"])])
 	if cond.get("weak_to_attack", false):
@@ -355,6 +428,28 @@ func finish(p: Plan, r: Dictionary) -> void:
 			continue
 		var said := ""
 		match str(e["type"]):
+			"kill_chain":
+				# Bolt of Blood: the attack defeated the target -> another random enemy takes damage equal to pct% of the dead one's starting health.
+				if not _alive(target):
+					var survivors: Array[RuntimeMonster] = []
+					for other in runtime.monsters:
+						survivors.append(other)
+					if survivors.is_empty():
+						said = "no other enemy to hit"
+					else:
+						var chain_damage := maxi(floori(target.max_hitpoints * float(e["pct"]) / 100.0), 1)
+						var chain_target: RuntimeMonster = survivors.pick_random()
+						runtime.damage_monster(chain_target, chain_damage)
+						said = "%d damage to %s" % [chain_damage, chain_target.display_name()]
+			"benefit":
+				# Fae Crystal: after the attack the wearer sometimes (30%) / often (50%) gains an extra benefit, reported in a popup.
+				if randf() * 100.0 < float(e["chance"]):
+					var benefit := TrinketBenefits.pick()
+					await _before_ask()
+					await dialog.ask_ok("%s - %s
+
+%s gains an extra benefit: %s." % [hero_name, part_name, hero_name, benefit], true, false, part_name)
+					said = benefit
 			"conditions_after":
 				if _alive(target):
 					said = _add_to_monster(target, e["kinds"])

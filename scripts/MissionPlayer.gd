@@ -55,6 +55,10 @@ var _runtime: MissionRuntime
 var player_roster: Array[int] = []
 ## {hero slot index: Array[Weapon]} - the two weapons each hero picked at embark.
 var player_weapons: Dictionary = {}
+## hero slot -> {"id": base trinket id, "upgraded": bool}: the trinket each hero equipped at embark.
+var player_trinkets: Dictionary = {}
+## The campaign's Brooch monster (null = no campaign, or it defines none: the Tarnished Brooch is out of the game).
+var _campaign_brooch: MonsterTemplate
 var _command_runner: PlayerCommandRunner
 var los_mode: LineOfSightMode
 var stage_highlight: StageHighlight
@@ -162,6 +166,11 @@ func _ready() -> void:
 	# there's any board state to interact with. Defines player count (the
 	# roster's size) and which character is player 1/2/3/... - equipment
 	# selection is explicitly deferred, see EmbarkDialog's own docstring.
+	if GameState.campaign_folder != "":
+		var brooch_campaign := CampaignIO.load_campaign(GameState.campaign_folder)
+		if brooch_campaign != null:
+			_campaign_brooch = brooch_campaign.brooch_monster
+	embark_dialog.excluded_trinkets = [] if _campaign_brooch != null else [TrinketData.BROOCH_ID]
 	var remembered := DebugSession.load_party() if DebugSession.active() else {}
 	if not remembered.is_empty():
 		var party_size: int = remembered["roster"].size()
@@ -171,14 +180,15 @@ func _ready() -> void:
 		# Already answered when this session was saved - nothing to ask again.
 		player_roster = resume_save.player_roster
 		player_weapons = resume_save.player_weapons
+		player_trinkets = resume_save.player_trinkets.duplicate(true)
 	elif not remembered.is_empty():
 		player_roster.assign(remembered["roster"])
 		player_weapons = remembered["weapons"].duplicate(true)
+		player_trinkets = remembered.get("trinkets", {}).duplicate(true)
 	else:
 		# Hero/weapon selection: nothing but the dialog - no ground, no view buttons.
 		_set_ground_decor_visible(false)
 		hud.set_view_buttons_visible(false)
-		player_roster = await embark_dialog.ask_roster(mission)
 		if GameState.campaign_folder != "":
 			var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
 			if campaign_state != null:
@@ -187,20 +197,31 @@ func _ready() -> void:
 				embark_dialog.owned_runes = campaign_state.owned_runes.duplicate()
 				embark_dialog.owned_weapons = campaign_state.owned_weapons.duplicate()
 				embark_dialog.upgraded_cards = campaign_state.upgraded_cards.duplicate()
+				embark_dialog.consumables = campaign_state.consumables.duplicate()
+				embark_dialog.owned_armors = campaign_state.owned_armors.duplicate()
+				embark_dialog.owned_trinkets = campaign_state.owned_trinkets.duplicate()
+				var embark_campaign := CampaignIO.load_campaign(GameState.campaign_folder)
+				if embark_campaign != null:
+					embark_dialog.consumables_per_player = embark_campaign.consumables_per_player
+		player_roster = await embark_dialog.ask_roster(mission)
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
+		player_trinkets = embark_dialog.chosen_trinkets.duplicate(true)
 		_set_ground_decor_visible(true)
 		hud.set_view_buttons_visible(true)
 		if DebugSession.active():
-			DebugSession.save_party(player_roster, player_weapons)
+			DebugSession.save_party(player_roster, player_weapons, player_trinkets)
 	interaction_dock.set_roster(player_roster)
 	interaction_dock.hero_weapons = player_weapons
 
 	_runtime = MissionRuntime.new(mission)
+	_runtime.hero_trinkets = player_trinkets
 	_runtime.sync_builtins(current_round, player_roster.size())
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	_runtime.monster_defeated.connect(_on_monster_defeated)
 	_runtime.loot_collected.connect(_on_loot_collected)
+	_runtime.brooch_defeated.connect(_on_brooch_defeated)
+	_runtime.skull_kill.connect(_on_skull_kill)
 	interaction_dock.mission_runtime = _runtime
 	interaction_dock.monster_display = monster_display
 	if resume_save == null:
@@ -221,8 +242,12 @@ func _ready() -> void:
 		_runtime.wound_health_override = resume_save.wound_health_override
 		_runtime.restore_monsters(resume_save.monsters)
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
+		_runtime.hero_attacks_round = resume_save.hero_attacks_round.duplicate()
+		_runtime.hero_interactions_round = resume_save.hero_interactions_round.duplicate()
+		_runtime.brooch_spawned = resume_save.brooch_spawned
 		_runtime.hero_times_targeted = resume_save.hero_times_targeted.duplicate()
 		_runtime.hero_wounds = resume_save.hero_wounds.duplicate()
+		_runtime.hero_injuries = resume_save.hero_injuries.duplicate()
 		_runtime.part_trigger_counts = resume_save.part_trigger_counts.duplicate()
 		_runtime.affliction_bonus_round = resume_save.affliction_bonus_round
 		interaction_dock.refresh_wounds(_runtime.hero_wounds)
@@ -330,6 +355,7 @@ func _ready() -> void:
 			return
 		await _show_spawn_area_and_confirm()
 		objective_label.visible = true
+		await _brew_basket_boons()
 		await _enter_player_phase()
 	else:
 		# Resuming: BEFORE_PLAYER_PHASE and PLAYER_PHASE for THIS round both
@@ -385,6 +411,7 @@ func _build_save(snapshot: bool) -> SaveGame:
 	save.current_checkpoint = current_checkpoint
 	save.player_roster = player_roster.duplicate()
 	save.player_weapons = player_weapons.duplicate(true)
+	save.player_trinkets = player_trinkets.duplicate(true)
 	save.runtime_variables = _runtime.get_variables_state()
 	save.collected_loot = _runtime.collected_loot.duplicate()
 	save.wound_health_override = _runtime.wound_health_override
@@ -393,8 +420,12 @@ func _build_save(snapshot: bool) -> SaveGame:
 		monster_dicts.append(monster.to_dict())
 	save.monsters = monster_dicts
 	save.hero_attacks_made = _runtime.hero_attacks_made.duplicate()
+	save.hero_attacks_round = _runtime.hero_attacks_round.duplicate()
+	save.hero_interactions_round = _runtime.hero_interactions_round.duplicate()
+	save.brooch_spawned = _runtime.brooch_spawned
 	save.hero_times_targeted = _runtime.hero_times_targeted.duplicate()
 	save.hero_wounds = _runtime.hero_wounds.duplicate()
+	save.hero_injuries = _runtime.hero_injuries.duplicate()
 	save.part_trigger_counts = _runtime.part_trigger_counts.duplicate()
 	save.affliction_bonus_round = _runtime.affliction_bonus_round
 	save.current_objective_ids = _runtime.get_current_objective_ids()
@@ -455,6 +486,30 @@ func return_to_editor(take_auto: bool = true) -> void:
 
 ## No-op if the mission doesn't have a spawn area authored - not every
 ## mission needs this yet (see MissionData.player_spawn_cells).
+## Brew Basket: at the start of the mission its wearer gains a random consumable (usable in this mission only - nothing goes to the inventory) and,
+## on the "+" side, 2 random common crafting materials for the party (kept like loot).
+func _brew_basket_boons() -> void:
+	if DebugSession.skipping() or not ConsumableData.available():
+		return
+	for wearer in _runtime.trinket_wearers("TRINKET2_ID"):
+		var pool: Array[String] = []
+		for entry in ConsumableData.all():
+			if not entry["upgraded"]:
+				pool.append(str(entry["id"]))
+		if pool.is_empty():
+			return
+		var hero_name := HeroCatalog.slot_name(int(wearer["slot"]))
+		var lines: Array[String] = ["%s's Brew Basket provides a random consumable:" % hero_name, ConsumableData.usable_notice([pool.pick_random()])]
+		if wearer["upgraded"]:
+			var found: Dictionary = {}
+			for i in 2:
+				var key: String = LootMaterials.COMMON.pick_random()
+				found[key] = int(found.get(key, 0)) + 1
+			var text := _runtime.add_loot(found, [], [])
+			lines.append("\nAlso some crafting materials for the party: %s." % text)
+		await dialog.ask_ok("\n".join(lines), true, false, "Brew Basket", null, null, true)
+
+
 func _show_spawn_area_and_confirm() -> void:
 	if mission.player_spawn_cells.is_empty() or DebugSession.skipping():
 		return
@@ -533,6 +588,105 @@ func _remove_object(id: String) -> void:
 ## far corner and covers the tiles toward -X/-Z (FootprintRegistry's
 ## footprint convention). Monsters beyond the spawn's tile count are listed
 ## as having no free tile.
+## The hero (slot) wearing the basic Tarnished Brooch, -1 if nobody does or the Brooch is out of the game in this campaign.
+func _brooch_wearer() -> int:
+	if _campaign_brooch == null:
+		return -1
+	for slot in player_trinkets:
+		var worn: Dictionary = player_trinkets[slot]
+		if str(worn.get("id", "")) == TrinketData.BROOCH_ID and not bool(worn.get("upgraded", false)):
+			return int(slot)
+	return -1
+
+
+## The Brooch's monster appears with the FIRST monsters of the mission - once per mission, and once per chapter (a retried mission does not
+## spawn it again, so the counter cannot be farmed). It is appended to `spawned`; returns the sentence for the "Monsters appear" popup ("" = none).
+func _spawn_brooch_monster(spawned: Array[RuntimeMonster]) -> String:
+	var wearer := _brooch_wearer()
+	if wearer < 0 or _runtime.brooch_spawned or GameState.campaign_folder == "":
+		return ""
+	var state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	if state == null or state.brooch_spawned_chapters.has(GameState.campaign_chapter_id):
+		return ""
+	if _campaign_brooch.base_archetype == null or MonsterDisplay.find_monster(_campaign_brooch.folder).is_empty():
+		return ""
+	var template: MonsterTemplate = _campaign_brooch.duplicate(true)
+	var registered := _runtime.register_monster(template)
+	_runtime.brooch_spawned = true  # even without a free chip: it does not get a second try in this mission
+	state.brooch_spawned_chapters.append(GameState.campaign_chapter_id)
+	CampaignIO.save_state(state)
+	if registered == null:
+		return ""
+	registered.brooch_target = true
+	registered.brooch_wearer = wearer
+	spawned.append(registered)
+	return "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it." % [MonsterDisplay.find_monster(registered.folder)["name"], MonsterChip.display_name(registered.chip), HeroCatalog.slot_name(wearer)]
+
+
+## The wearer defeated the Brooch's monster: one more defeat on the campaign's counter (saved at once - a lost or abandoned mission still counts),
+## the third unlocks the "+" side.
+func _on_brooch_defeated(_monster: RuntimeMonster) -> void:
+	if GameState.campaign_folder == "":
+		return
+	var state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	if state == null:
+		return
+	var was_upgraded := state.upgraded_cards.has(TrinketData.BROOCH_ID)
+	var count := state.add_brooch_defeat()
+	CampaignIO.save_state(state)
+	var text := "Tarnished Brooch: %d of %d." % [mini(count, TrinketData.BROOCH_DEFEATS_NEEDED), TrinketData.BROOCH_DEFEATS_NEEDED]
+	if not was_upgraded and state.upgraded_cards.has(TrinketData.BROOCH_ID):
+		text = "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!" % [count, TrinketData.BROOCH_DEFEATS_NEEDED]
+	journal.add("Tarnished Brooch", [text])
+	var quiet := 0
+	while quiet < 3:
+		await get_tree().process_frame
+		quiet = quiet + 1 if not dialog.visible else 0
+	await dialog.ask_ok(text, true, false, "Tarnished Brooch")
+
+
+## Undying Skull: the first (first or second on "+") time a wearer defeats an enemy TYPE the wearer gains a unique recipe - the most expensive
+## weapon recipe for a weapon type they use that the party does not have yet. Counted per enemy type for the whole campaign and saved at once.
+func _on_skull_kill(monster: RuntimeMonster, slot: int) -> void:
+	var worn: Dictionary = _runtime.hero_trinkets.get(slot, {})
+	var allowed := 2 if bool(worn.get("upgraded", false)) else 1
+	var state: CampaignState = null
+	if GameState.campaign_folder != "":
+		state = CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	var count := 0
+	var recipe_id := ""
+	if state != null:
+		count = state.bump_skull_count(monster.folder)
+	else:
+		count = int(_runtime.skull_counts.get(monster.folder, 0)) + 1
+		_runtime.skull_counts[monster.folder] = count
+	if count > allowed:
+		if state != null:
+			CampaignIO.save_state(state)
+		return
+	var chooser := state if state != null else CampaignState.new()
+	recipe_id = chooser.pick_skull_recipe(slot)
+	if state != null:
+		if recipe_id != "":
+			state.owned_recipes.append(recipe_id)
+		CampaignIO.save_state(state)
+	var type_name := str(MonsterDisplay.find_monster(monster.folder).get("name", monster.folder))
+	var hero_name := HeroCatalog.slot_name(slot)
+	var text := "Undying Skull: %s defeated a %s for the %s time." % [hero_name, type_name, "first" if count == 1 else "second"]
+	if recipe_id == "":
+		text += " There is no recipe left to gain."
+	else:
+		text += " %s gains a unique recipe: %s." % [hero_name, RecipeData.label(RecipeData.find(recipe_id))]
+		if state == null:
+			text += " (Only campaigns keep recipes.)"
+	journal.add("Undying Skull", [text])
+	var quiet := 0
+	while quiet < 3:
+		await get_tree().process_frame
+		quiet = quiet + 1 if not dialog.visible else 0
+	await dialog.ask_ok(text, true, false, "Undying Skull")
+
+
 func _run_monster_spawn(request: Dictionary) -> void:
 	var spawn := mission.find_node_by_id(request["spawn_id"]) as MonsterSpawn
 	if spawn == null:
@@ -561,6 +715,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 			no_chip.append(MonsterDisplay.find_monster(template.folder)["name"])
 			continue
 		spawned.append(registered)
+	var brooch_line := _spawn_brooch_monster(spawned)
 	if spawned.is_empty() and no_chip.is_empty() and no_base.is_empty():
 		return
 
@@ -577,6 +732,8 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	var lines: Array[String] = ["Take these monsters out of the box:"]
 	for monster in spawned:
 		lines.append("%s - %s chip" % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
+	if brooch_line != "":
+		lines.append("\n" + brooch_line)
 	if not no_chip.is_empty():
 		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
 	if not no_base.is_empty():
@@ -1083,6 +1240,11 @@ func _run_time_passes() -> void:
 			replaced.append(tactic.time_passes_text().replace("{0}", ""))
 	var text := "Time passes.\n\n"
 	text += "\n".join(replaced) if not replaced.is_empty() else "Resolve infection and terror. Each hero may discard 1 fatigue."
+	# Wanderer's Stone: each hero may take the displayed alternate benefit instead of discarding the fatigue.
+	if _runtime.trinket_level("TRINKET11_ID") > 0:
+		text += "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+		for slot in player_roster:
+			text += "\n%s: %s" % [HeroCatalog.slot_name(slot), TrinketBenefits.pick()]
 	for note in _runtime.time_passes_notes:
 		text += "\n" + note
 	_runtime.time_passes_notes.clear()
@@ -1343,13 +1505,21 @@ var _defeat_busy := false
 ## What each monster has dropped so far (display name -> texts), for the defeat dialog - a part's early drop, the loot of
 ## the defeat itself and a later "more loot" bonus all end up in it. Cleared when the dialog has shown them.
 var _loot_notes: Dictionary = {}
+## The same for consumables found for use in this mission only (monster display name -> notices).
+var _usable_notes: Dictionary = {}
 
 
-func _on_loot_collected(monster_name: String, text: String) -> void:
-	journal.add("Loot", ["%s dropped: %s." % [monster_name, text]])
-	if not _loot_notes.has(monster_name):
-		_loot_notes[monster_name] = []
-	(_loot_notes[monster_name] as Array).append(text)
+func _on_loot_collected(monster_name: String, text: String, usable_text: String) -> void:
+	if text != "":
+		journal.add("Loot", ["%s dropped: %s." % [monster_name, text]])
+		if not _loot_notes.has(monster_name):
+			_loot_notes[monster_name] = []
+		(_loot_notes[monster_name] as Array).append(text)
+	if usable_text != "":
+		journal.add("Loot", ["%s dropped something usable. %s" % [monster_name, usable_text]])
+		if not _usable_notes.has(monster_name):
+			_usable_notes[monster_name] = []
+		(_usable_notes[monster_name] as Array).append(usable_text)
 
 
 ## EVERY defeated monster tells the table so in an OK dialog - "<name> has been defeated", the loot it gave the party and, when
@@ -1372,6 +1542,10 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 		_loot_notes.erase(shown_name)
 		if not loot.is_empty():
 			lines.append("\nLoot for the party: %s." % ", ".join(loot))
+		var usable: Array = _usable_notes.get(shown_name, [])
+		_usable_notes.erase(shown_name)
+		for notice in usable:
+			lines.append("\n" + str(notice))
 		if gone.defeat_text.strip_edges() != "":
 			lines.append("\n" + gone.defeat_text.replace("{name}", shown_name))
 		await dialog.ask_ok("\n".join(lines), true, false, "Defeated")
@@ -1402,11 +1576,45 @@ func _apply_wound(slot: int) -> void:
 		await _handle_game_over(defeat)
 		return
 	var wound_text := "%s is %s." % [hero_name, MissionRuntime.wound_label(wounds).to_lower()]
+	if wounds == 1:
+		wound_text += "
+
+%s gains the \"%s\" injury: put its card in your play area." % [hero_name, _runtime.give_injury(slot)]
+	elif wounds == 2:
+		var injury := _runtime.injury_of(slot)
+		wound_text += "
+
+%s must flip their injury card%s to its major side." % [hero_name, " (%s)" % injury if injury != "" else ""]
 	if _runtime.wound_health_override > 0:
 		# Remembrance Hilt: the first hero wounded this round has this health instead.
 		wound_text += "\n\nRemembrance Hilt: set %s's health to %d instead." % [hero_name, _runtime.wound_health_override]
 		_runtime.wound_health_override = 0
 	await dialog.ask_ok(wound_text, true, false, "Wound")
+	await _horn_of_courage(slot)
+
+
+## Horn of Courage: after a hero is wounded another hero receives a random (advanced) benefit; on the "+" side the wearer gets one too.
+func _horn_of_courage(wounded: int) -> void:
+	var wearers := _runtime.trinket_wearers("TRINKET4_ID")
+	if wearers.is_empty():
+		return
+	var wearer: int = wearers[0]["slot"]
+	var others: Array[int] = []
+	for slot in player_roster:
+		if slot != wounded:
+			others.append(slot)
+	var receivers: Array[int] = []
+	if bool(wearers[0]["upgraded"]) and player_roster.has(wearer):
+		receivers.append(wearer)
+		others.erase(wearer)
+	if not others.is_empty():
+		receivers.append(others.pick_random())
+	if receivers.is_empty():
+		return
+	var lines: Array[String] = ["Horn of Courage - %s was wounded." % HeroCatalog.slot_name(wounded)]
+	for receiver in receivers:
+		lines.append("%s receives a benefit: %s." % [HeroCatalog.slot_name(receiver), TrinketBenefits.pick(true)])
+	await dialog.ask_ok("\n\n".join(lines), true, false, "Horn of Courage")
 
 
 ## Shared by both ends of the objectives DAG: the checkpoint-driven path

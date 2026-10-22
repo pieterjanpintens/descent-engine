@@ -1,3 +1,11 @@
+## v0.0.33 - 2026-10-22
+- Consumables: potions and grenades with a count in the inventory (new Consumables tab), potion recipes in shops and loot, and a new Alchemist place where potions are brewed. Crafted potions are available again every mission; a potion found in a mission can be used in that mission only (the loot popup says so). The embark screens have Armor and Consumables shortcuts.
+- Trinkets: the 20 trinkets can be owned, bought, upgraded, found as loot and are shown in a new Inventory tab. Each hero equips one at embark.
+- Trinket effects: Bloodthirsty Bracers, War Rune, Stormbound Pendant, Cracked Mirror, Rusted Nail, Shadow Bracers, Mana Weave, Bolt of Blood, Heart Thorn Root, Prescient Charm, Brew Basket, Dead Man's Compass, Lucky Charm, Wanderer's Stone, Fae Crystal, Horn of Courage, Ironbound Rune, Mage-Sight Goggles and Undying Skull are applied by the game. Tarnished Brooch spawns its campaign-defined monster once per mission and chapter; three defeats unlock the + side.
+- Benefits (heal, prepare, focus, shift, remove conditions...) are handed out by Wanderer's Stone, Fae Crystal and Horn of Courage and reported in a popup.
+- Injuries: a hero's first wound gives a random injury card to put in their play area, the second wound tells them to flip it. The Ironbound Rune gives a unique injury instead.
+- New Fortunos damage type (luck), used by trinkets.
+
 ## v0.0.32 - 2026-10-22
 - Mission editor: new Loot effect for chests, bookshelves, tables, trees... - the party finds gold, materials, weapon/armor cards and recipes, with an optional popup, title and custom text. Loot is handed to the campaign when the mission is won.
 - One common loot dialog is used everywhere: the Loot effect, a chapter's and side quest's rewards (which can now also give cards and recipes) and a monster's drops (which can drop cards and recipes too).

@@ -159,7 +159,9 @@ func restore_variables_checked(state: Dictionary) -> Array[String]:
 func restore_monsters(dicts: Array[Dictionary]) -> void:
 	monsters.clear()
 	for d in dicts:
-		monsters.append(RuntimeMonster.from_dict(d))
+		var restored := RuntimeMonster.from_dict(d)
+		restored.enfeeble_extra_percent = _enfeeble_extra()
+		monsters.append(restored)
 	for monster in monsters:
 		var parts := monster.id.split("_")
 		if parts.size() == 2 and parts[0] == "monster" and parts[1].is_valid_int():
@@ -300,6 +302,13 @@ var _pending_monster_spawns: Array[Dictionary] = []
 ## counted by resolve_attack() - what the Suppress target rule follows. Saved
 ## with the game (SaveGame.hero_attacks_made).
 var hero_attacks_made: Dictionary = {}
+## The same per round (slot -> attacks this round): trinkets like Mana Weave look at the hero's first attack of a round. Cleared when the
+## monster phase ends; saved with the game.
+var hero_attacks_round: Dictionary = {}
+## slot -> prop actions fired this round (Mage-Sight Goggles look at the first one); cleared when the monster phase ends; saved.
+var hero_interactions_round: Dictionary = {}
+## Undying Skull outside a campaign: enemy type (folder) -> defeats by a wearer this mission.
+var skull_counts: Dictionary = {}
 
 ## How many times monsters have targeted each hero slot (slot -> count), recorded by
 ## choose_target() - what the Focus/Spread target rules follow. Saved with the game.
@@ -311,6 +320,50 @@ var hero_times_targeted: Dictionary = {}
 ## (third) wound loses the game (MissionPlayer). Saved with the game.
 const HERO_WOUND_LIMIT := 3
 var hero_wounds: Dictionary = {}
+## hero slot -> the name of the injury card the hero holds (see Injuries). Saved with the game.
+var hero_injuries: Dictionary = {}
+
+## Which trinket each hero wears this mission: hero slot -> {"id": base trinket id, "upgraded": bool} (equipped at embark). Nothing applies a
+## trinket's effect yet; the data is here for when they are automated.
+var hero_trinkets: Dictionary = {}
+
+
+## The heroes wearing trinket `trinket_id`: [{"slot": int, "upgraded": bool}] (normally one - a trinket is one card).
+func trinket_wearers(trinket_id: String) -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	for slot in hero_trinkets:
+		var worn: Dictionary = hero_trinkets[slot]
+		if str(worn.get("id", "")) == trinket_id:
+			found.append({"slot": int(slot), "upgraded": bool(worn.get("upgraded", false))})
+	return found
+
+
+## Whether any hero wears `trinket_id`: 0 = nobody, 1 = the basic side, 2 = the "+" side (global trinkets work for the whole party).
+func trinket_level(trinket_id: String) -> int:
+	var level := 0
+	for wearer in trinket_wearers(trinket_id):
+		level = maxi(level, 2 if wearer["upgraded"] else 1)
+	return level
+
+
+## Mage-Sight Goggles: after the wearer's FIRST fired prop action of a round (its effects have been applied) there is a chance (30% / 50% on "+")
+## of an additional action, reported in a popup. Called by PlayerInteractionController once the action has fired.
+func interaction_boon(hero_name: String) -> void:
+	for wearer in trinket_wearers("TRINKET18_ID"):
+		var slot: int = wearer["slot"]
+		if HeroCatalog.slot_name(slot) != hero_name:
+			continue
+		var count := int(hero_interactions_round.get(slot, 0)) + 1
+		hero_interactions_round[slot] = count
+		if count == 1 and randf() * 100.0 < (50.0 if wearer["upgraded"] else 30.0) and dialog != null:
+			await dialog.ask_ok("Mage-Sight Goggles - %s gains an additional action!" % hero_name, true, false, "Mage-Sight Goggles")
+
+
+## Heart Thorn Root: Enfeebled monsters deal 10 percentage points less on top of the usual 20.
+func _enfeeble_extra() -> int:
+	return 10 if trinket_level("TRINKET17_ID") > 0 else 0
+
+
 ## Weapon part abilities (PartEffectRunner): how often each card's ability has triggered this mission (base part id ->
 ## count, for "every 5th time"), and the extra affliction damage added for THIS round (cleared when the monster phase
 ## ends). Both saved with the game.
@@ -325,8 +378,14 @@ var _next_monster_number: int = 1
 signal monsters_changed
 ## A monster was defeated and removed (every way of defeating one ends in release_monster()).
 signal monster_defeated(monster: RuntimeMonster)
+## The hero wearing the Tarnished Brooch defeated the Brooch's monster with an attack.
+signal brooch_defeated(monster: RuntimeMonster)
+## An enemy was defeated by a hero wearing the Undying Skull (hero slot given).
+signal skull_kill(monster: RuntimeMonster, hero_slot: int)
+## The Brooch's monster has spawned in this mission already (once per mission; saved with the game).
+var brooch_spawned := false
 ## A defeated monster's loot went to the party: (monster display name, text for the table, e.g. "Metal, Terros").
-signal loot_collected(monster_name: String, text: String)
+signal loot_collected(monster_name: String, text: String, usable_text: String)
 ## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
 ## campaign when the mission is WON (CampaignState.apply_result()); saved with the game.
 var collected_loot: Dictionary = {}
@@ -400,6 +459,16 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.defeat_text = resolved["defeat_text"]
 	created.tactics = resolved["tactics"]
 	created.chip = candidates[randi() % candidates.size()]
+	created.enfeeble_extra_percent = _enfeeble_extra()
+	# Prescient Charm: an enemy that spawns is Exposed (and Enfeebled on the "+" side), unless it is immune.
+	var charm := trinket_level("TRINKET19_ID")
+	if charm > 0:
+		var charm_conditions: Array[int] = [MonsterCondition.Kind.EXPOSED]
+		if charm > 1:
+			charm_conditions.append(MonsterCondition.Kind.ENFEEBLED)
+		for condition in charm_conditions:
+			if not created.is_condition_immune(condition, 1) and not created.conditions.has(condition):
+				created.conditions.append(condition)
 	monsters.append(created)
 	monsters_changed.emit()
 	return created
@@ -444,6 +513,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	if hero_slot >= 0:
 		monster.last_attacker = hero_slot
 		hero_attacks_made[hero_slot] = int(hero_attacks_made.get(hero_slot, 0)) + 1
+		hero_attacks_round[hero_slot] = int(hero_attacks_round.get(hero_slot, 0)) + 1
 	# Conditions are applied BEFORE the damage is calculated, so a condition
 	# applied by this very attack (e.g. Exposed) already affects it.
 	var conditions_applied: Array[int] = []
@@ -504,7 +574,12 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		"exposed": not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED),
 	}
 	if defeated:
+		var brooch_kill: bool = monster.brooch_target and hero_slot >= 0 and hero_slot == monster.brooch_wearer
 		release_monster(monster.id)
+		if brooch_kill:
+			brooch_defeated.emit(monster)
+		if hero_slot >= 0 and str(hero_trinkets.get(hero_slot, {}).get("id", "")) == "TRINKET10_ID":
+			skull_kill.emit(monster, hero_slot)
 	else:
 		monsters_changed.emit()  # the M view shows HP
 	if ability_on:
@@ -555,7 +630,9 @@ func remove_condition(monster: RuntimeMonster, kind: int) -> void:
 ## one {monster, damage, hitpoints, defeated} per afflicted monster for the
 ## caller to show.
 func apply_affliction() -> Array[Dictionary]:
-	var damage := maxi(int(_variables.get("affliction_damage", DEFAULT_AFFLICTION_DAMAGE)) + affliction_bonus_round, 0)
+	# Heart Thorn Root+: afflicted enemies suffer 2 more in the monster phase.
+	var thorn_bonus := 2 if trinket_level("TRINKET17_ID") > 1 else 0
+	var damage := maxi(int(_variables.get("affliction_damage", DEFAULT_AFFLICTION_DAMAGE)) + affliction_bonus_round + thorn_bonus, 0)
 	var results: Array[Dictionary] = []
 	for monster in monsters.duplicate():
 		if not monster.conditions.has(MonsterCondition.Kind.AFFLICTED):
@@ -576,6 +653,8 @@ func apply_affliction() -> Array[Dictionary]:
 func end_monster_phase_conditions() -> void:
 	affliction_bonus_round = 0
 	wound_health_override = 0
+	hero_attacks_round.clear()
+	hero_interactions_round.clear()
 	for monster in monsters:
 		monster.defense_round_penalty = 0
 		monster.attacked_this_round = false
@@ -663,6 +742,20 @@ func wound_hero(slot: int) -> int:
 	return int(hero_wounds[slot])
 
 
+## The injury card (name) a hero holds, "" for none. The first wound gives one (give_injury()), the second flips it.
+func injury_of(slot: int) -> String:
+	return str(hero_injuries.get(slot, ""))
+
+
+## Picks the injury for a hero's first wound (random; a unique one for the wearer of the Ironbound Rune) and remembers it.
+func give_injury(slot: int) -> String:
+	var worn: Dictionary = hero_trinkets.get(slot, {})
+	var unique := str(worn.get("id", "")) == Injuries.UNIQUE_TRINKET_ID
+	var injury := Injuries.random_injury(unique)
+	hero_injuries[slot] = injury
+	return injury
+
+
 static func wound_label(count: int) -> String:
 	match count:
 		0:
@@ -692,11 +785,28 @@ func release_monster(monster_id: String) -> void:
 ## `collected_loot` (the game's real drop rules are unknown, so everything listed drops).
 func _collect_loot(monster: RuntimeMonster) -> void:
 	var gained := loot_materials(monster)
-	if gained.is_empty():
+	var usable := ConsumableData.usable_notice(loot_usable(monster))
+	var text := loot_text(monster)
+	# Dead Man's Compass: no crafting materials from this defeat -> the party gets a little gold (5; a "+" compass sometimes a lot: 25, 20%).
+	var compass := trinket_level("TRINKET3_ID")
+	if compass > 0 and not _has_materials(gained):
+		var compass_gold := 25 if compass > 1 and randf() < 0.2 else 5
+		gained[LootMaterials.GOLD] = int(gained.get(LootMaterials.GOLD, 0)) + compass_gold
+		text = (text + ", " if text != "" else "") + "%d gold (Dead Man's Compass)" % compass_gold
+	if gained.is_empty() and usable == "":
 		return
 	for key in gained:
 		collected_loot[key] = int(collected_loot.get(key, 0)) + int(gained[key])
-	loot_collected.emit(monster.display_name(), loot_text(monster))
+	loot_collected.emit(monster.display_name(), text, usable)
+
+
+## Whether a loot dictionary holds crafting materials (gold, cards and recipes are not materials).
+static func _has_materials(loot: Dictionary) -> bool:
+	for key in loot:
+		var name := str(key)
+		if name != LootMaterials.GOLD and not name.begins_with(LootMaterials.CARD_PREFIX) and not name.begins_with(LootMaterials.RECIPE_PREFIX):
+			return true
+	return false
 
 
 ## Makes `monster` drop `amount` single materials NOW, picked at random from what it still carries (weapon parts
@@ -721,7 +831,7 @@ func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
 		collected_loot[key] = int(collected_loot.get(key, 0)) + 1
 		dropped.append(LootMaterials.display_name(key))
 	if not dropped.is_empty():
-		loot_collected.emit(monster.display_name(), ", ".join(dropped))
+		loot_collected.emit(monster.display_name(), ", ".join(dropped), "")
 	return dropped
 
 
@@ -740,7 +850,7 @@ func multiply_loot(monster: RuntimeMonster, times: int) -> String:
 		collected_loot[key] = int(collected_loot.get(key, 0)) + extra
 		parts.append("%d gold" % extra if key == LootMaterials.GOLD else "%dx %s" % [extra, LootMaterials.display_name(key)])
 	if not parts.is_empty():
-		loot_collected.emit(monster.display_name(), "+" + ", ".join(parts))
+		loot_collected.emit(monster.display_name(), "+" + ", ".join(parts), "")
 	return ", ".join(parts)
 
 
@@ -759,6 +869,14 @@ static func loot_materials(monster: RuntimeMonster) -> Dictionary:
 		for recipe_id in item.recipes:
 			gained[LootMaterials.RECIPE_PREFIX + recipe_id] = 1
 	return gained
+
+
+## The consumable ids `monster` drops for use in this mission only.
+static func loot_usable(monster: RuntimeMonster) -> Array[String]:
+	var ids: Array[String] = []
+	for item in monster.loot:
+		ids.append_array(item.usable)
+	return ids
 
 
 ## "Metal, 2x Terros" - what `monster` drops, for the dialogs and the quest log ("" when nothing).
@@ -851,13 +969,16 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 ## "card:<id>" / "recipe:<id>", count 1) and the table is told what was found.
 func _apply_loot(effect: Effect) -> void:
 	var found := add_loot(effect.loot_materials, effect.loot_cards, effect.loot_recipes)
-	if found == "" and effect.loot_text == "":
+	var usable := ConsumableData.usable_notice(effect.loot_usable)
+	if found == "" and effect.loot_text == "" and usable == "":
 		return
 	var lines: Array[String] = []
 	if effect.loot_text != "":
 		lines.append(effect.loot_text)
 	if found != "":
 		lines.append("Loot for the party: " + found + ".")
+	if usable != "":
+		lines.append(usable)
 	if effect.loot_show_popup and dialog != null and not lines.is_empty():
 		var heading := effect.loot_title if effect.loot_title != "" else "Loot"  # same ask_ok popup a defeated monster's loot is announced with
 		await dialog.ask_ok("
@@ -944,6 +1065,11 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 	var prompt := "%s: perform a %s test - how many successes?" % [hero_name, attribute_label] if hero_name != "" else "Perform a %s test - how many successes?" % attribute_label
 	var successes: int = await dialog.ask_count(prompt, 0, 99)
 	print("MissionRuntime._run_test: %s -> %d successes" % [attribute_label, successes])
+	# Lucky Charm: after the hero enters the result, 0-2 (0-3 on the "+" side) more successes are added.
+	var lucky := _lucky_bonus(hero_name)
+	if lucky > 0:
+		successes += lucky
+		await dialog.ask_ok("Lucky Charm: %d extra success%s are added to %s's result." % [lucky, "" if lucky == 1 else "es", hero_name], true, false, "Lucky Charm")
 
 	if effect.accumulate_variable_name != "":
 		_accumulate(effect.accumulate_variable_name, successes)
@@ -953,6 +1079,16 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 			await apply_effects(effect.pass_effects, hero_name)
 		else:
 			await apply_effects(effect.fail_effects, hero_name)
+
+
+## The extra successes the Lucky Charm of the hero called `hero_name` adds to a test (0 when the hero does not wear one).
+func _lucky_bonus(hero_name: String) -> int:
+	if hero_name == "":
+		return 0
+	for wearer in trinket_wearers("TRINKET6_ID"):
+		if HeroCatalog.slot_name(int(wearer["slot"])) == hero_name:
+			return randi_range(0, 3 if wearer["upgraded"] else 2)
+	return 0
 
 
 ## Adds `delta` to a declared INT variable - the operation a cumulative

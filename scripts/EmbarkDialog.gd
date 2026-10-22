@@ -34,6 +34,25 @@ var restrict_to_owned: bool = false
 var owned_attachments: Array[String] = []
 var owned_runes: Array[String] = []  # part ids of the runes the party owns (campaign only)
 var owned_weapons: Array[String] = []  # part ids of the weapon cards the party owns (campaign only)
+## The crafted consumables the party carries (consumable id -> count, campaign only) and how many each player may take: shown by the
+## "Consumables" shortcut on both pages. They are available again every mission, so nothing is ever used up.
+var consumables: Dictionary = {}
+var consumables_per_player: int = 3
+## The armor cards the party owns (base ids, campaign only): the "Armor…" shortcut lists them (upgraded ones from `upgraded_cards`). Armor effects are resolved at the table.
+var owned_armors: Array[String] = []
+## The trinket cards the party owns (base ids, campaign only); outside a campaign every trinket can be picked. Each hero wears ONE trinket,
+## chosen on the loadout page: `chosen_trinkets` (hero slot -> {"id", "upgraded"}) is read after ask_loadouts().
+var owned_trinkets: Array[String] = []
+var chosen_trinkets: Dictionary = {}
+## Trinket ids that are out of the game here (the Tarnished Brooch when the campaign defines no monster for it, or in a plain mission).
+var excluded_trinkets: Array[String] = []
+var _armor_button_party: Button
+var _armor_button_loadout: Button
+var _armor_dialog: AcceptDialog
+var _consumables_button_party: Button
+var _consumables_button_loadout: Button
+var _consumables_dialog: AcceptDialog
+var _roster_size: int = 0  # set once the heroes are chosen (the loadout page)
 var upgraded_cards: Array[String] = []  # base ids of the owned cards that are upgraded (campaign only): shown "+", read-only
 
 var _slot_buttons: Array[Button] = []
@@ -147,6 +166,14 @@ func _build_ui() -> void:
 		grid.add_child(cell)
 		_slot_buttons.append(btn)
 
+	var party_shortcuts := HBoxContainer.new()
+	party_shortcuts.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(party_shortcuts)
+	_armor_button_party = _armor_button()
+	party_shortcuts.add_child(_armor_button_party)
+	_consumables_button_party = _consumables_button()
+	party_shortcuts.add_child(_consumables_button_party)
+
 	_start_button = Button.new()
 	_start_button.text = "Start"
 	_start_button.disabled = true
@@ -182,10 +209,134 @@ func _build_ui() -> void:
 	_loadout_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_loadout_scroll.add_child(_loadout_rows)
 
+	var loadout_shortcuts := HBoxContainer.new()
+	loadout_shortcuts.alignment = BoxContainer.ALIGNMENT_CENTER
+	loadout_vbox.add_child(loadout_shortcuts)
+	_armor_button_loadout = _armor_button()
+	loadout_shortcuts.add_child(_armor_button_loadout)
+	_consumables_button_loadout = _consumables_button()
+	loadout_shortcuts.add_child(_consumables_button_loadout)
+
 	var loadout_start := Button.new()
 	loadout_start.text = "Start"
 	loadout_start.pressed.connect(_on_start_pressed)
 	loadout_vbox.add_child(loadout_start)
+
+
+## The "Consumables" shortcut: opens a read-only list of what the party can take. Hidden outside a campaign.
+func _consumables_button() -> Button:
+	var button := Button.new()
+	button.text = "Consumables…"
+	button.tooltip_text = "The potions the party has crafted - available in every mission"
+	button.visible = false
+	button.pressed.connect(_open_consumables)
+	return button
+
+
+## The "Armor" shortcut: a read-only list of the armor the party owns. Hidden outside a campaign.
+func _armor_button() -> Button:
+	var button := Button.new()
+	button.text = "Armor…"
+	button.tooltip_text = "The armor the party owns"
+	button.visible = false
+	button.pressed.connect(_open_armor)
+	return button
+
+
+func _open_armor() -> void:
+	if _armor_dialog == null:
+		_armor_dialog = AcceptDialog.new()
+		_armor_dialog.title = "Armor"
+		_armor_dialog.ok_button_text = "Close"
+		_armor_dialog.min_size = Vector2i(560, 360)
+		add_child(_armor_dialog)
+	for child in _armor_dialog.get_children():
+		if child is ScrollContainer:
+			_armor_dialog.remove_child(child)
+			child.free()
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(540, 320)
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 8)
+	scroll.add_child(box)
+	var flow := HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 8)
+	box.add_child(flow)
+	for armor_id in owned_armors:
+		var upgraded := upgraded_cards.has(armor_id)
+		var armor := ArmorData.find(armor_id)
+		var shown := str(armor.get("name", ArmorData.label(armor_id)))
+		flow.add_child(ItemTile.build(ItemTile.data(shown, ArmorData.image(armor_id), upgraded, -1, ArmorData.label(armor_id) + "
+" + ArmorData.rule_text(armor_id, upgraded))))
+	if owned_armors.is_empty():
+		var none := Label.new()
+		none.text = "The party owns no armor yet."
+		none.modulate = Color(1, 1, 1, 0.6)
+		box.add_child(none)
+	else:
+		var note := Label.new()
+		note.text = "Hover an armor for its rules. Armor is worn and resolved at the table."
+		note.modulate = Color(1, 1, 1, 0.6)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		note.custom_minimum_size.x = 500.0
+		box.add_child(note)
+	_armor_dialog.add_child(scroll)
+	_armor_dialog.popup_centered_clamped(Vector2i(600, 420), 0.9)
+
+
+func _open_consumables() -> void:
+	if _consumables_dialog == null:
+		_consumables_dialog = AcceptDialog.new()
+		_consumables_dialog.title = "Consumables"
+		_consumables_dialog.ok_button_text = "Close"
+		_consumables_dialog.min_size = Vector2i(560, 360)
+		add_child(_consumables_dialog)
+	for child in _consumables_dialog.get_children():
+		if child is ScrollContainer:
+			_consumables_dialog.remove_child(child)
+			child.free()
+	var players := _roster_size
+	if players <= 0:
+		for button in _slot_buttons:
+			if button.button_pressed:
+				players += 1
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(540, 320)
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 8)
+	scroll.add_child(box)
+	var limit := Label.new()
+	limit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	limit.custom_minimum_size.x = 500.0
+	limit.text = "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up." % [
+		consumables_per_player, " (%d for %d player%s)" % [consumables_per_player * players, players, "" if players == 1 else "s"] if players > 0 else ""]
+	box.add_child(limit)
+	var flow := HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 8)
+	box.add_child(flow)
+	var any := false
+	for id: String in consumables:
+		var count := int(consumables[id])
+		if count > 0:
+			any = true
+			flow.add_child(ItemTile.build(ItemTile.data(ConsumableData.label(id).trim_suffix(" +"), ConsumableData.image(id), ConsumableData.is_upgraded(id), count, ConsumableData.label(id) + "\n" + ConsumableData.rule_text(id))))
+	if not any:
+		var none := Label.new()
+		none.text = "The party has no consumables. Brew them at an alchemist from potion recipes."
+		none.modulate = Color(1, 1, 1, 0.6)
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.custom_minimum_size.x = 500.0
+		box.add_child(none)
+	_consumables_dialog.add_child(scroll)
+	_consumables_dialog.popup_centered_clamped(Vector2i(600, 420), 0.9)
 
 
 func _on_slot_toggled(_pressed: bool) -> void:
@@ -224,6 +375,9 @@ func ask_roster(mission: MissionData) -> Array[int]:
 	_start_button.disabled = true
 	_party_panel.visible = true
 	_loadout_panel.visible = false
+	_roster_size = 0
+	_consumables_button_party.visible = restrict_to_owned
+	_armor_button_party.visible = restrict_to_owned
 
 	visible = true
 	await _closed
@@ -254,6 +408,9 @@ func _fit_loadout_scroll() -> void:
 
 
 func ask_loadouts(roster: Array[int]) -> Dictionary:
+	_roster_size = roster.size()
+	_consumables_button_loadout.visible = restrict_to_owned
+	_armor_button_loadout.visible = restrict_to_owned
 	for child in _loadout_rows.get_children():
 		child.free()
 	var catalogs: Dictionary = {}  # slot -> [Array[Weapon] for slot 0, Array[Weapon] for slot 1]
@@ -263,6 +420,10 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	var show_all := not restrict_to_owned
 	var weapon_plus_boxes: Dictionary = {}  # [slot, weapon_index] -> CheckBox (the weapon's upgraded side)
 	var attachment_plus_boxes: Dictionary = {}  # [slot, weapon_index] -> Array[CheckBox] (the B / C parts' upgraded sides)
+	var trinket_pickers: Dictionary = {}  # slot -> OptionButton (item 0 = none, then trinket_ids in order)
+	var trinket_pluses: Dictionary = {}  # slot -> CheckBox
+	var trinket_ids: Array[String] = []
+	chosen_trinkets = {}
 	for slot in roster:
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
@@ -369,6 +530,48 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			pair.append(picker)
 			attachment_options[[slot, weapon_index]] = options
 			attachment_pickers_by_weapon[[slot, weapon_index]] = attachment_pickers
+		if TrinketData.available():
+			var trinket_column := VBoxContainer.new()
+			trinket_column.custom_minimum_size = Vector2(150, 0)
+			var trinket_caption := Label.new()
+			trinket_caption.text = "Trinket"
+			trinket_caption.add_theme_font_size_override("font_size", 12)
+			trinket_caption.modulate = Color(1, 1, 1, 0.7)
+			trinket_column.add_child(trinket_caption)
+			var trinket_picker := OptionButton.new()
+			trinket_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			trinket_picker.fit_to_longest_item = false
+			trinket_picker.clip_text = true
+			trinket_picker.tooltip_text = "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+			trinket_picker.add_item("(none)")
+			var ids: Array[String] = []
+			for trinket in TrinketData.all():
+				var trinket_id := str(trinket["id"])
+				if (restrict_to_owned and not owned_trinkets.has(trinket_id)) or excluded_trinkets.has(trinket_id):
+					continue
+				ids.append(trinket_id)
+				var icon := TrinketData.image(trinket_id)
+				if icon != null:
+					trinket_picker.add_icon_item(icon, str(trinket["name"]))
+					trinket_picker.add_theme_constant_override("icon_max_width", 28)
+					trinket_picker.get_popup().add_theme_constant_override("icon_max_width", 48)
+				else:
+					trinket_picker.add_item(str(trinket["name"]))
+				trinket_picker.set_item_tooltip(trinket_picker.item_count - 1, str(trinket["text"]))
+			trinket_ids.assign(ids)  # filled in place: the picker callbacks below hold this very array
+			var trinket_plus := _plus_box()
+			trinket_plus.disabled = restrict_to_owned  # a campaign decides which trinkets are upgraded; a plain mission lets the table choose
+			trinket_plus.tooltip_text = "Upgraded (+). In a campaign this follows the party's upgrades." if restrict_to_owned else "Use the upgraded (+) side of this trinket."
+			trinket_picker.disabled = ids.is_empty()
+			trinket_picker.item_selected.connect(func(index: int):
+				if restrict_to_owned:
+					trinket_plus.button_pressed = index > 0 and upgraded_cards.has(ids[index - 1])
+				_refresh_trinket_availability(trinket_pickers, trinket_ids)
+			)
+			trinket_column.add_child(_with_plus(trinket_picker, trinket_plus))
+			row.add_child(trinket_column)
+			trinket_pickers[slot] = trinket_picker
+			trinket_pluses[slot] = trinket_plus
 		_loadout_rows.add_child(row)
 		catalogs[slot] = per_slot_catalogs
 		pickers[slot] = pair
@@ -380,6 +583,10 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	await _closed
 	visible = false
 
+	for slot in trinket_pickers:
+		var chosen_picker: OptionButton = trinket_pickers[slot]
+		if chosen_picker.selected > 0:
+			chosen_trinkets[slot] = {"id": trinket_ids[chosen_picker.selected - 1], "upgraded": (trinket_pluses[slot] as CheckBox).button_pressed}
 	var loadouts: Dictionary = {}
 	for slot in roster:
 		var chosen: Array[Weapon] = []
@@ -433,6 +640,19 @@ func _refresh_rune_availability(pickers: Dictionary, catalogs: Dictionary) -> vo
 				var weapon: Weapon = catalog[index]
 				if weapon.is_rune:
 					picker.set_item_disabled(index, holders.has(weapon.base_part_id) and holders[weapon.base_part_id] != picker)
+
+
+## A trinket is one physical card: while one hero wears it, it is greyed out in every other hero's trinket picker.
+func _refresh_trinket_availability(pickers: Dictionary, ids: Array[String]) -> void:
+	var worn: Dictionary = {}  # trinket id -> the picker wearing it
+	for slot in pickers:
+		var picker: OptionButton = pickers[slot]
+		if picker.selected > 0:
+			worn[ids[picker.selected - 1]] = picker
+	for slot in pickers:
+		var picker: OptionButton = pickers[slot]
+		for index in ids.size():
+			picker.set_item_disabled(index + 1, worn.has(ids[index]) and worn[ids[index]] != picker)
 
 
 ## Adds an entry with the part's picture (when the user's weapon-data export has it) to a picker and keeps the pictures small.

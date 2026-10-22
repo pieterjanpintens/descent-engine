@@ -978,6 +978,8 @@ func _loot_summary(effect: Effect) -> String:
 		parts.append(RecipeData.card_label(card_id))
 	if not effect.loot_recipes.is_empty():
 		parts.append("%d recipe(s)" % effect.loot_recipes.size())
+	if not effect.loot_usable.is_empty():
+		parts.append("usable: " + ConsumableData.list_text(effect.loot_usable))
 	return ", ".join(parts)
 
 
@@ -1037,14 +1039,16 @@ func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 		var work: Dictionary = effect.loot_materials.duplicate()
 		var cards: Array[String] = effect.loot_cards.duplicate()
 		var recipes: Array[String] = effect.loot_recipes.duplicate()
+		var usable: Array[String] = effect.loot_usable.duplicate()
 		_loot_materials_dialog.open_for("Loot", work, func():
 			_commit_field("Edit loot", func():
 				effect.loot_materials = work.duplicate()
 				effect.loot_cards = cards.duplicate()
 				effect.loot_recipes = recipes.duplicate()
+				effect.loot_usable = usable.duplicate()
 			)
 			on_refresh.call()
-		, false, true, {"cards": cards, "recipes": recipes})
+		, false, true, {"cards": cards, "recipes": recipes, "usable": usable})
 	)
 	box.add_child(materials_button)
 

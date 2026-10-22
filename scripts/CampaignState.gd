@@ -41,6 +41,14 @@ extends Resource
 ## Base ids of the armor cards the party owns (ArmorData). Armor effects are resolved at the table; the app only tracks
 ## ownership (and the "+" side in upgraded_cards).
 @export var owned_armors: Array[String] = []
+## Base ids of the trinket cards the party owns (TrinketData); the "+" side is in upgraded_cards. Each hero equips one at embark.
+@export var owned_trinkets: Array[String] = []
+## Progress counters of trinkets: trinket id -> count. The Tarnished Brooch counts the defeats of its monster by the wearer (3 unlock the "+").
+@export var trinket_counters: Dictionary = {}
+## Chapters / side quests (ids) in which the Brooch monster already spawned: it spawns once per chapter, so retrying a lost mission cannot farm the counter.
+@export var brooch_spawned_chapters: Array[String] = []
+## Set by the campaign player from the Campaign: false = no Brooch monster is defined, the Brooch is out of the game (not sold, not offered).
+var brooch_enabled := true
 ## The owned cards (weapon, part or rune base ids) that are upgraded: their "+" side is up. Permanent, like flipping
 ## the physical card; set by the starting set and by shop offers marked "upgraded".
 @export var upgraded_cards: Array[String] = []
@@ -49,6 +57,8 @@ extends Resource
 @export var hero_voices: Dictionary = {}
 ## Ids of the recipes the party has bought (RecipeData); the smithy forges from these.
 @export var owned_recipes: Array[String] = []
+## Crafted consumables the party carries: consumable id (a potion and its "+" version are two ids) -> count. Their effect is resolved at the table.
+@export var consumables: Dictionary = {}
 ## Rotation steps so far: one for every won chapter or side quest (see advance_shops()).
 @export var shop_steps: int = 0
 ## Per recipe shop (place id): its rotating stock and its random seed - see ShopRotation. Kept in the save so the stock
@@ -230,6 +240,7 @@ func ensure_started(campaign: Campaign) -> void:
 		owned_attachments = campaign.starting_attachments.duplicate()
 		owned_runes = campaign.starting_runes.duplicate()
 		owned_armors = campaign.starting_armors.duplicate()
+		owned_trinkets = campaign.starting_trinkets.duplicate()
 		upgraded_cards = campaign.starting_upgrades.duplicate()
 		add_log(campaign.campaign_name, [campaign.intro if campaign.intro != "" else "The story begins."])
 	_begin_act(campaign, current_act)
@@ -397,6 +408,8 @@ func _add_card(card_id: String) -> void:
 	match RecipeData.card_kind(card_id):
 		"armor":
 			owned_armors.append(card_id)
+		"trinket":
+			owned_trinkets.append(card_id)
 		"rune":
 			owned_runes.append(card_id)
 		"weapon":
@@ -440,8 +453,10 @@ func buy(offer: CampaignOffer) -> bool:
 		owned_weapons.append(offer.weapon)
 	if offer.armor != "" and not owned_armors.has(offer.armor):
 		owned_armors.append(offer.armor)
+	if offer.trinket != "" and not owned_trinkets.has(offer.trinket):
+		owned_trinkets.append(offer.trinket)
 	if offer.upgraded:
-		for card_id in [offer.attachment, offer.rune, offer.weapon, offer.armor]:
+		for card_id in [offer.attachment, offer.rune, offer.weapon, offer.armor, offer.trinket]:
 			if card_id != "" and not upgraded_cards.has(card_id):
 				upgraded_cards.append(card_id)
 	if offer.once:
@@ -481,6 +496,8 @@ func owns_card(card_id: String) -> bool:
 	match RecipeData.card_kind(card_id):
 		"armor":
 			return owned_armors.has(card_id)
+		"trinket":
+			return owned_trinkets.has(card_id)
 		"rune":
 			return owned_runes.has(card_id)
 		"weapon":
@@ -492,6 +509,8 @@ func owns_card(card_id: String) -> bool:
 ## Whether the recipe still has something to make: a new card the party lacks, or an upgrade for a card it owns that is not
 ## upgraded yet.
 func recipe_target_open(recipe: Dictionary) -> bool:
+	if recipe.get("consumable", false):
+		return true  # a potion recipe makes the potion again and again
 	var card := str(recipe["card"])
 	if recipe["upgrade"]:
 		return owns_card(card) and not upgraded_cards.has(card)
@@ -508,6 +527,8 @@ func _recipe_pool(place: CampaignPlace) -> Array[String]:
 	for recipe in RecipeData.all():
 		var id := str(recipe["id"])
 		if owned_recipes.has(id) or listed.has(id) or not recipe_target_open(recipe):
+			continue
+		if _is_brooch_recipe(recipe):
 			continue
 		if place.tier_weight(RecipeData.tier(recipe)) <= 0:
 			continue
@@ -527,6 +548,13 @@ func _recipe_weights(place: CampaignPlace, pool: Array[String]) -> Dictionary:
 		var tier := RecipeData.tier(RecipeData.find(id))
 		weights[id] = float(place.tier_weight(tier)) / float(per_tier[tier])
 	return weights
+
+
+## The Brooch's "+" is earned by the counter, never bought or forged; the Brooch itself is only sold when the campaign defines its monster.
+func _is_brooch_recipe(recipe: Dictionary) -> bool:
+	if str(recipe["card"]) != TrinketData.BROOCH_ID:
+		return false
+	return recipe["upgrade"] or not brooch_enabled
 
 
 func _rotate_shop(place: CampaignPlace) -> void:
@@ -558,7 +586,7 @@ func shop_view(place: CampaignPlace) -> Dictionary:
 	var entries: Array[Dictionary] = []
 	for listed in place.listed_recipes:
 		var recipe := RecipeData.find(listed.recipe_id)
-		if recipe.is_empty() or owned_recipes.has(listed.recipe_id):
+		if recipe.is_empty() or owned_recipes.has(listed.recipe_id) or _is_brooch_recipe(recipe):
 			continue
 		if listed.unlocked_by_chapter != "" and not completed_chapters.has(listed.unlocked_by_chapter):
 			continue
@@ -592,7 +620,7 @@ func buy_recipe(recipe_id: String) -> bool:
 	var recipe := RecipeData.find(recipe_id)
 	gold -= int(recipe["price"])
 	if recipe["direct"]:
-		owned_armors.append(str(recipe["card"]))
+		_add_card(str(recipe["card"]))
 	else:
 		owned_recipes.append(recipe_id)
 	_remove_from_shops(recipe_id)
@@ -622,14 +650,48 @@ func forgeable_recipes() -> Array[Dictionary]:
 	var list: Array[Dictionary] = []
 	for recipe_id in owned_recipes:
 		var recipe := RecipeData.find(recipe_id)
-		if not recipe.is_empty() and recipe_target_open(recipe):
+		if not recipe.is_empty() and not recipe.get("consumable", false) and recipe_target_open(recipe):
 			list.append(recipe)
 	return list
 
 
 func can_forge(recipe_id: String) -> bool:
 	var recipe := RecipeData.find(recipe_id)
-	return not recipe.is_empty() and owned_recipes.has(recipe_id) and recipe_target_open(recipe) and has_materials(recipe["ingredients"])
+	return not recipe.is_empty() and not recipe.get("consumable", false) and owned_recipes.has(recipe_id) and recipe_target_open(recipe) and has_materials(recipe["ingredients"])
+
+
+## The owned consumable (potion) recipes - what the alchemist can brew.
+func brewable_recipes() -> Array[Dictionary]:
+	var list: Array[Dictionary] = []
+	for recipe_id in owned_recipes:
+		var recipe := RecipeData.find(recipe_id)
+		if not recipe.is_empty() and recipe.get("consumable", false):
+			list.append(recipe)
+	return list
+
+
+func can_brew(recipe_id: String) -> bool:
+	var recipe := RecipeData.find(recipe_id)
+	return not recipe.is_empty() and recipe.get("consumable", false) and owned_recipes.has(recipe_id) and has_materials(recipe["ingredients"])
+
+
+## Brews one consumable of an owned recipe: pays the materials, the party carries one more.
+func brew(recipe_id: String) -> bool:
+	if not can_brew(recipe_id):
+		return false
+	var recipe := RecipeData.find(recipe_id)
+	for material_name in recipe["ingredients"]:
+		add_material(str(material_name), -int(recipe["ingredients"][material_name]))
+	add_consumable(str(recipe["card"]), 1)
+	return true
+
+
+func consumable_count(consumable_id: String) -> int:
+	return int(consumables.get(consumable_id, 0))
+
+
+func add_consumable(consumable_id: String, amount: int) -> void:
+	consumables[consumable_id] = maxi(consumable_count(consumable_id) + amount, 0)
 
 
 ## Forges the item of an owned recipe: pays the materials, and the party gets the new card or flips the owned one to its "+".
@@ -643,15 +705,7 @@ func forge(recipe_id: String) -> bool:
 	if recipe["upgrade"]:
 		upgraded_cards.append(card)
 	else:
-		match RecipeData.card_kind(card):
-			"armor":
-				owned_armors.append(card)
-			"rune":
-				owned_runes.append(card)
-			"weapon":
-				owned_weapons.append(card)
-			_:
-				owned_attachments.append(card)
+		_add_card(card)
 	return true
 
 
@@ -667,6 +721,51 @@ static func format_materials(cost: Dictionary) -> String:
 
 func add_material(material_name: String, amount: int) -> void:
 	materials[material_name] = maxi(int(materials.get(material_name, 0)) + amount, 0)
+
+
+func bind_campaign(campaign: Campaign) -> void:
+	brooch_enabled = campaign.brooch_monster != null
+
+
+## One more defeat of the Brooch monster by the wearer; the third unlocks the "+" side. Returns the new count.
+func add_brooch_defeat() -> int:
+	var count := int(trinket_counters.get(TrinketData.BROOCH_ID, 0)) + 1
+	trinket_counters[TrinketData.BROOCH_ID] = count
+	if count >= TrinketData.BROOCH_DEFEATS_NEEDED and not upgraded_cards.has(TrinketData.BROOCH_ID):
+		upgraded_cards.append(TrinketData.BROOCH_ID)
+	return count
+
+
+## Undying Skull: one more defeat of this enemy type (folder) by a wearer; returns the new count (kept for the whole campaign).
+func bump_skull_count(folder: String) -> int:
+	var key := "TRINKET10_ID:" + folder
+	var count := int(trinket_counters.get(key, 0)) + 1
+	trinket_counters[key] = count
+	return count
+
+
+## The Undying Skull's "unique recipe": the most expensive recipe (a new weapon / part card or an upgrade, not rune / armor / trinket / potion) for a
+## weapon type the hero in `slot` uses that the party can still make use of and does not own yet. "" when there is none.
+func pick_skull_recipe(slot: int) -> String:
+	var types: Array[String] = [WeaponCatalog.type_of(slot, 0), WeaponCatalog.type_of(slot, 1)]
+	var best: Array[String] = []
+	var best_price := -1
+	for recipe in RecipeData.all():
+		if recipe["direct"] or recipe.get("consumable", false) or owned_recipes.has(recipe["id"]):
+			continue
+		var card := str(recipe["card"])
+		var kind := RecipeData.card_kind(card)
+		if kind != "weapon" and kind != "B" and kind != "C":
+			continue
+		if not types.has(WeaponData.weapon_type_of_part(card)) or not recipe_target_open(recipe):
+			continue
+		var price := int(recipe["price"])
+		if price > best_price:
+			best_price = price
+			best = [str(recipe["id"])]
+		elif price == best_price:
+			best.append(str(recipe["id"]))
+	return "" if best.is_empty() else best.pick_random()
 
 
 func mark_completed(chapter_id: String) -> void:

@@ -6,6 +6,7 @@ extends RefCounted
 
 static var _loaded := false
 static var _consumables: Array = []
+static var _trinkets: Array = []
 static var _texts: Dictionary = {}
 static var _attack: Dictionary = {}  ## game key -> {key, name, text} (activation abilities)
 static var _defense: Dictionary = {}  ## game key -> {key, name, text, after, enemies}
@@ -51,6 +52,24 @@ static func random_consumable(upgraded: bool) -> String:
 	if pool.is_empty():
 		return ""
 	return pool.pick_random() + (" +" if upgraded else "")
+
+
+## The raw consumable entries of the export (ConsumableData normalises them).
+static func consumable_entries() -> Array:
+	_load()
+	return _consumables
+
+
+## The raw trinket entries of the export (TrinketData normalises them).
+static func trinket_entries() -> Array:
+	_load()
+	return _trinkets
+
+
+## The cleaned game text of a localization key ("" when unknown).
+static func text_for(key: String) -> String:
+	_load()
+	return _clean(str(_texts.get(key, "")))
 
 
 ## The game's rich-text markup as plain text: `<b>..</b>` and other tags go, a term link around words keeps the words, a
@@ -161,6 +180,7 @@ static func _load() -> void:
 	var items = _read("user://item_data/items.json")
 	if items is Dictionary:
 		_consumables = items.get("consumables", [])
+		_trinkets = items.get("trinkets", [])
 	var texts = _read("user://item_data/localization_en.json")
 	if texts is Dictionary:
 		_texts = texts

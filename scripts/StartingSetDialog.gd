@@ -76,6 +76,12 @@ func _rebuild() -> void:
 			armor_grid.add_child(_check(ArmorData.label(str(armor["id"])), _campaign.starting_armors, str(armor["id"]), "%s
 
 + side: %s" % [armor["text"], armor["plus_text"]]))
+	if TrinketData.available():
+		var trinket_grid := _section("Trinkets")
+		for trinket in TrinketData.all():
+			trinket_grid.add_child(_check(str(trinket["name"]), _campaign.starting_trinkets, str(trinket["id"]), "%s
+
++ side: %s" % [trinket["text"], trinket["plus_text"]]))
 
 
 ## A folded section titled `title_text` holding a two-column grid.

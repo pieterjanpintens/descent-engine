@@ -4,14 +4,15 @@ extends RefCounted
 ## The game's weapon recipes, read from the user's own export (tools/asset_import/import_item_data.py ->
 ## user://item_data/items.json). Never instantiated. A recipe either makes a NEW card (a weapon, or a part B / C) or is an
 ## UPGRADE of a card the party owns (flips it to its "+" side). Nothing ships with the project: without the export there
-## are no recipes. Weapon parts and armor for now (potions and trinkets come later).
+## are no recipes. Weapon parts, armor, trinkets and consumables (potions).
 ##
 ## A normalised recipe is {id, card (the base part id it is about), upgrade, direct, price (gold, in the recipe shop), xp
 ## (XPRequiredForDrop; 99 = story only), act (0 = act I), ingredients (material key -> count)}.
 ##
 ## Armor: the 27 armor upgrades are recipes like the weapon ones. Base armors have no recipe in the game's data (they are
 ## bought for their `Value`), so each one is a DIRECT entry ("BUY_ARMOR_10"): it sits in the shop's rotating stock like a
-## recipe but buying it gives the armor card at once - nothing to forge.
+## recipe but buying it gives the armor card at once - nothing to forge. Trinkets work the same way: the 20 "+" upgrades are recipes, the base
+## trinkets are direct entries ("BUY_TRINKET10_ID").
 
 const ITEMS_PATH := "user://item_data/items.json"
 
@@ -65,6 +66,10 @@ static func highest_tier() -> int:
 ## "armor", "rune", "weapon" (an A part), "B" or "C" for the card a recipe is about.
 static func card_kind(card_id: String) -> String:
 	_load()
+	if ConsumableData.is_consumable(card_id):
+		return "consumable"
+	if TrinketData.is_trinket(card_id):
+		return "trinket"
 	if ArmorData.is_armor(card_id):
 		return "armor"
 	if _rune_ids.has(card_id):
@@ -75,7 +80,14 @@ static func card_kind(card_id: String) -> String:
 
 ## The picture of the card a recipe makes (weapon, part, rune or armor), null when there is none.
 static func card_image(card_id: String) -> Texture2D:
-	return ArmorData.image(card_id) if card_kind(card_id) == "armor" else WeaponData.part_icon(card_id)
+	match card_kind(card_id):
+		"armor":
+			return ArmorData.image(card_id)
+		"trinket":
+			return TrinketData.image(card_id)
+		"consumable":
+			return ConsumableData.image(card_id)
+	return WeaponData.part_icon(card_id)
 
 
 ## "Warden's Blade (Sword)", "Northrider Guard (Sword, part B)", "Rune: Ice Storm" - what the recipe is for.
@@ -83,6 +95,10 @@ static func card_label(card_id: String) -> String:
 	match card_kind(card_id):
 		"armor":
 			return "Armor: " + ArmorData.label(card_id)
+		"consumable":
+			return ConsumableData.label(card_id)
+		"trinket":
+			return "Trinket: " + TrinketData.label(card_id)
 		"rune":
 			return "Rune: " + WeaponData.part_name(card_id)
 		"B", "C":
@@ -95,6 +111,8 @@ static func label(recipe: Dictionary) -> String:
 	var card := str(recipe["card"])
 	if recipe["upgrade"] and card_kind(card) == "armor":
 		return "Armor upgrade: " + ArmorData.label(card)
+	if recipe["upgrade"] and card_kind(card) == "trinket":
+		return "Trinket upgrade: " + TrinketData.label(card)
 	return ("Upgrade: " if recipe["upgrade"] else "") + card_label(card)
 
 
@@ -102,6 +120,10 @@ static func label(recipe: Dictionary) -> String:
 static func hint(recipe: Dictionary) -> String:
 	var card := str(recipe["card"])
 	var kind := card_kind(card)
+	if kind == "consumable":
+		return "a potion recipe"
+	if kind == "trinket":
+		return "a trinket" if recipe["direct"] else "a trinket upgrade"
 	if kind == "armor":
 		var armor_class := str(ArmorData.find(card).get("armor_class", "")).to_lower()
 		if recipe["direct"]:
@@ -127,9 +149,17 @@ static func _load() -> void:
 		_rune_ids[rune.part_id] = true
 	for raw: Dictionary in data.get("recipes", []):
 		var crafted := str(raw.get("CraftedItemId", ""))
-		if not (crafted.begins_with("WEAPON_PART_") or crafted.begins_with("ARMOR_")):
+		var is_potion := crafted.begins_with("CSM_")
+		if not (crafted.begins_with("WEAPON_PART_") or crafted.begins_with("ARMOR_") or crafted.begins_with("TRINKET") or is_potion):
 			continue
-		var upgrade := int(raw.get("IsUpgrade", 0)) == 1
+		var unresolved := false
+		for part: Dictionary in raw.get("Ingredients", []):
+			if not LootMaterials.VALUES.has(str(part.get("material", "")).trim_prefix("MAT_").to_lower()):
+				unresolved = true  # the export could not name a material: a recipe with a missing ingredient would be too cheap
+		if unresolved:
+			continue
+		# a potion's "+" recipe makes the "+" potion by itself (a counted item), it does not upgrade anything the party owns
+		var upgrade := int(raw.get("IsUpgrade", 0)) == 1 and not is_potion
 		var ingredients := {}
 		for part: Dictionary in raw.get("Ingredients", []):
 			var key := str(part.get("material", "")).trim_prefix("MAT_").to_lower()
@@ -139,6 +169,7 @@ static func _load() -> void:
 			"id": str(raw["_id"]),
 			"card": str(raw.get("BaseItemId", "")) if upgrade else crafted,
 			"upgrade": upgrade,
+			"consumable": is_potion,
 			"direct": false,
 			"price": int(raw.get("Value", 0)),
 			"xp": int(raw.get("XPRequiredForDrop", 99)),
@@ -160,3 +191,16 @@ static func _load() -> void:
 		}
 		_recipes.append(direct)
 		_by_id[direct["id"]] = direct
+	for trinket in TrinketData.all():
+		var direct_trinket := {
+			"id": "BUY_" + str(trinket["id"]),
+			"card": str(trinket["id"]),
+			"upgrade": false,
+			"direct": true,
+			"price": int(trinket["price"]),
+			"xp": int(trinket["xp"]),
+			"act": int(trinket["act"]),
+			"ingredients": {},
+		}
+		_recipes.append(direct_trinket)
+		_by_id[direct_trinket["id"]] = direct_trinket

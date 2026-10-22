@@ -840,6 +840,7 @@ func _rebuild_loot_rows() -> void:
 			var work := _loot_item_to_dict(item)
 			var cards: Array[String] = item.cards.duplicate()
 			var recipes: Array[String] = item.recipes.duplicate()
+			var usable: Array[String] = item.usable.duplicate()
 			if _loot_dialog == null:
 				_loot_dialog = LootDialog.new()
 				add_child(_loot_dialog)
@@ -847,9 +848,10 @@ func _rebuild_loot_rows() -> void:
 				_loot_item_from_dict(item, work)
 				item.cards = cards.duplicate()
 				item.recipes = recipes.duplicate()
+				item.usable = usable.duplicate()
 				loot_button.text = _loot_item_summary(item)
 				_save()
-			, false, true, {"cards": cards, "recipes": recipes})
+			, false, true, {"cards": cards, "recipes": recipes, "usable": usable})
 		)
 		top.add_child(loot_button)
 		var remove := Button.new()
@@ -904,6 +906,8 @@ func _loot_item_summary(item: LootItem) -> String:
 		parts.append(RecipeData.card_label(card_id))
 	if not item.recipes.is_empty():
 		parts.append("%d recipe(s)" % item.recipes.size())
+	if not item.usable.is_empty():
+		parts.append("usable: " + ConsumableData.list_text(item.usable))
 	return "Loot…" if parts.is_empty() else ", ".join(parts)
 
 

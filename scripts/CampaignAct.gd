@@ -131,8 +131,10 @@ func problems(mission_files: Array[String]) -> Array[String]:
 			elif place.closes_after_chapter == "":
 				found.append("place '%s' reopens, but it never closes" % place.title)
 		for offer in place.offers:
-			if offer.attachment == "" and offer.rune == "" and offer.weapon == "" and offer.armor == "":
+			if offer.attachment == "" and offer.rune == "" and offer.weapon == "" and offer.armor == "" and offer.trinket == "":
 				found.append("'%s' (at '%s') gives nothing" % [offer.title, place.title])
+			elif offer.trinket != "" and TrinketData.available() and TrinketData.find(offer.trinket).is_empty():
+				found.append("'%s' (at '%s') gives an unknown trinket '%s'" % [offer.title, place.title, offer.trinket])
 			elif offer.armor != "" and ArmorData.available() and ArmorData.find(offer.armor).is_empty():
 				found.append("'%s' (at '%s') gives an unknown armor '%s'" % [offer.title, place.title, offer.armor])
 			elif offer.rune != "" and WeaponData.find_rune(offer.rune) == null:
