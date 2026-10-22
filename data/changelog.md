@@ -1,3 +1,8 @@
+## v0.0.34 - 2026-10-22
+- Mission editor: Generate stage... - describe an area in words and the AI designs it from the pieces still free; every answer is checked by the map rules and retried with the problems as feedback. Needs AI help turned on in Options.
+- Mission editor: a selected stage (or any selection) can be moved with the arrow keys and turned with R as one body; floors, props, monster spawns, LOS blockers and the hero start squares on it travel along, and the move is refused if it would land on another piece. One undo step.
+- New documentation in the docs folder: the mission editor, the campaign editor, the other tools and a full hotkey sheet.
+
 ## v0.0.33 - 2026-10-22
 - Consumables: potions and grenades with a count in the inventory (new Consumables tab), potion recipes in shops and loot, and a new Alchemist place where potions are brewed. Crafted potions are available again every mission; a potion found in a mission can be used in that mission only (the loot popup says so). The embark screens have Armor and Consumables shortcuts.
 - Trinkets: the 20 trinkets can be owned, bought, upgraded, found as loot and are shown in a new Inventory tab. Each hero equips one at embark.
