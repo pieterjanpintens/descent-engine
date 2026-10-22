@@ -34,6 +34,7 @@ extends HBoxContainer
 const CHECK_DELAY_SEC := 0.6
 const WATCH_SEC := 2.0
 
+var _stage_dialog: StageDialog
 var _problems_button: Button
 var _problems_dialog: AcceptDialog
 var _problems_list: VBoxContainer
@@ -89,6 +90,17 @@ func _build_ui() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
+
+	var stage_button := Button.new()
+	stage_button.text = "Generate stage..."
+	stage_button.tooltip_text = "Describe an area in words and let the AI design it from the pieces in the box (experimental)."
+	stage_button.pressed.connect(func(): _stage_dialog.open())
+	add_child(stage_button)
+	_stage_dialog = StageDialog.new()
+	_stage_dialog.creator_controller = creator_controller
+	_stage_dialog.layered_map = layered_map
+	_stage_dialog.visible = false
+	add_child(_stage_dialog)
 
 	_problems_button = Button.new()
 	_problems_button.flat = true

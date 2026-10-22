@@ -875,14 +875,91 @@ func change_level(delta: int) -> void:
 func rotate_selection() -> void:
 	if draw_mode:
 		current_quarter_turn = (current_quarter_turn + 1) % 4
-	else:
+	elif selected_placed_id != "":
 		rotate_selected_placed()
+	else:
+		turn_selection()
 
 
 ## The prop/floor/underlay currently selected in the outline tree (set by
 ## CreatorOutline whenever exactly one such node is selected, "" otherwise) -
 ## what R rotates outside Draw mode.
 var selected_placed_id: String = ""
+
+## Ids of EVERYTHING selected in the outline (pieces, groups, spawns, blockers; not the root) - what the arrow keys move and, for a stage or
+## several things, what R turns as one rigid body (StageTransform). Set by CreatorOutline.
+var selected_ids: Array[String] = []
+
+
+## Moves the selection by `step` tile squares (x, z) as one body - a selected stage takes everything in it along, keeping the pieces' places
+## relative to each other. One undo step (repeats within the meld window are one step). Refused when it would land on a piece that is not selected.
+func move_selection(step: Vector2i) -> void:
+	_transform_selection(false, step, "Move selection")
+
+
+## Turns the selection a quarter turn around its middle (a stage, several things, or a spawn/blocker); one piece alone uses rotate_selected_placed().
+func turn_selection() -> void:
+	_transform_selection(true, Vector2i.ZERO, "Turn selection")
+
+
+func _transform_selection(turn: bool, step: Vector2i, label: String) -> void:
+	if selected_ids.is_empty() or layered_map.mission == null:
+		return
+	var plan := StageTransform.plan(layered_map, selected_ids, turn, step)
+	if plan.is_empty():
+		return
+	operation_history.record(label, func(): StageTransform.apply(layered_map, plan))
+	if show_tile_labels:
+		_rebuild_tile_labels()
+
+
+## What an arrow key means in the 3D view: up = away from the camera, right = to the camera's right, snapped to the nearest board axis.
+func _arrow_step(keycode: Key) -> Vector2i:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return Vector2i.ZERO
+	var basis := cam.global_transform.basis
+	var forward := Vector2(-basis.z.x, -basis.z.z)
+	if forward.length() < 0.35:  # looking (almost) straight down: the screen's up is the camera's up vector
+		forward = Vector2(basis.y.x, basis.y.z)
+	var f: Vector2i
+	if absf(forward.x) > absf(forward.y):
+		f = Vector2i(1 if forward.x > 0.0 else -1, 0)
+	else:
+		f = Vector2i(0, 1 if forward.y > 0.0 else -1)
+	var r := Vector2i(-f.y, f.x)
+	match keycode:
+		KEY_UP:
+			return f
+		KEY_DOWN:
+			return -f
+		KEY_RIGHT:
+			return r
+		KEY_LEFT:
+			return -r
+	return Vector2i.ZERO
+
+
+## Arrow keys move the selection while the pointer is over the 3D view (not over the outline or any panel, so the outline still uses them for
+## its own selection) and no text box is being typed in. Handled before the GUI so a button that kept the focus doesn't swallow them.
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventKey) or not event.pressed:
+		return
+	if selected_ids.is_empty() or event.is_command_or_control_pressed() or event.alt_pressed:
+		return
+	if event.keycode != KEY_UP and event.keycode != KEY_DOWN and event.keycode != KEY_LEFT and event.keycode != KEY_RIGHT:
+		return
+	var viewport := get_viewport()
+	if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE or viewport.gui_get_hovered_control() != null:
+		return
+	var focus := viewport.gui_get_focus_owner()
+	if focus is LineEdit or focus is TextEdit:
+		return
+	var step := _arrow_step(event.keycode)
+	if step == Vector2i.ZERO:
+		return
+	move_selection(step)
+	viewport.set_input_as_handled()
 
 
 ## Rotates the selected already-placed piece a quarter turn. 1x1 pieces

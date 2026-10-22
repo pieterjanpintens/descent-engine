@@ -440,7 +440,8 @@ func _describe(type: CreatorOutline.SelectionType) -> String:
 		CreatorOutline.SelectionType.MONSTER_SPAWN:
 			return "Monster Spawn\n%d tile(s)" % (_current_node as MonsterSpawn).cells.size()
 		_:  # GROUP - no mesh/cell/type to show
-			return "Group"
+			return "Group (a stage)
+With the pointer over the 3D view: arrow keys move the whole group one square, R turns it. Everything in it keeps its place."
 
 
 ## Matches CreatorOutline._add_tile_item()/_create_group_item()'s own

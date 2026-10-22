@@ -74,6 +74,13 @@ Roughly what the full experience takes:
 
 Without voices it is about 0.3 GB; the voice packs are what make it big, and each one is optional.
 
+## Documentation
+
+- [Hotkeys and mouse controls](docs/hotkeys.md)
+- [The mission editor](docs/mission-editor.md)
+- [The campaign editor](docs/campaign-editor.md)
+- [Other tools and dialogs](docs/other-tools.md) (options, monster templates, releases, the Player)
+
 ## Sharing missions and campaigns
 
 Main menu > **Community** installs missions and campaigns made by other players: import a package file (`.descentpkg`), paste a web address, or browse the
