@@ -24,14 +24,14 @@ static func font(weight: int = 900) -> Font:
 	var variation := FontVariation.new()
 	variation.base_font = base
 	variation.variation_opentype = {"wght": weight}
-	variation.variation_embolden = 0.6  # on top of the heaviest weight: the mockup's letters are fat
+	variation.variation_embolden = 1.1  # on top of the heaviest weight: the mockup's letters are fat
 	return variation
 
 
 ## One menu entry: the text as a flat button with the ornamental divider beneath it.
 static func entry(text: String, on_pressed: Callable, size: int = 34) -> VBoxContainer:
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 0)
+	box.add_theme_constant_override("separation", -8)  # the divider sits right under the letters
 	var button := Button.new()
 	button.text = text
 	button.flat = true
@@ -43,10 +43,16 @@ static func entry(text: String, on_pressed: Callable, size: int = 34) -> VBoxCon
 	button.add_theme_color_override("font_hover_color", HOVER_COLOR)
 	button.add_theme_color_override("font_pressed_color", HOVER_COLOR)
 	button.add_theme_color_override("font_disabled_color", DISABLED_COLOR)
-	button.add_theme_color_override("font_outline_color", OUTLINE_COLOR)
-	button.add_theme_constant_override("outline_size", 8)
+	# a bezel look: a hard shadow under the letters only, none around them
+	button.add_theme_color_override("font_shadow_color", OUTLINE_COLOR)
+	button.add_theme_constant_override("shadow_offset_x", 0)
+	button.add_theme_constant_override("shadow_offset_y", maxi(3, size / 9))
+	button.add_theme_constant_override("shadow_outline_size", 0)
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
-		button.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+		var empty := StyleBoxEmpty.new()
+		empty.content_margin_top = 0
+		empty.content_margin_bottom = 0
+		button.add_theme_stylebox_override(state, empty)
 	button.pressed.connect(on_pressed)
 	box.add_child(button)
 	var divider := TextureRect.new()
@@ -71,8 +77,9 @@ static func framed_button(text: String, wide: bool, size: Vector2, on_pressed: C
 	button.add_theme_color_override("font_color", TEXT_COLOR)
 	button.add_theme_color_override("font_hover_color", TEXT_COLOR)
 	button.add_theme_color_override("font_pressed_color", TEXT_COLOR)
-	button.add_theme_color_override("font_outline_color", Color(0.1, 0.3, 0.5, 0.9))
-	button.add_theme_constant_override("outline_size", 3)
+	button.add_theme_color_override("font_shadow_color", Color(0.05, 0.2, 0.4, 0.95))
+	button.add_theme_constant_override("shadow_offset_y", 2)
+	button.add_theme_constant_override("shadow_outline_size", 0)
 	var texture := load(WIDE_FRAME if wide else SQUARE_FRAME) as Texture2D
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var style := StyleBoxTexture.new()
