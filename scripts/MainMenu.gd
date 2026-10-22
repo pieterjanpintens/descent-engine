@@ -10,9 +10,9 @@ extends Control
 
 @onready var mission_dialog: FileDialog = %MissionFileDialog
 @onready var save_dialog: FileDialog = %SaveFileDialog
-@onready var main_panel: Control = %MainPanel
-@onready var editors_panel: Control = %EditorsPanel
-@onready var load_campaign_button: Button = %LoadCampaignButton
+var main_panel: VBoxContainer
+var editors_panel: VBoxContainer
+var _load_entry: Button
 
 ## The credits page: [role, names] pairs - add a line here to credit someone.
 const CREDITS: Array = [
@@ -21,8 +21,9 @@ const CREDITS: Array = [
 ]
 const CREDITS_NOTE := "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
 
+const LOGO_PATH := "res://models/logo.png"
+
 var _options_dialog: VoiceSettingsDialog
-var _assets_dialog: AssetImportDialog
 var _community_dialog: CommunityDialog
 var _credits_panel: VBoxContainer
 var _updater: AppUpdater
@@ -41,9 +42,81 @@ func _ready() -> void:
 	for dir in ["user://missions", "user://saves"]:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
-	load_campaign_button.disabled = not CampaignIO.has_saves()
+	_build_menu()
+	_load_entry.disabled = not CampaignIO.has_saves()
 	_build_credits_panel()
 	await _build_update_banner()
+
+
+## The layout of the mockup: logo top left with the entries centred under it, the cog (Options) and Community bottom left;
+## Credits / What's new / version sit bottom right (see _build_update_banner). Three pages share the column: main, editors, credits.
+func _build_menu() -> void:
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_top", 44)
+	add_child(margin)
+	var column := VBoxContainer.new()
+	column.custom_minimum_size = Vector2(470, 0)
+	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	column.add_theme_constant_override("separation", 4)
+	margin.add_child(column)
+
+	var logo := TextureRect.new()
+	logo.texture = load(LOGO_PATH) as Texture2D
+	logo.custom_minimum_size = Vector2(470, 115)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	column.add_child(logo)
+	var subtitle := Label.new()
+	subtitle.text = "Unofficial App"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_override("font", MenuStyle.font())
+	subtitle.add_theme_font_size_override("font_size", 22)
+	subtitle.add_theme_color_override("font_color", MenuStyle.ORANGE)
+	subtitle.add_theme_color_override("font_outline_color", MenuStyle.OUTLINE_COLOR)
+	subtitle.add_theme_constant_override("outline_size", 6)
+	column.add_child(subtitle)
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, 26)
+	column.add_child(gap)
+
+	main_panel = _page(column)
+	var load_box := MenuStyle.entry("Load game", _on_load_campaign_button_pressed)
+	_load_entry = load_box.get_child(0) as Button
+	main_panel.add_child(load_box)
+	main_panel.add_child(MenuStyle.entry("New game", _on_new_campaign_button_pressed))
+	main_panel.add_child(MenuStyle.entry("Editor", _on_editors_button_pressed))
+	main_panel.add_child(MenuStyle.entry("Quit", _on_exit_button_pressed))
+
+	editors_panel = _page(column)
+	editors_panel.add_theme_constant_override("separation", 0)
+	editors_panel.visible = false
+	editors_panel.add_child(MenuStyle.entry("Mission editor", _on_editor_button_pressed, 24))
+	editors_panel.add_child(MenuStyle.entry("Campaign editor", _on_campaign_editor_button_pressed, 24))
+	editors_panel.add_child(MenuStyle.entry("Play one mission", _on_play_button_pressed, 24))
+	editors_panel.add_child(MenuStyle.entry("Load a mission save", _on_load_game_button_pressed, 24))
+	editors_panel.add_child(MenuStyle.entry("Back", _on_back_button_pressed, 24))
+
+	# bottom left: the cog (Options) and the Community button
+	var corner := MarginContainer.new()
+	corner.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 20)
+	corner.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(corner)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	corner.add_child(row)
+	row.add_child(MenuStyle.gear_button(64, _on_options_button_pressed))
+	row.add_child(MenuStyle.framed_button("Community", true, Vector2(192, 64), _on_community_button_pressed))
+
+
+func _page(column: VBoxContainer) -> VBoxContainer:
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 10)
+	page.size_flags_horizontal = Control.SIZE_FILL
+	column.add_child(page)
+	return page
 
 
 ## Bottom-right: the version of this build and, when a newer release exists, a button that opens the update dialog.
@@ -64,6 +137,11 @@ func _build_update_banner() -> void:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(row)
+	var credits := Button.new()
+	credits.text = "Credits"
+	credits.flat = true
+	credits.pressed.connect(_on_credits_button_pressed)
+	row.add_child(credits)
 	var news := Button.new()
 	news.text = "What's new"
 	news.flat = true
@@ -119,6 +197,7 @@ func _build_credits_panel() -> void:
 	_credits_panel = VBoxContainer.new()
 	_credits_panel.add_theme_constant_override("separation", 10)
 	_credits_panel.visible = false
+	_credits_panel.size_flags_horizontal = Control.SIZE_FILL
 	for entry: Array in CREDITS:
 		var role := Label.new()
 		role.text = str(entry[0])
@@ -149,6 +228,7 @@ func _build_credits_panel() -> void:
 
 func _on_credits_button_pressed() -> void:
 	main_panel.visible = false
+	editors_panel.visible = false
 	_credits_panel.visible = true
 
 
@@ -165,14 +245,6 @@ func _on_community_button_pressed() -> void:
 		_community_dialog.open_campaigns.connect(_on_new_campaign_button_pressed)
 		add_child(_community_dialog)
 	_community_dialog.open()
-
-
-## Importing the real art and data from the player's own install of the game.
-func _on_assets_button_pressed() -> void:
-	if _assets_dialog == null:
-		_assets_dialog = AssetImportDialog.new()
-		add_child(_assets_dialog)
-	_assets_dialog.open()
 
 
 ## The same Options dialog as the Player's Gear menu (voice control, narration, voices). Nothing is listening in the

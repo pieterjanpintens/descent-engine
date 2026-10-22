@@ -1,8 +1,10 @@
-class_name AssetImportDialog
-extends Control
+class_name AssetImportPanel
+extends VBoxContainer
 
-## "Game assets" (main menu): imports the real art and data from the player's own install of the game with one
-## button - see AssetImporter for what happens. Built in code, modal like the Options dialog; `open()` shows it.
+## The "Game assets" tab of the Options dialog: imports the real art and data from the player's own install of the game with one
+## button - see AssetImporter for what happens. Built in code; `refresh()` re-reads what is imported / found (call it when the tab is shown).
+
+signal busy_changed(busy: bool)
 
 const STEP_FOLDERS := {
 	"official_assets": "textures and portraits",
@@ -21,42 +23,12 @@ var _game_label: Label
 var _choose_button: Button
 var _import_button: Button
 var _status_label: Label
-var _close_button: Button
 var _folder_dialog: FileDialog
 
 
 func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP  # the modal scrim - blocks everything behind it
-
-	var scrim := ColorRect.new()
-	scrim.color = Color(0, 0, 0, 0.45)
-	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(scrim)
-
-	var panel := CenterContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(panel)
-
-	var background := PanelContainer.new()
-	background.custom_minimum_size = Vector2(460, 0)
-	panel.add_child(background)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	background.add_child(vbox)
-
-	var title := Label.new()
-	title.text = "Game assets"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var bold_font := FontVariation.new()
-	bold_font.base_font = title.get_theme_font("font")
-	bold_font.variation_embolden = 1.0
-	title.add_theme_font_override("font", bold_font)
-	vbox.add_child(title)
-	vbox.add_child(HSeparator.new())
+	add_theme_constant_override("separation", 8)
+	var vbox: VBoxContainer = self
 
 	var explanation := _small_label()
 	explanation.text = "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
@@ -81,13 +53,6 @@ func _ready() -> void:
 
 	_status_label = _small_label()
 	vbox.add_child(_status_label)
-	vbox.add_child(HSeparator.new())
-
-	_close_button = Button.new()
-	_close_button.text = "Close"
-	_close_button.pressed.connect(func(): visible = false)
-	vbox.add_child(_close_button)
-
 	_folder_dialog = FileDialog.new()
 	_folder_dialog.title = "Choose the folder the game is installed in"
 	_folder_dialog.file_mode = FileDialog.FILE_MODE_OPEN_DIR
@@ -96,20 +61,18 @@ func _ready() -> void:
 	_folder_dialog.dir_selected.connect(_on_folder_chosen)
 	add_child(_folder_dialog)
 
-	visible = false
 
-
-func open() -> void:
+func refresh() -> void:
 	if _bundles == "":
 		_bundles = AssetImporter.find_game()
 	_status_label.text = ""
 	_refresh()
-	visible = true
 
 
 func _small_label() -> Label:
 	var label := Label.new()
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size = Vector2(400, 0)  # a wrapping label needs a width or it wraps per letter
 	label.add_theme_font_size_override("font_size", 13)
 	label.modulate = Color(1, 1, 1, 0.8)
 	return label
@@ -128,7 +91,7 @@ func _refresh() -> void:
 	_import_button.text = "Import game assets" + (" (downloads the import tool first, %s)" % AssetImporter.DOWNLOAD_SIZE_TEXT if needs_download else "")
 	_import_button.disabled = _busy or _bundles == "" or (needs_download and not AssetImporter.is_supported_platform())
 	_choose_button.disabled = _busy
-	_close_button.disabled = _busy
+	busy_changed.emit(_busy)
 	if needs_download and not AssetImporter.is_supported_platform():
 		_status_label.text = "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
 

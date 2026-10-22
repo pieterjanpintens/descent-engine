@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://dx66u7jfoolxh" path="res://scripts/MainMenu.gd" id="1_i26rj"]
 [ext_resource type="Texture2D" path="res://models/menu_background.png" id="2_background"]
-[ext_resource type="Texture2D" path="res://models/logo.png" id="3_logo"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -33,97 +32,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.03, 0.03, 0.08, 0.5)
-
-[node name="CenterContainer" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Column" type="VBoxContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(320, 0)
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Title" type="TextureRect" parent="CenterContainer/Column"]
-custom_minimum_size = Vector2(480, 118)
-layout_mode = 2
-texture = ExtResource("3_logo")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Spacer" type="Control" parent="CenterContainer/Column"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-
-[node name="MainPanel" type="VBoxContainer" parent="CenterContainer/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="NewCampaignButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-text = "New Campaign"
-
-[node name="LoadCampaignButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-text = "Load Campaign"
-
-[node name="CommunityButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-layout_mode = 2
-text = "Community"
-
-[node name="OptionsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-layout_mode = 2
-text = "Options"
-
-[node name="AssetsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-layout_mode = 2
-text = "Game assets"
-
-[node name="EditorsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-layout_mode = 2
-text = "Editors & Tools"
-
-[node name="CreditsButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-layout_mode = 2
-text = "Credits"
-
-[node name="ExitButton" type="Button" parent="CenterContainer/Column/MainPanel"]
-layout_mode = 2
-text = "Exit"
-
-[node name="EditorsPanel" type="VBoxContainer" parent="CenterContainer/Column"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="EditorButton" type="Button" parent="CenterContainer/Column/EditorsPanel"]
-layout_mode = 2
-text = "Mission Editor"
-
-[node name="CampaignEditorButton" type="Button" parent="CenterContainer/Column/EditorsPanel"]
-layout_mode = 2
-text = "Campaign Editor"
-
-[node name="PlayButton" type="Button" parent="CenterContainer/Column/EditorsPanel"]
-layout_mode = 2
-text = "Play a Single Mission"
-
-[node name="LoadGameButton" type="Button" parent="CenterContainer/Column/EditorsPanel"]
-layout_mode = 2
-text = "Load a Mission Save"
-
-[node name="BackButton" type="Button" parent="CenterContainer/Column/EditorsPanel"]
-layout_mode = 2
-text = "Back"
+color = Color(0.03, 0.03, 0.08, 0.2)
 
 [node name="MissionFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -139,18 +48,5 @@ file_mode = 0
 access = 1
 filters = PackedStringArray("*.tres")
 
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/NewCampaignButton" to="." method="_on_new_campaign_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/LoadCampaignButton" to="." method="_on_load_campaign_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/CommunityButton" to="." method="_on_community_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/OptionsButton" to="." method="_on_options_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/AssetsButton" to="." method="_on_assets_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/EditorsButton" to="." method="_on_editors_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/CreditsButton" to="." method="_on_credits_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/MainPanel/ExitButton" to="." method="_on_exit_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/EditorsPanel/EditorButton" to="." method="_on_editor_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/EditorsPanel/CampaignEditorButton" to="." method="_on_campaign_editor_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/EditorsPanel/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/EditorsPanel/LoadGameButton" to="." method="_on_load_game_button_pressed"]
-[connection signal="pressed" from="CenterContainer/Column/EditorsPanel/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="file_selected" from="MissionFileDialog" to="." method="_on_mission_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveFileDialog" to="." method="_on_save_file_dialog_file_selected"]

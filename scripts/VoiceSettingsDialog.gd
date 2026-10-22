@@ -41,6 +41,8 @@ var _storyteller_picker: OptionButton
 var _voice_ids: Array[String] = []
 var _extras_button: Button
 var _standard_button: Button
+var _assets_panel: AssetImportPanel
+var _close_button: Button
 
 
 func _ready() -> void:
@@ -78,6 +80,10 @@ func _ready() -> void:
 	var general := _tab(tabs, "General")
 	var voice := _tab(tabs, "Voice")
 	var ai := _tab(tabs, "AI")
+	var assets := _tab(tabs, "Game assets")
+	_assets_panel = AssetImportPanel.new()
+	_assets_panel.busy_changed.connect(func(busy: bool): _close_button.disabled = busy)
+	assets.add_child(_assets_panel)
 
 	var gameplay_title := Label.new()
 	gameplay_title.text = "Gameplay"
@@ -199,10 +205,10 @@ func _ready() -> void:
 
 	vbox.add_child(HSeparator.new())
 
-	var close_button := Button.new()
-	close_button.text = "Close"
-	close_button.pressed.connect(func(): visible = false)
-	vbox.add_child(close_button)
+	_close_button = Button.new()
+	_close_button.text = "Close"
+	_close_button.pressed.connect(func(): visible = false)
+	vbox.add_child(_close_button)
 
 	visible = false
 
@@ -225,6 +231,7 @@ func _tab(tabs: TabContainer, tab_name: String) -> VBoxContainer:
 
 
 func open() -> void:
+	_assets_panel.refresh()
 	_refresh()
 	visible = true
 

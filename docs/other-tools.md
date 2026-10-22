@@ -4,27 +4,28 @@ The mission editor and campaign editor have their own pages: [mission-editor.md]
 
 ## Main menu
 
-| Button | Opens |
+| Entry | Opens |
 |---|---|
-| New Campaign / Load Campaign | the campaign player: a shelf of books to start, or your save games to resume |
-| Community | installed packages and the online list (see below) |
-| Game assets | imports the pictures, models and data from your own copy of the game |
-| Options | the settings dialog (below) |
-| Editors & Tools | Mission Editor, Campaign Editor, play a single mission, load a mission save |
-| Credits, What's new, Update | credits, the changelog, and the self-update when a new version exists |
+| Load game / New game | the campaign player: your save games to resume, or a shelf of books to start |
+| Editor | Mission Editor, Campaign Editor, play a single mission, load a mission save |
+| Quit | closes the app |
+| Cog (bottom left) | the Options dialog (below) |
+| Community (bottom left) | installed packages and the online list (see below) |
+| Credits, What's new (bottom right) | credits and the changelog; a version label and an update button appear next to them when a new version exists |
 
 ## Options
 
-Three tabs:
+Four tabs:
 - **General**: camera behaviour in the Player, the line of sight rule (centre to corner is the default and recommended; corner to corner is looser, as in Descent 2; centre to centre is strict), and the update check.
 - **Voice**: voice control (microphone, push to talk or hands-free, show / hide the voice hints) and **narration** (the story is read aloud; pick the story teller voice, download more voices).
 - **AI**: optional writing and design help. Either your own Anthropic API key (pay per use) or Claude Code installed on this PC (uses your Claude account). Off by default, and nothing is sent until you use an AI button.
+- **Game assets**: imports the pictures, models and data from your own copy of the game (below).
 
 Voice and narration are downloaded on demand from here; they are not part of the app.
 
 ## Game assets
 
-The app ships without the game's art. **Game assets** finds your installed copy of the official game and imports the textures, monster and hero models, and item / weapon / monster data into your user folder. Run it again after the game updates. Without it the app still runs with placeholder pictures, but the weapon, armor, recipe and monster data come from this import.
+The app ships without the game's art. The **Game assets** tab of Options finds your installed copy of the official game and imports the textures, monster and hero models, and item / weapon / monster data into your user folder. Run it again after the game updates. Without it the app still runs with placeholder pictures, but the weapon, armor, recipe and monster data come from this import.
 
 ## Monster template editor
 
