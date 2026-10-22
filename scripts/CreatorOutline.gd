@@ -343,6 +343,11 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 	if items.size() == 1 and (items[0]["type"] == SelectionType.OBJECT or items[0]["type"] == SelectionType.TILE):
 		placed_id = items[0]["id"]
 	creator_controller.selected_placed_id = placed_id
+	var selected: Array[String] = []
+	for meta in items:
+		if str(meta["id"]) != "":
+			selected.append(str(meta["id"]))
+	creator_controller.selected_ids = selected
 
 	if items.size() != 1:
 		creator_controller.clear_selection_highlight()
@@ -371,6 +376,12 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 				creator_controller.highlight_footprint(placement.origin_cell, footprint, grid)
 				if jump_camera:
 					creator_controller.jump_to_cell(placement.origin_cell, grid)
+				return
+		SelectionType.GROUP:
+			# a stage: outline the floor it covers (arrow keys move it, R turns it)
+			var cells := StageTransform.outline_cells(layered_map, id)
+			if not cells.is_empty():
+				creator_controller.highlight_footprint(Vector3i.ZERO, cells, layered_map.floor_grid)
 				return
 		SelectionType.MONSTER_SPAWN:
 			var spawn := _find_spawn_by_id(id)
