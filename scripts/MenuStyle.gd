@@ -17,13 +17,14 @@ const OUTLINE_COLOR := Color(0.07, 0.04, 0.22, 0.95)
 const ORANGE := Color(0.95, 0.5, 0.2)
 
 
-static func font(weight: int = 700) -> Font:
+static func font(weight: int = 900) -> Font:
 	var base := load(FONT_PATH) as Font
 	if base == null:
 		return ThemeDB.fallback_font
 	var variation := FontVariation.new()
 	variation.base_font = base
 	variation.variation_opentype = {"wght": weight}
+	variation.variation_embolden = 0.6  # on top of the heaviest weight: the mockup's letters are fat
 	return variation
 
 
