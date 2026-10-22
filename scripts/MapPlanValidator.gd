@@ -29,6 +29,9 @@ extends RefCounted
 ##
 ## validate() returns {ok, errors, warnings, pieces, starts, spawns, usage, bounds, heights}; format_issues() / render_ascii() / render_stack()
 ## turn that into text.
+##
+## `options` (validate() only): {"require_start": bool (default true; false when the plan is one STAGE of a bigger mission, which needs
+## no start squares of its own), "used": Dictionary (physical group -> copies the rest of the mission already uses, counted against the box)}.
 
 const MAX_PIECES := 500
 const MAX_COORDINATE := 64.0
@@ -61,7 +64,7 @@ static func known_meshes() -> Dictionary:
 ##   "bounds": Rect2i            - the area covered, in tile squares (empty plan: zero size),
 ##   "heights": Array[int]       - every height that holds a floor, ascending.
 ## }
-static func validate(plan: Variant) -> Dictionary:
+static func validate(plan: Variant, options: Dictionary = {}) -> Dictionary:
 	var result := {"ok": false, "errors": [], "warnings": [], "pieces": [], "starts": [], "spawns": [], "usage": {}, "bounds": Rect2i(), "heights": []}
 	if typeof(plan) != TYPE_DICTIONARY:
 		_add(result, "error", "bad_format", -1, "The plan must be an object with a \"pieces\" list.")
@@ -90,22 +93,24 @@ static func validate(plan: Variant) -> Dictionary:
 		heroes = int(players_value)
 	else:
 		_add(result, "error", "bad_format", -1, "\"max_players\" must be a whole number from 1 to 6 (the most heroes that may play).")
-	_run_checks(pieces, _creatures_from_plan(plan, result), heroes, result)
+	_run_checks(pieces, _creatures_from_plan(plan, result), heroes, result, options)
 	return result
 
 
 ## The checks every map goes through, whether it came from a plan or from a loaded mission. `pieces` are normalised (see validate()) and
 ## carry a `label` the messages use; `creatures` = [{label, kind, creature}]; `heroes` = the most heroes that may play (max players).
-static func _run_checks(pieces: Array[Dictionary], creatures: Array[Dictionary], heroes: int, result: Dictionary) -> void:
+static func _run_checks(pieces: Array[Dictionary], creatures: Array[Dictionary], heroes: int, result: Dictionary, options: Dictionary = {}) -> void:
 	var floor_cells := _cells_of(pieces, "floor")
 	_check_overlaps(pieces, result)
+	_check_anchors(pieces, result)
 	var standing := _check_props_on_floor(pieces, floor_cells, result)
 	var support := _support_map(pieces, standing)
 	_check_floor_support(pieces, support, result)
-	_check_start_squares(creatures, heroes, result)
+	if options.get("require_start", true):
+		_check_start_squares(creatures, heroes, result)
 	_check_creatures(creatures, pieces, floor_cells, result)
 	_check_connected(pieces, floor_cells, standing, result)
-	_check_limits(pieces, result)
+	_check_limits(pieces, result, options.get("used", {}))
 	_check_names(pieces, result)
 	result["bounds"] = _bounds(pieces)
 	var heights: Dictionary = {}
@@ -430,6 +435,19 @@ static func _check_overlaps(pieces: Array[Dictionary], result: Dictionary) -> vo
 
 
 ## True when every cell of `inner` is also a cell of `outer` (at the same height).
+## The board grid holds ONE piece per anchor cell and layer (floor / hazard / prop). A piece's anchor is a corner point of the area it covers, so
+## two pieces that touch side by side can share one when their rotations put the anchors on the same corner - the editor can't hold both.
+static func _check_anchors(pieces: Array[Dictionary], result: Dictionary) -> void:
+	var seen: Dictionary = {}  # "layer origin" -> piece
+	for piece in pieces:
+		var key := "%s %s" % [piece["layer"], str(piece["fine_origin"])]
+		if seen.has(key):
+			var other: Dictionary = seen[key]
+			_add(result, "error", "shared_anchor", piece["index"], "%s and %s cannot both be placed: touching like this they would share one anchor point on the board grid (a limit of the board, the editor holds only one piece there). Move one of them one square away, turn one of them, or change what sits between them." % [other["label"], str(piece["label"]).to_lower()])
+		else:
+			seen[key] = piece
+
+
 static func _inside(inner: Dictionary, outer: Dictionary) -> bool:
 	if inner["height"] != outer["height"]:
 		return false
@@ -736,7 +754,7 @@ static func sight_blockers(result: Dictionary) -> Dictionary:
 
 
 ## Copies used per physical piece (the two faces of a tile, or of a hazard card, are ONE piece) against what the box has.
-static func _check_limits(pieces: Array[Dictionary], result: Dictionary) -> void:
+static func _check_limits(pieces: Array[Dictionary], result: Dictionary, used_elsewhere: Dictionary = {}) -> void:
 	var usage: Dictionary = {}
 	for piece in pieces:
 		var group := ComponentInventory.get_group(piece["mesh"])
@@ -744,8 +762,12 @@ static func _check_limits(pieces: Array[Dictionary], result: Dictionary) -> void
 	result["usage"] = usage
 	for group: String in usage:
 		var maximum := ComponentInventory.get_max_count(group)
-		if maximum >= 0 and int(usage[group]) > maximum:
-			_add(result, "error", "over_limit", -1, "The plan uses %d of \"%s\" but the box only has %d." % [usage[group], group, maximum])
+		var elsewhere := int(used_elsewhere.get(group, 0))
+		if maximum >= 0 and int(usage[group]) + elsewhere > maximum:
+			if elsewhere > 0:
+				_add(result, "error", "over_limit", -1, "The plan uses %d of \"%s\" but the box has %d and %d are already used elsewhere in the mission (%d left)." % [usage[group], group, maximum, elsewhere, maxi(maximum - elsewhere, 0)])
+			else:
+				_add(result, "error", "over_limit", -1, "The plan uses %d of \"%s\" but the box only has %d." % [usage[group], group, maximum])
 
 
 static func _check_names(pieces: Array[Dictionary], result: Dictionary) -> void:
