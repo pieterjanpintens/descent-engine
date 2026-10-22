@@ -31,6 +31,9 @@ extends Resource
 @export var reward_gold: int = 0
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}
+## Cards (weapon / part / rune / armor ids) and recipes (RecipeData ids) a win gives the party.
+@export var reward_cards: Array[String] = []
+@export var reward_recipes: Array[String] = []
 @export var links: Array[CampaignLink] = []
 ## Set when the chapter is won / lost (Set Variable and Math effects over the campaign's variables).
 ## Mission variables copied into campaign variables when the mission ends, before the effects below.

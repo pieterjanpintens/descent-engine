@@ -263,7 +263,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	var type_option := OptionButton.new()
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
-			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS]]:
+			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Loot", Effect.Type.LOOT]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -430,8 +430,19 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	spawn_monsters_button.pressed.connect(func(): _open_spawn_monsters_editor(effect))
 	row.add_child(spawn_monsters_button)
 
+	## LOOT - gold, materials, cards, recipes, a title and a custom text, edited in its own small Window.
+	var loot_button := Button.new()
+	loot_button.tooltip_text = "What the party finds (chest, bookshelf, tree...): gold, materials, cards, recipes, and the text shown"
+	var refresh_loot_button := func():
+		var found := _loot_summary(effect)
+		loot_button.text = "Loot…" if found == "" else "Loot: " + found
+	refresh_loot_button.call()
+	loot_button.pressed.connect(func(): _open_loot_editor(effect, refresh_loot_button))
+	row.add_child(loot_button)
+
 	var update_visibility := func():
 		var type: int = type_option.get_selected_id()
+		loot_button.visible = type == Effect.Type.LOOT
 		spawn_option.visible = type == Effect.Type.SPAWN_MONSTERS
 		spawn_monsters_button.visible = type == Effect.Type.SPAWN_MONSTERS
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
@@ -948,6 +959,100 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 	_spawn_monsters_editor_container.add_child(add_button)
 
 	_spawn_monsters_editor.popup_centered()
+
+
+## ---- Nested "edit one LOOT effect" dialog ----
+## Gold, materials, cards and recipes are edited in the common LootDialog (also used for chapter / side quest rewards and monster drops).
+var _loot_editor: Window
+var _loot_editor_container: VBoxContainer
+var _loot_materials_dialog: LootDialog
+
+
+## "10 gold, 2x Herbs, Armor: Duskplate" - what a LOOT effect gives, "" when nothing.
+func _loot_summary(effect: Effect) -> String:
+	var parts: Array[String] = []
+	for key in effect.loot_materials:
+		if int(effect.loot_materials[key]) > 0:
+			parts.append("%d gold" % int(effect.loot_materials[key]) if key == LootMaterials.GOLD else "%dx %s" % [int(effect.loot_materials[key]), LootMaterials.display_name(str(key))])
+	for card_id in effect.loot_cards:
+		parts.append(RecipeData.card_label(card_id))
+	if not effect.loot_recipes.is_empty():
+		parts.append("%d recipe(s)" % effect.loot_recipes.size())
+	return ", ".join(parts)
+
+
+func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
+	if _loot_editor == null:
+		_loot_editor = Window.new()
+		_loot_editor.title = "Loot"
+		_loot_editor.size = Vector2i(560, 560)
+		_loot_editor.close_requested.connect(_loot_editor.hide)
+		_loot_editor.visible = false
+		host.add_child(_loot_editor)
+		var scroll := ScrollContainer.new()
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 8
+		scroll.offset_top = 8
+		scroll.offset_right = -8
+		scroll.offset_bottom = -8
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_loot_editor.add_child(scroll)
+		_loot_editor_container = VBoxContainer.new()
+		_loot_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_loot_editor_container.add_theme_constant_override("separation", 6)
+		scroll.add_child(_loot_editor_container)
+		_loot_materials_dialog = LootDialog.new()
+		host.add_child(_loot_materials_dialog)
+
+	for child in _loot_editor_container.get_children():
+		_loot_editor_container.remove_child(child)
+		child.free()
+	var box := _loot_editor_container
+
+	box.add_child(_label("Title (heading of the popup and the quest log; blank = Loot):"))
+	var title_edit := LineEdit.new()
+	title_edit.text = effect.loot_title
+	title_edit.placeholder_text = "Chest"
+	title_edit.text_submitted.connect(func(text: String): _commit_field("Edit loot title", func(): effect.loot_title = text))
+	title_edit.focus_exited.connect(func(): _commit_field("Edit loot title", func(): effect.loot_title = title_edit.text))
+	box.add_child(title_edit)
+
+	box.add_child(_label("Text shown above the list (optional):"))
+	var text_edit := TextEdit.new()
+	text_edit.text = effect.loot_text
+	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	text_edit.custom_minimum_size = Vector2(0, 80)
+	text_edit.focus_exited.connect(func(): _commit_field("Edit loot text", func(): effect.loot_text = text_edit.text))
+	box.add_child(text_edit)
+
+	var popup_check := CheckBox.new()
+	popup_check.text = "Show a popup (off = added silently)"
+	popup_check.button_pressed = effect.loot_show_popup
+	popup_check.toggled.connect(func(on: bool): _commit_field("Edit loot popup", func(): effect.loot_show_popup = on))
+	box.add_child(popup_check)
+
+	var materials_button := Button.new()
+	materials_button.text = "Gold, materials, cards and recipes…"
+	materials_button.pressed.connect(func():
+		var work: Dictionary = effect.loot_materials.duplicate()
+		var cards: Array[String] = effect.loot_cards.duplicate()
+		var recipes: Array[String] = effect.loot_recipes.duplicate()
+		_loot_materials_dialog.open_for("Loot", work, func():
+			_commit_field("Edit loot", func():
+				effect.loot_materials = work.duplicate()
+				effect.loot_cards = cards.duplicate()
+				effect.loot_recipes = recipes.duplicate()
+			)
+			on_refresh.call()
+		, false, true, {"cards": cards, "recipes": recipes})
+	)
+	box.add_child(materials_button)
+
+	var done := Button.new()
+	done.text = "Done"
+	done.pressed.connect(_loot_editor.hide)
+	box.add_child(done)
+	_loot_editor.popup_centered_clamped(Vector2i(560, 560), 0.9)
 
 
 # ---------------------------------------------------------------- "New variable..." in every picker

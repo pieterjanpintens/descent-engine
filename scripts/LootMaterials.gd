@@ -9,6 +9,9 @@ extends RefCounted
 ## Not a material: a loot item can also carry gold, kept under this key in a mission's collected loot and paid to the
 ## campaign's gold (CampaignState._take_loot()).
 const GOLD := "gold"
+## A found card (weapon, part, rune, armor) / a learned recipe is kept in the collected loot under "card:<id>" / "recipe:<id>" (count 1).
+const CARD_PREFIX := "card:"
+const RECIPE_PREFIX := "recipe:"
 const COMMON: Array[String] = ["bone", "cloth", "curios", "herbs", "leather", "metal", "minerals"]
 const ESSENCES: Array[String] = ["anemos", "aquos", "fortunos", "ignos", "lumos", "mortos", "terros", "toxos", "umbros", "vigos"]
 

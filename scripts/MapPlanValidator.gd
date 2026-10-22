@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Checks a MAP PLAN - a plain description of a 3D map (floor tiles, hazards, props, where the heroes start and where monsters spawn) -
 ## against what the game can really hold: only meshes that exist, positions on the grid the pieces snap to, no two floor tiles in the same
-## place, props standing on floor, floors above the ground resting on a pillar / stair / gateway that reaches exactly that height, room for
+## place, props standing on floor, floors above the ground resting on a pillar / stair / archway that reaches exactly that height, room for
 ## the figures (2 height units, the Centurion 6), the floor connected through stairs and ladders, no more copies of a physical piece than
 ## the box has. The fit rules are hard-coded in BuildRules (one table, also readable as text for an AI). It never touches a mission and uses
 ## no AI; it exists so that whatever produces a plan (later: an AI turning a description or a spoken story into a map) can be checked, and
@@ -442,7 +442,7 @@ static func _inside(inner: Dictionary, outer: Dictionary) -> bool:
 	return true
 
 
-## A prop has to stand on floor: every cell it covers needs floor at its own height (pillars and gateways at height 0 may stand on bare ground). Returns the indices of the props that do (only those
+## A prop has to stand on floor: every cell it covers needs floor at its own height (pillars, stairs, archways and fences at height 0 may stand on bare ground). Returns the indices of the props that do (only those
 ## can hold anything up or help anyone climb).
 static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> Dictionary:
 	var standing: Dictionary = {}
@@ -450,7 +450,7 @@ static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictio
 		if piece["layer"] != "prop":
 			continue
 		if piece["height"] == 0 and BuildRules.stands_on_ground(piece["mesh"]):
-			standing[piece["index"]] = true  # pillars and gateways may stand on the bare ground
+			standing[piece["index"]] = true  # pillars, stairs, archways and fences may stand on the bare ground
 			continue
 		var missing := 0
 		for cell in piece["cells"]:
@@ -492,7 +492,7 @@ static func _check_floor_support(pieces: Array[Dictionary], support: Dictionary,
 				break
 		if not held:
 			_add(result, "error", "unsupported_floor", piece["index"],
-				"%s is a floor at height %d but nothing holds it up: it needs a pillar, a stair's high end or a gateway top reaching exactly height %d under at least one of its squares (the support must itself stand on floor)." % [piece["label"], piece["height"], piece["height"]])
+				"%s is a floor at height %d but nothing holds it up: it needs a pillar, a stair's high end or an archway top reaching exactly height %d under at least one of its squares (the support must itself stand on floor)." % [piece["label"], piece["height"], piece["height"]])
 
 
 ## The heroes need squares to start on: at least one start square, and one for every hero that may play (the most players the map allows).
@@ -535,7 +535,7 @@ static func _creatures_from_plan(plan: Dictionary, result: Dictionary) -> Array[
 ## Heroes and monsters: they stand on floor at their height, not inside a blocking prop, with enough free height above them.
 static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> void:
 	var blocked: Dictionary = {}  # (x, height, z) -> label of the piece that blocks walking there
-	var ceilings: Dictionary = {}  # Vector2i fine column -> Array[int] heights of solid things (floors above, gateway tops)
+	var ceilings: Dictionary = {}  # Vector2i fine column -> Array[int] heights of solid things (floors above, archway tops)
 	for key: Vector3i in floor_cells:
 		var column := Vector2i(key.x, key.z)
 		if not ceilings.has(column):
@@ -616,7 +616,7 @@ static func _check_creature(creature: Dictionary, label: String, floor_cells: Di
 	elif blocker != "":
 		_add(result, "error", "creature_blocked", -1, "%s %s is inside %s, which blocks walking." % [label, where, blocker])
 	elif room < need:
-		_add(result, "error", "no_headroom", -1, "%s %s has only %d height units free above it but a %s needs %d - never put it under a bridge, floor or gateway." % [label, where, room, "Centurion" if creature["creature"] == "centaur" else "figure", need])
+		_add(result, "error", "no_headroom", -1, "%s %s has only %d height units free above it but a %s needs %d - never put it under a bridge, floor or archway." % [label, where, room, "Centurion" if creature["creature"] == "centaur" else "figure", need])
 
 
 ## The walkable floor should be one connected area: floors at one height connect by touching, floors at different heights only through a

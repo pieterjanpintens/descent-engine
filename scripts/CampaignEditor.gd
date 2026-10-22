@@ -81,7 +81,7 @@ var _problems_button: Button
 var _problems_dialog: AcceptDialog
 var _problems_list: VBoxContainer
 var _problem_lines: Array[String] = []
-var _materials_dialog: MaterialsDialog
+var _materials_dialog: LootDialog
 var _map_view: CampaignMapView
 var _chapter_panel: VBoxContainer
 var _suppress: bool = false
@@ -375,7 +375,7 @@ func _ready() -> void:
 
 	_notice = AcceptDialog.new()
 	add_child(_notice)
-	_materials_dialog = MaterialsDialog.new()
+	_materials_dialog = LootDialog.new()
 	add_child(_materials_dialog)
 	_problems_dialog = AcceptDialog.new()
 	_problems_dialog.title = "Problems"
@@ -1154,9 +1154,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	_chapter_panel.add_child(reward_row)
 	reward_row.add_child(_label("XP:"))
 	reward_row.add_child(_reward_spin(quest.reward_xp, func(value: int): quest.reward_xp = value))
-	reward_row.add_child(_label("Gold:"))
-	reward_row.add_child(_reward_spin(quest.reward_gold, func(value: int): quest.reward_gold = value))
-	_chapter_panel.add_child(_materials_row("Materials:", quest.reward_materials))
+	_chapter_panel.add_child(_reward_loot_row(quest))
 
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete side quest", func(): _delete_side_quest(quest)))
@@ -1815,9 +1813,7 @@ func _rebuild_chapter_panel() -> void:
 	_chapter_panel.add_child(reward_row)
 	reward_row.add_child(_label("XP:"))
 	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
-	reward_row.add_child(_label("Gold:"))
-	reward_row.add_child(_reward_spin(chapter.reward_gold, func(value: int): chapter.reward_gold = value))
-	_chapter_panel.add_child(_materials_row("Materials:", chapter.reward_materials))
+	_chapter_panel.add_child(_reward_loot_row(chapter))
 
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete chapter", func(): _on_delete_chapter_pressed(chapter)))
@@ -1907,8 +1903,54 @@ func _open_story_window(chapter: CampaignChapter) -> void:
 
 
 ## A materials dictionary (LootMaterials key -> count) as a row: the heading, a small picture chip per material (or "none") and an
-## "Edit…" button that opens the inventory-style MaterialsDialog. The dictionary is changed in place. Used for what a chapter / side
+## "Edit…" button that opens the inventory-style LootDialog. The dictionary is changed in place. Used for what a chapter / side
 ## quest gives and what an offer costs.
+## What a chapter / side quest gives when won, as one row with a summary and an Edit button for the common loot dialog: gold, materials,
+## cards and recipes (`holder` is the CampaignChapter / CampaignSideQuest; gold is its reward_gold field, shown in the dialog).
+func _reward_loot_row(holder: Object) -> Control:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var top := HBoxContainer.new()
+	column.add_child(top)
+	var summary := Label.new()
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	summary.custom_minimum_size.x = 200.0
+	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(summary)
+	var refresh := func():
+		var parts: Array[String] = []
+		if int(holder.reward_gold) > 0:
+			parts.append("%d gold" % int(holder.reward_gold))
+		var materials: Dictionary = holder.reward_materials
+		if not materials.is_empty():
+			parts.append(CampaignState.format_materials(materials))
+		for card_id in holder.reward_cards:
+			parts.append(RecipeData.card_label(card_id))
+		if not (holder.reward_recipes as Array).is_empty():
+			parts.append("%d recipe(s)" % (holder.reward_recipes as Array).size())
+		summary.text = "none" if parts.is_empty() else ", ".join(parts)
+		summary.modulate = Color(1, 1, 1, 0.6) if parts.is_empty() else Color.WHITE
+	top.add_child(_button("Edit…", func():
+		var work: Dictionary = (holder.reward_materials as Dictionary).duplicate()
+		if int(holder.reward_gold) > 0:
+			work[LootMaterials.GOLD] = int(holder.reward_gold)
+		var cards: Array[String] = (holder.reward_cards as Array[String]).duplicate()
+		var recipes: Array[String] = (holder.reward_recipes as Array[String]).duplicate()
+		_materials_dialog.open_for("Loot (when won)", work, func():
+			holder.reward_gold = int(work.get(LootMaterials.GOLD, 0))
+			var materials := work.duplicate()
+			materials.erase(LootMaterials.GOLD)
+			holder.reward_materials = materials
+			holder.reward_cards = cards.duplicate()
+			holder.reward_recipes = recipes.duplicate()
+			_mark_dirty()
+			refresh.call()
+		, _read_only, true, {"cards": cards, "recipes": recipes})
+	))
+	refresh.call()
+	return column
+
+
 func _materials_row(heading: String, materials: Dictionary) -> Control:
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL

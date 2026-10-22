@@ -200,6 +200,7 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	summary["gold"] = quest.reward_gold
 	summary["materials"] = quest.reward_materials.duplicate()
 	_take_loot(summary, loot)
+	_take_loot(summary, _reward_items(quest.reward_cards, quest.reward_recipes))
 	summary["story_after"] = quest.story_after
 	var pages: Array[String] = []
 	for story in [quest.story_before, quest.story_after]:
@@ -272,6 +273,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		for material_name in chapter.reward_materials:
 			add_material(str(material_name), int(chapter.reward_materials[material_name]))
 		_take_loot(summary, loot)
+		_take_loot(summary, _reward_items(chapter.reward_cards, chapter.reward_recipes))
 		summary["story_after"] = chapter.story_after
 		var pages: Array[String] = []
 		for story in [chapter.story_before, chapter.story_after]:
@@ -358,12 +360,55 @@ func is_place_open(place: CampaignPlace) -> bool:
 func _take_loot(summary: Dictionary, loot: Dictionary) -> void:
 	for material_name in loot:
 		var count := int(loot[material_name])
+		var key := str(material_name)
+		if key.begins_with(LootMaterials.CARD_PREFIX):
+			var card_id := key.trim_prefix(LootMaterials.CARD_PREFIX)
+			if not owns_card(card_id):
+				_add_card(card_id)
+			_note_item(summary, RecipeData.card_label(card_id))
+			continue
+		if key.begins_with(LootMaterials.RECIPE_PREFIX):
+			var recipe_id := key.trim_prefix(LootMaterials.RECIPE_PREFIX)
+			if not owned_recipes.has(recipe_id):
+				owned_recipes.append(recipe_id)
+			var recipe := RecipeData.find(recipe_id)
+			_note_item(summary, "Recipe: " + (RecipeData.label(recipe) if not recipe.is_empty() else recipe_id))
+			continue
 		if material_name == LootMaterials.GOLD:
 			gold += count
 			summary["gold"] = int(summary.get("gold", 0)) + count
 			continue
 		add_material(str(material_name), count)
 		summary["materials"][material_name] = int(summary["materials"].get(material_name, 0)) + count
+
+
+## A reward's cards and recipes in the collected-loot form _take_loot() understands.
+static func _reward_items(cards: Array[String], recipes: Array[String]) -> Dictionary:
+	var items := {}
+	for card_id in cards:
+		items[LootMaterials.CARD_PREFIX + card_id] = 1
+	for recipe_id in recipes:
+		items[LootMaterials.RECIPE_PREFIX + recipe_id] = 1
+	return items
+
+
+## The party owns this weapon / part / rune / armor card from now on.
+func _add_card(card_id: String) -> void:
+	match RecipeData.card_kind(card_id):
+		"armor":
+			owned_armors.append(card_id)
+		"rune":
+			owned_runes.append(card_id)
+		"weapon":
+			owned_weapons.append(card_id)
+		_:
+			owned_attachments.append(card_id)
+
+
+func _note_item(summary: Dictionary, text: String) -> void:
+	if not summary.has("items"):
+		summary["items"] = []
+	(summary["items"] as Array).append(text)
 
 
 func has_materials(cost: Dictionary) -> bool:

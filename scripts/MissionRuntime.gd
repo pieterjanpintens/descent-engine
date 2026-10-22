@@ -732,7 +732,7 @@ func multiply_loot(monster: RuntimeMonster, times: int) -> String:
 	var gained := loot_materials(monster)
 	var parts: Array[String] = []
 	for key in gained:
-		if LootMaterials.ESSENCES.has(key):
+		if LootMaterials.ESSENCES.has(key) or str(key).begins_with(LootMaterials.RECIPE_PREFIX) or str(key).begins_with(LootMaterials.CARD_PREFIX):
 			continue  # only gold and the common materials are multiplied - essences are worth too much
 		var extra := int(gained[key]) * maxi(times - 1, 0)
 		if extra <= 0:
@@ -754,6 +754,10 @@ static func loot_materials(monster: RuntimeMonster) -> Dictionary:
 			gained[key] = int(gained.get(key, 0)) + 1
 		if item.gold > 0:
 			gained[LootMaterials.GOLD] = int(gained.get(LootMaterials.GOLD, 0)) + item.gold
+		for card_id in item.cards:
+			gained[LootMaterials.CARD_PREFIX + card_id] = 1
+		for recipe_id in item.recipes:
+			gained[LootMaterials.RECIPE_PREFIX + recipe_id] = 1
 	return gained
 
 
@@ -765,6 +769,13 @@ static func loot_text(monster: RuntimeMonster) -> String:
 		var count := int(gained[key])
 		if key == LootMaterials.GOLD:
 			parts.append("%d gold" % count)
+			continue
+		if str(key).begins_with(LootMaterials.CARD_PREFIX):
+			parts.append(RecipeData.card_label(str(key).trim_prefix(LootMaterials.CARD_PREFIX)))
+			continue
+		if str(key).begins_with(LootMaterials.RECIPE_PREFIX):
+			var recipe := RecipeData.find(str(key).trim_prefix(LootMaterials.RECIPE_PREFIX))
+			parts.append("Recipe: " + (RecipeData.label(recipe) if not recipe.is_empty() else str(key).trim_prefix(LootMaterials.RECIPE_PREFIX)))
 			continue
 		parts.append(LootMaterials.display_name(key) if count == 1 else "%dx %s" % [count, LootMaterials.display_name(key)])
 	return ", ".join(parts)
@@ -812,6 +823,9 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 	if effect.type == Effect.Type.SPAWN_MONSTERS:
 		_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": effect.spawn_monsters.duplicate()})
 		return
+	if effect.type == Effect.Type.LOOT:
+		await _apply_loot(effect)
+		return
 	if effect.type == Effect.Type.SHOW_MESSAGE:
 		if dialog == null:
 			push_warning("SHOW_MESSAGE effect fired but MissionRuntime.dialog isn't wired - skipped")
@@ -831,6 +845,42 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		return
 	_variables[effect.variable_name] = coerced
 	print("MissionRuntime.apply_effect: '%s' = %s" % [effect.variable_name, coerced])
+
+
+## Effect.Type.LOOT: the gold, materials, cards and recipes go into `collected_loot` (cards and recipes under the keys
+## "card:<id>" / "recipe:<id>", count 1) and the table is told what was found.
+func _apply_loot(effect: Effect) -> void:
+	var found := add_loot(effect.loot_materials, effect.loot_cards, effect.loot_recipes)
+	if found == "" and effect.loot_text == "":
+		return
+	var lines: Array[String] = []
+	if effect.loot_text != "":
+		lines.append(effect.loot_text)
+	if found != "":
+		lines.append("Loot for the party: " + found + ".")
+	if effect.loot_show_popup and dialog != null and not lines.is_empty():
+		var heading := effect.loot_title if effect.loot_title != "" else "Loot"  # same ask_ok popup a defeated monster's loot is announced with
+		await dialog.ask_ok("
+".join(lines), true, false, heading, null, null, true)
+
+
+## Adds loot to the party's collected loot; returns it as text ("2x Herbs, 10 gold, Armor: Duskplate").
+func add_loot(materials: Dictionary, cards: Array, recipes: Array) -> String:
+	var parts: Array[String] = []
+	for key in materials:
+		var count := int(materials[key])
+		if count <= 0:
+			continue
+		collected_loot[key] = int(collected_loot.get(key, 0)) + count
+		parts.append("%d gold" % count if key == LootMaterials.GOLD else "%dx %s" % [count, LootMaterials.display_name(str(key))])
+	for card_id in cards:
+		collected_loot[LootMaterials.CARD_PREFIX + str(card_id)] = 1
+		parts.append(RecipeData.card_label(str(card_id)))
+	for recipe_id in recipes:
+		collected_loot[LootMaterials.RECIPE_PREFIX + str(recipe_id)] = 1
+		var recipe := RecipeData.find(str(recipe_id))
+		parts.append("Recipe: " + (RecipeData.label(recipe) if not recipe.is_empty() else str(recipe_id)))
+	return ", ".join(parts)
 
 
 func apply_effects(effects: Array[Effect], hero_name: String = "") -> void:

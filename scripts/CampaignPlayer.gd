@@ -1021,6 +1021,8 @@ func _apply_result(result: Dictionary) -> void:
 			parts.append(CampaignState.reward_text(summary["xp_gained"], summary["gold"]) + (" (XP now %d)" % summary["xp"] if summary["xp_gained"] > 0 else ""))
 		if not summary["materials"].is_empty():
 			parts.append(CampaignState.format_materials(summary["materials"]))
+		if summary.has("items"):
+			parts.append(", ".join(summary["items"]))
 		lines.append(", ".join(parts) + ".")
 		if summary["story_after"] != "":
 			lines.append("\n" + summary["story_after"])

@@ -19,6 +19,9 @@ extends Resource
 @export var reward_gold: int = 0
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}
+## Cards (weapon / part / rune / armor ids) and recipes (RecipeData ids) a win gives the party.
+@export var reward_cards: Array[String] = []
+@export var reward_recipes: Array[String] = []
 ## The chapters it is offered at: visible while any of them is one the party can play now.
 @export var chapter_ids: Array[String] = []
 ## Only offered while all of these hold (implicit AND; empty = always). They compare the campaign's

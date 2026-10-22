@@ -795,7 +795,7 @@ func _add_loot_list(parent: Control) -> void:
 	var hint := Label.new()
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
 	hint.modulate = Color(1, 1, 1, 0.7)
-	hint.text = "Each entry is a thing the monster carries (its name) and the materials it is made of. Nothing is handed out in play yet."
+	hint.text = "Each entry is a thing the monster carries: gold, materials, and optionally cards and recipes. The party gets everything when the monster is defeated."
 	parent.add_child(hint)
 	_loot_rows = VBoxContainer.new()
 	parent.add_child(_loot_rows)
@@ -833,8 +833,25 @@ func _rebuild_loot_rows() -> void:
 		name_edit.text_submitted.connect(func(_t: String): commit.call())
 		name_edit.focus_exited.connect(commit)
 		top.add_child(name_edit)
-		top.add_child(_caption("Gold"))
-		top.add_child(_level_spin(item, "gold", 0, 9999))
+		var loot_button := Button.new()
+		loot_button.text = _loot_item_summary(item)
+		loot_button.tooltip_text = "Gold, materials, cards and recipes this drops (the common loot dialog)"
+		loot_button.pressed.connect(func():
+			var work := _loot_item_to_dict(item)
+			var cards: Array[String] = item.cards.duplicate()
+			var recipes: Array[String] = item.recipes.duplicate()
+			if _loot_dialog == null:
+				_loot_dialog = LootDialog.new()
+				add_child(_loot_dialog)
+			_loot_dialog.open_for("Loot: " + (item.item_name if item.item_name != "" else "drop"), work, func():
+				_loot_item_from_dict(item, work)
+				item.cards = cards.duplicate()
+				item.recipes = recipes.duplicate()
+				loot_button.text = _loot_item_summary(item)
+				_save()
+			, false, true, {"cards": cards, "recipes": recipes})
+		)
+		top.add_child(loot_button)
 		var remove := Button.new()
 		remove.text = "×"
 		remove.pressed.connect(func():
@@ -844,31 +861,50 @@ func _rebuild_loot_rows() -> void:
 		)
 		top.add_child(remove)
 		block.add_child(top)
-		block.add_child(_material_boxes("Common", LootMaterials.COMMON, item.common_materials))
-		block.add_child(_material_boxes("Essences", LootMaterials.ESSENCES, item.essences))
 		block.add_child(HSeparator.new())
 		_loot_rows.add_child(block)
 
 
-## A row of checkboxes, one per material key; ticking one adds/removes the key in `chosen`.
-func _material_boxes(caption: String, keys: Array[String], chosen: Array[String]) -> Control:
-	var flow := HFlowContainer.new()
-	flow.add_child(_caption(caption + ":"))
-	for key in keys:
-		var box := CheckBox.new()
-		box.text = LootMaterials.display_name(key)
-		box.button_pressed = chosen.has(key)
-		box.toggled.connect(func(on: bool):
-			if _suppress:
-				return
-			if on and not chosen.has(key):
-				chosen.append(key)
-			elif not on:
-				chosen.erase(key)
-			_save()
-		)
-		flow.add_child(box)
-	return flow
+var _loot_dialog: LootDialog
+
+
+## A LootItem as the dictionary LootDialog edits: material key -> how many times it is listed, and gold under "gold".
+func _loot_item_to_dict(item: LootItem) -> Dictionary:
+	var work := {}
+	for key in item.common_materials + item.essences:
+		work[key] = int(work.get(key, 0)) + 1
+	if item.gold > 0:
+		work[LootMaterials.GOLD] = item.gold
+	return work
+
+
+## The other way round: a material counted N times is listed N times (a monster hands out one of each entry).
+func _loot_item_from_dict(item: LootItem, work: Dictionary) -> void:
+	item.common_materials.clear()
+	item.essences.clear()
+	for key in LootMaterials.COMMON:
+		for i in int(work.get(key, 0)):
+			item.common_materials.append(key)
+	for key in LootMaterials.ESSENCES:
+		for i in int(work.get(key, 0)):
+			item.essences.append(key)
+	item.gold = int(work.get(LootMaterials.GOLD, 0))
+
+
+func _loot_item_summary(item: LootItem) -> String:
+	var parts: Array[String] = []
+	if item.gold > 0:
+		parts.append("%d gold" % item.gold)
+	var counts := {}
+	for key in item.common_materials + item.essences:
+		counts[key] = int(counts.get(key, 0)) + 1
+	for key in counts:
+		parts.append(LootMaterials.display_name(key) if counts[key] == 1 else "%dx %s" % [counts[key], LootMaterials.display_name(key)])
+	for card_id in item.cards:
+		parts.append(RecipeData.card_label(card_id))
+	if not item.recipes.is_empty():
+		parts.append("%d recipe(s)" % item.recipes.size())
+	return "Loot…" if parts.is_empty() else ", ".join(parts)
 
 
 ## A LineEdit bound to a text property of `action`, committed on Enter / focus lost.

@@ -131,6 +131,12 @@ static func combine(campaign: Campaign, folder: String, chapters: Array, title: 
 		first.reward_gold += chapter.reward_gold
 		for material in chapter.reward_materials:
 			first.reward_materials[material] = int(first.reward_materials.get(material, 0)) + int(chapter.reward_materials[material])
+		for card_id in chapter.reward_cards:
+			if not first.reward_cards.has(card_id):
+				first.reward_cards.append(card_id)
+		for recipe_id in chapter.reward_recipes:
+			if not first.reward_recipes.has(recipe_id):
+				first.reward_recipes.append(recipe_id)
 		first.win_effects.append_array(chapter.win_effects)
 		first.lose_effects.append_array(chapter.lose_effects)
 		for mapping in chapter.mission_outputs:

@@ -11,6 +11,9 @@ extends Resource
 @export var essences: Array[String] = []
 ## Gold it is worth to the party (paid to the campaign when the mission is won).
 @export_range(0, 9999) var gold: int = 0
+## Optional: cards (weapon / part / rune / armor ids) and recipes (RecipeData ids) the party gets when this drops.
+@export var cards: Array[String] = []
+@export var recipes: Array[String] = []
 
 
 func _init(p_name: String = "") -> void:
@@ -18,7 +21,7 @@ func _init(p_name: String = "") -> void:
 
 
 func to_dict() -> Dictionary:
-	return {"name": item_name, "common": common_materials.duplicate(), "essences": essences.duplicate(), "gold": gold}
+	return {"name": item_name, "common": common_materials.duplicate(), "essences": essences.duplicate(), "gold": gold, "cards": cards.duplicate(), "recipes": recipes.duplicate()}
 
 
 static func from_dict(d: Dictionary) -> LootItem:
@@ -28,6 +31,10 @@ static func from_dict(d: Dictionary) -> LootItem:
 	for key in d.get("essences", []):
 		item.essences.append(str(key))
 	item.gold = int(d.get("gold", 0))
+	for card_id in d.get("cards", []):
+		item.cards.append(str(card_id))
+	for recipe_id in d.get("recipes", []):
+		item.recipes.append(str(recipe_id))
 	return item
 
 

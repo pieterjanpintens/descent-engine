@@ -21,12 +21,11 @@ const SUPPORT_RISES := {
 	"medium": [1, 2],
 	"tall": [1, 2, 3],
 	"stair": [1],      # only its high 2x1 end (see support_offsets)
-	"gate": [3],       # "gateways": the top of a gate ...
-	"archway": [3],    # ... or an archway
+	"archway": [3],    # the top of an archway (the gate is NOT a supporting structure)
 }
 
-## Gateways are also CEILINGS: their top is a solid 3 units above their floor, so a figure of 2 fits under one but a Centurion (6) does not.
-const CEILING_RISES := {"gate": 3, "archway": 3}
+## The ARCHWAY is also a CEILING (the gate is not): its top is a solid 3 units above their floor, so a figure of 2 fits under one but a Centurion (6) does not.
+const CEILING_RISES := {"archway": 3}
 
 
 ## Ladders let figures CLIMB (they hold nothing up): mesh -> the rises a figure standing on the ladder's floor can reach. The upper floor
@@ -47,9 +46,9 @@ const PASSABLE := ["stair", "exploration", "interact", "umbra"]
 ## would be pointless, so it is not modelled). Listed so the pictures can mark them.
 const REMOVABLE := ["gate", "fence", "barricade"]
 
-## Pieces that may stand on bare ground at height 0 (no floor tile under them): the pillars and the gateways (an archway's end posts, a gate, a fence).
+## Pieces that may stand on bare ground at height 0 (no floor tile under them): the pillars, the stairs, and the archway and fence (NOT the gate).
 ## Above the ground they still need a floor at their own height.
-const STANDS_ON_GROUND := ["mini", "medium", "tall", "gate", "archway", "fence"]
+const STANDS_ON_GROUND := ["mini", "medium", "tall", "stair", "archway", "fence"]
 
 
 ## The fine-cell offsets (unrotated, same space as support_offsets) of the part of a piece that BLOCKS walking and standing: all of it for
@@ -182,7 +181,7 @@ static func is_support(mesh: String) -> bool:
 
 
 ## The fine-cell offsets (unrotated, relative to the piece's origin, the same space as FootprintRegistry.get_footprint()) of the part of
-## the piece a floor can rest on. A pillar, gate or archway carries floor over its whole footprint; a stair only over its HIGH end - the
+## the piece a floor can rest on. A pillar or archway carries floor over its whole footprint; a stair only over its HIGH end - the
 ## 2x1 row farthest from its origin (the origin is the low point, see the stair's footprint comment in FootprintRegistry).
 static func support_offsets(mesh: String) -> Array[Vector3i]:
 	var footprint := FootprintRegistry.get_footprint(mesh)
@@ -207,11 +206,11 @@ static func describe() -> String:
 		"- medium pillar: floors 1 or 2 units above.",
 		"- tall pillar: floors 1, 2 or 3 units above.",
 		"- stair (2x3): the high 2x1 end holds a floor 1 unit above; the low end is where you climb on.",
-		"- gate or archway: the top holds a floor 3 units above.",
+		"- archway: the top holds a floor 3 units above (a gate holds nothing up).",
 		"Bridges and overhangs are allowed: floors may lie over other floors if they are supported and have that much room.",
-		"Figures are 2 units tall: a square where a hero or monster stands needs 2 free units above it. The Centurion is 6 tall and covers 2x2 squares and needs 6 free units over all four - never under a bridge, floor or gateway.",
+		"Figures are 2 units tall: a square where a hero or monster stands needs 2 free units above it. The Centurion is 6 tall and covers 2x2 squares and needs 6 free units over all four - never under a bridge, floor or archway.",
 		"The heroes need start squares: at least one, and one for every hero that may play (the map's maximum number of players, 1 to 6).",
-		"Pieces other than floors stand on a floor at their own height - except pillars and gateways (archway, gate, fence), which may stand on the bare ground at height 0.",
+		"Pieces other than floors stand on a floor at their own height - except pillars, stairs, the archway and the fence, which may stand on the bare ground at height 0.",
 		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
 		"Sight: two squares see each other when a line can be drawn from ANY corner of one to ANY corner of the other without being stopped (a line grazing the edge of a piece passes, but not between two pieces that touch). The line runs at figure height (2 units) above each figure's own floor, so a piece blocks only if its top is above that line: trees, tall and medium pillars, gates and an archway's two end posts block (the archway's two middle squares are open); fences (see-through), wells, mini pillars, stairs, furniture and ladders do not.",
 		"A medium pillar (2.2) therefore blocks figures standing on its floor but not someone standing 1 unit up; a tall pillar (3.8) still blocks from 1 up but not from a floor at height 2 (what is left above it is less than a figure). You can look up or down at any distance, but never through a floor: a figure directly under or over a floor tile is not visible, and you can't look down through the floor you stand on.",

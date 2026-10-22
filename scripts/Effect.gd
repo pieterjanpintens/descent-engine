@@ -60,6 +60,7 @@ enum Type {
 	MOVE_OBJECT,
 	MATH,
 	SPAWN_MONSTERS,
+	LOOT,
 }
 
 ## SPAWN_MONSTERS (new 2026-09-19) tells the table which monsters to take
@@ -201,3 +202,20 @@ enum MathOperator {
 ## corner and covers the three tiles toward -X/-Z, same convention as
 ## FootprintRegistry's footprints.
 @export var spawn_monsters: Array[MonsterTemplate] = []
+
+## LOOT (new 2026-10-22) - what the party finds in a chest, a bookshelf, a tree...: it goes to the party's inventory (the mission's
+## collected loot, paid to the campaign when the mission is won, exactly like a monster's loot). Everything is optional; a popup
+## tells the table what was found (loot_title is the heading in the quest log, loot_text a custom line before the list).
+## LootMaterials key -> count: the 17 crafting materials, and gold under LootMaterials.GOLD.
+@export var loot_materials: Dictionary = {}
+## Card ids found: weapons, B/C parts, runes and armor (the game's ids, RecipeData.card_kind() tells which kind). The party owns them
+## afterwards (a campaign mission; a plain mission only shows them).
+@export var loot_cards: Array[String] = []
+## Recipe ids (RecipeData) the party learns.
+@export var loot_recipes: Array[String] = []
+## Heading of the popup / quest log entry ("Chest"), blank = "Loot".
+@export var loot_title: String = ""
+## A custom line shown above the list ("Under the rotten planks you find...").
+@export var loot_text: String = ""
+## Show the popup. Off = the loot is added silently.
+@export var loot_show_popup: bool = true

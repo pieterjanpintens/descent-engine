@@ -1,3 +1,8 @@
+## v0.0.32 - 2026-10-22
+- Mission editor: new Loot effect for chests, bookshelves, tables, trees... - the party finds gold, materials, weapon/armor cards and recipes, with an optional popup, title and custom text. Loot is handed to the campaign when the mission is won.
+- One common loot dialog is used everywhere: the Loot effect, a chapter's and side quest's rewards (which can now also give cards and recipes) and a monster's drops (which can drop cards and recipes too).
+- Map checks: a gate no longer counts as something that holds up a floor or as a ceiling, and a gate needs a floor under it; stairs may stand on bare ground.
+
 ## v0.0.31 - 2026-10-21
 - Mission editor: new LOS Blocker tool (Misc tab) - draw squares that block line of sight like an infinitely high wall, e.g. to stop shots across open space. A blocker can sit in a stage group so it only counts once that stage is revealed, and blockers may overlap. In the Player the walls are drawn as a hand-drawn charcoal line on the floor.
 - Mission editor: a Problems button in the toolbar checks the map (pieces floating over nothing, unreachable floor, no start squares, no way to win, ...) and can jump to the piece.
