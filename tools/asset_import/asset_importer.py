@@ -25,6 +25,7 @@ STEPS = [
     ("Weapon data", "import_weapon_data"),
     ("Item data", "import_item_data"),
     ("Monster data", "import_monster_data"),
+    ("Original props", "import_original_props"),
 ]
 
 

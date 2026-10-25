@@ -112,6 +112,18 @@ func _ready() -> void:
 		PlayerSettings.save_settings())
 	general.add_child(sight_option)
 
+	var props_check := CheckBox.new()
+	props_check.text = "Use the original game props in the map (when imported)"
+	props_check.tooltip_text = "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+	props_check.button_pressed = PlayerSettings.use_original_props
+	props_check.disabled = not OriginalPropsLibrary.is_available()
+	if props_check.disabled:
+		props_check.text += " - not imported yet"
+	props_check.toggled.connect(func(pressed: bool):
+		PlayerSettings.use_original_props = pressed
+		PlayerSettings.save_settings())
+	general.add_child(props_check)
+
 	if AppUpdater.current_version() != "":
 		var update_check := CheckBox.new()
 		update_check.text = "Check for a newer version of the app at the main menu"

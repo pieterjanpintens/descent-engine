@@ -242,6 +242,11 @@ func run(bundles: String) -> bool:
 
 	await _convert_staged("monsters", "user://monster_assets/")
 	await _convert_staged("heroes", "user://hero_assets/")
+	progress.emit("Building the original prop library...")
+	await get_tree().process_frame
+	await OriginalPropsLibrary.build(STAGING_DIR + "props")
+	for line in OriginalPropsLibrary.report:
+		print("[import] original prop ", line)
 	_remove_folder(STAGING_DIR)
 	DirAccess.remove_absolute(manifest_path)
 

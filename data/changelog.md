@@ -1,3 +1,7 @@
+## v0.0.38 - 2026-10-25
+- The game's own prop models can be used in the map: the Game assets import now builds a prop library from them (chest, gate, fence, tree, well, cart, tables, ladders, barricade, stairs, pillars, pot, bridge and new props: altar, bell, blood shrine, bookshelf, dragon arch, dragon head, fire, statue). Turn it off with "Use the original game props" in Options > General; without the import nothing changes.
+- The palette shows pictures of the new props, and the floor tiles, hazards and tokens in the palette now show their official textures.
+
 ## v0.0.37 - 2026-10-25
 - Mission editor: an exploration / interact / umbra token can be changed to another token type from the properties panel without losing its name, group, properties or actions.
 - Mission editor: props can have a description; the Player shows it when the table clicks the prop.

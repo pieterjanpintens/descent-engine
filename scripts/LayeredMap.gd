@@ -85,6 +85,15 @@ func _ready() -> void:
 	prop_grid.position = Vector3(0, floor_thickness, 0)
 	underlay_grid.position = Vector3.ZERO
 
+	# The game's own prop models, when the user imported them and wants them (OriginalPropsLibrary) - all four
+	# grids must use the same library.
+	if PlayerSettings.use_original_props:
+		var original := OriginalPropsLibrary.load_library()
+		if original != null:
+			floor_grid.mesh_library = original
+			prop_grid.mesh_library = original
+			underlay_grid.mesh_library = original
+
 	# All four grids share one MeshLibrary, so this only needs to run once -
 	# swaps in the user's own official-game textures (if they've run the
 	# importer tool against their own install) in place of the shipped

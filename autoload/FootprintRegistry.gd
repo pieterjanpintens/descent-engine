@@ -524,6 +524,16 @@ const FOOTPRINTS: Dictionary = {
 	# like everything else, extending toward -X/-Z. Cart, table and barricade are
 	# 2x1 tile squares along X (R rotates them); chest, pot, well and small-table
 	# are 1x1 (the default, listed for visibility), as are the two ladders.
+	# Props that only exist in the library built from the game's own models (OriginalPropsLibrary, Game assets import) -
+	# without that import these names have no mesh. Sizes in tile squares from the game models.
+	"altar": [Vector3i.ZERO],
+	"bloodshrine": [Vector3i.ZERO],
+	"fire": [Vector3i.ZERO],
+	"bookshelf": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
+	"bell": [Vector3i(0, 0, -3), Vector3i(0, 0, -2), Vector3i(0, 0, -1), Vector3i(0, 0, 0)],
+	"dragonhead": [Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
+	"statue": [Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
+	"dragonarch": [Vector3i(-6, 0, -2), Vector3i(-5, 0, -2), Vector3i(-4, 0, -2), Vector3i(-3, 0, -2), Vector3i(-2, 0, -2), Vector3i(-1, 0, -2), Vector3i(0, 0, -2), Vector3i(-6, 0, -1), Vector3i(-5, 0, -1), Vector3i(-4, 0, -1), Vector3i(-3, 0, -1), Vector3i(-2, 0, -1), Vector3i(-1, 0, -1), Vector3i(0, 0, -1), Vector3i(-6, 0, 0), Vector3i(-5, 0, 0), Vector3i(-4, 0, 0), Vector3i(-3, 0, 0), Vector3i(-2, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
 	"cart": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
 	"table": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
 	"barricade": [Vector3i(-1, 0, 0), Vector3i(0, 0, 0)],
