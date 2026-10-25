@@ -1,4 +1,4 @@
-## v0.0.35 - 2026-10-25
+## v0.0.36 - 2026-10-25
 - New main menu look from the designer's mockup (Cinzel lettering, framed buttons, Options with a Game assets tab).
 - Mission editor: stages (groups) have an eye in the outline tree to hide them in the editor only; hidden pieces are not drawn, not box-selected and keep their data. The tree also keeps its collapsed rows while you edit.
 - Mission editor: Ctrl+click adds or removes a piece from the selection in the 3D view, drag a box to select several, and Delete removes the selection (one undo step).
