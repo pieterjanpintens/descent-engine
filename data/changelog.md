@@ -1,3 +1,10 @@
+## v0.0.37 - 2026-10-25
+- Mission editor: an exploration / interact / umbra token can be changed to another token type from the properties panel without losing its name, group, properties or actions.
+- Mission editor: props can have a description; the Player shows it when the table clicks the prop.
+- Mission editor: an action can be set to apply automatically - no choice dialog, the effects just happen when a hero is dragged onto the prop (like an exploration token).
+- Mission editor: a Test that accumulates into a variable can now pass or fail on the accumulated total instead of the single roll.
+- Fixed: a hidden prop (for example a ladder revealed later) no longer blocks interacting with the prop on the same square.
+
 ## v0.0.36 - 2026-10-25
 - New main menu look from the designer's mockup (Cinzel lettering, framed buttons, Options with a Game assets tab).
 - Mission editor: stages (groups) have an eye in the outline tree to hide them in the editor only; hidden pieces are not drawn, not box-selected and keep their data. The tree also keeps its collapsed rows while you edit.

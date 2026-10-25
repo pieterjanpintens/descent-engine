@@ -250,8 +250,18 @@ func blocks_los(cell: Vector3i) -> bool:
 	return tile != null and tile.blocks_los
 
 
-func get_interactable_at(cell: Vector3i) -> InteractableEntry:
+## `only_visible` (the Player): props that are not shown right now (hidden by their own flag or their stage, e.g. a
+## ladder that a Show Object effect reveals later) are not there yet and must not take the click away from
+## whatever IS shown on the same square.
+func get_interactable_at(cell: Vector3i, only_visible: bool = false) -> InteractableEntry:
 	var owners := prop_owners_at(cell)
+	if only_visible:
+		var shown: Array = []
+		for origin: Vector3i in owners:
+			var entry := _find_interactable_by_origin(origin)
+			if entry != null and is_effectively_visible(entry):
+				shown.append(origin)
+		owners = shown
 	if owners.is_empty():
 		return null
 	return _find_interactable_by_origin(resolve_prop_priority(owners))

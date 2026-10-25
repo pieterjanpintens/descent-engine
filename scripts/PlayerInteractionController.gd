@@ -551,6 +551,30 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 		return
 	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
 
+	# Actions marked "apply automatically" just happen - no dialog. Only the others are offered as a choice.
+	var chosen_actions: Array[PropAction] = []
+	var offered: Array[PropAction] = []
+	for candidate in actions:
+		if candidate.auto_apply:
+			if not (candidate.single_shot and candidate.already_used):
+				chosen_actions.append(candidate)
+		else:
+			offered.append(candidate)
+	if not chosen_actions.is_empty():
+		for auto_action in chosen_actions:
+			var auto_objective := await mission_runtime.fire_prop_action(auto_action, hero_name, entry)
+			objectives_progressed.emit()
+			if auto_objective != null:
+				game_over_requested.emit(auto_objective)
+				return
+			print("%s triggered '%s' on '%s'" % [hero_name, auto_action.description, label])
+		await mission_runtime.interaction_boon(hero_name)  # Mage-Sight Goggles
+		if offered.is_empty():
+			return
+	actions = offered
+	if actions.is_empty():
+		return
+
 	var option_labels: Array[String] = []
 	var option_disabled: Array[bool] = []
 	for action in actions:
@@ -591,6 +615,27 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 ## every action is conditionally unavailable right now reads the same as
 ## having no actions at all.
 func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
+	var entry := _prop_at(screen_pos)
+	if entry == null or not entry.props.get("interactible", true):
+		return null
+	if _resolve_action(entry) == null:
+		return null
+	return entry
+
+
+## Clicking a prop that has a description shows it to the table (a sign, a statue...). Called by MissionPlayer for a
+## plain left click on the world; returns true when it showed something.
+func show_description_at(screen_pos: Vector2) -> bool:
+	var entry := _prop_at(screen_pos)
+	if entry == null or entry.description.strip_edges() == "" or dialog == null or dialog.visible:
+		return false
+	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
+	await dialog.ask_ok(entry.description, true, false, label, null, null, true)
+	return true
+
+
+## The visible prop under the cursor (any prop - whether it has actions is the caller's question).
+func _prop_at(screen_pos: Vector2) -> InteractableEntry:
 	if camera == null or layered_map == null or layered_map.mission == null:
 		return null
 
@@ -612,12 +657,7 @@ func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
 	var local_pos: Vector3 = hit_grid.to_local(interior_point)
 	var hit_cell: Vector3i = hit_grid.local_to_map(local_pos)
 
-	var entry := layered_map.mission.get_interactable_at(hit_cell)
-	if entry == null or not entry.props.get("interactible", true):
-		return null
-	if _resolve_action(entry) == null:
-		return null
-	return entry
+	return layered_map.mission.get_interactable_at(hit_cell, true)
 
 
 ## Cheap existence check for _interactable_at() above - is THERE an

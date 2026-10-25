@@ -42,6 +42,9 @@ extends Resource
 ## the ones that aren't (e.g. opening a door that then removes itself via
 ## Effect.Type.REMOVE_OBJECT).
 @export var single_shot: bool = false
+## Applies by itself when a hero interacts with the prop: no choice dialog, the effects just happen (an exploration
+## token). The app does not detect anyone walking next to it - the table drags the hero onto the prop as always.
+@export var auto_apply: bool = false
 @export var already_used: bool = false
 
 @export var action_id: String = ""    ## short, stable id - e.g. "push"

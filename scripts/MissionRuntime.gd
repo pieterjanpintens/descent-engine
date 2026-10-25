@@ -1095,7 +1095,11 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 		_accumulate(effect.accumulate_variable_name, successes)
 
 	if not effect.pass_effects.is_empty() or not effect.fail_effects.is_empty():
-		if successes >= effect.required_successes:
+		var judged := successes
+		if effect.compare_accumulated and effect.accumulate_variable_name != "":
+			var total: Variant = _variables.get(effect.accumulate_variable_name, 0)
+			judged = int(total) if typeof(total) == TYPE_INT else successes
+		if judged >= effect.required_successes:
 			await apply_effects(effect.pass_effects, hero_name)
 		else:
 			await apply_effects(effect.fail_effects, hero_name)

@@ -824,6 +824,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
 		_set_monster_display_visible(not monster_display.visible)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and not monster_display.visible and _runtime != null \
+			and (los_mode == null or not los_mode.active) and not dialog.visible:
+		interaction_dock.show_description_at(event.position)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and monster_display.visible and _runtime != null:
 		# Clicking a monster in the monster view opens its manage dialog (damage/heal,
 		# conditions) - changes outside combat, see MonsterManageDialog.

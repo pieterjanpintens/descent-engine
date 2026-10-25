@@ -30,6 +30,9 @@ enum Type {
 ## report.
 @export var actions: Array[PropAction] = []
 
+## Optional text for this prop, shown to the table in the Player when they click it (a sign, a statue...).
+@export var description: String = ""
+
 ## Only meaningful when type == LEVEL_LINK. Two cells this connector joins -
 ## covers both "real" floor-to-floor stairs (large Y difference) and a
 ## localized dais/ledge step within one room (often just Y+1). Movement/LOS

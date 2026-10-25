@@ -461,6 +461,31 @@ func sync_prop_cell(origin: Vector3i, new_parent_id: String = "") -> void:
 	mission_objects_changed.emit()
 
 
+## The event/interaction tokens - same single tile square, so one can be swapped for another in place.
+const TOKEN_MESHES: Array[String] = ["exploration", "interact", "umbra"]
+
+
+## Changes which mesh a placed prop uses (a mistake made while placing tokens) while keeping EVERYTHING else:
+## id, group, name, visibility, custom properties, actions, position and turn. The new mesh must have the same
+## footprint size class as the old one (the tokens do). Returns false when nothing changed.
+func swap_prop_mesh(id: String, new_mesh: String) -> bool:
+	var entry := mission.find_node_by_id(id) as InteractableEntry
+	if entry == null or entry.mesh_item_name == new_mesh:
+		return false
+	var item_id := find_item_id(prop_grid, new_mesh)
+	if item_id == -1:
+		return false
+	FootprintRegistry.clear_occupied(mission, entry.origin_cell, entry.footprint)
+	entry.mesh_item_name = new_mesh
+	entry.footprint = FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(new_mesh), prop_grid.get_basis_with_orthogonal_index(entry.orientation))
+	FootprintRegistry.mark_occupied(mission, entry.origin_cell, entry.footprint)
+	# a piece in a stage hidden with the eye is not painted - only repaint what is on the map
+	if prop_grid.get_cell_item(entry.origin_cell) != GridMap.INVALID_CELL_ITEM:
+		prop_grid.set_cell_item(entry.origin_cell, item_id, entry.orientation)
+	mission_objects_changed.emit()
+	return true
+
+
 ## Erases a placed prop or floor/underlay tile from its GridMap and
 ## MissionData, by id - fired by an authored Effect.Type.REMOVE_OBJECT
 ## (e.g. "opening this door removes it from the board", matching the

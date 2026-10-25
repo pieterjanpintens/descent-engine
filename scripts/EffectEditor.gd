@@ -638,6 +638,14 @@ func _open_test_editor(effect: Effect) -> void:
 
 	_test_editor_container.add_child(HSeparator.new())
 	_test_editor_container.add_child(_label("Accumulate raw successes into (optional - for a test repeated toward a larger total, e.g. 20 successes to put out a fire):"))
+	var compare_check := CheckBox.new()
+	compare_check.text = "Pass/fail uses the accumulated total instead of this roll"
+	compare_check.tooltip_text = "The test passes once the running total (including this roll) reaches the required successes."
+	compare_check.button_pressed = effect.compare_accumulated
+	compare_check.disabled = effect.accumulate_variable_name == ""
+	compare_check.toggled.connect(func(pressed: bool):
+		_commit_field("Edit test compare accumulated", func(): effect.compare_accumulated = pressed)
+	)
 	var accumulate_option := OptionButton.new()
 	accumulate_option.add_item("(none)")
 	var accumulate_names := _known_variable_names()
@@ -655,11 +663,14 @@ func _open_test_editor(effect: Effect) -> void:
 			return
 		var new_name := accumulate_names[index - 1] if index > 0 else ""
 		_commit_field("Edit test accumulate variable", func(): effect.accumulate_variable_name = new_name)
+		compare_check.disabled = new_name == ""
 	)
 	_test_editor_container.add_child(accumulate_option)
 
+	_test_editor_container.add_child(compare_check)
+
 	_test_editor_container.add_child(HSeparator.new())
-	_test_editor_container.add_child(_label("Pass Effects (roll met the required successes):"))
+	_test_editor_container.add_child(_label("Pass Effects (met the required successes - the roll, or the accumulated total when ticked above):"))
 	for pass_effect in effect.pass_effects:
 		_test_editor_container.add_child(build_effect_row(effect.pass_effects, pass_effect, func(): _open_test_editor(effect)))
 	var add_pass_button := Button.new()

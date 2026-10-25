@@ -161,6 +161,10 @@ enum MathOperator {
 ## a single pass/fail. Independent of pass_effects/fail_effects - a Test
 ## can accumulate, branch, both, or (pointlessly) neither.
 @export var accumulate_variable_name: String = ""
+## RUN_TEST only, needs accumulate_variable_name - pass/fail is decided by the ACCUMULATED total (the variable's value
+## after this roll was added) instead of this roll alone: the test passes once the running total reaches
+## required_successes, so a test repeated toward a larger goal needs no extra effects after it.
+@export var compare_accumulated: bool = false
 
 ## SHOW_MESSAGE only - the text shown to the table, e.g. "Donal gave you
 ## the key to the front door." A plain OK-button popup

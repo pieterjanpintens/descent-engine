@@ -45,6 +45,10 @@ extends Control
 var _object_fields: ScrollContainer
 var _object_content: VBoxContainer
 var _info_label: Label
+var _description_box: VBoxContainer
+var _description_edit: TextEdit
+var _token_row: HBoxContainer
+var _token_option: OptionButton
 var _name_edit: LineEdit
 var _visible_check: CheckBox
 var _properties_button: Button
@@ -125,6 +129,23 @@ func _build_object_fields() -> void:
 	_name_edit.focus_exited.connect(_on_name_committed)
 	name_row.add_child(_name_edit)
 
+	# Props only: optional text the Player shows when the table clicks the prop.
+	_description_box = VBoxContainer.new()
+	var description_label := Label.new()
+	description_label.text = "Description (shown when clicked in the Player):"
+	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_description_box.add_child(description_label)
+	_description_edit = ProseEdit.build("", "Optional - e.g. a sign's text", Vector2(200, 100), layered_map.mission.characters,
+		func(): return "Text for the board game Descent: Legends of the Dark. This is the description of a prop ('%s') on the map, read out when the players click it. Mission: %s." % [_current_node.mesh_item_name if _current_node is InteractableEntry else "prop", layered_map.mission.mission_name],
+		func(new_text: String):
+			var entry := _current_node as InteractableEntry
+			if entry != null and entry.description != new_text:
+				operation_history.record("Edit prop description", func(): entry.description = new_text)
+				layered_map.notify_objects_changed())
+	_description_box.add_child(_description_edit)
+	_description_box.visible = false
+	_object_content.add_child(_description_box)
+
 	_visible_check = CheckBox.new()
 	_visible_check.text = "Visible"
 	_visible_check.toggled.connect(_on_visible_toggled)
@@ -134,6 +155,20 @@ func _build_object_fields() -> void:
 	# MissionGroup) - a popup rather than inline rows here, requested
 	# 2026-09-10: a dynamic add/remove/type-aware list would get cramped
 	# in this 260px-wide panel. See PropertiesDialog.gd's own doc comment.
+	# Event tokens only: swap exploration / interact / umbra without losing the name, group, properties and actions.
+	_token_row = HBoxContainer.new()
+	var token_label := Label.new()
+	token_label.text = "Token type:"
+	_token_row.add_child(token_label)
+	_token_option = OptionButton.new()
+	_token_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for mesh in LayeredMap.TOKEN_MESHES:
+		_token_option.add_item(mesh.capitalize())
+	_token_option.item_selected.connect(_on_token_type_selected)
+	_token_row.add_child(_token_option)
+	_token_row.visible = false
+	_object_content.add_child(_token_row)
+
 	_properties_button = Button.new()
 	_properties_button.text = "Custom Properties…"
 	_properties_button.pressed.connect(_on_properties_button_pressed)
@@ -220,6 +255,7 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 		_visible_check.disabled = true
 		_properties_button.visible = false
 		_actions_button.visible = false
+		_description_box.visible = false
 		_spawn_tiles_box.visible = false
 		return
 
@@ -229,6 +265,15 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	_name_edit.placeholder_text = _fallback_name(type)
 	_properties_button.visible = type == CreatorOutline.SelectionType.OBJECT
 	_actions_button.visible = type == CreatorOutline.SelectionType.OBJECT
+	var token_index := -1
+	if _current_node is InteractableEntry:
+		token_index = LayeredMap.TOKEN_MESHES.find((_current_node as InteractableEntry).mesh_item_name)
+	_token_row.visible = token_index != -1
+	if token_index != -1:
+		_token_option.select(token_index)
+	_description_box.visible = _current_node is InteractableEntry
+	if _current_node is InteractableEntry and _description_edit.text != (_current_node as InteractableEntry).description:
+		_description_edit.text = (_current_node as InteractableEntry).description
 	_rebuild_spawn_tiles(type)
 
 	_suppress_field_signals = true
@@ -391,6 +436,14 @@ func _on_multi_move_button_pressed() -> void:
 func _on_properties_button_pressed() -> void:
 	if _current_node is InteractableEntry:
 		_properties_dialog.open_for(_current_node as InteractableEntry)
+
+
+func _on_token_type_selected(index: int) -> void:
+	var entry := _current_node as InteractableEntry
+	if entry == null or index < 0 or index >= LayeredMap.TOKEN_MESHES.size():
+		return
+	var new_mesh: String = LayeredMap.TOKEN_MESHES[index]
+	operation_history.record("Change token type", func(): layered_map.swap_prop_mesh(entry.id, new_mesh))
 
 
 func _on_actions_button_pressed() -> void:

@@ -173,6 +173,14 @@ func _build_action_block(action: PropAction) -> Control:
 	)
 	box.add_child(single_shot_check)
 
+	var auto_apply_check := CheckBox.new()
+	auto_apply_check.text = "Apply automatically (no choice is offered - the effects just happen, like an exploration token)"
+	auto_apply_check.button_pressed = action.auto_apply
+	auto_apply_check.toggled.connect(func(pressed: bool):
+		_commit_field("Edit action auto-apply", func(): action.auto_apply = pressed)
+	)
+	box.add_child(auto_apply_check)
+
 	box.add_child(HSeparator.new())
 	var conditions_label := Label.new()
 	conditions_label.text = "Conditions (implicit AND - when is this action offered to players):"
