@@ -61,7 +61,19 @@ enum Type {
 	MATH,
 	SPAWN_MONSTERS,
 	LOOT,
+	SHOW_OBJECT,
+	HIDE_OBJECT,
 }
+
+## target_object_id value meaning "the prop this action belongs to" - offered as the
+## first entry of the object picker, in prop actions only (Remove/Move/Show/Hide Object).
+## Resolved by MissionRuntime when the action fires.
+const SELF_ID := "@self"
+
+## SHOW_OBJECT (new 2026-10-25) makes a placed prop or floor/underlay tile
+## that starts invisible (its `visible` flag off in the Creator) appear on the
+## board - the single-piece counterpart of SHOW_STAGE (no setup dialog, no
+## group). Reuses target_object_id. See MissionPlayer._show_object().
 
 ## SPAWN_MONSTERS (new 2026-09-19) tells the table which monsters to take
 ## from the box and where on the map to put them - target_object_id is the

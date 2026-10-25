@@ -1,3 +1,13 @@
+## v0.0.35 - 2026-10-25
+- New main menu look from the designer's mockup (Cinzel lettering, framed buttons, Options with a Game assets tab).
+- Mission editor: stages (groups) have an eye in the outline tree to hide them in the editor only; hidden pieces are not drawn, not box-selected and keep their data. The tree also keeps its collapsed rows while you edit.
+- Mission editor: Ctrl+click adds or removes a piece from the selection in the 3D view, drag a box to select several, and Delete removes the selection (one undo step).
+- Mission editor: new effects Show Object and Hide Object, and a "Self" target (the prop the action belongs to) for Remove, Move, Show and Hide Object in prop actions.
+- Mission editor: the action description, Show Message text and objective descriptions are big multi-line boxes with spell check, AI help and dictation.
+- Mission editor: the Objectives, Actions and Triggers editors fill the whole window (with a Close button), Ctrl+Z works inside them, and a connection in the objectives graph is removed with a right-click.
+- Campaign editor: an Edit... button next to a chapter's mission opens it in the mission editor; leaving the mission editor with unsaved changes asks first.
+- Fixed: playing a mission from the editor failed with an error about excluded trinkets.
+
 ## v0.0.34 - 2026-10-22
 - Mission editor: Generate stage... - describe an area in words and the AI designs it from the pieces still free; every answer is checked by the map rules and retried with the problems as feedback. Needs AI help turned on in Options.
 - Mission editor: a selected stage (or any selection) can be moved with the arrow keys and turned with R as one body; floors, props, monster spawns, LOS blockers and the hero start squares on it travel along, and the move is refused if it would land on another piece. One undo step.

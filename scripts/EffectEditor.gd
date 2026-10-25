@@ -23,6 +23,8 @@ var mission: MissionData
 var campaign_variables: Array[MissionVariable] = []
 ## When not empty, the only effect types the type dropdown offers (the campaign editor: set variable / math).
 var allowed_effect_types: Array[int] = []
+## True where the effect belongs to a prop's action (PropActionsDialog): the object pickers then start with "Self".
+var allow_self := false
 ## Campaign mode (the campaign editor): "New variable…" adds to this list (the campaign's own `variables`) instead of the
 ## mission's, and `variables_changed` (if set) is called afterwards so the owner can rebuild its other pickers.
 var campaign_mode := false
@@ -49,6 +51,14 @@ func setup(p_host: Node, p_commit: Callable) -> void:
 
 func _commit_field(label: String, mutate: Callable) -> void:
 	_commit.call(label, mutate)
+
+
+## Closes the small nested editors (Edit Test, Conditions, Variables, Monsters, Loot) - they hold effects of the old
+## mission, so they must go when an undo/redo replaces the mission under them.
+func hide_nested() -> void:
+	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor]:
+		if window != null:
+			window.hide()
 
 
 ## Swaps `item` with its neighbor `delta` slots away (-1 = up/earlier,
@@ -263,7 +273,8 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	var type_option := OptionButton.new()
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
-			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Loot", Effect.Type.LOOT]]:
+			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Loot", Effect.Type.LOOT],
+			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -297,6 +308,9 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	## since groups are already uniquely named.
 	var object_option := OptionButton.new()
 	var object_ids: Array[String] = []
+	if allow_self:
+		object_option.add_item("Self (this object)")
+		object_ids.append(Effect.SELF_ID)
 	var removable_nodes: Array = []
 	removable_nodes.append_array(mission.interactables)
 	removable_nodes.append_array(mission.floor_placements)
@@ -328,15 +342,9 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	## message_variables list (new 2026-09-19, $1/$2/... placeholders) gets
 	## its own nested editor, same "doesn't fit one row, open a small
 	## Window" reasoning as "Edit Test…"/"Conditions…" above.
-	var message_edit := LineEdit.new()
-	message_edit.placeholder_text = "Message shown to the table, e.g. \"$1 gave you the key.\""
-	message_edit.text = effect.message
-	message_edit.text_submitted.connect(func(new_text: String):
-		_commit_field("Edit effect message", func(): effect.message = new_text)
-	)
-	message_edit.focus_exited.connect(func():
-		_commit_field("Edit effect message", func(): effect.message = message_edit.text)
-	)
+	var message_edit := ProseEdit.build(effect.message, "Message shown to the table, e.g. \"$1 gave you the key.\"", Vector2(480, 130), mission.characters,
+		func(): return "Text for the board game Descent: Legends of the Dark. This is a message popup shown to the players during a mission (placeholders like $1 are replaced by variable values - keep them). Mission: %s." % mission.mission_name,
+		func(new_text: String): _commit_field("Edit effect message", func(): effect.message = new_text))
 	row.add_child(message_edit)
 
 	var message_variables_button := Button.new()
@@ -448,7 +456,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
-		object_option.visible = type == Effect.Type.REMOVE_OBJECT or type == Effect.Type.MOVE_OBJECT
+		object_option.visible = type == Effect.Type.REMOVE_OBJECT or type == Effect.Type.MOVE_OBJECT or type == Effect.Type.SHOW_OBJECT or type == Effect.Type.HIDE_OBJECT
 		test_button.visible = type == Effect.Type.RUN_TEST
 		message_edit.visible = type == Effect.Type.SHOW_MESSAGE
 		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE

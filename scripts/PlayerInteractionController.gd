@@ -569,7 +569,7 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 		# cheap insurance rather than trusting the UI's disabled state alone.
 		print("%s: '%s' has already been used on '%s'" % [hero_name, action.description, label])
 		return
-	var objective := await mission_runtime.fire_prop_action(action, hero_name)
+	var objective := await mission_runtime.fire_prop_action(action, hero_name, entry)
 	objectives_progressed.emit()
 	if objective != null:
 		game_over_requested.emit(objective)

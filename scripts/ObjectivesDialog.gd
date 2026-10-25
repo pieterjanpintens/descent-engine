@@ -70,11 +70,25 @@ func _ready() -> void:
 	var toolbar := HBoxContainer.new()
 	left.add_child(toolbar)
 
+	var close_button := Button.new()
+	close_button.text = "Close"
+	close_button.pressed.connect(_on_close_requested)
+	toolbar.add_child(close_button)
+
 	var add_node_button := Button.new()
 	add_node_button.text = "Add Node"
 	add_node_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	add_node_button.pressed.connect(_on_add_node_pressed)
 	toolbar.add_child(add_node_button)
+	var hint := Label.new()
+	hint.text = "  Right-click a connection to remove it"
+	hint.tooltip_text = "Connect: drag from a node's right dot to another node. Remove a connection: right-click it."
+	hint.mouse_filter = Control.MOUSE_FILTER_STOP
+	hint.modulate = Color(1, 1, 1, 0.6)
+	hint.clip_text = true  # never pushes the toolbar wider than the graph
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hint.custom_minimum_size.x = 0
+	toolbar.add_child(hint)
 
 	_graph = GraphEdit.new()
 	_graph.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -89,10 +103,11 @@ func _ready() -> void:
 	_graph.connection_request.connect(_on_connection_request)
 	_graph.disconnection_request.connect(_on_disconnection_request)
 	_graph.node_selected.connect(_on_node_selected)
+	_graph.gui_input.connect(_on_graph_gui_input)
 	left.add_child(_graph)
 
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(300, 0)
+	scroll.custom_minimum_size = Vector2(480, 0)
 	root.add_child(scroll)
 
 	_props_panel = VBoxContainer.new()
@@ -105,14 +120,43 @@ func _ready() -> void:
 	_show_no_selection()
 
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	if visible and FullScreenWindow.handle_undo_key(event, operation_history):
+		get_viewport().set_input_as_handled()
+
+
+## An undo/redo swaps the whole mission for a copy - this dialog must pick the new objectives up (same node selected,
+## node positions kept) or it would keep editing the old, now unconnected, ones.
+func _on_mission_maybe_replaced() -> void:
+	if not visible or layered_map.mission == _mission:
+		return
+	var positions: Dictionary = {}
+	for objective in _name_by_node.keys():
+		positions[objective.id] = (_graph_node_by_objective[objective] as GraphNode).position_offset
+	var selected_id := _selected.id if _selected != null else ""
+	_editor.hide_nested()
+	if _optional_editor != null:
+		_optional_editor.hide()
+	_mission = layered_map.mission
+	_editor.mission = _mission
+	for objective in MissionProgress.all_objectives(_mission):
+		if positions.has(objective.id):
+			objective.editor_position = positions[objective.id]
+	_selected = _mission.find_objective_by_id(selected_id) if selected_id != "" else null
+	_rebuild_graph()
+	_rebuild_properties_panel()
+
+
 ## Public - CreatorSaveLoad.gd calls this from its "Objectives…" button.
 func open_for(mission: MissionData) -> void:
+	if layered_map != null and not layered_map.mission_objects_changed.is_connected(_on_mission_maybe_replaced):
+		layered_map.mission_objects_changed.connect(_on_mission_maybe_replaced)
 	_mission = mission
 	_editor.mission = mission
 	_selected = null
 	_rebuild_graph()
 	_show_no_selection()
-	popup_centered()
+	FullScreenWindow.show(self)
 
 
 ## Canvas layout is authoring metadata only (not undo-tracked, see class
@@ -321,6 +365,18 @@ func _on_connection_request(from_node: StringName, from_port: int, to_node: Stri
 		_rebuild_properties_panel()
 
 
+## Right-click on a connection removes it (dragging it off its end dot still works too, but nobody finds that).
+func _on_graph_gui_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	var connection := _graph.get_closest_connection_at_point(click.position, 12.0)
+	if connection.is_empty():
+		return
+	_on_disconnection_request(connection["from_node"], connection["from_port"], connection["to_node"], connection["to_port"])
+	_graph.accept_event()
+
+
 func _on_disconnection_request(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
 	var from_obj: MissionObjective = _node_by_name.get(from_node)
 	var to_obj: MissionObjective = _node_by_name.get(to_node)
@@ -430,13 +486,11 @@ func _rebuild_properties_panel() -> void:
 	var objective := _selected
 
 	_props_panel.add_child(_label("Description:"))
-	var desc_edit := LineEdit.new()
-	desc_edit.text = objective.description
-	var commit_desc := func():
-		_commit_field("Edit objective description", func(): objective.description = desc_edit.text)
-		_refresh_graph_node(objective)
-	desc_edit.text_submitted.connect(func(_t): commit_desc.call())
-	desc_edit.focus_exited.connect(commit_desc)
+	var desc_edit := ProseEdit.build(objective.description, "What the players must do", Vector2(280, 120), _mission.characters,
+		func(): return "Text for the board game Descent: Legends of the Dark. This is an objective the players see during a mission (what they have to do, or the win/lose text). Mission: %s." % _mission.mission_name,
+		func(new_text: String):
+			_commit_field("Edit objective description", func(): objective.description = new_text)
+			_refresh_graph_node(objective))
 	_props_panel.add_child(desc_edit)
 
 	_props_panel.add_child(_label("Outcome (only applies to a leaf - no children):"))
@@ -570,13 +624,11 @@ func _open_optional_editor(parent_objective: MissionObjective, optional: Mission
 		child.queue_free()
 
 	_optional_editor_container.add_child(_label("Description:"))
-	var desc_edit := LineEdit.new()
-	desc_edit.text = optional.description
-	var commit_desc := func():
-		_commit_field("Edit optional objective description", func(): optional.description = desc_edit.text)
-		_rebuild_properties_panel()
-	desc_edit.text_submitted.connect(func(_t): commit_desc.call())
-	desc_edit.focus_exited.connect(commit_desc)
+	var desc_edit := ProseEdit.build(optional.description, "The optional side objective", Vector2(320, 110), _mission.characters,
+		func(): return "Text for the board game Descent: Legends of the Dark. This is an optional side objective the players see during a mission. Mission: %s." % _mission.mission_name,
+		func(new_text: String):
+			_commit_field("Edit optional objective description", func(): optional.description = new_text)
+			_rebuild_properties_panel())
 	_optional_editor_container.add_child(desc_edit)
 
 	_optional_editor_container.add_child(HSeparator.new())

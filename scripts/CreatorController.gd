@@ -141,6 +141,8 @@ signal working_group_changed(group_id: String)
 ## matching tree item) - this script deliberately doesn't know that class
 ## exists, same one-directional "controller emits, UI listens" convention.
 signal object_picked(kind: String, id: String)
+## Same as object_picked, but Ctrl was held: add the piece to the selection (or remove it again) instead of replacing the selection.
+signal object_toggled(kind: String, id: String)
 
 ## Fire whenever the matching debug overlay is toggled, from EITHER path
 ## (hotkey or the new `View` menu, requested 2026-09-10 so `O`/`N` are no
@@ -611,17 +613,28 @@ func _jump_camera_to(grid: GridMap, origin_cell: Vector3i) -> void:
 ## needs FootprintRegistry.get_footprint()+rotate_footprint() same as
 ## LayeredMap.sync_prop_cell()/_write_tile_footprint() do).
 func highlight_footprint(origin_cell: Vector3i, footprint: Array[Vector3i], grid: GridMap) -> void:
-	var lift := Vector3(0, _selection_highlight_lift(grid), 0)
+	highlight_footprints([{"origin": origin_cell, "footprint": footprint, "grid": grid}])
 
+
+## Several pieces at once (a multi-selection): each entry is {"origin": Vector3i, "footprint": Array[Vector3i], "grid": GridMap},
+## and every piece gets its own outline.
+func highlight_footprints(pieces: Array) -> void:
+	if pieces.is_empty():
+		clear_selection_highlight()
+		return
 	_selection_highlight_mesh.clear_surfaces()
 	_selection_highlight_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
-	for edge in _footprint_boundary_edges(footprint):
-		var a: Vector3 = grid.to_global(grid.map_to_local(origin_cell + edge[0])) + lift
-		var b: Vector3 = grid.to_global(grid.map_to_local(origin_cell + edge[1])) + lift
-		_selection_highlight_mesh.surface_set_color(selection_highlight_color)
-		_selection_highlight_mesh.surface_add_vertex(a)
-		_selection_highlight_mesh.surface_set_color(selection_highlight_color)
-		_selection_highlight_mesh.surface_add_vertex(b)
+	for piece in pieces:
+		var grid: GridMap = piece["grid"]
+		var origin_cell: Vector3i = piece["origin"]
+		var lift := Vector3(0, _selection_highlight_lift(grid), 0)
+		for edge in _footprint_boundary_edges(piece["footprint"]):
+			var a: Vector3 = grid.to_global(grid.map_to_local(origin_cell + edge[0])) + lift
+			var b: Vector3 = grid.to_global(grid.map_to_local(origin_cell + edge[1])) + lift
+			_selection_highlight_mesh.surface_set_color(selection_highlight_color)
+			_selection_highlight_mesh.surface_add_vertex(a)
+			_selection_highlight_mesh.surface_set_color(selection_highlight_color)
+			_selection_highlight_mesh.surface_add_vertex(b)
 	_selection_highlight_mesh.surface_end()
 	_selection_highlight.global_transform = Transform3D.IDENTITY  # vertices already computed in world space
 	_selection_highlight.visible = true
@@ -1062,6 +1075,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				toggle_draw_mode()
 			KEY_M:
 				toggle_move_mode()
+			KEY_DELETE:
+				delete_selection()
+			KEY_BACKSPACE:
+				if OS.get_name() == "macOS":  # the Mac's "delete" key; elsewhere Backspace is left alone
+					delete_selection()
+	elif event is InputEventMouseMotion and _box_pending:
+		_update_box_select(event.position)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			if spawn_paint_mode:
@@ -1073,11 +1093,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif move_mode:
 				_start_move_drag()
 			elif not draw_mode:
-				select_at_cursor()
+				# a click picks the piece under the cursor, a drag draws a selection box - decided on release
+				_box_pending = true
+				_box_dragging = false
+				_box_start = event.position
 			elif Input.is_key_pressed(KEY_SHIFT):
 				erase_at_cursor()
 			else:
 				place_at_cursor()
+		elif _box_pending:
+			_finish_box_select(event.position)
 		elif move_mode:
 			_finish_move_drag()
 
@@ -1737,6 +1762,136 @@ func erase_at_cursor() -> void:
 	)
 
 
+## ---- Box select and delete (Select mode) ----
+
+## Which pieces a box selected, and whether to add them to the selection (Ctrl held) or replace it.
+signal objects_boxed(ids: Array, additive: bool)
+
+const BOX_DRAG_THRESHOLD := 6.0  ## pixels the mouse must move before a press counts as a drag
+
+var _box_pending := false  ## the left button is down in Select mode and has not been released
+var _box_dragging := false
+var _box_start := Vector2.ZERO
+var _box_layer: CanvasLayer
+var _box_panel: Panel
+
+
+func _update_box_select(mouse_pos: Vector2) -> void:
+	if not _box_dragging and mouse_pos.distance_to(_box_start) < BOX_DRAG_THRESHOLD:
+		return
+	_box_dragging = true
+	if _box_panel == null:
+		_box_layer = CanvasLayer.new()
+		_box_layer.layer = 50
+		add_child(_box_layer)
+		_box_panel = Panel.new()
+		_box_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.4, 0.7, 1.0, 0.15)
+		style.border_color = Color(0.7, 0.9, 1.0, 0.9)
+		style.set_border_width_all(1)
+		_box_panel.add_theme_stylebox_override("panel", style)
+		_box_layer.add_child(_box_panel)
+	var rect := Rect2(_box_start, mouse_pos - _box_start).abs()
+	_box_panel.position = rect.position
+	_box_panel.size = rect.size
+	_box_panel.visible = true
+
+
+func _finish_box_select(mouse_pos: Vector2) -> void:
+	var was_dragging := _box_dragging
+	_box_pending = false
+	_box_dragging = false
+	if _box_panel != null:
+		_box_panel.visible = false
+	if not was_dragging:
+		select_at_cursor()
+		return
+	var additive := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)
+	objects_boxed.emit(pieces_in_screen_rect(Rect2(_box_start, mouse_pos - _box_start).abs()), additive)
+
+
+## Ids of the placed props and tiles whose middle is inside `rect` (screen pixels), on every level.
+func pieces_in_screen_rect(rect: Rect2) -> Array[String]:
+	var found: Array[String] = []
+	if camera == null:
+		return found
+	var mission := layered_map.mission
+	# pieces of a stage hidden with the eye are not on screen, so the box never takes them
+	for entry in mission.interactables:
+		if layered_map.is_editor_hidden(entry):
+			continue
+		if _piece_in_rect(entry.origin_cell, entry.footprint, layered_map.prop_grid, rect):
+			found.append(entry.id)
+	for placement in mission.floor_placements:
+		if layered_map.is_editor_hidden(placement):
+			continue
+		if _tile_in_rect(placement, layered_map.floor_grid, rect):
+			found.append(placement.id)
+	for placement in mission.underlay_placements:
+		if layered_map.is_editor_hidden(placement):
+			continue
+		if _tile_in_rect(placement, layered_map.underlay_grid, rect):
+			found.append(placement.id)
+	return found
+
+
+func _tile_in_rect(placement: TilePlacement, grid: GridMap, rect: Rect2) -> bool:
+	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(placement.mesh_item_name), grid.get_cell_item_basis(placement.origin_cell))
+	return _piece_in_rect(placement.origin_cell, footprint, grid, rect)
+
+
+func _piece_in_rect(origin: Vector3i, footprint: Array[Vector3i], grid: GridMap, rect: Rect2) -> bool:
+	if footprint.is_empty():
+		footprint = [Vector3i.ZERO]
+	var middle := Vector3.ZERO
+	for offset in footprint:
+		middle += grid.to_global(grid.map_to_local(origin + offset))
+	middle /= footprint.size()
+	# map_to_local is a cell's corner here (Center is off): half a cell over, and up onto the surface
+	middle += Vector3(grid.cell_size.x * 0.5, _selection_highlight_lift(grid), grid.cell_size.z * 0.5)
+	if camera.is_position_behind(middle):
+		return false
+	return rect.has_point(camera.unproject_position(middle))
+
+
+## Delete / Backspace: removes the selected props and tiles (groups, spawn areas and blockers stay - those have their own
+## context menu entries) as ONE undo step.
+func delete_selection() -> void:
+	var props: Array[InteractableEntry] = []
+	var tiles: Array[TilePlacement] = []
+	for id in selected_ids:
+		var node := layered_map.mission.find_node_by_id(id)
+		if node is InteractableEntry:
+			props.append(node as InteractableEntry)
+		elif node is TilePlacement:
+			tiles.append(node as TilePlacement)
+	if props.is_empty() and tiles.is_empty():
+		return
+	operation_history.record("Delete selection", func():
+		var floors_changed := false
+		var underlays_changed := false
+		for entry in props:
+			layered_map.prop_grid.set_cell_item(entry.origin_cell, GridMap.INVALID_CELL_ITEM)
+			layered_map.sync_prop_cell(entry.origin_cell)
+		for placement in tiles:
+			if placement.layer == TilePlacement.Layer.FLOOR:
+				layered_map.floor_grid.set_cell_item(placement.origin_cell, GridMap.INVALID_CELL_ITEM)
+				floors_changed = true
+			else:
+				layered_map.underlay_grid.set_cell_item(placement.origin_cell, GridMap.INVALID_CELL_ITEM)
+				underlays_changed = true
+		if floors_changed:
+			layered_map.rebuild_floor_tiles()
+		if underlays_changed:
+			layered_map.rebuild_underlay_tiles()
+		if show_tile_labels:
+			_rebuild_tile_labels()
+	)
+	clear_selection_highlight()
+	layered_map.notify_objects_changed()
+
+
 ## Select mode's counterpart to place_at_cursor()/erase_at_cursor() - left-
 ## click while draw_mode is off resolves whatever's under the cursor and
 ## reports it via object_picked() instead of painting/erasing anything.
@@ -1753,7 +1908,11 @@ func select_at_cursor() -> void:
 	var origin := _origin_for_hit(hit_grid, hit_cell)
 	var resolved := _resolve_placed_at(hit_grid, origin)
 	if resolved["id"] != "":
-		object_picked.emit(resolved["kind"], resolved["id"])
+		# Ctrl (Cmd on macOS) + click adds the piece to the selection, or takes it out when it is already in.
+		if Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META):
+			object_toggled.emit(resolved["kind"], resolved["id"])
+		else:
+			object_picked.emit(resolved["kind"], resolved["id"])
 	# Nothing matched at this origin - nothing to select, print()s already
 	# covered by _raycast_hit_cell()'s own diagnostics.
 

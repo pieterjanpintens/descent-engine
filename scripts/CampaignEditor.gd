@@ -907,6 +907,28 @@ func _delete_chapter(chapter: CampaignChapter) -> void:
 	_refresh_act()
 
 
+## A mission can be opened in the mission editor when this campaign is a draft and the file is really in the campaign folder.
+func _can_edit_mission(file: String) -> bool:
+	return not _read_only and _folder != "" and file != "" and FileAccess.file_exists("%s/%s" % [CampaignIO.folder_path(_folder), file])
+
+
+## The "Edit…" button next to a mission picker: `get_file` returns the picker's current file name when it is pressed.
+func _edit_mission_button(get_file: Callable) -> Button:
+	var button := _button("Edit…", func(): _edit_mission(str(get_file.call())))
+	button.tooltip_text = "Open this mission in the mission editor. Back there returns to the campaign editor."
+	button.disabled = not _can_edit_mission(str(get_file.call()))
+	return button
+
+
+func _edit_mission(file: String) -> void:
+	if not _can_edit_mission(file):
+		return
+	_save_if_dirty()
+	GameState.edit_mission_path = "%s/%s" % [CampaignIO.folder_path(_folder), file]
+	GameState.edit_mission_return_folder = _folder
+	get_tree().change_scene_to_file(GameState.CREATOR_SCENE)
+
+
 func _on_mission_file_selected(path: String) -> void:
 	if _selected == null and _selected_quest == null:
 		return
@@ -1144,8 +1166,10 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 		mission_option.select(mission_option.item_count - 1)
 	else:
 		mission_option.select(files.find(quest.mission_file) + 1 if quest.mission_file != "" else 0)
+	var edit_button := _edit_mission_button(func(): return quest.mission_file)
 	mission_option.item_selected.connect(func(index: int):
 		quest.mission_file = files[index - 1] if index >= 1 and index <= files.size() else quest.mission_file if index > files.size() else ""
+		edit_button.disabled = not _can_edit_mission(quest.mission_file)
 		_mark_dirty()
 	)
 	mission_row.add_child(mission_option)
@@ -1153,6 +1177,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 		_mission_dialog.current_dir = "user://missions"
 		_mission_dialog.popup_centered_ratio(0.6)
 	))
+	mission_row.add_child(edit_button)
 
 	_section(_chapter_panel, "Variables")
 	_build_mapping_section("Give to the mission when it starts:", quest.mission_inputs, quest.mission_file, false)
@@ -1800,8 +1825,10 @@ func _rebuild_chapter_panel() -> void:
 			mission_option.select(mission_option.item_count - 1)
 		else:
 			mission_option.select(files.find(chapter.mission_file) + 1 if chapter.mission_file != "" else 0)
+		var edit_button := _edit_mission_button(func(): return chapter.mission_file)
 		mission_option.item_selected.connect(func(index: int):
 			chapter.mission_file = files[index - 1] if index >= 1 and index <= files.size() else chapter.mission_file if index > files.size() else ""
+			edit_button.disabled = not _can_edit_mission(chapter.mission_file)
 			_mark_dirty()
 		)
 		mission_row.add_child(mission_option)
@@ -1809,6 +1836,7 @@ func _rebuild_chapter_panel() -> void:
 			_mission_dialog.current_dir = "user://missions"
 			_mission_dialog.popup_centered_ratio(0.6)
 		))
+		mission_row.add_child(edit_button)
 
 	var start_check := CheckBox.new()
 	start_check.text = "Start of the act"

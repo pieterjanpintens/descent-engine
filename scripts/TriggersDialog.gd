@@ -46,6 +46,8 @@ func _ready() -> void:
 	root.offset_right = -8
 	root.offset_bottom = -8
 	add_child(root)
+	root.add_child(FullScreenWindow.header("Triggers", hide))
+	root.add_child(HSeparator.new())
 
 	_empty_label = Label.new()
 	_empty_label.text = "No triggers yet."
@@ -68,12 +70,29 @@ func _ready() -> void:
 	_editor.setup(self, _commit_field)
 
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	if visible and FullScreenWindow.handle_undo_key(event, operation_history):
+		get_viewport().set_input_as_handled()
+
+
+## An undo/redo swaps the whole mission for a copy: pick the new triggers up.
+func _on_mission_maybe_replaced() -> void:
+	if not visible or layered_map.mission == _mission:
+		return
+	_editor.hide_nested()
+	_mission = layered_map.mission
+	_editor.mission = _mission
+	_rebuild_rows()
+
+
 ## Public - CreatorSaveLoad calls this from its "Triggers…" button.
 func open_for(mission: MissionData) -> void:
+	if layered_map != null and not layered_map.mission_objects_changed.is_connected(_on_mission_maybe_replaced):
+		layered_map.mission_objects_changed.connect(_on_mission_maybe_replaced)
 	_mission = mission
 	_editor.mission = mission
 	_rebuild_rows()
-	popup_centered()
+	FullScreenWindow.show(self)
 
 
 func _commit_field(label: String, mutate: Callable) -> void:

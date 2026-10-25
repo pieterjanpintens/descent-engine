@@ -49,6 +49,11 @@ func clear_debug() -> void:
 	editor_returning = false
 
 
+## "Edit mission" in the campaign editor: the mission file the mission editor opens when it starts (consumed there), and the campaign
+## folder its Back button returns to (the campaign editor reopens it through campaign_editor_folder).
+var edit_mission_path: String = ""
+var edit_mission_return_folder: String = ""
+
 ## Playtest from the campaign editor: the campaign folder the campaign player should open on a throwaway "Playtest" save ("" = none),
 ## and whether that save starts again from the beginning.
 var campaign_playtest: String = ""

@@ -95,6 +95,7 @@ func _ready() -> void:
 	_setup_monster_overlay()
 	_blocker_overlay_mesh = ImmediateMesh.new()
 	_blocker_overlay = _make_overlay_node(_blocker_overlay_mesh)
+	mission_objects_changed.connect(_sync_editor_hidden)
 
 
 ## Id of the blocker the Creator is drawing into (drawn more opaque), see CreatorController.active_los_blocker_id.
@@ -106,7 +107,7 @@ func refresh_blocker_overlay() -> void:
 	_blocker_overlay_mesh.clear_surfaces()
 	var any := false
 	for blocker in mission.los_blockers:
-		if not blocker.cells.is_empty():
+		if not blocker.cells.is_empty() and not is_editor_hidden(blocker):
 			any = true
 			break
 	if not any:
@@ -114,6 +115,8 @@ func refresh_blocker_overlay() -> void:
 		return
 	_blocker_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	for blocker in mission.los_blockers:
+		if is_editor_hidden(blocker):
+			continue
 		var color := LOS_BLOCKER_COLOR
 		color.a = 0.65 if blocker.id == blocker_overlay_active_id else 0.35
 		for cell in blocker.cells:
@@ -306,7 +309,7 @@ func refresh_monster_spawn_overlay() -> void:
 
 	var any := false
 	for spawn in mission.monster_spawns:
-		if not spawn.cells.is_empty():
+		if not spawn.cells.is_empty() and not is_editor_hidden(spawn):
 			any = true
 			break
 	if not any:
@@ -316,6 +319,8 @@ func refresh_monster_spawn_overlay() -> void:
 	_monster_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in mission.monster_spawns.size():
 		var spawn: MonsterSpawn = mission.monster_spawns[i]
+		if is_editor_hidden(spawn):
+			continue
 		var color := monster_spawn_color(i)
 		color.a = 0.6 if spawn.id == monster_overlay_active_id else 0.3
 		for n in spawn.cells.size():
@@ -588,8 +593,11 @@ func _find_interactable(origin: Vector3i) -> InteractableEntry:
 ## layers.
 func rebuild_floor_tiles(new_placement_parent_id: String = "") -> void:
 	var old_by_cell: Dictionary = {}
+	var hidden_old: Array[TilePlacement] = []
 	for placement in mission.floor_placements:
 		old_by_cell[placement.origin_cell] = placement
+		if is_editor_hidden(placement):
+			hidden_old.append(placement)
 
 	mission.tiles.clear()
 	mission.floor_placements.clear()
@@ -597,6 +605,16 @@ func rebuild_floor_tiles(new_placement_parent_id: String = "") -> void:
 
 	for origin in floor_grid.get_used_cells():
 		_write_tile_footprint(origin, old_by_cell, new_placement_parent_id)
+
+	# Pieces of a stage hidden with the eye are not painted, so the scan above
+	# cannot see them - keep them as they are.
+	for placement in hidden_old:
+		if floor_grid.get_cell_item(placement.origin_cell) != GridMap.INVALID_CELL_ITEM:
+			continue  # something was painted on its spot meanwhile
+		var basis := floor_grid.get_basis_with_orthogonal_index(placement.orientation)
+		var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(placement.mesh_item_name), basis)
+		mission.floor_placements.append(placement)
+		_register_floor_cells(placement.origin_cell, placement.mesh_item_name, footprint)
 
 	mission_objects_changed.emit()
 
@@ -611,7 +629,6 @@ func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary, new_placem
 	var mesh_name := grid.mesh_library.get_item_name(item_id)
 	var orientation := grid.get_cell_item_orientation(origin)
 	var basis := grid.get_cell_item_basis(origin)
-	var defaults := FootprintRegistry.get_logical_defaults(mesh_name)
 	var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(mesh_name), basis)
 
 	var placement := TilePlacement.new()
@@ -639,7 +656,12 @@ func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary, new_placem
 		placement.parent_id = new_placement_parent_id
 
 	mission.floor_placements.append(placement)
+	_register_floor_cells(origin, mesh_name, footprint)
 
+
+## Occupancy + per-cell logical data for one floor placement.
+func _register_floor_cells(origin: Vector3i, mesh_name: String, footprint: Array[Vector3i]) -> void:
+	var defaults := FootprintRegistry.get_logical_defaults(mesh_name)
 	for offset in footprint:
 		var cell: Vector3i = origin + offset
 		mission.floor_occupied_cells[cell] = origin
@@ -663,11 +685,24 @@ func _write_tile_footprint(origin: Vector3i, old_by_cell: Dictionary, new_placem
 ## underlay_occupied_cells.
 func rebuild_underlay_tiles(new_placement_parent_id: String = "") -> void:
 	var old_by_cell: Dictionary = {}
+	var hidden_old: Array[TilePlacement] = []
 	for placement in mission.underlay_placements:
 		old_by_cell[placement.origin_cell] = placement
+		if is_editor_hidden(placement):
+			hidden_old.append(placement)
 
 	mission.underlay_placements.clear()
 	mission.underlay_occupied_cells.clear()
+
+	# Hidden stages are not painted - keep their pieces (see rebuild_floor_tiles()).
+	for placement in hidden_old:
+		if underlay_grid.get_cell_item(placement.origin_cell) != GridMap.INVALID_CELL_ITEM:
+			continue
+		var hidden_basis := underlay_grid.get_basis_with_orthogonal_index(placement.orientation)
+		var hidden_footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(placement.mesh_item_name), hidden_basis)
+		mission.underlay_placements.append(placement)
+		for offset in hidden_footprint:
+			mission.underlay_occupied_cells[placement.origin_cell + offset] = placement.origin_cell
 
 	for origin in underlay_grid.get_used_cells():
 		var item_id := underlay_grid.get_cell_item(origin)
@@ -711,6 +746,109 @@ func rebuild_underlay_tiles(new_placement_parent_id: String = "") -> void:
 ## own calls, which must always show everything regardless of a group's
 ## `visible` flag so a designer can edit a hidden room.
 var _respect_visibility: bool = false
+## Groups (stages) the designer has hidden in the Creator with the eye in the
+## outline tree: group id -> true. VIEW state only - never saved with the
+## mission and never touches `MissionGroup.visible` (that one decides whether a
+## stage is revealed in the Player). A hidden stage's pieces stay in
+## MissionData but are simply not painted; the rebuild_* passes below keep
+## them. Cleared when a mission is loaded/started (CreatorSaveLoad).
+var editor_hidden_groups: Dictionary = {}
+## Ids of the pieces left unpainted by the last paint because of the eye.
+var _painted_hidden: Dictionary = {}
+signal editor_hidden_changed
+
+
+## True when `node` sits in (or below) a stage hidden with the eye.
+func is_editor_hidden(node: OutlineNode) -> bool:
+	if editor_hidden_groups.is_empty() or node == null or mission == null:
+		return false
+	var parent_id := node.parent_id
+	var guard := 0
+	while parent_id != "" and guard < 64:
+		if editor_hidden_groups.has(parent_id):
+			return true
+		var parent: MissionGroup = null
+		for group in mission.groups:
+			if group.id == parent_id:
+				parent = group
+				break
+		if parent == null:
+			break
+		parent_id = parent.parent_id
+		guard += 1
+	return false
+
+
+func is_group_editor_hidden(group_id: String) -> bool:
+	return editor_hidden_groups.has(group_id)
+
+
+## Hides/shows a whole stage in the Creator (pieces, spawn tiles, LOS blockers).
+func set_group_editor_hidden(group_id: String, hidden: bool) -> void:
+	if hidden == editor_hidden_groups.has(group_id):
+		return
+	if hidden:
+		editor_hidden_groups[group_id] = true
+	else:
+		editor_hidden_groups.erase(group_id)
+	_repaint_for_editor_hidden()
+	editor_hidden_changed.emit()
+	mission_objects_changed.emit()
+
+
+## A different mission is being loaded/started: forget the view state that belongs to the old one
+## (hidden stages here, collapsed rows in the outline tree).
+signal editor_view_reset
+func reset_editor_view() -> void:
+	editor_hidden_groups.clear()
+	editor_view_reset.emit()
+
+
+func clear_editor_hidden() -> void:
+	if editor_hidden_groups.is_empty():
+		return
+	editor_hidden_groups.clear()
+	_repaint_for_editor_hidden()
+	editor_hidden_changed.emit()
+
+
+## Ids of everything currently sitting in a hidden stage.
+func _hidden_ids() -> Dictionary:
+	var ids: Dictionary = {}
+	if editor_hidden_groups.is_empty() or mission == null:
+		return ids
+	for list: Array in [mission.floor_placements, mission.underlay_placements, mission.interactables, mission.monster_spawns, mission.los_blockers]:
+		for node: OutlineNode in list:
+			if is_editor_hidden(node):
+				ids[node.id] = true
+	return ids
+
+
+## Something moved into or out of a hidden stage (Move to..., the batch panel, a
+## piece drawn while a hidden group is the working group, undo): paint again so
+## what is on screen matches. Only repaints when the set of hidden pieces changed.
+func _sync_editor_hidden() -> void:
+	if mission == null or (editor_hidden_groups.is_empty() and _painted_hidden.is_empty()):
+		return
+	var now := _hidden_ids()
+	if now.size() != _painted_hidden.size() or now.hash() != _painted_hidden.hash():
+		_repaint_for_editor_hidden()
+
+
+func _repaint_for_editor_hidden() -> void:
+	if mission == null:
+		return
+	floor_grid.clear()
+	underlay_grid.clear()
+	prop_grid.clear()
+	_paint_all()
+	_painted_hidden = _hidden_ids()
+	if _monster_overlay != null:
+		refresh_monster_spawn_overlay()
+	if _blocker_overlay != null:
+		refresh_blocker_overlay()
+
+
 ## Placement/prop nodes temporarily NOT painted even though visible (keys are
 ## the nodes themselves) - used to reveal a stage piece by piece while the
 ## table is told how to set it up (MissionPlayer.show_stage()).
@@ -737,6 +875,7 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	mission = mission_to_apply
 	_respect_visibility = respect_visibility
 	_paint_all()
+	_painted_hidden = _hidden_ids()
 	# Creator-only marker (the Player passes respect_visibility = true and
 	# shouldn't reveal where monsters start) - also what makes undo/redo/
 	# Load repaint it, since all three go through apply_mission().
@@ -769,6 +908,8 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 ## is unchanged from before this feature existed.
 func _paint_all() -> void:
 	for placement in mission.floor_placements:
+		if is_editor_hidden(placement):
+			continue
 		if _respect_visibility and (held_back.has(placement) or not mission.is_effectively_visible(placement)):
 			continue
 		var item_id := find_item_id(floor_grid, placement.mesh_item_name)
@@ -778,6 +919,8 @@ func _paint_all() -> void:
 		floor_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for placement in mission.underlay_placements:
+		if is_editor_hidden(placement):
+			continue
 		if _respect_visibility and (held_back.has(placement) or not mission.is_effectively_visible(placement)):
 			continue
 		var item_id := find_item_id(underlay_grid, placement.mesh_item_name)
@@ -787,6 +930,8 @@ func _paint_all() -> void:
 		underlay_grid.set_cell_item(placement.origin_cell, item_id, placement.orientation)
 
 	for entry in mission.interactables:
+		if is_editor_hidden(entry):
+			continue
 		if _respect_visibility and (held_back.has(entry) or not mission.is_effectively_visible(entry)):
 			continue
 		var item_id := find_item_id(prop_grid, entry.mesh_item_name)

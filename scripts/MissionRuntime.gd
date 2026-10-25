@@ -285,6 +285,14 @@ var _pending_stage_reveals: Array[String] = []
 ## drain_pending_object_removals() below.
 var _pending_object_removals: Array[String] = []
 
+## Queued Effect.Type.SHOW_OBJECT targets (object ids), drained by
+## drain_pending_object_shows() - same reasoning as _pending_object_removals.
+var _pending_object_shows: Array[String] = []
+## Same for Effect.Type.HIDE_OBJECT.
+var _pending_object_hides: Array[String] = []
+## The prop whose PropAction is firing right now (what Effect.SELF_ID means), "" outside one.
+var _self_object_id: String = ""
+
 ## Queued Effect.Type.MOVE_OBJECT targets, same shape/reasoning as
 ## _pending_object_removals above - a Dictionary (not a bare String) since
 ## a move needs BOTH the object id AND its destination, drained by
@@ -925,12 +933,24 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 			_pending_stage_reveals.append(effect.target_group_id)
 		return
 	if effect.type == Effect.Type.REMOVE_OBJECT:
-		if effect.target_object_id != "":
-			_pending_object_removals.append(effect.target_object_id)
+		var removal_id := _resolve_object_target(effect.target_object_id)
+		if removal_id != "":
+			_pending_object_removals.append(removal_id)
+		return
+	if effect.type == Effect.Type.SHOW_OBJECT:
+		var show_id := _resolve_object_target(effect.target_object_id)
+		if show_id != "":
+			_pending_object_shows.append(show_id)
+		return
+	if effect.type == Effect.Type.HIDE_OBJECT:
+		var hide_id := _resolve_object_target(effect.target_object_id)
+		if hide_id != "":
+			_pending_object_hides.append(hide_id)
 		return
 	if effect.type == Effect.Type.MOVE_OBJECT:
-		if effect.target_object_id != "":
-			_pending_object_moves.append({"id": effect.target_object_id, "cell": effect.target_cell})
+		var move_id := _resolve_object_target(effect.target_object_id)
+		if move_id != "":
+			_pending_object_moves.append({"id": move_id, "cell": effect.target_cell})
 		return
 	if effect.type == Effect.Type.MATH:
 		_apply_math(effect)
@@ -1205,6 +1225,29 @@ func drain_pending_object_removals() -> Array[String]:
 	return removals
 
 
+## "Self" means the prop whose action is firing; "" when there is none (an effect of a trigger/objective cannot use it).
+func _resolve_object_target(target_id: String) -> String:
+	if target_id != Effect.SELF_ID:
+		return target_id
+	if _self_object_id == "":
+		push_warning("An effect targets 'Self' but is not part of a prop action - ignored.")
+	return _self_object_id
+
+
+## Clears and returns the Hide Object targets queued since the last drain.
+func drain_pending_object_hides() -> Array[String]:
+	var hides := _pending_object_hides
+	_pending_object_hides = []
+	return hides
+
+
+## Clears and returns the Show Object targets queued since the last drain.
+func drain_pending_object_shows() -> Array[String]:
+	var shows := _pending_object_shows
+	_pending_object_shows = []
+	return shows
+
+
 ## Clears and returns the SPAWN_MONSTERS effects queued since the last drain (new 2026-09-19) - MissionPlayer runs each via _run_monster_spawn().
 func drain_pending_monster_spawns() -> Array[Dictionary]:
 	var spawns := _pending_monster_spawns
@@ -1266,9 +1309,12 @@ func fire_event(event_id: String, hero_name: String = "") -> MissionObjective:
 ## _offer_actions(), always has one) is the player who performed the
 ## action, threaded through purely so a RUN_TEST effect anywhere downstream
 ## of this action can address them by name in its dialog prompt.
-func fire_prop_action(action: PropAction, hero_name: String) -> MissionObjective:
+func fire_prop_action(action: PropAction, hero_name: String, owner: InteractableEntry = null) -> MissionObjective:
 	print("MissionRuntime.fire_prop_action: '%s' (action_id='%s', %d effect(s))" % [action.description, action.action_id, action.effects.size()])
+	var previous_self := _self_object_id
+	_self_object_id = owner.id if owner != null else ""
 	await apply_effects(action.effects, hero_name)
+	_self_object_id = previous_self
 	if action.single_shot:
 		# Mutating the loaded PropAction resource instance directly is
 		# safe, same reasoning as MissionTrigger.already_fired -

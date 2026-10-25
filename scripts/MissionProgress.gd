@@ -71,6 +71,15 @@ static func apply_before_paint(mission: MissionData, progress: Dictionary, outco
 		else:
 			_note(outcome, "Objective '%s' was achieved before, but it no longer exists." % progress["objectives"][id])
 	for op: Dictionary in progress.get("world", []):
+		var visibility_op := str(op.get("op", ""))
+		if visibility_op == "show" or visibility_op == "hide":
+			var changed_node := mission.find_node_by_id(str(op["id"]))
+			if changed_node == null:
+				_note(outcome, "'%s' was %s before, but it no longer exists." % [str(op.get("name", op["id"])), "shown" if visibility_op == "show" else "hidden"])
+			else:
+				changed_node.visible = visibility_op == "show"
+				outcome["world"].append(op)
+			continue
 		if str(op.get("op", "")) != "reveal":
 			continue
 		var group := _find_group(mission, str(op["id"]))
@@ -118,6 +127,14 @@ static func all_objectives(mission: MissionData) -> Array[MissionObjective]:
 ## Entries for MissionRuntime.world_log (written by MissionPlayer where a group is revealed, a piece removed or moved).
 static func reveal_entry(group: MissionGroup) -> Dictionary:
 	return {"op": "reveal", "id": group.id, "name": group.reference_name if group.reference_name != "" else "a group"}
+
+
+static func show_entry(node: OutlineNode) -> Dictionary:
+	return {"op": "show", "id": node.id, "name": _node_label(node)}
+
+
+static func hide_entry(node: OutlineNode) -> Dictionary:
+	return {"op": "hide", "id": node.id, "name": _node_label(node)}
 
 
 static func remove_entry(node: OutlineNode) -> Dictionary:

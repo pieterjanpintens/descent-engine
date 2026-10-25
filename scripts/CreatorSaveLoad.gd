@@ -46,6 +46,8 @@ extends PopupMenu
 @onready var min_players_spin_box: SpinBox = %MinPlayersSpinBox
 @onready var max_players_spin_box: SpinBox = %MaxPlayersSpinBox
 
+const CAMPAIGN_EDITOR_SCENE := "res://ui/CampaignEditor.tscn"
+
 enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK, SAVE_AS, EXPORT_PACKAGE }
 
 ## The file the mission in the editor comes from / was last saved to ("" = never saved). Save writes straight to it; Save As asks.
@@ -53,6 +55,8 @@ enum FileAction { NEW, SAVE, LOAD, SETTINGS, MONSTER_TEMPLATES, BACK, SAVE_AS, E
 var current_path: String = ""
 ## The mission is a RELEASE (frozen, played by saves): it can be looked at and play-tested but not saved - fork it to edit.
 var read_only := false
+var _leave_dialog: ConfirmationDialog
+var _pending_leave: Callable
 var _banner: HBoxContainer
 var _banner_label: Label
 
@@ -174,6 +178,13 @@ func _ready() -> void:
 	# Coming back from a debug Play: take the editor's mission (and its undo history and camera) back as it was.
 	if GameState.editor_returning:
 		_restore_from_play.call_deferred()
+	elif GameState.edit_mission_path != "":
+		# Opened from the campaign editor's "Edit" button: load that mission, and let Back return there.
+		var path := GameState.edit_mission_path
+		GameState.edit_mission_path = ""
+		_load_from.call_deferred(path)
+	if GameState.edit_mission_return_folder != "":
+		set_item_text(get_item_index(FileAction.BACK), "Back to Campaign Editor")
 
 
 func _on_mission_objects_changed() -> void:
@@ -220,6 +231,48 @@ func _on_id_pressed(id: int) -> void:
 
 
 func _on_back_button_pressed() -> void:
+	_confirm_leave(_leave)
+
+
+## Runs `go` (leaving the editor) at once when there is nothing to lose; otherwise asks first: save, discard, or stay.
+func _confirm_leave(go: Callable) -> void:
+	if read_only or not operation_history.is_dirty():
+		go.call()
+		return
+	if _leave_dialog == null:
+		_leave_dialog = ConfirmationDialog.new()
+		_leave_dialog.title = "Unsaved changes"
+		_leave_dialog.add_button("Discard changes", true, "discard")
+		_leave_dialog.confirmed.connect(_on_leave_save)
+		_leave_dialog.custom_action.connect(func(action: StringName):
+			if action == &"discard":
+				_leave_dialog.hide()
+				_pending_leave.call()
+		)
+		add_child(_leave_dialog)
+	_pending_leave = go
+	var file_name := current_path.get_file() if current_path != "" else "This mission"
+	_leave_dialog.dialog_text = "%s has changes that are not saved." % file_name
+	_leave_dialog.ok_button_text = "Save and leave" if current_path != "" else "Save as…"
+	_leave_dialog.cancel_button_text = "Stay"
+	_leave_dialog.popup_centered()
+
+
+func _on_leave_save() -> void:
+	if current_path == "":
+		_on_save_button_pressed()  # no file yet: choose one, then leave with Back again
+		return
+	_save_to(current_path)
+	if not operation_history.is_dirty():
+		_pending_leave.call()
+
+
+func _leave() -> void:
+	if GameState.edit_mission_return_folder != "":
+		GameState.campaign_editor_folder = GameState.edit_mission_return_folder
+		GameState.edit_mission_return_folder = ""
+		get_tree().change_scene_to_file(CAMPAIGN_EDITOR_SCENE)
+		return
 	get_tree().change_scene_to_file(menu_scene_path)
 
 
@@ -244,7 +297,9 @@ func _on_new_button_pressed() -> void:
 	# refresh - no need to call it explicitly here too.
 	current_path = ""
 	_update_read_only()
+	layered_map.reset_editor_view()
 	layered_map.apply_mission(MissionData.new())
+	operation_history.mark_saved()
 
 
 func _on_mission_file_dialog_file_selected(path: String) -> void:
@@ -270,7 +325,8 @@ func _save_to(path: String) -> void:
 	# layered_map.mission.objectives directly, there's no local widget
 	# state that could be sitting uncommitted.
 	_apply_player_count_fields()
-	MissionIO.save_mission(layered_map.mission, path)
+	if MissionIO.save_mission(layered_map.mission, path):
+		operation_history.mark_saved()
 	current_path = path
 	_update_read_only()
 
@@ -363,8 +419,11 @@ func _load_from(path: String) -> void:
 	# apply_mission() emits mission_objects_changed, which
 	# _on_mission_objects_changed() above already turns into a field
 	# refresh - no need to call it explicitly here too.
+	layered_map.reset_editor_view()
 	layered_map.apply_mission(loaded)
+	operation_history.mark_saved()
 	if updated > 0:
+		operation_history.mark_dirty()
 		_notice_dialog.dialog_text = "Updated %d monster template(s) in this mission from the library. Save the mission to keep the update." % updated
 		_notice_dialog.popup_centered()
 

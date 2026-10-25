@@ -170,7 +170,10 @@ func _ready() -> void:
 		var brooch_campaign := CampaignIO.load_campaign(GameState.campaign_folder)
 		if brooch_campaign != null:
 			_campaign_brooch = brooch_campaign.brooch_monster
-	embark_dialog.excluded_trinkets = [] if _campaign_brooch != null else [TrinketData.BROOCH_ID]
+	var excluded: Array[String] = []
+	if _campaign_brooch == null:
+		excluded.append(TrinketData.BROOCH_ID)
+	embark_dialog.excluded_trinkets = excluded
 	var remembered := DebugSession.load_party() if DebugSession.active() else {}
 	if not remembered.is_empty():
 		var party_size: int = remembered["roster"].size()
@@ -568,6 +571,20 @@ func _apply_object_move(move: Dictionary) -> void:
 	var shift := FootprintRegistry.origin_shift_1x1(mesh_name, grid.get_cell_item_basis(origin))
 	if layered_map.move_node(move["id"], target - shift):
 		_runtime.world_log.append(MissionProgress.move_entry(node))
+
+
+## SHOW_OBJECT / HIDE_OBJECT: switches a piece's `visible` flag (and notes it, see MissionRuntime.world_log).
+func _set_objects_visible(ids: Array[String], make_visible: bool) -> void:
+	var changed := false
+	for id in ids:
+		var node := mission.find_node_by_id(id)
+		if node == null or node.visible == make_visible:
+			continue
+		node.visible = make_visible
+		_runtime.world_log.append(MissionProgress.show_entry(node) if make_visible else MissionProgress.hide_entry(node))
+		changed = true
+	if changed:
+		layered_map.repaint_visible_entries()
 
 
 ## REMOVE_OBJECT: takes a piece off the board (and notes it, see MissionRuntime.world_log).
@@ -1484,6 +1501,8 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
 		_remove_object(removed_id)
+	_set_objects_visible(_runtime.drain_pending_object_shows(), true)
+	_set_objects_visible(_runtime.drain_pending_object_hides(), false)
 	for move in _runtime.drain_pending_object_moves():
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
@@ -1655,6 +1674,8 @@ func _on_objectives_progressed() -> void:
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
 		_remove_object(removed_id)
+	_set_objects_visible(_runtime.drain_pending_object_shows(), true)
+	_set_objects_visible(_runtime.drain_pending_object_hides(), false)
 	for move in _runtime.drain_pending_object_moves():
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():

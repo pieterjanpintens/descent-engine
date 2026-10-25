@@ -94,6 +94,11 @@ var _suppress_item_selected: bool = false
 ## a rebuild, and by the context menu's Rename/Move actions.
 var _id_to_item: Dictionary = {}
 
+## Ids of the rows the designer collapsed - kept across the full rebuilds below (every edit rebuilds the tree), so
+## the tree keeps its shape while you work. Forgotten when another mission is loaded (LayeredMap.editor_view_reset).
+var _collapsed_ids: Dictionary = {}
+var _forget_collapsed_state := false
+
 var _context_menu: PopupMenu
 var _move_to_menu: PopupMenu
 var _move_to_target_ids: Array[String] = []
@@ -112,6 +117,7 @@ func _ready() -> void:
 	multi_selected.connect(_on_multi_selected)
 	item_edited.connect(_on_item_edited)
 	gui_input.connect(_on_gui_input)
+	button_clicked.connect(_on_button_clicked)
 
 	_context_menu = PopupMenu.new()
 	add_child(_context_menu)
@@ -122,7 +128,13 @@ func _ready() -> void:
 	_move_to_menu.id_pressed.connect(_on_move_to_menu_id_pressed)
 
 	layered_map.mission_objects_changed.connect(refresh)
+	layered_map.editor_view_reset.connect(func():
+		_collapsed_ids.clear()
+		_forget_collapsed_state = true  # the rows still in the tree belong to the old mission
+	)
 	creator_controller.object_picked.connect(_on_object_picked)
+	creator_controller.object_toggled.connect(_on_object_toggled)
+	creator_controller.objects_boxed.connect(_on_objects_boxed)
 	refresh()
 
 
@@ -182,6 +194,15 @@ func _migrate_missing_ids() -> void:
 
 
 func _rebuild_tree() -> void:
+	# remember which rows are collapsed right now (the user may have toggled some since the last rebuild)
+	for id: String in ([] if _forget_collapsed_state else _id_to_item.keys()):
+		var old_item: TreeItem = _id_to_item[id]
+		if is_instance_valid(old_item) and old_item.get_first_child() != null:
+			if old_item.collapsed:
+				_collapsed_ids[id] = true
+			else:
+				_collapsed_ids.erase(id)
+	_forget_collapsed_state = false
 	clear()
 	_id_to_item.clear()
 
@@ -223,6 +244,7 @@ func _rebuild_tree() -> void:
 		var item := create_item(parent_item)
 		item.set_text(0, entry.reference_name if entry.reference_name != "" else entry.mesh_item_name)
 		item.set_metadata(0, {"type": SelectionType.OBJECT, "id": entry.id})
+		_dim_if_hidden(item, entry)
 		_id_to_item[entry.id] = item
 
 	for placement in mission.floor_placements:
@@ -237,6 +259,7 @@ func _rebuild_tree() -> void:
 		var spawn_item := create_item(spawn_parent)
 		spawn_item.set_text(0, spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d (%d tiles)" % [spawn_index + 1, spawn.cells.size()])
 		spawn_item.set_metadata(0, {"type": SelectionType.MONSTER_SPAWN, "id": spawn.id})
+		_dim_if_hidden(spawn_item, spawn)
 		_id_to_item[spawn.id] = spawn_item
 
 	for blocker_index in mission.los_blockers.size():
@@ -245,6 +268,7 @@ func _rebuild_tree() -> void:
 		var blocker_item := create_item(blocker_parent)
 		blocker_item.set_text(0, blocker.reference_name if blocker.reference_name != "" else "LOS Blocker %d (%d squares)" % [blocker_index + 1, blocker.cells.size()])
 		blocker_item.set_metadata(0, {"type": SelectionType.LOS_BLOCKER, "id": blocker.id})
+		_dim_if_hidden(blocker_item, blocker)
 		_id_to_item[blocker.id] = blocker_item
 
 	# Re-select whatever was selected before this rebuild - ALL of it, not
@@ -255,6 +279,11 @@ func _rebuild_tree() -> void:
 	# collapse the selection back down to one item. Falls back to root only
 	# if NONE of the previous selection survived (e.g. everything selected
 	# just got erased).
+	for id: String in _collapsed_ids:
+		var collapsed_item: TreeItem = _id_to_item.get(id)
+		if collapsed_item != null:
+			collapsed_item.collapsed = true
+
 	_suppress_item_selected = true
 	var survived := false
 	for id in _selected_ids:
@@ -279,6 +308,7 @@ func _add_tile_item(placement: TilePlacement, tile_grid: String) -> void:
 	var item := create_item(parent_item)
 	item.set_text(0, placement.reference_name if placement.reference_name != "" else placement.mesh_item_name)
 	item.set_metadata(0, {"type": SelectionType.TILE, "id": placement.id, "grid": tile_grid})
+	_dim_if_hidden(item, placement)
 	_id_to_item[placement.id] = item
 
 
@@ -289,7 +319,72 @@ func _create_group_item(parent_item: TreeItem, group: MissionGroup) -> TreeItem:
 	# Only groups are inline-renamable (double-click, or "Rename Group" in
 	# the context menu below) - objects/root are not, see class doc.
 	item.set_editable(0, true)
+	# The eye hides/shows the whole stage in the Creator only (LayeredMap.editor_hidden_groups).
+	var hidden := layered_map.is_group_editor_hidden(group.id)
+	item.add_button(0, _eye_closed_icon() if hidden else _eye_open_icon(), EYE_BUTTON_ID, false, "Show this stage in the editor" if hidden else "Hide this stage in the editor")
+	_dim_if_hidden(item, group)
 	return item
+
+
+const EYE_BUTTON_ID := 1
+const HIDDEN_TEXT_COLOR := Color(0.5, 0.5, 0.5)
+static var _eye_open_texture: ImageTexture
+static var _eye_closed_texture: ImageTexture
+
+
+func _dim_if_hidden(item: TreeItem, node: OutlineNode) -> void:
+	if layered_map.is_editor_hidden(node) or (node is MissionGroup and layered_map.is_group_editor_hidden(node.id)):
+		item.set_custom_color(0, HIDDEN_TEXT_COLOR)
+
+
+func _on_button_clicked(item: TreeItem, _column: int, button_id: int, _mouse_button: int) -> void:
+	if button_id != EYE_BUTTON_ID:
+		return
+	var meta: Dictionary = item.get_metadata(0)
+	if meta["type"] != SelectionType.GROUP:
+		return
+	var group_id: String = meta["id"]
+	layered_map.set_group_editor_hidden(group_id, not layered_map.is_group_editor_hidden(group_id))
+
+
+## 16x16 eye icons drawn in code (no art assets in this project for UI glyphs).
+static func _eye_open_icon() -> ImageTexture:
+	if _eye_open_texture == null:
+		_eye_open_texture = _draw_eye(true)
+	return _eye_open_texture
+
+
+static func _eye_closed_icon() -> ImageTexture:
+	if _eye_closed_texture == null:
+		_eye_closed_texture = _draw_eye(false)
+	return _eye_closed_texture
+
+
+static func _draw_eye(open: bool) -> ImageTexture:
+	var size := 16
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var ink := Color(0.86, 0.9, 0.95) if open else Color(0.62, 0.64, 0.68)
+	for py in size:
+		for px in size:
+			var dx := (px + 0.5 - 8.0) / 7.0
+			var dy := py + 0.5 - 8.0
+			if absf(dx) > 1.0:
+				continue
+			var lid := 4.5 * (1.0 - dx * dx)  # half height of the almond at this x
+			if open:
+				var edge := absf(absf(dy) - lid)
+				var pupil := Vector2(px + 0.5 - 8.0, dy).length() <= 2.4
+				if edge < 0.8 or pupil:
+					image.set_pixel(px, py, ink)
+			else:
+				# closed: only the lower lid, curving down, with three lashes
+				var curve := 1.0 + 3.5 * (1.0 - dx * dx)
+				if absf(dy - curve) < 0.8:
+					image.set_pixel(px, py, ink)
+				for lash in [-0.55, 0.0, 0.55]:
+					if absf(dx - lash) < 0.07 and dy > curve and dy < curve + 3.0:
+						image.set_pixel(px, py, ink)
+	return ImageTexture.create_from_image(image)
 
 
 func _on_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
@@ -350,7 +445,13 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 	creator_controller.selected_ids = selected
 
 	if items.size() != 1:
-		creator_controller.clear_selection_highlight()
+		# a multi-selection: outline every selected prop / tile
+		var pieces: Array = []
+		for meta in items:
+			var piece := _piece_outline(meta)
+			if not piece.is_empty():
+				pieces.append(piece)
+		creator_controller.highlight_footprints(pieces)
 		return
 
 	var meta: Dictionary = items[0]
@@ -414,6 +515,67 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 						creator_controller.jump_to_cell(fine_start, layered_map.floor_grid)
 					return
 	creator_controller.clear_selection_highlight()
+
+
+## {"origin", "footprint", "grid"} for CreatorController.highlight_footprints(), or {} for a selection that is not a prop / tile.
+func _piece_outline(meta: Dictionary) -> Dictionary:
+	match meta["type"]:
+		SelectionType.OBJECT:
+			var entry := _find_interactable_by_id(meta["id"])
+			if entry != null:
+				return {"origin": entry.origin_cell, "footprint": entry.footprint, "grid": layered_map.prop_grid}
+		SelectionType.TILE:
+			var placement := _find_tile_by_id(meta["id"])
+			if placement != null:
+				var grid: GridMap = layered_map.floor_grid if meta.get("grid", "") == "floor" else layered_map.underlay_grid
+				var footprint := FootprintRegistry.rotate_footprint(FootprintRegistry.get_footprint(placement.mesh_item_name), grid.get_cell_item_basis(placement.origin_cell))
+				return {"origin": placement.origin_cell, "footprint": footprint, "grid": grid}
+	return {}
+
+
+## A box dragged in the 3D view (see CreatorController.objects_boxed): replaces the selection with the pieces inside it,
+## or adds them to it when Ctrl was held. An empty box replaces the selection with nothing (the root row).
+func _on_objects_boxed(ids: Array, additive: bool) -> void:
+	var root_row: TreeItem = _id_to_item.get("", null)
+	_suppress_item_selected = true
+	if not additive:
+		deselect_all()
+	var any := false
+	for id in ids:
+		var item: TreeItem = _id_to_item.get(id, null)
+		if item != null:
+			item.select(0)
+			any = true
+	if any and root_row != null:
+		root_row.deselect(0)
+	_recompute_selected_ids()
+	if _selected_ids.is_empty() and root_row != null:
+		root_row.select(0)
+		_recompute_selected_ids()
+	_suppress_item_selected = false
+	_emit_selection_changed(false)
+
+
+## Ctrl+click in the 3D view (see CreatorController.object_toggled): add the piece to the selection, or take it out again.
+func _on_object_toggled(_kind: String, id: String) -> void:
+	var item: TreeItem = _id_to_item.get(id, null)
+	if item == null:
+		return
+	var root_row: TreeItem = _id_to_item.get("", null)
+	_suppress_item_selected = true
+	if item.is_selected(0):
+		item.deselect(0)
+	else:
+		if root_row != null:
+			root_row.deselect(0)  # the root row is only the "nothing selected" default
+		item.select(0)
+	_recompute_selected_ids()
+	if _selected_ids.is_empty() and root_row != null:
+		root_row.select(0)
+		_recompute_selected_ids()
+	_suppress_item_selected = false
+	scroll_to_item(item)
+	_emit_selection_changed(false)
 
 
 ## Select mode's counterpart to the camera-jump in _emit_selection_changed() -
@@ -541,6 +703,8 @@ func _on_left_click(event: InputEventMouseButton) -> void:
 	var item := get_item_at_position(event.position)
 	if item == null:
 		return
+	if get_button_id_at_position(event.position) != -1:
+		return  # the eye: toggles hiding, leaves the selection alone
 	_select_only(item)
 	_recompute_selected_ids()
 	_emit_selection_changed(true)

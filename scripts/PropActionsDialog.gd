@@ -51,6 +51,8 @@ func _ready() -> void:
 	root.offset_right = -8
 	root.offset_bottom = -8
 	add_child(root)
+	root.add_child(FullScreenWindow.header("Actions", hide))
+	root.add_child(HSeparator.new())
 
 	_empty_label = Label.new()
 	_empty_label.text = "No actions yet - this prop is purely decorative."
@@ -70,15 +72,41 @@ func _ready() -> void:
 	root.add_child(add_button)
 
 	_editor = EffectEditor.new()
+	_editor.allow_self = true
 	_editor.setup(self, _commit_field)
 
 
 ## Public - CreatorPropertiesPanel.gd calls this from its "Actions…" button.
 func open_for(entry: InteractableEntry) -> void:
+	if layered_map != null and not layered_map.mission_objects_changed.is_connected(_on_mission_maybe_replaced):
+		layered_map.mission_objects_changed.connect(_on_mission_maybe_replaced)
 	_entry = entry
 	_editor.mission = layered_map.mission
 	_rebuild_rows()
-	popup_centered()
+	FullScreenWindow.show(self)
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if visible and FullScreenWindow.handle_undo_key(event, operation_history):
+		get_viewport().set_input_as_handled()
+
+
+## An undo/redo swaps the whole mission for a copy: follow the same prop into the new mission (close when it is gone).
+func _on_mission_maybe_replaced() -> void:
+	if not visible or _entry == null or layered_map.mission.interactables.has(_entry):
+		return
+	var entry_id := _entry.id
+	_editor.hide_nested()
+	_entry = null
+	for candidate in layered_map.mission.interactables:
+		if candidate.id == entry_id:
+			_entry = candidate
+			break
+	if _entry == null:
+		hide()
+		return
+	_editor.mission = layered_map.mission
+	_rebuild_rows()
 
 
 func _rebuild_rows() -> void:
@@ -131,13 +159,10 @@ func _build_action_block(action: PropAction) -> Control:
 	var desc_label := Label.new()
 	desc_label.text = "Description (shown to the player):"
 	box.add_child(desc_label)
-	var desc_edit := LineEdit.new()
-	desc_edit.text = action.description
-	desc_edit.placeholder_text = "e.g. You can push this lever"
-	var commit_desc := func():
-		_commit_field("Edit action description", func(): action.description = desc_edit.text)
-	desc_edit.text_submitted.connect(func(_t): commit_desc.call())
-	desc_edit.focus_exited.connect(commit_desc)
+	var prop_name := _entry.reference_name if _entry.reference_name != "" else _entry.mesh_item_name
+	var desc_edit := ProseEdit.build(action.description, "e.g. You can push this lever", Vector2(420, 110), layered_map.mission.characters,
+		func(): return "Text for the board game Descent: Legends of the Dark. This is the description of an action the players can take on a '%s' in a mission (shown to them as the choice they pick). Mission: %s." % [prop_name, layered_map.mission.mission_name],
+		func(new_text: String): _commit_field("Edit action description", func(): action.description = new_text))
 	box.add_child(desc_edit)
 
 	var single_shot_check := CheckBox.new()

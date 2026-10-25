@@ -61,7 +61,7 @@ enum _EditAction { UNDO, REDO }
 
 ## The undo/redo stacks, to survive a trip to the Player and back (the Creator scene is freed meanwhile).
 func export_state() -> Dictionary:
-	return {"operations": _operations.duplicate(), "cursor": _cursor}
+	return {"operations": _operations.duplicate(), "cursor": _cursor, "saved_op": _saved_op, "saved_stamp": _saved_stamp, "forced_dirty": _forced_dirty}
 
 
 func import_state(state: Dictionary) -> void:
@@ -71,7 +71,35 @@ func import_state(state: Dictionary) -> void:
 	for operation in state["operations"]:
 		_operations.append(operation)
 	_cursor = int(state["cursor"])
+	_saved_op = state.get("saved_op", null)
+	_saved_stamp = int(state.get("saved_stamp", 0))
+	_forced_dirty = bool(state.get("forced_dirty", false))
+	for operation in _operations:
+		_stamp_counter = maxi(_stamp_counter, operation.stamp)
 	_update_menu_state()
+
+
+## Unsaved changes? The mission counts as saved (mark_saved(), called after a save or a load) while the newest applied
+## operation is the one that was newest at that moment, unchanged since (a meld changes its stamp). Undoing past the
+## saved state, or editing after it, makes it dirty again; redoing back onto it makes it clean. Changes made outside the
+## history (none are recorded for them) can be flagged with mark_dirty().
+func is_dirty() -> bool:
+	if _forced_dirty:
+		return true
+	var top: Operation = _operations[_cursor - 1] if _cursor > 0 and _cursor <= _operations.size() else null
+	if top != _saved_op:
+		return true
+	return top != null and top.stamp != _saved_stamp
+
+
+func mark_saved() -> void:
+	_forced_dirty = false
+	_saved_op = _operations[_cursor - 1] if _cursor > 0 and _cursor <= _operations.size() else null
+	_saved_stamp = _saved_op.stamp if _saved_op != null else 0
+
+
+func mark_dirty() -> void:
+	_forced_dirty = true
 
 
 class Operation:
@@ -80,8 +108,13 @@ class Operation:
 	var before: MissionData
 	var after: MissionData
 	var timestamp_msec: int
+	var stamp: int = 0  ## changes whenever the operation is melded into, see OperationHistory.is_dirty()
 
 
+var _saved_op: Operation = null
+var _saved_stamp: int = 0
+var _forced_dirty := false
+var _stamp_counter := 0
 var _operations: Array[Operation] = []
 ## _operations[0 ..< _cursor] are currently applied to the live mission;
 ## _operations[_cursor ..] are the redo-able tail.
@@ -161,10 +194,14 @@ func _push_or_meld(label: String, before: MissionData, after: MissionData) -> vo
 		if top.label == label and now - top.timestamp_msec <= MELD_WINDOW_MSEC:
 			top.after = after
 			top.timestamp_msec = now
+			_stamp_counter += 1
+			top.stamp = _stamp_counter
 			_update_menu_state()
 			return
 
 	var op := Operation.new()
+	_stamp_counter += 1
+	op.stamp = _stamp_counter
 	op.label = label
 	op.before = before
 	op.after = after
