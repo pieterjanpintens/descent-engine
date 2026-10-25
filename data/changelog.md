@@ -1,3 +1,10 @@
+## v0.0.39 - 2026-10-25
+- New props from the game's own models: second statue, and a bridge that is now properly sized (2x6) and walkable: its two outer squares at each end are ramps that must rest on floor (or the ground), the middle deck is 1 unit higher and may span hazards or open space, and it counts as floor for line of sight and range.
+- Prop rules decided: bookshelf, blood shrine and statues block line of sight, the bell blocks it only in its middle squares (its ends block walking), altar, fire, dragon arch (now 6x3) and dragon head (now 2x3, turned and lying flat) do not; the stair and barricade are turned to match our own models.
+- Piece limits from the box: for example tree 3, gate 4, fence 2, archway 2, bridge 1, bookshelf 4, and the dragon arch and dragon head share one copy.
+- Fixed: placed altars, statues and other new props were reported as unknown pieces in the editor's Problems list.
+- Fixed: the palette pictures of the original props, floor tiles, hazards and tokens are rendered at import time with the official textures.
+
 ## v0.0.38 - 2026-10-25
 - The game's own prop models can be used in the map: the Game assets import now builds a prop library from them (chest, gate, fence, tree, well, cart, tables, ladders, barricade, stairs, pillars, pot, bridge and new props: altar, bell, blood shrine, bookshelf, dragon arch, dragon head, fire, statue). Turn it off with "Use the original game props" in Options > General; without the import nothing changes.
 - The palette shows pictures of the new props, and the floor tiles, hazards and tokens in the palette now show their official textures.

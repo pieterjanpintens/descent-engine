@@ -50,6 +50,11 @@ static func known_meshes() -> Dictionary:
 		if library != null:
 			for item_id in library.get_item_list():
 				_known_meshes[library.get_item_name(item_id)] = true
+		# the props that only exist in the library built from the game's own models (altar, statue...) are real pieces too
+		var original := OriginalPropsLibrary.load_library() if OriginalPropsLibrary.is_available() else null
+		if original != null:
+			for item_id in original.get_item_list():
+				_known_meshes[original.get_item_name(item_id)] = true
 	return _known_meshes
 
 
@@ -470,6 +475,19 @@ static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictio
 		if piece["height"] == 0 and BuildRules.stands_on_ground(piece["mesh"]):
 			standing[piece["index"]] = true  # pillars, stairs, archways and fences may stand on the bare ground
 			continue
+		if BuildRules.is_bridge(piece["mesh"]):
+			# only the two ramp ends need floor (at height 0 the bare ground will do); the deck in between may span anything
+			var loose := 0
+			if piece["height"] > 0:
+				for cell in BuildRules.bridge_end_cells(piece["cells"]):
+					if not floor_cells.has(Vector3i(cell.x, piece["height"], cell.z)):
+						loose += 1
+			if loose > 0:
+				_add(result, "error", "floating_prop", piece["index"],
+					"%s: %d cells of its two ramp ends (the outer 2 squares at each end) have no floor under them at height %d - the ends of a bridge must rest on floor (or on the ground at height 0); only the middle may span open space." % [piece["label"], loose, piece["height"]])
+			else:
+				standing[piece["index"]] = true
+			continue
 		var missing := 0
 		for cell in piece["cells"]:
 			if not floor_cells.has(Vector3i(cell.x, piece["height"], cell.z)):
@@ -554,7 +572,13 @@ static func _creatures_from_plan(plan: Dictionary, result: Dictionary) -> Array[
 static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> void:
 	var blocked: Dictionary = {}  # (x, height, z) -> label of the piece that blocks walking there
 	var ceilings: Dictionary = {}  # Vector2i fine column -> Array[int] heights of solid things (floors above, archway tops)
-	for key: Vector3i in floor_cells:
+	# the middle of a bridge is a walkable deck BRIDGE_RISE up: a figure may stand on it, and it is a ceiling for anyone below
+	var floors: Dictionary = floor_cells.duplicate()
+	for piece in pieces:
+		if piece["layer"] == "prop" and BuildRules.is_bridge(piece["mesh"]):
+			for cell in BuildRules.bridge_middle_cells(piece["cells"]):
+				floors[Vector3i(cell.x, piece["height"] + BuildRules.BRIDGE_RISE, cell.z)] = true
+	for key: Vector3i in floors:
 		var column := Vector2i(key.x, key.z)
 		if not ceilings.has(column):
 			ceilings[column] = []
@@ -573,7 +597,7 @@ static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Diction
 	var taken: Dictionary = {}  # (square x, height, square z) -> label, to warn about two creatures on one square
 	for entry in creatures:
 		(result["starts"] if entry["kind"] == "start" else result["spawns"]).append(entry["creature"])
-		_check_creature(entry["creature"], entry["label"], floor_cells, blocked, ceilings, taken, result)
+		_check_creature(entry["creature"], entry["label"], floors, blocked, ceilings, taken, result)
 
 
 ## A creature entry as {x, z, height, creature, squares (side length in squares), need (free height units)}; empty when unusable.
@@ -697,6 +721,18 @@ static func _check_connected(pieces: Array[Dictionary], floor_cells: Dictionary,
 						var upper := Vector3i(cell.x + offset.x, piece["height"] + rise, cell.z + offset.z)
 						if island_of.has(upper):
 							union.call(base, island_of[upper])
+		if BuildRules.is_bridge(piece["mesh"]):
+			# a bridge joins the floors that touch its two ramp ends
+			var joined := -1
+			for cell in BuildRules.bridge_end_cells(piece["cells"]):
+				for offset in [Vector3i.ZERO, Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
+					var key := Vector3i(cell.x + offset.x, piece["height"], cell.z + offset.z)
+					if island_of.has(key):
+						if joined == -1:
+							joined = island_of[key]
+						else:
+							union.call(joined, island_of[key])
+			continue
 		var climbs := BuildRules.climb_rises(piece["mesh"])
 		if not climbs.is_empty():
 			# a ladder is solid: it links every island touching it at its own height with every island touching it `rise` units up
@@ -865,7 +901,7 @@ static func render_ascii(result: Dictionary, height: int = 0) -> String:
 					symbol = "x"
 				elif solid_here.has(cell):
 					symbol = "#"
-				elif piece["mesh"] == "archway":
+				elif BuildRules.POSTED.has(piece["mesh"]):
 					symbol = "g"
 				else:
 					symbol = "o"

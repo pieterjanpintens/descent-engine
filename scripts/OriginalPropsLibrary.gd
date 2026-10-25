@@ -35,7 +35,18 @@ const SHIFTS := {
 const TILTS := {
 	"barricade": Vector3(0.0, 0.0, 45.0),
 	"stair": Vector3(0.0, 180.0, 0.0),
+	"dragonhead": Vector3(-60.0, 0.0, 0.0),
 }
+
+## Items whose model is scaled (uniformly) so its LONG side is exactly this many tile squares - when the footprint we want is a little smaller
+## than the game model (the dragon arch is 6 squares long, the model about 7).
+const FIT_LONG_SIDE := {
+	"dragonarch": 6.0,
+}
+
+## Items placed by the centre of their WHOLE model instead of the centre of their base: a lying dragon head touches the floor with its chin
+## only, and the base rule would push the rest of it out of the footprint.
+const CENTRE_BY_MODEL := ["dragonhead"]
 
 static var _cached: MeshLibrary
 
@@ -256,20 +267,26 @@ static func _fit(sources: Array[ArrayMesh], item_name: String, texture_image: Im
 	var target_size := Vector2(reference.size.x, reference.size.z)
 	var target_centre := Vector2(reference.position.x + reference.size.x / 2.0, reference.position.z + reference.size.z / 2.0)
 	if not has_reference:
-		var squares_x := maxi(1, roundi(stood.size.x))
-		var squares_z := maxi(1, roundi(stood.size.z))
+		var fit := 1.0
+		if FIT_LONG_SIDE.has(item_name):
+			fit = float(FIT_LONG_SIDE[item_name]) / maxf(maxf(stood.size.x, stood.size.z), 0.001)
+		var squares_x := maxi(1, roundi(stood.size.x * fit))
+		var squares_z := maxi(1, roundi(stood.size.z * fit))
 		target_size = Vector2(squares_x, squares_z) * TILE_UNITS
 		target_centre = -target_size / 2.0
 
 	var yaw := 0.0
 	if absf(target_size.x - target_size.y) > 0.5 and (target_size.x > target_size.y) != (stood.size.x > stood.size.z):
 		yaw = PI / 2.0  # the model is long the other way than the footprint
-	var turn := Transform3D(Basis(Vector3.UP, yaw) * upright * Basis.from_scale(Vector3.ONE * MODEL_SCALE), Vector3.ZERO)
+	var model_scale := MODEL_SCALE
+	if FIT_LONG_SIDE.has(item_name):
+		model_scale = MODEL_SCALE * float(FIT_LONG_SIDE[item_name]) / maxf(maxf(stood.size.x, stood.size.z), 0.001)
+	var turn := Transform3D(Basis(Vector3.UP, yaw) * upright * Basis.from_scale(Vector3.ONE * model_scale), Vector3.ZERO)
 	var turned := turn * box
 	# the real lowest vertex, not the corner of the turned box (a tilted model's box is looser than the model)
 	var lowest := _lowest_y(sources, turn)
 	# centre the BASE of the model (a tree's branches reach further to one side than its trunk), not its whole box
-	var base := _base_centre(sources[0], turn, lowest)
+	var base := _model_centre(sources, turn) if CENTRE_BY_MODEL.has(item_name) else _base_centre(sources[0], turn, lowest)
 	var origin := Vector3(target_centre.x - base.x, -lowest, target_centre.y - base.y)
 	origin += SHIFTS.get(item_name, Vector3.ZERO)
 	var placed := Transform3D(turn.basis, origin)
@@ -294,6 +311,20 @@ static func _fit(sources: Array[ArrayMesh], item_name: String, texture_image: Im
 			result.surface_set_name(index, surface_name)
 			result.surface_set_material(index, body if surface_name == "body" else edge)
 	return result
+
+
+## The middle (x, z) of the whole model's real extent (vertices, not a turned box) once `turn` is applied.
+static func _model_centre(sources: Array[ArrayMesh], turn: Transform3D) -> Vector2:
+	var low := Vector2(INF, INF)
+	var high := Vector2(-INF, -INF)
+	for source in sources:
+		for surface in source.get_surface_count():
+			var vertices: PackedVector3Array = source.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			for vertex in vertices:
+				var moved := turn * vertex
+				low = Vector2(minf(low.x, moved.x), minf(low.y, moved.z))
+				high = Vector2(maxf(high.x, moved.x), maxf(high.y, moved.z))
+	return (low + high) / 2.0
 
 
 ## The lowest y of any vertex once `turn` is applied.

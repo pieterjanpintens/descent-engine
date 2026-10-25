@@ -54,7 +54,21 @@ static func prepare(result: Dictionary) -> Dictionary:
 			floors[height] = {}
 		for cell: Vector3i in piece["cells"]:
 			floors[height][Vector2i(cell.x, cell.z)] = true
+	# a bridge counts as floor for sight: its ramp ends at its own height, its middle deck one unit higher
+	for piece: Dictionary in result["pieces"]:
+		if piece["layer"] != "prop" or not BuildRules.is_bridge(piece["mesh"]):
+			continue
+		for cell: Vector3i in BuildRules.bridge_end_cells(piece["cells"]):
+			_add_floor(floors, piece["height"], cell)
+		for cell: Vector3i in BuildRules.bridge_middle_cells(piece["cells"]):
+			_add_floor(floors, int(piece["height"]) + BuildRules.BRIDGE_RISE, cell)
 	return context_from(blockers, floors)
+
+
+static func _add_floor(floors: Dictionary, height: int, cell: Vector3i) -> void:
+	if not floors.has(height):
+		floors[height] = {}
+	floors[height][Vector2i(cell.x, cell.z)] = true
 
 
 ## The context from its two raw parts: `blockers` (Vector2i fine cell -> Array of Vector2(base height, top height)) and `floors` (height ->

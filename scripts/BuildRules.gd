@@ -39,7 +39,7 @@ const CLIMB_RISES := {
 ## Passing through: MOST pieces are solid - nobody can walk through or over them. These are the exceptions: stairs (you walk on them) and
 ## the tokens (exploration / interact / umbra don't block). The ARCHWAY is a 1x4 line whose two END squares are solid posts and whose
 ## MIDDLE two squares are the passage (see solid_offsets).
-const PASSABLE := ["stair", "exploration", "interact", "umbra"]
+const PASSABLE := ["stair", "bridge", "exploration", "interact", "umbra"]
 
 ## Gates and fences are SOLID (nobody stands in or walks through them) but remove themselves when interacted with, and barricades are
 ## typically destroyed. They only block placing a figure: no walking check takes solid pieces into account (a room closed off by them
@@ -48,6 +48,36 @@ const REMOVABLE := ["gate", "fence", "barricade"]
 
 ## Pieces that may stand on bare ground at height 0 (no floor tile under them): the pillars, the stairs, and the archway and fence (NOT the gate).
 ## Above the ground they still need a floor at their own height.
+## The BRIDGE (2 wide x 6 long, author 2026-10-25): xxyyxx - the two outer squares of each end (x) are ramps that must rest on floor at the
+## bridge's own height (or on the bare ground at height 0); the two middle squares (y) are a walkable deck BRIDGE_RISE units higher, which may
+## span hazards or open space. Walkable, never solid; under the deck there is only BRIDGE_RISE units of headroom, so no figure fits there.
+const BRIDGE_RISE := 1
+const BRIDGE_END_SQUARES := 2
+
+
+static func is_bridge(mesh: String) -> bool:
+	return mesh == "bridge"
+
+
+## The ramp cells at both ends of a PLACED bridge (absolute fine cells).
+static func bridge_end_cells(cells: Array) -> Array[Vector3i]:
+	return _end_posts(cells, BRIDGE_END_SQUARES)
+
+
+## The deck cells in the middle of a PLACED bridge.
+static func bridge_middle_cells(cells: Array) -> Array[Vector3i]:
+	var ends := _end_posts(cells, BRIDGE_END_SQUARES)
+	var middle: Array[Vector3i] = []
+	for cell: Vector3i in cells:
+		if not ends.has(cell):
+			middle.append(cell)
+	return middle
+
+
+## Long thin pieces with a PASSAGE: an archway has solid end posts and an open middle; the BELL (2026-10-25, from the game's props) is the
+## other way round for sight - its two end squares block walking, its middle squares block line of sight.
+const POSTED := ["archway", "bell"]
+
 const STANDS_ON_GROUND := ["mini", "medium", "tall", "stair", "archway", "fence"]
 
 
@@ -58,7 +88,7 @@ static func solid_offsets(mesh: String) -> Array[Vector3i]:
 	if PASSABLE.has(mesh):
 		var none: Array[Vector3i] = []
 		return none
-	if mesh != "archway":
+	if not POSTED.has(mesh):
 		return footprint
 	var low := footprint[0].z
 	var high := footprint[0].z
@@ -81,8 +111,13 @@ const PIECE_HEIGHTS := {
 	"mini": 1.28, "medium": 2.22, "tall": 3.83, "stair": 0.94, "gate": 2.76, "archway": 3.83, "fence": 1.96,
 	"barricade": 0.78, "table": 0.66, "small-table": 0.64, "tree": 3.96, "cart": 0.63, "chest": 0.62, "pot": 0.76, "well": 1.83,
 	"big-ladder": 3.55, "small-ladder": 1.77, "exploration": 0.06, "interact": 0.06, "umbra": 0.06,
+	# the props from the game's own models (OriginalPropsLibrary): measured model height / 3.6
+	"altar": 0.83, "bell": 2.78, "bloodshrine": 2.1, "bookshelf": 1.6, "dragonarch": 5.17, "dragonhead": 2.4, "fire": 0.8, "statue": 3.58, "statue2": 3.6, "bridge": 1.0,
 }
 const SEE_THROUGH := ["big-ladder", "small-ladder"]
+## Props whose sight rule is decided by hand instead of by their height (given by the author 2026-10-25): the gate (its original model is lower than a figure, the rule stays), the bookshelf, the blood shrine and the statue
+## block line of sight, the bell only in its middle squares (see POSTED / sight_offsets); the altar, fire, dragon head and dragon arch never do.
+const SIGHT_RULE := {"gate": true, "bookshelf": true, "bloodshrine": true, "statue": true, "statue2": true, "bell": true, "altar": false, "fire": false, "dragonhead": false, "dragonarch": false}
 
 
 static func piece_height(mesh: String) -> float:
@@ -91,6 +126,8 @@ static func piece_height(mesh: String) -> float:
 
 ## Whether a piece blocks the line of sight of a standing figure (see PIECE_HEIGHTS).
 static func blocks_sight(mesh: String) -> bool:
+	if SIGHT_RULE.has(mesh):
+		return SIGHT_RULE[mesh]
 	return piece_height(mesh) > FIGURE_HEIGHT and not SEE_THROUGH.has(mesh)
 
 
@@ -102,6 +139,13 @@ static func sight_offsets(mesh: String) -> Array[Vector3i]:
 		return none
 	if mesh == "archway":
 		return solid_offsets(mesh)
+	if mesh == "bell":
+		var posts := solid_offsets(mesh)
+		var middle: Array[Vector3i] = []
+		for offset in FootprintRegistry.get_footprint(mesh):
+			if not posts.has(offset):
+				middle.append(offset)
+		return middle
 	return FootprintRegistry.get_footprint(mesh)
 
 
@@ -111,32 +155,39 @@ static func sight_cells_from_footprint(mesh: String, cells: Array[Vector3i]) -> 
 	if not blocks_sight(mesh):
 		var none: Array[Vector3i] = []
 		return none
-	if mesh != "archway" or cells.is_empty():
+	if not POSTED.has(mesh) or cells.is_empty():
 		return cells
-	return _end_posts(cells)
+	var posts := _end_posts(cells)
+	if mesh == "archway":
+		return posts
+	var middle: Array[Vector3i] = []  # the bell: the middle squares block sight
+	for cell in cells:
+		if not posts.has(cell):
+			middle.append(cell)
+	return middle
 
 
-## The solid part of a PLACED piece (absolute fine cells): all of it, none for the PASSABLE ones, the two end posts of an archway.
+## The solid part of a PLACED piece (absolute fine cells): all of it, none for the PASSABLE ones, the two end posts of an archway or bell.
 static func solid_cells_from_footprint(mesh: String, cells: Array[Vector3i]) -> Array[Vector3i]:
 	if PASSABLE.has(mesh):
 		var none: Array[Vector3i] = []
 		return none
-	if mesh != "archway" or cells.is_empty():
+	if not POSTED.has(mesh) or cells.is_empty():
 		return cells
 	return _end_posts(cells)
 
 
 ## The squares at both ends of a long thin footprint (an archway's two posts).
-static func _end_posts(cells: Array[Vector3i]) -> Array[Vector3i]:
+static func _end_posts(cells: Array, squares: int = 1) -> Array[Vector3i]:
 	var low := Vector2i(cells[0].x, cells[0].z)
 	var high := low
-	for cell in cells:
+	for cell: Vector3i in cells:
 		low = Vector2i(mini(low.x, cell.x), mini(low.y, cell.z))
 		high = Vector2i(maxi(high.x, cell.x), maxi(high.y, cell.z))
-	var span := FootprintRegistry.CELLS_PER_TILE
+	var span := FootprintRegistry.CELLS_PER_TILE * squares
 	var along_z := high.y - low.y >= high.x - low.x
 	var posts: Array[Vector3i] = []
-	for cell in cells:
+	for cell: Vector3i in cells:
 		var value := cell.z if along_z else cell.x
 		var first := low.y if along_z else low.x
 		var last := high.y if along_z else high.x
@@ -214,5 +265,6 @@ static func describe() -> String:
 		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
 		"Sight: two squares see each other when a line can be drawn from ANY corner of one to ANY corner of the other without being stopped (a line grazing the edge of a piece passes, but not between two pieces that touch). The line runs at figure height (2 units) above each figure's own floor, so a piece blocks only if its top is above that line: trees, tall and medium pillars, gates and an archway's two end posts block (the archway's two middle squares are open); fences (see-through), wells, mini pillars, stairs, furniture and ladders do not.",
 		"A medium pillar (2.2) therefore blocks figures standing on its floor but not someone standing 1 unit up; a tall pillar (3.8) still blocks from 1 up but not from a floor at height 2 (what is left above it is less than a figure). You can look up or down at any distance, but never through a floor: a figure directly under or over a floor tile is not visible, and you can't look down through the floor you stand on.",
+		"The bridge (2 wide, 6 long: xxyyxx along its length) is walkable: its two outer squares at each end (x) are ramps that must rest on floor at the bridge's own height (or on the bare ground at height 0), and its two middle squares (y) are a deck 1 unit higher that may span hazards or open space. It connects the floors at its two ends; nobody fits under the deck (only 1 unit of headroom).",
 		"Floors at different heights only connect through a stair (its high end touches the upper floor) or a ladder: a small ladder climbs 1 unit, a big ladder 1 or 2; the upper floor must touch the ladder's square.",
 	])

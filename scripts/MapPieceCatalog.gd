@@ -12,6 +12,7 @@ const PROP_NOTES: Dictionary = {
 	"fence": "like a gate (an opening that removes itself when interacted with) but see-through.",
 	"archway": "a gateway, 1 square wide and 4 long: its two END squares are solid posts, the two middle squares are the passage. It can hold a floor 3 units above.",
 	"barricade": "a barrier that gets destroyed; solid.",
+	"bridge": "a walkable bridge, 2 wide and 6 long (xxyyxx): the two outer squares at each end are ramps that must rest on floor at its height (or on the ground at height 0), the two middle squares are a deck 1 unit higher that can span hazards or open space. Nobody fits under the deck. It joins the floors at its ends.",
 	"tree": "solid, blocks sight.",
 	"tall": "a tall pillar: solid, blocks sight, can hold a floor 1, 2 or 3 units above. Stands where squares meet (half-unit positions allowed).",
 	"medium": "a medium pillar: solid, blocks sight at its own floor, can hold a floor 1 or 2 units above. Half-unit positions allowed.",

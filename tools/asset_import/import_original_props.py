@@ -3,7 +3,7 @@
 Same rule as the other import tools: this reads the game files on YOUR machine and writes only to the app's user
 folder - nothing here is ever committed or shipped.
 
-ORIGINAL_PROPS maps one of OUR mesh library item names to the game's prefab below assets/d3/terrain/ (several of
+ORIGINAL_PROPS maps one of OUR mesh library item names to the game's prefab below assets/d3/terrain/ (or a (prefab, mesh name part) pair when one prefab holds several models) (several of
 ours are matched to differently named game props, and the game has props we never made - those become new items).
 For every prop it writes:
     <staging>/props/<our name>/mesh.obj   the model (surfaces "body" = textured, "edge" = the black card edge), UVs kept
@@ -58,7 +58,9 @@ ORIGINAL_PROPS = {
     "dragonarch": "dragonarch/terrain_dragonarch.prefab",
     "dragonhead": "dragonhead/terrain_dragonhead.prefab",
     "fire": "fire/fire.prefab",
-    "statue": "statue/statue.prefab",
+    # one prefab holds two statue models (Artboard_5.017 and Artboard_5.016): a (prefab, part of the mesh name) pair picks one
+    "statue": ("statue/statue.prefab", "Artboard_5.017"),
+    "statue2": ("statue/statue.prefab", "Artboard_5.016"),
     "bridge": "bridge/bridge.prefab",
 }
 TERRAIN = "assets/d3/terrain/"
@@ -145,8 +147,9 @@ def main():
     os.makedirs(staging, exist_ok=True)
     staged = 0
     for name, prefab in ORIGINAL_PROPS.items():
+        prefab, part = prefab if isinstance(prefab, tuple) else (prefab, "")
         entries = index.get((TERRAIN + prefab).lower(), [])
-        entries = [e for e in entries if usable(e, "flame" in prefab)]
+        entries = [e for e in entries if usable(e, "flame" in prefab) and part in e["mesh"].m_Name]
         body = next((e for e in entries if any(tex is not None for _, tex in e["materials"])), None)
         if body is None:
             print("  '%s': no textured mesh in %s - skipped" % (name, prefab))

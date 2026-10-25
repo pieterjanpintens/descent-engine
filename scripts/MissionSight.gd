@@ -40,6 +40,16 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 					if not blockers.has(fine):
 						blockers[fine] = []
 					blockers[fine].append(Vector2(-1000.0, 1000.0))
+	# A bridge is walkable: its two ramp ends count as floor at its own height (also where they rest on the bare ground) and its middle
+	# deck as floor one unit higher, so ranges and sight cross a gap by it and a figure can stand on the deck.
+	for entry in props:
+		if BuildRules.is_bridge(entry.mesh_item_name):
+			var bridge_cells := _cells_of(entry)
+			var bridge_base: int = entry.origin_cell.y
+			for cell in BuildRules.bridge_end_cells(bridge_cells):
+				_add_floor_cell(floors, bridge_base, cell)
+			for cell in BuildRules.bridge_middle_cells(bridge_cells):
+				_add_floor_cell(floors, bridge_base + BuildRules.BRIDGE_RISE, cell)
 	var sight := SightLine.context_from(blockers, floors)
 	var squares: Dictionary = {}
 	for square: Vector3i in sight["squares"]:
@@ -83,6 +93,12 @@ static func routes(data: Dictionary, start: Vector3i) -> Dictionary:
 			distance[square] = 1
 	distance[start] = 0
 	return distance
+
+
+static func _add_floor_cell(floors: Dictionary, height: int, cell: Vector3i) -> void:
+	if not floors.has(height):
+		floors[height] = {}
+	floors[height][Vector2i(cell.x, cell.z)] = true
 
 
 static func _collect_floor(mission: MissionData, held_back: Dictionary, placements: Array, occupied: Dictionary, floors: Dictionary) -> void:

@@ -38,6 +38,8 @@ const MESH_TO_GROUP: Dictionary = {
 	# above - water/spikes share one physical card, lava/acid share another.
 	"water": "card_water_spikes", "spikes": "card_water_spikes",
 	"lava": "card_lava_acid", "acid": "card_lava_acid",
+	# The dragon arch and the dragon head are one physical set: placing either uses the one copy.
+	"dragonarch": "dragon_set", "dragonhead": "dragon_set",
 }
 
 ## Max physical count per group. -1 or missing = untracked/unlimited (no
@@ -70,6 +72,29 @@ const MAX_COUNTS: Dictionary = {
 	"mini": 16,
 	"medium": 8,
 	"stair": 6,
+	# Props, real counts given by the author 2026-10-25. Not listed = unlimited (the three tokens).
+	"tree": 3,
+	"gate": 4,
+	"fence": 2,
+	"archway": 2,
+	"bridge": 1,
+	"big-ladder": 2,
+	"small-ladder": 2,
+	"chest": 4,
+	"pot": 1,
+	"well": 1,
+	"small-table": 3,
+	"table": 3,  # the big table
+	"cart": 1,
+	"barricade": 2,
+	"bookshelf": 4,
+	"bell": 1,
+	"altar": 1,
+	"bloodshrine": 2,
+	"fire": 3,
+	"dragon_set": 1,
+	"statue": 1,
+	"statue2": 1,
 }
 
 
