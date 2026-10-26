@@ -10,6 +10,7 @@ const FONT_PATH := "res://fonts/Cinzel.ttf"
 const DIVIDER_PATH := "res://models/ui/menu_divider.png"
 const SQUARE_FRAME := "res://models/ui/menu_button_square.png"
 const WIDE_FRAME := "res://models/ui/menu_button_wide.png"
+const BLANK_FRAME := "res://models/ui/menu_button_blank.png"  # the cog's frame without the gear, for arrows and other icons
 
 const TEXT_COLOR := Color(1, 1, 1)
 const HOVER_COLOR := Color(1.0, 0.82, 0.55)
@@ -90,11 +91,11 @@ static func set_entry_disabled(entry_box: Control, disabled: bool) -> void:
 
 
 ## A framed button (the ornate cyan frame). `wide` = the long "Collection" shape, otherwise the square one for an icon.
-static func framed_button(text: String, wide: bool, size: Vector2, on_pressed: Callable) -> Button:
+static func framed_button(text: String, wide: bool, size: Vector2, on_pressed: Callable, blank: bool = false) -> Button:
 	var button := Button.new()
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = size
-	var texture := load(WIDE_FRAME if wide else SQUARE_FRAME) as Texture2D
+	var texture := load(WIDE_FRAME if wide else (BLANK_FRAME if blank else SQUARE_FRAME)) as Texture2D
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var style := StyleBoxTexture.new()
 		style.texture = texture
