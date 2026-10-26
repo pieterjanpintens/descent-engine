@@ -39,9 +39,15 @@ func _ready() -> void:
 	title = "Release"
 	ok_button_text = "Release"
 	min_size = Vector2i(520, 0)
+	# the form scrolls when the window is shorter than it (it used to run off the screen)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(520, 160)
+	add_child(scroll)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
-	add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(box)
 
 	_name_edit = _add_row(box, "Name")
 	_author_edit = _add_row(box, "Author")
@@ -190,7 +196,7 @@ func _fill(suggested_name: String) -> void:
 	_version_touched = false
 	_version_edit.text = _suggested_version()
 	_version_edit.tooltip_text = "Numbers separated by dots, like 1.0 or 1.2.1. It always starts one patch above your highest release of this package; a released version is never replaced."
-	popup_centered()
+	popup_centered_clamped(Vector2i(580, 620), 0.9)
 
 
 ## The author field decides the package id, so the suggested version follows it until the player types a version themselves.
@@ -262,6 +268,10 @@ func _on_confirmed() -> void:
 	_show_message("Released %s v%s.\n\nIt is frozen now: it appears in the campaign / mission lists as a read-only version, and save games stay on it. Keep working on your draft and release the next version when you are ready.\n\nShare the package file with anyone (they import it from the Community page), or publish it so it appears there for everyone once it is approved." % [package_name, version], true)
 
 
+func _reopen() -> void:
+	popup_centered_clamped(Vector2i(580, 620), 0.9)
+
+
 ## `can_share`: the message is about a package that was just released, so the save / publish buttons make sense.
 ## `retry`: re-open this dialog when the message is closed (a form problem).
 func _show_message(text: String, can_share := false, retry := false) -> void:
@@ -269,10 +279,10 @@ func _show_message(text: String, can_share := false, retry := false) -> void:
 	for child in _message_dialog.get_ok_button().get_parent().get_children():
 		if child is Button and child != _message_dialog.get_ok_button():
 			(child as Button).visible = can_share
-	if _message_dialog.confirmed.is_connected(popup_centered):
-		_message_dialog.confirmed.disconnect(popup_centered)
+	if _message_dialog.confirmed.is_connected(_reopen):
+		_message_dialog.confirmed.disconnect(_reopen)
 	if retry:
-		_message_dialog.confirmed.connect(popup_centered, CONNECT_ONE_SHOT)
+		_message_dialog.confirmed.connect(_reopen, CONNECT_ONE_SHOT)
 	# shrink to the wrapped text first, or an earlier longer message leaves the box too big (or too small) for this one
 	_message_dialog.size = Vector2i(MESSAGE_WIDTH + 40, 0)
 	_message_dialog.popup_centered()
