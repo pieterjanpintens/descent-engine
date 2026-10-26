@@ -4,7 +4,7 @@ extends Control
 ## The New Game page (the designer's mockup): a carousel of hexagonal cards - the campaigns and single missions you have installed, your own
 ## drafts, and (after the refresh icon is pressed) what the community has shared and you do not have yet - and a detail page with the cover, the story, the
 ## languages and play time and one button: Install for something from the community, Begin campaign / Play mission for what you have.
-## Nothing goes online until the player asks for the community list.
+## The community list fills itself when the page opens (auto_load_catalog(): a cached list younger than an hour is enough); the refresh icon forces an update.
 
 signal back_pressed
 signal begin_campaign(folder: String)
@@ -19,12 +19,14 @@ const NAV_ARROW := "res://models/ui/nav_arrow.png"
 const INSTALL_BUTTON := "res://models/ui/button_install.png"
 const BEGIN_BUTTON := "res://models/ui/button_begin.png"
 const CARD_GAP := 24.0
+const CATALOG_MAX_AGE_SEC := 3600.0  ## a cached list younger than this is not fetched again by itself
 const CATALOG_CACHE := "user://community/catalog_cache.json"  ## the last community list, so it is there at once next time (and offline)
 const ARROW_SIZE := 58.0
 
 var _items: Array[Dictionary] = []
 var _catalog: Array[Dictionary] = []
 var _catalog_saved := ""
+var _catalog_saved_unix := 0.0
 var _first := 0
 var _per_page := 3
 var _busy := false
@@ -424,24 +426,44 @@ func _on_back_pressed() -> void:
 		back_pressed.emit()
 
 
+## The refresh icon: always fetch the list now.
 func _on_community_list_pressed() -> void:
+	await _fetch_catalog()
+
+
+## Called when the page is shown: fills the list by itself when there is none yet or it is older than CATALOG_MAX_AGE_SEC (the cached one
+## is shown meanwhile). The refresh icon forces an update.
+func auto_load_catalog() -> void:
+	if _busy:
+		return
+	if _catalog_saved_unix > 0.0 and Time.get_unix_time_from_system() - _catalog_saved_unix < CATALOG_MAX_AGE_SEC:
+		return
+	await _fetch_catalog()
+
+
+func _fetch_catalog() -> void:
 	if _busy:
 		return
 	_busy = true
-	_status.text = "Downloading the community list…"
+	_status.text = "Looking for shared campaigns…"
 	_spin = create_tween().set_loops()
 	_spin.tween_property(_list_button, "rotation", TAU, 1.0).from(0.0)
 	var address := PlayerSettings.community_catalog_url if PlayerSettings.community_catalog_url != "" else CommunityService.DEFAULT_CATALOG_URL
 	var result := await _service.fetch_catalog(address)
 	_busy = false
-	_spin.kill()
+	if _spin != null:
+		_spin.kill()
 	_list_button.rotation = 0.0
 	if not result["ok"]:
-		_status.text = str(result["error"])
+		_status.text = ("Offline - showing the last community list. " if not _catalog.is_empty() else "") + str(result["error"])
 		return
 	_catalog.assign(result["entries"])
 	_save_cached_catalog()
-	refresh()
+	# rebuild the cards without throwing away a detail page the player may have opened meanwhile
+	_items = _build_items()
+	_first = clampi(_first, 0, maxi(0, _items.size() - _per_page))
+	if _carousel.visible:
+		_fill_cards()
 	var fresh := 0
 	for item in _items:
 		if item.get("source", "") == "catalog":
@@ -451,7 +473,7 @@ func _on_community_list_pressed() -> void:
 
 # ---------------------------------------------------------------- the cached list
 
-## The list from the last time the refresh icon was used: read from the disk, nothing goes online.
+## The list from the last time it was fetched: read from the disk, nothing goes online.
 func _load_cached_catalog() -> void:
 	if not FileAccess.file_exists(CATALOG_CACHE):
 		return
@@ -459,6 +481,7 @@ func _load_cached_catalog() -> void:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return
 	_catalog_saved = str((parsed as Dictionary).get("saved", ""))
+	_catalog_saved_unix = float((parsed as Dictionary).get("saved_unix", 0.0))
 	var entries: Variant = (parsed as Dictionary).get("entries", [])
 	if typeof(entries) != TYPE_ARRAY:
 		return
@@ -468,13 +491,14 @@ func _load_cached_catalog() -> void:
 		if not entry.is_empty():
 			_catalog.append(entry)
 	if not _catalog.is_empty():
-		_status.text = "Community list from %s - press the refresh icon to update it." % _catalog_saved.replace("T", " ").left(16)
+		_status.text = "Community list from %s." % _catalog_saved.replace("T", " ").left(16)
 
 
 func _save_cached_catalog() -> void:
 	_catalog_saved = Time.get_datetime_string_from_system(false)
+	_catalog_saved_unix = Time.get_unix_time_from_system()
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CommunityLibrary.ROOT))
 	var file := FileAccess.open(CATALOG_CACHE, FileAccess.WRITE)
 	if file != null:
-		file.store_string(JSON.stringify({"saved": _catalog_saved, "entries": _catalog}))
+		file.store_string(JSON.stringify({"saved": _catalog_saved, "saved_unix": _catalog_saved_unix, "entries": _catalog}))
 		file.close()

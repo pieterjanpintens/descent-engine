@@ -177,6 +177,7 @@ func _show_page(page: Control) -> void:
 
 func _show_library() -> void:
 	_library_page.refresh()
+	_library_page.auto_load_catalog()  # fills the community cards by itself unless the cached list is fresh
 	_show_page(_library_page)
 
 
