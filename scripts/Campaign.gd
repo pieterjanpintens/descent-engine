@@ -11,6 +11,9 @@ extends Resource
 ## File name (not a path) of the book cover image inside the campaign folder (always the 2:3 ratio,
 ## see CampaignIO.import_cover_image()); "" = none, the campaign screen shows a plain dummy cover.
 @export var cover_image: String = ""
+## What the library card and the community catalog show (see CampaignInfo): language codes and the play time in minutes (0 = unknown).
+@export var languages: Array[String] = []
+@export var duration_minutes: int = 0
 @export var acts: Array[CampaignAct] = []
 ## Source of unique chapter ids ("ch_1", "ch_2", ...), never reused.
 @export var next_chapter_number: int = 1

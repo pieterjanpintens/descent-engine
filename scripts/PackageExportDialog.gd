@@ -18,6 +18,10 @@ var _name_edit: LineEdit
 var _author_edit: LineEdit
 var _version_edit: LineEdit
 var _description_edit: TextEdit
+var _languages: Array[String] = []
+var _language_holder: VBoxContainer
+var _duration_spin: SpinBox
+var _duration_row: HBoxContainer
 var _rights_box: CheckBox
 var _info_label: Label
 var _file_dialog: FileDialog
@@ -52,6 +56,19 @@ func _ready() -> void:
 	_description_edit.custom_minimum_size = Vector2(0, 90)
 	_description_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	box.add_child(_description_edit)
+	# languages and play time: a campaign carries them itself (campaign editor); a single mission is asked here
+	_language_holder = VBoxContainer.new()
+	box.add_child(_language_holder)
+	_duration_row = HBoxContainer.new()
+	box.add_child(_duration_row)
+	var duration_label := Label.new()
+	duration_label.text = "Play time (minutes)"
+	_duration_row.add_child(duration_label)
+	_duration_spin = SpinBox.new()
+	_duration_spin.min_value = 0
+	_duration_spin.max_value = CampaignInfo.MAX_MINUTES
+	_duration_spin.step = 5
+	_duration_row.add_child(_duration_spin)
 	_rights_box = CheckBox.new()
 	_rights_box.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_rights_box.custom_minimum_size = Vector2(480, 0)
@@ -157,6 +174,19 @@ func _fill(suggested_name: String) -> void:
 	_author_edit.text = author
 	_author_edit.placeholder_text = "your name or GitHub name"
 	_description_edit.text = str(memory.get("description", ""))
+	# the campaign's own languages and play time; for a mission the ones remembered from the last release
+	var campaign := CampaignIO.load_campaign(_folder) if _mode == SharePackage.TYPE_CAMPAIGN else null
+	_languages = []
+	if campaign != null:
+		_languages.append_array(campaign.languages)
+		_duration_spin.value = campaign.duration_minutes
+	else:
+		_languages.append_array(CampaignInfo.clean_languages(memory.get("languages", ["en"])))
+		_duration_spin.value = int(memory.get("duration_minutes", 0))
+	for child in _language_holder.get_children():
+		_language_holder.remove_child(child)
+		child.free()
+	_language_holder.add_child(CampaignInfo.language_row(_languages, func(): pass))
 	_version_touched = false
 	_version_edit.text = _suggested_version()
 	_version_edit.tooltip_text = "Numbers separated by dots, like 1.0 or 1.2.1. It always starts one patch above your highest release of this package; a released version is never replaced."
@@ -206,6 +236,8 @@ func _on_confirmed() -> void:
 		"description": _description_edit.text.strip_edges(),
 		"version": version,
 		"rights_confirmed": _rights_box.visible and _rights_box.button_pressed,
+		"languages": _languages,
+		"duration_minutes": int(_duration_spin.value),
 		"id": id,
 	}
 	var result: Dictionary
@@ -220,7 +252,7 @@ func _on_confirmed() -> void:
 	PlayerSettings.save_settings()
 	_package_id = id
 	var memory := _load_memory()
-	memory[_memory_key] = {"name": package_name, "description": meta["description"], "package_id": id}
+	memory[_memory_key] = {"name": package_name, "description": meta["description"], "package_id": id, "languages": _languages, "duration_minutes": int(_duration_spin.value)}
 	_save_memory(memory)
 	if _mode == SharePackage.TYPE_CAMPAIGN:
 		var info := CampaignIO.draft_info(_folder)

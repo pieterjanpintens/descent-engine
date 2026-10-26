@@ -6,7 +6,7 @@ extends Downloader
 ## download is only a FILE: it is checked by SharePackage before anything is installed (see there). Add as a child of something in
 ## the tree (it awaits timers); status text arrives via `progress`.
 ##
-## index.json: {"format": 1, "packages": [{id, type, name, author, description, version, url, sha256, size_bytes}]}
+## index.json: {"format": 1, "packages": [{id, type, name, author, description, version, url, sha256, size_bytes, languages, duration_minutes}]}
 
 const DEFAULT_CATALOG_URL := "https://raw.githubusercontent.com/pieterjanpintens/descent-engine-community/refs/heads/main/index.json"
 ## Addresses an earlier version saved as the player's catalog address; they are replaced by the default when settings load.
@@ -93,4 +93,6 @@ static func _clean_entry(item: Variant) -> Dictionary:
 		"url": url,
 		"sha256": checksum,
 		"size_bytes": int(raw.get("size_bytes", 0)),
+		"languages": CampaignInfo.clean_languages(raw.get("languages", [])),
+		"duration_minutes": CampaignInfo.clean_minutes(raw.get("duration_minutes", 0)),
 	}
