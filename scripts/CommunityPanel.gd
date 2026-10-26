@@ -1,9 +1,9 @@
-class_name CommunityDialog
-extends Control
+class_name CommunityPanel
+extends VBoxContainer
 
-## "Community" (main menu): missions and campaigns shared by other people - what is installed (with Play and Remove), importing a
-## package file or a web address, and browsing the catalog kept on GitHub. Built in code, modal like the Options dialog; `open()` shows it.
-## Whatever comes in goes through SharePackage.read() first (a package is checked as plain text before anything is loaded) and is installed
+## "Community" (a tab of the Options dialog in the main menu): what shared missions and campaigns are installed (Play / Fork to edit / Remove),
+## importing a package file or a web address by hand, and the address of the community list. Finding and installing from the list happens on the New
+## game screen. Whatever comes in goes through SharePackage.read() first (a package is checked as plain text before anything is loaded) and is installed
 ## side by side with other versions (CommunityLibrary): nothing is ever updated in place.
 
 signal play_mission(path: String)
@@ -12,12 +12,9 @@ signal open_campaigns
 var _service: CommunityService
 var _pending: Dictionary = {}  ## the checked package waiting for the player's OK
 var _pending_source := ""
-var _catalog: Array[Dictionary] = []
 var _busy := false
 
-var _tabs: TabContainer
 var _installed_box: VBoxContainer
-var _browse_box: VBoxContainer
 var _status_label: Label
 var _url_edit: LineEdit
 var _catalog_url_edit: LineEdit
@@ -31,54 +28,28 @@ var _message_dialog: AcceptDialog
 
 
 func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP  # the modal scrim - blocks everything behind it
-
-	var scrim := ColorRect.new()
-	scrim.color = Color(0, 0, 0, 0.55)
-	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(scrim)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
-	var background := PanelContainer.new()
-	background.custom_minimum_size = Vector2(700, 560)
-	center.add_child(background)
-	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 12)
-	background.add_child(margin)
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	margin.add_child(vbox)
-
-	var title := Label.new()
-	title.text = "Community"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
-	vbox.add_child(title)
-	var intro := _small_label("Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten.")
-	vbox.add_child(intro)
-
-	_tabs = TabContainer.new()
-	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(_tabs)
-	_tabs.add_child(_build_installed_tab())
-	_tabs.add_child(_build_browse_tab())
-	_tabs.add_child(_build_import_tab())
-	_tabs.set_tab_title(0, "Installed")
-	_tabs.set_tab_title(1, "Browse online")
-	_tabs.set_tab_title(2, "Import")
-
+	add_theme_constant_override("separation", 8)
+	add_child(_small_label("Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."))
+	add_child(_heading("Installed"))
+	_installed_box = VBoxContainer.new()
+	_installed_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_installed_box.add_theme_constant_override("separation", 6)
+	add_child(_installed_box)
+	add_child(HSeparator.new())
+	add_child(_heading("Install by hand"))
+	_build_import_section()
+	add_child(HSeparator.new())
+	add_child(_heading("Community list"))
+	add_child(_small_label("The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."))
+	_catalog_url_edit = LineEdit.new()
+	_catalog_url_edit.text = PlayerSettings.community_catalog_url
+	_catalog_url_edit.placeholder_text = CommunityService.DEFAULT_CATALOG_URL
+	_catalog_url_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_catalog_url_edit.text_submitted.connect(func(_text: String): _save_catalog_url())
+	_catalog_url_edit.focus_exited.connect(_save_catalog_url)
+	add_child(_catalog_url_edit)
 	_status_label = _small_label("")
-	vbox.add_child(_status_label)
-	var close := Button.new()
-	close.text = "Close"
-	close.pressed.connect(func(): visible = false)
-	vbox.add_child(close)
+	add_child(_status_label)
 
 	_service = CommunityService.new()
 	_service.progress.connect(func(text: String): _status_label.text = text)
@@ -114,45 +85,38 @@ func _ready() -> void:
 	_message_dialog = AcceptDialog.new()
 	_message_dialog.min_size = Vector2i(520, 0)
 	add_child(_message_dialog)
-
-	visible = false
-
-
-func open() -> void:
-	_status_label.text = ""
 	_refresh_installed()
-	_tabs.current_tab = 0
-	visible = true
 
 
-# ------------------------------------------------------------------ the tabs
-
-func _build_installed_tab() -> Control:
-	var tab := VBoxContainer.new()
-	tab.name = "Installed"
-	tab.add_theme_constant_override("separation", 6)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	tab.add_child(scroll)
-	_installed_box = VBoxContainer.new()
-	_installed_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_installed_box.add_theme_constant_override("separation", 6)
-	scroll.add_child(_installed_box)
-	return tab
+## Call when the Options dialog opens: what is installed may have changed since (the New game screen installs too).
+func refresh() -> void:
+	if _installed_box != null:
+		_status_label.text = ""
+		_refresh_installed()
 
 
-## A package you were handed (a file, or a link to one) instead of one from the online list.
-func _build_import_tab() -> Control:
-	var tab := VBoxContainer.new()
-	tab.name = "Import"
-	tab.add_theme_constant_override("separation", 10)
-	tab.add_child(_small_label("Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."))
+func _heading(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", Color(0.56, 0.79, 0.9))
+	return label
+
+
+func _save_catalog_url() -> void:
+	var address := _catalog_url_edit.text.strip_edges()
+	if address != PlayerSettings.community_catalog_url:
+		PlayerSettings.community_catalog_url = address
+		PlayerSettings.save_settings()
+
+
+## A package you were handed (a file, or a link to one).
+func _build_import_section() -> void:
+	add_child(_small_label("Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."))
 	var file_row := HBoxContainer.new()
 	file_row.add_child(_action_button("Choose a package file…", func(): _file_dialog.popup_centered_clamped(Vector2i(820, 560), 0.9)))
-	tab.add_child(file_row)
-	tab.add_child(HSeparator.new())
-	tab.add_child(_small_label("Or a web address (https://…) of a package file:"))
+	add_child(file_row)
+	add_child(_small_label("Or a web address (https://…) of a package file:"))
 	var url_row := HBoxContainer.new()
 	_url_edit = LineEdit.new()
 	_url_edit.placeholder_text = "https://…"
@@ -160,35 +124,7 @@ func _build_import_tab() -> Control:
 	_url_edit.text_submitted.connect(func(_text: String): _on_import_url_pressed())
 	url_row.add_child(_url_edit)
 	url_row.add_child(_action_button("Import", _on_import_url_pressed))
-	tab.add_child(url_row)
-	return tab
-
-
-func _build_browse_tab() -> Control:
-	var tab := VBoxContainer.new()
-	tab.name = "Browse"
-	tab.add_theme_constant_override("separation", 6)
-	var url_row := HBoxContainer.new()
-	var label := Label.new()
-	label.text = "Catalog:"
-	url_row.add_child(label)
-	_catalog_url_edit = LineEdit.new()
-	_catalog_url_edit.text = PlayerSettings.community_catalog_url
-	_catalog_url_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_catalog_url_edit.tooltip_text = "The list of shared packages. By default the one in the descent-engine-community repository on GitHub."
-	url_row.add_child(_catalog_url_edit)
-	url_row.add_child(_action_button("Refresh", _on_refresh_catalog_pressed))
-	tab.add_child(url_row)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	tab.add_child(scroll)
-	_browse_box = VBoxContainer.new()
-	_browse_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_browse_box.add_theme_constant_override("separation", 6)
-	scroll.add_child(_browse_box)
-	_browse_box.add_child(_small_label("Press Refresh to see what has been shared."))
-	return tab
+	add_child(url_row)
 
 
 func _action_button(text: String, on_pressed: Callable) -> Button:
@@ -227,7 +163,7 @@ func _refresh_installed() -> void:
 	_clear(_installed_box)
 	var entries := CommunityLibrary.installed()
 	if entries.is_empty():
-		_installed_box.add_child(_small_label("Nothing installed yet. Browse online, or use the Import tab for a package file or a web address."))
+		_installed_box.add_child(_small_label("Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."))
 		return
 	entries.reverse()
 	for entry in entries:
@@ -252,7 +188,6 @@ func _installed_row(entry: Dictionary) -> Control:
 	var play := Button.new()
 	play.text = "Play" if is_mission else "Open campaigns"
 	play.pressed.connect(func():
-		visible = false
 		if is_mission:
 			play_mission.emit(str(entry["path"]))
 		else:
@@ -297,7 +232,6 @@ func _on_remove_confirmed() -> void:
 	CommunityLibrary.remove(_remove_entry)
 	_status_label.text = "Removed %s v%s." % [_remove_entry.get("name", ""), _remove_entry.get("version", "")]
 	_refresh_installed()
-	_render_catalog()
 
 
 # ------------------------------------------------------------------ importing
@@ -317,7 +251,7 @@ func _on_import_url_pressed() -> void:
 	_review(path, address)
 
 
-## Reads and checks a package; shows what is in it and asks before installing. `expect` (from the catalog) = {id, version} it must be.
+## Reads and checks a package; shows what is in it and asks before installing. `expect` = {id, version} it must be.
 func _review(path: String, source: String, expect: Dictionary = {}) -> void:
 	var package := SharePackage.read(path)
 	if not package["ok"]:
@@ -378,9 +312,7 @@ func _on_install_confirmed() -> void:
 	_forget_pending()
 	if result["ok"]:
 		_status_label.text = "Installed \"%s\" v%s." % [manifest["name"], manifest["version"]]
-		_tabs.current_tab = 0
 		_refresh_installed()
-		_render_catalog()
 	else:
 		_message(str(result["error"]))
 
@@ -398,74 +330,3 @@ func _remove_download() -> void:
 func _message(text: String) -> void:
 	_message_dialog.dialog_text = text
 	_message_dialog.popup_centered()
-
-
-# ------------------------------------------------------------------ catalog
-
-func _on_refresh_catalog_pressed() -> void:
-	if _busy:
-		return
-	_set_busy(true)
-	_status_label.text = "Downloading the list…"
-	var result := await _service.fetch_catalog(_catalog_url_edit.text)
-	_set_busy(false)
-	if not result["ok"]:
-		_status_label.text = str(result["error"])
-		return
-	PlayerSettings.community_catalog_url = _catalog_url_edit.text.strip_edges()
-	PlayerSettings.save_settings()
-	_catalog.assign(result["entries"])
-	_status_label.text = "%d shared package(s)." % _catalog.size()
-	_render_catalog()
-
-
-func _render_catalog() -> void:
-	if _browse_box == null:
-		return
-	_clear(_browse_box)
-	if _catalog.is_empty():
-		_browse_box.add_child(_small_label("Press Refresh to see what has been shared." if _status_label.text == "" else "Nothing has been shared yet."))
-		return
-	for entry in _catalog:
-		_browse_box.add_child(_catalog_row(entry))
-
-
-func _catalog_row(entry: Dictionary) -> Control:
-	var is_mission: bool = entry["type"] == SharePackage.TYPE_MISSION
-	var row := PanelContainer.new()
-	var box := HBoxContainer.new()
-	row.add_child(box)
-	var text := VBoxContainer.new()
-	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_child(text)
-	var title := Label.new()
-	title.text = "%s   v%s" % [entry["name"], entry["version"]]
-	text.add_child(title)
-	var size_text := " - %.1f MB" % (int(entry["size_bytes"]) / 1048576.0) if int(entry["size_bytes"]) > 0 else ""
-	text.add_child(_small_label("%s%s%s" % ["Mission" if is_mission else "Campaign", " - by %s" % entry["author"] if entry["author"] != "" else "", size_text]))
-	if entry["description"] != "":
-		text.add_child(_small_label(str(entry["description"]).substr(0, 220)))
-	var have := CommunityLibrary.newest_version(entry["id"])
-	var installed_this := not CommunityLibrary.find(entry["id"], entry["version"]).is_empty()
-	if installed_this:
-		var label := Label.new()
-		label.text = "Installed"
-		label.modulate = Color(0.6, 0.9, 0.6)
-		box.add_child(label)
-	else:
-		var button_text := "Install"
-		if have != "":
-			button_text = "Install this version (you have v%s)" % have if CommunityLibrary.compare_versions(entry["version"], have) > 0 else "Install (you have v%s)" % have
-		box.add_child(_action_button(button_text, func(): _install_from_catalog(entry)))
-	return row
-
-
-func _install_from_catalog(entry: Dictionary) -> void:
-	if _busy:
-		return
-	_set_busy(true)
-	var path := await _service.download_package(entry["url"], entry["sha256"], entry["name"])
-	_set_busy(false)
-	if path == "":
-		return
-	_review(path, entry["url"], {"id": entry["id"], "version": entry["version"]})
