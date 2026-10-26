@@ -2,7 +2,7 @@ class_name LibraryPage
 extends Control
 
 ## The New Game page (the designer's mockup): a carousel of hexagonal cards - the campaigns and single missions you have installed, your own
-## drafts, and (after "Community list") what the community has shared and you do not have yet - and a detail page with the cover, the story, the
+## drafts, and (after the refresh icon is pressed) what the community has shared and you do not have yet - and a detail page with the cover, the story, the
 ## languages and play time and one button: Install for something from the community, Begin campaign / Play mission for what you have.
 ## Nothing goes online until the player asks for the community list.
 
@@ -13,6 +13,7 @@ signal play_mission(path: String)
 const BACKGROUND := "res://models/ui/bg_rock.jpg"
 const GRADIENT := "res://models/ui/bg_gradient_blue.jpg"  ## multiplied over the rock: blue on the left, the plain rock on the right
 const DETAIL_BACKGROUND := "res://models/ui/bg_detail.jpg"  ## the same recipe, baked by the designer
+const REFRESH_ICON := "res://models/ui/icon_refresh.png"
 const BACK_ARROW := "res://models/ui/back_arrow.png"
 const NAV_ARROW := "res://models/ui/nav_arrow.png"
 const INSTALL_BUTTON := "res://models/ui/button_install.png"
@@ -36,7 +37,8 @@ var _detail_backdrop: TextureRect
 var _status: Label
 var _title: Label
 var _service: CommunityService
-var _list_button: Button
+var _list_button: TextureButton
+var _spin: Tween
 
 
 func _ready() -> void:
@@ -83,7 +85,9 @@ func _ready() -> void:
 	_title = MenuStyle.shadow_label("New game", 40, MenuStyle.TEXT_COLOR)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title)
-	_list_button = MenuStyle.plaque_button("Community list", Vector2(190, 62), _on_community_list_pressed)
+	_list_button = MenuStyle.texture_button(REFRESH_ICON, Vector2(78, 46), _on_community_list_pressed)
+	_list_button.pivot_offset = Vector2(39, 23)
+	_list_button.tooltip_text = "Look for campaigns shared by the community"
 	header.add_child(_list_button)
 
 	var stage := Control.new()
@@ -210,7 +214,7 @@ func _fill_cards() -> void:
 		child.free()
 	if _items.is_empty():
 		var empty := Label.new()
-		empty.text = "Nothing here yet. Press \"Community list\" to see what has been shared, or release a campaign of your own in the Campaign Editor."
+		empty.text = "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty.custom_minimum_size = Vector2(520, 0)
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -422,9 +426,13 @@ func _on_community_list_pressed() -> void:
 		return
 	_busy = true
 	_status.text = "Downloading the community list…"
+	_spin = create_tween().set_loops()
+	_spin.tween_property(_list_button, "rotation", TAU, 1.0).from(0.0)
 	var address := PlayerSettings.community_catalog_url if PlayerSettings.community_catalog_url != "" else CommunityService.DEFAULT_CATALOG_URL
 	var result := await _service.fetch_catalog(address)
 	_busy = false
+	_spin.kill()
+	_list_button.rotation = 0.0
 	if not result["ok"]:
 		_status.text = str(result["error"])
 		return
