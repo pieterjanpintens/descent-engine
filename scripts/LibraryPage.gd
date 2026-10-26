@@ -19,10 +19,12 @@ const NAV_ARROW := "res://models/ui/nav_arrow.png"
 const INSTALL_BUTTON := "res://models/ui/button_install.png"
 const BEGIN_BUTTON := "res://models/ui/button_begin.png"
 const CARD_GAP := 24.0
+const CATALOG_CACHE := "user://community/catalog_cache.json"  ## the last community list, so it is there at once next time (and offline)
 const ARROW_SIZE := 58.0
 
 var _items: Array[Dictionary] = []
 var _catalog: Array[Dictionary] = []
+var _catalog_saved := ""
 var _first := 0
 var _per_page := 3
 var _busy := false
@@ -122,6 +124,7 @@ func _ready() -> void:
 	_service.progress.connect(func(text: String): _status.text = text)
 	resized.connect(_relayout)
 	_relayout()
+	_load_cached_catalog()
 
 
 ## What the carousel shows is rebuilt from what is installed (a campaign or mission may have been installed, released or removed since).
@@ -437,9 +440,41 @@ func _on_community_list_pressed() -> void:
 		_status.text = str(result["error"])
 		return
 	_catalog.assign(result["entries"])
+	_save_cached_catalog()
 	refresh()
 	var fresh := 0
 	for item in _items:
 		if item.get("source", "") == "catalog":
 			fresh += 1
 	_status.text = "%d from the community to install." % fresh if fresh > 0 else "Nothing new in the community list."
+
+
+# ---------------------------------------------------------------- the cached list
+
+## The list from the last time the refresh icon was used: read from the disk, nothing goes online.
+func _load_cached_catalog() -> void:
+	if not FileAccess.file_exists(CATALOG_CACHE):
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(CATALOG_CACHE))
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	_catalog_saved = str((parsed as Dictionary).get("saved", ""))
+	var entries: Variant = (parsed as Dictionary).get("entries", [])
+	if typeof(entries) != TYPE_ARRAY:
+		return
+	_catalog.clear()
+	for raw: Variant in entries:
+		var entry := CommunityService._clean_entry(raw)  # the same checks as a freshly downloaded list
+		if not entry.is_empty():
+			_catalog.append(entry)
+	if not _catalog.is_empty():
+		_status.text = "Community list from %s - press the refresh icon to update it." % _catalog_saved.replace("T", " ").left(16)
+
+
+func _save_cached_catalog() -> void:
+	_catalog_saved = Time.get_datetime_string_from_system(false)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CommunityLibrary.ROOT))
+	var file := FileAccess.open(CATALOG_CACHE, FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify({"saved": _catalog_saved, "entries": _catalog}))
+		file.close()
