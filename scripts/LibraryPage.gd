@@ -140,9 +140,15 @@ func _build_items() -> Array[Dictionary]:
 	var released: Array[Dictionary] = []
 	var drafts: Array[Dictionary] = []
 	var online: Array[Dictionary] = []
-	var installed_ids: Dictionary = {}
+	# several versions of one package can be installed side by side; the carousel only shows the newest of each
+	var latest_installed: Dictionary = {}
 	for entry in CommunityLibrary.installed():
-		installed_ids["%s@%s" % [entry["id"], entry["version"]]] = true
+		var known: String = latest_installed.get(entry["id"], "")
+		if known == "" or CommunityLibrary.compare_versions(str(entry["version"]), known) > 0:
+			latest_installed[entry["id"]] = str(entry["version"])
+	for entry in CommunityLibrary.installed():
+		if str(entry["version"]) != latest_installed[entry["id"]]:
+			continue
 		var item := {
 			"source": "installed", "id": entry["id"], "version": entry["version"], "title": CommunityLibrary.strip_version_suffix(str(entry["name"])),
 			"text": str(entry.get("description", "")), "languages": CampaignInfo.clean_languages(entry.get("languages", [])),
@@ -174,8 +180,16 @@ func _build_items() -> Array[Dictionary]:
 				"languages": CampaignInfo.clean_languages(campaign.languages), "minutes": campaign.duration_minutes,
 				"texture": CampaignIO.image_texture(folder, campaign.cover_image), "author": "",
 			})
+	var latest_online: Dictionary = {}
 	for entry in _catalog:
-		if installed_ids.has("%s@%s" % [entry["id"], entry["version"]]):
+		var seen: String = latest_online.get(entry["id"], "")
+		if seen == "" or CommunityLibrary.compare_versions(str(entry["version"]), seen) > 0:
+			latest_online[entry["id"]] = str(entry["version"])
+	for entry in _catalog:
+		if str(entry["version"]) != latest_online[entry["id"]]:
+			continue
+		# already have this version or a newer one
+		if latest_installed.has(entry["id"]) and CommunityLibrary.compare_versions(str(entry["version"]), latest_installed[entry["id"]]) <= 0:
 			continue
 		online.append({
 			"source": "catalog", "kind": "campaign" if entry["type"] == SharePackage.TYPE_CAMPAIGN else "mission", "entry": entry,
