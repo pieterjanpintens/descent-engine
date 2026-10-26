@@ -54,6 +54,8 @@ var _options_dialog: VoiceSettingsDialog
 var _notice: AcceptDialog
 var _log_dialog: LogDialog
 var _inventory_dialog: InventoryDialog
+var _name_dialog: ConfirmationDialog
+var _name_edit: LineEdit
 var _confirm: ConfirmationDialog
 var _confirm_action: Callable
 
@@ -119,6 +121,25 @@ func _ready() -> void:
 	_inventory_dialog = InventoryDialog.new()
 	_inventory_dialog.state_provider = func() -> CampaignState: return _state
 	add_child(_inventory_dialog)
+	_name_dialog = ConfirmationDialog.new()
+	_name_dialog.min_size = Vector2i(440, 0)
+	_name_dialog.ok_button_text = "Start"
+	var name_box := VBoxContainer.new()
+	name_box.add_theme_constant_override("separation", 8)
+	_name_dialog.add_child(name_box)
+	var name_hint := _wrapped("Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load Campaign in the main menu). Use a different name for every group or playthrough.")
+	name_hint.custom_minimum_size.x = 420  # an auto-wrapping label with no width makes the dialog as tall as one word per line
+	name_box.add_child(name_hint)
+	_name_edit = LineEdit.new()
+	_name_edit.placeholder_text = "e.g. Friday night group"
+	_name_edit.text_changed.connect(func(text: String): _name_dialog.get_ok_button().disabled = text.strip_edges() == "")
+	_name_edit.text_submitted.connect(func(_text: String):
+		if not _name_dialog.get_ok_button().disabled:
+			_name_dialog.get_ok_button().emit_signal("pressed")
+	)
+	name_box.add_child(_name_edit)
+	_name_dialog.confirmed.connect(_on_new_name_confirmed)
+	add_child(_name_dialog)
 	_confirm = ConfirmationDialog.new()
 	_confirm.min_size = Vector2i(420, 0)
 	_confirm.confirmed.connect(func(): _confirm_action.call())
@@ -295,17 +316,33 @@ func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignS
 	return row
 
 
-## Begin campaign: the game starts at once on a save game with an automatic name ("Game 2026-10-26 21:40"); it is saved after every
-## change, so leaving and picking it up later (Load game in the main menu) needs no naming step.
 func _on_new_game_pressed(folder: String) -> void:
 	_folder = folder
+	var campaign := CampaignIO.load_campaign(folder)
+	_name_dialog.title = "Start a new game of %s" % (campaign.campaign_name if campaign != null else folder)
+	# a suggestion (date and time) so starting is one Enter; type your own name to tell playthroughs apart (e.g. "Friday night group")
 	var stamp := Time.get_datetime_dict_from_system()
 	var base := "Game %04d-%02d-%02d %02d:%02d" % [stamp["year"], stamp["month"], stamp["day"], stamp["hour"], stamp["minute"]]
-	var save_name := base
+	var suggestion := base
 	var counter := 2
-	while CampaignIO.save_keys(_folder).has(CampaignIO.save_key(save_name)):
-		save_name = "%s (%d)" % [base, counter]
+	while CampaignIO.save_keys(_folder).has(CampaignIO.save_key(suggestion)):
+		suggestion = "%s (%d)" % [base, counter]
 		counter += 1
+	_name_edit.text = suggestion
+	_name_dialog.get_ok_button().disabled = false
+	_name_dialog.popup_centered()
+	_name_edit.grab_focus()
+	_name_edit.select_all()
+
+
+func _on_new_name_confirmed() -> void:
+	var save_name := _name_edit.text.strip_edges()
+	if save_name == "":
+		_say("A save game needs a name.")
+		return
+	if CampaignIO.save_keys(_folder).has(CampaignIO.save_key(save_name)):
+		_say("A save game called '%s' already exists." % save_name)
+		return
 	if _begin(_folder, save_name):
 		await _ensure_hero_voices()
 		if _campaign.intro != "":
