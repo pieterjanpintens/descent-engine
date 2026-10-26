@@ -1,14 +1,15 @@
 class_name MenuStyle
 extends RefCounted
 
-## The look of the main menu (from the designer's mockup): Cinzel small-caps entries with an ornamental divider under each, and
-## framed buttons drawn by tools/ui/generate_menu_frames.py. Static helpers only - MainMenu builds its pages with them.
+## The look of the main menu (the designer's Illustrator mockup): Cinzel small-caps entries with an ornamental divider under each, and the
+## designer's own ornate frames for the buttons (models/ui, extracted from his .ai file at 3x the mockup size; drawn whole, the shapes
+## already have the aspect of the buttons: about 1:1 for the cog and 3.1:1 for the wide one). Static helpers only -
+## MainMenu builds its pages with them.
 
 const FONT_PATH := "res://fonts/Cinzel.ttf"
 const DIVIDER_PATH := "res://models/ui/menu_divider.png"
 const SQUARE_FRAME := "res://models/ui/menu_button_square.png"
 const WIDE_FRAME := "res://models/ui/menu_button_wide.png"
-const GEAR_ICON := "res://models/ui/menu_gear.png"
 
 const TEXT_COLOR := Color(1, 1, 1)
 const HOVER_COLOR := Color(1.0, 0.82, 0.55)
@@ -59,9 +60,9 @@ static func _invisible_button() -> Button:
 
 
 ## One menu entry: the text (a shadowed label with an invisible button on top) with the ornamental divider beneath it.
-static func entry(text: String, on_pressed: Callable, size: int = 34) -> VBoxContainer:
+static func entry(text: String, on_pressed: Callable, size: int = 30) -> VBoxContainer:
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", -8)  # the divider sits right under the letters
+	box.add_theme_constant_override("separation", -12)  # the divider sits right under the letters
 	var holder := MarginContainer.new()  # sizes itself to the label; the button covers all of it
 	box.add_child(holder)
 	var label := shadow_label(text, size, TEXT_COLOR)
@@ -73,7 +74,7 @@ static func entry(text: String, on_pressed: Callable, size: int = 34) -> VBoxCon
 	holder.add_child(button)
 	var divider := TextureRect.new()
 	divider.texture = load(DIVIDER_PATH) as Texture2D
-	divider.custom_minimum_size = Vector2(130, 26)
+	divider.custom_minimum_size = Vector2(130, 31)
 	divider.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	divider.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	divider.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -111,11 +112,6 @@ static func framed_button(text: String, wide: bool, size: Vector2, on_pressed: C
 	return button
 
 
+## The cog: the designer's square frame already has the gear in it.
 static func gear_button(size: float, on_pressed: Callable) -> Button:
-	var button := framed_button("", false, Vector2(size, size), on_pressed)
-	button.icon = load(GEAR_ICON) as Texture2D
-	button.expand_icon = true
-	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
-	button.add_theme_constant_override("icon_max_width", int(size * 0.5))
-	return button
+	return framed_button("", false, Vector2(size, size), on_pressed)

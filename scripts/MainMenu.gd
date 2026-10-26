@@ -108,12 +108,12 @@ func _build_menu() -> void:
 	row.add_theme_constant_override("separation", 10)
 	corner.add_child(row)
 	row.add_child(MenuStyle.gear_button(64, _on_options_button_pressed))
-	row.add_child(MenuStyle.framed_button("Community", true, Vector2(192, 64), _on_community_button_pressed))
+	row.add_child(MenuStyle.framed_button("Community", true, Vector2(198, 64), _on_community_button_pressed))
 
 
 func _page(column: VBoxContainer) -> VBoxContainer:
 	var page := VBoxContainer.new()
-	page.add_theme_constant_override("separation", 10)
+	page.add_theme_constant_override("separation", 6)
 	page.size_flags_horizontal = Control.SIZE_FILL
 	column.add_child(page)
 	return page
