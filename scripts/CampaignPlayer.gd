@@ -32,7 +32,6 @@ const UPDATE_NOTE := NL2 + "Note:" + NL + "- %s"
 const NL := "\n"
 const NL2 := "\n\n"
 const BULLET_JOIN := "\n- "
-const BOOK_SIZE := Vector2(190, 340)
 const BOOK_COVER_SIZE := Vector2(170, 255)  ## the 2:3 cover ratio of CampaignIO.COVER_SIZE
 
 var _campaign: Campaign
@@ -42,10 +41,7 @@ var _selected_id: String = ""
 
 ## Shows the story pages and questions of a narrative chapter (the mission player's dialog, reused).
 var _narrative_dialog: PlayerDialog
-var _library_page: Control
-var _library_books: HFlowContainer
-var _draft_books: HFlowContainer
-var _draft_header: Label
+var _library_page: LibraryPage
 var _load_page: Control
 var _load_list: VBoxContainer
 var _play_page: Control
@@ -73,12 +69,16 @@ func _ready() -> void:
 	add_child(margin)
 	var root := Control.new()
 	margin.add_child(root)
-	_library_page = _build_library_page()
+	_library_page = LibraryPage.new()
+	_library_page.back_pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
+	_library_page.begin_campaign.connect(_on_new_game_pressed)
+	_library_page.play_mission.connect(_on_play_mission_pressed)
 	_load_page = _build_load_page()
 	_play_page = _build_play_page()
-	for page in [_library_page, _load_page]:
-		page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		root.add_child(page)
+	_load_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(_load_page)
+	# The library has its own full-screen background, so it sits outside the margin like the map page.
+	add_child(_library_page)
 	# The map page covers the whole screen (no margin): the map is centred in it and the HUD floats over it.
 	_play_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_play_page)
@@ -175,81 +175,18 @@ func _show_page(page: Control) -> void:
 		candidate.visible = candidate == page
 
 
-func _build_library_page() -> Control:
-	var page := VBoxContainer.new()
-	page.add_theme_constant_override("separation", 12)
-	var bar := HBoxContainer.new()
-	page.add_child(bar)
-	bar.add_child(_button("‹ Back to menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
-	var title := _label("Choose a campaign")
-	title.add_theme_font_size_override("font_size", 28)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bar.add_child(title)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	page.add_child(scroll)
-	var shelves := VBoxContainer.new()
-	shelves.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	shelves.add_theme_constant_override("separation", 16)
-	scroll.add_child(shelves)
-	_library_books = _flow()
-	shelves.add_child(_library_books)
-	_draft_header = _label("In development - drafts that may still change or break")
-	_draft_header.modulate = Color(1.0, 0.85, 0.4)
-	shelves.add_child(_draft_header)
-	_draft_books = _flow()
-	shelves.add_child(_draft_books)
-	return page
-
-
-func _flow() -> HFlowContainer:
-	var flow := HFlowContainer.new()
-	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	flow.add_theme_constant_override("h_separation", 20)
-	flow.add_theme_constant_override("v_separation", 20)
-	return flow
-
-
-## The library has two shelves: RELEASES (play mode - frozen versions, what you normally play) and drafts still in development.
 func _show_library() -> void:
-	for shelf in [_library_books, _draft_books]:
-		for child in shelf.get_children():
-			shelf.remove_child(child)
-			child.queue_free()
-	var folders := CampaignIO.folder_names()
-	for folder in folders:
-		var campaign := CampaignIO.load_campaign(folder)
-		if campaign != null:
-			(_library_books if CampaignIO.is_release(folder) else _draft_books).add_child(_book(folder, campaign))
-	if _library_books.get_child_count() == 0:
-		_library_books.add_child(_wrapped("No released campaigns yet - install one from the Community page, or release one of your own in the Campaign Editor (File > Release)."))
-	_draft_header.visible = _draft_books.get_child_count() > 0
-	_draft_books.visible = _draft_header.visible
+	_library_page.refresh()
+	_library_page.auto_load_catalog()  # fills the community cards by itself unless the cached list is fresh
 	_show_page(_library_page)
 
 
-## One "book": the cover (or a plain coloured one with the title) over the campaign's title; a click
-## starts a new game of it.
-func _book(folder: String, campaign: Campaign) -> Control:
-	var book := Control.new()
-	book.custom_minimum_size = BOOK_SIZE
-	var column := VBoxContainer.new()
-	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	book.add_child(column)
-	column.add_child(_cover(folder, campaign, BOOK_COVER_SIZE))
-	var title := _wrapped(campaign.campaign_name)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(title)
-	var click := Button.new()
-	click.flat = true
-	click.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	click.pressed.connect(func(): _on_new_game_pressed(folder))
-	book.add_child(click)
-	return book
+## A single mission installed from the community: straight into the Player (no campaign around it).
+func _on_play_mission_pressed(path: String) -> void:
+	GameState.clear_campaign()
+	GameState.clear_debug()
+	GameState.current_mission_path = path
+	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
 
 
 ## The cover of `campaign` at `size` (always the 2:3 ratio, as imported); without a cover image a plain
@@ -384,10 +321,19 @@ func _on_new_game_pressed(folder: String) -> void:
 	_folder = folder
 	var campaign := CampaignIO.load_campaign(folder)
 	_name_dialog.title = "Start a new game of %s" % (campaign.campaign_name if campaign != null else folder)
-	_name_edit.text = ""
-	_name_dialog.get_ok_button().disabled = true
+	# a suggestion (date and time) so starting is one Enter; type your own name to tell playthroughs apart (e.g. "Friday night group")
+	var stamp := Time.get_datetime_dict_from_system()
+	var base := "Game %04d-%02d-%02d %02d:%02d" % [stamp["year"], stamp["month"], stamp["day"], stamp["hour"], stamp["minute"]]
+	var suggestion := base
+	var counter := 2
+	while CampaignIO.save_keys(_folder).has(CampaignIO.save_key(suggestion)):
+		suggestion = "%s (%d)" % [base, counter]
+		counter += 1
+	_name_edit.text = suggestion
+	_name_dialog.get_ok_button().disabled = false
 	_name_dialog.popup_centered()
 	_name_edit.grab_focus()
+	_name_edit.select_all()
 
 
 func _on_new_name_confirmed() -> void:

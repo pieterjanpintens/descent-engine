@@ -245,6 +245,8 @@ static func _parse_manifest(text: String, errors: Array[String]) -> Dictionary:
 		"description": clean_text(str(raw.get("description", "")), 2000, true),
 		"app_version": clean_text(str(raw.get("app_version", "")), 20),
 		"rights_confirmed": bool(raw.get("rights_confirmed", false)),
+		"languages": CampaignInfo.clean_languages(raw.get("languages", [])),
+		"duration_minutes": CampaignInfo.clean_minutes(raw.get("duration_minutes", 0)),
 		"files": files,
 	}
 
@@ -452,7 +454,7 @@ static func _slug(text: String) -> String:
 	return slug.trim_suffix("-")
 
 
-## Packs a mission into `out_path`. `meta`: {name, author, description, version, rights_confirmed}. Returns the problems
+## Packs a mission into `out_path`. `meta`: {name, author, description, version, rights_confirmed, languages, duration_minutes}. Returns the problems
 ## (empty = the package was written and checked).
 static func build_mission(mission: MissionData, meta: Dictionary, out_path: String) -> Array[String]:
 	var temp := "user://community/export_tmp.tres"
@@ -493,6 +495,8 @@ static func _write(package_type: String, files: Dictionary, meta: Dictionary, ou
 		"version": str(meta.get("version", "1.0.0")),
 		"app_version": str(ProjectSettings.get_setting("application/config/version", "")),
 		"rights_confirmed": bool(meta.get("rights_confirmed", false)),
+		"languages": CampaignInfo.clean_languages(meta.get("languages", [])),
+		"duration_minutes": CampaignInfo.clean_minutes(meta.get("duration_minutes", 0)),
 		"created": Time.get_datetime_string_from_system(true),
 		"files": hashes,
 	}

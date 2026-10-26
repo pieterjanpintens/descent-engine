@@ -76,6 +76,8 @@ var _act_intro_edit: TextEdit
 var _map_label: Label
 var _cover_label: Label
 var _cover_preview: TextureRect
+var _language_holder: VBoxContainer
+var _duration_spin: SpinBox
 var _cover_dialog: FileDialog
 var _problems_button: Button
 var _problems_dialog: AcceptDialog
@@ -234,6 +236,24 @@ func _ready() -> void:
 	_cover_label = _wrapped_label("")
 	_cover_label.custom_minimum_size.x = 150.0  # a wrapping label needs a width to start from
 	book_column.add_child(_cover_label)
+	general.add_child(_label("Languages:"))
+	_language_holder = VBoxContainer.new()
+	general.add_child(_language_holder)
+	var duration_row := HBoxContainer.new()
+	general.add_child(duration_row)
+	duration_row.add_child(_label("Play time (minutes):"))
+	_duration_spin = SpinBox.new()
+	_duration_spin.min_value = 0
+	_duration_spin.max_value = CampaignInfo.MAX_MINUTES
+	_duration_spin.step = 5
+	_duration_spin.tooltip_text = "About how long the whole campaign takes. Shown on the library card and in the community catalog (0 = unknown)."
+	_duration_spin.value_changed.connect(func(value: float):
+		if _suppress or _campaign == null:
+			return
+		_campaign.duration_minutes = int(value)
+		_mark_dirty()
+	)
+	duration_row.add_child(_duration_spin)
 
 	_section(general, "Story")
 	general.add_child(_button("Writing workspace…", _open_manuscript_window))
@@ -1673,6 +1693,15 @@ func _refresh_all() -> void:
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
 	_sell_spin.set_value_no_signal(_campaign.sell_percent)
+	_duration_spin.set_value_no_signal(_campaign.duration_minutes)
+	for child in _language_holder.get_children():
+		_language_holder.remove_child(child)
+		child.free()
+	_language_holder.add_child(CampaignInfo.language_row(_campaign.languages, func():
+		if _suppress or _campaign == null:
+			return
+		_mark_dirty()
+	))
 	_potion_spin.set_value_no_signal(_campaign.consumables_per_player)
 	_refresh_brooch_row()
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")

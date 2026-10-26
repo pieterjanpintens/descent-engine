@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dppdqw4s7e0gc"
-path="res://.godot/imported/menu_gear.png-b36e4cf3172ddd50d6142c82acc327bd.ctex"
+uid="uid://bem4ivkuid15b"
+path="res://.godot/imported/icon_mission.png-6215cb7d42c884ba1f16286c7f4f36fd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://models/ui/menu_gear.png"
-dest_files=["res://.godot/imported/menu_gear.png-b36e4cf3172ddd50d6142c82acc327bd.ctex"]
+source_file="res://models/ui/icon_mission.png"
+dest_files=["res://.godot/imported/icon_mission.png-6215cb7d42c884ba1f16286c7f4f36fd.ctex"]
 
 [params]
 

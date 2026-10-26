@@ -203,6 +203,8 @@ static func install(package: Dictionary, source := "") -> Dictionary:
 		"author": manifest["author"],
 		"description": manifest["description"],
 		"rights_confirmed": manifest["rights_confirmed"],
+		"languages": manifest.get("languages", []),
+		"duration_minutes": int(manifest.get("duration_minutes", 0)),
 		"path": path,
 		"source": source,
 		"installed": Time.get_datetime_string_from_system(true),

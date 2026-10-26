@@ -24,7 +24,6 @@ const CREDITS_NOTE := "An unofficial fan project, free to use (MIT license).\n*D
 const LOGO_PATH := "res://models/logo.png"
 
 var _options_dialog: VoiceSettingsDialog
-var _community_dialog: CommunityDialog
 var _credits_panel: VBoxContainer
 var _updater: AppUpdater
 var _update_button: Button
@@ -48,7 +47,7 @@ func _ready() -> void:
 	await _build_update_banner()
 
 
-## The layout of the mockup: logo top left with the entries centred under it, the cog (Options) and Community bottom left;
+## The layout of the mockup: logo top left with the entries centred under it, the cog (Options; its Community tab holds the installed shared packages and the manual install) bottom left;
 ## Credits / What's new / version sit bottom right (see _build_update_banner). Three pages share the column: main, editors, credits.
 func _build_menu() -> void:
 	var margin := MarginContainer.new()
@@ -108,12 +107,11 @@ func _build_menu() -> void:
 	row.add_theme_constant_override("separation", 10)
 	corner.add_child(row)
 	row.add_child(MenuStyle.gear_button(64, _on_options_button_pressed))
-	row.add_child(MenuStyle.framed_button("Community", true, Vector2(192, 64), _on_community_button_pressed))
 
 
 func _page(column: VBoxContainer) -> VBoxContainer:
 	var page := VBoxContainer.new()
-	page.add_theme_constant_override("separation", 10)
+	page.add_theme_constant_override("separation", 6)
 	page.size_flags_horizontal = Control.SIZE_FILL
 	column.add_child(page)
 	return page
@@ -237,16 +235,6 @@ func _on_credits_back_pressed() -> void:
 	main_panel.visible = true
 
 
-## Shared missions and campaigns: what is installed, importing a package, browsing the catalog.
-func _on_community_button_pressed() -> void:
-	if _community_dialog == null:
-		_community_dialog = CommunityDialog.new()
-		_community_dialog.play_mission.connect(_on_mission_file_dialog_file_selected)
-		_community_dialog.open_campaigns.connect(_on_new_campaign_button_pressed)
-		add_child(_community_dialog)
-	_community_dialog.open()
-
-
 ## The same Options dialog as the Player's Gear menu (voice control, narration, voices). Nothing is listening in the
 ## menu, so the dialog (live = false) only saves the settings and lets the player install the voice packs.
 func _on_options_button_pressed() -> void:
@@ -256,6 +244,8 @@ func _on_options_button_pressed() -> void:
 		_options_dialog = VoiceSettingsDialog.new()
 		_options_dialog.voice_listener = listener
 		_options_dialog.live = false
+		_options_dialog.play_mission.connect(_on_mission_file_dialog_file_selected)
+		_options_dialog.open_campaigns.connect(_on_new_campaign_button_pressed)
 		add_child(_options_dialog)
 	_options_dialog.open()
 

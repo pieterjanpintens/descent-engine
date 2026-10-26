@@ -22,7 +22,12 @@ extends Control
 var voice_listener: VoiceListener
 ## false in the main menu: there is no running Player to drive, so the settings are only saved (and take effect
 ## when a mission starts); the listener is then only asked what is installed.
+## From the Community tab (main menu only).
+signal play_mission(path: String)
+signal open_campaigns
+
 var live := true
+var _community_panel: CommunityPanel
 ## Also assigned by MissionPlayer - this dialog now owns every write to
 ## dialog.voice_hints_enabled (see "Show voice hints" below), instead of
 ## MissionPlayer wiring voice_listener.voice_ready straight to it.
@@ -81,6 +86,16 @@ func _ready() -> void:
 	var voice := _tab(tabs, "Voice")
 	var ai := _tab(tabs, "AI")
 	var assets := _tab(tabs, "Game assets")
+	if not live:  # in a mission the scene cannot be left, so installing / playing shared packages is a main menu matter
+		var community := _tab(tabs, "Community")
+		_community_panel = CommunityPanel.new()
+		_community_panel.play_mission.connect(func(path: String):
+			visible = false
+			play_mission.emit(path))
+		_community_panel.open_campaigns.connect(func():
+			visible = false
+			open_campaigns.emit())
+		community.add_child(_community_panel)
 	_assets_panel = AssetImportPanel.new()
 	_assets_panel.busy_changed.connect(func(busy: bool): _close_button.disabled = busy)
 	assets.add_child(_assets_panel)
@@ -244,6 +259,8 @@ func _tab(tabs: TabContainer, tab_name: String) -> VBoxContainer:
 
 func open() -> void:
 	_assets_panel.refresh()
+	if _community_panel != null:
+		_community_panel.refresh()
 	_refresh()
 	visible = true
 

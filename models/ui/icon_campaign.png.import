@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://eayc5c5chjlf"
-path="res://.godot/imported/menu_divider.png-719174ed1fb4194ff3d1d6e4d649d3aa.ctex"
+uid="uid://dce0kq706vcf1"
+path="res://.godot/imported/icon_campaign.png-b8e245b1f65c9f3719edb2037ce83bf3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://models/ui/menu_divider.png"
-dest_files=["res://.godot/imported/menu_divider.png-719174ed1fb4194ff3d1d6e4d649d3aa.ctex"]
+source_file="res://models/ui/icon_campaign.png"
+dest_files=["res://.godot/imported/icon_campaign.png-b8e245b1f65c9f3719edb2037ce83bf3.ctex"]
 
 [params]
 
