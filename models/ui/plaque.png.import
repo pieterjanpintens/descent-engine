@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bg5e2mo2cj4t"
-path="res://.godot/imported/menu_button_square.png-4e150307be0a52589911271015bc5c9b.ctex"
+uid="uid://8juod8bqpsrx"
+path="res://.godot/imported/plaque.png-a95d1b3692ae1c00aa77c69c1242d062.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://models/ui/menu_button_square.png"
-dest_files=["res://.godot/imported/menu_button_square.png-4e150307be0a52589911271015bc5c9b.ctex"]
+source_file="res://models/ui/plaque.png"
+dest_files=["res://.godot/imported/plaque.png-a95d1b3692ae1c00aa77c69c1242d062.ctex"]
 
 [params]
 

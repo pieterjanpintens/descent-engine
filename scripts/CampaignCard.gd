@@ -1,17 +1,18 @@
 class_name CampaignCard
 extends Control
 
-## One campaign (or mission) in the New Game carousel, drawn like the designer's mockup: a tall hexagon with the cover, a blue title plaque, the
-## language flags, the play time and a book / sword icon for campaign / single mission. `item` is what LibraryPage built:
-## {title, kind "campaign"|"mission", source "installed"|"draft"|"catalog", languages, minutes, texture (nullable)}.
+## One campaign (or mission) in the New Game carousel, built from the designer's pieces: his hexagon frame (models/ui/card_frame.png) over the cover,
+## his blue plaque with the title, his language flags, a clock + play time and his book / sword icon for campaign / single mission.
+## `item` is what LibraryPage built: {title, kind "campaign"|"mission", source "installed"|"draft"|"catalog", languages, minutes, texture (nullable)}.
 
 signal pressed
 
-const CARD_SIZE := Vector2(236, 430)
-const PLAQUE_PATH := "res://models/ui/menu_button_wide.png"
-const BORDER_COLOR := Color(0.62, 0.64, 0.70)
-const BORDER_HOVER := Color(1.0, 0.82, 0.55)
-const FLAG_HEIGHT := 18.0
+## The frame image is 439 x 1138.
+const CARD_SIZE := Vector2(176, 456)
+const SHOULDER_TOP := 0.145      ## where the frame's top point has widened to the full width (fraction of the height)
+const SHOULDER_BOTTOM := 0.832   ## and where it starts narrowing again
+const HOVER_TINT := Color(1.0, 0.82, 0.55)
+const FLAG_HEIGHT := 17.0
 
 ## Textures drawn from _draw() must stay referenced: one loaded there and dropped at the end of the call is freed before the renderer draws it.
 static var _textures: Dictionary = {}
@@ -19,14 +20,12 @@ static var _textures: Dictionary = {}
 var item: Dictionary = {}
 
 var _hover := false
-var _plaque: Texture2D
 
 
 func _init() -> void:
 	custom_minimum_size = CARD_SIZE
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_plaque = load(PLAQUE_PATH) as Texture2D
 	mouse_entered.connect(func():
 		_hover = true
 		queue_redraw()
@@ -50,36 +49,27 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 
-## The hexagon (pointy top and bottom, vertical sides) shrunk by `inset` pixels.
-func _hexagon(inset: float) -> PackedVector2Array:
-	var width := size.x - inset * 2.0
-	var height := size.y - inset * 2.0
-	var shoulder := height * 0.17
-	var left := inset
-	var top := inset
+## The hexagon of the frame (pointy top and bottom, vertical sides).
+func _hexagon() -> PackedVector2Array:
+	var w := size.x
+	var h := size.y
 	return PackedVector2Array([
-		Vector2(left + width / 2.0, top),
-		Vector2(left + width, top + shoulder),
-		Vector2(left + width, top + height - shoulder),
-		Vector2(left + width / 2.0, top + height),
-		Vector2(left, top + height - shoulder),
-		Vector2(left, top + shoulder),
+		Vector2(w / 2.0, 0.0), Vector2(w, h * SHOULDER_TOP), Vector2(w, h * SHOULDER_BOTTOM),
+		Vector2(w / 2.0, h), Vector2(0.0, h * SHOULDER_BOTTOM), Vector2(0.0, h * SHOULDER_TOP),
 	])
 
 
 func _draw() -> void:
 	var dimmed: bool = item.get("source", "") == "catalog"
 	var tint := Color(1, 1, 1, 0.55) if dimmed else Color.WHITE
-	var outer := _hexagon(3.0)
-	var inner := _hexagon(9.0)
-	draw_colored_polygon(outer, Color(0.1, 0.1, 0.13) * tint)
-	# the cover, cropped to fill the hexagon
+	var hexagon := _hexagon()
+	var whole := Rect2(Vector2.ZERO, size)
+	# the cover, cropped to fill the hexagon (a coloured gradient while there is no picture)
 	var texture := item.get("texture") as Texture2D
 	if texture != null:
-		var box := Rect2(9.0, 9.0, size.x - 18.0, size.y - 18.0)
 		var uvs := PackedVector2Array()
 		var texture_aspect := float(texture.get_width()) / float(texture.get_height())
-		var box_aspect := box.size.x / box.size.y
+		var box_aspect := size.x / size.y
 		var u0 := 0.0
 		var u1 := 1.0
 		var v0 := 0.0
@@ -92,79 +82,69 @@ func _draw() -> void:
 			var keep_v := texture_aspect / box_aspect
 			v0 = (1.0 - keep_v) / 2.0
 			v1 = v0 + keep_v
-		for point in inner:
-			uvs.append(Vector2(lerpf(u0, u1, (point.x - box.position.x) / box.size.x), lerpf(v0, v1, (point.y - box.position.y) / box.size.y)))
-		draw_colored_polygon(inner, tint, uvs, texture)
+		for point in hexagon:
+			uvs.append(Vector2(lerpf(u0, u1, point.x / size.x), lerpf(v0, v1, point.y / size.y)))
+		draw_colored_polygon(hexagon, tint, uvs, texture)
 	else:
 		var hue := float(str(item.get("title", "")).hash() % 360) / 360.0
-		draw_colored_polygon(inner, Color.from_hsv(hue, 0.45, 0.35) * tint)
+		draw_texture_rect(_texture("res://models/ui/card_gradient.png"), whole, false, Color.from_hsv(hue, 0.5, 0.75) * tint)
 	# a darkening of the lower part so the plaque and the small print read on any picture
-	var top_y := size.y * 0.60
-	var shoulder := (size.y - 18.0) * 0.17
-	var bottom_shoulder := size.y - 9.0 - shoulder
+	var top_y := size.y * 0.56
 	draw_colored_polygon(PackedVector2Array([
-		Vector2(9.0, top_y), Vector2(size.x - 9.0, top_y), Vector2(size.x - 9.0, bottom_shoulder),
-		Vector2(size.x / 2.0, size.y - 9.0), Vector2(9.0, bottom_shoulder),
-	]), Color(0, 0, 0, 0.55))
-	# the double border
-	var border := BORDER_HOVER if _hover else BORDER_COLOR
-	draw_polyline(_closed(outer), border * tint, 5.0, true)
-	draw_polyline(_closed(inner), Color(border.r * 0.55, border.g * 0.55, border.b * 0.55) * tint, 2.0, true)
+		Vector2(0, top_y), Vector2(size.x, top_y), Vector2(size.x, size.y * SHOULDER_BOTTOM), Vector2(size.x / 2.0, size.y), Vector2(0, size.y * SHOULDER_BOTTOM),
+	]), Color(0, 0, 0, 0.5))
+	draw_texture_rect(_texture("res://models/ui/card_frame.png"), whole, false, (HOVER_TINT if _hover else Color.WHITE) * tint)
 
 	var font := MenuStyle.font()
-	# the title plaque
-	var plaque_rect := Rect2(14.0, size.y * 0.625, size.x - 28.0, 64.0)
-	draw_texture_rect(_plaque, plaque_rect, false, tint)
+	# the title plaque, a little wider than the card like in the mockup
+	var plaque_width := size.x + 16.0
+	var plaque_rect := Rect2(-8.0, size.y * 0.62, plaque_width, plaque_width / 3.06)
+	draw_texture_rect(_texture(MenuStyle.PLAQUE_PATH), plaque_rect, false, tint)
 	var title := str(item.get("title", ""))
-	var title_size := 18 if title.length() <= 22 else 15
-	var lines := font.get_multiline_string_size(title, HORIZONTAL_ALIGNMENT_CENTER, plaque_rect.size.x - 44.0, title_size, 2)
-	draw_multiline_string(font, Vector2(plaque_rect.position.x + 22.0, plaque_rect.position.y + (plaque_rect.size.y - lines.y) / 2.0 + title_size), title, HORIZONTAL_ALIGNMENT_CENTER, plaque_rect.size.x - 44.0, title_size, 2, Color.WHITE * tint)
+	var title_size := 16 if title.length() <= 18 else 13
+	var text_width := plaque_rect.size.x - 40.0
+	var lines := font.get_multiline_string_size(title, HORIZONTAL_ALIGNMENT_CENTER, text_width, title_size, 2)
+	draw_multiline_string(font, Vector2(plaque_rect.position.x + 20.0, plaque_rect.position.y + (plaque_rect.size.y - lines.y) / 2.0 + title_size - 1.0), title, HORIZONTAL_ALIGNMENT_CENTER, text_width, title_size, 2, Color.WHITE * tint)
 	if item.get("source", "") == "draft":
-		draw_string(font, Vector2(0, 30), "IN DEVELOPMENT", HORIZONTAL_ALIGNMENT_CENTER, size.x, 13, Color(1.0, 0.8, 0.35))
+		draw_string(font, Vector2(0, 26), "IN DEVELOPMENT", HORIZONTAL_ALIGNMENT_CENTER, size.x, 12, Color(1.0, 0.8, 0.35))
 
 	# flags | clock + play time
 	var row_y := plaque_rect.end.y + 12.0
-	var languages: Array = item.get("languages", [])
-	var flags_width := 0.0
 	var flag_textures: Array[Texture2D] = []
-	for code: Variant in languages:
-		flag_textures.append(_texture("res://models/ui/flag_%s.png" % str(code)))
-	var codes: Array = languages
+	var codes: Array = item.get("languages", [])
 	var widths: Array[float] = []
-	for index in flag_textures.size():
-		var flag_texture := flag_textures[index]
-		var w := FLAG_HEIGHT * (float(flag_texture.get_width()) / float(flag_texture.get_height())) if flag_texture != null else 26.0
+	var flags_width := 0.0
+	for code: Variant in codes:
+		var flag_texture := _texture("res://models/ui/flag_%s.png" % str(code))
+		flag_textures.append(flag_texture)
+		var w := FLAG_HEIGHT * (float(flag_texture.get_width()) / float(flag_texture.get_height())) if flag_texture != null else 22.0
 		widths.append(w)
-		flags_width += w + 5.0
-	var minutes := int(item.get("minutes", 0))
-	var time_text := CampaignInfo.duration_text(minutes)
-	var clock := _texture("res://models/ui/icon_clock.png")
-	var time_width := (FLAG_HEIGHT + 6.0 + font.get_string_size(time_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x) if time_text != "" else 0.0
-	var gap := 16.0 if flags_width > 0.0 and time_width > 0.0 else 0.0
-	var x := (size.x - (flags_width - 5.0 if flags_width > 0.0 else 0.0) - gap - time_width) / 2.0
+		flags_width += w + 4.0
+	flags_width = maxf(0.0, flags_width - 4.0)
+	var time_text := CampaignInfo.duration_text(int(item.get("minutes", 0)))
+	var time_size := 13
+	var time_width := (FLAG_HEIGHT + 4.0 + font.get_string_size(time_text, HORIZONTAL_ALIGNMENT_LEFT, -1, time_size).x) if time_text != "" else 0.0
+	var dash_gap := 14.0 if flags_width > 0.0 and time_width > 0.0 else 0.0
+	var x := (size.x - flags_width - dash_gap - time_width) / 2.0
 	for index in flag_textures.size():
 		if flag_textures[index] != null:
 			draw_texture_rect(flag_textures[index], Rect2(x, row_y, widths[index], FLAG_HEIGHT), false, tint)
 		else:
-			draw_string(font, Vector2(x, row_y + FLAG_HEIGHT - 3.0), str(codes[index]).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE * tint)
-		x += widths[index] + 5.0
+			draw_string(font, Vector2(x, row_y + FLAG_HEIGHT - 3.0), str(codes[index]).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE * tint)
+		x += widths[index] + 4.0
 	if time_text != "":
-		x += gap - (5.0 if flags_width > 0.0 else 0.0)
-		draw_texture_rect(clock, Rect2(x, row_y, FLAG_HEIGHT, FLAG_HEIGHT), false, Color(1, 1, 1, 0.85) * tint)
-		draw_string(font, Vector2(x + FLAG_HEIGHT + 6.0, row_y + FLAG_HEIGHT - 3.0), time_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1, 1, 1, 0.85) * tint)
+		if dash_gap > 0.0:
+			x += dash_gap / 2.0 - 4.0
+			draw_texture_rect(_texture("res://models/ui/icon_dash.png"), Rect2(x - 1.0, row_y - 1.0, 2.5, FLAG_HEIGHT + 2.0), false, Color(1, 1, 1, 0.8) * tint)
+			x += dash_gap / 2.0 + 4.0
+		draw_texture_rect(_texture("res://models/ui/icon_clock.png"), Rect2(x, row_y, FLAG_HEIGHT, FLAG_HEIGHT), false, Color(1, 1, 1, 0.85) * tint)
+		draw_string(font, Vector2(x + FLAG_HEIGHT + 4.0, row_y + FLAG_HEIGHT - 3.0), time_text, HORIZONTAL_ALIGNMENT_LEFT, -1, time_size, Color(1, 1, 1, 0.85) * tint)
 	# campaign (book) or single mission (sword)
-	var icon_path := "res://models/ui/icon_campaign.png" if item.get("kind", "campaign") == "campaign" else "res://models/ui/icon_mission.png"
-	var icon := _texture(icon_path)
-	draw_texture_rect(icon, Rect2(size.x / 2.0 - 21.0, size.y - 84.0, 42.0, 42.0), false, Color(1, 1, 1, 0.9) * tint)
+	var icon := _texture("res://models/ui/icon_campaign.png" if item.get("kind", "campaign") == "campaign" else "res://models/ui/icon_mission.png")
+	draw_texture_rect(icon, Rect2(size.x / 2.0 - 20.0, size.y - 82.0, 40.0, 40.0), false, Color(1, 1, 1, 0.9) * tint)
 
 
 static func _texture(path: String) -> Texture2D:
 	if not _textures.has(path):
 		_textures[path] = load(path) as Texture2D if ResourceLoader.exists(path) else null
 	return _textures[path]
-
-
-static func _closed(points: PackedVector2Array) -> PackedVector2Array:
-	var closed := points.duplicate()
-	closed.append(points[0])
-	return closed

@@ -10,9 +10,12 @@ signal back_pressed
 signal begin_campaign(folder: String)
 signal play_mission(path: String)
 
-const BACKGROUND := "res://models/floor_concrete.jpg"
-const INSTALL_FRAME := "res://models/ui/button_install.png"
-const BEGIN_FRAME := "res://models/ui/button_begin.png"
+const BACKGROUND := "res://models/ui/bg_rock.jpg"
+const DETAIL_BACKGROUND := "res://models/ui/bg_detail.jpg"
+const BACK_ARROW := "res://models/ui/back_arrow.png"
+const NAV_ARROW := "res://models/ui/nav_arrow.png"
+const INSTALL_BUTTON := "res://models/ui/button_install.png"
+const BEGIN_BUTTON := "res://models/ui/button_begin.png"
 const CARD_GAP := 24.0
 const ARROW_SIZE := 58.0
 
@@ -25,8 +28,8 @@ var _selected: Dictionary = {}
 
 var _carousel: Control
 var _cards_row: HBoxContainer
-var _prev_button: Button
-var _next_button: Button
+var _prev_button: BaseButton
+var _next_button: BaseButton
 var _detail: Control
 var _status: Label
 var _title: Label
@@ -44,7 +47,7 @@ func _ready() -> void:
 	floor_picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(floor_picture)
 	var tint := ColorRect.new()
-	tint.color = Color(0.05, 0.03, 0.16, 0.86)
+	tint.color = Color(0.09, 0.05, 0.3, 0.5)
 	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(tint)
@@ -60,11 +63,11 @@ func _ready() -> void:
 
 	var header := HBoxContainer.new()
 	page.add_child(header)
-	header.add_child(_arrow_button("◀", _on_back_pressed))
+	header.add_child(MenuStyle.texture_button(BACK_ARROW, Vector2(78, 46), _on_back_pressed))
 	_title = MenuStyle.shadow_label("New game", 40, MenuStyle.TEXT_COLOR)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title)
-	_list_button = MenuStyle.framed_button("Community list", true, Vector2(200, ARROW_SIZE), _on_community_list_pressed)
+	_list_button = MenuStyle.plaque_button("Community list", Vector2(190, 62), _on_community_list_pressed)
 	header.add_child(_list_button)
 
 	var stage := Control.new()
@@ -73,7 +76,7 @@ func _ready() -> void:
 	_carousel = HBoxContainer.new()
 	_carousel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	stage.add_child(_carousel)
-	_prev_button = _arrow_button("◀", func(): _scroll(-1))
+	_prev_button = MenuStyle.texture_button(NAV_ARROW, Vector2(ARROW_SIZE, ARROW_SIZE), func(): _scroll(-1))
 	_prev_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_carousel.add_child(_prev_button)
 	_cards_row = HBoxContainer.new()
@@ -81,7 +84,7 @@ func _ready() -> void:
 	_cards_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_cards_row.add_theme_constant_override("separation", int(CARD_GAP))
 	_carousel.add_child(_cards_row)
-	_next_button = _arrow_button("▶", func(): _scroll(1))
+	_next_button = MenuStyle.texture_button(NAV_ARROW, Vector2(ARROW_SIZE, ARROW_SIZE), func(): _scroll(1), true)
 	_next_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_carousel.add_child(_next_button)
 	_detail = Control.new()
@@ -219,6 +222,13 @@ func _open_detail(item: Dictionary) -> void:
 	for child in _detail.get_children():
 		_detail.remove_child(child)
 		child.free()
+	var backdrop := TextureRect.new()
+	backdrop.texture = load(DETAIL_BACKGROUND) as Texture2D
+	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	backdrop.stretch_mode = TextureRect.STRETCH_SCALE
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_detail.add_child(backdrop)
 	var row := HBoxContainer.new()
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override("separation", 28)
@@ -321,37 +331,24 @@ func _info_row(item: Dictionary) -> Control:
 	return row
 
 
-## Install (blue) for what comes from the community, otherwise the gold Begin campaign / Play mission.
-func _action_button(item: Dictionary) -> Button:
+## Install (blue) for what comes from the community, otherwise the gold Begin campaign; a single mission gets the blue plaque (the lettering of
+## Install / Begin campaign is part of the designer's pictures).
+func _action_button(item: Dictionary) -> Control:
 	var install: bool = item.get("source", "") == "catalog"
-	var caption := "Install"
-	var frame := INSTALL_FRAME
-	var size := Vector2(290, 94)
-	if not install:
-		caption = "Begin campaign" if item.get("kind", "campaign") == "campaign" else "Play mission"
-		frame = BEGIN_FRAME
-		size = Vector2(430, 92)
-	var button := Button.new()
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = size
-	var texture := load(frame) as Texture2D
-	for state in ["normal", "hover", "pressed", "disabled"]:
-		var style := StyleBoxTexture.new()
-		style.texture = texture
-		match state:
-			"hover": style.modulate_color = Color(1.15, 1.15, 1.15)
-			"pressed": style.modulate_color = Color(0.82, 0.82, 0.86)
-			"disabled": style.modulate_color = Color(1, 1, 1, 0.5)
-		button.add_theme_stylebox_override(state, style)
-	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	var label := MenuStyle.shadow_label(caption, 30, Color.WHITE)
-	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	button.add_child(label)
-	button.pressed.connect(func(): _on_action_pressed(item, button, label))
+	var button: BaseButton
+	if install:
+		button = MenuStyle.texture_button(INSTALL_BUTTON, Vector2(260, 101), Callable())
+	elif item.get("kind", "campaign") == "campaign":
+		button = MenuStyle.texture_button(BEGIN_BUTTON, Vector2(420, 105), Callable())
+	else:
+		var plaque := MenuStyle.plaque_button("Play mission", Vector2(310, 101), Callable())
+		(plaque.get_child(0) as Label).add_theme_font_size_override("font_size", 32)
+		button = plaque
+	button.pressed.connect(func(): _on_action_pressed(item, button))
 	return button
 
 
-func _on_action_pressed(item: Dictionary, button: Button, label: Label) -> void:
+func _on_action_pressed(item: Dictionary, button: BaseButton) -> void:
 	if item.get("source", "") != "catalog":
 		if item.get("kind", "campaign") == "campaign":
 			begin_campaign.emit(str(item["folder"]))
@@ -362,12 +359,13 @@ func _on_action_pressed(item: Dictionary, button: Button, label: Label) -> void:
 		return
 	_busy = true
 	button.disabled = true
-	label.text = "Installing…"
+	button.modulate = Color(1, 1, 1, 0.5)
+	_status.text = "Installing…"
 	var installed := await _install(item["entry"])
 	_busy = false
 	if not installed:
 		button.disabled = false
-		label.text = "Install"
+		button.modulate = Color.WHITE
 		return
 	_status.text = "Installed \"%s\"." % item["title"]
 	refresh()
@@ -426,11 +424,3 @@ func _on_community_list_pressed() -> void:
 		if item.get("source", "") == "catalog":
 			fresh += 1
 	_status.text = "%d from the community to install." % fresh if fresh > 0 else "Nothing new in the community list."
-
-
-func _arrow_button(glyph: String, on_pressed: Callable) -> Button:
-	var button := MenuStyle.framed_button("", false, Vector2(ARROW_SIZE, ARROW_SIZE), on_pressed, true)
-	var label := MenuStyle.shadow_label(glyph, 24, Color.WHITE, MenuStyle.SHADOW_COLOR, false)
-	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	button.add_child(label)
-	return button

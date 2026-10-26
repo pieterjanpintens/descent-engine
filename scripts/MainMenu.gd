@@ -48,7 +48,7 @@ func _ready() -> void:
 	await _build_update_banner()
 
 
-## The layout of the mockup: logo top left with the entries centred under it, the cog (Options) and Community bottom left;
+## The layout of the mockup: logo top left with the entries centred under it, the cog (Options) and Collection (the community / installed campaigns dialog) bottom left;
 ## Credits / What's new / version sit bottom right (see _build_update_banner). Three pages share the column: main, editors, credits.
 func _build_menu() -> void:
 	var margin := MarginContainer.new()
@@ -108,7 +108,7 @@ func _build_menu() -> void:
 	row.add_theme_constant_override("separation", 10)
 	corner.add_child(row)
 	row.add_child(MenuStyle.gear_button(64, _on_options_button_pressed))
-	row.add_child(MenuStyle.framed_button("Community", true, Vector2(198, 64), _on_community_button_pressed))
+	row.add_child(MenuStyle.texture_button(MenuStyle.COLLECTION_PATH, Vector2(198, 64), _on_community_button_pressed))
 
 
 func _page(column: VBoxContainer) -> VBoxContainer:

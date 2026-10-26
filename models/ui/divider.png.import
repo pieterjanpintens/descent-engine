@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkkqtmwoxe1ut"
-path="res://.godot/imported/menu_button_wide.png-c46bcd0fa5f24e2656e73810f09439d7.ctex"
+uid="uid://dvhqdxcfscc3g"
+path="res://.godot/imported/divider.png-01db08af29fe575a660f6ef3aa9a2cbf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://models/ui/menu_button_wide.png"
-dest_files=["res://.godot/imported/menu_button_wide.png-c46bcd0fa5f24e2656e73810f09439d7.ctex"]
+source_file="res://models/ui/divider.png"
+dest_files=["res://.godot/imported/divider.png-01db08af29fe575a660f6ef3aa9a2cbf.ctex"]
 
 [params]
 
