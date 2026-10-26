@@ -11,7 +11,8 @@ signal begin_campaign(folder: String)
 signal play_mission(path: String)
 
 const BACKGROUND := "res://models/ui/bg_rock.jpg"
-const DETAIL_BACKGROUND := "res://models/ui/bg_detail.jpg"
+const GRADIENT := "res://models/ui/bg_gradient_blue.jpg"  ## multiplied over the rock: blue on the left, the plain rock on the right
+const DETAIL_BACKGROUND := "res://models/ui/bg_detail.jpg"  ## the same recipe, baked by the designer
 const BACK_ARROW := "res://models/ui/back_arrow.png"
 const NAV_ARROW := "res://models/ui/nav_arrow.png"
 const INSTALL_BUTTON := "res://models/ui/button_install.png"
@@ -31,6 +32,7 @@ var _cards_row: HBoxContainer
 var _prev_button: BaseButton
 var _next_button: BaseButton
 var _detail: Control
+var _detail_backdrop: TextureRect
 var _status: Label
 var _title: Label
 var _service: CommunityService
@@ -39,18 +41,32 @@ var _list_button: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var floor_picture := TextureRect.new()
-	floor_picture.texture = load(BACKGROUND) as Texture2D
-	floor_picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	floor_picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	floor_picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	floor_picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(floor_picture)
-	var tint := ColorRect.new()
-	tint.color = Color(0.09, 0.05, 0.3, 0.5)
-	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(tint)
+	# the designer's background: the rock texture MULTIPLIED by the blue gradient (checked against his mockup: rock x gradient matches it)
+	var rock := TextureRect.new()
+	rock.texture = load(BACKGROUND) as Texture2D
+	rock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	rock.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	rock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rock)
+	var gradient := TextureRect.new()
+	gradient.texture = load(GRADIENT) as Texture2D
+	gradient.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gradient.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	gradient.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	gradient.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var multiply := CanvasItemMaterial.new()
+	multiply.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
+	gradient.material = multiply
+	add_child(gradient)
+	_detail_backdrop = TextureRect.new()
+	_detail_backdrop.texture = load(DETAIL_BACKGROUND) as Texture2D
+	_detail_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_detail_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_detail_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_detail_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_detail_backdrop.visible = false
+	add_child(_detail_backdrop)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -181,6 +197,7 @@ func _relayout() -> void:
 func _show_carousel() -> void:
 	_selected = {}
 	_detail.visible = false
+	_detail_backdrop.visible = false
 	_carousel.visible = true
 	_title.text = "New game"
 	_list_button.visible = true
@@ -222,13 +239,6 @@ func _open_detail(item: Dictionary) -> void:
 	for child in _detail.get_children():
 		_detail.remove_child(child)
 		child.free()
-	var backdrop := TextureRect.new()
-	backdrop.texture = load(DETAIL_BACKGROUND) as Texture2D
-	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	backdrop.stretch_mode = TextureRect.STRETCH_SCALE
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_detail.add_child(backdrop)
 	var row := HBoxContainer.new()
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override("separation", 28)
@@ -287,6 +297,7 @@ func _open_detail(item: Dictionary) -> void:
 	column.add_child(action_row)
 	action_row.add_child(_action_button(item))
 	_detail.visible = true
+	_detail_backdrop.visible = true
 	_title.text = ""
 
 
