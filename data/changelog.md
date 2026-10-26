@@ -1,3 +1,11 @@
+## v0.0.40 - 2026-10-26
+- New UI from the designer's real art: the main menu uses his frames, divider and options button, and the New game screen is a carousel of campaign cards with a detail page (cover, author, languages, play time, introduction) and his Install / Begin campaign buttons.
+- New game also shows campaigns from the community list: it fills itself when the screen opens (the white refresh icon forces an update), is cached for an hour, and a campaign can be installed straight from its detail page. Only the newest version of each package is shown.
+- Campaigns and community packages now carry languages and a play time (set in the campaign editor and the release dialog).
+- The Community button is gone from the main menu: managing and installing by hand moved to a Community tab in Options.
+- Begin campaign asks for a save game name again, prefilled with the date and time.
+- Fixed: the Release dialog no longer runs off the screen on small windows.
+
 ## v0.0.39 - 2026-10-25
 - New props from the game's own models: second statue, and a bridge that is now properly sized (2x6) and walkable: its two outer squares at each end are ramps that must rest on floor (or the ground), the middle deck is 1 unit higher and may span hazards or open space, and it counts as floor for line of sight and range.
 - Prop rules decided: bookshelf, blood shrine and statues block line of sight, the bell blocks it only in its middle squares (its ends block walking), altar, fire, dragon arch (now 6x3) and dragon head (now 2x3, turned and lying flat) do not; the stair and barricade are turned to match our own models.
