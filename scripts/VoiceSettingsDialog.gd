@@ -26,6 +26,9 @@ var voice_listener: VoiceListener
 signal play_mission(path: String)
 signal open_campaigns
 
+## The fixed size of the tab area (see _ready()).
+const BODY_SIZE := Vector2(700, 440)
+
 var live := true
 ## Everything that does not affect playing (Game assets, Community, AI help, the original props and update check boxes) is only shown from the main menu.
 ## Screens that use live = false but are not the main menu (the campaign player) set this false; a mission (live) never shows them.
@@ -70,7 +73,6 @@ func _ready() -> void:
 	add_child(panel)
 
 	var background := PanelContainer.new()
-	background.custom_minimum_size = Vector2(380, 0)
 	panel.add_child(background)
 
 	var vbox := VBoxContainer.new()
@@ -83,9 +85,14 @@ func _ready() -> void:
 	title.theme_type_variation = &"TitleLabel"
 	vbox.add_child(title)
 
+	# A fixed-size body: the dialog never changes size when another tab is shown (the tab container fills it and clips, each page scrolls).
+	var body := Control.new()
+	body.custom_minimum_size = BODY_SIZE
+	body.clip_contents = true
+	vbox.add_child(body)
 	var tabs := TabContainer.new()
-	tabs.custom_minimum_size = Vector2(440, 400)
-	vbox.add_child(tabs)
+	tabs.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	body.add_child(tabs)
 	var general := _tab(tabs, "General")
 	var voice := _tab(tabs, "Voice")
 	var menu_only: bool = main_menu and not live
