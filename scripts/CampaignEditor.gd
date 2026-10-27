@@ -104,6 +104,7 @@ var _notice: AcceptDialog
 
 
 func _ready() -> void:
+	AppTheme.apply_classic(self)  # the editors keep the normal look, the play parts use the app theme
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

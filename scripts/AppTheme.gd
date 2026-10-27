@@ -223,6 +223,42 @@ static func populate(theme: Theme) -> Theme:
 	return theme
 
 
+## The editors (mission Creator, campaign editor and every window they open) keep Godot's normal look: a theme on their root control that gives
+## every item the app theme defines back its default value. (Not set on the root window: a theme on a control only reaches its own children.)
+static var _classic: Theme
+
+
+static func classic() -> Theme:
+	if _classic != null:
+		return _classic
+	var app := build()
+	var base := ThemeDB.get_default_theme()
+	var classic_theme := Theme.new()
+	for type_name in app.get_type_list():
+		var base_type := app.get_type_variation_base(type_name)
+		if base_type != &"":
+			classic_theme.set_type_variation(type_name, base_type)
+		for item in app.get_stylebox_list(type_name):
+			if base.has_stylebox(item, type_name):
+				classic_theme.set_stylebox(item, type_name, base.get_stylebox(item, type_name))
+		for item in app.get_font_list(type_name):
+			classic_theme.set_font(item, type_name, base.get_font(item, type_name) if base.has_font(item, type_name) else ThemeDB.fallback_font)
+		for item in app.get_font_size_list(type_name):
+			classic_theme.set_font_size(item, type_name, base.get_font_size(item, type_name) if base.has_font_size(item, type_name) else ThemeDB.fallback_font_size)
+		for item in app.get_color_list(type_name):
+			if base.has_color(item, type_name):
+				classic_theme.set_color(item, type_name, base.get_color(item, type_name))
+		for item in app.get_icon_list(type_name):
+			if base.has_icon(item, type_name):
+				classic_theme.set_icon(item, type_name, base.get_icon(item, type_name))
+	_classic = classic_theme
+	return _classic
+
+
+static func apply_classic(control: Control) -> void:
+	control.theme = classic()
+
+
 ## A check box picture that shows on the dark panels: a light frame, and an orange tick when checked.
 static func _check_icon(is_checked: bool) -> Texture2D:
 	var size := 18
