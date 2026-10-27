@@ -385,6 +385,7 @@ func _open_options() -> void:
 		_options_dialog = VoiceSettingsDialog.new()
 		_options_dialog.voice_listener = listener
 		_options_dialog.live = false
+		_options_dialog.main_menu = false
 		add_child(_options_dialog)
 	_options_dialog.open()
 

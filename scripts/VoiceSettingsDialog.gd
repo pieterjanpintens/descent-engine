@@ -27,6 +27,9 @@ signal play_mission(path: String)
 signal open_campaigns
 
 var live := true
+## Everything that does not affect playing (Game assets, Community, AI help, the original props and update check boxes) is only shown from the main menu.
+## Screens that use live = false but are not the main menu (the campaign player) set this false; a mission (live) never shows them.
+var main_menu := true
 var _community_panel: CommunityPanel
 ## Also assigned by MissionPlayer - this dialog now owns every write to
 ## dialog.voice_hints_enabled (see "Show voice hints" below), instead of
@@ -85,9 +88,10 @@ func _ready() -> void:
 	vbox.add_child(tabs)
 	var general := _tab(tabs, "General")
 	var voice := _tab(tabs, "Voice")
-	var ai := _tab(tabs, "AI")
-	var assets := _tab(tabs, "Game assets")
-	if not live:  # in a mission the scene cannot be left, so installing / playing shared packages is a main menu matter
+	var menu_only: bool = main_menu and not live
+	var ai: VBoxContainer = _tab(tabs, "AI") if menu_only else null
+	var assets: VBoxContainer = _tab(tabs, "Game assets") if menu_only else null
+	if menu_only:  # installing / playing shared packages and importing are main menu matters
 		var community := _tab(tabs, "Community")
 		_community_panel = CommunityPanel.new()
 		_community_panel.play_mission.connect(func(path: String):
@@ -97,9 +101,10 @@ func _ready() -> void:
 			visible = false
 			open_campaigns.emit())
 		community.add_child(_community_panel)
-	_assets_panel = AssetImportPanel.new()
-	_assets_panel.busy_changed.connect(func(busy: bool): _close_button.disabled = busy)
-	assets.add_child(_assets_panel)
+	if assets != null:
+		_assets_panel = AssetImportPanel.new()
+		_assets_panel.busy_changed.connect(func(busy: bool): _close_button.disabled = busy)
+		assets.add_child(_assets_panel)
 
 	var gameplay_title := Label.new()
 	gameplay_title.text = "Gameplay"
@@ -128,17 +133,18 @@ func _ready() -> void:
 		PlayerSettings.save_settings())
 	general.add_child(sight_option)
 
-	_props_check = CheckBox.new()
-	_props_check.tooltip_text = "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
-	_props_check.button_pressed = PlayerSettings.use_original_props
-	_props_check.toggled.connect(func(pressed: bool):
-		PlayerSettings.use_original_props = pressed
-		PlayerSettings.save_settings())
-	general.add_child(_props_check)
-	_refresh_props_check()
-	_assets_panel.import_finished.connect(_refresh_props_check)  # the import may just have built the props library
+	if menu_only:
+		_props_check = CheckBox.new()
+		_props_check.tooltip_text = "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+		_props_check.button_pressed = PlayerSettings.use_original_props
+		_props_check.toggled.connect(func(pressed: bool):
+			PlayerSettings.use_original_props = pressed
+			PlayerSettings.save_settings())
+		general.add_child(_props_check)
+		_refresh_props_check()
+		_assets_panel.import_finished.connect(_refresh_props_check)  # the import may just have built the props library
 
-	if AppUpdater.current_version() != "":
+	if menu_only and AppUpdater.current_version() != "":
 		var update_check := CheckBox.new()
 		update_check.text = "Check for a newer version of the app at the main menu"
 		update_check.tooltip_text = "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
@@ -148,7 +154,8 @@ func _ready() -> void:
 			PlayerSettings.save_settings())
 		general.add_child(update_check)
 
-	_build_ai_section(ai)
+	if ai != null:
+		_build_ai_section(ai)
 
 	var voice_title := Label.new()
 	voice_title.text = "Voice"
@@ -258,6 +265,8 @@ func _tab(tabs: TabContainer, tab_name: String) -> VBoxContainer:
 
 ## Greys the "original props" box out until the props library has been imported; checked again after every import and whenever the dialog opens.
 func _refresh_props_check() -> void:
+	if _props_check == null:
+		return
 	var available := OriginalPropsLibrary.is_available()
 	_props_check.disabled = not available
 	_props_check.text = "Use the original game props in the map" + ("" if available else " - not imported yet")
@@ -265,7 +274,8 @@ func _refresh_props_check() -> void:
 
 func open() -> void:
 	_refresh_props_check()
-	_assets_panel.refresh()
+	if _assets_panel != null:
+		_assets_panel.refresh()
 	if _community_panel != null:
 		_community_panel.refresh()
 	_refresh()

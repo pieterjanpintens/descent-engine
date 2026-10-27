@@ -114,6 +114,7 @@ func _on_import_pressed() -> void:
 	add_child(importer)
 	importer.progress.connect(func(text: String): _status_label.text = text)
 	var ok: bool = await importer.run(_bundles)
+	var importer_results: Dictionary = importer.results.duplicate()
 	var lines: Array[String] = []
 	for label in importer.results:
 		lines.append("%s: %s" % [label, "ok" if importer.results[label] else "FAILED"])
@@ -129,3 +130,34 @@ func _on_import_pressed() -> void:
 	_refresh()
 	_status_label.text = summary
 	import_finished.emit()
+	if _anything_imported(importer_results):
+		_offer_restart()
+
+
+## True when at least one import step worked - then there is something new to load.
+func _anything_imported(step_results: Dictionary) -> bool:
+	for label in step_results:
+		if step_results[label]:
+			return true
+	return false
+
+
+## The imported models, pictures and game data are read once and kept by the running app, so a restart is what makes them show up.
+func _offer_restart() -> void:
+	var dialog := ConfirmationDialog.new()
+	dialog.title = "Restart needed"
+	dialog.dialog_text = "The imported game assets are loaded when the app starts.\n\nRestart now?"
+	var scene := get_tree().current_scene
+	if scene != null and scene.scene_file_path.contains("MissionPlayer"):
+		dialog.dialog_text += "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+	dialog.ok_button_text = "Restart now"
+	dialog.cancel_button_text = "Later"
+	dialog.confirmed.connect(_restart_app)
+	dialog.canceled.connect(dialog.queue_free)
+	add_child(dialog)
+	dialog.popup_centered()
+
+
+func _restart_app() -> void:
+	OS.set_restart_on_exit(true, OS.get_cmdline_args())
+	get_tree().quit()
