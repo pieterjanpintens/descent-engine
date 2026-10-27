@@ -446,6 +446,7 @@ func _ai_context() -> String:
 
 func _heading(text: String) -> Label:
 	var label := Label.new()
+	label.theme_type_variation = &"HeadingLabel"
 	label.text = text
 	label.add_theme_color_override("font_color", SELECTED_COLOR)
 	return label

@@ -49,10 +49,7 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = heading
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var bold := FontVariation.new()
-	bold.base_font = title.get_theme_font("font")
-	bold.variation_embolden = 1.0
-	title.add_theme_font_override("font", bold)
+	title.theme_type_variation = &"TitleLabel"
 	vbox.add_child(title)
 
 	_objective_label = Label.new()

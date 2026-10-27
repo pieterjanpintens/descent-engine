@@ -83,10 +83,7 @@ func _ready() -> void:
 ## (each Label gets its own, nothing shared/cached - these are only built
 ## once per dialog anyway).
 func _bold_title(label: Label) -> void:
-	var bold_font := FontVariation.new()
-	bold_font.base_font = label.get_theme_font("font")
-	bold_font.variation_embolden = 1.0
-	label.add_theme_font_override("font", bold_font)
+	label.theme_type_variation = &"TitleLabel"
 
 
 func _slot_style(color: Color, border_width: int = 2) -> StyleBoxFlat:

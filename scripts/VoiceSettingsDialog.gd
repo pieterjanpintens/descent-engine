@@ -80,7 +80,7 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = "Options"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_bold(title)
+	title.theme_type_variation = &"TitleLabel"
 	vbox.add_child(title)
 
 	var tabs := TabContainer.new()
@@ -461,10 +461,7 @@ func _on_setup_pressed() -> void:
 ## Same synthetic-bold trick EmbarkDialog's own page titles use (no bundled
 ## bold font file - see that script's own _bold_title()).
 func _bold(label: Label) -> void:
-	var bold_font := FontVariation.new()
-	bold_font.base_font = label.get_theme_font("font")
-	bold_font.variation_embolden = 1.0
-	label.add_theme_font_override("font", bold_font)
+	label.theme_type_variation = &"HeadingLabel"
 
 
 ## Optional AI writing help for the editors (AiAssist): either the author's own Anthropic API key, or the Claude Code program on

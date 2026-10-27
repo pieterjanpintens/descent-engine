@@ -2166,8 +2166,8 @@ func _section(parent: Container, title: String) -> void:
 		gap.custom_minimum_size.y = 8
 		parent.add_child(gap)
 	var heading := _label(title)
+	heading.theme_type_variation = &"HeadingLabel"
 	heading.add_theme_font_size_override("font_size", 16)
-	heading.modulate = Color(0.56, 0.79, 0.9)
 	parent.add_child(heading)
 	parent.add_child(HSeparator.new())
 

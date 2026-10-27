@@ -180,6 +180,7 @@ func toast(text: String) -> void:
 
 func _heading(text: String) -> Label:
 	var label := Label.new()
+	label.theme_type_variation = &"HeadingLabel"
 	label.text = text
 	label.add_theme_color_override("font_color", Color(0.56, 0.79, 0.9))
 	return label

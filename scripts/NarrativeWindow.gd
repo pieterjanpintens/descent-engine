@@ -360,6 +360,7 @@ func _section(text: String, hint: String = "") -> Control:
 	box.add_child(HSeparator.new())
 	var label := Label.new()
 	label.text = text
+	label.theme_type_variation = &"HeadingLabel"
 	label.add_theme_font_size_override("font_size", 18)
 	label.add_theme_color_override("font_color", SECTION_COLOR)
 	box.add_child(label)
