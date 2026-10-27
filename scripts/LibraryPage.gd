@@ -641,8 +641,6 @@ func _load_cached_catalog() -> void:
 		var entry := CommunityService._clean_entry(raw)  # the same checks as a freshly downloaded list
 		if not entry.is_empty():
 			_catalog.append(entry)
-	if not _catalog.is_empty():
-		_status.text = "Community list from %s." % _catalog_saved.replace("T", " ").left(16)
 
 
 func _save_cached_catalog() -> void:
