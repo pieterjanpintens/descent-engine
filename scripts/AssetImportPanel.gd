@@ -5,6 +5,7 @@ extends VBoxContainer
 ## button - see AssetImporter for what happens. Built in code; `refresh()` re-reads what is imported / found (call it when the tab is shown).
 
 signal busy_changed(busy: bool)
+signal import_finished  ## an import run ended (whatever its result): other settings that depend on imported files can re-check
 
 const STEP_FOLDERS := {
 	"official_assets": "textures and portraits",
@@ -127,3 +128,4 @@ func _on_import_pressed() -> void:
 	var summary := _status_label.text
 	_refresh()
 	_status_label.text = summary
+	import_finished.emit()

@@ -20,6 +20,7 @@ static var _textures: Dictionary = {}
 var item: Dictionary = {}
 
 var _hover := false
+var _down := false
 
 
 func _init() -> void:
@@ -43,10 +44,15 @@ func setup(card_item: Dictionary) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
+	# a click counts on release (so a drag that starts on the card is not a click); the event is not accepted, the carousel sees it too
 	var click := event as InputEventMouseButton
-	if click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
-		pressed.emit()
-		accept_event()
+	if click != null and click.button_index == MOUSE_BUTTON_LEFT:
+		if click.pressed:
+			_down = true
+		elif _down:
+			_down = false
+			if Rect2(Vector2.ZERO, size).has_point(click.position):
+				pressed.emit()
 
 
 ## The hexagon of the frame (pointy top and bottom, vertical sides).

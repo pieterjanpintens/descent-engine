@@ -47,6 +47,7 @@ var _voice_ids: Array[String] = []
 var _extras_button: Button
 var _standard_button: Button
 var _assets_panel: AssetImportPanel
+var _props_check: CheckBox
 var _close_button: Button
 
 
@@ -127,17 +128,15 @@ func _ready() -> void:
 		PlayerSettings.save_settings())
 	general.add_child(sight_option)
 
-	var props_check := CheckBox.new()
-	props_check.text = "Use the original game props in the map (when imported)"
-	props_check.tooltip_text = "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
-	props_check.button_pressed = PlayerSettings.use_original_props
-	props_check.disabled = not OriginalPropsLibrary.is_available()
-	if props_check.disabled:
-		props_check.text += " - not imported yet"
-	props_check.toggled.connect(func(pressed: bool):
+	_props_check = CheckBox.new()
+	_props_check.tooltip_text = "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+	_props_check.button_pressed = PlayerSettings.use_original_props
+	_props_check.toggled.connect(func(pressed: bool):
 		PlayerSettings.use_original_props = pressed
 		PlayerSettings.save_settings())
-	general.add_child(props_check)
+	general.add_child(_props_check)
+	_refresh_props_check()
+	_assets_panel.import_finished.connect(_refresh_props_check)  # the import may just have built the props library
 
 	if AppUpdater.current_version() != "":
 		var update_check := CheckBox.new()
@@ -257,7 +256,15 @@ func _tab(tabs: TabContainer, tab_name: String) -> VBoxContainer:
 	return column
 
 
+## Greys the "original props" box out until the props library has been imported; checked again after every import and whenever the dialog opens.
+func _refresh_props_check() -> void:
+	var available := OriginalPropsLibrary.is_available()
+	_props_check.disabled = not available
+	_props_check.text = "Use the original game props in the map" + ("" if available else " - not imported yet")
+
+
 func open() -> void:
+	_refresh_props_check()
 	_assets_panel.refresh()
 	if _community_panel != null:
 		_community_panel.refresh()
