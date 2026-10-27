@@ -135,6 +135,7 @@ func open() -> void:
 
 func _heading(text: String) -> Label:
 	var label := Label.new()
+	label.theme_type_variation = &"HeadingLabel"
 	label.text = text
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.56, 0.79, 0.9))

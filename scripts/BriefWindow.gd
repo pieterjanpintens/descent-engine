@@ -362,6 +362,7 @@ func _add_button(text: String, on_pressed: Callable) -> Button:
 
 func _heading(text: String) -> Label:
 	var label := Label.new()
+	label.theme_type_variation = &"HeadingLabel"
 	label.text = text
 	label.add_theme_color_override("font_color", SECTION_COLOR)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

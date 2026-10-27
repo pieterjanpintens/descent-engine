@@ -1,3 +1,10 @@
+## v0.0.43 - 2026-10-27
+- New look for the menus and the play parts: a violet palette, framed buttons and tabs, and the Cinzel font for headings and buttons. The mission and campaign editors keep their plain look.
+- Beginning a campaign opens a setup page (full screen) where you name the save game and, when narration is installed, pick each hero's voice - instead of two separate dialogs. It has room for more settings later.
+- The Options dialog keeps the same size on every tab. In a mission or campaign it only shows what affects play (General and Voice).
+- After importing the game assets the app offers to restart, so the imported models and data are loaded.
+- The New game screen no longer shows the date of the community list.
+
 ## v0.0.42 - 2026-10-27
 - The New game screen is a cover-flow carousel now: the campaign in focus sits large in the middle, the others step back to each side, and moving between them animates smoothly. Click a side card to bring it forward, click the middle one to open it; the arrows, mouse wheel, arrow keys and dragging (with a flick) also work.
 - Fixed: the "use the original game props" option in Options unlocks right after an import finishes, without restarting the app.

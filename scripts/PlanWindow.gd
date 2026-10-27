@@ -679,6 +679,7 @@ func _text_edit(text: String, height: float, placeholder: String, on_change: Cal
 
 func _heading(text: String) -> Label:
 	var label := Label.new()
+	label.theme_type_variation = &"HeadingLabel"
 	label.text = text
 	label.add_theme_color_override("font_color", SECTION_COLOR)
 	return label

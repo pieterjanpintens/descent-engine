@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorToolbar.gd" id="14_toolbar"]
 [ext_resource type="Script" path="res://scripts/CreatorStatusBar.gd" id="15_statusbar"]
 [ext_resource type="Script" path="res://scripts/CreatorPlayMenu.gd" id="16_playmenu"]
+[ext_resource type="Script" path="res://scripts/EditorLook.gd" id="17_editorlook"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -52,6 +53,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="EditorLook" type="Node" parent="CanvasLayer/MainLayout"]
+script = ExtResource("17_editorlook")
 
 [node name="MenuBar" type="MenuBar" parent="CanvasLayer/MainLayout"]
 layout_mode = 2

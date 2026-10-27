@@ -29,6 +29,7 @@ OfficialAssetOverrides="*res://autoload/OfficialAssetOverrides.gd"
 CreatorSettings="*res://autoload/CreatorSettings.gd"
 PlayerSettings="*res://autoload/PlayerSettings.gd"
 Narrator="*res://autoload/Narrator.gd"
+AppThemeSetup="*res://autoload/AppThemeSetup.gd"
 
 [display]
 
@@ -53,3 +54,7 @@ import/blender/enabled=false
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
+
+[gui]
+
+theme/custom="res://theme/app_theme.tres"
