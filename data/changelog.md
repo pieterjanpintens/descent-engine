@@ -1,3 +1,7 @@
+## v0.0.42 - 2026-10-27
+- The New game screen is a cover-flow carousel now: the campaign in focus sits large in the middle, the others step back to each side, and moving between them animates smoothly. Click a side card to bring it forward, click the middle one to open it; the arrows, mouse wheel, arrow keys and dragging (with a flick) also work.
+- Fixed: the "use the original game props" option in Options unlocks right after an import finishes, without restarting the app.
+
 ## v0.0.41 - 2026-10-27
 - Fixed: the game assets import now really includes the original props (chest, gate, statues...). The downloadable import tool was built without that step, so "Use the game's own prop models" stayed greyed out. Importing again with this version enables it.
 - Fixed: an import tool downloaded by an older version is replaced automatically, instead of being kept because it looked compatible.

@@ -18,7 +18,12 @@ const BACK_ARROW := "res://models/ui/back_arrow.png"
 const NAV_ARROW := "res://models/ui/nav_arrow.png"
 const INSTALL_BUTTON := "res://models/ui/button_install.png"
 const BEGIN_BUTTON := "res://models/ui/button_begin.png"
-const CARD_GAP := 24.0
+## Cover-flow: the card in focus is in the middle, the others step back to each side (smaller, narrower, darker) - all derived from one float.
+const FOCUS_SECONDS := 0.5
+const SIDE_SQUASH := 0.22      ## how much narrower a card next to the focus looks, as if it were turned away
+const SIDE_SHRINK := 0.2       ## and how much smaller
+const FAR_SPACING := 0.6       ## spacing of the cards beyond the first neighbour, relative to the first step
+const DRAG_THRESHOLD := 8.0
 const CATALOG_MAX_AGE_SEC := 3600.0  ## a cached list younger than this is not fetched again by itself
 const CATALOG_CACHE := "user://community/catalog_cache.json"  ## the last community list, so it is there at once next time (and offline)
 const ARROW_SIZE := 58.0
@@ -27,13 +32,19 @@ var _items: Array[Dictionary] = []
 var _catalog: Array[Dictionary] = []
 var _catalog_saved := ""
 var _catalog_saved_unix := 0.0
-var _first := 0
-var _per_page := 3
+var _target := 0               ## the card the carousel is heading for
+var _focus := 0.0              ## where the carousel is now (animated; the card at this position is in the middle)
+var _focus_tween: Tween
+var _pressed_in_row := false
+var _dragging := false
+var _dragged := false          ## a drag happened since the last press, so the release is not a click
+var _drag_travel := 0.0
+var _drag_velocity := 0.0      ## cards per second
 var _busy := false
 var _selected: Dictionary = {}
 
 var _carousel: Control
-var _cards_row: HBoxContainer
+var _cards_row: Control
 var _prev_button: BaseButton
 var _next_button: BaseButton
 var _detail: Control
@@ -103,10 +114,11 @@ func _ready() -> void:
 	_prev_button = MenuStyle.texture_button(NAV_ARROW, Vector2(ARROW_SIZE, ARROW_SIZE), func(): _scroll(-1))
 	_prev_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_carousel.add_child(_prev_button)
-	_cards_row = HBoxContainer.new()
+	_cards_row = Control.new()
 	_cards_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_cards_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_cards_row.add_theme_constant_override("separation", int(CARD_GAP))
+	_cards_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_cards_row.gui_input.connect(_on_row_input)
+	_cards_row.resized.connect(_update_cards)
 	_carousel.add_child(_cards_row)
 	_next_button = MenuStyle.texture_button(NAV_ARROW, Vector2(ARROW_SIZE, ARROW_SIZE), func(): _scroll(1), true)
 	_next_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -132,7 +144,7 @@ func _ready() -> void:
 ## What the carousel shows is rebuilt from what is installed (a campaign or mission may have been installed, released or removed since).
 func refresh() -> void:
 	_items = _build_items()
-	_first = clampi(_first, 0, maxi(0, _items.size() - _per_page))
+	_target = clampi(_target, 0, maxi(0, _items.size() - 1))
 	_show_carousel()
 
 
@@ -206,15 +218,7 @@ func _build_items() -> Array[Dictionary]:
 # ---------------------------------------------------------------- the carousel
 
 func _relayout() -> void:
-	if _cards_row == null:
-		return
-	var room := size.x - 44.0 - 2.0 * (ARROW_SIZE + 12.0)
-	var per_page := clampi(int((room + CARD_GAP) / (CampaignCard.CARD_SIZE.x + CARD_GAP)), 1, 5)
-	if per_page != _per_page:
-		_per_page = per_page
-		_first = clampi(_first, 0, maxi(0, _items.size() - _per_page))
-		if _carousel.visible:
-			_fill_cards()
+	_update_cards()
 
 
 func _show_carousel() -> void:
@@ -228,29 +232,163 @@ func _show_carousel() -> void:
 
 
 func _fill_cards() -> void:
+	_stop_focus_tween()
 	for child in _cards_row.get_children():
 		_cards_row.remove_child(child)
 		child.free()
+	_target = clampi(_target, 0, maxi(0, _items.size() - 1))
+	_focus = float(_target)
 	if _items.is_empty():
 		var empty := Label.new()
 		empty.text = "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 		empty.custom_minimum_size = Vector2(520, 0)
+		empty.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		empty.grow_vertical = Control.GROW_DIRECTION_BOTH
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_cards_row.add_child(empty)
-	for index in range(_first, mini(_items.size(), _first + _per_page)):
+	for index in _items.size():
 		var card := CampaignCard.new()
 		card.setup(_items[index])
-		var item := _items[index]
-		card.pressed.connect(func(): _open_detail(item))
+		card.mouse_filter = Control.MOUSE_FILTER_PASS  # the row sees the same events, for dragging
+		card.size = CampaignCard.CARD_SIZE
+		card.pivot_offset = CampaignCard.CARD_SIZE / 2.0
+		card.pressed.connect(_on_card_clicked.bind(index))
 		_cards_row.add_child(card)
-	_prev_button.visible = _first > 0
-	_next_button.visible = _first + _per_page < _items.size()
+	_update_arrows()
+	_update_cards()
+
+
+## Puts every card where the carousel's position says: x from the distance to the focus, size, squash, brightness and stacking order from it too.
+func _update_cards() -> void:
+	if _cards_row == null:
+		return
+	var fit := _card_fit()
+	var step := _card_step()
+	var middle := Vector2(_cards_row.size.x / 2.0, _cards_row.size.y / 2.0)
+	var cards := _cards_row.get_children()
+	for index in cards.size():
+		var card := cards[index] as CampaignCard
+		if card == null:
+			continue
+		var distance := float(index) - _focus
+		var away := absf(distance)
+		var near := minf(away, 1.0)
+		var beyond := clampf(away - 1.0, 0.0, 1.0)
+		card.visible = away < 3.2
+		if not card.visible:
+			continue
+		var offset_x := signf(distance) * step * (near + maxf(away - 1.0, 0.0) * FAR_SPACING)
+		var shrink := fit * (1.0 - SIDE_SHRINK * near - 0.1 * beyond)
+		card.scale = Vector2(shrink * (1.0 - SIDE_SQUASH * near - 0.06 * beyond), shrink)
+		card.position = Vector2(middle.x + offset_x, middle.y + 14.0 * near * fit) - card.pivot_offset
+		var shade := lerpf(1.0, 0.62, near) - 0.12 * beyond
+		card.modulate = Color(shade, shade, shade, 1.0 - clampf(away - 2.2, 0.0, 1.0))
+		card.z_index = 100 - int(roundf(away * 10.0))
+
+
+## How big a card is drawn: it grows with the room the stage has (cards are 176 x 456 at 1.0).
+func _card_fit() -> float:
+	return clampf(_cards_row.size.y / (CampaignCard.CARD_SIZE.y * 1.08), 0.5, 1.3)
+
+
+## The distance between the middle of the focused card and the first neighbour's.
+func _card_step() -> float:
+	return CampaignCard.CARD_SIZE.x * _card_fit() * 0.95
+
+
+func _set_focus(value: float) -> void:
+	_focus = value
+	_update_cards()
+
+
+func _stop_focus_tween() -> void:
+	if _focus_tween != null and _focus_tween.is_valid():
+		_focus_tween.kill()
+	_focus_tween = null
+
+
+## Moves the carousel to a card with an eased animation (repeated calls start from wherever it is now).
+func _go_to(index: int) -> void:
+	_target = clampi(index, 0, maxi(0, _items.size() - 1))
+	_stop_focus_tween()
+	_focus_tween = create_tween()
+	_focus_tween.tween_method(_set_focus, _focus, float(_target), FOCUS_SECONDS).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_update_arrows()
+
+
+func _update_arrows() -> void:
+	_prev_button.visible = _target > 0
+	_next_button.visible = _target < _items.size() - 1
 
 
 func _scroll(direction: int) -> void:
-	_first = clampi(_first + direction * _per_page, 0, maxi(0, _items.size() - _per_page))
-	_fill_cards()
+	_go_to(_target + direction)
+
+
+## A card was released without a drag: a card on the side comes to the middle, the one in the middle opens.
+func _on_card_clicked(index: int) -> void:
+	if _dragged:
+		return
+	if index == _target:
+		_open_detail(_items[index])
+	else:
+		_go_to(index)
+
+
+## Dragging (the row also sees the events of the cards on it) and the mouse wheel.
+func _on_row_input(event: InputEvent) -> void:
+	var button := event as InputEventMouseButton
+	if button != null:
+		if button.button_index == MOUSE_BUTTON_LEFT:
+			if button.pressed:
+				_pressed_in_row = true
+				_dragging = false
+				_dragged = false
+				_drag_travel = 0.0
+				_drag_velocity = 0.0
+			elif _pressed_in_row:
+				_pressed_in_row = false
+				if _dragging:
+					_dragging = false
+					# a flick carries on a little: the speed decides how many cards further it goes
+					_go_to(roundi(_focus - _drag_velocity * 0.25))
+		elif button.pressed and button.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_scroll(1)
+		elif button.pressed and button.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_scroll(-1)
+		return
+	var motion := event as InputEventMouseMotion
+	if motion != null and _pressed_in_row and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0 and not _items.is_empty():
+		_drag_travel += absf(motion.relative.x)
+		if not _dragging and _drag_travel > DRAG_THRESHOLD:
+			_dragging = true
+			_dragged = true
+			_stop_focus_tween()
+		if _dragging:
+			var cards_moved := -motion.relative.x / _card_step()
+			_focus = clampf(_focus + cards_moved, -0.4, float(_items.size() - 1) + 0.4)
+			var seconds := maxf(get_process_delta_time(), 0.001)
+			_drag_velocity = lerpf(_drag_velocity, cards_moved / seconds, 0.35)
+			_target = clampi(roundi(_focus), 0, _items.size() - 1)
+			_update_arrows()
+			_update_cards()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _carousel.visible or not is_visible_in_tree():
+		return
+	if event.is_action_pressed("ui_left"):
+		_scroll(-1)
+		accept_event()
+	elif event.is_action_pressed("ui_right"):
+		_scroll(1)
+		accept_event()
+	elif event.is_action_pressed("ui_accept") and not _items.is_empty():
+		_open_detail(_items[_target])
+		accept_event()
 
 
 # ---------------------------------------------------------------- the detail page
@@ -475,7 +613,6 @@ func _fetch_catalog() -> void:
 	_save_cached_catalog()
 	# rebuild the cards without throwing away a detail page the player may have opened meanwhile
 	_items = _build_items()
-	_first = clampi(_first, 0, maxi(0, _items.size() - _per_page))
 	if _carousel.visible:
 		_fill_cards()
 	var fresh := 0
