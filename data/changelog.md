@@ -1,3 +1,7 @@
+## v0.0.41 - 2026-10-27
+- Fixed: the game assets import now really includes the original props (chest, gate, statues...). The downloadable import tool was built without that step, so "Use the game's own prop models" stayed greyed out. Importing again with this version enables it.
+- Fixed: an import tool downloaded by an older version is replaced automatically, instead of being kept because it looked compatible.
+
 ## v0.0.40 - 2026-10-26
 - New UI from the designer's real art: the main menu uses his frames, divider and options button, and the New game screen is a carousel of campaign cards with a detail page (cover, author, languages, play time, introduction) and his Install / Begin campaign buttons.
 - New game also shows campaigns from the community list: it fills itself when the screen opens (the white refresh icon forces an update), is cached for an hour, and a campaign can be installed straight from its detail page. Only the newest version of each package is shown.

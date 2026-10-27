@@ -20,7 +20,8 @@ const INSTALL_DIR := "user://importer/"
 const STAGING_DIR := "user://importer/staging/"
 const TOOL_NAME := "asset_importer"
 ## Must match asset_importer.PROTOCOL: an installed tool that answers something else is downloaded again.
-const PROTOCOL := 1
+## Bump it together with the tool whenever the steps change (2: the original props step), or installed older tools are kept.
+const PROTOCOL := 2
 ## What the button tells the player.
 const DOWNLOAD_SIZE_TEXT := "about 25 MB"
 ## The user-data folders an import fills (what "imported" means, and what to delete to go back to the placeholders).
