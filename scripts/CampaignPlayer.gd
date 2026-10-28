@@ -32,7 +32,6 @@ const UPDATE_NOTE := NL2 + "Note:" + NL + "- %s"
 const NL := "\n"
 const NL2 := "\n\n"
 const BULLET_JOIN := "\n- "
-const BOOK_COVER_SIZE := Vector2(170, 255)  ## the 2:3 cover ratio of CampaignIO.COVER_SIZE
 
 var _campaign: Campaign
 var _state: CampaignState
@@ -42,8 +41,7 @@ var _selected_id: String = ""
 ## Shows the story pages and questions of a narrative chapter (the mission player's dialog, reused).
 var _narrative_dialog: PlayerDialog
 var _library_page: LibraryPage
-var _load_page: Control
-var _load_list: VBoxContainer
+var _load_page: LoadPage
 var _play_page: Control
 var _hud: CampaignHud
 var _map_view: CampaignMapView
@@ -61,23 +59,19 @@ var _confirm_action: Callable
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 12)
-	add_child(margin)
-	var root := Control.new()
-	margin.add_child(root)
 	_library_page = LibraryPage.new()
 	_library_page.back_pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
 	_library_page.begin_campaign.connect(_on_new_game_pressed)
 	_library_page.play_mission.connect(_on_play_mission_pressed)
-	_load_page = _build_load_page()
+	_load_page = LoadPage.new()
+	_load_page.back_pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
+	_load_page.resume_pressed.connect(func(folder: String, key: String): await _resume(folder, key))
+	_load_page.delete_pressed.connect(_on_delete_save_pressed)
+	_load_page.update_pressed.connect(_on_update_save_pressed)
 	_play_page = _build_play_page()
-	_load_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(_load_page)
-	# The library has its own full-screen background, so it sits outside the margin like the map page.
+	# The library and load pages have their own full-screen backgrounds, so they sit outside the margin like the map page.
 	add_child(_library_page)
+	add_child(_load_page)
 	# The map page covers the whole screen (no margin): the map is centred in it and the HUD floats over it.
 	_play_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_play_page)
@@ -169,81 +163,43 @@ func _on_play_mission_pressed(path: String) -> void:
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
 
 
-## The cover of `campaign` at `size` (always the 2:3 ratio, as imported); without a cover image a plain
-## coloured cover showing the title.
-func _cover(folder: String, campaign: Campaign, size: Vector2) -> Control:
-	var texture := CampaignIO.image_texture(folder, campaign.cover_image)
-	var holder := Control.new()
-	holder.custom_minimum_size = size
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if texture != null:
-		var picture := TextureRect.new()
-		picture.texture = texture
-		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		holder.add_child(picture)
-	else:
-		var panel := Panel.new()
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color.from_hsv(float(campaign.campaign_name.hash() % 360) / 360.0, 0.45, 0.35)
-		style.set_corner_radius_all(6)
-		style.set_border_width_all(3)
-		style.border_color = style.bg_color.lightened(0.35)
-		panel.add_theme_stylebox_override("panel", style)
-		panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		holder.add_child(panel)
-		var name_label := _wrapped(campaign.campaign_name)
-		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		name_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		holder.add_child(name_label)
-	return holder
-
-
-func _build_load_page() -> Control:
-	var page := VBoxContainer.new()
-	page.add_theme_constant_override("separation", 12)
-	var bar := HBoxContainer.new()
-	page.add_child(bar)
-	bar.add_child(_button("‹ Back to menu", func(): get_tree().change_scene_to_file(MENU_SCENE)))
-	var title := _label("Load campaign")
-	title.add_theme_font_size_override("font_size", 28)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bar.add_child(title)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	page.add_child(scroll)
-	_load_list = VBoxContainer.new()
-	_load_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_load_list.add_theme_constant_override("separation", 10)
-	scroll.add_child(_load_list)
-	return page
-
-
-## Every save game of every campaign: its book, its name and progress, Resume and Delete.
+## Every save game of every campaign as a row of the Load game page: the campaign's art, the save game's name, the campaign and how far it is.
 func _show_load() -> void:
-	for child in _load_list.get_children():
-		_load_list.remove_child(child)
-		child.queue_free()
-	var listed := 0
+	var entries: Array[Dictionary] = []
 	for folder in CampaignIO.folder_names():
 		var campaign := CampaignIO.load_campaign(folder)
 		if campaign == null:
 			continue
 		for key in CampaignIO.save_keys(folder):
 			var saved := CampaignIO.load_state(folder, key)
-			if saved != null:
-				_load_list.add_child(_save_row(campaign, folder, key, saved))
-				listed += 1
-	if listed == 0:
-		_load_list.add_child(_label("No save games yet - start one with New Campaign."))
+			if saved == null:
+				continue
+			var progress := "Campaign complete" if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
+				else campaign.acts[saved.current_act].act_name
+			var newer := SaveUpdater.newer_release(folder)
+			entries.append({
+				"folder": folder, "key": key, "group": saved.save_name if saved.save_name != "" else key,
+				"campaign": campaign.campaign_name, "tag": "" if CampaignIO.is_release(folder) else "  [draft]",
+				"progress": "%s  -  XP %d,  gold %d" % [progress, saved.experience, saved.gold],
+				"texture": CampaignIO.image_texture(folder, campaign.cover_image), "newer": str(newer.get("version", "")),
+			})
+	_load_page.refresh(entries)
 	_show_page(_load_page)
+
+
+func _on_delete_save_pressed(folder: String, key: String, save_name: String) -> void:
+	_ask("Delete the save game '%s'?" % save_name, func():
+		CampaignIO.delete_state(folder, key)
+		_show_load()
+	)
+
+
+func _on_update_save_pressed(folder: String, key: String) -> void:
+	var campaign := CampaignIO.load_campaign(folder)
+	var saved := CampaignIO.load_state(folder, key)
+	var newer := SaveUpdater.newer_release(folder)
+	if campaign != null and saved != null and not newer.is_empty():
+		_offer_update(campaign, saved, newer)
 
 
 ## Check the newer release against the save and show what would change; only after the player agrees is a COPY written.
@@ -269,32 +225,6 @@ func _offer_update(old_campaign: Campaign, saved: CampaignState, newer: Dictiona
 			_say("Done. The updated copy is in the list.")
 		_show_load()
 	)
-
-
-func _save_row(campaign: Campaign, folder: String, key: String, saved: CampaignState) -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 14)
-	row.add_child(_cover(folder, campaign, BOOK_COVER_SIZE * 0.5))
-	var progress := "Campaign complete" if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
-		else campaign.acts[saved.current_act].act_name
-	var tag := "" if CampaignIO.is_release(folder) else "   [draft - may change]"
-	var info := _label("%s%s\n%s  -  %s,  XP %d,  gold %d" % [saved.save_name if saved.save_name != "" else key, tag, campaign.campaign_name, progress, saved.experience, saved.gold])
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(info)
-	row.add_child(_button("Resume", func(): await _resume(folder, key)))
-	var newer := SaveUpdater.newer_release(folder)
-	if not newer.is_empty():
-		var update := _button("Update to v%s…" % newer["version"], func(): _offer_update(campaign, saved, newer))
-		update.tooltip_text = "Makes an updated COPY of this save game on the newer version. The original stays as it is."
-		row.add_child(update)
-	row.add_child(_button("Delete", func():
-		_ask("Delete the save game '%s'?" % saved.save_name, func():
-			CampaignIO.delete_state(folder, key)
-			_show_load()
-		)
-	))
-	return row
 
 
 ## "Begin campaign": the setup page (save game name, hero voices, later more) - nothing is created before Start is pressed there.
