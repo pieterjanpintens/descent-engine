@@ -1,3 +1,6 @@
+﻿## v0.0.44 - 2026-10-28
+- The Load game screen has a new look: every save game is a wide row with the campaign's art, the save game's name, the campaign and how far it is, with play and delete buttons. The rows turn like the New game cover-flow, but vertically - about three are fully visible, whatever the window size. Drag, mouse wheel, arrow keys or click a row to move the list.
+
 ## v0.0.43 - 2026-10-27
 - New look for the menus and the play parts: a violet palette, framed buttons and tabs, and the Cinzel font for headings and buttons. The mission and campaign editors keep their plain look.
 - Beginning a campaign opens a setup page (full screen) where you name the save game and, when narration is installed, pick each hero's voice - instead of two separate dialogs. It has room for more settings later.
