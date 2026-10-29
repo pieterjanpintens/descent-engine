@@ -21,7 +21,7 @@ static func key(chip: int) -> String:
 
 
 static func display_name(chip: int) -> String:
-	return Chip.keys()[chip].capitalize()
+	return TranslationServer.translate(Chip.keys()[chip].capitalize())
 
 
 static func color(chip: int) -> Color:

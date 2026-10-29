@@ -75,7 +75,7 @@ func open() -> void:
 		_gold_label.text = ""
 		visible = true
 		return
-	_gold_label.text = "Gold: %d" % state.gold
+	_gold_label.text = tr("Gold: %d") % state.gold
 	_add_tab("Weapons", _weapon_items(state))
 	_add_tab("Armor", _armor_items(state))
 	_add_tab("Trinkets", _trinket_items(state), "The party owns no trinkets yet - they are bought in a recipe shop or found.")

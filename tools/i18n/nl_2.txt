@@ -1,0 +1,190 @@
+191|Campagne
+192|Campagne voltooid
+193|Campagne voltooid! (%s)
+194|Campagne-editor
+195|Campagnelogboek
+196|Kan %s een tweede held aanvallen?
+197|Annuleren
+198|Download annuleren
+199|Dichtschroeien
+200|Voorzichtig
+201|Midden naar midden (streng)
+202|Midden naar hoek (aanbevolen)
+203|Hoofdstuk
+204|Hoofdstuk \"%s\", dat je al voltooid had, zit niet in de nieuwe versie.
+205|Hoofdstuk \"%s\", waar je nu bent, zit niet in akte %d van de nieuwe versie.
+206|In het hoofdmenu controleren of er een nieuwere versie van de app is
+207|Kist, poort, boom en put gebruiken de eigen modellen van het spel na Spelmateriaal > Importeren. Uit = de voorwerpen die bij de app horen. Werkt de volgende keer dat een kaart wordt geopend.
+208|Kies een pakket
+209|Een pakketbestand kiezen…
+210|Kies een wapen
+211|Kies de map waarin het spel is geïnstalleerd
+212|De spelmap kiezen…
+213|Kies twee wapens per held (en optionele opzetstukken)
+214|Kies je gezelschap
+215|Sluiten
+216|Stof
+217|Gewoon
+218|Community
+219|Communitylijst
+220|Toestanden
+221|Toestanden (%d)
+222|Bevestigen
+223|Verward
+224|Verbruiksvoorwerpen
+225|Verbruiksvoorwerpen…
+226|Doorgaan
+227|Dit spel voortzetten
+228|Modellen omzetten... %s (%s)
+229|kopieert %s
+230|Kopieert deze alleen-lezen release naar een nieuw concept dat je kunt wijzigen. De release zelf en zijn opgeslagen spellen blijven zoals ze zijn.
+231|Hoek naar hoek (ruim, Descent 2)
+232|Kosten: %s
+233|Kon %s niet afsplitsen.
+234|Kon dat opgeslagen spel niet openen.
+235|Kon de campagne '%s' niet openen.
+236|Kon de download van %s niet starten (fout %d).
+237|Kon %s niet uitpakken (tar-afsluitcode %d).
+238|Kon de vertelmotor niet uitpakken (tar-afsluitcode %d).
+239|Kon %s niet schrijven (fout %d).
+240|Tellen als verloren
+241|Tellen als gewonnen
+242|Gemaakt door
+243|Dankwoord
+244|kruisboog
+245|Verbrijzelen
+246|Rariteiten
+247|Huidig doel
+248|Schade
+249|schade %d
+250|schade +%d voorgoed (nu %d)
+251|schade -%d
+252|Schadetype
+253|Versuft
+254|Nederlaag.
+255|Verslagen
+256|verdediging %+d tot het einde van de ronde (nu %d)
+257|verdediging +%d tijdens deze aanval
+258|verdediging +%d voorgoed (nu %d)
+259|verdediging -%d
+260|verdediging -%d deze ronde
+261|Verdedigingsvermogens: %s
+262|verdedigingsvermogen uitgeschakeld voor de volgende aanval
+263|verdedigingsvermogen uitgeschakeld tot het einde van de ronde
+264|Verdedigingsvermogen uitgeschakeld.
+265|Verdedigingsvermogen: %s
+266|Het opgeslagen spel '%s' verwijderen?
+267|Dit opgeslagen spel verwijderen
+268|Bracht %s schade toe aan %s?
+269|Slaagde %s voor de proef?
+270|Hoorde ik terugtocht? Beweeg tot {speed} tegels, zo ver mogelijk van de helden vandaan.
+271|Niet geactiveerd:
+272|Geen getal binnen het bereik verstaan
+273|Niets verstaan - houd %s ingedrukt en probeer opnieuw
+274|Dat verstond ik niet
+275|Welke optie verstond ik niet
+276|Klaar
+277|Klaar - start de app opnieuw om alles te zien.
+278|Klaar. De bijgewerkte kopie staat in de lijst.
+279|Gedoemd
+280|Extra stemmen downloaden - accenten (%s)
+281|Meer stemmen downloaden - gewoon Engels (%s)
+282|%s downloaden... %d MB
+283|%s downloaden... %d%% (%d / %d MB)
+284|De update downloaden…
+285|dubbele zwaarden
+286|elke vijand lijdt %d schade (activatie %d)
+287|Elke speler mag %d meenemen in de missie%s. Gemaakte verbruiksvoorwerpen zijn elke missie opnieuw beschikbaar - er wordt niets opgebruikt.
+288|Editor
+289|Stem inschakelen
+290|Verdwijnt binnenkort: deze zijmissie is weg zodra \"%s\" is gewonnen.
+291|Verzwakt
+292|Essenties
+293|Blootgesteld
+294|MISLUKT
+295|Missie laden mislukt: %s
+296|Opslaan mislukt - zie het uitvoerpaneel voor details.
+297|Prestaties
+298|eerste
+299|Vaste held (%s)
+300|Draai je heldenkaart om
+301|Vloertegels
+302|Concentreer 2 kaarten
+303|Smeden
+304|Afsplitsen om te bewerken
+305|%s afgesplitst naar je concept \"%s\" - open het in de %s-editor.
+306|Fortunos
+307|Fortunos (geluk)
+308|Hectisch
+309|gratis
+310|Vriendelijk vuur
+311|Gefrustreerd
+312|krijgt %s
+313|Spel %04d-%02d-%02d %02d:%02d
+314|Spelmateriaal
+315|Spel gevonden:\n%s
+316|Gameplay
+317|handschoen
+318|Algemeen
+319|Geeft het pantser: %s%s - %s
+320|Geeft de rune: %s
+321|Geeft het sieraad: %s%s - %s
+322|Geeft het wapen: %s%s
+323|Geeft: %s
+324|handschoenen
+325|Goud
+326|Goud: %d
+327|Een pakket van iemand gekregen? Kies het bestand of plak het webadres ervan. Je ziet wat erin zit en wie het maakte voordat er iets wordt geïnstalleerd.
+328|Groen
+329|De poort bewaken
+330|hamer
+331|Verharde Huid
+332|Genezen
+333|Genees 2
+334|Genees 4
+335|Gezond
+336|Hoor de verteller
+337|Hoor deze stem
+338|Gehoord: %s
+339|Zwaar gewond
+340|Zware Handen
+341|Zwaar Hart
+342|Kruiden
+343|heldenmodellen
+344|Heldenstemmen
+345|Helden
+346|Aarzelend
+347|Levenspunten %d / %d
+348|Houd %s ingedrukt om te praten
+349|Hoorn van Moed
+350|Hoorn van Moed - %s is verwond.
+351|Beweeg over een pantser voor de regels. Pantser wordt aan tafel gedragen en afgehandeld.
+352|Hoe de zichtlijntool bepaalt of twee tegels elkaar zien. Midden naar hoek: een lijn van het midden van de tegel van de kijker naar een willekeurige hoek van het doel.
+353|HP %d · Niveau %d
+354|Ik gebruik %s.
+355|Ignos
+356|Ignos (vuur)
+357|immuun voor %s
+358|Immuun voor toestanden: %s
+359|Immuun voor:
+360|Immuun: %s
+361|Immuniteit: %s
+362|Importeren
+363|Importeren voltooid, maar niet alles werkte.
+364|Importeren voltooid.
+365|Spelmateriaal importeren
+366|Tot nu toe geïmporteerd: %s.
+367|Importeren vanuit de app is op deze computer nog niet beschikbaar - gebruik in plaats daarvan de materiaaltools van de releasepagina.
+368|IN ONTWIKKELING
+369|Invoerapparaat: %s
+370|Installeren
+371|Installeren en herstarten
+372|Met de hand installeren
+373|Dit pakket installeren?
+374|Geïnstalleerd
+375|\"%s\" v%s geïnstalleerd.
+376|\"%s\" geïnstalleerd.
+377|Installeren…
+378|Installeren… de app sluit en start zichzelf opnieuw.
+379|Intelligentie
+380|Onderbreken

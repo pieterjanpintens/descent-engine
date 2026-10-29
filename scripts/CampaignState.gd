@@ -11,6 +11,9 @@ extends Resource
 @export var campaign_version: String = ""
 ## The name of this save game (a campaign can have several playthroughs).
 @export var save_name: String = ""
+## The language this playthrough is read, logged and narrated in, chosen when it was started and never changed (a log in two languages
+## would be confusing). "" = a save game from before the choice existed: the player's preferred languages decide.
+@export var language: String = ""
 @export var current_act: int = 0
 ## Ids of the chapters the party has won.
 @export var completed_chapters: Array[String] = []
@@ -131,7 +134,7 @@ static func reward_text(xp: int, gold: int) -> String:
 	if xp > 0:
 		parts.append("+%d XP" % xp)
 	if gold > 0:
-		parts.append("%d gold" % gold)
+		parts.append(TranslationServer.translate("%d gold") % gold)
 	return ", ".join(parts) if not parts.is_empty() else "no reward"
 
 
@@ -216,8 +219,8 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	for story in [quest.story_before, quest.story_after]:
 		if story != "":
 			pages.append(story)
-	pages.append("Side quest won: %s." % reward_text(quest.reward_xp, quest.reward_gold))
-	add_log("Side quest: %s" % quest.title, pages)
+	pages.append(tr("Side quest won: %s.") % reward_text(quest.reward_xp, quest.reward_gold))
+	add_log(tr("Side quest: %s") % quest.title, pages)
 	await apply_mission_outputs(campaign, quest.mission_outputs, mission_values)
 	await apply_effects(campaign, quest.win_effects)
 	advance_shops(campaign)
@@ -290,7 +293,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		for story in [chapter.story_before, chapter.story_after]:
 			if story != "":
 				pages.append(story)
-		pages.append("Won: %s." % reward_text(chapter.reward_xp, chapter.reward_gold))
+		pages.append(tr("Won: %s.") % reward_text(chapter.reward_xp, chapter.reward_gold))
 		add_log(chapter.title, pages)
 		gold += chapter.reward_gold
 	await apply_mission_outputs(campaign, chapter.mission_outputs, mission_values)
@@ -383,7 +386,7 @@ func _take_loot(summary: Dictionary, loot: Dictionary) -> void:
 			if not owned_recipes.has(recipe_id):
 				owned_recipes.append(recipe_id)
 			var recipe := RecipeData.find(recipe_id)
-			_note_item(summary, "Recipe: " + (RecipeData.label(recipe) if not recipe.is_empty() else recipe_id))
+			_note_item(summary, tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else recipe_id))
 			continue
 		if material_name == LootMaterials.GOLD:
 			gold += count

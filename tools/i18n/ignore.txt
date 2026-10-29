@@ -1,0 +1,39 @@
+# Texts the extractor finds but that are not for players (ids, names, AI help, voice prompts that stay English).
+HeadingLabel
+TitleLabel
+MissionPlayer
+monster_%d
+Arutha
+Ikkante
+Reply with the single word OK.
+e.g. Friday night group
+Descent Engine package
+I rolled three.
+The old door creaks open, and a cold wind carries the smell of smoke.
+Enable AI writing help
+AI writing help (optional)
+Adds an AI menu to the story text boxes in the campaign editor. Text is only sent when you choose an AI action; nothing is sent otherwise.
+API key (sk-ant-...)
+Check Claude Code
+Claude Code is signed in. Asking it something...
+Claude Code works.
+Path to claude (only if it is not on the PATH)
+Test the key
+The key works.
+Use Claude Code on this PC (my Claude account)
+Use my Anthropic API key (pay per use)
+Uses the Claude Code program on this PC with your own Claude sign-in (nothing is paid per request here; it counts towards your Claude plan's usage). It can only return text.
+
+Setup, once: install it with  npm install -g @anthropic-ai/claude-code  then run  claude auth login  in a terminal.
+Asking...
+Debug
+~Claude Code
+# voice control is English-only for now: these prompts and hints stay English
+Say \"next\" or \"ok\" (or \"back\")
+Say \"ok\"
+Say \"yes\" or \"no\"
+Say a sentence with the number, like \"I rolled three\" (%d to %d)
+Say a sentence, like \"use the %s\", or a number - %s - or \"cancel\"
+I use the %s.
+ Attack %s.
+ Attack with the %s.

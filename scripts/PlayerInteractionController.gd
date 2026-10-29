@@ -330,7 +330,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 
 func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, preset_successes: int) -> void:
 	var hero_name := HeroCatalog.slot_name(hero_slot)
-	var target := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	var target := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 	# One of the hero's two embark weapons (asked only when there is a choice).
 	var weapons: Array = hero_weapons.get(hero_slot, [])
 	var weapon: Weapon = null
@@ -361,7 +361,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 				option.merge(_hero_art(hero_slot, i))
 				options.append(option)
 			var picked: int = await dialog.ask_weapon({
-				"title": "%s attacks %s - choose a weapon" % [hero_name, target],
+				"title": tr("%s attacks %s - choose a weapon") % [hero_name, target],
 				"hero_size_units": HeroCatalog.size_units(hero_slot),
 				"known_weaknesses": monster.known_weaknesses,
 				"known_resistances": monster.known_resistances,
@@ -376,7 +376,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 			var labels: Array[String] = []
 			for w: Weapon in weapons:
 				labels.append(w.summary())
-			var picked: int = await dialog.ask_choice("%s attacks %s.\nWhich weapon?" % [hero_name, target], labels)
+			var picked: int = await dialog.ask_choice(tr("%s attacks %s.\nWhich weapon?") % [hero_name, target], labels)
 			if picked < 0:
 				return
 			weapon = weapons[picked]
@@ -394,7 +394,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	var ability_before := monster.defense_ability_text(false)
 	var ability_after := monster.defense_ability_text(true)
 	if ability_deactivated:
-		ability_before = "Defense ability deactivated." if (ability_before != "" or ability_after != "") else ""
+		ability_before = tr("Defense ability deactivated.") if (ability_before != "" or ability_after != "") else ""
 		ability_after = ""
 	var reaction := monster.tactic_reaction_text(hero_name)
 	if reaction != "":
@@ -464,30 +464,30 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	post_cfg["known_resistances"] = monster.known_resistances.duplicate()
 	post_cfg["known_immunities"] = monster.known_immunities.duplicate()
 
-	var text := "%s attacks %s\nwith the %s (damage %d)\n" % [hero_name, target, r["weapon_name"], r["base_damage"]]
+	var text := tr("%s attacks %s\nwith the %s (damage %d)\n") % [hero_name, target, r["weapon_name"], r["base_damage"]]
 	if r["weakness_bonus"] > 0:
-		text += "\nWeakness: +%d damage" % r["weakness_bonus"]
+		text += tr("\nWeakness: +%d damage") % r["weakness_bonus"]
 	if r["resistance_penalty"] > 0:
-		text += "\nResistance: -%d damage" % r["resistance_penalty"]
+		text += tr("\nResistance: -%d damage") % r["resistance_penalty"]
 	if r["immune"]:
 		text += "\nImmune! The attack does no damage.\n\n0 damage dealt"
 	else:
-		text += "\n%d successes x %d weapon damage" % [r["successes"], r["weapon_damage"]]
+		text += tr("\n%d successes x %d weapon damage") % [r["successes"], r["weapon_damage"]]
 		if r["exposed_bonus"] > 0:
-			text += "\nExposed: +%d damage" % r["exposed_bonus"]
-		text += " = %d damage\nDefense roll: -%d\n\n%d damage dealt" % [r["damage"], r["defense_roll"], r["dealt"]]
+			text += tr("\nExposed: +%d damage") % r["exposed_bonus"]
+		text += tr(" = %d damage\nDefense roll: -%d\n\n%d damage dealt") % [r["damage"], r["defense_roll"], r["dealt"]]
 	if r["defeated"]:
-		text += "\n\n%s is defeated! Remove it from the board." % monster.display_name()
+		text += tr("\n\n%s is defeated! Remove it from the board.") % monster.display_name()
 		if MissionRuntime.loot_text(monster) != "":
-			text += "\nLoot for the party: %s." % MissionRuntime.loot_text(monster)
+			text += tr("\nLoot for the party: %s.") % MissionRuntime.loot_text(monster)
 	else:
-		text += "\n\n%s has %d hitpoints left." % [monster.display_name(), r["hitpoints"]]
+		text += tr("\n\n%s has %d hitpoints left.") % [monster.display_name(), r["hitpoints"]]
 	var part_lines: Array = r.get("part_lines", [])
 	if not part_lines.is_empty():
-		text += "\nWeapon parts and trinket: " + "; ".join(part_lines)
+		text += tr("\nWeapon parts and trinket: ") + "; ".join(part_lines)
 	var part_notes: Array = r.get("part_notes", [])
 	if not part_notes.is_empty():
-		text += "\nAt the table: " + " | ".join(part_notes)
+		text += tr("\nAt the table: ") + " | ".join(part_notes)
 	var applied: Array[int] = r["conditions_applied"]
 	if not applied.is_empty():
 		var applied_names: Array[String] = []
@@ -522,9 +522,9 @@ func _hero_art(hero_slot: int, weapon_index: int) -> Dictionary:
 ## e.g. "Warhammer - damage 3, range 2, reach" under a weapon's name in the
 ## weapon-choice screen.
 func _weapon_subtitle(hero_slot: int, weapon_index: int, weapon: Weapon) -> String:
-	var parts: Array[String] = ["damage %d" % weapon.damage]
+	var parts: Array[String] = [tr("damage %d") % weapon.damage]
 	if weapon.weapon_range > 0:
-		parts.append("range %d" % weapon.weapon_range)
+		parts.append(tr("range %d") % weapon.weapon_range)
 	if weapon.reach:
 		parts.append("reach")
 	var text := "%s - %s" % ["Rune" if weapon.is_rune else WeaponCatalog.type_of(hero_slot, weapon_index), ", ".join(parts)]
@@ -580,7 +580,7 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	for action in actions:
 		option_labels.append(action.description if action.description != "" else action.action_id)
 		option_disabled.append(action.single_shot and action.already_used)
-	var choice: int = await dialog.ask_choice("%s: interact with '%s'" % [hero_name, label], option_labels, option_disabled)
+	var choice: int = await dialog.ask_choice(tr("%s: interact with '%s'") % [hero_name, label], option_labels, option_disabled)
 
 	if choice < 0 or choice >= actions.size():
 		print("%s: cancelled interacting with '%s'" % [hero_name, label])

@@ -27,6 +27,7 @@ const _NARRATION := "narration"
 const _COMMUNITY := "community"
 const _UPDATES := "updates"
 const _AI := "ai"
+const _LANGUAGE := "language"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -64,10 +65,53 @@ var ai_model: String = "claude-sonnet-5-5"
 ## Claude sign-in, nothing is paid per request here). `ai_claude_path` = where that program is ("" = look for it).
 var ai_provider: String = "api"
 var ai_claude_path: String = ""
+## The languages the player wants to read, best first (campaigns and missions are shown in the first one they have; a campaign game
+## asks which one when it starts). Starts as the OS language, then English. See LText / CampaignInfo.LANGUAGES.
+var preferred_languages: Array[String] = _default_languages()
+
+
+## The languages the app's own texts (menus, dialogs) are translated into: translations/<code>.po, registered in the project settings.
+const UI_LANGUAGES: Array[String] = ["en", "es", "nl"]
 
 
 func _ready() -> void:
 	load_settings()
+	LText.set_preferred(preferred_languages)
+	apply_ui_language()
+
+
+## The language of the app's own texts: the first of the preferred languages that the app is translated into, else English.
+func ui_language() -> String:
+	for code in preferred_languages:
+		if UI_LANGUAGES.has(code):
+			return code
+	return "en"
+
+
+## Emitted when the app's own language changed; screens that put translated text in their widgets build themselves again.
+signal ui_language_changed
+
+
+func apply_ui_language() -> void:
+	var before := TranslationServer.get_locale()
+	TranslationServer.set_locale(ui_language())
+	if TranslationServer.get_locale() != before:
+		ui_language_changed.emit()
+
+
+## The OS language first (when it is one we know), then English.
+static func _default_languages() -> Array[String]:
+	var list: Array = [OS.get_locale_language(), "en"]
+	return LText.clean_codes(list)
+
+
+## Changes the list (unknown codes and repeats are dropped; never empty), saves it and makes it the reading order.
+func set_preferred_languages(list: Array) -> void:
+	var cleaned := LText.clean_codes(list)
+	preferred_languages = cleaned if not cleaned.is_empty() else _default_languages()
+	LText.set_preferred(preferred_languages)
+	apply_ui_language()
+	save_settings()
 
 
 ## Falls back silently to the defaults above if the file doesn't exist yet
@@ -97,6 +141,9 @@ func load_settings() -> void:
 	ai_model = config.get_value(_AI, "model", ai_model)
 	ai_provider = config.get_value(_AI, "provider", ai_provider)
 	ai_claude_path = config.get_value(_AI, "claude_path", ai_claude_path)
+	var saved_languages := LText.clean_codes(config.get_value(_LANGUAGE, "preferred", []))
+	if not saved_languages.is_empty():
+		preferred_languages = saved_languages
 
 
 func save_settings() -> void:
@@ -119,6 +166,7 @@ func save_settings() -> void:
 	config.set_value(_AI, "model", ai_model)
 	config.set_value(_AI, "provider", ai_provider)
 	config.set_value(_AI, "claude_path", ai_claude_path)
+	config.set_value(_LANGUAGE, "preferred", preferred_languages)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

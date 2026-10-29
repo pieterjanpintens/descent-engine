@@ -104,8 +104,8 @@ func open(monster: RuntimeMonster, runtime: MissionRuntime) -> void:
 
 
 func _refresh() -> void:
-	_title.text = "%s (%s chip)" % [_monster.display_name(), MonsterChip.display_name(_monster.chip)]
-	_hp_label.text = "Hitpoints %d / %d" % [_monster.hitpoints, _monster.max_hitpoints]
+	_title.text = tr("%s (%s chip)") % [_monster.display_name(), MonsterChip.display_name(_monster.chip)]
+	_hp_label.text = tr("Hitpoints %d / %d") % [_monster.hitpoints, _monster.max_hitpoints]
 	_suppress = true
 	for kind in _condition_boxes:
 		var box: CheckBox = _condition_boxes[kind]
@@ -121,18 +121,18 @@ func _on_damage_pressed() -> void:
 	var monster_name := _monster.display_name()
 	var result := _runtime.damage_monster(_monster, amount)
 	if result["defeated"]:
-		logged.emit("%s took %d damage and was defeated." % [monster_name, amount])
+		logged.emit(tr("%s took %d damage and was defeated.") % [monster_name, amount])
 		# (the loot, if any, is reported by MissionRuntime.loot_collected)
 		visible = false
 		return
-	logged.emit("%s took %d damage (%d hitpoints left)." % [monster_name, amount, result["hitpoints"]])
+	logged.emit(tr("%s took %d damage (%d hitpoints left).") % [monster_name, amount, result["hitpoints"]])
 	_refresh()
 
 
 func _on_heal_pressed() -> void:
 	var amount := int(_amount.value)
 	var healed := _runtime.heal_monster(_monster, amount)
-	logged.emit("%s healed %d (%d hitpoints)." % [_monster.display_name(), healed, _monster.hitpoints])
+	logged.emit(tr("%s healed %d (%d hitpoints).") % [_monster.display_name(), healed, _monster.hitpoints])
 	_refresh()
 
 
@@ -145,5 +145,5 @@ func _on_condition_toggled(kind: int, on: bool) -> void:
 			return
 	else:
 		_runtime.remove_condition(_monster, kind)
-	logged.emit("%s is %s%s." % [_monster.display_name(), "" if on else "no longer ", MonsterCondition.display_name(kind)])
+	logged.emit((tr("%s is %s.") if on else tr("%s is no longer %s.")) % [_monster.display_name(), MonsterCondition.display_name(kind)])
 	_refresh()

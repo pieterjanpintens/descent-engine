@@ -11,7 +11,26 @@ extends Resource
 ## this resource - MissionData is what got authored, not a live game. That
 ## runtime container doesn't exist yet.
 
-@export var mission_name: String = ""
+@export var mission_name_texts: Dictionary = {}
+var mission_name: String:
+	get:
+		return LText.pick(mission_name_texts)
+	set(value):
+		LText.put(mission_name_texts, value)
+## The language the texts were first written in: what is read when none of the player's languages has a text (see LText).
+@export var default_language: String = "en"
+## The other languages the mission has (or is meant to have) texts in; with default_language these are what a player can pick.
+@export var languages: Array[String] = []
+
+
+## The languages a player can pick for this mission: its default language first, then the declared ones.
+func offered_languages() -> Array[String]:
+	var offered: Array[String] = [default_language]
+	for code in languages:
+		if not offered.has(code):
+			offered.append(code)
+	return offered
+
 
 ## How many players this mission supports - defaults to the full
 ## HeroCatalog.SLOT_COUNT (6) range so a mission with nothing authored here

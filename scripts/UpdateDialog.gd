@@ -59,9 +59,9 @@ func open_for(release: Dictionary) -> void:
 	_busy = false
 	var blocked := str(release.get("blocked", ""))
 	var current := AppUpdater.current_version()
-	_status.text = "Version %s is available (you have %s)." % [str(release["tag"]).trim_prefix("v"), current]
+	_status.text = tr("Version %s is available (you have %s).") % [str(release["tag"]).trim_prefix("v"), current]
 	if blocked != "":
-		_status.text += "\n\nThe app can't update itself here: %s. Download it from the release page." % blocked
+		_status.text += tr("\n\nThe app can't update itself here: %s. Download it from the release page.") % blocked
 	var notes := str(release.get("notes", "")).strip_edges()
 	_notes.text = notes.substr(0, MAX_NOTES_CHARS) + ("…" if notes.length() > MAX_NOTES_CHARS else "")
 	get_ok_button().disabled = blocked != ""
@@ -118,7 +118,7 @@ func _on_canceled() -> void:
 
 func _finish_failed(message: String) -> void:
 	_busy = false
-	_status.text = "%s\n\nNothing was changed. You can try again, or download the update from the release page." % message
+	_status.text = tr("%s\n\nNothing was changed. You can try again, or download the update from the release page.") % message
 	get_ok_button().disabled = false
 	get_cancel_button().disabled = false
 	cancel_button_text = "Later"

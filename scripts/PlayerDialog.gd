@@ -596,15 +596,15 @@ func _show_voice_hint(problem: String) -> void:
 		"yes_no":
 			hint = "Say \"yes\" or \"no\""
 		"count":
-			hint = "Say a sentence with the number, like \"I rolled three\" (%d to %d)" % [int(_count_input.min_value), int(_count_input.max_value)]
+			hint = tr("Say a sentence with the number, like \"I rolled three\" (%d to %d)") % [int(_count_input.min_value), int(_count_input.max_value)]
 		"narrative":
 			hint = "Say \"next\" or \"ok\" (or \"back\")"
 		"choice":
 			var parts: Array[String] = []
 			for i in _voice_options.size():
 				parts.append("%d: %s" % [i + 1, _voice_options[i]])
-			hint = "Say a sentence, like \"use the %s\", or a number - %s - or \"cancel\"" % [_voice_options[0].to_lower() if not _voice_options.is_empty() else "sword", " | ".join(parts)]
-	_hint_label.text = (problem + " - " if problem != "" else "") + "Voice - " + hint
+			hint = tr("Say a sentence, like \"use the %s\", or a number - %s - or \"cancel\"") % [_voice_options[0].to_lower() if not _voice_options.is_empty() else "sword", " | ".join(parts)]
+	_hint_label.text = (problem + " - " if problem != "" else "") + tr("Voice - ") + hint
 	_hint_label.visible = true
 
 

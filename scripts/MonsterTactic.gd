@@ -7,13 +7,28 @@ extends Resource
 ##
 ## Texts: the game's own (keys into the user's export - nothing ships) or the designer's own, which win when filled in.
 
-@export var tactic_name: String = ""
+@export var tactic_name_texts: Dictionary = {}
+var tactic_name: String:
+	get:
+		return LText.pick(tactic_name_texts)
+	set(value):
+		LText.put(tactic_name_texts, value)
 @export var speed: int = 3
 ## Added to the monster's attack damage at its current level (the tactic's Damage minus the normal activation's).
 @export var damage_offset: int = 0
 @export var attack_range: int = 0
-@export_multiline var own_hint: String = ""
-@export_multiline var own_activation: String = ""
+@export var own_hint_texts: Dictionary = {}
+var own_hint: String:
+	get:
+		return LText.pick(own_hint_texts)
+	set(value):
+		LText.put(own_hint_texts, value)
+@export var own_activation_texts: Dictionary = {}
+var own_activation: String:
+	get:
+		return LText.pick(own_activation_texts)
+	set(value):
+		LText.put(own_activation_texts, value)
 ## The game's text keys (set by "Import the game's monsters"); empty = none.
 @export var hint_key: String = ""
 @export var activation_key: String = ""
@@ -83,8 +98,17 @@ static func from_dict(d: Dictionary) -> MonsterTactic:
 	return tactic
 
 
+## An independent copy that keeps the text in every language (to_dict() carries only the language being read).
+func copy_full() -> MonsterTactic:
+	var copy := from_dict(to_dict())
+	copy.tactic_name_texts = tactic_name_texts.duplicate()
+	copy.own_hint_texts = own_hint_texts.duplicate()
+	copy.own_activation_texts = own_activation_texts.duplicate()
+	return copy
+
+
 static func copies(list: Array[MonsterTactic]) -> Array[MonsterTactic]:
 	var result: Array[MonsterTactic] = []
 	for tactic in list:
-		result.append(from_dict(tactic.to_dict()))
+		result.append(tactic.copy_full())
 	return result

@@ -34,7 +34,7 @@ static func normalize_url(url: String) -> String:
 func fetch_catalog(url: String) -> Dictionary:
 	var address := normalize_url(url)
 	if address == "":
-		return {"ok": false, "error": "The catalog address must start with https://", "entries": []}
+		return {"ok": false, "error": tr("The catalog address must start with https://"), "entries": []}
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CommunityLibrary.ROOT))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(CATALOG_FILE))  # _fetch keeps a file that is already there
 	if not await _fetch(address, CATALOG_FILE, "", "the community list", MAX_CATALOG_BYTES):
@@ -57,7 +57,7 @@ func fetch_catalog(url: String) -> Dictionary:
 func download_package(url: String, sha256: String, label: String) -> String:
 	var address := normalize_url(url)
 	if address == "":
-		progress.emit("The address must start with https://")
+		progress.emit(tr("The address must start with https://"))
 		return ""
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CommunityLibrary.ROOT))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(DOWNLOAD_FILE))

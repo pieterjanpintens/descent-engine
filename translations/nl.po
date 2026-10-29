@@ -1,0 +1,2210 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ascent\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "  (immune)"
+msgstr "  (immuun)"
+
+msgid "  mic [%s%s]"
+msgstr "  mic [%s%s]"
+
+msgid " %s gains a unique recipe: %s."
+msgstr " %s krijgt een uniek recept: %s."
+
+msgid " (%d failed)"
+msgstr " (%d mislukt)"
+
+msgid " (active)"
+msgstr " (actief)"
+
+msgid " (downloads the import tool first, %s)"
+msgstr " (haalt eerst de importtool op, %s)"
+
+msgid " (immune)"
+msgstr " (immuun)"
+
+msgid " (Only campaigns keep recipes.)"
+msgstr " (Alleen campagnes bewaren recepten.)"
+
+msgid " (XP now %d)"
+msgstr " (XP nu %d)"
+
+msgid " - not imported yet"
+msgstr " - nog niet geïmporteerd"
+
+msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
+msgstr " = %d schade\nVerdedigingsworp: -%d\n\n%d schade toegebracht"
+
+msgid " Not spawned: %s."
+msgstr " Niet verschenen: %s."
+
+msgid " There is no recipe left to gain."
+msgstr " Er is geen recept meer om te krijgen."
+
+msgid "%d damage to %s"
+msgstr "%d schade aan %s"
+
+msgid "%d damage to the enemy"
+msgstr "%d schade aan de vijand"
+
+msgid "%d extra damage (%d%% of its health)"
+msgstr "%d extra schade (%d%% van zijn gezondheid)"
+
+msgid "%d from the community to install."
+msgstr "%d van de community om te installeren."
+
+msgid "%d gold"
+msgstr "%d goud"
+
+msgid "%d gold (Dead Man's Compass)"
+msgstr "%d goud (Kompas van de Dode)"
+
+msgid "%d h %d min"
+msgstr "%d u %d min"
+
+msgid "%d min"
+msgstr "%d min"
+
+msgid "%d monster(s) spawned."
+msgstr "%d monster(s) verschenen."
+
+msgid "%d of the current objectives no longer exist."
+msgstr "%d van de huidige doelen bestaan niet meer."
+
+msgid "%d x %d tiles"
+msgstr "%d x %d tegels"
+
+msgid "%dx %s"
+msgstr "%dx %s"
+
+msgid "%s  -  XP %d,  gold %d"
+msgstr "%s  -  XP %d,  goud %d"
+
+msgid "%s %d (no table rows)"
+msgstr "%s %d (geen tabelrijen)"
+
+msgid "%s (%s chip)"
+msgstr "%s (%s-fiche)"
+
+msgid "%s (%s, part %s)"
+msgstr "%s (%s, onderdeel %s)"
+
+msgid "%s (copied by %s): %s"
+msgstr "%s (gekopieerd door %s): %s"
+
+msgid "%s +%d until the end of the round"
+msgstr "%s +%d tot het einde van de ronde"
+
+msgid "%s - %s chip"
+msgstr "%s - %s-fiche"
+
+msgid "%s - %s triggered!\n\n%s"
+msgstr "%s - %s wordt geactiveerd!\n\n%s"
+
+msgid "%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it."
+msgstr "%s - %s wordt geactiveerd!\n\n%s krijgt een willekeurig verbruiksvoorwerp: %s\n\nRust het uit."
+
+msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it."
+msgstr "%s - %s wordt geactiveerd!\n\n%s krijgt een willekeurig verbeterd verbruiksvoorwerp: %s\n\nRust het uit."
+
+msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
+msgstr "%s - %s wordt geactiveerd!\n\n%s\n\nControleer of het van toepassing is en voer het uit op het bord (een toestand kun je toepassen vanuit het monsterscherm)."
+
+msgid "%s - %s\nDoes %s have an injury?"
+msgstr "%s - %s\nHeeft %s een verwonding?"
+
+msgid "%s - %s\nHow much fatigue is on all of %s's cards?"
+msgstr "%s - %s\nHoeveel vermoeidheid ligt er op alle kaarten van %s?"
+
+msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
+msgstr "%s - %s\nWelke andere vijand lijdt dezelfde schade? (Annuleren: geen)"
+
+msgid "%s - buy for %d gold, sell for %d"
+msgstr "%s - kopen voor %d goud, verkopen voor %d"
+
+msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
+msgstr "%s - HP %d, Niv %d, Verd %d, Aanv %d"
+
+msgid "%s - level %d"
+msgstr "%s - niveau %d"
+
+msgid "%s - not yet implemented."
+msgstr "%s - nog niet geïmplementeerd."
+
+msgid "%s \"%s\" - version %s"
+msgstr "%s \"%s\" - versie %s"
+
+msgid "%s attacks %s (damage %d, %s)."
+msgstr "%s valt %s aan (schade %d, %s)."
+
+msgid "%s attacks %s - choose a weapon"
+msgstr "%s valt %s aan - kies een wapen"
+
+msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
+msgstr "%s valt %s aan!%s\nSchade %d - %s - Snelheid %d"
+
+msgid "%s attacks %s.\nWhich weapon?"
+msgstr "%s valt %s aan.\nMet welk wapen?"
+
+msgid "%s attacks %s\nwith the %s (damage %d)\n"
+msgstr "%s valt %s aan\nmet %s (schade %d)\n"
+
+msgid "%s dropped something usable. %s"
+msgstr "%s liet iets bruikbaars vallen. %s"
+
+msgid "%s dropped: %s."
+msgstr "%s liet vallen: %s."
+
+msgid "%s gains %s"
+msgstr "%s krijgt %s"
+
+msgid "%s has been defeated."
+msgstr "%s is verslagen."
+
+msgid "%s healed %d (%d hitpoints)."
+msgstr "%s herstelde %d (%d levenspunten)."
+
+msgid "%s is %s."
+msgstr "%s is %s."
+
+msgid "%s is confused!\n%s\n%s"
+msgstr "%s is verward!\n%s\n%s"
+
+msgid "%s is confused: %s."
+msgstr "%s is verward: %s."
+
+msgid "%s is immune"
+msgstr "%s is immuun"
+
+msgid "%s is less likely to be its target this round"
+msgstr "%s is deze ronde minder waarschijnlijk het doelwit"
+
+msgid "%s is no longer %s."
+msgstr "%s is niet langer %s."
+
+msgid "%s is not in the party."
+msgstr "%s zit niet in het gezelschap."
+
+msgid "%s is up to something..."
+msgstr "%s is iets van plan..."
+
+msgid "%s lost all hitpoints. Wound %s?"
+msgstr "%s heeft alle levenspunten verloren. %s verwonden?"
+
+msgid "%s performs %s against %s."
+msgstr "%s voert %s uit tegen %s."
+
+msgid "%s receives a benefit: %s."
+msgstr "%s krijgt een voordeel: %s."
+
+msgid "%s suffers %d damage"
+msgstr "%s lijdt %d schade"
+
+msgid "%s takes %d affliction damage (%d hitpoints left)."
+msgstr "%s lijdt %d kwellingsschade (%d levenspunten over)."
+
+msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr "%s lijdt %d kwellingsschade en is verslagen! Haal hem van het bord."
+
+msgid "%s took %d damage (%d hitpoints left)."
+msgstr "%s kreeg %d schade (%d levenspunten over)."
+
+msgid "%s took %d damage and was defeated."
+msgstr "%s kreeg %d schade en werd verslagen."
+
+msgid "%s triggered"
+msgstr "%s wordt geactiveerd"
+
+msgid "%s was defeated during an interrupt before it could %s."
+msgstr "%s werd verslagen tijdens een onderbreking voordat hij kon %s."
+
+msgid "%s was wounded a third time."
+msgstr "%s is voor de derde keer verwond."
+
+msgid "%s wounded a hero - its turn is over."
+msgstr "%s heeft een held verwond - zijn beurt is voorbij."
+
+msgid "%s's Brew Basket provides a random consumable:"
+msgstr "De Brouwmand van %s geeft een willekeurig verbruiksvoorwerp:"
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
+msgstr "%s: %s!\nDoelwit %s - Schade %d - %s - Snelheid %d"
+
+msgid "%s: %s\nFixed parts: %s"
+msgstr "%s: %s\nVaste onderdelen: %s"
+
+msgid "%s: defense +%d until the end of the round"
+msgstr "%s: verdediging +%d tot het einde van de ronde"
+
+msgid "%s: interact with '%s'"
+msgstr "%s: interactie met '%s'"
+
+msgid "%s: loot x%d (+%s)"
+msgstr "%s: buit x%d (+%s)"
+
+msgid "%s: needs %d, you have %d"
+msgstr "%s: vereist %d, je hebt %d"
+
+msgid "%s: perform a %s test - how many successes?"
+msgstr "%s: doe een %s-proef - hoeveel successen?"
+
+msgid "%s: the enemy has no loot"
+msgstr "%s: de vijand heeft geen buit"
+
+msgid "%s: the enemy is not defeated, no extra loot"
+msgstr "%s: de vijand is niet verslagen, geen extra buit"
+
+msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
+msgstr "%s\n\nEr is niets gewijzigd. Je kunt het opnieuw proberen of de update downloaden op de releasepagina."
+
+msgid "%s\n\nYou chose: %s"
+msgstr "%s\n\nJe koos: %s"
+
+msgid "(attacks again)"
+msgstr "(valt opnieuw aan)"
+
+msgid "(ignored) %s"
+msgstr "(genegeerd) %s"
+
+msgid "(unnamed place)"
+msgstr "(naamloze plaats)"
+
+msgid "(unnamed side quest)"
+msgstr "(naamloze zijmissie)"
+
+msgid "(your release)"
+msgstr "(jouw release)"
+
+msgid "+%d damage"
+msgstr "+%d schade"
+
+msgid "+%d damage (rolled %d-%d)"
+msgstr "+%d schade (gegooid %d-%d)"
+
+msgid "+%d damage (round %d)"
+msgstr "+%d schade (ronde %d)"
+
+msgid "2D art - logo and main menu background"
+msgstr "2D-kunst - logo en achtergrond van het hoofdmenu"
+
+msgid "[draft]"
+msgstr "[concept]"
+
+msgid "\"%s\" version %s is already installed."
+msgstr "\"%s\" versie %s is al geïnstalleerd."
+
+msgid "\n%.1f MB."
+msgstr "\n%.1f MB."
+
+msgid "\n%d mission(s), %d picture(s), %.1f MB."
+msgstr "\n%d missie(s), %d afbeelding(en), %.1f MB."
+
+msgid "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted."
+msgstr "\n%d opgeslagen spel(len) ervan zijn opzijgezet (user://campaign_saves/_removed), niet verwijderd."
+
+msgid "\n%d successes x %d weapon damage"
+msgstr "\n%d successen x %d wapenschade"
+
+msgid "\n(+%d damage from a defense ability this activation)"
+msgstr "\n(+%d schade door een verdedigingsvermogen in deze activatie)"
+
+msgid "\n(Enfeebled: damage reduced from %d)"
+msgstr "\n(Verzwakt: schade verlaagd van %d)"
+
+msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
+msgstr "\n\n%s krijgt de verwonding \"%s\": leg de kaart in je speelgebied."
+
+msgid "\n\n%s has %d hitpoints left."
+msgstr "\n\n%s heeft nog %d levenspunten."
+
+msgid "\n\n%s is defeated! Remove it from the board."
+msgstr "\n\n%s is verslagen! Haal hem van het bord."
+
+msgid "\n\n%s must flip their injury card (%s) to its major side."
+msgstr "\n\n%s moet zijn verwondingskaart (%s) omdraaien naar de zware kant."
+
+msgid "\n\n%s must flip their injury card to its major side."
+msgstr "\n\n%s moet zijn verwondingskaart omdraaien naar de zware kant."
+
+msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
+msgstr "\n\nHerinneringsgevest: de gezondheid van %s wordt in plaats daarvan %d."
+
+msgid "\n\nThe app can't update itself here: %s. Download it from the release page."
+msgstr "\n\nDe app kan zichzelf hier niet bijwerken: %s. Download hem van de releasepagina."
+
+msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+msgstr "\n\nDe missie die je speelt wordt gesloten - sla hem eerst op (Opties > Opslaan) of kies Later."
+
+msgid "\n\nThis is %s's third wound - the game will be lost!"
+msgstr "\n\nDit is de derde wond van %s - het spel gaat verloren!"
+
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgstr "\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 vermoeidheid af te leggen:"
+
+msgid "\nActivation: "
+msgstr "\nActivatie: "
+
+msgid "\nAlso some crafting materials for the party: %s."
+msgstr "\nOok wat ambachtsmaterialen voor het gezelschap: %s."
+
+msgid "\nAt the table: "
+msgstr "\nAan tafel: "
+
+msgid "\nConditions applied: %s"
+msgstr "\nToegepaste toestanden: %s"
+
+msgid "\nExposed: +%d damage"
+msgstr "\nBlootgesteld: +%d schade"
+
+msgid "\nImmune to: %s"
+msgstr "\nImmuun voor: %s"
+
+msgid "\nImmune! The attack does no damage.\n\n0 damage dealt"
+msgstr "\nImmuun! De aanval doet geen schade.\n\n0 schade toegebracht"
+
+msgid "\nIn development (a draft)"
+msgstr "\nIn ontwikkeling (een concept)"
+
+msgid "\nLoot for the party: %s."
+msgstr "\nBuit voor het gezelschap: %s."
+
+msgid "\nNo free spawn tile for: %s - place them next to the others."
+msgstr "\nGeen vrije verschijningstegel voor: %s - plaats ze naast de anderen."
+
+msgid "\nNot installed yet - open it to install."
+msgstr "\nNog niet geïnstalleerd - open het om te installeren."
+
+msgid "\nResistance: -%d damage"
+msgstr "\nWeerstand: -%d schade"
+
+msgid "\nThe package was checked: it only contains game data."
+msgstr "\nHet pakket is gecontroleerd: het bevat alleen spelgegevens."
+
+msgid "\nWeakness: +%d damage"
+msgstr "\nZwakte: +%d schade"
+
+msgid "\nWeapon parts and trinket: "
+msgstr "\nWapenonderdelen en sieraad: "
+
+msgid "a %s armor upgrade"
+msgstr "een %s-pantserverbetering"
+
+msgid "a %s part recipe"
+msgstr "een recept voor een %s-onderdeel"
+
+msgid "a %s part upgrade"
+msgstr "een verbetering voor een %s-onderdeel"
+
+msgid "a %s recipe"
+msgstr "een %s-recept"
+
+msgid "a %s upgrade"
+msgstr "een %s-verbetering"
+
+msgid "A campaign"
+msgstr "Een campagne"
+
+msgid "a hero"
+msgstr "een held"
+
+msgid "a new area"
+msgstr "een nieuw gebied"
+
+msgid "a potion recipe"
+msgstr "een drankrecept"
+
+msgid "A save game called '%s' already exists."
+msgstr "Er bestaat al een opgeslagen spel met de naam '%s'."
+
+msgid "A save game needs a name."
+msgstr "Een opgeslagen spel heeft een naam nodig."
+
+msgid "a shipment of %s armor"
+msgstr "een zending %s-pantser"
+
+msgid "a shipment of armor"
+msgstr "een zending pantser"
+
+msgid "A single mission"
+msgstr "Een losse missie"
+
+msgid "A snapshot can be taken in the player phase, with no dialog open."
+msgstr "Een momentopname kan worden gemaakt in de spelersfase, zonder open dialoog."
+
+msgid "a trinket"
+msgstr "een sieraad"
+
+msgid "a trinket upgrade"
+msgstr "een sieraadverbetering"
+
+msgid "Act complete!"
+msgstr "Akte voltooid!"
+
+msgid "Add language"
+msgstr "Taal toevoegen"
+
+msgid "adds %d damage to its next activation"
+msgstr "voegt %d schade toe aan zijn volgende activatie"
+
+msgid "Afflicted"
+msgstr "Gekweld"
+
+msgid "Affliction"
+msgstr "Kwelling"
+
+msgid "affliction damage +%d this round"
+msgstr "kwellingsschade +%d deze ronde"
+
+msgid "Agility"
+msgstr "Behendigheid"
+
+msgid "all its statuses are removed"
+msgstr "al zijn toestanden worden verwijderd"
+
+msgid "an armor upgrade"
+msgstr "een pantserverbetering"
+
+msgid "an unknown author"
+msgstr "een onbekende maker"
+
+msgid "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+msgstr "Een onofficieel fanproject, vrij te gebruiken (MIT-licentie).\n*Descent: Legends of the Dark* en alles van het spel behoren toe aan hun eigenaren."
+
+msgid "Anemos"
+msgstr "Anemos"
+
+msgid "Anemos (wind)"
+msgstr "Anemos (wind)"
+
+msgid "App update"
+msgstr "App-update"
+
+msgid "Applied: "
+msgstr "Toegepast: "
+
+msgid "Apply conditions"
+msgstr "Toestanden toepassen"
+
+msgid "Aquos"
+msgstr "Aquos"
+
+msgid "Aquos (water)"
+msgstr "Aquos (water)"
+
+msgid "Armor"
+msgstr "Pantser"
+
+msgid "Armor upgrade: "
+msgstr "Pantserverbetering: "
+
+msgid "Armor: "
+msgstr "Pantser: "
+
+msgid "Armor…"
+msgstr "Pantser…"
+
+msgid "At the table:"
+msgstr "Aan tafel:"
+
+msgid "Attack"
+msgstr "Aanval"
+
+msgid "attack %s"
+msgstr "%s aanvallen"
+
+msgid "Attack abilities: %s"
+msgstr "Aanvalsvermogens: %s"
+
+msgid "attack gains %s"
+msgstr "de aanval krijgt %s"
+
+msgid "Available now: %s"
+msgstr "Nu beschikbaar: %s"
+
+msgid "Back"
+msgstr "Terug"
+
+msgid "Back to Editor"
+msgstr "Terug naar de editor"
+
+msgid "Back to editor"
+msgstr "Terug naar de editor"
+
+msgid "Back to Menu"
+msgstr "Terug naar het menu"
+
+msgid "becomes afflicted"
+msgstr "raakt gekweld"
+
+msgid "Begin Campaign"
+msgstr "Campagne beginnen"
+
+msgid "Bone"
+msgstr "Bot"
+
+msgid "Bought"
+msgstr "Gekocht"
+
+msgid "bow"
+msgstr "boog"
+
+msgid "Brew"
+msgstr "Brouwen"
+
+msgid "Brew Basket"
+msgstr "Brouwmand"
+
+msgid "Buy"
+msgstr "Kopen"
+
+msgid "Buy  %d"
+msgstr "Kopen  %d"
+
+msgid "Buy  %d gold"
+msgstr "Kopen  %d goud"
+
+msgid "Buy recipe  %d gold"
+msgstr "Recept kopen  %d goud"
+
+msgid "by "
+msgstr "door "
+
+msgid "by %s"
+msgstr "door %s"
+
+msgid "Campaign"
+msgstr "Campagne"
+
+msgid "Campaign complete"
+msgstr "Campagne voltooid"
+
+msgid "Campaign complete! (%s)"
+msgstr "Campagne voltooid! (%s)"
+
+msgid "Campaign editor"
+msgstr "Campagne-editor"
+
+msgid "Campaign Log"
+msgstr "Campagnelogboek"
+
+msgid "Can %s attack a second hero?"
+msgstr "Kan %s een tweede held aanvallen?"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Cancel download"
+msgstr "Download annuleren"
+
+msgid "Cauterization"
+msgstr "Dichtschroeien"
+
+msgid "Cautious"
+msgstr "Voorzichtig"
+
+msgid "Centre to centre (strict)"
+msgstr "Midden naar midden (streng)"
+
+msgid "Centre to corner (recommended)"
+msgstr "Midden naar hoek (aanbevolen)"
+
+msgid "Chapter"
+msgstr "Hoofdstuk"
+
+msgid "Chapter \"%s\" that you already completed is not in the new version."
+msgstr "Hoofdstuk \"%s\", dat je al voltooid had, zit niet in de nieuwe versie."
+
+msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
+msgstr "Hoofdstuk \"%s\", waar je nu bent, zit niet in akte %d van de nieuwe versie."
+
+msgid "Check for a newer version of the app at the main menu"
+msgstr "In het hoofdmenu controleren of er een nieuwere versie van de app is"
+
+msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+msgstr "Kist, poort, boom en put gebruiken de eigen modellen van het spel na Spelmateriaal > Importeren. Uit = de voorwerpen die bij de app horen. Werkt de volgende keer dat een kaart wordt geopend."
+
+msgid "Choose a package"
+msgstr "Kies een pakket"
+
+msgid "Choose a package file…"
+msgstr "Een pakketbestand kiezen…"
+
+msgid "Choose a weapon"
+msgstr "Kies een wapen"
+
+msgid "Choose the folder the game is installed in"
+msgstr "Kies de map waarin het spel is geïnstalleerd"
+
+msgid "Choose the game folder…"
+msgstr "De spelmap kiezen…"
+
+msgid "Choose two weapons per hero (and optional attachments)"
+msgstr "Kies twee wapens per held (en optionele opzetstukken)"
+
+msgid "Choose your party"
+msgstr "Kies je gezelschap"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Cloth"
+msgstr "Stof"
+
+msgid "Common"
+msgstr "Gewoon"
+
+msgid "Community"
+msgstr "Community"
+
+msgid "Community list"
+msgstr "Communitylijst"
+
+msgid "Conditions"
+msgstr "Toestanden"
+
+msgid "Conditions (%d)"
+msgstr "Toestanden (%d)"
+
+msgid "Confirm"
+msgstr "Bevestigen"
+
+msgid "Confused"
+msgstr "Verward"
+
+msgid "Consumables"
+msgstr "Verbruiksvoorwerpen"
+
+msgid "Consumables…"
+msgstr "Verbruiksvoorwerpen…"
+
+msgid "Continue"
+msgstr "Doorgaan"
+
+msgid "Continue this game"
+msgstr "Dit spel voortzetten"
+
+msgid "Converting models... %s (%s)"
+msgstr "Modellen omzetten... %s (%s)"
+
+msgid "copies %s"
+msgstr "kopieert %s"
+
+msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+msgstr "Kopieert deze alleen-lezen release naar een nieuw concept dat je kunt wijzigen. De release zelf en zijn opgeslagen spellen blijven zoals ze zijn."
+
+msgid "Corner to corner (loose, Descent 2)"
+msgstr "Hoek naar hoek (ruim, Descent 2)"
+
+msgid "Cost: %s"
+msgstr "Kosten: %s"
+
+msgid "Could not fork %s."
+msgstr "Kon %s niet afsplitsen."
+
+msgid "Could not open that save game."
+msgstr "Kon dat opgeslagen spel niet openen."
+
+msgid "Could not open the campaign '%s'."
+msgstr "Kon de campagne '%s' niet openen."
+
+msgid "Couldn't start the %s download (error %d)."
+msgstr "Kon de download van %s niet starten (fout %d)."
+
+msgid "Couldn't unpack the %s (tar exit code %d)."
+msgstr "Kon %s niet uitpakken (tar-afsluitcode %d)."
+
+msgid "Couldn't unpack the narration engine (tar exit code %d)."
+msgstr "Kon de vertelmotor niet uitpakken (tar-afsluitcode %d)."
+
+msgid "Couldn't write %s (error %d)."
+msgstr "Kon %s niet schrijven (fout %d)."
+
+msgid "Count as lost"
+msgstr "Tellen als verloren"
+
+msgid "Count as won"
+msgstr "Tellen als gewonnen"
+
+msgid "Created by"
+msgstr "Gemaakt door"
+
+msgid "Credits"
+msgstr "Dankwoord"
+
+msgid "crossbow"
+msgstr "kruisboog"
+
+msgid "Crush"
+msgstr "Verbrijzelen"
+
+msgid "Curios"
+msgstr "Rariteiten"
+
+msgid "Current objective"
+msgstr "Huidig doel"
+
+msgid "Damage"
+msgstr "Schade"
+
+msgid "damage %d"
+msgstr "schade %d"
+
+msgid "damage +%d for good (now %d)"
+msgstr "schade +%d voorgoed (nu %d)"
+
+msgid "damage -%d"
+msgstr "schade -%d"
+
+msgid "Damage Type"
+msgstr "Schadetype"
+
+msgid "Dazed"
+msgstr "Versuft"
+
+msgid "Defeat."
+msgstr "Nederlaag."
+
+msgid "Defeated"
+msgstr "Verslagen"
+
+msgid "defense %+d until the end of the round (now %d)"
+msgstr "verdediging %+d tot het einde van de ronde (nu %d)"
+
+msgid "defense +%d during this attack"
+msgstr "verdediging +%d tijdens deze aanval"
+
+msgid "defense +%d for good (now %d)"
+msgstr "verdediging +%d voorgoed (nu %d)"
+
+msgid "defense -%d"
+msgstr "verdediging -%d"
+
+msgid "defense -%d this round"
+msgstr "verdediging -%d deze ronde"
+
+msgid "Defense abilities: %s"
+msgstr "Verdedigingsvermogens: %s"
+
+msgid "defense ability deactivated for the next attack"
+msgstr "verdedigingsvermogen uitgeschakeld voor de volgende aanval"
+
+msgid "defense ability deactivated until the end of the round"
+msgstr "verdedigingsvermogen uitgeschakeld tot het einde van de ronde"
+
+msgid "Defense ability deactivated."
+msgstr "Verdedigingsvermogen uitgeschakeld."
+
+msgid "Defense ability: %s"
+msgstr "Verdedigingsvermogen: %s"
+
+msgid "Delete the save game '%s'?"
+msgstr "Het opgeslagen spel '%s' verwijderen?"
+
+msgid "Delete this save game"
+msgstr "Dit opgeslagen spel verwijderen"
+
+msgid "Did %s deal damage to %s?"
+msgstr "Bracht %s schade toe aan %s?"
+
+msgid "Did %s pass the test?"
+msgstr "Slaagde %s voor de proef?"
+
+msgid "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."
+msgstr "Hoorde ik terugtocht? Beweeg tot {speed} tegels, zo ver mogelijk van de helden vandaan."
+
+msgid "Did not trigger: "
+msgstr "Niet geactiveerd: "
+
+msgid "Didn't catch a number in range"
+msgstr "Geen getal binnen het bereik verstaan"
+
+msgid "Didn't catch anything - hold %s and try again"
+msgstr "Niets verstaan - houd %s ingedrukt en probeer opnieuw"
+
+msgid "Didn't catch that"
+msgstr "Dat verstond ik niet"
+
+msgid "Didn't catch which option"
+msgstr "Welke optie verstond ik niet"
+
+msgid "Done"
+msgstr "Klaar"
+
+msgid "Done - restart the app to see everything."
+msgstr "Klaar - start de app opnieuw om alles te zien."
+
+msgid "Done. The updated copy is in the list."
+msgstr "Klaar. De bijgewerkte kopie staat in de lijst."
+
+msgid "Doomed"
+msgstr "Gedoemd"
+
+msgid "Download extra voices - accents (%s)"
+msgstr "Extra stemmen downloaden - accenten (%s)"
+
+msgid "Download more voices - plain English (%s)"
+msgstr "Meer stemmen downloaden - gewoon Engels (%s)"
+
+msgid "Downloading %s... %d MB"
+msgstr "%s downloaden... %d MB"
+
+msgid "Downloading %s... %d%% (%d / %d MB)"
+msgstr "%s downloaden... %d%% (%d / %d MB)"
+
+msgid "Downloading the update…"
+msgstr "De update downloaden…"
+
+msgid "dual blades"
+msgstr "dubbele zwaarden"
+
+msgid "each enemy suffers %d damage (trigger %d)"
+msgstr "elke vijand lijdt %d schade (activatie %d)"
+
+msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
+msgstr "Elke speler mag %d meenemen in de missie%s. Gemaakte verbruiksvoorwerpen zijn elke missie opnieuw beschikbaar - er wordt niets opgebruikt."
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Enable voice"
+msgstr "Stem inschakelen"
+
+msgid "Ending soon: this side quest is gone once \"%s\" is won."
+msgstr "Verdwijnt binnenkort: deze zijmissie is weg zodra \"%s\" is gewonnen."
+
+msgid "Enfeebled"
+msgstr "Verzwakt"
+
+msgid "Essences"
+msgstr "Essenties"
+
+msgid "Exposed"
+msgstr "Blootgesteld"
+
+msgid "FAILED"
+msgstr "MISLUKT"
+
+msgid "Failed to load mission: %s"
+msgstr "Missie laden mislukt: %s"
+
+msgid "Failed to save - see the Output panel for details."
+msgstr "Opslaan mislukt - zie het uitvoerpaneel voor details."
+
+msgid "Feats"
+msgstr "Prestaties"
+
+msgid "first"
+msgstr "eerste"
+
+msgid "Fixed hero (%s)"
+msgstr "Vaste held (%s)"
+
+msgid "Flip your hero card"
+msgstr "Draai je heldenkaart om"
+
+msgid "Floor tiles"
+msgstr "Vloertegels"
+
+msgid "Focus 2 cards"
+msgstr "Concentreer 2 kaarten"
+
+msgid "Forge"
+msgstr "Smeden"
+
+msgid "Fork to edit"
+msgstr "Afsplitsen om te bewerken"
+
+msgid "Forked %s into your draft \"%s\" - open it in the %s editor."
+msgstr "%s afgesplitst naar je concept \"%s\" - open het in de %s-editor."
+
+msgid "Fortunos"
+msgstr "Fortunos"
+
+msgid "Fortunos (luck)"
+msgstr "Fortunos (geluk)"
+
+msgid "Frantic"
+msgstr "Hectisch"
+
+msgid "free"
+msgstr "gratis"
+
+msgid "Friendly fire"
+msgstr "Vriendelijk vuur"
+
+msgid "Frustrated"
+msgstr "Gefrustreerd"
+
+msgid "gains %s"
+msgstr "krijgt %s"
+
+msgid "Game %04d-%02d-%02d %02d:%02d"
+msgstr "Spel %04d-%02d-%02d %02d:%02d"
+
+msgid "Game assets"
+msgstr "Spelmateriaal"
+
+msgid "Game found:\n%s"
+msgstr "Spel gevonden:\n%s"
+
+msgid "Gameplay"
+msgstr "Gameplay"
+
+msgid "gauntlet"
+msgstr "handschoen"
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "Gives the armor: %s%s - %s"
+msgstr "Geeft het pantser: %s%s - %s"
+
+msgid "Gives the rune: %s"
+msgstr "Geeft de rune: %s"
+
+msgid "Gives the trinket: %s%s - %s"
+msgstr "Geeft het sieraad: %s%s - %s"
+
+msgid "Gives the weapon: %s%s"
+msgstr "Geeft het wapen: %s%s"
+
+msgid "Gives: %s"
+msgstr "Geeft: %s"
+
+msgid "gloves"
+msgstr "handschoenen"
+
+msgid "Gold"
+msgstr "Goud"
+
+msgid "Gold: %d"
+msgstr "Goud: %d"
+
+msgid "Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."
+msgstr "Een pakket van iemand gekregen? Kies het bestand of plak het webadres ervan. Je ziet wat erin zit en wie het maakte voordat er iets wordt geïnstalleerd."
+
+msgid "Green"
+msgstr "Groen"
+
+msgid "Guard the gate"
+msgstr "De poort bewaken"
+
+msgid "hammer"
+msgstr "hamer"
+
+msgid "Hardened Skin"
+msgstr "Verharde Huid"
+
+msgid "Heal"
+msgstr "Genezen"
+
+msgid "Heal 2"
+msgstr "Genees 2"
+
+msgid "Heal 4"
+msgstr "Genees 4"
+
+msgid "Healthy"
+msgstr "Gezond"
+
+msgid "Hear the story teller"
+msgstr "Hoor de verteller"
+
+msgid "Hear this voice"
+msgstr "Hoor deze stem"
+
+msgid "Heard: %s"
+msgstr "Gehoord: %s"
+
+msgid "Heavily wounded"
+msgstr "Zwaar gewond"
+
+msgid "Heavy Hands"
+msgstr "Zware Handen"
+
+msgid "Heavy Heart"
+msgstr "Zwaar Hart"
+
+msgid "Herbs"
+msgstr "Kruiden"
+
+msgid "hero models"
+msgstr "heldenmodellen"
+
+msgid "Hero voices"
+msgstr "Heldenstemmen"
+
+msgid "Heroes"
+msgstr "Helden"
+
+msgid "Hesitant"
+msgstr "Aarzelend"
+
+msgid "Hitpoints %d / %d"
+msgstr "Levenspunten %d / %d"
+
+msgid "Hold %s to talk"
+msgstr "Houd %s ingedrukt om te praten"
+
+msgid "Horn of Courage"
+msgstr "Hoorn van Moed"
+
+msgid "Horn of Courage - %s was wounded."
+msgstr "Hoorn van Moed - %s is verwond."
+
+msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
+msgstr "Beweeg over een pantser voor de regels. Pantser wordt aan tafel gedragen en afgehandeld."
+
+msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+msgstr "Hoe de zichtlijntool bepaalt of twee tegels elkaar zien. Midden naar hoek: een lijn van het midden van de tegel van de kijker naar een willekeurige hoek van het doel."
+
+msgid "HP %d · Level %d"
+msgstr "HP %d · Niveau %d"
+
+msgid "Ignos"
+msgstr "Ignos"
+
+msgid "Ignos (fire)"
+msgstr "Ignos (vuur)"
+
+msgid "immune to %s"
+msgstr "immuun voor %s"
+
+msgid "Immune to conditions: %s"
+msgstr "Immuun voor toestanden: %s"
+
+msgid "Immune to: "
+msgstr "Immuun voor: "
+
+msgid "Immune: %s"
+msgstr "Immuun: %s"
+
+msgid "Immunity: %s"
+msgstr "Immuniteit: %s"
+
+msgid "Import"
+msgstr "Importeren"
+
+msgid "Import finished, but not everything worked."
+msgstr "Importeren voltooid, maar niet alles werkte."
+
+msgid "Import finished."
+msgstr "Importeren voltooid."
+
+msgid "Import game assets"
+msgstr "Spelmateriaal importeren"
+
+msgid "Imported so far: %s."
+msgstr "Tot nu toe geïmporteerd: %s."
+
+msgid "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
+msgstr "Importeren vanuit de app is op deze computer nog niet beschikbaar - gebruik in plaats daarvan de materiaaltools van de releasepagina."
+
+msgid "IN DEVELOPMENT"
+msgstr "IN ONTWIKKELING"
+
+msgid "Input device: %s"
+msgstr "Invoerapparaat: %s"
+
+msgid "Install"
+msgstr "Installeren"
+
+msgid "Install and restart"
+msgstr "Installeren en herstarten"
+
+msgid "Install by hand"
+msgstr "Met de hand installeren"
+
+msgid "Install this package?"
+msgstr "Dit pakket installeren?"
+
+msgid "Installed"
+msgstr "Geïnstalleerd"
+
+msgid "Installed \"%s\" v%s."
+msgstr "\"%s\" v%s geïnstalleerd."
+
+msgid "Installed \"%s\"."
+msgstr "\"%s\" geïnstalleerd."
+
+msgid "Installing…"
+msgstr "Installeren…"
+
+msgid "Installing… the app closes and starts again by itself."
+msgstr "Installeren… de app sluit en start zichzelf opnieuw."
+
+msgid "Intelligence"
+msgstr "Intelligentie"
+
+msgid "Interrupt"
+msgstr "Onderbreken"
+
+msgid "Interrupt - the players act"
+msgstr "Onderbreking - de spelers handelen"
+
+msgid "Inventory"
+msgstr "Inventaris"
+
+msgid "It stays as it is; you can keep playing it on its own version."
+msgstr "Het blijft zoals het is; je kunt het gewoon op zijn eigen versie blijven spelen."
+
+msgid "Language"
+msgstr "Taal"
+
+msgid "Languages"
+msgstr "Talen"
+
+msgid "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"
+msgstr "Val het dichtstbijzijnde andere monster aan: het krijgt {damage} schade. (Druk op Onderbreken, klik dat monster aan in de monsterweergave en pas de schade toe.)"
+
+msgid "Later"
+msgstr "Later"
+
+msgid "Leather"
+msgstr "Leer"
+
+msgid "Leaves after the next chapter!"
+msgstr "Verdwijnt na het volgende hoofdstuk!"
+
+msgid "Level %d - "
+msgstr "Niveau %d - "
+
+msgid "Line of Sight"
+msgstr "Zichtlijn"
+
+msgid "Line of Sight (on)"
+msgstr "Zichtlijn (aan)"
+
+msgid "Line of sight rule"
+msgstr "Zichtlijnregel"
+
+msgid "Listening... release %s to send"
+msgstr "Luisteren... laat %s los om te verzenden"
+
+msgid "Load a mission save"
+msgstr "Een missie-opslag laden"
+
+msgid "Load game"
+msgstr "Spel laden"
+
+msgid "Look for campaigns shared by the community"
+msgstr "Zoek naar campagnes die door de community zijn gedeeld"
+
+msgid "Looking for shared campaigns…"
+msgstr "Zoeken naar gedeelde campagnes…"
+
+msgid "Loot"
+msgstr "Buit"
+
+msgid "Loot for the party: "
+msgstr "Buit voor het gezelschap: "
+
+msgid "Lucky Charm"
+msgstr "Geluksbrenger"
+
+msgid "Lumos"
+msgstr "Lumos"
+
+msgid "Lumos (light)"
+msgstr "Lumos (licht)"
+
+msgid "Lunge, no bite"
+msgstr "Uitval, zonder beet"
+
+msgid "Mage-Sight Goggles"
+msgstr "Bril van het Magische Zicht"
+
+msgid "Mage-Sight Goggles - %s gains an additional action!"
+msgstr "Bril van het Magische Zicht - %s krijgt een extra actie!"
+
+msgid "Make a copy of '%s' on v%s?"
+msgstr "Een kopie van '%s' maken op v%s?"
+
+msgid "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+msgstr "Maakt een bijgewerkte KOPIE van dit opgeslagen spel op de nieuwere versie. Het origineel blijft zoals het is."
+
+msgid "Materials"
+msgstr "Materialen"
+
+msgid "maximum health -%d (now %d)"
+msgstr "maximale gezondheid -%d (nu %d)"
+
+msgid "melee"
+msgstr "dichtbij"
+
+msgid "Message"
+msgstr "Bericht"
+
+msgid "Metal"
+msgstr "Metaal"
+
+msgid "Minerals"
+msgstr "Mineralen"
+
+msgid "Mission"
+msgstr "Missie"
+
+msgid "Mission editor"
+msgstr "Missie-editor"
+
+msgid "Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."
+msgstr "Missies en campagnes gemaakt door andere spelers. Alles wordt gecontroleerd voordat het wordt geïnstalleerd - een pakket kan alleen spelgegevens bevatten, nooit code - en elke versie wordt naast de andere geïnstalleerd, zodat niets wat je maakte of opsloeg ooit wordt overschreven."
+
+msgid "Models converted: %d%s"
+msgstr "Modellen omgezet: %d%s"
+
+msgid "Monster"
+msgstr "Monster"
+
+msgid "Monster action"
+msgstr "Monsteractie"
+
+msgid "Monster attack"
+msgstr "Monsteraanval"
+
+msgid "monster figures"
+msgstr "monsterfiguren"
+
+msgid "Monster phase"
+msgstr "Monsterfase"
+
+msgid "Monster Phase"
+msgstr "Monsterfase"
+
+msgid "Monster tactic"
+msgstr "Monstertactiek"
+
+msgid "Monsters appear"
+msgstr "Monsters verschijnen"
+
+msgid "More than one matches - say a number"
+msgstr "Meer dan één komt overeen - noem een nummer"
+
+msgid "Mortos"
+msgstr "Mortos"
+
+msgid "Mortos (dead)"
+msgstr "Mortos (dood)"
+
+msgid "Move camera to player and monster spawns"
+msgstr "Camera naar de verschijningsplekken van spelers en monsters verplaatsen"
+
+msgid "Move up to {speed} tiles in a random direction."
+msgstr "Beweeg tot {speed} tegels in een willekeurige richting."
+
+msgid "Move up to {speed} tiles to the closest gate and guard it."
+msgstr "Beweeg tot {speed} tegels naar de dichtstbijzijnde poort en bewaak hem."
+
+msgid "Move up to {speed} tiles to the nearest pillar and hide behind it."
+msgstr "Beweeg tot {speed} tegels naar de dichtstbijzijnde pilaar en verberg je erachter."
+
+msgid "Move up to {speed} tiles towards the closest tree."
+msgstr "Beweeg tot {speed} tegels naar de dichtstbijzijnde boom."
+
+msgid "Move up to {speed} tiles towards the nearest hero - but do not attack."
+msgstr "Beweeg tot {speed} tegels naar de dichtstbijzijnde held - maar val niet aan."
+
+msgid "Moved to v%s"
+msgstr "Verplaatst naar v%s"
+
+msgid "Narration"
+msgstr "Vertelling"
+
+msgid "Narration is set up."
+msgstr "De vertelling is ingesteld."
+
+msgid "Narration isn't available on %s."
+msgstr "Vertelling is niet beschikbaar op %s."
+
+msgid "Narration isn't set up yet - the story is shown as text only."
+msgstr "De vertelling is nog niet ingesteld - het verhaal wordt alleen als tekst getoond."
+
+msgid "Narration setup isn't supported on %s yet."
+msgstr "Het instellen van de vertelling wordt op %s nog niet ondersteund."
+
+msgid "New game"
+msgstr "Nieuw spel"
+
+msgid "Next"
+msgstr "Volgende"
+
+msgid "No"
+msgstr "Nee"
+
+msgid "No %s."
+msgstr "Geen %s."
+
+msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
+msgstr "Geen basissjabloon voor: %s - niet verschenen (repareer de missie in de Creator)."
+
+msgid "No colour chip left for: %s - not spawned."
+msgstr "Geen kleurfiche meer voor: %s - niet verschenen."
+
+msgid "No description."
+msgstr "Geen beschrijving."
+
+msgid "no enemy to damage"
+msgstr "geen vijand om schade aan te doen"
+
+msgid "No map image - choose one for this act"
+msgstr "Geen kaartafbeelding - kies er een voor deze akte"
+
+msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
+msgstr "Geen recepten bekend: importeer eerst de spelgegevens (Spelmateriaal in het hoofdmenu)."
+
+msgid "No recipes for sale right now."
+msgstr "Er zijn nu geen recepten te koop."
+
+msgid "No recipes yet - they are bought at a recipe shop."
+msgstr "Nog geen recepten - ze worden gekocht bij een receptenwinkel."
+
+msgid "No save games yet - start one with New game."
+msgstr "Nog geen opgeslagen spellen - begin er een met Nieuw spel."
+
+msgid "None yet - materials come from defeated monsters, missions and the market."
+msgstr "Nog niets - materialen komen van verslagen monsters, missies en de markt."
+
+msgid "Not everything worked. What did work is in place - restart the app to see it."
+msgstr "Niet alles werkte. Wat wel werkte staat op zijn plaats - start de app opnieuw om het te zien."
+
+msgid "Note:"
+msgstr "Let op:"
+
+msgid "Nothing for sale here."
+msgstr "Hier is niets te koop."
+
+msgid "Nothing has been imported yet - the app shows placeholders."
+msgstr "Er is nog niets geïmporteerd - de app toont plaatshouders."
+
+msgid "Nothing has happened yet."
+msgstr "Er is nog niets gebeurd."
+
+msgid "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
+msgstr "Hier is nog niets. Druk op het verversicoon om te zien wat de community heeft gedeeld, of publiceer een eigen campagne in de Campagne-editor."
+
+msgid "Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."
+msgstr "Nog niets geïnstalleerd. Gebruik het verversicoon op het scherm Nieuw spel om gedeelde campagnes te vinden, of installeer hieronder een pakket met de hand."
+
+msgid "Nothing new in the community list."
+msgstr "Niets nieuws in de communitylijst."
+
+msgid "Nothing yet."
+msgstr "Nog niets."
+
+msgid "Notice"
+msgstr "Mededeling"
+
+msgid "Objective"
+msgstr "Doel"
+
+msgid "Offline - showing the last community list. "
+msgstr "Offline - de laatste communitylijst wordt getoond. "
+
+msgid "ok"
+msgstr "ok"
+
+msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+msgstr "Vraagt alleen aan GitHub welke versie de nieuwste is. Er wordt niets gedownload of geïnstalleerd zonder jouw klik."
+
+msgid "Open campaigns"
+msgstr "Campagnes openen"
+
+msgid "Options"
+msgstr "Opties"
+
+msgid "Or a web address (https://…) of a package file:"
+msgstr "Of een webadres (https://…) van een pakketbestand:"
+
+msgid "Orange"
+msgstr "Oranje"
+
+msgid "Overlays"
+msgstr "Overlays"
+
+msgid "Part %s: none"
+msgstr "Onderdeel %s: geen"
+
+msgid "Parts (B and C)"
+msgstr "Onderdelen (B en C)"
+
+msgid "perform %s"
+msgstr "%s uitvoeren"
+
+msgid "Perform a %s test - how many successes?"
+msgstr "Doe een %s-proef - hoeveel successen?"
+
+msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
+msgstr "Kies een stem voor elke held. Hun tekst in het verhaal wordt ermee voorgelezen en niemand anders gebruikt hem."
+
+msgid "Pierce"
+msgstr "Doorboren"
+
+msgid "Pillars"
+msgstr "Pilaren"
+
+msgid "Place the monsters on the map as shown."
+msgstr "Plaats de monsters op de kaart zoals getoond."
+
+msgid "Place your player figures in the highlighted area, then confirm."
+msgstr "Plaats je spelersfiguren in het gemarkeerde gebied en bevestig dan."
+
+msgid "Play"
+msgstr "Spelen"
+
+msgid "Play mission"
+msgstr "Missie spelen"
+
+msgid "Play one mission"
+msgstr "Eén missie spelen"
+
+msgid "Play this chapter"
+msgstr "Dit hoofdstuk spelen"
+
+msgid "Play this side quest"
+msgstr "Deze zijmissie spelen"
+
+msgid "Player Phase"
+msgstr "Spelersfase"
+
+msgid "Player phase"
+msgstr "Spelersfase"
+
+msgid "Players spawn. Place your tokens, then play."
+msgstr "De spelers verschijnen. Plaats je fiches en speel dan."
+
+msgid "Playtest"
+msgstr "Testspel"
+
+msgid "Playtest:"
+msgstr "Testspel:"
+
+msgid "Preferred targets: %s"
+msgstr "Voorkeursdoelwitten: %s"
+
+msgid "Prepare 2 cards"
+msgstr "Bereid 2 kaarten voor"
+
+msgid "Prepare a card"
+msgstr "Bereid een kaart voor"
+
+msgid "Props"
+msgstr "Voorwerpen"
+
+msgid "Purple"
+msgstr "Paars"
+
+msgid "Push to talk (hold %s)"
+msgstr "Indrukken om te praten (houd %s ingedrukt)"
+
+msgid "Quest"
+msgstr "Queeste"
+
+msgid "Quest Log"
+msgstr "Queestelogboek"
+
+msgid "Quit"
+msgstr "Afsluiten"
+
+msgid "Random (from the name)"
+msgstr "Willekeurig (naar de naam)"
+
+msgid "range %d"
+msgstr "bereik %d"
+
+msgid "Range %d"
+msgstr "Bereik %d"
+
+msgid "range %d, reach"
+msgstr "bereik %d, lang"
+
+msgid "Range %d, reach"
+msgstr "Bereik %d, lang"
+
+msgid "Read in this language earlier"
+msgstr "Eerder in deze taal lezen"
+
+msgid "Read in this language later"
+msgstr "Later in deze taal lezen"
+
+msgid "Read the story aloud"
+msgstr "Het verhaal hardop voorlezen"
+
+msgid "Read this chapter"
+msgstr "Dit hoofdstuk lezen"
+
+msgid "Recipe - tier %d"
+msgstr "Recept - niveau %d"
+
+msgid "Recipe: "
+msgstr "Recept: "
+
+msgid "Recipes"
+msgstr "Recepten"
+
+msgid "recovers %d health"
+msgstr "herstelt %d gezondheid"
+
+msgid "recovers %d health (now %d / %d)"
+msgstr "herstelt %d gezondheid (nu %d / %d)"
+
+msgid "Release page"
+msgstr "Releasepagina"
+
+msgid "Remove"
+msgstr "Verwijderen"
+
+msgid "Remove \"%s\" version %s from this computer?%s"
+msgstr "\"%s\" versie %s van deze computer verwijderen?%s"
+
+msgid "Remove a single condition"
+msgstr "Verwijder één toestand"
+
+msgid "Remove all conditions of a given type"
+msgstr "Verwijder alle toestanden van een bepaald type"
+
+msgid "Remove all fatigue from a single card"
+msgstr "Verwijder alle vermoeidheid van één kaart"
+
+msgid "Removed %s v%s."
+msgstr "%s v%s verwijderd."
+
+msgid "Resistance: %s"
+msgstr "Weerstand: %s"
+
+msgid "Resistant: %s"
+msgstr "Weerstand biedend: %s"
+
+msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgstr "Los besmetting en terreur op. Elke held mag 1 vermoeidheid afleggen."
+
+msgid "Restart needed"
+msgstr "Herstart nodig"
+
+msgid "Restart now"
+msgstr "Nu herstarten"
+
+msgid "Resume monster attack"
+msgstr "De monsteraanval hervatten"
+
+msgid "Retreat"
+msgstr "Terugtocht"
+
+msgid "reveals weakness to %s"
+msgstr "onthult zwakte voor %s"
+
+msgid "Reward: "
+msgstr "Beloning: "
+
+msgid "Round %d - %s"
+msgstr "Ronde %d - %s"
+
+msgid "Rules Reference"
+msgstr "Regelverwijzing"
+
+msgid "Rune"
+msgstr "Rune"
+
+msgid "rune"
+msgstr "rune"
+
+msgid "Rune: "
+msgstr "Rune: "
+
+msgid "Runes"
+msgstr "Runen"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Save game"
+msgstr "Opgeslagen spel"
+
+msgid "Saved."
+msgstr "Opgeslagen."
+
+msgid "second"
+msgstr "tweede"
+
+msgid "Sell  %d"
+msgstr "Verkopen  %d"
+
+msgid "Set up narration (downloads %s)"
+msgstr "Vertelling instellen (downloadt %s)"
+
+msgid "Set up voice control (downloads %s)"
+msgstr "Spraakbesturing instellen (downloadt %s)"
+
+msgid "Set up your game"
+msgstr "Stel je spel in"
+
+msgid "Setting up %s"
+msgstr "%s opzetten"
+
+msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
+msgstr "'%s' opzetten\n%s%s - plaats dit zoals getoond:\n%s"
+
+msgid "Shift 1"
+msgstr "Verschuif 1"
+
+msgid "Show voice hints"
+msgstr "Spraaktips tonen"
+
+msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+msgstr "Toont of deze kaart is verbeterd (+). Verbeteringen verdien je in de campagne."
+
+msgid "Side quest"
+msgstr "Zijmissie"
+
+msgid "Side quest (optional)"
+msgstr "Zijmissie (optioneel)"
+
+msgid "Side quest won: %s."
+msgstr "Zijmissie gewonnen: %s."
+
+msgid "Side quest: %s"
+msgstr "Zijmissie: %s"
+
+msgid "Slash"
+msgstr "Snee"
+
+msgid "Slowed"
+msgstr "Vertraagd"
+
+msgid "Snapshot"
+msgstr "Momentopname"
+
+msgid "Snapshot '%s' is empty."
+msgstr "Momentopname '%s' is leeg."
+
+msgid "Snapshot '%s' taken (round %d)."
+msgstr "Momentopname '%s' gemaakt (ronde %d)."
+
+msgid "Snapshot loaded - round %d"
+msgstr "Momentopname geladen - ronde %d"
+
+msgid "Something with the same name is already in the way: %s."
+msgstr "Iets met dezelfde naam staat al in de weg: %s."
+
+msgid "spear"
+msgstr "speer"
+
+msgid "staff"
+msgstr "staf"
+
+msgid "Start"
+msgstr "Starten"
+
+msgid "Start game"
+msgstr "Spel starten"
+
+msgid "Step %s: %s..."
+msgstr "Stap %s: %s..."
+
+msgid "Story recipe"
+msgstr "Verhaalrecept"
+
+msgid "Story teller:"
+msgstr "Verteller:"
+
+msgid "Strength"
+msgstr "Kracht"
+
+msgid "sword"
+msgstr "zwaard"
+
+msgid "Tactic"
+msgstr "Tactiek"
+
+msgid "Tactics"
+msgstr "Tactieken"
+
+msgid "Take cover"
+msgstr "Dekking zoeken"
+
+msgid "Tarnished Brooch"
+msgstr "Aangeslagen Broche"
+
+msgid "Tarnished Brooch: %d of %d."
+msgstr "Aangeslagen Broche: %d van %d."
+
+msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
+msgstr "Aangeslagen Broche: %d van %d. De Broche wordt vanaf de volgende missie ontgrendeld als zijn +-kant!"
+
+msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
+msgstr "Aangeslagen Broche: %s (%s-fiche) verschijnt ook. %s moet hem verslaan."
+
+msgid "Terros"
+msgstr "Terros"
+
+msgid "Terros (earth)"
+msgstr "Terros (aarde)"
+
+msgid "textures and portraits"
+msgstr "texturen en portretten"
+
+msgid "That folder doesn't contain the game (no \"bundles\" folder was found in it)."
+msgstr "Die map bevat het spel niet (er is geen \"bundles\"-map in gevonden)."
+
+msgid "That is not a web address (it must start with https://)."
+msgstr "Dat is geen webadres (het moet met https:// beginnen)."
+
+msgid "That option isn't available"
+msgstr "Die optie is niet beschikbaar"
+
+msgid "The %s download failed (network %d, HTTP %d)."
+msgstr "De download van %s is mislukt (netwerk %d, HTTP %d)."
+
+msgid "The %s download isn't a valid zip."
+msgstr "De download van %s is geen geldig zipbestand."
+
+msgid "The %s download stopped receiving data - check the connection and try again."
+msgstr "De download van %s ontving geen gegevens meer - controleer de verbinding en probeer opnieuw."
+
+msgid "The %s download was cancelled."
+msgstr "De download van %s is geannuleerd."
+
+msgid "The %s download was corrupt (checksum mismatch)."
+msgstr "De download van %s was beschadigd (controlesom komt niet overeen)."
+
+msgid "The %s is already being downloaded."
+msgstr "%s wordt al gedownload."
+
+msgid "The address must start with https://"
+msgstr "Het adres moet met https:// beginnen"
+
+msgid "The armor the party owns"
+msgstr "Het pantser dat het gezelschap bezit"
+
+msgid "The author confirms they may share the pictures."
+msgstr "De maker bevestigt dat de afbeeldingen gedeeld mogen worden."
+
+msgid "The author did not say whether they may share the pictures."
+msgstr "De maker zei niet of de afbeeldingen gedeeld mogen worden."
+
+msgid "The campaign is complete - congratulations!"
+msgstr "De campagne is voltooid - gefeliciteerd!"
+
+msgid "The catalog address must start with https://"
+msgstr "Het cataloogadres moet met https:// beginnen"
+
+msgid "The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported."
+msgstr "Het gedownloade pakket is niet het pakket dat de lijst beloofde (%s %s in plaats van %s %s). Het is niet geïmporteerd."
+
+msgid "The downloaded package is not the one the list promised. It was not installed."
+msgstr "Het gedownloade pakket is niet het pakket dat de lijst beloofde. Het is niet geïnstalleerd."
+
+msgid "the enemy had less than %d health: defeated"
+msgstr "de vijand had minder dan %d gezondheid: verslagen"
+
+msgid "The files could not be written (error %d)."
+msgstr "De bestanden konden niet worden geschreven (fout %d)."
+
+msgid "the first hero wounded this round has health %d instead"
+msgstr "de eerste held die deze ronde wordt verwond heeft in plaats daarvan %d gezondheid"
+
+msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
+msgstr "Het spel is niet gevonden op de gebruikelijke plaatsen. Kies de map waarin het is geïnstalleerd."
+
+msgid "The import tool stopped without importing anything (exit code %d)."
+msgstr "De importtool stopte zonder iets te importeren (afsluitcode %d)."
+
+msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
+msgstr "Het geïmporteerde spelmateriaal wordt geladen wanneer de app start.\n\nNu herstarten?"
+
+msgid "The language this game is read, logged and narrated in. You cannot change it once the game has started."
+msgstr "De taal waarin dit spel wordt gelezen, gelogd en verteld. Je kunt hem niet meer wijzigen zodra het spel is begonnen."
+
+msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+msgstr "De talen die je wilt lezen, beste eerst. Een campagne of missie wordt getoond in de eerste taal waarvoor hij tekst heeft; bij het starten van een campagnespel wordt gevraagd in welke taal je het speelt."
+
+msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
+msgstr "De lijst met gedeelde campagnes die het verversicoon op het scherm Nieuw spel toont. Standaard die in de descent-engine-community-repository op GitHub."
+
+msgid "The market sells materials but does not buy them."
+msgstr "De markt verkoopt materialen maar koopt ze niet."
+
+msgid "The mission is missing from the campaign folder."
+msgstr "De missie ontbreekt in de campagnemap."
+
+msgid "The mission of chapter \"%s\" is missing from the new version."
+msgstr "De missie van hoofdstuk \"%s\" ontbreekt in de nieuwe versie."
+
+msgid "The new variable \"%s\" starts at its default value."
+msgstr "De nieuwe variabele \"%s\" begint met zijn standaardwaarde."
+
+msgid "The new version has no act %d (your save is in it)."
+msgstr "De nieuwe versie heeft geen akte %d (je opgeslagen spel zit erin)."
+
+msgid "The newer version could not be opened."
+msgstr "De nieuwere versie kon niet worden geopend."
+
+msgid "The original save game is not changed - you can always go back to it."
+msgstr "Het oorspronkelijke opgeslagen spel wordt niet gewijzigd - je kunt er altijd naar terug."
+
+msgid "the package"
+msgstr "het pakket"
+
+msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
+msgstr "Het gezelschap heeft geen verbruiksvoorwerpen - brouw ze bij een alchemist uit drankrecepten."
+
+msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
+msgstr "Het gezelschap heeft geen verbruiksvoorwerpen. Brouw ze bij een alchemist uit drankrecepten."
+
+msgid "The party has to try this chapter again."
+msgstr "Het gezelschap moet dit hoofdstuk opnieuw proberen."
+
+msgid "The party owns no armor yet."
+msgstr "Het gezelschap bezit nog geen pantser."
+
+msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
+msgstr "Het gezelschap bezit nog geen sieraden - ze worden gekocht bij een receptenwinkel of gevonden."
+
+msgid "The phase can't be ended right now."
+msgstr "De fase kan nu niet worden beëindigd."
+
+msgid "The potions the party has crafted - available in every mission"
+msgstr "De drankjes die het gezelschap heeft gemaakt - beschikbaar in elke missie"
+
+msgid "The release's checksum list has no entry for %s."
+msgstr "De controlesomlijst van de release heeft geen item voor %s."
+
+msgid "The snapshot could not be saved - see the Output panel."
+msgstr "De momentopname kon niet worden opgeslagen - zie het uitvoerpaneel."
+
+msgid "The snapshot was put on the edited mission, but:\n- "
+msgstr "De momentopname is op de bewerkte missie gezet, maar:\n- "
+
+msgid "The speech engine download had no library for %s."
+msgstr "De download van de spraakmotor had geen bibliotheek voor %s."
+
+msgid "the table carries it out"
+msgstr "wordt aan tafel afgehandeld"
+
+msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+msgstr "Het sieraad dat deze held draagt (één per held; een sieraad kan maar door één held worden gedragen)"
+
+msgid "The update could not be started."
+msgstr "De update kon niet worden gestart."
+
+msgid "The update does not contain %s."
+msgstr "De update bevat %s niet."
+
+msgid "The updated copy could not be saved."
+msgstr "De bijgewerkte kopie kon niet worden opgeslagen."
+
+msgid "The variable \"%s\" no longer exists - its value is dropped."
+msgstr "De variabele \"%s\" bestaat niet meer - de waarde wordt weggegooid."
+
+msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
+msgstr "Deze app wordt geleverd zonder de kunst van het spel. Als je \"Descent: Legends of the Dark\" bezit, kunnen de echte afbeeldingen, figuren en spelgegevens van je eigen installatie worden gekopieerd. Er wordt niets van het spel gedownload en er verlaat niets deze computer."
+
+msgid "this attack cannot damage it"
+msgstr "deze aanval kan hem geen schade doen"
+
+msgid "This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s"
+msgstr "Dit pakket is niet geïmporteerd - het is beschadigd of bevat iets wat niet is toegestaan:\n\n- %s"
+
+msgid "This package was not installed - it is damaged or contains something that is not allowed."
+msgstr "Dit pakket is niet geïnstalleerd - het is beschadigd of bevat iets wat niet is toegestaan."
+
+msgid "This release has no %s (or no checksum list)."
+msgstr "Deze release heeft geen %s (of geen controlesomlijst)."
+
+msgid "This save game cannot be moved to v%s:"
+msgstr "Dit opgeslagen spel kan niet naar v%s worden verplaatst:"
+
+msgid "This save game was moved from version %s of the campaign to version %s."
+msgstr "Dit opgeslagen spel is van versie %s van de campagne naar versie %s verplaatst."
+
+msgid "Threat"
+msgstr "Dreiging"
+
+msgid "throwing knives"
+msgstr "werpmessen"
+
+msgid "Time passes"
+msgstr "De tijd verstrijkt"
+
+msgid "Time passes.\n\n"
+msgstr "De tijd verstrijkt.\n\n"
+
+msgid "Tired"
+msgstr "Moe"
+
+msgid "Too short - hold %s while you speak"
+msgstr "Te kort - houd %s ingedrukt terwijl je praat"
+
+msgid "Towards the tree"
+msgstr "Naar de boom"
+
+msgid "Toxos"
+msgstr "Toxos"
+
+msgid "Toxos (decay)"
+msgstr "Toxos (verval)"
+
+msgid "trigger %d (every %dth: %d damage to every enemy)"
+msgstr "activatie %d (elke %de: %d schade aan elke vijand)"
+
+msgid "trigger %d: %d damage to every enemy"
+msgstr "activatie %d: %d schade aan elke vijand"
+
+msgid "Trinket"
+msgstr "Sieraad"
+
+msgid "Trinket %s: %s"
+msgstr "Sieraad %s: %s"
+
+msgid "Trinket upgrade: "
+msgstr "Sieraadverbetering: "
+
+msgid "Trinket: "
+msgstr "Sieraad: "
+
+msgid "Trinkets"
+msgstr "Sieraden"
+
+msgid "Umbros"
+msgstr "Umbros"
+
+msgid "Umbros (shadow)"
+msgstr "Umbros (schaduw)"
+
+msgid "Undying Skull"
+msgstr "Onsterfelijke Schedel"
+
+msgid "Undying Skull: %s defeated a %s for the %s time."
+msgstr "Onsterfelijke Schedel: %s versloeg een %s voor de %s keer."
+
+msgid "Unknown"
+msgstr "Onbekend"
+
+msgid "Update available: %s"
+msgstr "Update beschikbaar: %s"
+
+msgid "Update to v%s…"
+msgstr "Bijwerken naar v%s…"
+
+msgid "Upgrade - tier %d"
+msgstr "Verbetering - niveau %d"
+
+msgid "Upgrade: "
+msgstr "Verbetering: "
+
+msgid "Upgraded (+). In a campaign this follows the party's upgrades."
+msgstr "Verbeterd (+). In een campagne volgt dit de verbeteringen van het gezelschap."
+
+msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
+msgstr "Bruikbaar in deze missie: %s. Leg het in je speelgebied om het te gebruiken. Het wordt niet aan de inventaris toegevoegd en verdwijnt als de missie eindigt."
+
+msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
+msgstr "Bruikbaar in deze missie: %s. Leg ze in je speelgebied om ze te gebruiken. Ze worden niet aan de inventaris toegevoegd en verdwijnen als de missie eindigt."
+
+msgid "Use the original game props in the map"
+msgstr "De originele spelvoorwerpen in de kaart gebruiken"
+
+msgid "Use the upgraded (+) side of this trinket."
+msgstr "Gebruik de verbeterde (+) kant van dit sieraad."
+
+msgid "Variable '%s' changed type - it has its default again."
+msgstr "Variabele '%s' veranderde van type - hij heeft weer zijn standaardwaarde."
+
+msgid "Variable '%s' no longer exists (it was %s)."
+msgstr "Variabele '%s' bestaat niet meer (hij was %s)."
+
+msgid "Version %s"
+msgstr "Versie %s"
+
+msgid "Version %s is already installed."
+msgstr "Versie %s is al geïnstalleerd."
+
+msgid "Version %s is available (you have %s)."
+msgstr "Versie %s is beschikbaar (je hebt %s)."
+
+msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
+msgstr "Versie %s van dit pakket is al uitgebracht - een release wordt nooit vervangen. Gebruik een hogere versie."
+
+msgid "Victory!"
+msgstr "Overwinning!"
+
+msgid "Vigos"
+msgstr "Vigos"
+
+msgid "Vigos (life)"
+msgstr "Vigos (leven)"
+
+msgid "Voice"
+msgstr "Stem"
+
+msgid "Voice - "
+msgstr "Stem - "
+
+msgid "Voice control is set up."
+msgstr "Spraakbesturing is ingesteld."
+
+msgid "Voice isn't set up yet - typed commands still work."
+msgstr "Spraak is nog niet ingesteld - getypte opdrachten werken nog steeds."
+
+msgid "voice settings (%s)"
+msgstr "steminstellingen (%s)"
+
+msgid "Voice setup isn't available on %s - typed commands still work."
+msgstr "Spraakinstelling is niet beschikbaar op %s - getypte opdrachten werken nog steeds."
+
+msgid "Voice setup isn't supported on %s yet."
+msgstr "Spraakinstelling wordt op %s nog niet ondersteund."
+
+msgid "voices (%s)"
+msgstr "stemmen (%s)"
+
+msgid "wand"
+msgstr "toverstaf"
+
+msgid "Wander"
+msgstr "Rondzwerven"
+
+msgid "war bell"
+msgstr "oorlogsbel"
+
+msgid "warhammer"
+msgstr "oorlogshamer"
+
+msgid "weak to %s"
+msgstr "zwak voor %s"
+
+msgid "Weak: %s"
+msgstr "Zwak: %s"
+
+msgid "Weakness"
+msgstr "Zwakte"
+
+msgid "weakness damage +%d"
+msgstr "zwakteschade +%d"
+
+msgid "Weakness: %s"
+msgstr "Zwakte: %s"
+
+msgid "weapon"
+msgstr "wapen"
+
+msgid "Weapon %d (%s)"
+msgstr "Wapen %d (%s)"
+
+msgid "weapon damage +%d"
+msgstr "wapenschade +%d"
+
+msgid "weapon part chances +%d%%"
+msgstr "kans van wapenonderdelen +%d%%"
+
+msgid "Weapons"
+msgstr "Wapens"
+
+msgid "What's new"
+msgstr "Wat is er nieuw"
+
+msgid "When a hero has lost all hitpoints, press Wound. The third wound loses the game."
+msgstr "Als een held alle levenspunten heeft verloren, druk je op Verwonden. De derde wond verliest het spel."
+
+msgid "Which monster?"
+msgstr "Welk monster?"
+
+msgid "Which one?"
+msgstr "Welke?"
+
+msgid "Who attacks the %s?"
+msgstr "Wie valt %s aan?"
+
+msgid "Who uses the %s?"
+msgstr "Wie gebruikt %s?"
+
+msgid "Will"
+msgstr "Wil"
+
+msgid "Won: %s."
+msgstr "Gewonnen: %s."
+
+msgid "Wound"
+msgstr "Verwonden"
+
+msgid "Wounded"
+msgstr "Verwond"
+
+msgid "XP: %d  |  Gold: %d"
+msgstr "XP: %d  |  Goud: %d"
+
+msgid "Yellow"
+msgstr "Geel"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "You already have version %s - this one is installed next to it."
+msgstr "Je hebt al versie %s - deze wordt ernaast geïnstalleerd."
+
+msgid "You can play"
+msgstr "Je kunt spelen"
+
+msgid "You carry %d."
+msgstr "Je draagt %d."
+
+msgid "You have %d gold and %s."
+msgstr "Je hebt %d goud en %s."
+
+msgid "You have %d gold."
+msgstr "Je hebt %d goud."
+
+msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
+msgstr "Je kent geen drankrecept. Recepten worden verkocht in de receptenwinkels of gevonden als buit."
+
+msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
+msgstr "Je kent geen recept dat iets nieuws maakt. Recepten worden verkocht in de receptenwinkels."
+
+msgid "Your materials:"
+msgstr "Je materialen:"
+
+msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
+msgstr "Je voortgang wordt automatisch onder deze naam opgeslagen, zodat je kunt stoppen en verdergaan waar je bleef (Spel laden in het hoofdmenu). Gebruik een andere naam voor elke groep of speelronde."
+
+msgid "▶ Read aloud"
+msgstr "▶ Hardop voorlezen"
+
+msgid "☠ Defeated"
+msgstr "☠ Verslagen"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
+msgstr "De app zelf (menu's en dialogen) wordt getoond in de eerste taal van deze lijst waarin ze is vertaald - voorlopig Engels, Spaans en Nederlands."
+
+msgid "Unofficial App"
+msgstr "Onofficiële app"
+
+msgid "%s - %s\n\n%s gains an extra benefit: %s."
+msgstr "%s - %s\n\n%s krijgt een extra voordeel: %s."
+
+msgid " (%d for %d player)"
+msgid_plural " (%d for %d players)"
+msgstr[0] " (%d voor %d speler)"
+msgstr[1] " (%d voor %d spelers)"
+
+msgid "+%d success"
+msgid_plural "+%d successes"
+msgstr[0] "+%d succes"
+msgstr[1] "+%d successen"
+
+msgid "lost %d status, %d damage"
+msgid_plural "lost %d statuses, %d damage"
+msgstr[0] "verloor %d toestand, %d schade"
+msgstr[1] "verloor %d toestanden, %d schade"
+
+msgid "Lucky Charm: %d extra success is added to %s's result."
+msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
+msgstr[0] "Geluksbrenger: er wordt %d extra succes aan het resultaat van %s toegevoegd."
+msgstr[1] "Geluksbrenger: er worden %d extra successen aan het resultaat van %s toegevoegd."
+
+msgid "New side quest: %s"
+msgid_plural "New side quests: %s"
+msgstr[0] "Nieuwe zijmissie: %s"
+msgstr[1] "Nieuwe zijmissies: %s"

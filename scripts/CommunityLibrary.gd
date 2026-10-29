@@ -95,7 +95,7 @@ static func _release(meta: Dictionary, build: Callable) -> Dictionary:
 	var id := str(meta.get("id", ""))
 	var version := str(meta.get("version", ""))
 	if id == "" or not find(id, version).is_empty():
-		return {"ok": false, "error": "Version %s of this package is already released - a release is never replaced. Use a higher version." % version}
+		return {"ok": false, "error": TranslationServer.translate("Version %s of this package is already released - a release is never replaced. Use a higher version.") % version}
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(RELEASES_DIR))
 	var out := "%s/%s.%s" % [RELEASES_DIR, key_for(id, version), SharePackage.EXTENSION]
 	var problems: Array[String] = build.call(out)
@@ -168,13 +168,13 @@ static func install(package: Dictionary, source := "") -> Dictionary:
 	var id: String = manifest["id"]
 	var version: String = manifest["version"]
 	if not find(id, version).is_empty():
-		return {"ok": false, "already": true, "error": "Version %s is already installed." % version}
+		return {"ok": false, "already": true, "error": TranslationServer.translate("Version %s is already installed.") % version}
 
 	var key := key_for(id, version)
 	var is_mission: bool = manifest["type"] == SharePackage.TYPE_MISSION
 	var path := "%s/%s.tres" % [MISSIONS_DIR, key] if is_mission else CampaignIO.folder_path(key)
 	if (is_mission and FileAccess.file_exists(path)) or (not is_mission and DirAccess.dir_exists_absolute(path)):
-		return {"ok": false, "error": "Something with the same name is already in the way: %s." % path}
+		return {"ok": false, "error": TranslationServer.translate("Something with the same name is already in the way: %s.") % path}
 
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir() if is_mission else path)
 	var written := true
@@ -193,7 +193,7 @@ static func install(package: Dictionary, source := "") -> Dictionary:
 		file.close()
 	if not written:
 		_delete_files(path, is_mission)
-		return {"ok": false, "error": "The files could not be written (error %d)." % FileAccess.get_open_error()}
+		return {"ok": false, "error": TranslationServer.translate("The files could not be written (error %d).") % FileAccess.get_open_error()}
 
 	var entry := {
 		"id": id,
@@ -256,11 +256,24 @@ static func _save(entries: Array[Dictionary]) -> void:
 
 
 ## Adds " (v<version>)" to the name stored in the file (`property` = "mission_name" / "campaign_name") - a name left at its default is
-## not stored at all and stays as it is.
+## not stored at all and stays as it is. A name that exists in several languages (`<property>_texts`, a map) gets it in every language;
+## a file from before that (a plain `<property> = "..."` line) is handled too.
 static func _with_version_in_name(data: PackedByteArray, property: String, version: String) -> PackedByteArray:
 	var text := data.get_string_from_utf8()
-	var found := RegEx.create_from_string("(?m)^" + property + " = \"((?:[^\"\\\\]|\\\\.)*)\"").search(text)
+	var suffix := " (v" + version + ")"
+	var value_pattern := "\"((?:[^\"\\\\]|\\\\.)*)\""
+	var block := RegEx.create_from_string("(?ms)^" + property + "_texts = \\{\\s*$(.*?)^\\}").search(text)
+	if block != null:
+		var inner := block.get_string(1)
+		var values := RegEx.create_from_string("(?m)^" + value_pattern + ": " + value_pattern).search_all(inner)
+		var changed_inner := inner
+		for i in range(values.size() - 1, -1, -1):
+			var end := values[i].get_end(2)
+			changed_inner = changed_inner.substr(0, end) + suffix + changed_inner.substr(end)
+		var start := block.get_start(1)
+		return (text.substr(0, start) + changed_inner + text.substr(start + inner.length())).to_utf8_buffer()
+	var found := RegEx.create_from_string("(?m)^" + property + " = " + value_pattern).search(text)
 	if found == null:
 		return data
-	var changed := text.substr(0, found.get_end(1)) + " (v" + version + ")" + text.substr(found.get_end(1))
+	var changed := text.substr(0, found.get_end(1)) + suffix + text.substr(found.get_end(1))
 	return changed.to_utf8_buffer()

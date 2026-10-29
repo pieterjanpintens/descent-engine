@@ -84,7 +84,7 @@ func setup(entry: Dictionary) -> void:
 	var newer := str(entry.get("newer", ""))
 	if newer != "":
 		_update = Button.new()
-		_update.text = "Update to v%s…" % newer
+		_update.text = tr("Update to v%s…") % newer
 		_update.tooltip_text = "Makes an updated COPY of this save game on the newer version. The original stays as it is."
 		_update.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		_update.pressed.connect(func(): update_pressed.emit())

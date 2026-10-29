@@ -87,7 +87,7 @@ func open_for(path: String) -> void:
 		_summary_label.text = "%s %s - a %s%s\n%s" % [str(manifest["name"]), str(manifest["version"]), str(manifest["type"]),
 				" by " + str(manifest["author"]) if str(manifest.get("author", "")) != "" else "", path.get_file()]
 	else:
-		_summary_label.text = "%s\nThis file is not a valid package: %s" % [path.get_file(), "; ".join((package["errors"] as Array).slice(0, 3))]
+		_summary_label.text = tr("%s\nThis file is not a valid package: %s") % [path.get_file(), "; ".join((package["errors"] as Array).slice(0, 3))]
 		_path = ""
 	_refresh()
 	popup_centered()
@@ -100,7 +100,7 @@ func _refresh() -> void:
 	if not GitHubClient.is_configured() and _client.client_id == "":
 		_account_label.text = "Publishing from the app is not switched on in this version. Share the package file itself, or see the community repository on GitHub."
 	elif signed_in:
-		_account_label.text = "Signed in to GitHub as %s." % str(account.get("login", ""))
+		_account_label.text = tr("Signed in to GitHub as %s.") % str(account.get("login", ""))
 	elif waiting_for_code:
 		_account_label.text = "Type this code on github.com to sign in (it is copied to your clipboard):"
 	else:
@@ -148,7 +148,7 @@ func _on_publish_pressed() -> void:
 	_busy = false
 	if result["ok"]:
 		_result_url = str(result["url"])
-		_status_label.text = "Submitted. It shows up in the Community page once it is approved.\n%s" % _result_url
+		_status_label.text = tr("Submitted. It shows up in the Community page once it is approved.\n%s") % _result_url
 	_refresh()
 
 

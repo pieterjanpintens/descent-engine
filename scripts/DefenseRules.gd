@@ -118,16 +118,16 @@ static func after_attack(runtime: MissionRuntime, monster: RuntimeMonster) -> Ar
 		if alive:
 			if rule.has("defense_after"):
 				monster.defense_round_bonus += int(rule["defense_after"])
-				lines.append("defense %+d until the end of the round (now %d)" % [int(rule["defense_after"]), monster.effective_defense()])
+				lines.append(TranslationServer.translate("defense %+d until the end of the round (now %d)") % [int(rule["defense_after"]), monster.effective_defense()])
 			if rule.has("defense_other"):
 				var others := _others(runtime, monster)
 				if not others.is_empty():
 					var chosen: RuntimeMonster = others.pick_random()
 					chosen.defense_round_bonus += int(rule["defense_other"])
-					lines.append("%s: defense +%d until the end of the round" % [chosen.display_name(), int(rule["defense_other"])])
+					lines.append(TranslationServer.translate("%s: defense +%d until the end of the round") % [chosen.display_name(), int(rule["defense_other"])])
 			if rule.has("damage_permanent"):
 				monster.attack_power += int(rule["damage_permanent"])
-				lines.append("damage +%d for good (now %d)" % [int(rule["damage_permanent"]), monster.attack_power])
+				lines.append(TranslationServer.translate("damage +%d for good (now %d)") % [int(rule["damage_permanent"]), monster.attack_power])
 			if rule.has("random_stat_after"):
 				var n := int(rule["random_stat_after"])
 				var stat: String = RANDOM_STATS.pick_random()
@@ -140,7 +140,7 @@ static func after_attack(runtime: MissionRuntime, monster: RuntimeMonster) -> Ar
 						monster.range_round_bonus += n
 					"speed":
 						monster.speed_round_bonus += n
-				lines.append("%s +%d until the end of the round" % [stat, n])
+				lines.append(TranslationServer.translate("%s +%d until the end of the round") % [stat, n])
 		if rule.has("once") and not monster.defense_ability_fired:
 			monster.defense_ability_fired = true
 			lines.append_array(_once(runtime, monster, rule["once"]))
@@ -153,7 +153,7 @@ static func _once(runtime: MissionRuntime, monster: RuntimeMonster, once: Dictio
 	var lines: Array[String] = []
 	if once.has("defense_permanent") and runtime.monsters.has(monster):
 		monster.defense += int(once["defense_permanent"])
-		lines.append("defense +%d for good (now %d)" % [int(once["defense_permanent"]), monster.defense])
+		lines.append(TranslationServer.translate("defense +%d for good (now %d)") % [int(once["defense_permanent"]), monster.defense])
 	if once.get("random_enemy", false) or once.get("random_other", false):
 		var pool := _others(runtime, monster)
 		if once.get("include_self", false) and runtime.monsters.has(monster):
@@ -165,12 +165,12 @@ static func _once(runtime: MissionRuntime, monster: RuntimeMonster, once: Dictio
 		if once.has("heal_pct"):
 			var amount := maxi(floori(target.max_hitpoints * float(once["heal_pct"]) / 100.0), 1)
 			var healed := runtime.heal_monster(target, amount)
-			parts.append("recovers %d health" % healed)
+			parts.append(TranslationServer.translate("recovers %d health") % healed)
 		if once.get("afflict", false) and runtime.add_condition(target, MonsterCondition.Kind.AFFLICTED):
-			parts.append("becomes afflicted")
+			parts.append(TranslationServer.translate("becomes afflicted"))
 		if once.has("damage"):
 			target.next_activation_damage += int(once["damage"])
-			parts.append("adds %d damage to its next activation" % int(once["damage"]))
+			parts.append(TranslationServer.translate("adds %d damage to its next activation") % int(once["damage"]))
 		lines.append("%s %s" % [target.display_name(), ", ".join(parts)])
 	return lines
 

@@ -257,6 +257,7 @@ static func classic() -> Theme:
 
 static func apply_classic(control: Control) -> void:
 	control.theme = classic()
+	control.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED  # the editors stay in English (everything under this control inherits it)
 
 
 ## A check box picture that shows on the dark panels: a light frame, and an orange tick when checked.

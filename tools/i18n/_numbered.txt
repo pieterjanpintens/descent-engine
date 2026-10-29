@@ -1,0 +1,731 @@
+1|  (immune)
+2|  mic [%s%s]
+3| %s gains a unique recipe: %s.
+4| (%d failed)
+5| (active)
+6| (downloads the import tool first, %s)
+7| (immune)
+8| (Only campaigns keep recipes.)
+9| (XP now %d)
+10| - not imported yet
+11| = %d damage\nDefense roll: -%d\n\n%d damage dealt
+12| Not spawned: %s.
+13| There is no recipe left to gain.
+14|%d damage to %s
+15|%d damage to the enemy
+16|%d extra damage (%d%% of its health)
+17|%d from the community to install.
+18|%d gold
+19|%d gold (Dead Man's Compass)
+20|%d h %d min
+21|%d min
+22|%d monster(s) spawned.
+23|%d of the current objectives no longer exist.
+24|%d x %d tiles
+25|%dx %s
+26|%s  -  XP %d,  gold %d
+27|%s %d (no table rows)
+28|%s (%s chip)
+29|%s (%s, part %s)
+30|%s (copied by %s): %s
+31|%s +%d until the end of the round
+32|%s - %s chip
+33|%s - %s triggered!\n\n%s
+34|%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it.
+35|%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it.
+36|%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen).
+37|%s - %s\nDoes %s have an injury?
+38|%s - %s\nHow much fatigue is on all of %s's cards?
+39|%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)
+40|%s - buy for %d gold, sell for %d
+41|%s - HP %d, Lv %d, Def %d, Atk %d
+42|%s - level %d
+43|%s - not yet implemented.
+44|%s \"%s\" - version %s
+45|%s attacks %s (damage %d, %s).
+46|%s attacks %s - choose a weapon
+47|%s attacks %s!%s\nDamage %d - %s - Speed %d
+48|%s attacks %s.\nWhich weapon?
+49|%s attacks %s\nwith the %s (damage %d)\n
+50|%s dropped something usable. %s
+51|%s dropped: %s.
+52|%s gains %s
+53|%s has been defeated.
+54|%s healed %d (%d hitpoints).
+55|%s is %s.
+56|%s is confused!\n%s\n%s
+57|%s is confused: %s.
+58|%s is immune
+59|%s is less likely to be its target this round
+60|%s is no longer %s.
+61|%s is not in the party.
+62|%s is up to something...
+63|%s lost all hitpoints. Wound %s?
+64|%s performs %s against %s.
+65|%s receives a benefit: %s.
+66|%s suffers %d damage
+67|%s takes %d affliction damage (%d hitpoints left).
+68|%s takes %d affliction damage and is defeated! Remove it from the board.
+69|%s took %d damage (%d hitpoints left).
+70|%s took %d damage and was defeated.
+71|%s triggered
+72|%s was defeated during an interrupt before it could %s.
+73|%s was wounded a third time.
+74|%s wounded a hero - its turn is over.
+75|%s's Brew Basket provides a random consumable:
+76|%s: %s!\nTarget %s - Damage %d - %s - Speed %d
+77|%s: %s\nFixed parts: %s
+78|%s: defense +%d until the end of the round
+79|%s: interact with '%s'
+80|%s: loot x%d (+%s)
+81|%s: needs %d, you have %d
+82|%s: perform a %s test - how many successes?
+83|%s: the enemy has no loot
+84|%s: the enemy is not defeated, no extra loot
+85|%s\n\nNothing was changed. You can try again, or download the update from the release page.
+86|%s\n\nYou chose: %s
+87|(attacks again)
+88|(ignored) %s
+89|(unnamed place)
+90|(unnamed side quest)
+91|(your release)
+92|+%d damage
+93|+%d damage (rolled %d-%d)
+94|+%d damage (round %d)
+95|2D art - logo and main menu background
+96|[draft]
+97|\"%s\" version %s is already installed.
+98|\n%.1f MB.
+99|\n%d mission(s), %d picture(s), %.1f MB.
+100|\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted.
+101|\n%d successes x %d weapon damage
+102|\n(+%d damage from a defense ability this activation)
+103|\n(Enfeebled: damage reduced from %d)
+104|\n\n%s gains the \"%s\" injury: put its card in your play area.
+105|\n\n%s has %d hitpoints left.
+106|\n\n%s is defeated! Remove it from the board.
+107|\n\n%s must flip their injury card (%s) to its major side.
+108|\n\n%s must flip their injury card to its major side.
+109|\n\nRemembrance Hilt: set %s's health to %d instead.
+110|\n\nThe app can't update itself here: %s. Download it from the release page.
+111|\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later.
+112|\n\nThis is %s's third wound - the game will be lost!
+113|\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:
+114|\nActivation: 
+115|\nAlso some crafting materials for the party: %s.
+116|\nAt the table: 
+117|\nConditions applied: %s
+118|\nExposed: +%d damage
+119|\nImmune to: %s
+120|\nImmune! The attack does no damage.\n\n0 damage dealt
+121|\nIn development (a draft)
+122|\nLoot for the party: %s.
+123|\nNo free spawn tile for: %s - place them next to the others.
+124|\nNot installed yet - open it to install.
+125|\nResistance: -%d damage
+126|\nThe package was checked: it only contains game data.
+127|\nWeakness: +%d damage
+128|\nWeapon parts and trinket: 
+129|a %s armor upgrade
+130|a %s part recipe
+131|a %s part upgrade
+132|a %s recipe
+133|a %s upgrade
+134|A campaign
+135|a hero
+136|a new area
+137|a potion recipe
+138|A save game called '%s' already exists.
+139|A save game needs a name.
+140|a shipment of %s armor
+141|a shipment of armor
+142|A single mission
+143|A snapshot can be taken in the player phase, with no dialog open.
+144|a trinket
+145|a trinket upgrade
+146|Act complete!
+147|Add language
+148|adds %d damage to its next activation
+149|Afflicted
+150|Affliction
+151|affliction damage +%d this round
+152|Agility
+153|all its statuses are removed
+154|an armor upgrade
+155|an unknown author
+156|An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners.
+157|Anemos
+158|Anemos (wind)
+159|App update
+160|Applied: 
+161|Apply conditions
+162|Aquos
+163|Aquos (water)
+164|Armor
+165|Armor upgrade: 
+166|Armor: 
+167|Armor…
+168|At the table:
+169|Attack
+170|attack %s
+171|Attack abilities: %s
+172|attack gains %s
+173|Available now: %s
+174|Back
+175|Back to Editor
+176|Back to editor
+177|Back to Menu
+178|becomes afflicted
+179|Begin Campaign
+180|Bone
+181|Bought
+182|bow
+183|Brew
+184|Brew Basket
+185|Buy
+186|Buy  %d
+187|Buy  %d gold
+188|Buy recipe  %d gold
+189|by 
+190|by %s
+191|Campaign
+192|Campaign complete
+193|Campaign complete! (%s)
+194|Campaign editor
+195|Campaign Log
+196|Can %s attack a second hero?
+197|Cancel
+198|Cancel download
+199|Cauterization
+200|Cautious
+201|Centre to centre (strict)
+202|Centre to corner (recommended)
+203|Chapter
+204|Chapter \"%s\" that you already completed is not in the new version.
+205|Chapter \"%s\", where you are now, is not in act %d of the new version.
+206|Check for a newer version of the app at the main menu
+207|Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened.
+208|Choose a package
+209|Choose a package file…
+210|Choose a weapon
+211|Choose the folder the game is installed in
+212|Choose the game folder…
+213|Choose two weapons per hero (and optional attachments)
+214|Choose your party
+215|Close
+216|Cloth
+217|Common
+218|Community
+219|Community list
+220|Conditions
+221|Conditions (%d)
+222|Confirm
+223|Confused
+224|Consumables
+225|Consumables…
+226|Continue
+227|Continue this game
+228|Converting models... %s (%s)
+229|copies %s
+230|Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are.
+231|Corner to corner (loose, Descent 2)
+232|Cost: %s
+233|Could not fork %s.
+234|Could not open that save game.
+235|Could not open the campaign '%s'.
+236|Couldn't start the %s download (error %d).
+237|Couldn't unpack the %s (tar exit code %d).
+238|Couldn't unpack the narration engine (tar exit code %d).
+239|Couldn't write %s (error %d).
+240|Count as lost
+241|Count as won
+242|Created by
+243|Credits
+244|crossbow
+245|Crush
+246|Curios
+247|Current objective
+248|Damage
+249|damage %d
+250|damage +%d for good (now %d)
+251|damage -%d
+252|Damage Type
+253|Dazed
+254|Defeat.
+255|Defeated
+256|defense %+d until the end of the round (now %d)
+257|defense +%d during this attack
+258|defense +%d for good (now %d)
+259|defense -%d
+260|defense -%d this round
+261|Defense abilities: %s
+262|defense ability deactivated for the next attack
+263|defense ability deactivated until the end of the round
+264|Defense ability deactivated.
+265|Defense ability: %s
+266|Delete the save game '%s'?
+267|Delete this save game
+268|Did %s deal damage to %s?
+269|Did %s pass the test?
+270|Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can.
+271|Did not trigger: 
+272|Didn't catch a number in range
+273|Didn't catch anything - hold %s and try again
+274|Didn't catch that
+275|Didn't catch which option
+276|Done
+277|Done - restart the app to see everything.
+278|Done. The updated copy is in the list.
+279|Doomed
+280|Download extra voices - accents (%s)
+281|Download more voices - plain English (%s)
+282|Downloading %s... %d MB
+283|Downloading %s... %d%% (%d / %d MB)
+284|Downloading the update…
+285|dual blades
+286|each enemy suffers %d damage (trigger %d)
+287|Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up.
+288|Editor
+289|Enable voice
+290|Ending soon: this side quest is gone once \"%s\" is won.
+291|Enfeebled
+292|Essences
+293|Exposed
+294|FAILED
+295|Failed to load mission: %s
+296|Failed to save - see the Output panel for details.
+297|Feats
+298|first
+299|Fixed hero (%s)
+300|Flip your hero card
+301|Floor tiles
+302|Focus 2 cards
+303|Forge
+304|Fork to edit
+305|Forked %s into your draft \"%s\" - open it in the %s editor.
+306|Fortunos
+307|Fortunos (luck)
+308|Frantic
+309|free
+310|Friendly fire
+311|Frustrated
+312|gains %s
+313|Game %04d-%02d-%02d %02d:%02d
+314|Game assets
+315|Game found:\n%s
+316|Gameplay
+317|gauntlet
+318|General
+319|Gives the armor: %s%s - %s
+320|Gives the rune: %s
+321|Gives the trinket: %s%s - %s
+322|Gives the weapon: %s%s
+323|Gives: %s
+324|gloves
+325|Gold
+326|Gold: %d
+327|Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed.
+328|Green
+329|Guard the gate
+330|hammer
+331|Hardened Skin
+332|Heal
+333|Heal 2
+334|Heal 4
+335|Healthy
+336|Hear the story teller
+337|Hear this voice
+338|Heard: %s
+339|Heavily wounded
+340|Heavy Hands
+341|Heavy Heart
+342|Herbs
+343|hero models
+344|Hero voices
+345|Heroes
+346|Hesitant
+347|Hitpoints %d / %d
+348|Hold %s to talk
+349|Horn of Courage
+350|Horn of Courage - %s was wounded.
+351|Hover an armor for its rules. Armor is worn and resolved at the table.
+352|How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target.
+353|HP %d · Level %d
+355|Ignos
+356|Ignos (fire)
+357|immune to %s
+358|Immune to conditions: %s
+359|Immune to: 
+360|Immune: %s
+361|Immunity: %s
+362|Import
+363|Import finished, but not everything worked.
+364|Import finished.
+365|Import game assets
+366|Imported so far: %s.
+367|Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead.
+368|IN DEVELOPMENT
+369|Input device: %s
+370|Install
+371|Install and restart
+372|Install by hand
+373|Install this package?
+374|Installed
+375|Installed \"%s\" v%s.
+376|Installed \"%s\".
+377|Installing…
+378|Installing… the app closes and starts again by itself.
+379|Intelligence
+380|Interrupt
+381|Interrupt - the players act
+382|Inventory
+383|It stays as it is; you can keep playing it on its own version.
+384|Language
+385|Languages
+386|Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)
+387|Later
+388|Leather
+389|Leaves after the next chapter!
+390|Level %d - 
+391|Line of Sight
+392|Line of Sight (on)
+393|Line of sight rule
+394|Listening... release %s to send
+395|Load a mission save
+396|Load game
+397|Look for campaigns shared by the community
+398|Looking for shared campaigns…
+399|Loot
+400|Loot for the party: 
+401|Lucky Charm
+402|Lumos
+403|Lumos (light)
+404|Lunge, no bite
+405|Mage-Sight Goggles
+406|Mage-Sight Goggles - %s gains an additional action!
+407|Make a copy of '%s' on v%s?
+408|Makes an updated COPY of this save game on the newer version. The original stays as it is.
+409|Materials
+410|maximum health -%d (now %d)
+411|melee
+412|Message
+413|Metal
+414|Minerals
+415|Mission
+416|Mission editor
+417|Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten.
+418|Models converted: %d%s
+419|Monster
+420|Monster action
+421|Monster attack
+422|monster figures
+423|Monster phase
+424|Monster Phase
+425|Monster tactic
+426|Monsters appear
+427|More than one matches - say a number
+428|Mortos
+429|Mortos (dead)
+430|Move camera to player and monster spawns
+431|Move up to {speed} tiles in a random direction.
+432|Move up to {speed} tiles to the closest gate and guard it.
+433|Move up to {speed} tiles to the nearest pillar and hide behind it.
+434|Move up to {speed} tiles towards the closest tree.
+435|Move up to {speed} tiles towards the nearest hero - but do not attack.
+436|Moved to v%s
+437|Narration
+438|Narration is set up.
+439|Narration isn't available on %s.
+440|Narration isn't set up yet - the story is shown as text only.
+441|Narration setup isn't supported on %s yet.
+442|New game
+443|Next
+444|No
+445|No %s.
+446|No base template for: %s - not spawned (fix the mission in the Creator).
+447|No colour chip left for: %s - not spawned.
+448|No description.
+449|no enemy to damage
+450|No map image - choose one for this act
+451|No recipes are known: import the game's data first (Game assets in the main menu).
+452|No recipes for sale right now.
+453|No recipes yet - they are bought at a recipe shop.
+454|No save games yet - start one with New game.
+455|None yet - materials come from defeated monsters, missions and the market.
+456|Not everything worked. What did work is in place - restart the app to see it.
+457|Note:
+458|Nothing for sale here.
+459|Nothing has been imported yet - the app shows placeholders.
+460|Nothing has happened yet.
+461|Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor.
+462|Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below.
+463|Nothing new in the community list.
+464|Nothing yet.
+465|Notice
+466|Objective
+467|Offline - showing the last community list. 
+468|ok
+469|Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click.
+470|Open campaigns
+471|Options
+472|Or a web address (https://…) of a package file:
+473|Orange
+474|Overlays
+475|Part %s: none
+476|Parts (B and C)
+477|perform %s
+478|Perform a %s test - how many successes?
+479|Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it.
+480|Pierce
+481|Pillars
+482|Place the monsters on the map as shown.
+483|Place your player figures in the highlighted area, then confirm.
+484|Play
+485|Play mission
+486|Play one mission
+487|Play this chapter
+488|Play this side quest
+489|Player Phase
+490|Player phase
+491|Players spawn. Place your tokens, then play.
+492|Playtest
+493|Playtest:
+494|Preferred targets: %s
+495|Prepare 2 cards
+496|Prepare a card
+497|Props
+498|Purple
+499|Push to talk (hold %s)
+500|Quest
+501|Quest Log
+502|Quit
+503|Random (from the name)
+504|range %d
+505|Range %d
+506|range %d, reach
+507|Range %d, reach
+508|Read in this language earlier
+509|Read in this language later
+510|Read the story aloud
+511|Read this chapter
+512|Recipe - tier %d
+513|Recipe: 
+514|Recipes
+515|recovers %d health
+516|recovers %d health (now %d / %d)
+517|Release page
+518|Remove
+519|Remove \"%s\" version %s from this computer?%s
+520|Remove a single condition
+521|Remove all conditions of a given type
+522|Remove all fatigue from a single card
+523|Removed %s v%s.
+524|Resistance: %s
+525|Resistant: %s
+526|Resolve infection and terror. Each hero may discard 1 fatigue.
+527|Restart needed
+528|Restart now
+529|Resume monster attack
+530|Retreat
+531|reveals weakness to %s
+532|Reward: 
+533|Round %d - %s
+534|Rules Reference
+535|Rune
+536|rune
+537|Rune: 
+538|Runes
+539|Save
+540|Save game
+541|Saved.
+547|second
+548|Sell  %d
+549|Set up narration (downloads %s)
+550|Set up voice control (downloads %s)
+551|Set up your game
+552|Setting up %s
+553|Setting up '%s'\n%s%s - place these as shown:\n%s
+554|Shift 1
+555|Show voice hints
+556|Shows whether this card is upgraded (+). Upgrades are earned in the campaign.
+557|Side quest
+558|Side quest (optional)
+559|Side quest won: %s.
+560|Side quest: %s
+561|Slash
+562|Slowed
+563|Snapshot
+564|Snapshot '%s' is empty.
+565|Snapshot '%s' taken (round %d).
+566|Snapshot loaded - round %d
+567|Something with the same name is already in the way: %s.
+568|spear
+569|staff
+570|Start
+571|Start game
+572|Step %s: %s...
+573|Story recipe
+574|Story teller:
+575|Strength
+576|sword
+577|Tactic
+578|Tactics
+579|Take cover
+580|Tarnished Brooch
+581|Tarnished Brooch: %d of %d.
+582|Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!
+583|Tarnished Brooch: %s (%s chip) appears too. %s must defeat it.
+584|Terros
+585|Terros (earth)
+586|textures and portraits
+587|That folder doesn't contain the game (no \"bundles\" folder was found in it).
+588|That is not a web address (it must start with https://).
+589|That option isn't available
+590|The %s download failed (network %d, HTTP %d).
+591|The %s download isn't a valid zip.
+592|The %s download stopped receiving data - check the connection and try again.
+593|The %s download was cancelled.
+594|The %s download was corrupt (checksum mismatch).
+595|The %s is already being downloaded.
+596|The address must start with https://
+597|The armor the party owns
+598|The author confirms they may share the pictures.
+599|The author did not say whether they may share the pictures.
+600|The campaign is complete - congratulations!
+601|The catalog address must start with https://
+602|The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported.
+603|The downloaded package is not the one the list promised. It was not installed.
+604|the enemy had less than %d health: defeated
+605|The files could not be written (error %d).
+606|the first hero wounded this round has health %d instead
+607|The game wasn't found in the usual places. Choose the folder it is installed in.
+608|The import tool stopped without importing anything (exit code %d).
+609|The imported game assets are loaded when the app starts.\n\nRestart now?
+610|The language this game is read, logged and narrated in. You cannot change it once the game has started.
+611|The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in.
+612|The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub.
+613|The market sells materials but does not buy them.
+614|The mission is missing from the campaign folder.
+615|The mission of chapter \"%s\" is missing from the new version.
+616|The new variable \"%s\" starts at its default value.
+617|The new version has no act %d (your save is in it).
+618|The newer version could not be opened.
+619|The original save game is not changed - you can always go back to it.
+620|the package
+621|The party carries no consumables - brew them at an alchemist from potion recipes.
+622|The party has no consumables. Brew them at an alchemist from potion recipes.
+623|The party has to try this chapter again.
+624|The party owns no armor yet.
+625|The party owns no trinkets yet - they are bought in a recipe shop or found.
+626|The phase can't be ended right now.
+627|The potions the party has crafted - available in every mission
+628|The release's checksum list has no entry for %s.
+629|The snapshot could not be saved - see the Output panel.
+630|The snapshot was put on the edited mission, but:\n- 
+631|The speech engine download had no library for %s.
+632|the table carries it out
+633|The trinket this hero wears (one per hero; a trinket can only be worn by one hero)
+634|The update could not be started.
+635|The update does not contain %s.
+636|The updated copy could not be saved.
+637|The variable \"%s\" no longer exists - its value is dropped.
+638|This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer.
+639|this attack cannot damage it
+640|This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s
+641|This package was not installed - it is damaged or contains something that is not allowed.
+642|This release has no %s (or no checksum list).
+643|This save game cannot be moved to v%s:
+644|This save game was moved from version %s of the campaign to version %s.
+645|Threat
+646|throwing knives
+647|Time passes
+648|Time passes.\n\n
+649|Tired
+650|Too short - hold %s while you speak
+651|Towards the tree
+652|Toxos
+653|Toxos (decay)
+654|trigger %d (every %dth: %d damage to every enemy)
+655|trigger %d: %d damage to every enemy
+656|Trinket
+657|Trinket %s: %s
+658|Trinket upgrade: 
+659|Trinket: 
+660|Trinkets
+661|Umbros
+662|Umbros (shadow)
+663|Undying Skull
+664|Undying Skull: %s defeated a %s for the %s time.
+665|Unknown
+666|Update available: %s
+667|Update to v%s…
+668|Upgrade - tier %d
+669|Upgrade: 
+670|Upgraded (+). In a campaign this follows the party's upgrades.
+671|Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends.
+672|Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends.
+673|Use the original game props in the map
+674|Use the upgraded (+) side of this trinket.
+675|Variable '%s' changed type - it has its default again.
+676|Variable '%s' no longer exists (it was %s).
+677|Version %s
+678|Version %s is already installed.
+679|Version %s is available (you have %s).
+680|Version %s of this package is already released - a release is never replaced. Use a higher version.
+681|Victory!
+682|Vigos
+683|Vigos (life)
+684|Voice
+685|Voice - 
+686|Voice control is set up.
+687|Voice isn't set up yet - typed commands still work.
+688|voice settings (%s)
+689|Voice setup isn't available on %s - typed commands still work.
+690|Voice setup isn't supported on %s yet.
+691|voices (%s)
+692|wand
+693|Wander
+694|war bell
+695|warhammer
+696|weak to %s
+697|Weak: %s
+698|Weakness
+699|weakness damage +%d
+700|Weakness: %s
+701|weapon
+702|Weapon %d (%s)
+703|weapon damage +%d
+704|weapon part chances +%d%%
+705|Weapons
+706|What's new
+707|When a hero has lost all hitpoints, press Wound. The third wound loses the game.
+708|Which monster?
+709|Which one?
+710|Who attacks the %s?
+711|Who uses the %s?
+712|Will
+713|Won: %s.
+714|Wound
+715|Wounded
+716|XP: %d  |  Gold: %d
+717|Yellow
+718|Yes
+719|You already have version %s - this one is installed next to it.
+720|You can play
+721|You carry %d.
+722|You have %d gold and %s.
+723|You have %d gold.
+724|You know no potion recipe. Recipes are sold in the recipe shops or found as loot.
+725|You know no recipe that makes something new. Recipes are sold in the recipe shops.
+726|Your materials:
+727|Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough.
+728|▶ Read aloud
+729|☠ Defeated
+730|The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far.
+731|Unofficial App
+732|%s - %s\n\n%s gains an extra benefit: %s.
+P1| (%d for %d player)| (%d for %d players)
+P2|+%d success|+%d successes
+P3|lost %d status, %d damage|lost %d statuses, %d damage
+P4|Lucky Charm: %d extra success is added to %s's result.|Lucky Charm: %d extra successes are added to %s's result.
+P5|New side quest: %s|New side quests: %s

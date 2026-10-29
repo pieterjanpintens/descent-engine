@@ -26,9 +26,17 @@ const MENU_SCENE := "res://ui/MainMenu.tscn"
 const EDITOR_SCENE := "res://ui/CampaignEditor.tscn"
 ## The playtest save game made by the campaign editor's Playtest.
 const PLAYTEST_SAVE := "Playtest"
-const UPDATE_BLOCKED := "This save game cannot be moved to v%s:" + NL2 + "- %s" + NL2 + "It stays as it is; you can keep playing it on its own version."
-const UPDATE_ASK := "Make a copy of '%s' on v%s?" + NL2 + "The original save game is not changed - you can always go back to it."
-const UPDATE_NOTE := NL2 + "Note:" + NL + "- %s"
+
+func _update_blocked_text() -> String:
+	return tr("This save game cannot be moved to v%s:") + NL2 + "- %s" + NL2 + tr("It stays as it is; you can keep playing it on its own version.")
+
+
+func _update_ask_text() -> String:
+	return tr("Make a copy of '%s' on v%s?") + NL2 + tr("The original save game is not changed - you can always go back to it.")
+
+
+func _update_note_text() -> String:
+	return NL2 + tr("Note:") + NL + "- %s"
 const NL := "\n"
 const NL2 := "\n\n"
 const BULLET_JOIN := "\n- "
@@ -174,13 +182,13 @@ func _show_load() -> void:
 			var saved := CampaignIO.load_state(folder, key)
 			if saved == null:
 				continue
-			var progress := "Campaign complete" if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
+			var progress := tr("Campaign complete") if saved.campaign_complete or saved.current_act >= campaign.acts.size() \
 				else campaign.acts[saved.current_act].act_name
 			var newer := SaveUpdater.newer_release(folder)
 			entries.append({
 				"folder": folder, "key": key, "group": saved.save_name if saved.save_name != "" else key,
-				"campaign": campaign.campaign_name, "tag": "" if CampaignIO.is_release(folder) else "  [draft]",
-				"progress": "%s  -  XP %d,  gold %d" % [progress, saved.experience, saved.gold],
+				"campaign": campaign.campaign_name, "tag": "" if CampaignIO.is_release(folder) else "  " + tr("[draft]"),
+				"progress": tr("%s  -  XP %d,  gold %d") % [progress, saved.experience, saved.gold],
 				"texture": CampaignIO.image_texture(folder, campaign.cover_image), "newer": str(newer.get("version", "")),
 			})
 	_load_page.refresh(entries)
@@ -188,7 +196,7 @@ func _show_load() -> void:
 
 
 func _on_delete_save_pressed(folder: String, key: String, save_name: String) -> void:
-	_ask("Delete the save game '%s'?" % save_name, func():
+	_ask(tr("Delete the save game '%s'?") % save_name, func():
 		CampaignIO.delete_state(folder, key)
 		_show_load()
 	)
@@ -213,11 +221,11 @@ func _offer_update(old_campaign: Campaign, saved: CampaignState, newer: Dictiona
 	var errors: Array = report["errors"]
 	var warnings: Array = report["warnings"]
 	if not errors.is_empty():
-		_say(UPDATE_BLOCKED % [newer["version"], BULLET_JOIN.join(errors)])
+		_say(_update_blocked_text() % [newer["version"], BULLET_JOIN.join(errors)])
 		return
-	var text := UPDATE_ASK % [saved.save_name, newer["version"]]
+	var text := _update_ask_text() % [saved.save_name, newer["version"]]
 	if not warnings.is_empty():
-		text += UPDATE_NOTE % BULLET_JOIN.join(warnings)
+		text += _update_note_text() % BULLET_JOIN.join(warnings)
 	_ask(text, func():
 		if SaveUpdater.apply(saved, newer, new_campaign) == null:
 			_say("The updated copy could not be saved.")
@@ -233,7 +241,7 @@ func _on_new_game_pressed(folder: String) -> void:
 	var campaign := CampaignIO.load_campaign(folder)
 	# a suggestion (date and time) so starting is one Enter; type your own name to tell playthroughs apart (e.g. "Friday night group")
 	var stamp := Time.get_datetime_dict_from_system()
-	var base := "Game %04d-%02d-%02d %02d:%02d" % [stamp["year"], stamp["month"], stamp["day"], stamp["hour"], stamp["minute"]]
+	var base := tr("Game %04d-%02d-%02d %02d:%02d") % [stamp["year"], stamp["month"], stamp["day"], stamp["hour"], stamp["minute"]]
 	var suggestion := base
 	var counter := 2
 	while CampaignIO.save_keys(_folder).has(CampaignIO.save_key(suggestion)):
@@ -241,8 +249,14 @@ func _on_new_game_pressed(folder: String) -> void:
 		counter += 1
 	_close_setup_page()
 	_setup_page = CampaignSetupPage.new()
+	var offered: Array[String] = ["en"]
+	var start_language := "en"
+	if campaign != null:
+		offered = campaign.offered_languages()
+		start_language = campaign.best_language(PlayerSettings.preferred_languages)
 	_setup_page.setup(campaign.campaign_name if campaign != null else folder, suggestion, func(entered: String) -> bool:
-		return CampaignIO.save_keys(_folder).has(CampaignIO.save_key(entered)))
+		return CampaignIO.save_keys(_folder).has(CampaignIO.save_key(entered)),
+		offered, start_language)
 	_setup_page.cancelled.connect(func():
 		_close_setup_page()
 		_library_page.visible = true)
@@ -257,9 +271,9 @@ func _close_setup_page() -> void:
 		_setup_page = null
 
 
-func _on_setup_confirmed(save_name: String, hero_voices: Dictionary) -> void:
+func _on_setup_confirmed(save_name: String, hero_voices: Dictionary, language: String) -> void:
 	_close_setup_page()
-	if _begin(_folder, save_name):
+	if _begin(_folder, save_name, language):
 		_state.hero_voices = hero_voices
 		_save()
 		if _campaign.intro != "":
@@ -343,7 +357,9 @@ func _start_playtest(folder: String, fresh: bool) -> void:
 	var key := CampaignIO.save_key(PLAYTEST_SAVE)
 	if fresh or not CampaignIO.save_keys(folder).has(key):
 		CampaignIO.delete_state(folder, key)
-		if _begin(folder, PLAYTEST_SAVE):
+		var campaign := CampaignIO.load_campaign(folder)
+		var language := GameState.editor_language if campaign != null and campaign.offered_languages().has(GameState.editor_language) else ""
+		if _begin(folder, PLAYTEST_SAVE, language):  # in the language the editor was editing, to see the translation
 			_announce_act()
 	else:
 		_open_save(folder, key)
@@ -403,14 +419,30 @@ func _add_playtest_buttons(id: String) -> void:
 	_side.add_child(row)
 
 
-## Starts a fresh playthrough of campaign `folder` as save game `save_name`.
-func _begin(folder: String, save_name: String) -> bool:
+## Everything from here on is read, logged and narrated in `language` (the save game's own; "" = the player's preferred languages only). LText is
+## static, so a mission started from here uses it too; the main menu puts the player's own order back.
+func _apply_language(campaign: Campaign, language: String) -> void:
+	var order: Array[String] = []
+	if language != "":
+		order.append(language)
+	for code in PlayerSettings.preferred_languages:
+		if not order.has(code):
+			order.append(code)
+	LText.set_preferred(order)
+	LText.edit_language = ""
+	LText.fallback_language = campaign.default_language
+
+
+## Starts a fresh playthrough of campaign `folder` as save game `save_name`, in `language`.
+func _begin(folder: String, save_name: String, language: String = "") -> bool:
 	var campaign := CampaignIO.load_campaign(folder)
 	if campaign == null:
-		_say("Could not open the campaign '%s'." % folder)
+		_say(tr("Could not open the campaign '%s'.") % folder)
 		return false
+	_apply_language(campaign, language)
 	var state := CampaignState.new()
 	state.campaign_folder = folder
+	state.language = language
 	state.campaign_id = str(CampaignIO.release_entry(folder).get("id", ""))
 	state.campaign_version = str(CampaignIO.release_entry(folder).get("version", ""))
 	state.save_name = save_name
@@ -444,6 +476,7 @@ func _open_save(folder: String, key: String) -> bool:
 		_say("Could not open that save game.")
 		return false
 	state.campaign_folder = folder
+	_apply_language(campaign, state.language)
 	state.ensure_started(campaign)
 	_use(campaign, state)
 	return true
@@ -485,7 +518,7 @@ func _refresh_view() -> void:
 		return
 	var act := _current_act()
 	if _state.campaign_complete or act == null:
-		_hud.set_heading(_campaign.campaign_name, "Campaign complete! (%s)" % _state.save_name)
+		_hud.set_heading(_campaign.campaign_name, tr("Campaign complete! (%s)") % _state.save_name)
 		_map_view.side_quests = []
 		_map_view.show_act(null, null)
 	else:
@@ -503,7 +536,7 @@ func _refresh_view() -> void:
 			if quest.warn_when_ending and _state.vanishing_chapter(_campaign, quest) != "":
 				_map_view.ending_quest_ids.append(quest.id)
 		_map_view.show_act(act, CampaignIO.image_texture(_folder, act.map_image), _selected_id)
-	_hud.set_status("XP: %d  |  Gold: %d" % [_state.experience, _state.gold])
+	_hud.set_status(tr("XP: %d  |  Gold: %d") % [_state.experience, _state.gold])
 	_rebuild_side()
 
 
@@ -535,7 +568,7 @@ func _rebuild_side() -> void:
 	var title := _label(chapter.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
-	_side.add_child(_label("Reward: " + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
+	_side.add_child(_label(tr("Reward: ") + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
 	_add_playtest_buttons(chapter.id)
 	_add_story(chapter.story_before)
 	var play := _button("Read this chapter" if chapter.is_narrative else "Play this chapter", func(): _play(chapter))
@@ -553,10 +586,10 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	_side.add_child(title)
 	var vanishing := _state.vanishing_chapter(_campaign, quest) if quest.warn_when_ending else ""
 	if vanishing != "":
-		var warning := _wrapped("Ending soon: this side quest is gone once \"%s\" is won." % vanishing)
+		var warning := _wrapped(tr("Ending soon: this side quest is gone once \"%s\" is won.") % vanishing)
 		warning.modulate = Color(1.0, 0.45, 0.4)
 		_side.add_child(warning)
-	_side.add_child(_label("Reward: " + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
+	_side.add_child(_label(tr("Reward: ") + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
 	_add_playtest_buttons(quest.id)
 	_add_story(quest.story_before)
 	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
@@ -573,7 +606,7 @@ func _build_place_panel(place: CampaignPlace) -> void:
 		_side.add_child(_wrapped(place.description))
 	# the market and the smithy show the party's materials as pictures and the recipe shop is about gold: only the offers list them in text
 	var has_materials := not _state.materials.is_empty() and place.kind == CampaignPlace.Kind.OFFERS
-	_side.add_child(_label("You have %d gold%s." % [_state.gold, (" and " + CampaignState.format_materials(_state.materials)) if has_materials else ""]))
+	_side.add_child(_label((tr("You have %d gold and %s.") % [_state.gold, CampaignState.format_materials(_state.materials)]) if has_materials else tr("You have %d gold.") % _state.gold))
 	match place.kind:
 		CampaignPlace.Kind.MARKET:
 			_build_market_panel()
@@ -599,20 +632,20 @@ func _build_offers_panel(place: CampaignPlace) -> void:
 			_side.add_child(_wrapped(offer.description))
 		var cost: Array[String] = []
 		if offer.cost_gold > 0:
-			cost.append("%d gold" % offer.cost_gold)
+			cost.append(tr("%d gold") % offer.cost_gold)
 		if not offer.cost_materials.is_empty():
 			cost.append(CampaignState.format_materials(offer.cost_materials))
-		_side.add_child(_label("Cost: %s" % (", ".join(cost) if not cost.is_empty() else "free")))
+		_side.add_child(_label(tr("Cost: %s") % (", ".join(cost) if not cost.is_empty() else tr("free"))))
 		if offer.attachment != "":
-			_side.add_child(_label("Gives: %s" % _attachment_summary(offer.attachment)))
+			_side.add_child(_label(tr("Gives: %s") % _attachment_summary(offer.attachment)))
 		if offer.weapon != "":
-			_side.add_child(_label("Gives the weapon: %s%s" % [WeaponData.weapon_label(offer.weapon), " (+)" if offer.upgraded else ""]))
+			_side.add_child(_label(tr("Gives the weapon: %s%s") % [WeaponData.weapon_label(offer.weapon), " (+)" if offer.upgraded else ""]))
 		if offer.rune != "":
-			_side.add_child(_label("Gives the rune: %s" % WeaponData.rune_label(offer.rune)))
+			_side.add_child(_label(tr("Gives the rune: %s") % WeaponData.rune_label(offer.rune)))
 		if offer.armor != "":
-			_side.add_child(_wrapped("Gives the armor: %s%s - %s" % [ArmorData.label(offer.armor), " (+)" if offer.upgraded else "", ArmorData.rule_text(offer.armor, offer.upgraded)]))
+			_side.add_child(_wrapped(tr("Gives the armor: %s%s - %s") % [ArmorData.label(offer.armor), " (+)" if offer.upgraded else "", ArmorData.rule_text(offer.armor, offer.upgraded)]))
 		if offer.trinket != "":
-			_side.add_child(_wrapped("Gives the trinket: %s%s - %s" % [TrinketData.label(offer.trinket), " (+)" if offer.upgraded else "", TrinketData.rule_text(offer.trinket, offer.upgraded)]))
+			_side.add_child(_wrapped(tr("Gives the trinket: %s%s - %s") % [TrinketData.label(offer.trinket), " (+)" if offer.upgraded else "", TrinketData.rule_text(offer.trinket, offer.upgraded)]))
 		var bought := offer.once and _state.purchased_offers.has(offer.id)
 		var buy := _button("Bought" if bought else "Buy", func(): _buy(offer))
 		buy.disabled = not _state.can_buy(offer)
@@ -637,13 +670,13 @@ func _build_market_panel() -> void:
 		var sell_price := _state.sell_price(_campaign, key)
 		var buttons := VBoxContainer.new()
 		buttons.add_theme_constant_override("separation", 2)
-		var buy := _button("Buy  %d" % price, func(): _market_trade(key, true))
+		var buy := _button(tr("Buy  %d") % price, func(): _market_trade(key, true))
 		buy.disabled = _state.gold < price
 		buttons.add_child(buy)
-		var sell := _button("Sell  %d" % sell_price, func(): _market_trade(key, false))
+		var sell := _button(tr("Sell  %d") % sell_price, func(): _market_trade(key, false))
 		sell.disabled = have <= 0 or sell_price <= 0
 		buttons.add_child(sell)
-		flow.add_child(ItemTile.build(ItemTile.data(LootMaterials.display_name(key), ItemData.material_image(key), false, have, "%s - buy for %d gold, sell for %d" % [LootMaterials.display_name(key), price, sell_price]), buttons))
+		flow.add_child(ItemTile.build(ItemTile.data(LootMaterials.display_name(key), ItemData.material_image(key), false, have, tr("%s - buy for %d gold, sell for %d") % [LootMaterials.display_name(key), price, sell_price]), buttons))
 	_side.add_child(flow)
 
 
@@ -665,9 +698,9 @@ func _build_recipe_shop_panel(place: CampaignPlace) -> void:
 		_side.add_child(_label("No recipes for sale right now."))
 	for entry: Dictionary in view["entries"]:
 		var recipe := RecipeData.find(str(entry["id"]))
-		var buy := _button(("Buy  %d gold" if recipe["direct"] else "Buy recipe  %d gold") % int(recipe["price"]), func(): _buy_recipe(str(entry["id"])))
+		var buy := _button((tr("Buy  %d gold") if recipe["direct"] else tr("Buy recipe  %d gold")) % int(recipe["price"]), func(): _buy_recipe(str(entry["id"])))
 		buy.disabled = not _state.can_buy_recipe(str(entry["id"]))
-		_side.add_child(_recipe_card(recipe, "Leaves after the next chapter!" if entry["leaving"] else "", buy))
+		_side.add_child(_recipe_card(recipe, tr("Leaves after the next chapter!") if entry["leaving"] else "", buy))
 	if view["rumour"] != "":
 		var rumour := _wrapped(str(view["rumour"]))
 		rumour.modulate = Color(0.8, 0.8, 1.0)
@@ -689,7 +722,7 @@ func _recipe_card(recipe: Dictionary, note: String, action: Button) -> Control:
 	info.add_theme_constant_override("separation", 4)
 	row.add_child(info)
 	var tier := RecipeData.tier(recipe)
-	var tier_label := _label(("Upgrade - tier %d" if recipe["upgrade"] else "Recipe - tier %d") % tier if tier > 0 else "Story recipe")
+	var tier_label := _label((tr("Upgrade - tier %d") if recipe["upgrade"] else tr("Recipe - tier %d")) % tier if tier > 0 else tr("Story recipe"))
 	tier_label.modulate = Color(1, 1, 1, 0.6)
 	info.add_child(tier_label)
 	if note != "":
@@ -750,7 +783,7 @@ func _build_alchemist_panel() -> void:
 	for recipe in recipes:
 		var brew := _button("Brew", func(): _brew(str(recipe["id"])))
 		brew.disabled = not _state.can_brew(str(recipe["id"]))
-		_side.add_child(_recipe_card(recipe, "You carry %d." % _state.consumable_count(str(recipe["card"])), brew))
+		_side.add_child(_recipe_card(recipe, tr("You carry %d.") % _state.consumable_count(str(recipe["card"])), brew))
 
 
 func _brew(recipe_id: String) -> void:
@@ -870,7 +903,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		chosen.append(answer)
 		await _speak_answer(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
-		pages.append("%s\n\nYou chose: %s" % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
+		pages.append(tr("%s\n\nYou chose: %s") % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
 		if answer.reply != "":
 			await _narrative_dialog.ask_ok(answer.reply, true, false, "", null, null, true)
 			pages.append(NarrationMarkup.plain(answer.reply, _campaign.characters))
@@ -914,11 +947,11 @@ func _apply_result(result: Dictionary) -> void:
 	_refresh_view()
 	var lines: Array[String] = []
 	var story_after := ""
-	lines.append("Victory!" if won else "Defeat.")
+	lines.append(tr("Victory!") if won else tr("Defeat."))
 	if won:
 		var parts: Array[String] = []
 		if summary["xp_gained"] > 0 or summary["gold"] > 0 or summary["materials"].is_empty():
-			parts.append(CampaignState.reward_text(summary["xp_gained"], summary["gold"]) + (" (XP now %d)" % summary["xp"] if summary["xp_gained"] > 0 else ""))
+			parts.append(CampaignState.reward_text(summary["xp_gained"], summary["gold"]) + (tr(" (XP now %d)") % summary["xp"] if summary["xp_gained"] > 0 else ""))
 		if not summary["materials"].is_empty():
 			parts.append(CampaignState.format_materials(summary["materials"]))
 		if summary.has("items"):
@@ -928,20 +961,20 @@ func _apply_result(result: Dictionary) -> void:
 			lines.append("\n" + summary["story_after"])
 			story_after = str(summary["story_after"])
 	elif summary["next"].is_empty():
-		lines.append("The party has to try this chapter again.")
+		lines.append(tr("The party has to try this chapter again."))
 	if summary["act_complete"]:
-		lines.append("\nAct complete!")
+		lines.append("\n" + tr("Act complete!"))
 		if summary["campaign_complete"]:
-			lines.append("The campaign is complete - congratulations!")
+			lines.append(tr("The campaign is complete - congratulations!"))
 	var new_quests: Array[String] = []  # only side quests that came up with this result, not the ones that were already on offer
 	for quest in _state.visible_side_quests(_campaign):
 		if not quests_before.has(quest.id):
 			new_quests.append(quest.title)
 	if not summary["next"].is_empty():
-		lines.append("\nAvailable now: %s" % ", ".join(summary["next"]))
+		lines.append("\n" + tr("Available now: %s") % ", ".join(summary["next"]))
 	if not new_quests.is_empty():
-		lines.append("%sNew side quest%s: %s" % ["" if not summary["next"].is_empty() else "\n", "s" if new_quests.size() > 1 else "", ", ".join(new_quests)])
-	await _announce("\n".join(lines), "Notice", story_after)
+		lines.append(("" if not summary["next"].is_empty() else "\n") + tr_n("New side quest: %s", "New side quests: %s", new_quests.size()) % ", ".join(new_quests))
+	await _announce("\n".join(lines), tr("Notice"), story_after)
 	if summary["act_complete"] and not summary["campaign_complete"]:
 		await _announce_act()  # the next act begins
 

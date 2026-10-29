@@ -13,8 +13,18 @@ extends Resource
 ## `text` may contain {speed} (the monster's effective speed) and {damage} (its attack
 ## damage), filled in by shown_text().
 
-@export var action_name: String = ""
-@export_multiline var text: String = ""
+@export var action_name_texts: Dictionary = {}
+var action_name: String:
+	get:
+		return LText.pick(action_name_texts)
+	set(value):
+		LText.put(action_name_texts, value)
+@export var text_texts: Dictionary = {}
+var text: String:
+	get:
+		return LText.pick(text_texts)
+	set(value):
+		LText.put(text_texts, value)
 ## Possible only while a prop with this reference name or mesh name is on the board and
 ## visible ("gate", "tree"); several alternatives separated by commas ("tall,mini,medium").
 ## Empty = no requirement.
@@ -48,11 +58,19 @@ static func from_dict(d: Dictionary) -> MonsterAction:
 	return action
 
 
+## An independent copy that keeps the text in every language (to_dict() carries only the language being read).
+func copy_full() -> MonsterAction:
+	var copy := from_dict(to_dict())
+	copy.action_name_texts = action_name_texts.duplicate()
+	copy.text_texts = text_texts.duplicate()
+	return copy
+
+
 ## Independent copies of `list` (a spawned monster must not share the template's resources).
 static func copies(list: Array[MonsterAction]) -> Array[MonsterAction]:
 	var result: Array[MonsterAction] = []
 	for action in list:
-		result.append(from_dict(action.to_dict()))
+		result.append(action.copy_full())
 	return result
 
 
@@ -65,13 +83,13 @@ static func stand_and_stare() -> MonsterAction:
 ## template editor's "Fill with defaults" copies in to edit).
 static func defaults() -> Array[MonsterAction]:
 	var list: Array[MonsterAction] = [
-		MonsterAction.new("Retreat", "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."),
+		MonsterAction.new(TranslationServer.translate("Retreat"), TranslationServer.translate("Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can.")),
 		stand_and_stare(),
-		MonsterAction.new("Guard the gate", "Move up to {speed} tiles to the closest gate and guard it.", "gate"),
-		MonsterAction.new("Towards the tree", "Move up to {speed} tiles towards the closest tree.", "tree"),
-		MonsterAction.new("Wander", "Move up to {speed} tiles in a random direction."),
-		MonsterAction.new("Friendly fire", "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)", "", 2),
-		MonsterAction.new("Lunge, no bite", "Move up to {speed} tiles towards the nearest hero - but do not attack."),
-		MonsterAction.new("Take cover", "Move up to {speed} tiles to the nearest pillar and hide behind it.", "tall,mini,medium"),
+		MonsterAction.new(TranslationServer.translate("Guard the gate"), TranslationServer.translate("Move up to {speed} tiles to the closest gate and guard it."), "gate"),
+		MonsterAction.new(TranslationServer.translate("Towards the tree"), TranslationServer.translate("Move up to {speed} tiles towards the closest tree."), "tree"),
+		MonsterAction.new(TranslationServer.translate("Wander"), TranslationServer.translate("Move up to {speed} tiles in a random direction.")),
+		MonsterAction.new(TranslationServer.translate("Friendly fire"), TranslationServer.translate("Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"), "", 2),
+		MonsterAction.new(TranslationServer.translate("Lunge, no bite"), TranslationServer.translate("Move up to {speed} tiles towards the nearest hero - but do not attack.")),
+		MonsterAction.new(TranslationServer.translate("Take cover"), TranslationServer.translate("Move up to {speed} tiles to the nearest pillar and hide behind it."), "tall,mini,medium"),
 	]
 	return list

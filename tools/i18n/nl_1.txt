@@ -1,0 +1,190 @@
+1|  (immuun)
+2|  mic [%s%s]
+3| %s krijgt een uniek recept: %s.
+4| (%d mislukt)
+5| (actief)
+6| (haalt eerst de importtool op, %s)
+7| (immuun)
+8| (Alleen campagnes bewaren recepten.)
+9| (XP nu %d)
+10| - nog niet geïmporteerd
+11| = %d schade\nVerdedigingsworp: -%d\n\n%d schade toegebracht
+12| Niet verschenen: %s.
+13| Er is geen recept meer om te krijgen.
+14|%d schade aan %s
+15|%d schade aan de vijand
+16|%d extra schade (%d%% van zijn gezondheid)
+17|%d van de community om te installeren.
+18|%d goud
+19|%d goud (Kompas van de Dode)
+20|%d u %d min
+21|%d min
+22|%d monster(s) verschenen.
+23|%d van de huidige doelen bestaan niet meer.
+24|%d x %d tegels
+25|%dx %s
+26|%s  -  XP %d,  goud %d
+27|%s %d (geen tabelrijen)
+28|%s (%s-fiche)
+29|%s (%s, onderdeel %s)
+30|%s (gekopieerd door %s): %s
+31|%s +%d tot het einde van de ronde
+32|%s - %s-fiche
+33|%s - %s wordt geactiveerd!\n\n%s
+34|%s - %s wordt geactiveerd!\n\n%s krijgt een willekeurig verbruiksvoorwerp: %s\n\nRust het uit.
+35|%s - %s wordt geactiveerd!\n\n%s krijgt een willekeurig verbeterd verbruiksvoorwerp: %s\n\nRust het uit.
+36|%s - %s wordt geactiveerd!\n\n%s\n\nControleer of het van toepassing is en voer het uit op het bord (een toestand kun je toepassen vanuit het monsterscherm).
+37|%s - %s\nHeeft %s een verwonding?
+38|%s - %s\nHoeveel vermoeidheid ligt er op alle kaarten van %s?
+39|%s - %s\nWelke andere vijand lijdt dezelfde schade? (Annuleren: geen)
+40|%s - kopen voor %d goud, verkopen voor %d
+41|%s - HP %d, Niv %d, Verd %d, Aanv %d
+42|%s - niveau %d
+43|%s - nog niet geïmplementeerd.
+44|%s \"%s\" - versie %s
+45|%s valt %s aan (schade %d, %s).
+46|%s valt %s aan - kies een wapen
+47|%s valt %s aan!%s\nSchade %d - %s - Snelheid %d
+48|%s valt %s aan.\nMet welk wapen?
+49|%s valt %s aan\nmet %s (schade %d)\n
+50|%s liet iets bruikbaars vallen. %s
+51|%s liet vallen: %s.
+52|%s krijgt %s
+53|%s is verslagen.
+54|%s herstelde %d (%d levenspunten).
+55|%s is %s.
+56|%s is verward!\n%s\n%s
+57|%s is verward: %s.
+58|%s is immuun
+59|%s is deze ronde minder waarschijnlijk het doelwit
+60|%s is niet langer %s.
+61|%s zit niet in het gezelschap.
+62|%s is iets van plan...
+63|%s heeft alle levenspunten verloren. %s verwonden?
+64|%s voert %s uit tegen %s.
+65|%s krijgt een voordeel: %s.
+66|%s lijdt %d schade
+67|%s lijdt %d kwellingsschade (%d levenspunten over).
+68|%s lijdt %d kwellingsschade en is verslagen! Haal hem van het bord.
+69|%s kreeg %d schade (%d levenspunten over).
+70|%s kreeg %d schade en werd verslagen.
+71|%s wordt geactiveerd
+72|%s werd verslagen tijdens een onderbreking voordat hij kon %s.
+73|%s is voor de derde keer verwond.
+74|%s heeft een held verwond - zijn beurt is voorbij.
+75|De Brouwmand van %s geeft een willekeurig verbruiksvoorwerp:
+76|%s: %s!\nDoelwit %s - Schade %d - %s - Snelheid %d
+77|%s: %s\nVaste onderdelen: %s
+78|%s: verdediging +%d tot het einde van de ronde
+79|%s: interactie met '%s'
+80|%s: buit x%d (+%s)
+81|%s: vereist %d, je hebt %d
+82|%s: doe een %s-proef - hoeveel successen?
+83|%s: de vijand heeft geen buit
+84|%s: de vijand is niet verslagen, geen extra buit
+85|%s\n\nEr is niets gewijzigd. Je kunt het opnieuw proberen of de update downloaden op de releasepagina.
+86|%s\n\nJe koos: %s
+87|(valt opnieuw aan)
+88|(genegeerd) %s
+89|(naamloze plaats)
+90|(naamloze zijmissie)
+91|(jouw release)
+92|+%d schade
+93|+%d schade (gegooid %d-%d)
+94|+%d schade (ronde %d)
+95|2D-kunst - logo en achtergrond van het hoofdmenu
+96|[concept]
+97|\"%s\" versie %s is al geïnstalleerd.
+98|\n%.1f MB.
+99|\n%d missie(s), %d afbeelding(en), %.1f MB.
+100|\n%d opgeslagen spel(len) ervan zijn opzijgezet (user://campaign_saves/_removed), niet verwijderd.
+101|\n%d successen x %d wapenschade
+102|\n(+%d schade door een verdedigingsvermogen in deze activatie)
+103|\n(Verzwakt: schade verlaagd van %d)
+104|\n\n%s krijgt de verwonding \"%s\": leg de kaart in je speelgebied.
+105|\n\n%s heeft nog %d levenspunten.
+106|\n\n%s is verslagen! Haal hem van het bord.
+107|\n\n%s moet zijn verwondingskaart (%s) omdraaien naar de zware kant.
+108|\n\n%s moet zijn verwondingskaart omdraaien naar de zware kant.
+109|\n\nHerinneringsgevest: de gezondheid van %s wordt in plaats daarvan %d.
+110|\n\nDe app kan zichzelf hier niet bijwerken: %s. Download hem van de releasepagina.
+111|\n\nDe missie die je speelt wordt gesloten - sla hem eerst op (Opties > Opslaan) of kies Later.
+112|\n\nDit is de derde wond van %s - het spel gaat verloren!
+113|\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 vermoeidheid af te leggen:
+114|\nActivatie:
+115|\nOok wat ambachtsmaterialen voor het gezelschap: %s.
+116|\nAan tafel:
+117|\nToegepaste toestanden: %s
+118|\nBlootgesteld: +%d schade
+119|\nImmuun voor: %s
+120|\nImmuun! De aanval doet geen schade.\n\n0 schade toegebracht
+121|\nIn ontwikkeling (een concept)
+122|\nBuit voor het gezelschap: %s.
+123|\nGeen vrije verschijningstegel voor: %s - plaats ze naast de anderen.
+124|\nNog niet geïnstalleerd - open het om te installeren.
+125|\nWeerstand: -%d schade
+126|\nHet pakket is gecontroleerd: het bevat alleen spelgegevens.
+127|\nZwakte: +%d schade
+128|\nWapenonderdelen en sieraad:
+129|een %s-pantserverbetering
+130|een recept voor een %s-onderdeel
+131|een verbetering voor een %s-onderdeel
+132|een %s-recept
+133|een %s-verbetering
+134|Een campagne
+135|een held
+136|een nieuw gebied
+137|een drankrecept
+138|Er bestaat al een opgeslagen spel met de naam '%s'.
+139|Een opgeslagen spel heeft een naam nodig.
+140|een zending %s-pantser
+141|een zending pantser
+142|Een losse missie
+143|Een momentopname kan worden gemaakt in de spelersfase, zonder open dialoog.
+144|een sieraad
+145|een sieraadverbetering
+146|Akte voltooid!
+147|Taal toevoegen
+148|voegt %d schade toe aan zijn volgende activatie
+149|Gekweld
+150|Kwelling
+151|kwellingsschade +%d deze ronde
+152|Behendigheid
+153|al zijn toestanden worden verwijderd
+154|een pantserverbetering
+155|een onbekende maker
+156|Een onofficieel fanproject, vrij te gebruiken (MIT-licentie).\n*Descent: Legends of the Dark* en alles van het spel behoren toe aan hun eigenaren.
+157|Anemos
+158|Anemos (wind)
+159|App-update
+160|Toegepast:
+161|Toestanden toepassen
+162|Aquos
+163|Aquos (water)
+164|Pantser
+165|Pantserverbetering:
+166|Pantser:
+167|Pantser…
+168|Aan tafel:
+169|Aanval
+170|%s aanvallen
+171|Aanvalsvermogens: %s
+172|de aanval krijgt %s
+173|Nu beschikbaar: %s
+174|Terug
+175|Terug naar de editor
+176|Terug naar de editor
+177|Terug naar het menu
+178|raakt gekweld
+179|Campagne beginnen
+180|Bot
+181|Gekocht
+182|boog
+183|Brouwen
+184|Brouwmand
+185|Kopen
+186|Kopen  %d
+187|Kopen  %d goud
+188|Recept kopen  %d goud
+189|door
+190|door %s

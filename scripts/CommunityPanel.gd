@@ -180,9 +180,9 @@ func _installed_row(entry: Dictionary) -> Control:
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(text)
 	var title := Label.new()
-	title.text = "%s   v%s%s" % [entry.get("name", ""), entry.get("version", ""), "   (your release)" if entry.get("source", "") == "own" else ""]
+	title.text = "%s   v%s%s" % [entry.get("name", ""), entry.get("version", ""), "   " + tr("(your release)") if entry.get("source", "") == "own" else ""]
 	text.add_child(title)
-	var meta := _small_label("%s%s" % ["Mission" if is_mission else "Campaign", " - by %s" % entry["author"] if str(entry.get("author", "")) != "" else ""])
+	var meta := _small_label(("%s - %s" % [tr("Mission") if is_mission else tr("Campaign"), tr("by %s") % entry["author"]]) if str(entry.get("author", "")) != "" else (tr("Mission") if is_mission else tr("Campaign")))
 	text.add_child(meta)
 	if str(entry.get("description", "")) != "":
 		text.add_child(_small_label(str(entry["description"]).substr(0, 220)))
@@ -209,8 +209,8 @@ func _ask_remove(entry: Dictionary) -> void:
 	if entry.get("type", "") == SharePackage.TYPE_CAMPAIGN:
 		var saves := CampaignIO.save_keys(str(entry.get("path", "")).get_file()).size()
 		if saves > 0:
-			extra = "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted." % saves
-	_remove_dialog.dialog_text = "Remove \"%s\" version %s from this computer?%s" % [entry.get("name", ""), entry.get("version", ""), extra]
+			extra = tr("\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted.") % saves
+	_remove_dialog.dialog_text = tr("Remove \"%s\" version %s from this computer?%s") % [entry.get("name", ""), entry.get("version", ""), extra]
 	_remove_dialog.popup_centered()
 
 
@@ -224,14 +224,14 @@ func _fork(entry: Dictionary) -> void:
 	else:
 		made = CampaignIO.fork(str(entry["path"]).get_file(), base_name)
 	if made == "":
-		_status_label.text = "Could not fork %s." % entry.get("name", "")
+		_status_label.text = tr("Could not fork %s.") % entry.get("name", "")
 	else:
-		_status_label.text = "Forked %s into your draft \"%s\" - open it in the %s editor." % [entry.get("name", ""), made.get_file().get_basename(), "mission" if entry.get("type", "") == SharePackage.TYPE_MISSION else "campaign"]
+		_status_label.text = tr("Forked %s into your draft \"%s\" - open it in the %s editor.") % [entry.get("name", ""), made.get_file().get_basename(), "mission" if entry.get("type", "") == SharePackage.TYPE_MISSION else "campaign"]
 
 
 func _on_remove_confirmed() -> void:
 	CommunityLibrary.remove(_remove_entry)
-	_status_label.text = "Removed %s v%s." % [_remove_entry.get("name", ""), _remove_entry.get("version", "")]
+	_status_label.text = tr("Removed %s v%s.") % [_remove_entry.get("name", ""), _remove_entry.get("version", "")]
 	_refresh_installed()
 
 
@@ -261,11 +261,11 @@ func _review(path: String, source: String, expect: Dictionary = {}) -> void:
 		return
 	var manifest: Dictionary = package["manifest"]
 	if not expect.is_empty() and (manifest["id"] != expect["id"] or manifest["version"] != expect["version"]):
-		_message("The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported." % [manifest["id"], manifest["version"], expect["id"], expect["version"]])
+		_message(tr("The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported.") % [manifest["id"], manifest["version"], expect["id"], expect["version"]])
 		_remove_download()
 		return
 	if not CommunityLibrary.find(manifest["id"], manifest["version"]).is_empty():
-		_message("\"%s\" version %s is already installed." % [manifest["name"], manifest["version"]])
+		_message(tr("\"%s\" version %s is already installed.") % [manifest["name"], manifest["version"]])
 		_remove_download()
 		return
 	_pending = package
@@ -288,16 +288,16 @@ func _summary(package: Dictionary) -> String:
 			pictures += 1
 	var is_mission: bool = manifest["type"] == SharePackage.TYPE_MISSION
 	var lines: Array[String] = []
-	lines.append("%s \"%s\" - version %s" % ["Mission" if is_mission else "Campaign", manifest["name"], manifest["version"]])
-	lines.append("by %s" % (manifest["author"] if manifest["author"] != "" else "an unknown author"))
+	lines.append(tr("%s \"%s\" - version %s") % [tr("Mission") if is_mission else tr("Campaign"), manifest["name"], manifest["version"]])
+	lines.append(tr("by %s") % (manifest["author"] if manifest["author"] != "" else tr("an unknown author")))
 	if manifest["description"] != "":
 		lines.append("\n" + manifest["description"])
 	if is_mission:
 		lines.append("\n%.1f MB." % (bytes / 1048576.0))
 	else:
-		lines.append("\n%d mission(s), %d picture(s), %.1f MB." % [maxi(missions - 1, 0), pictures, bytes / 1048576.0])
+		lines.append(tr("\n%d mission(s), %d picture(s), %.1f MB.") % [maxi(missions - 1, 0), pictures, bytes / 1048576.0])
 	if pictures > 0:
-		lines.append("The author %s." % ("confirms they may share the pictures" if manifest["rights_confirmed"] else "did not say whether they may share the pictures"))
+		lines.append((tr("The author confirms they may share the pictures.") if manifest["rights_confirmed"] else tr("The author did not say whether they may share the pictures.")))
 	var others := CommunityLibrary.versions_of(manifest["id"])
 	if not others.is_empty():
 		lines.append("You already have version %s - this one is installed next to it." % ", ".join(others.map(func(e: Dictionary): return str(e["version"]))))
@@ -312,7 +312,7 @@ func _on_install_confirmed() -> void:
 	var manifest: Dictionary = _pending["manifest"]
 	_forget_pending()
 	if result["ok"]:
-		_status_label.text = "Installed \"%s\" v%s." % [manifest["name"], manifest["version"]]
+		_status_label.text = tr("Installed \"%s\" v%s.") % [manifest["name"], manifest["version"]]
 		_refresh_installed()
 	else:
 		_message(str(result["error"]))

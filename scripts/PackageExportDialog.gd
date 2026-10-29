@@ -166,7 +166,7 @@ func open_campaign(folder: String, suggested_name: String) -> void:
 			missions += 1
 	_rights_box.visible = pictures > 0
 	_rights_box.button_pressed = false
-	_info_label.text = "A release is a frozen version of the whole campaign folder (%d mission file(s), %d picture(s); save games are not included). Players' save games stay on the version they started with, so a release can never be changed afterwards." % [missions, pictures]
+	_info_label.text = tr("A release is a frozen version of the whole campaign folder (%d mission file(s), %d picture(s); save games are not included). Players' save games stay on the version they started with, so a release can never be changed afterwards.") % [missions, pictures]
 	_fill(suggested_name)
 
 
@@ -184,8 +184,11 @@ func _fill(suggested_name: String) -> void:
 	var campaign := CampaignIO.load_campaign(_folder) if _mode == SharePackage.TYPE_CAMPAIGN else null
 	_languages = []
 	if campaign != null:
-		_languages.append_array(campaign.languages)
+		_languages.append_array(campaign.offered_languages())
 		_duration_spin.value = campaign.duration_minutes
+	elif _mode == SharePackage.TYPE_MISSION and _mission != null:
+		_languages.append_array(_mission.offered_languages())
+		_duration_spin.value = int(memory.get("duration_minutes", 0))
 	else:
 		_languages.append_array(CampaignInfo.clean_languages(memory.get("languages", ["en"])))
 		_duration_spin.value = int(memory.get("duration_minutes", 0))
@@ -265,7 +268,7 @@ func _on_confirmed() -> void:
 		info["package_id"] = id
 		CampaignIO.write_draft_info(_folder, info)
 	_last_package = str(result["package_path"])
-	_show_message("Released %s v%s.\n\nIt is frozen now: it appears in the campaign / mission lists as a read-only version, and save games stay on it. Keep working on your draft and release the next version when you are ready.\n\nShare the package file with anyone (they import it from the Community page), or publish it so it appears there for everyone once it is approved." % [package_name, version], true)
+	_show_message(tr("Released %s v%s.\n\nIt is frozen now: it appears in the campaign / mission lists as a read-only version, and save games stay on it. Keep working on your draft and release the next version when you are ready.\n\nShare the package file with anyone (they import it from the Community page), or publish it so it appears there for everyone once it is approved.") % [package_name, version], true)
 
 
 func _reopen() -> void:
@@ -303,9 +306,9 @@ func _on_message_action(action: StringName) -> void:
 func _on_file_chosen(path: String) -> void:
 	var target := path if path.get_extension().to_lower() == SharePackage.EXTENSION else path + "." + SharePackage.EXTENSION
 	if DirAccess.copy_absolute(_last_package, target) != OK:
-		_show_message("The package file could not be written to %s." % target)
+		_show_message(tr("The package file could not be written to %s.") % target)
 		return
-	_show_message("Saved %s" % target, true)
+	_show_message(tr("Saved %s") % target, true)
 
 
 func _load_memory() -> Dictionary:

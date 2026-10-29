@@ -141,11 +141,11 @@ func restore_variables_checked(state: Dictionary) -> Array[String]:
 			continue
 		var declared: int = _declared_type(variable_name)
 		if declared == -1:
-			report.append("Variable '%s' no longer exists (it was %s)." % [variable_name, str(state[variable_name])])
+			report.append(tr("Variable '%s' no longer exists (it was %s).") % [variable_name, str(state[variable_name])])
 			continue
 		var coerced: Variant = _coerce(state[variable_name], declared as MissionVariable.Type)
 		if typeof(coerced) == TYPE_NIL:
-			report.append("Variable '%s' changed type - it has its default again." % variable_name)
+			report.append(tr("Variable '%s' changed type - it has its default again.") % variable_name)
 			continue
 		_variables[variable_name] = coerced
 	return report
@@ -364,7 +364,7 @@ func interaction_boon(hero_name: String) -> void:
 		var count := int(hero_interactions_round.get(slot, 0)) + 1
 		hero_interactions_round[slot] = count
 		if count == 1 and randf() * 100.0 < (50.0 if wearer["upgraded"] else 30.0) and dialog != null:
-			await dialog.ask_ok("Mage-Sight Goggles - %s gains an additional action!" % hero_name, true, false, "Mage-Sight Goggles")
+			await dialog.ask_ok(tr("Mage-Sight Goggles - %s gains an additional action!") % hero_name, true, false, "Mage-Sight Goggles")
 
 
 ## Heart Thorn Root: Enfeebled monsters deal 10 percentage points less on top of the usual 20.
@@ -567,7 +567,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		var during := DefenseRules.defense_during(monster, attack_types)
 		if during > 0:
 			defense_value += during
-			defense_lines.append("defense +%d during this attack" % during)
+			defense_lines.append(tr("defense +%d during this attack") % during)
 	var defense_roll := 0 if (immune or modifiers.get("ignore_defense", false)) else randi_range(0, defense_value)
 	var dealt := maxi(damage - defense_roll, 0)
 	monster.hitpoints -= dealt
@@ -767,12 +767,12 @@ func give_injury(slot: int) -> String:
 static func wound_label(count: int) -> String:
 	match count:
 		0:
-			return "Healthy"
+			return TranslationServer.translate("Healthy")
 		1:
-			return "Wounded"
+			return TranslationServer.translate("Wounded")
 		2:
-			return "Heavily wounded"
-	return "Defeated"
+			return TranslationServer.translate("Heavily wounded")
+	return TranslationServer.translate("Defeated")
 
 
 ## Removes a monster from the registry, freeing its colour chip (called by
@@ -800,7 +800,7 @@ func _collect_loot(monster: RuntimeMonster) -> void:
 	if compass > 0 and not _has_materials(gained):
 		var compass_gold := 25 if compass > 1 and randf() < 0.2 else 5
 		gained[LootMaterials.GOLD] = int(gained.get(LootMaterials.GOLD, 0)) + compass_gold
-		text = (text + ", " if text != "" else "") + "%d gold (Dead Man's Compass)" % compass_gold
+		text = (text + ", " if text != "" else "") + tr("%d gold (Dead Man's Compass)") % compass_gold
 	if gained.is_empty() and usable == "":
 		return
 	for key in gained:
@@ -856,7 +856,7 @@ func multiply_loot(monster: RuntimeMonster, times: int) -> String:
 		if extra <= 0:
 			continue
 		collected_loot[key] = int(collected_loot.get(key, 0)) + extra
-		parts.append("%d gold" % extra if key == LootMaterials.GOLD else "%dx %s" % [extra, LootMaterials.display_name(key)])
+		parts.append(tr("%d gold") % extra if key == LootMaterials.GOLD else "%dx %s" % [extra, LootMaterials.display_name(key)])
 	if not parts.is_empty():
 		loot_collected.emit(monster.display_name(), "+" + ", ".join(parts), "")
 	return ", ".join(parts)
@@ -894,14 +894,14 @@ static func loot_text(monster: RuntimeMonster) -> String:
 	for key in gained:
 		var count := int(gained[key])
 		if key == LootMaterials.GOLD:
-			parts.append("%d gold" % count)
+			parts.append(TranslationServer.translate("%d gold") % count)
 			continue
 		if str(key).begins_with(LootMaterials.CARD_PREFIX):
 			parts.append(RecipeData.card_label(str(key).trim_prefix(LootMaterials.CARD_PREFIX)))
 			continue
 		if str(key).begins_with(LootMaterials.RECIPE_PREFIX):
 			var recipe := RecipeData.find(str(key).trim_prefix(LootMaterials.RECIPE_PREFIX))
-			parts.append("Recipe: " + (RecipeData.label(recipe) if not recipe.is_empty() else str(key).trim_prefix(LootMaterials.RECIPE_PREFIX)))
+			parts.append(TranslationServer.translate("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(key).trim_prefix(LootMaterials.RECIPE_PREFIX)))
 			continue
 		parts.append(LootMaterials.display_name(key) if count == 1 else "%dx %s" % [count, LootMaterials.display_name(key)])
 	return ", ".join(parts)
@@ -996,7 +996,7 @@ func _apply_loot(effect: Effect) -> void:
 	if effect.loot_text != "":
 		lines.append(effect.loot_text)
 	if found != "":
-		lines.append("Loot for the party: " + found + ".")
+		lines.append(tr("Loot for the party: ") + found + ".")
 	if usable != "":
 		lines.append(usable)
 	if effect.loot_show_popup and dialog != null and not lines.is_empty():
@@ -1013,14 +1013,14 @@ func add_loot(materials: Dictionary, cards: Array, recipes: Array) -> String:
 		if count <= 0:
 			continue
 		collected_loot[key] = int(collected_loot.get(key, 0)) + count
-		parts.append("%d gold" % count if key == LootMaterials.GOLD else "%dx %s" % [count, LootMaterials.display_name(str(key))])
+		parts.append(tr("%d gold") % count if key == LootMaterials.GOLD else "%dx %s" % [count, LootMaterials.display_name(str(key))])
 	for card_id in cards:
 		collected_loot[LootMaterials.CARD_PREFIX + str(card_id)] = 1
 		parts.append(RecipeData.card_label(str(card_id)))
 	for recipe_id in recipes:
 		collected_loot[LootMaterials.RECIPE_PREFIX + str(recipe_id)] = 1
 		var recipe := RecipeData.find(str(recipe_id))
-		parts.append("Recipe: " + (RecipeData.label(recipe) if not recipe.is_empty() else str(recipe_id)))
+		parts.append(tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(recipe_id)))
 	return ", ".join(parts)
 
 
@@ -1082,14 +1082,14 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 		push_warning("RUN_TEST effect fired but MissionRuntime.dialog isn't wired - skipped")
 		return
 	var attribute_label := PlayerAttribute.attribute_name(effect.test_attribute)
-	var prompt := "%s: perform a %s test - how many successes?" % [hero_name, attribute_label] if hero_name != "" else "Perform a %s test - how many successes?" % attribute_label
+	var prompt := tr("%s: perform a %s test - how many successes?") % [hero_name, attribute_label] if hero_name != "" else tr("Perform a %s test - how many successes?") % attribute_label
 	var successes: int = await dialog.ask_count(prompt, 0, 99)
 	print("MissionRuntime._run_test: %s -> %d successes" % [attribute_label, successes])
 	# Lucky Charm: after the hero enters the result, 0-2 (0-3 on the "+" side) more successes are added.
 	var lucky := _lucky_bonus(hero_name)
 	if lucky > 0:
 		successes += lucky
-		await dialog.ask_ok("Lucky Charm: %d extra success%s are added to %s's result." % [lucky, "" if lucky == 1 else "es", hero_name], true, false, "Lucky Charm")
+		await dialog.ask_ok(tr_n("Lucky Charm: %d extra success is added to %s's result.", "Lucky Charm: %d extra successes are added to %s's result.", lucky) % [lucky, hero_name], true, false, "Lucky Charm")
 
 	if effect.accumulate_variable_name != "":
 		_accumulate(effect.accumulate_variable_name, successes)

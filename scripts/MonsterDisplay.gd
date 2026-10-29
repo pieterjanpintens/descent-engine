@@ -278,7 +278,7 @@ func refresh_monsters(monsters: Array) -> void:
 		if info.is_empty():
 			continue
 		info["name"] = monster.display_name()
-		info["extra"] = "HP %d · Level %d" % [monster.hitpoints, monster.level]
+		info["extra"] = tr("HP %d · Level %d") % [monster.hitpoints, monster.level]
 		if not monster.conditions.is_empty():
 			var condition_names: Array[String] = []
 			for condition in monster.conditions:

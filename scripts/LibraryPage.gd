@@ -16,8 +16,6 @@ const DETAIL_BACKGROUND := "res://models/ui/bg_detail.jpg"  ## the same recipe, 
 const REFRESH_ICON := "res://models/ui/icon_refresh.png"
 const BACK_ARROW := "res://models/ui/back_arrow.png"
 const NAV_ARROW := "res://models/ui/nav_arrow.png"
-const INSTALL_BUTTON := "res://models/ui/button_install.png"
-const BEGIN_BUTTON := "res://models/ui/button_begin.png"
 ## Cover-flow: the card in focus is in the middle, the others step back to each side (smaller, narrower, darker) - all derived from one float.
 const FOCUS_SECONDS := 0.5
 const SIDE_SQUASH := 0.22      ## how much narrower a card next to the focus looks, as if it were turned away
@@ -175,7 +173,7 @@ func _build_items() -> Array[Dictionary]:
 			item["folder"] = folder
 			item["title"] = CommunityLibrary.strip_version_suffix(campaign.campaign_name)
 			item["text"] = campaign.intro if campaign.intro != "" else item["text"]
-			item["languages"] = CampaignInfo.clean_languages(campaign.languages)
+			item["languages"] = CampaignInfo.clean_languages(campaign.offered_languages())
 			item["minutes"] = campaign.duration_minutes
 			item["texture"] = CampaignIO.image_texture(folder, campaign.cover_image)
 		else:
@@ -189,7 +187,7 @@ func _build_items() -> Array[Dictionary]:
 		if campaign != null:
 			drafts.append({
 				"source": "draft", "kind": "campaign", "folder": folder, "title": campaign.campaign_name, "text": campaign.intro,
-				"languages": CampaignInfo.clean_languages(campaign.languages), "minutes": campaign.duration_minutes,
+				"languages": CampaignInfo.clean_languages(campaign.offered_languages()), "minutes": campaign.duration_minutes,
 				"texture": CampaignIO.image_texture(folder, campaign.cover_image), "author": "",
 			})
 	var latest_online: Dictionary = {}
@@ -482,7 +480,7 @@ func _info_row(item: Dictionary) -> Control:
 			flag.custom_minimum_size = Vector2(34, 26)
 			flag.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			flag.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			flag.tooltip_text = CampaignInfo.language_name(str(code))
+			flag.tooltip_text = CampaignInfo.native_name(str(code))
 			row.add_child(flag)
 		else:
 			var tag := Label.new()
@@ -503,19 +501,17 @@ func _info_row(item: Dictionary) -> Control:
 	return row
 
 
-## Install (blue) for what comes from the community, otherwise the gold Begin campaign; a single mission gets the blue plaque (the lettering of
-## Install / Begin campaign is part of the designer's pictures).
+## Install (blue plaque) for what comes from the community, otherwise the gold Begin campaign; a single mission gets the blue plaque. The art has no
+## lettering: the captions are drawn (and translatable).
 func _action_button(item: Dictionary) -> Control:
 	var install: bool = item.get("source", "") == "catalog"
 	var button: BaseButton
 	if install:
-		button = MenuStyle.texture_button(INSTALL_BUTTON, Vector2(260, 101), Callable())
+		button = MenuStyle.plaque_button(tr("Install"), Vector2(310, 101), Callable(), 36)
 	elif item.get("kind", "campaign") == "campaign":
-		button = MenuStyle.texture_button(BEGIN_BUTTON, Vector2(420, 105), Callable())
+		button = MenuStyle.gold_button(tr("Begin Campaign"), Vector2(470, 102), 44, Callable())
 	else:
-		var plaque := MenuStyle.plaque_button("Play mission", Vector2(310, 101), Callable())
-		(plaque.get_child(0) as Label).add_theme_font_size_override("font_size", 32)
-		button = plaque
+		button = MenuStyle.plaque_button(tr("Play mission"), Vector2(310, 101), Callable(), 32)
 	button.pressed.connect(func(): _on_action_pressed(item, button))
 	return button
 
@@ -539,7 +535,7 @@ func _on_action_pressed(item: Dictionary, button: BaseButton) -> void:
 		button.disabled = false
 		button.modulate = Color.WHITE
 		return
-	_status.text = "Installed \"%s\"." % item["title"]
+	_status.text = tr("Installed \"%s\".") % item["title"]
 	refresh()
 	for candidate in _items:
 		if candidate.get("source", "") == "installed" and candidate.get("id", "") == item["entry"]["id"] and candidate.get("version", "") == item["entry"]["version"]:
@@ -619,7 +615,7 @@ func _fetch_catalog() -> void:
 	for item in _items:
 		if item.get("source", "") == "catalog":
 			fresh += 1
-	_status.text = "%d from the community to install." % fresh if fresh > 0 else "Nothing new in the community list."
+	_status.text = tr("%d from the community to install.") % fresh if fresh > 0 else "Nothing new in the community list."
 
 
 # ---------------------------------------------------------------- the cached list

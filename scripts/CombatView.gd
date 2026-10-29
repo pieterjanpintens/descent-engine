@@ -754,7 +754,7 @@ func _rebuild_properties(cfg: Dictionary, hit_kinds: Array = [], previous_known:
 	_clear(vulnerability_entry["box"])
 	for kind in weaknesses:
 		var shown_weakness: int = kind if known_weaknesses.has(kind) else -1
-		var weakness_tooltip := "Weakness: %s" % (Vulnerability.display_name(shown_weakness) if shown_weakness >= 0 else "Unknown")
+		var weakness_tooltip := tr("Weakness: %s") % (Vulnerability.display_name(shown_weakness) if shown_weakness >= 0 else tr("Unknown"))
 		var weakness_outer := CHOICE_WEAKNESS_COLOR if shown_weakness >= 0 and hit_kinds.has(kind) else ICON_BORDER_COLOR
 		var weakness_badge := _bordered_icon_box(shown_weakness, weakness_tooltip, WEAKNESS_BORDER_COLOR, weakness_outer)
 		vulnerability_entry["box"].add_child(weakness_badge)
@@ -762,7 +762,7 @@ func _rebuild_properties(cfg: Dictionary, hit_kinds: Array = [], previous_known:
 			revealed.append(weakness_badge)
 	for kind in resistances:
 		var shown_resistance: int = kind if known_resistances.has(kind) else -1
-		var resistance_tooltip := "Resistance: %s" % (Vulnerability.display_name(shown_resistance) if shown_resistance >= 0 else "Unknown")
+		var resistance_tooltip := tr("Resistance: %s") % (Vulnerability.display_name(shown_resistance) if shown_resistance >= 0 else tr("Unknown"))
 		var resistance_outer := CHOICE_RESISTANCE_COLOR if shown_resistance >= 0 and hit_kinds.has(kind) else ICON_BORDER_COLOR
 		var resistance_badge := _bordered_icon_box(shown_resistance, resistance_tooltip, RESISTANCE_BORDER_COLOR, resistance_outer)
 		vulnerability_entry["box"].add_child(resistance_badge)
@@ -771,7 +771,7 @@ func _rebuild_properties(cfg: Dictionary, hit_kinds: Array = [], previous_known:
 
 	for kind in immunities:
 		var shown_immunity: int = kind if known_immunities.has(kind) else -1
-		var immunity_tooltip := "Immunity: %s" % (Vulnerability.display_name(shown_immunity) if shown_immunity >= 0 else "Unknown")
+		var immunity_tooltip := tr("Immunity: %s") % (Vulnerability.display_name(shown_immunity) if shown_immunity >= 0 else tr("Unknown"))
 		var immunity_outer := CHOICE_IMMUNITY_COLOR if shown_immunity >= 0 and hit_kinds.has(kind) else ICON_BORDER_COLOR
 		var immunity_badge := _bordered_icon_box(shown_immunity, immunity_tooltip, IMMUNITY_BORDER_COLOR, immunity_outer)
 		vulnerability_entry["box"].add_child(immunity_badge)
@@ -862,13 +862,13 @@ func _reset_conditions(active: Array, immune: Array = []) -> void:
 		var is_immune := immune.has(kind)
 		check.set_pressed_no_signal(is_active and not is_immune)
 		check.disabled = is_active or is_immune
-		var suffix := " (immune)" if is_immune else (" (active)" if is_active else "")
+		var suffix := tr(" (immune)") if is_immune else (tr(" (active)") if is_active else "")
 		check.text = MonsterCondition.display_name(kind) + suffix
 	_update_conditions_button()
 
 
 func _update_conditions_button() -> void:
-	_conditions_button.text = "Conditions" if selected_conditions.is_empty() else "Conditions (%d)" % selected_conditions.size()
+	_conditions_button.text = "Conditions" if selected_conditions.is_empty() else tr("Conditions (%d)") % selected_conditions.size()
 
 
 # ---------------------------------------------------------------- outcome
@@ -940,16 +940,16 @@ func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 		condition_lines.append(str(line))
 	var not_triggered: Array = r.get("parts_not_triggered", [])
 	if not not_triggered.is_empty():
-		condition_lines.append("Did not trigger: " + ", ".join(not_triggered))
+		condition_lines.append(tr("Did not trigger: ") + ", ".join(not_triggered))
 	var part_notes: Array = r.get("part_notes", [])
 	if not part_notes.is_empty():
-		condition_lines.append("At the table:")
+		condition_lines.append(tr("At the table:"))
 		for note in part_notes:
 			condition_lines.append("  " + str(note))
 	if not applied.is_empty():
-		condition_lines.append("Applied: " + ", ".join(_condition_names(applied)))
+		condition_lines.append(tr("Applied: ") + ", ".join(_condition_names(applied)))
 	if not resisted.is_empty():
-		condition_lines.append("Immune to: " + ", ".join(_condition_names(resisted)))
+		condition_lines.append(tr("Immune to: ") + ", ".join(_condition_names(resisted)))
 	_calc_conditions.visible = not condition_lines.is_empty()
 	_calc_conditions.modulate.a = 0.0
 	if not condition_lines.is_empty():

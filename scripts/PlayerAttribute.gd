@@ -19,11 +19,11 @@ enum Attribute {
 static func attribute_name(attribute: Attribute) -> String:
 	match attribute:
 		Attribute.INTELLIGENCE:
-			return "Intelligence"
+			return TranslationServer.translate("Intelligence")
 		Attribute.WILL:
-			return "Will"
+			return TranslationServer.translate("Will")
 		Attribute.AGILITY:
-			return "Agility"
+			return TranslationServer.translate("Agility")
 		Attribute.STRENGTH:
-			return "Strength"
+			return TranslationServer.translate("Strength")
 	return "?"

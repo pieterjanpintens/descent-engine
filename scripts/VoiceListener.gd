@@ -255,7 +255,7 @@ func set_input_device(device_name: String) -> void:
 		_mic_player.stop()
 		_mic_player.play()
 	if _enabled:
-		_set_status("Input device: %s" % device_name)
+		_set_status(tr("Input device: %s") % device_name)
 
 
 func _exit_tree() -> void:
@@ -278,7 +278,7 @@ func _start_engine() -> void:
 	add_child(_stt)
 	_effect_capture.clear_buffer()
 	if push_to_talk:
-		_set_status("Hold %s to talk" % OS.get_keycode_string(PTT_KEY))
+		_set_status(tr("Hold %s to talk") % OS.get_keycode_string(PTT_KEY))
 	else:
 		_set_status("Listening - say \"hey DM, ...\"")
 
@@ -360,7 +360,7 @@ func _start_talking() -> void:
 	_ptt_frames = PackedVector2Array()
 	_ptt_peak = 0.0
 	_talking = true
-	_set_status("Listening... release %s to send" % OS.get_keycode_string(PTT_KEY))
+	_set_status(tr("Listening... release %s to send") % OS.get_keycode_string(PTT_KEY))
 
 
 func _stop_talking() -> void:
@@ -377,7 +377,7 @@ func _send_recording(announce: bool) -> void:
 	var mix_rate: float = ProjectSettings.get_setting("audio/driver/mix_rate")
 	if _ptt_frames.size() < PTT_MIN_SEC * mix_rate:
 		if announce:
-			_set_status("Too short - hold %s while you speak" % OS.get_keycode_string(PTT_KEY))
+			_set_status(tr("Too short - hold %s while you speak") % OS.get_keycode_string(PTT_KEY))
 		return
 	if _ptt_peak < LOUD_PEAK:
 		# Whisper echoes its prompt back when fed silence - don't even ask it.
@@ -408,9 +408,9 @@ func _on_recording_transcribed(text: String) -> void:
 	var heard := strip_noise_markers(text)
 	if push_to_talk:
 		if heard == "":
-			_set_status("Didn't catch anything - hold %s and try again" % OS.get_keycode_string(PTT_KEY))
+			_set_status(tr("Didn't catch anything - hold %s and try again") % OS.get_keycode_string(PTT_KEY))
 			return
-		_set_status("Heard: %s" % heard)
+		_set_status(tr("Heard: %s") % heard)
 		command_heard.emit(heard)
 		return
 	_on_hands_free_sentence(heard)
@@ -442,7 +442,7 @@ static func strip_noise_markers(message: String) -> String:
 ## is the problem, not the game.
 func _on_input_level(peak: float, _rms: float) -> void:
 	var bars := clampi(int(sqrt(peak) * 10.0), 0, 10)
-	_level_text = "  mic [%s%s]" % ["|".repeat(bars), ".".repeat(10 - bars)]
+	_level_text = tr("  mic [%s%s]") % ["|".repeat(bars), ".".repeat(10 - bars)]
 	_refresh_text()
 
 
@@ -553,10 +553,10 @@ func _on_hands_free_sentence(heard: String) -> void:
 		return
 	var in_window := now < _command_window_until_msec
 	if wake_word_required and not dialog_open and not in_window and not VoiceCommandParser.has_wake_phrase(heard):
-		_set_status("(ignored) %s" % heard)
+		_set_status(tr("(ignored) %s") % heard)
 		return
 	_command_window_until_msec = 0
-	_set_status("Heard: %s" % heard)
+	_set_status(tr("Heard: %s") % heard)
 	command_heard.emit(heard)
 
 

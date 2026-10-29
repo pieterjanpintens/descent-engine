@@ -6,14 +6,14 @@ extends RefCounted
 
 ## Language code -> name. The flags in the menus exist for the first three (the designer's mockup); other languages are shown as their code.
 const LANGUAGES: Array[Dictionary] = [
-	{"code": "en", "name": "English"},
-	{"code": "es", "name": "Spanish"},
-	{"code": "fr", "name": "French"},
-	{"code": "de", "name": "German"},
-	{"code": "nl", "name": "Dutch"},
-	{"code": "it", "name": "Italian"},
-	{"code": "pt", "name": "Portuguese"},
-	{"code": "pl", "name": "Polish"},
+	{"code": "en", "name": "English", "native": "English"},
+	{"code": "es", "name": "Spanish", "native": "Español"},
+	{"code": "fr", "name": "French", "native": "Français"},
+	{"code": "de", "name": "German", "native": "Deutsch"},
+	{"code": "nl", "name": "Dutch", "native": "Nederlands"},
+	{"code": "it", "name": "Italian", "native": "Italiano"},
+	{"code": "pt", "name": "Portuguese", "native": "Português"},
+	{"code": "pl", "name": "Polish", "native": "Polski"},
 ]
 const MAX_LANGUAGES := 8
 const MAX_MINUTES := 6000
@@ -43,16 +43,31 @@ static func duration_text(minutes: int) -> String:
 	var hours := minutes / 60
 	var rest := minutes % 60
 	if hours == 0:
-		return "%d min" % rest
+		return TranslationServer.translate("%d min") % rest
 	if rest == 0:
 		return "%d h" % hours
-	return "%d h %d min" % [hours, rest]
+	return TranslationServer.translate("%d h %d min") % [hours, rest]
+
+
+static func is_known(code: String) -> bool:
+	for language in LANGUAGES:
+		if language["code"] == code:
+			return true
+	return false
 
 
 static func language_name(code: String) -> String:
 	for language in LANGUAGES:
 		if language["code"] == code:
 			return language["name"]
+	return code.to_upper()
+
+
+## The language's own name ("Español"): what a player recognises in a list, whatever language the app is shown in.
+static func native_name(code: String) -> String:
+	for language in LANGUAGES:
+		if language["code"] == code:
+			return language["native"]
 	return code.to_upper()
 
 

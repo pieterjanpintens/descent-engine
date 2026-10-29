@@ -31,7 +31,12 @@ enum Type {
 @export var actions: Array[PropAction] = []
 
 ## Optional text for this prop, shown to the table in the Player when they click it (a sign, a statue...).
-@export var description: String = ""
+@export var description_texts: Dictionary = {}
+var description: String:
+	get:
+		return LText.pick(description_texts)
+	set(value):
+		LText.put(description_texts, value)
 
 ## Only meaningful when type == LEVEL_LINK. Two cells this connector joins -
 ## covers both "real" floor-to-floor stairs (large Y difference) and a

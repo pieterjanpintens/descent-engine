@@ -28,18 +28,18 @@ static func check(state: CampaignState, old_campaign: Campaign, new_campaign: Ca
 			new_chapters[chapter.id] = chapter
 	for id in state.completed_chapters:
 		if not new_chapters.has(id):
-			errors.append("Chapter \"%s\" that you already completed is not in the new version." % _chapter_title(old_campaign, id))
+			errors.append(TranslationServer.translate("Chapter \"%s\" that you already completed is not in the new version.") % _chapter_title(old_campaign, id))
 	if not state.campaign_complete:
 		if state.current_act < 0 or state.current_act >= new_campaign.acts.size():
-			errors.append("The new version has no act %d (your save is in it)." % (state.current_act + 1))
+			errors.append(TranslationServer.translate("The new version has no act %d (your save is in it).") % (state.current_act + 1))
 		else:
 			var act := new_campaign.acts[state.current_act]
 			for id in state.available_chapters:
 				var chapter := act.find_chapter(id)
 				if chapter == null:
-					errors.append("Chapter \"%s\", where you are now, is not in act %d of the new version." % [_chapter_title(old_campaign, id), state.current_act + 1])
+					errors.append(TranslationServer.translate("Chapter \"%s\", where you are now, is not in act %d of the new version.") % [_chapter_title(old_campaign, id), state.current_act + 1])
 				elif not chapter.is_narrative and not FileAccess.file_exists("%s/%s" % [CampaignIO.folder_path(new_folder), chapter.mission_file]):
-					errors.append("The mission of chapter \"%s\" is missing from the new version." % chapter.title)
+					errors.append(TranslationServer.translate("The mission of chapter \"%s\" is missing from the new version.") % chapter.title)
 	var new_quests := {}
 	for quest in new_campaign.side_quests:
 		new_quests[quest.id] = true
@@ -59,10 +59,10 @@ static func check(state: CampaignState, old_campaign: Campaign, new_campaign: Ca
 		new_variables[variable.name] = variable
 	for name in state.variables:
 		if not new_variables.has(name):
-			warnings.append("The variable \"%s\" no longer exists - its value is dropped." % name)
+			warnings.append(TranslationServer.translate("The variable \"%s\" no longer exists - its value is dropped.") % name)
 	for name in new_variables:
 		if not state.variables.has(name):
-			warnings.append("The new variable \"%s\" starts at its default value." % name)
+			warnings.append(TranslationServer.translate("The new variable \"%s\" starts at its default value.") % name)
 	return {"errors": errors, "warnings": warnings}
 
 
@@ -85,7 +85,7 @@ static func apply(state: CampaignState, new_entry: Dictionary, new_campaign: Cam
 	for variable in new_campaign.variables:
 		variables[variable.name] = state.variables.get(variable.name, variable.default_value)
 	copy.variables = variables
-	copy.add_log("Moved to v%s" % new_entry["version"], ["This save game was moved from version %s of the campaign to version %s." % [state.campaign_version if state.campaign_version != "" else "?", new_entry["version"]]])
+	copy.add_log(TranslationServer.translate("Moved to v%s") % new_entry["version"], [TranslationServer.translate("This save game was moved from version %s of the campaign to version %s.") % [state.campaign_version if state.campaign_version != "" else "?", new_entry["version"]]])
 	return copy if CampaignIO.save_state(copy) else null
 
 

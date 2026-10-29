@@ -17,7 +17,12 @@ extends Resource
 ## MonsterDisplay.REAL_MONSTERS `folder`, e.g. "bandit", "blood sister".
 @export var folder: String = "bandit"
 ## Optional; empty = use the monster type's generic name ("Bandit").
-@export var custom_name: String = ""
+@export var custom_name_texts: Dictionary = {}
+var custom_name: String:
+	get:
+		return LText.pick(custom_name_texts)
+	set(value):
+		LText.put(custom_name_texts, value)
 ## Picks the rows of the base/additive templates' scaling tables.
 @export_range(0, 9999) var level: int = 1
 ## The monster's BASE template (an embedded COPY of the library entry, so the
@@ -150,30 +155,30 @@ func full_name() -> String:
 func resolved_summary() -> String:
 	var r := resolve()
 	var lines: Array[String] = []
-	lines.append("%s - level %d" % [full_name(), level])
+	lines.append(tr("%s - level %d") % [full_name(), level])
 	if base_archetype == null:
 		lines.append("No base template - choose one.")
 	lines.append(_breakdown("HP", r["hitpoints"], r["sources"]["hitpoints"]))
 	lines.append(_breakdown("Attack", r["attack_power"], r["sources"]["attack_power"]))
 	lines.append(_breakdown("Defense", r["defense"], r["sources"]["defense"]))
 	lines.append(_breakdown("Speed", r["speed"], r["sources"]["speed"]))
-	lines.append("Range %d%s" % [r["attack_range"], ", reach" if r["attack_reach"] else ""])
-	lines.append("Weak: %s" % _names(r["weaknesses"], false))
-	lines.append("Resistant: %s" % _names(r["resistances"], false))
-	lines.append("Immune: %s" % _names(r["immunities"], false))
-	lines.append("Immune to conditions: %s" % _names(r["condition_immunities"], true))
-	lines.append("Attack abilities: %s" % _ability_names(r["attack_abilities"]))
-	lines.append("Defense abilities: %s" % _ability_names(r["defense_abilities"]))
+	lines.append((tr("Range %d, reach") if r["attack_reach"] else tr("Range %d")) % r["attack_range"])
+	lines.append(tr("Weak: %s") % _names(r["weaknesses"], false))
+	lines.append(tr("Resistant: %s") % _names(r["resistances"], false))
+	lines.append(tr("Immune: %s") % _names(r["immunities"], false))
+	lines.append(tr("Immune to conditions: %s") % _names(r["condition_immunities"], true))
+	lines.append(tr("Attack abilities: %s") % _ability_names(r["attack_abilities"]))
+	lines.append(tr("Defense abilities: %s") % _ability_names(r["defense_abilities"]))
 	var rule_names: Array[String] = []
 	for rule: TargetRule in r["target_rules"]:
 		rule_names.append(rule.display_name())
-	lines.append("Preferred targets: %s" % (", ".join(rule_names) if not rule_names.is_empty() else "-"))
+	lines.append(tr("Preferred targets: %s") % (", ".join(rule_names) if not rule_names.is_empty() else "-"))
 	return "\n".join(lines)
 
 
 static func _breakdown(label: String, total: int, parts: Array) -> String:
 	if parts.is_empty():
-		return "%s %d (no table rows)" % [label, total]
+		return TranslationServer.translate("%s %d (no table rows)") % [label, total]
 	var text := ""
 	for i in parts.size():
 		var value := int(parts[i][1])
@@ -241,4 +246,4 @@ static func _merge_rules(into: Array[TargetRule], extra: Array[TargetRule]) -> v
 ## name when no custom name is set).
 func summary() -> String:
 	var r := resolve()
-	return "%s - HP %d, Lv %d, Def %d, Atk %d" % [full_name(), r["hitpoints"], level, r["defense"], r["attack_power"]]
+	return tr("%s - HP %d, Lv %d, Def %d, Atk %d") % [full_name(), r["hitpoints"], level, r["defense"], r["attack_power"]]

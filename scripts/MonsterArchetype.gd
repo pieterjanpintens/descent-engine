@@ -28,8 +28,18 @@ enum Kind { BASE, ADDITIVE }
 @export var template_name: String = ""
 ## Added in front of / behind the monster's name, verbatim - include the spaces
 ## yourself ("Shady " + "John" + " of the Shadowguild").
-@export var name_prefix: String = ""
-@export var name_postfix: String = ""
+@export var name_prefix_texts: Dictionary = {}
+var name_prefix: String:
+	get:
+		return LText.pick(name_prefix_texts)
+	set(value):
+		LText.put(name_prefix_texts, value)
+@export var name_postfix_texts: Dictionary = {}
+var name_postfix: String:
+	get:
+		return LText.pick(name_postfix_texts)
+	set(value):
+		LText.put(name_postfix_texts, value)
 ## Vulnerability.Kind lists (merged into the monster's own).
 @export var weaknesses: Array[int] = []
 @export var resistances: Array[int] = []
@@ -59,7 +69,12 @@ enum Kind { BASE, ADDITIVE }
 ## picked at random among the possible ones); empty = MonsterAction.defaults().
 @export var confused_actions: Array[MonsterAction] = []
 ## BASE templates only: text shown to the table when the monster is defeated ("{name}" = the monster's name). Empty = none.
-@export_multiline var defeat_text: String = ""
+@export var defeat_text_texts: Dictionary = {}
+var defeat_text: String:
+	get:
+		return LText.pick(defeat_text_texts)
+	set(value):
+		LText.put(defeat_text_texts, value)
 ## BASE templates only: tactics (special activations the app prepares at the end of a monster phase, see MonsterTactic).
 @export var tactics: Array[MonsterTactic] = []
 ## What the monster drops (see LootItem); merged over base and additive templates. Data only for now.
@@ -77,11 +92,11 @@ func deep_copy() -> MonsterArchetype:
 	copy.attack_reach = attack_reach
 	copy.target_rules = TargetRule.copies(target_rules)
 	copy.confused_actions = MonsterAction.copies(confused_actions)
-	copy.defeat_text = defeat_text
+	copy.defeat_text_texts = defeat_text_texts.duplicate()
 	copy.tactics = MonsterTactic.copies(tactics)
 	copy.loot = LootItem.copies(loot)
-	copy.name_prefix = name_prefix
-	copy.name_postfix = name_postfix
+	copy.name_prefix_texts = name_prefix_texts.duplicate()
+	copy.name_postfix_texts = name_postfix_texts.duplicate()
 	copy.weaknesses = weaknesses.duplicate()
 	copy.resistances = resistances.duplicate()
 	copy.immunities = immunities.duplicate()
@@ -115,15 +130,15 @@ func signature() -> String:
 		rules.append([rule.kind, rule.hero_slot])
 	var actions: Array = []
 	for action in confused_actions:
-		actions.append(action.to_dict())
+		actions.append([action.to_dict(), action.action_name_texts, action.text_texts])
 	var drops: Array = []
 	for item in loot:
 		drops.append(item.to_dict())
 	var tactic_data: Array = []
 	for tactic in tactics:
-		tactic_data.append(tactic.to_dict())
+		tactic_data.append([tactic.to_dict(), tactic.tactic_name_texts, tactic.own_hint_texts, tactic.own_activation_texts])
 	return var_to_str([
-		template_name, kind, attack_range, attack_reach, rules, actions, drops, defeat_text, tactic_data, name_prefix, name_postfix,
+		template_name, kind, attack_range, attack_reach, rules, actions, drops, defeat_text_texts, tactic_data, name_prefix_texts, name_postfix_texts,
 		weaknesses, resistances, immunities, condition_immunities, tags,
 		abilities.call(attack_abilities), abilities.call(defense_abilities),
 		scaling.call(attack_scaling), scaling.call(defense_scaling), scaling.call(hitpoints_scaling),

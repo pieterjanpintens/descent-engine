@@ -290,7 +290,7 @@ func _on_mock_item_pressed(item_name: String) -> void:
 	_gear_menu.visible = false
 	_party_menu.visible = false
 	if dialog != null:
-		await dialog.ask_ok("%s - not yet implemented." % item_name)
+		await dialog.ask_ok(tr("%s - not yet implemented.") % item_name)
 
 
 func _on_options_pressed() -> void:

@@ -161,7 +161,7 @@ func _download_and_stage(release: Dictionary) -> Dictionary:
 	var assets: Dictionary = release.get("assets", {})
 	var name := asset_name()
 	if not assets.has(name) or not assets.has(SUMS_FILE):
-		return {"ok": false, "error": "This release has no %s (or no checksum list)." % name}
+		return {"ok": false, "error": tr("This release has no %s (or no checksum list).") % name}
 	var folder := DIR.path_join(str(release["tag"]).validate_filename())
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
 	var sums_path := folder.path_join(SUMS_FILE)
@@ -170,7 +170,7 @@ func _download_and_stage(release: Dictionary) -> Dictionary:
 		return {"ok": false, "error": "The checksum list could not be downloaded."}
 	var expected := checksum_for(FileAccess.get_file_as_string(sums_path), name)
 	if expected == "":
-		return {"ok": false, "error": "The release's checksum list has no entry for %s." % name}
+		return {"ok": false, "error": tr("The release's checksum list has no entry for %s.") % name}
 	var archive := folder.path_join(name)
 	if not await _fetch(str(assets[name]), archive, expected, "the update", MAX_ZIP_BYTES):
 		return {"ok": false, "error": "The update could not be downloaded or did not match its checksum."}
@@ -181,9 +181,9 @@ func _download_and_stage(release: Dictionary) -> Dictionary:
 	var main := ProjectSettings.globalize_path(staged).path_join(launch_name())
 	if platform() == "macos":
 		if not DirAccess.dir_exists_absolute(main):
-			return {"ok": false, "error": "The update does not contain %s." % launch_name()}
+			return {"ok": false, "error": tr("The update does not contain %s.") % launch_name()}
 	elif not FileAccess.file_exists(main):
-		return {"ok": false, "error": "The update does not contain %s." % launch_name()}
+		return {"ok": false, "error": tr("The update does not contain %s.") % launch_name()}
 	return {"ok": true, "error": "", "staged": ProjectSettings.globalize_path(staged)}
 
 

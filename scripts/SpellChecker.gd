@@ -65,10 +65,17 @@ static func _known(lower: String, names: Dictionary) -> bool:
 	return false
 
 
+## Only English has a word list: while an editor is writing another language nothing is flagged.
+static func is_active() -> bool:
+	return LText.edit_language == "" or LText.edit_language == "en"
+
+
 ## The [start, end) ranges of the misspelled words in `text` (one line).
 static func misspelled_ranges(text: String, names: Dictionary = {}) -> Array[Vector2i]:
-	ensure_loaded()
 	var found: Array[Vector2i] = []
+	if not is_active():
+		return found
+	ensure_loaded()
 	for match in _token.search_all(text):
 		var start := match.get_start()
 		var end := match.get_end()

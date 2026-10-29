@@ -33,7 +33,12 @@ enum Outcome {
 }
 
 @export var id: String = ""
-@export var description: String = ""
+@export var description_texts: Dictionary = {}
+var description: String:
+	get:
+		return LText.pick(description_texts)
+	set(value):
+		LText.put(description_texts, value)
 @export var outcome: Outcome = Outcome.WIN  ## meaningful only when children.is_empty() - i.e. this is a leaf
 @export var conditions: Array[Condition] = []  ## implicit AND across all entries - this node's own "achieved" check
 @export var effects: Array[Effect] = []  ## applied once when this node's conditions become true

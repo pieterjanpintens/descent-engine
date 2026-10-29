@@ -7,15 +7,30 @@ extends Resource
 ## the act's map, as a fraction of the map image (0..1 on both axes).
 
 @export var id: String = ""
-@export var title: String = "New chapter"
+@export var title_texts: Dictionary = {"en": "New chapter"}
+var title: String:
+	get:
+		return LText.pick(title_texts)
+	set(value):
+		LText.put(title_texts, value)
 ## File name (not a path) of the mission inside the campaign folder; "" = none chosen yet.
 @export var mission_file: String = ""
 ## A narrative chapter has no mission: the party reads `steps` (story pages, some asking a question whose
 ## answer sets campaign variables) and the chapter counts as won afterwards.
 @export var is_narrative: bool = false
 @export var steps: Array[NarrativeStep] = []
-@export_multiline var story_before: String = ""
-@export_multiline var story_after: String = ""
+@export var story_before_texts: Dictionary = {}
+var story_before: String:
+	get:
+		return LText.pick(story_before_texts)
+	set(value):
+		LText.put(story_before_texts, value)
+@export var story_after_texts: Dictionary = {}
+var story_after: String:
+	get:
+		return LText.pick(story_after_texts)
+	set(value):
+		LText.put(story_after_texts, value)
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var is_finale: bool = false
 ## A join after a fan-out: the chapter only becomes playable once EVERY chapter of the act that links to it

@@ -15,6 +15,25 @@ extends RefCounted
 const MOVED_DIR := "_combined"
 
 
+## Joins texts that exist in several languages: per language, the non-empty texts of `maps` one after the other (blank line between).
+static func _join_texts(maps: Array[Dictionary]) -> Dictionary:
+	var joined := {}
+	var languages: Array = []
+	for map in maps:
+		for language in map:
+			if not languages.has(language):
+				languages.append(language)
+	for language in languages:
+		var parts: Array[String] = []
+		for map in maps:
+			var text := str(map.get(language, "")).strip_edges()
+			if text != "":
+				parts.append(text)
+		if not parts.is_empty():
+			joined[language] = "\n\n".join(parts)
+	return joined
+
+
 ## The act that holds `chapter`, null when none does.
 static func act_of(campaign: Campaign, chapter: CampaignChapter) -> CampaignAct:
 	for act in campaign.acts:
@@ -105,15 +124,13 @@ static func combine(campaign: Campaign, folder: String, chapters: Array, title: 
 	first.mission_file = mission_file
 	if first.is_narrative:
 		first.ensure_step_ids()
-	var before: Array[String] = []
-	var after: Array[String] = []
+	var before_maps: Array[Dictionary] = []
+	var after_maps: Array[Dictionary] = []
 	for chapter in ordered:
-		if chapter.story_before.strip_edges() != "":
-			before.append(chapter.story_before.strip_edges())
-		if chapter.story_after.strip_edges() != "":
-			after.append(chapter.story_after.strip_edges())
-	first.story_before = "\n\n".join(before)
-	first.story_after = "\n\n".join(after)
+		before_maps.append(chapter.story_before_texts)
+		after_maps.append(chapter.story_after_texts)
+	first.story_before_texts = _join_texts(before_maps)
+	first.story_after_texts = _join_texts(after_maps)
 	for chapter in others:
 		if chapter.is_narrative:
 			chapter.ensure_step_ids()

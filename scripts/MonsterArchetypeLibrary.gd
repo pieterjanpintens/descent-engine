@@ -52,7 +52,7 @@ static func load_template(key: String) -> MonsterArchetype:
 	var path := path_for(key)
 	if not FileAccess.file_exists(path):
 		return null
-	var loaded := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE) as MonsterArchetype
+	var loaded := LText.load_file(path, "") as MonsterArchetype
 	return loaded.deep_copy() if loaded != null else null
 
 

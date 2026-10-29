@@ -57,7 +57,7 @@ func _ready() -> void:
 func show_phase(text: String, color: Color, sound: AudioStream) -> void:
 	if _tween != null:
 		_tween.kill()
-	_label.text = text.to_upper()
+	_label.text = tr(text).to_upper()
 	_label.add_theme_color_override("font_color", color)
 	_sound_player.stream = sound
 	_sound_player.play()
