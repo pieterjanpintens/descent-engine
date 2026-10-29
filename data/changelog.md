@@ -1,4 +1,7 @@
-﻿## v0.0.47 - 2026-10-29
+﻿## v0.0.48 - 2026-10-30
+- A mission trigger on an event can now listen to several events at once: "when the lever is pulled OR the door is kicked in". In the Triggers editor use "+ or another event". With one shot ticked it fires for whichever event happens first, and then never again.
+
+## v0.0.47 - 2026-10-29
 - The story can be read aloud in Spanish and Dutch. In Options > Voice pick the language under "Voices for" and download its voices (four voices each, about 200-270 MB); the story teller is chosen per language, and the hero voices are chosen per language when you start a game.
 - The narration follows the language of the game: a game read in Spanish uses Spanish voices, and switching the language in Options switches the voices. A language without installed voices stays silent and tells you where to download them.
 - Narration no longer needs the English voice: the voice engine installs together with the first language you pick.

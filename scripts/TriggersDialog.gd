@@ -153,10 +153,55 @@ func _build_trigger_block(trigger: MissionTrigger) -> Control:
 	)
 	when_row.add_child(event_option)
 
+	# More events that fire the same trigger ("or"): one row each, plus a button to add another.
+	var or_box := VBoxContainer.new()
+	box.add_child(or_box)
+	for extra_index in trigger.extra_event_ids.size():
+		var or_row := HBoxContainer.new()
+		or_row.add_child(_label("or"))
+		var or_option := OptionButton.new()
+		var or_ids := _known_event_ids()
+		var current: String = trigger.extra_event_ids[extra_index]
+		if current != "" and not or_ids.has(current):
+			or_ids.append(current)
+		for or_id in or_ids:
+			or_option.add_item(or_id)
+		or_option.select(or_ids.find(current))
+		or_option.item_selected.connect(func(index: int):
+			_commit_field("Edit trigger event", func(): trigger.extra_event_ids[extra_index] = or_ids[index])
+		)
+		or_row.add_child(or_option)
+		var or_remove := Button.new()
+		or_remove.text = "×"
+		or_remove.tooltip_text = "Remove this event"
+		or_remove.pressed.connect(func():
+			_commit_field("Remove trigger event", func(): trigger.extra_event_ids.remove_at(extra_index))
+			_rebuild_rows()
+		)
+		or_row.add_child(or_remove)
+		or_box.add_child(or_row)
+	var add_or := Button.new()
+	add_or.text = "+ or another event"
+	add_or.tooltip_text = "Fire this trigger when this OR another event happens"
+	add_or.disabled = event_ids.is_empty()
+	add_or.pressed.connect(func():
+		var unused := ""
+		for candidate in event_ids:
+			if candidate != trigger.event_id and not trigger.extra_event_ids.has(candidate):
+				unused = candidate
+				break
+		if unused == "":
+			unused = event_ids[0]
+		_commit_field("Add trigger event", func(): trigger.extra_event_ids.append(unused))
+		_rebuild_rows()
+	)
+	or_box.add_child(add_or)
+
 	var update_when := func():
 		var event_mode: bool = kind_option.selected == 1
 		checkpoint_option.visible = not event_mode
 		event_option.visible = event_mode
+		or_box.visible = event_mode
 	update_when.call()
 	kind_option.item_selected.connect(func(index: int):
 		_commit_field("Edit trigger kind", func():
@@ -165,6 +210,7 @@ func _build_trigger_block(trigger: MissionTrigger) -> Control:
 				trigger.event_id = event_ids[0] if not event_ids.is_empty() else ""
 			else:
 				trigger.event_id = ""
+				trigger.extra_event_ids.clear()
 				trigger.checkpoint = RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE
 		)
 		if index == 1:

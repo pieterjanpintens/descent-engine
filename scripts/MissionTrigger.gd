@@ -30,6 +30,26 @@ extends Resource
 ## once those exist - see the game-flow discussion this system came from.
 @export var event_id: String = ""
 
+## More events that fire this trigger too: it fires when `event_id` OR any of these happens ("when the lever is pulled OR the
+## door is kicked in"). Empty = just `event_id`. Only meaningful for an event-driven trigger.
+@export var extra_event_ids: Array[String] = []
+
+
+## Does this trigger listen for `event`?
+func watches(event: String) -> bool:
+	return event != "" and (event == event_id or extra_event_ids.has(event))
+
+
+## Every event that fires this trigger, the main one first.
+func event_list() -> Array[String]:
+	var events: Array[String] = []
+	if event_id != "":
+		events.append(event_id)
+	for extra in extra_event_ids:
+		if extra != "" and not events.has(extra):
+			events.append(extra)
+	return events
+
 @export var conditions: Array[Condition] = []  ## implicit AND across all entries
 @export var effects: Array[Effect] = []
 

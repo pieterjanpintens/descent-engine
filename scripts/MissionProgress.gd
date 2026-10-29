@@ -157,7 +157,7 @@ static func _action_key(entry: InteractableEntry, action: PropAction) -> String:
 
 static func _trigger_label(trigger: MissionTrigger) -> String:
 	if trigger.event_id != "":
-		return "The trigger on event '%s'" % trigger.event_id
+		return "The trigger on event '%s'" % "' or '".join(trigger.event_list())
 	return "A checkpoint trigger"
 
 

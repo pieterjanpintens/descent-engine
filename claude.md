@@ -4706,7 +4706,7 @@ first working version).
   player phase, Before/At/After the monster phase - OR an event = the action id of any prop's `PropAction`, listed from the mission), **priority**
   (lower fires first), **One shot** (untick for a repeating trigger, e.g. "every round before the monster phase"), **Conditions** and **Effects**
   (the shared `EffectEditor` rows). Every edit is an undo step. Unlike an objective (reached once) a trigger can repeat. Smoke-tested headlessly
-  (button resolves, a trigger can be added and switched to event mode); look not seen. Not built: reordering triggers (priority decides),
+  (button resolves, a trigger can be added and switched to event mode); look not seen. **"Or" events (2026-10-30)**: an event trigger can listen to several events - `MissionTrigger.extra_event_ids` next to the main `event_id` (`watches(event)`, `event_list()`; `MissionRuntime.fire_event()` uses `watches()`), so "the lever is pulled OR the door is kicked in" is one shared trigger; the Triggers dialog shows an "or" row (picker + remove) per extra event and a "+ or another event" button, and switching the trigger to a round checkpoint clears the extras; older triggers simply have none. Checked headlessly (fires on the two listed events only, a repeating trigger counted 3); the dialog look not seen. Not built: reordering triggers (priority decides),
   firing events other than prop actions.
 - **`EffectEditor`** (`scripts/EffectEditor.gd`, new 2026-10-06, a `RefCounted`) - **the shared Condition/Effect editor widgets.
   SUPERSEDES every "own copy per dialog / each dialog owns its own row-builder helpers" remark in the entries below** (those described
