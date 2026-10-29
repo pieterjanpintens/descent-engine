@@ -24,7 +24,7 @@ import json
 import os
 import sys
 
-from user_data import user_data_dir
+from user_data import LANGUAGE_CODES, user_data_dir
 
 OUTPUT = user_data_dir("item_data")
 DROPPED = {"m_GameObject", "m_Enabled", "m_Script"}
@@ -75,10 +75,16 @@ def main() -> int:
             if obj.type.name == "TextAsset":
                 data = obj.read()
                 text = data.m_Script if isinstance(data.m_Script, str) else bytes(data.m_Script).decode("utf-8", "ignore")
-                if text.startswith("Key,Type,Desc,English"):
-                    for row in csv.DictReader(io.StringIO(text)):
-                        if (row["Key"].startswith(LOC_PREFIXES) or "DEFEN" in row["Key"].upper() or "TACTIC" in row["Key"].upper()) and row["English"]:
-                            localization[row["Key"]] = row["English"]
+                if text.startswith("Key,Type,Desc,"):
+                    rows = csv.DictReader(io.StringIO(text))
+                    column = (rows.fieldnames or ["", "", "", ""])[3]
+                    code = LANGUAGE_CODES.get(column)
+                    if code is None:
+                        continue
+                    target = localization.setdefault(code, {})
+                    for row in rows:
+                        if (row["Key"].startswith(LOC_PREFIXES) or "DEFEN" in row["Key"].upper() or "TACTIC" in row["Key"].upper()) and row[column]:
+                            target[row["Key"]] = row[column]
             elif obj.type.name == "MonoBehaviour":
                 try:
                     tree = obj.read_typetree()
@@ -135,11 +141,12 @@ def main() -> int:
     os.makedirs(OUTPUT, exist_ok=True)
     with open(os.path.join(OUTPUT, "items.json"), "w", encoding="utf-8") as handle:
         json.dump(result, handle, indent=1, ensure_ascii=False)
-    with open(os.path.join(OUTPUT, "localization_en.json"), "w", encoding="utf-8") as handle:
-        json.dump(dict(sorted(localization.items())), handle, indent=1, ensure_ascii=False)
+    for code, texts in localization.items():
+        with open(os.path.join(OUTPUT, "localization_%s.json" % code), "w", encoding="utf-8") as handle:
+            json.dump(dict(sorted(texts.items())), handle, indent=1, ensure_ascii=False)
     print("materials %d, recipes %d, consumables %d, armors %d, trinkets %d, enemies with loot %d, texts %d, images %d -> %s" % (
         len(result["materials"]), len(result["recipes"]), len(result["consumables"]), len(result["armors"]),
-        len(result["trinkets"]), len(result["enemy_loot"]), len(localization), images, OUTPUT))
+        len(result["trinkets"]), len(result["enemy_loot"]), len(localization.get("en", {})), images, OUTPUT))
     return 0
 
 

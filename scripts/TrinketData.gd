@@ -7,6 +7,7 @@ extends RefCounted
 ## for now (nothing applies a trinket yet). A trinket is identified by its BASE id ("TRINKET10_ID"); the "+" side is TRINKET10_ID_PLUS.
 
 static var _loaded := false
+static var _stamp := ""  ## the game text language the cached data was built for (ItemData.text_stamp())
 static var _base: Array[Dictionary] = []  # {id, name, text, plus_text, price, xp, act, image}
 static var _by_id: Dictionary = {}
 
@@ -63,6 +64,10 @@ static func rule_text(trinket_id: String, upgraded: bool = false) -> String:
 
 
 static func _load() -> void:
+	var stamp := ItemData.text_stamp()
+	if stamp != _stamp:
+		_stamp = stamp
+		reload()
 	if _loaded:
 		return
 	_loaded = true

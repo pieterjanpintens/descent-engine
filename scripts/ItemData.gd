@@ -11,6 +11,44 @@ static var _texts: Dictionary = {}
 static var _attack: Dictionary = {}  ## game key -> {key, name, text} (activation abilities)
 static var _defense: Dictionary = {}  ## game key -> {key, name, text, after, enemies}
 static var _images: Dictionary = {}  ## picture path -> Texture2D (or null: not exported)
+static var _order_key := ""  ## the reading order the texts were last checked for
+static var _loaded_stamp := ""  ## the texts the loaded data was built from
+static var _text_language := ""  ## the languages the loaded texts are in (item export | weapon export)
+
+
+## The game's texts follow the language of the content being played (the reading order of LText): the importers write one
+## localization_<code>.json per game language and the first language of the reading order that has a file is used (English otherwise;
+## a key missing in that language falls back to English). The classes that build things from the texts (WeaponData, ArmorData, ...) compare
+## this stamp in their _load() with the one they were built for and read everything again when it is another (no class reference back
+## to them from here: static classes referring to each other in a loop crash the script VM).
+static func text_stamp() -> String:
+	var order_key := ",".join(LText.reading_order())
+	if order_key != _order_key:
+		_order_key = order_key
+		_text_language = text_language("user://item_data/") + "|" + text_language("user://weapon_data/")
+	return _text_language
+
+
+## The language code the texts of an export folder are read in.
+static func text_language(directory: String) -> String:
+	for code in LText.reading_order():
+		if FileAccess.file_exists("%slocalization_%s.json" % [directory, code]):
+			return code
+	return "en"
+
+
+## The texts of an export folder in the current language (missing keys filled in from English).
+static func load_texts(directory: String) -> Dictionary:
+	var texts: Dictionary = {}
+	var english = _read("%slocalization_en.json" % directory)
+	if english is Dictionary:
+		texts = english.duplicate()
+	var code := text_language(directory)
+	if code != "en":
+		var own = _read("%slocalization_%s.json" % [directory, code])
+		if own is Dictionary:
+			texts.merge(own, true)
+	return texts
 
 
 ## A picture of an armor, material, consumable or trinket from the user's own export (import_item_data.py writes them to
@@ -174,6 +212,13 @@ static func defense_ability(key: String) -> Dictionary:
 
 
 static func _load() -> void:
+	var stamp := text_stamp()
+	if stamp != _loaded_stamp:
+		_loaded_stamp = stamp
+		_loaded = false
+		_texts = {}
+		_attack = {}
+		_defense = {}
 	if _loaded:
 		return
 	_loaded = true
@@ -181,9 +226,7 @@ static func _load() -> void:
 	if items is Dictionary:
 		_consumables = items.get("consumables", [])
 		_trinkets = items.get("trinkets", [])
-	var texts = _read("user://item_data/localization_en.json")
-	if texts is Dictionary:
-		_texts = texts
+	_texts = load_texts("user://item_data/")
 	for key: String in _texts:
 		if key.begins_with("ENEMY_ACTIVATION_"):
 			var shown := _clean(str(_texts[key]))

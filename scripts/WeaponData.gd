@@ -68,6 +68,7 @@ const RANGE_BY_PART := {
 }
 
 static var _loaded := false
+static var _stamp := ""  ## the game text language the cached data was built for (ItemData.text_stamp())
 static var _weapons: Dictionary = {}    # game weapon id -> entry
 static var _parts: Array = []
 static var _parts_by_id: Dictionary = {}
@@ -395,6 +396,10 @@ static func _clean(text: String) -> String:
 
 
 static func _load() -> void:
+	var stamp := ItemData.text_stamp()
+	if stamp != _stamp:
+		_stamp = stamp
+		reload()
 	if _loaded:
 		return
 	_loaded = true
@@ -408,9 +413,7 @@ static func _load() -> void:
 		_parts_by_id[part["_id"]] = part
 	for ability: Dictionary in data.get("abilities", []):
 		_abilities[ability["_id"]] = ability
-	var texts = _read_json(DIRECTORY + "localization_en.json")
-	if texts is Dictionary:
-		_texts = texts
+	_texts = ItemData.load_texts(DIRECTORY)
 
 
 static func _read_json(path: String) -> Variant:

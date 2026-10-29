@@ -8,6 +8,7 @@ extends RefCounted
 ## A normalised consumable is {id, name, upgraded, text (the card text), image (TextureAssetPath), limited_heroes}.
 
 static var _loaded := false
+static var _stamp := ""  ## the game text language the cached data was built for (ItemData.text_stamp())
 static var _all: Array[Dictionary] = []
 static var _by_id: Dictionary = {}
 
@@ -86,6 +87,10 @@ static func usable_notice(ids: Array) -> String:
 
 
 static func _load() -> void:
+	var stamp := ItemData.text_stamp()
+	if stamp != _stamp:
+		_stamp = stamp
+		reload()
 	if _loaded:
 		return
 	_loaded = true
