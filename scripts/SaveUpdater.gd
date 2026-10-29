@@ -85,7 +85,8 @@ static func apply(state: CampaignState, new_entry: Dictionary, new_campaign: Cam
 	for variable in new_campaign.variables:
 		variables[variable.name] = state.variables.get(variable.name, variable.default_value)
 	copy.variables = variables
-	copy.add_log(TranslationServer.translate("Moved to v%s") % new_entry["version"], [TranslationServer.translate("This save game was moved from version %s of the campaign to version %s.") % [state.campaign_version if state.campaign_version != "" else "?", new_entry["version"]]])
+	var from_version: String = state.campaign_version if state.campaign_version != "" else "?"
+	copy.add_log(func() -> String: return TranslationServer.translate("Moved to v%s") % new_entry["version"], [func() -> String: return TranslationServer.translate("This save game was moved from version %s of the campaign to version %s.") % [from_version, new_entry["version"]]])
 	return copy if CampaignIO.save_state(copy) else null
 
 

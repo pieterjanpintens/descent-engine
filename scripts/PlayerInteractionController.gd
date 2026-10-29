@@ -331,6 +331,7 @@ func attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String = "", p
 func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, preset_successes: int) -> void:
 	var hero_name := HeroCatalog.slot_name(hero_slot)
 	var target := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	var target_chip: int = monster.chip  # (the chip is freed when the monster is defeated; the quest log text is built afterwards)
 	# One of the hero's two embark weapons (asked only when there is a choice).
 	var weapons: Array = hero_weapons.get(hero_slot, [])
 	var weapon: Weapon = null
@@ -464,45 +465,48 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	post_cfg["known_resistances"] = monster.known_resistances.duplicate()
 	post_cfg["known_immunities"] = monster.known_immunities.duplicate()
 
-	var text := tr("%s attacks %s\nwith the %s (damage %d)\n") % [hero_name, target, r["weapon_name"], r["base_damage"]]
-	if r["weakness_bonus"] > 0:
-		text += tr("\nWeakness: +%d damage") % r["weakness_bonus"]
-	if r["resistance_penalty"] > 0:
-		text += tr("\nResistance: -%d damage") % r["resistance_penalty"]
-	if r["immune"]:
-		text += "\nImmune! The attack does no damage.\n\n0 damage dealt"
-	else:
-		text += tr("\n%d successes x %d weapon damage") % [r["successes"], r["weapon_damage"]]
-		if r["exposed_bonus"] > 0:
-			text += tr("\nExposed: +%d damage") % r["exposed_bonus"]
-		text += tr(" = %d damage\nDefense roll: -%d\n\n%d damage dealt") % [r["damage"], r["defense_roll"], r["dealt"]]
-	if r["defeated"]:
-		text += tr("\n\n%s is defeated! Remove it from the board.") % monster.display_name()
-		if MissionRuntime.loot_text(monster) != "":
-			text += tr("\nLoot for the party: %s.") % MissionRuntime.loot_text(monster)
-	else:
-		text += tr("\n\n%s has %d hitpoints left.") % [monster.display_name(), r["hitpoints"]]
-	var part_lines: Array = r.get("part_lines", [])
-	if not part_lines.is_empty():
-		text += tr("\nWeapon parts and trinket: ") + "; ".join(part_lines)
-	var part_notes: Array = r.get("part_notes", [])
-	if not part_notes.is_empty():
-		text += tr("\nAt the table: ") + " | ".join(part_notes)
-	var applied: Array[int] = r["conditions_applied"]
-	if not applied.is_empty():
-		var applied_names: Array[String] = []
-		for condition in applied:
-			applied_names.append(MonsterCondition.display_name(condition))
-		text += "\nConditions applied: %s" % ", ".join(applied_names)
-	var resisted: Array[int] = r["conditions_resisted"]
-	if not resisted.is_empty():
-		var resisted_names: Array[String] = []
-		for condition in resisted:
-			resisted_names.append(MonsterCondition.display_name(condition))
-		text += "\nImmune to: %s" % ", ".join(resisted_names)
+	var make_text := func() -> String:  # built once per language for the quest log (LogText)
+		var target_text := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(target_chip)]
+		var text := tr("%s attacks %s\nwith the %s (damage %d)\n") % [hero_name, target_text, r["weapon_name"], r["base_damage"]]
+		if r["weakness_bonus"] > 0:
+			text += tr("\nWeakness: +%d damage") % r["weakness_bonus"]
+		if r["resistance_penalty"] > 0:
+			text += tr("\nResistance: -%d damage") % r["resistance_penalty"]
+		if r["immune"]:
+			text += tr("\nImmune! The attack does no damage.\n\n0 damage dealt")
+		else:
+			text += tr("\n%d successes x %d weapon damage") % [r["successes"], r["weapon_damage"]]
+			if r["exposed_bonus"] > 0:
+				text += tr("\nExposed: +%d damage") % r["exposed_bonus"]
+			text += tr(" = %d damage\nDefense roll: -%d\n\n%d damage dealt") % [r["damage"], r["defense_roll"], r["dealt"]]
+		if r["defeated"]:
+			text += tr("\n\n%s is defeated! Remove it from the board.") % monster.display_name()
+			if MissionRuntime.loot_text(monster) != "":
+				text += tr("\nLoot for the party: %s.") % MissionRuntime.loot_text(monster)
+		else:
+			text += tr("\n\n%s has %d hitpoints left.") % [monster.display_name(), r["hitpoints"]]
+		var part_lines: Array = r.get("part_lines", [])
+		if not part_lines.is_empty():
+			text += tr("\nWeapon parts and trinket: ") + "; ".join(part_lines)
+		var part_notes: Array = r.get("part_notes", [])
+		if not part_notes.is_empty():
+			text += tr("\nAt the table: ") + " | ".join(part_notes)
+		var applied: Array[int] = r["conditions_applied"]
+		if not applied.is_empty():
+			var applied_names: Array[String] = []
+			for condition in applied:
+				applied_names.append(MonsterCondition.display_name(condition))
+			text += tr("\nConditions applied: %s") % ", ".join(applied_names)
+		var resisted: Array[int] = r["conditions_resisted"]
+		if not resisted.is_empty():
+			var resisted_names: Array[String] = []
+			for condition in resisted:
+				resisted_names.append(MonsterCondition.display_name(condition))
+			text += tr("\nImmune to: %s") % ", ".join(resisted_names)
+		return text
 	# The result is shown on the combat screen itself (calculation, health bar,
 	# revealed weaknesses); the text below is what the quest log keeps.
-	await dialog.ask_attack_outcome(cfg, post_cfg, r, text, "Attack")
+	await dialog.ask_attack_outcome(cfg, post_cfg, r, make_text, "Attack")
 
 
 ## The hero's art for weapon slot `weapon_index` in CombatView's key naming
@@ -630,7 +634,7 @@ func show_description_at(screen_pos: Vector2) -> bool:
 	if entry == null or entry.description.strip_edges() == "" or dialog == null or dialog.visible:
 		return false
 	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
-	await dialog.ask_ok(entry.description, true, false, label, null, null, true)
+	await dialog.ask_ok(func() -> String: return entry.description, true, false, func() -> String: return label, null, null, true)
 	return true
 
 

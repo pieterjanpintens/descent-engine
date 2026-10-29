@@ -2184,6 +2184,21 @@ msgstr "Aplicación no oficial"
 msgid "%s - %s\n\n%s gains an extra benefit: %s."
 msgstr "¡%s - %s\n\n%s obtiene un beneficio extra: %s."
 
+msgid "A new act begins."
+msgstr "Comienza un nuevo acto."
+
+msgid "act"
+msgstr "actuar"
+
+msgid "The campaign is complete."
+msgstr "¡La campaña ha terminado!"
+
+msgid "The end"
+msgstr "El final"
+
+msgid "The story begins."
+msgstr "Comienza la historia."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

@@ -12,7 +12,7 @@ extends Control
 ## Built in code, modal scrim like HeroesDialog; open() rebuilds fresh. `logged(text)`
 ## is emitted for each change so MissionPlayer can write it to the quest log.
 
-signal logged(text: String)
+signal logged(text: Variant)  ## a Callable that builds the text (the quest log runs it once per language)
 
 var _runtime: MissionRuntime
 var _monster: RuntimeMonster
@@ -118,21 +118,24 @@ func _refresh() -> void:
 
 func _on_damage_pressed() -> void:
 	var amount := int(_amount.value)
-	var monster_name := _monster.display_name()
+	var monster := _monster
 	var result := _runtime.damage_monster(_monster, amount)
 	if result["defeated"]:
-		logged.emit(tr("%s took %d damage and was defeated.") % [monster_name, amount])
+		logged.emit(func() -> String: return tr("%s took %d damage and was defeated.") % [monster.display_name(), amount])
 		# (the loot, if any, is reported by MissionRuntime.loot_collected)
 		visible = false
 		return
-	logged.emit(tr("%s took %d damage (%d hitpoints left).") % [monster_name, amount, result["hitpoints"]])
+	var hitpoints_left: int = result["hitpoints"]
+	logged.emit(func() -> String: return tr("%s took %d damage (%d hitpoints left).") % [monster.display_name(), amount, hitpoints_left])
 	_refresh()
 
 
 func _on_heal_pressed() -> void:
 	var amount := int(_amount.value)
 	var healed := _runtime.heal_monster(_monster, amount)
-	logged.emit(tr("%s healed %d (%d hitpoints).") % [_monster.display_name(), healed, _monster.hitpoints])
+	var monster := _monster
+	var hitpoints_now := _monster.hitpoints
+	logged.emit(func() -> String: return tr("%s healed %d (%d hitpoints).") % [monster.display_name(), healed, hitpoints_now])
 	_refresh()
 
 
@@ -145,5 +148,6 @@ func _on_condition_toggled(kind: int, on: bool) -> void:
 			return
 	else:
 		_runtime.remove_condition(_monster, kind)
-	logged.emit((tr("%s is %s.") if on else tr("%s is no longer %s.")) % [_monster.display_name(), MonsterCondition.display_name(kind)])
+	var monster := _monster
+	logged.emit(func() -> String: return (tr("%s is %s.") if on else tr("%s is no longer %s.")) % [monster.display_name(), MonsterCondition.display_name(kind)])
 	_refresh()

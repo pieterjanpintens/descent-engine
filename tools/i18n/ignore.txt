@@ -37,3 +37,4 @@ Say a sentence, like \"use the %s\", or a number - %s - or \"cancel\"
 I use the %s.
  Attack %s.
  Attack with the %s.
+TabContainer

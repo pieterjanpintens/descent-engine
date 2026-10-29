@@ -1,0 +1,5 @@
+733|Comienza un nuevo acto.
+734|actuar
+736|¡La campaña ha terminado!
+737|El final
+738|Comienza la historia.

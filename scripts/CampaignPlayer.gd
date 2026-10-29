@@ -431,6 +431,7 @@ func _apply_language(campaign: Campaign, language: String) -> void:
 	LText.set_preferred(order)
 	LText.edit_language = ""
 	LText.fallback_language = campaign.default_language
+	LogText.set_languages(campaign.offered_languages(), language)  # the logs are written once per language of the campaign
 
 
 ## Starts a fresh playthrough of campaign `folder` as save game `save_name`, in `language`.
@@ -873,7 +874,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		_narrative_dialog = PlayerDialog.new()
 		add_child(_narrative_dialog)
 	_narrative_dialog.characters = _state.speakers(_campaign.characters)
-	var pages: Array[String] = []
+	var pages: Array = []  # what was read and chosen: builders, written to the log once per language (see LogText)
 	var chosen: Array[NarrativeAnswer] = []
 	# Steps and answers can depend on the campaign variables - including what was answered earlier in this very
 	# story - so the chosen effects are applied to a scratch copy while reading and to the real save at the end.
@@ -892,7 +893,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 				offered.append(answer)
 		if offered.is_empty():
 			await _narrative_dialog.ask_narrative([step.text], "", true, Callable(), true)
-			pages.append(NarrationMarkup.plain(step.text, _campaign.characters))
+			pages.append(func() -> String: return NarrationMarkup.plain(step.text, _campaign.characters))
 			continue
 		var labels: Array[String] = []
 		for answer in offered:
@@ -903,16 +904,18 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		chosen.append(answer)
 		await _speak_answer(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
-		pages.append(tr("%s\n\nYou chose: %s") % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
+		pages.append(func() -> String:
+			var asked: String = step.text if step.question == "" else "%s\n\n%s" % [step.text, step.question]
+			return tr("%s\n\nYou chose: %s") % [NarrationMarkup.plain(asked, _campaign.characters), answer.text])
 		if answer.reply != "":
 			await _narrative_dialog.ask_ok(answer.reply, true, false, "", null, null, true)
-			pages.append(NarrationMarkup.plain(answer.reply, _campaign.characters))
+			pages.append(func() -> String: return NarrationMarkup.plain(answer.reply, _campaign.characters))
 		if answer.ends_narrative:
 			break
 		var target := chapter.find_step_index(answer.goto_step_id)
 		if target != -1:
 			position = target
-	_state.add_log(chapter.title, pages)
+	_state.add_log(func() -> String: return chapter.title, pages)
 	for answer in chosen:
 		await _state.apply_effects(_campaign, answer.effects)
 	_apply_result({"won": true, "chapter_id": chapter.id, "mission_variables": {}})

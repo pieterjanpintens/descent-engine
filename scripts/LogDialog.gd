@@ -99,7 +99,8 @@ func open() -> void:
 	for i in range(entries.size() - 1, -1, -1):
 		var entry: Dictionary = entries[i]
 		var btn := Button.new()
-		btn.text = tr("Round %d - %s") % [entry["round"], tr(entry["title"])] if entry.has("round") else tr(entry["title"])
+		var title := _title_of(entry)
+		btn.text = tr("Round %d - %s") % [entry["round"], title] if entry.has("round") else title
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.clip_text = true
 		btn.pressed.connect(_show_entry.bind(entry))
@@ -109,5 +110,16 @@ func open() -> void:
 	visible = true
 
 
+## An entry's title: a language map (read in the language of the game now, see LogText) or - an entry from before - a msgid or plain text.
+func _title_of(entry: Dictionary) -> String:
+	var raw: Variant = entry["title"]
+	return LogText.show(raw) if raw is Dictionary else tr(str(raw))
+
+
 func _show_entry(entry: Dictionary) -> void:
-	_text.text = "\n\n- - -\n\n".join(entry["pages"])
+	var pages: Array[String] = []
+	for page in entry["pages"]:
+		var shown := LogText.show(page)
+		if shown != "":
+			pages.append(shown)
+	_text.text = "\n\n- - -\n\n".join(pages)

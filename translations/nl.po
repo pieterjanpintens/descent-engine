@@ -2184,6 +2184,21 @@ msgstr "Onofficiële app"
 msgid "%s - %s\n\n%s gains an extra benefit: %s."
 msgstr "%s - %s\n\n%s krijgt een extra voordeel: %s."
 
+msgid "A new act begins."
+msgstr "Een nieuwe akte begint."
+
+msgid "act"
+msgstr "handelen"
+
+msgid "The campaign is complete."
+msgstr "De campagne is voltooid!"
+
+msgid "The end"
+msgstr "Het einde"
+
+msgid "The story begins."
+msgstr "Het verhaal begint."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"
