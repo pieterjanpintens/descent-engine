@@ -1327,7 +1327,7 @@ func evaluate_checkpoint(checkpoint: RoundCheckpoint.Checkpoint) -> MissionObjec
 func fire_event(event_id: String, hero_name: String = "") -> MissionObjective:
 	var due: Array[MissionTrigger] = []
 	for trigger in mission.triggers:
-		if trigger.event_id == event_id:
+		if trigger.watches(event_id):
 			due.append(trigger)
 	await _fire_triggers(due, hero_name)
 	return await _check_current_objectives(hero_name)
