@@ -732,6 +732,12 @@
 740|Language of this game
 741|The language this game is read, logged and narrated in. You can change it later in Options.
 742|The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below.
+743|Download %s voices (%s)
+744|No narration voices for %s are installed, so the story is shown as text only.
+745|No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice.
+746|Set up narration - %s voices (downloads about %d MB)
+747|Voices for:
+748|No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

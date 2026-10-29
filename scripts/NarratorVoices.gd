@@ -13,6 +13,10 @@ extends RefCounted
 ##
 ## The accent / gender labels of the extra voices come from the source corpora's speaker notes
 ## (remembered, not measured) - check them by ear and correct a label here if one is wrong.
+##
+## LANGUAGES: every voice belongs to a language (`lang`, English when the key is missing). The English voices are the
+## three groups above; every other narration language is ONE downloadable PACK (`PACKS`: a few voices, one download),
+## so adding a language is adding an entry there. Narration is silent in a language none of whose voices is installed.
 
 const VOICE_DIR := "user://piper/voices/"
 const BASE_ID := "lessac"
@@ -153,16 +157,142 @@ const EXTRA_MODEL_PATHS := {
 }
 
 
-## Every voice: the base one first, then the standard ones, then the accent extras.
+## The narration languages that have voices (the text of a game read in any other language is not narrated).
+const LANGUAGES: Array[String] = ["en", "es", "nl"]
+
+## One voice pack per non-English language: `voices` (the same shape as the English ones, with `lang`, and a `gender` that is
+## checked by pitch; the first one is the default story teller), `paths` (model -> folder in the voices repository) and the
+## size the download button tells the player. 3-4 voices each, medium quality or better.
+const PACKS := {
+	"es": {
+		"size_text": "about 200 MB",
+		"size_mb": 202,
+		"voices": [
+			{"id": "es_davefx", "lang": "es", "label": "Spanish (Spain) - man (Davefx)", "gender": "m", "model": "es_ES-davefx-medium", "speaker": -1, "plain": true},
+			{"id": "es_sharvard_f", "lang": "es", "label": "Spanish (Spain) - woman (Sharvard)", "gender": "f", "model": "es_ES-sharvard-medium", "speaker": 1, "plain": true},
+			{"id": "es_sharvard_m", "lang": "es", "label": "Spanish (Spain) - man (Sharvard)", "gender": "m", "model": "es_ES-sharvard-medium", "speaker": 0, "plain": true},
+			{"id": "es_claude", "lang": "es", "label": "Spanish (Mexico) - woman (Claude)", "gender": "f", "model": "es_MX-claude-high", "speaker": -1, "plain": true},
+		],
+		"paths": {
+			"es_ES-davefx-medium": "es/es_ES/davefx/medium",
+			"es_ES-sharvard-medium": "es/es_ES/sharvard/medium",
+			"es_MX-claude-high": "es/es_MX/claude/high",
+		},
+	},
+	"nl": {
+		"size_text": "about 270 MB",
+		"size_mb": 265,
+		"voices": [
+			{"id": "nl_nathalie", "lang": "nl", "label": "Dutch (Belgium) - woman (Nathalie)", "gender": "f", "model": "nl_BE-nathalie-medium", "speaker": -1, "plain": true},
+			{"id": "nl_rdh", "lang": "nl", "label": "Dutch (Belgium) - man (Rdh)", "gender": "m", "model": "nl_BE-rdh-medium", "speaker": -1, "plain": true},
+			{"id": "nl_pim", "lang": "nl", "label": "Dutch (Netherlands) - man (Pim)", "gender": "m", "model": "nl_NL-pim-medium", "speaker": -1, "plain": true},
+			{"id": "nl_mls_f", "lang": "nl", "label": "Dutch (Netherlands) - woman (audiobook reader)", "gender": "f", "model": "nl_NL-mls-medium", "speaker": 3, "plain": true},
+		],
+		"paths": {
+			"nl_BE-nathalie-medium": "nl/nl_BE/nathalie/medium",
+			"nl_BE-rdh-medium": "nl/nl_BE/rdh/medium",
+			"nl_NL-pim-medium": "nl/nl_NL/pim/medium",
+			"nl_NL-mls-medium": "nl/nl_NL/mls/medium",
+		},
+	},
+}
+
+## A line each language's samples ("hear this voice") read - written per language, not translated through the UI language,
+## because the sample must be in the language of the voice.
+const SAMPLE_LINES := {
+	"en": "The old road is longer than it looks, friend, and the night is nearly upon us.",
+	"es": "El viejo camino es más largo de lo que parece, amigo, y la noche está a punto de caer sobre nosotros.",
+	"nl": "De oude weg is langer dan hij lijkt, vriend, en de nacht valt bijna over ons heen.",
+}
+const TELLER_SAMPLE_LINES := {
+	"en": "The old door creaks open, and a cold wind carries the smell of smoke.",
+	"es": "La vieja puerta se abre con un crujido, y un viento frío trae olor a humo.",
+	"nl": "De oude deur kraakt open en een koude wind brengt de geur van rook mee.",
+}
+
+
+## Every voice: the base one first, then the standard ones, then the accent extras, then the language packs.
 static func all() -> Array[Dictionary]:
 	var found: Array[Dictionary] = [BASE]
 	found.append_array(STANDARD)
 	found.append_array(EXTRAS)
+	for code in PACKS:
+		found.append_array(PACKS[code]["voices"])
 	return found
+
+
+## The language of a voice ("en" when it does not say).
+static func lang_of(voice: Dictionary) -> String:
+	return str(voice.get("lang", "en"))
+
+
+## Every voice of a language, installed or not.
+static func voices_for(lang: String) -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	for voice in all():
+		if lang_of(voice) == lang:
+			found.append(voice)
+	return found
+
+
+## The installed voices of a language.
+static func installed_for(lang: String) -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	for voice in installed():
+		if lang_of(voice) == lang:
+			found.append(voice)
+	return found
+
+
+## The language the text on screen is read in: the first language of the reading order (a campaign game puts its own
+## language first). Narration uses the voices of exactly this language.
+static func reading_language() -> String:
+	var order := LText.reading_order()
+	return order[0] if not order.is_empty() else "en"
+
+
+static func has_pack(lang: String) -> bool:
+	return PACKS.has(lang)
+
+
+## Is every model of the language's pack there? (English has no pack: its base voice comes with the engine.)
+static func pack_installed(lang: String) -> bool:
+	if not PACKS.has(lang):
+		return false
+	for model in PACKS[lang]["paths"]:
+		if not model_installed(model):
+			return false
+	return true
+
+
+static func pack_size_text(lang: String) -> String:
+	return str(PACKS[lang]["size_text"]) if PACKS.has(lang) else ""
+
+
+## model -> folder of the language's pack ({} when it has none).
+static func pack_paths(lang: String) -> Dictionary:
+	return PACKS[lang]["paths"] if PACKS.has(lang) else {}
+
+
+## The voice a language's story teller is until the player picks one: English the base voice, the others the pack's first.
+static func default_storyteller(lang: String) -> String:
+	if PACKS.has(lang):
+		return str((PACKS[lang]["voices"] as Array)[0]["id"])
+	return BASE_ID
+
+
+static func sample_line(lang: String) -> String:
+	return str(SAMPLE_LINES.get(lang, SAMPLE_LINES["en"]))
+
+
+static func teller_sample_line(lang: String) -> String:
+	return str(TELLER_SAMPLE_LINES.get(lang, TELLER_SAMPLE_LINES["en"]))
 
 
 ## "m", "f" or "" (unknown - the accent voices that don't say), read from the label ("... man", "... woman", "(F)").
 static func gender(voice: Dictionary) -> String:
+	if voice.has("gender"):
+		return str(voice["gender"])
 	var label: String = voice["label"]
 	if label.contains("woman") or label.contains("(F)"):
 		return "f"

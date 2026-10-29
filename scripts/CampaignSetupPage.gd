@@ -20,6 +20,7 @@ var _name_edit: LineEdit
 var _name_message: Label
 var _start_button: Button
 var _picker: HeroVoicesPicker
+var _voices_holder: VBoxContainer  ## the hero voice rows (or a hint) of the chosen language
 
 
 ## `campaign_name` for the title, `suggestion` the prefilled save game name, `name_taken` tells whether a name is already used,
@@ -81,7 +82,9 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable, lang
 			picker.set_item_metadata(picker.item_count - 1, code)
 			if code == _language:
 				picker.select(picker.item_count - 1)
-		picker.item_selected.connect(func(index: int): _language = str(picker.get_item_metadata(index)))
+		picker.item_selected.connect(func(index: int):
+			_language = str(picker.get_item_metadata(index))
+			_fill_voices())
 		column.add_child(picker)
 	else:
 		var only := Label.new()
@@ -105,9 +108,9 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable, lang
 		var voices_column := _new_column(RIGHT_WIDTH)
 		columns.add_child(voices_column)
 		_section(voices_column, "Hero voices", RIGHT_WIDTH, "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it.")
-		_picker = HeroVoicesPicker.new()
-		voices_column.add_child(_picker)
-		_picker.setup({})
+		_voices_holder = VBoxContainer.new()
+		voices_column.add_child(_voices_holder)
+		_fill_voices()
 
 	var bottom := CenterContainer.new()
 	page.add_child(bottom)
@@ -117,6 +120,27 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable, lang
 	_check_name()
 	_name_edit.grab_focus.call_deferred()
 	_name_edit.select_all.call_deferred()
+
+
+## The hero voice rows for the chosen language - the voices differ per language. A language none of whose voices is installed shows a
+## hint instead: that game is shown as text only (the small hint also appears when the story would be read).
+func _fill_voices() -> void:
+	if _voices_holder == null:
+		return
+	for child in _voices_holder.get_children():
+		_voices_holder.remove_child(child)
+		child.free()
+	_picker = null
+	if NarratorVoices.installed_for(_language).is_empty():
+		var hint := Label.new()
+		hint.text = tr("No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice.") % CampaignInfo.native_name(_language)
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint.custom_minimum_size.x = RIGHT_WIDTH
+		_voices_holder.add_child(hint)
+		return
+	_picker = HeroVoicesPicker.new()
+	_voices_holder.add_child(_picker)
+	_picker.setup({}, _language)
 
 
 func _new_column(width: float) -> VBoxContainer:

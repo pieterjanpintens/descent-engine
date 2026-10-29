@@ -6,12 +6,15 @@ extends VBoxContainer
 ## {hero name: voice id} ("" = a voice picked from the name, used when there are fewer installed voices than heroes).
 ## Used by the campaign setup page and, for a save game that never got voices, by HeroVoicesDialog.
 
+var _lang := "en"  ## the narration language the voices are for
 var _voices: Array[Dictionary] = []
 var _assigned: Array[String] = []
 var _options: Array[OptionButton] = []
 
 
-func setup(current: Dictionary) -> void:
+## `lang` = the narration language the voices are chosen for ("" = the language the game is read in now).
+func setup(current: Dictionary, lang: String = "") -> void:
+	_lang = lang if lang != "" else NarratorVoices.reading_language()
 	add_theme_constant_override("separation", 8)
 	_collect_voices()
 	_assign_defaults(current)
@@ -25,10 +28,10 @@ func answer() -> Dictionary:
 	return result
 
 
-## Installed voices except the story teller's.
+## Installed voices of the language except the story teller's.
 func _collect_voices() -> void:
-	var storyteller: String = PlayerSettings.storyteller_voice
-	for voice in NarratorVoices.installed():
+	var storyteller: String = PlayerSettings.storyteller_for(_lang)
+	for voice in NarratorVoices.installed_for(_lang):
 		if voice["id"] != storyteller:
 			_voices.append(voice)
 
@@ -76,9 +79,9 @@ func _build() -> void:
 			if _assigned[i] == "":
 				var as_hero: Array[NarratorCharacter] = [NarratorCharacter.new()]
 				as_hero[0].character_name = hero
-				Narrator.speak("[%s]%s[/%s]" % [hero, CharactersDialog.SAMPLE_LINE, hero], as_hero)
+				Narrator.speak("[%s]%s[/%s]" % [hero, NarratorVoices.sample_line(_lang), hero], as_hero, _lang)
 			else:
-				Narrator.speak_voice(_assigned[i], CharactersDialog.SAMPLE_LINE)
+				Narrator.speak_voice(_assigned[i], NarratorVoices.sample_line(_lang))
 		)
 		row.add_child(play)
 		add_child(row)

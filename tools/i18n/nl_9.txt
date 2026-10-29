@@ -1,0 +1,6 @@
+743|%s-stemmen downloaden (%s)
+744|Er zijn geen vertelstemmen voor %s geïnstalleerd, dus het verhaal wordt alleen als tekst getoond.
+745|Er zijn geen vertelstemmen voor %s geïnstalleerd, dus het verhaal wordt alleen als tekst getoond. Download ze in Opties > Stem.
+746|Vertelling instellen: %s-stemmen (downloadt ongeveer %d MB)
+747|Stemmen voor:
+748|Er zijn geen vertelstemmen voor %s geïnstalleerd, dus dit spel wordt alleen als tekst getoond. Download ze in Opties > Stem.

@@ -75,8 +75,14 @@ static func command() -> PackedStringArray:
 	return PackedStringArray(["/bin/sh", "-c", UNIX_LAUNCH, "piper", libraries, engine])
 
 
+## Narration can run: the engine and at least one voice (of any language - a Spanish-only player never needs the English one).
 static func is_installed() -> bool:
-	return engine_path() != "" and NarratorVoices.model_installed(VOICE_NAME)
+	return engine_path() != "" and not NarratorVoices.installed().is_empty()
+
+
+## Just the engine program (and, on macOS, its libraries).
+static func engine_installed() -> bool:
+	return engine_path() != ""
 
 
 ## Downloads and installs the engine and the voice. Smallest files first so a broken link
@@ -107,6 +113,24 @@ func install() -> bool:
 ## the ones already there. Needs nothing but the voices repository - the engine comes with install().
 func install_extras() -> bool:
 	return await _install_models(NarratorVoices.EXTRA_MODEL_PATHS, "Extra voices installed.")
+
+
+## The voice pack of a language other than English (NarratorVoices.PACKS): the engine first when it is not there yet (a
+## player who only reads Spanish or Dutch never downloads the English voice), then the pack's models.
+func install_pack(lang: String) -> bool:
+	if not NarratorVoices.has_pack(lang):
+		return false
+	if not is_supported_platform():
+		progress.emit(tr("Narration setup isn't supported on %s yet.") % OS.get_name())
+		return false
+	if needs_rosetta():
+		progress.emit("Narration needs Rosetta on this Mac: run 'softwareupdate --install-rosetta' in Terminal, then try again.")
+		return false
+	if engine_path() == "" and not await _install_engine():
+		return false
+	if not await _install_models(NarratorVoices.pack_paths(lang), "Voices installed."):
+		return false
+	return is_installed()
 
 
 ## The optional plain-English voices (NarratorVoices.STANDARD).

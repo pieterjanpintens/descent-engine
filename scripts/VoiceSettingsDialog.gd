@@ -49,6 +49,9 @@ var _narration_check: CheckBox
 var _narration_setup_button: Button
 var _narration_status_label: Label
 var _storyteller_picker: OptionButton
+var _narration_lang := "en"  ## the narration language the story teller / voice downloads below are about
+var _narration_lang_picker: OptionButton
+var _pack_button: Button
 var _voice_ids: Array[String] = []
 var _extras_button: Button
 var _standard_button: Button
@@ -291,6 +294,21 @@ func _build() -> void:
 	_narration_setup_button.pressed.connect(_on_narration_setup_pressed)
 	voice.add_child(_narration_setup_button)
 
+	# Voices belong to a language: the story teller and the downloads below are for the language chosen here.
+	var lang_row := HBoxContainer.new()
+	voice.add_child(lang_row)
+	var lang_label := Label.new()
+	lang_label.text = "Voices for:"
+	lang_row.add_child(lang_label)
+	_narration_lang_picker = OptionButton.new()
+	_narration_lang_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for code in NarratorVoices.LANGUAGES:
+		_narration_lang_picker.add_item(CampaignInfo.native_name(code))
+		_narration_lang_picker.set_item_metadata(_narration_lang_picker.item_count - 1, code)
+	_narration_lang_picker.item_selected.connect(func(index: int):
+		_narration_lang = str(_narration_lang_picker.get_item_metadata(index))
+		_refresh_narration())
+	lang_row.add_child(_narration_lang_picker)
 	var teller_row := HBoxContainer.new()
 	voice.add_child(teller_row)
 	var teller_label := Label.new()
@@ -303,8 +321,12 @@ func _build() -> void:
 	var teller_play := Button.new()
 	teller_play.text = "▶"
 	teller_play.tooltip_text = "Hear the story teller"
-	teller_play.pressed.connect(func(): Narrator.speak_voice(PlayerSettings.storyteller_voice, "The old door creaks open, and a cold wind carries the smell of smoke."))
+	teller_play.pressed.connect(func(): Narrator.speak_voice(PlayerSettings.storyteller_for(_narration_lang), NarratorVoices.teller_sample_line(_narration_lang)))
 	teller_row.add_child(teller_play)
+
+	_pack_button = Button.new()
+	_pack_button.pressed.connect(_on_pack_pressed)
+	voice.add_child(_pack_button)
 
 	_standard_button = Button.new()
 	_standard_button.pressed.connect(_on_standard_pressed)
@@ -369,6 +391,10 @@ func _refresh_game_language() -> void:
 
 func open() -> void:
 	_refresh_game_language()
+	# The voices shown first are those of the language the game is read in (or the app's own language in the main menu).
+	var reading := NarratorVoices.reading_language()
+	if NarratorVoices.LANGUAGES.has(reading):
+		_narration_lang = reading
 	_refresh_props_check()
 	if _assets_panel != null:
 		_assets_panel.refresh()
@@ -415,43 +441,68 @@ func _refresh() -> void:
 
 func _refresh_narration() -> void:
 	var available := Narrator.is_available()
+	for i in _narration_lang_picker.item_count:
+		if _narration_lang_picker.get_item_metadata(i) == _narration_lang:
+			_narration_lang_picker.select(i)
 	_narration_check.set_pressed_no_signal(PlayerSettings.narration_enabled)
 	_narration_check.disabled = not available
+	_pack_button.visible = false
+	var lang_missing := NarratorVoices.installed_for(_narration_lang).is_empty()
 	if available:
 		_narration_setup_button.visible = false
 		_narration_status_label.text = "Narration is set up."
+		if lang_missing:
+			_narration_status_label.text = tr("No narration voices for %s are installed, so the story is shown as text only.") % CampaignInfo.native_name(_narration_lang)
+		if NarratorVoices.has_pack(_narration_lang) and not NarratorVoices.pack_installed(_narration_lang):
+			_pack_button.visible = true
+			_pack_button.disabled = false
+			_pack_button.text = tr("Download %s voices (%s)") % [CampaignInfo.native_name(_narration_lang), NarratorVoices.pack_size_text(_narration_lang)]
 	elif not PiperInstaller.is_supported_platform():
 		_narration_setup_button.visible = false
 		_narration_status_label.text = tr("Narration isn't available on %s.") % OS.get_name()
 	else:
 		_narration_setup_button.visible = true
 		_narration_setup_button.disabled = false
-		_narration_setup_button.text = tr("Set up narration (downloads %s)") % PiperInstaller.DOWNLOAD_SIZE_TEXT
+		if NarratorVoices.has_pack(_narration_lang):
+			_narration_setup_button.text = tr("Set up narration - %s voices (downloads about %d MB)") % [CampaignInfo.native_name(_narration_lang), NarratorVoices.PACKS[_narration_lang]["size_mb"] + 25]
+		else:
+			_narration_setup_button.text = tr("Set up narration (downloads %s)") % PiperInstaller.DOWNLOAD_SIZE_TEXT
 		_narration_status_label.text = "Narration isn't set up yet - the story is shown as text only."
 	_refresh_voices(available)
 
 
 ## The story-teller picker lists the installed voices; the "extra voices" download is offered once narration works.
 func _refresh_voices(available: bool) -> void:
-	_storyteller_picker.get_parent().visible = available
-	_standard_button.visible = available and not NarratorVoices.standard_installed()
+	var english := _narration_lang == "en"
+	_storyteller_picker.get_parent().visible = available and not NarratorVoices.installed_for(_narration_lang).is_empty()
+	_standard_button.visible = available and english and not NarratorVoices.standard_installed()
 	_standard_button.disabled = false
 	_standard_button.text = tr("Download more voices - plain English (%s)") % NarratorVoices.STANDARD_SIZE_TEXT
-	_extras_button.visible = available and not NarratorVoices.extras_installed()
+	_extras_button.visible = available and english and not NarratorVoices.extras_installed()
 	_extras_button.disabled = false
 	_extras_button.text = tr("Download extra voices - accents (%s)") % NarratorVoices.EXTRAS_SIZE_TEXT
 	_storyteller_picker.clear()
 	_voice_ids.clear()
-	for voice in NarratorVoices.installed():
+	for voice in NarratorVoices.installed_for(_narration_lang):
 		_storyteller_picker.add_item(voice["label"])
 		_voice_ids.append(voice["id"])
-		if voice["id"] == PlayerSettings.storyteller_voice:
+		if voice["id"] == PlayerSettings.storyteller_for(_narration_lang):
 			_storyteller_picker.select(_storyteller_picker.item_count - 1)
 
 
 func _on_storyteller_selected(index: int) -> void:
-	PlayerSettings.storyteller_voice = _voice_ids[index]
+	PlayerSettings.set_storyteller_for(_narration_lang, _voice_ids[index])
 	PlayerSettings.save_settings()
+
+
+func _on_pack_pressed() -> void:
+	_pack_button.disabled = true
+	var installer := PiperInstaller.new()
+	add_child(installer)
+	installer.progress.connect(func(text: String): _narration_status_label.text = text)
+	await installer.install_pack(_narration_lang)
+	installer.queue_free()
+	_refresh_narration()
 
 
 func _on_standard_pressed() -> void:
@@ -486,7 +537,11 @@ func _on_narration_setup_pressed() -> void:
 	var installer := PiperInstaller.new()
 	add_child(installer)
 	installer.progress.connect(func(text: String): _narration_status_label.text = text)
-	var installed: bool = await installer.install()
+	var installed: bool
+	if NarratorVoices.has_pack(_narration_lang):
+		installed = await installer.install_pack(_narration_lang)
+	else:
+		installed = await installer.install()
 	installer.queue_free()
 	if installed:
 		PlayerSettings.narration_enabled = true  # a fresh install means the player wants it on

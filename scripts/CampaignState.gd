@@ -55,8 +55,9 @@ var brooch_enabled := true
 ## The owned cards (weapon, part or rune base ids) that are upgraded: their "+" side is up. Permanent, like flipping
 ## the physical card; set by the starting set and by shop offers marked "upgraded".
 @export var upgraded_cards: Array[String] = []
-## The narration voice of each hero (hero name -> NarratorVoices id, "" = picked from the name). Asked once, when the
-## campaign starts; no two heroes share one (HeroVoicesDialog).
+## The narration voice of each hero, per narration language: {language code -> {hero name -> NarratorVoices id, "" = picked
+## from the name}}. Asked when the campaign starts (for the language it starts in); no two heroes share a voice (HeroVoicesPicker).
+## A save from before narration languages holds one flat {hero name -> id} of English voices - read through hero_voices_for().
 @export var hero_voices: Dictionary = {}
 ## Ids of the recipes the party has bought (RecipeData); the smithy forges from these.
 @export var owned_recipes: Array[String] = []
@@ -69,15 +70,31 @@ var brooch_enabled := true
 @export var shop_state: Dictionary = {}
 
 
-## The heroes as speakers, with this save game's voices.
+## {hero name -> voice id} for a narration language ({} = not chosen for it yet).
+func hero_voices_for(lang: String) -> Dictionary:
+	if hero_voices.is_empty():
+		return {}
+	if not hero_voices.values()[0] is Dictionary:  # the old flat form: English voices
+		return hero_voices if lang == "en" else {}
+	return hero_voices.get(lang, {})
+
+
+func set_hero_voices_for(lang: String, voices: Dictionary) -> void:
+	if not hero_voices.is_empty() and not hero_voices.values()[0] is Dictionary:
+		hero_voices = {"en": hero_voices}
+	hero_voices[lang] = voices
+
+
+## The heroes as speakers, with this save game's voices for the language the game is read in.
 func hero_characters() -> Array[NarratorCharacter]:
+	var voices := hero_voices_for(NarratorVoices.reading_language())
 	var heroes: Array[NarratorCharacter] = []
 	for template in HeroCatalog.hero_characters():
 		var hero := NarratorCharacter.new()
 		hero.character_name = template.character_name
 		hero.color = template.color
 		hero.is_hero = true
-		hero.voice_id = hero_voices.get(hero.character_name, NarratorVoices.RANDOM_ID)
+		hero.voice_id = voices.get(hero.character_name, NarratorVoices.RANDOM_ID)
 		heroes.append(hero)
 	return heroes
 

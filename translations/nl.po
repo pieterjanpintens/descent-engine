@@ -2208,6 +2208,24 @@ msgstr "De taal waarin dit spel wordt gelezen, gelogd en verteld. Je kunt hem la
 msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
 msgstr "Het verhaal, het logboek en de eigen termen van het spel worden in deze taal getoond. De menu's en knoppen van de app volgen de lijst hieronder."
 
+msgid "Download %s voices (%s)"
+msgstr "%s-stemmen downloaden (%s)"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "Er zijn geen vertelstemmen voor %s geïnstalleerd, dus het verhaal wordt alleen als tekst getoond."
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "Er zijn geen vertelstemmen voor %s geïnstalleerd, dus het verhaal wordt alleen als tekst getoond. Download ze in Opties > Stem."
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "Vertelling instellen: %s-stemmen (downloadt ongeveer %d MB)"
+
+msgid "Voices for:"
+msgstr "Stemmen voor:"
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "Er zijn geen vertelstemmen voor %s geïnstalleerd, dus dit spel wordt alleen als tekst getoond. Download ze in Opties > Stem."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"
