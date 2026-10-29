@@ -1,4 +1,10 @@
-﻿## v0.0.45 - 2026-10-29
+﻿## v0.0.46 - 2026-10-29
+- You can change the language of a game you are playing: Options > General has "Language of this game" (in a campaign and in a mission). The story, the log and the game's own terms follow it.
+- The quest log and the campaign log are written in every language of the campaign, so they never mix languages and show the whole history in the language you switch to.
+- Names and rules of weapons, parts, armor, trinkets, potions and recipes follow the language of the game (13 languages in the game data - run the asset import again to get them; Dutch has none and falls back to your next language).
+- Spanish uses the game's own words (Accesorio, Conmocionado, Proezas, Estados, Capacidades).
+
+## v0.0.45 - 2026-10-29
 - Campaigns and missions can have several languages. Authors pick the language they write in with the new language bar in both editors, can add languages, copy or move texts between them, export and import all texts as a spreadsheet (CSV) and let the AI draft translations (four at a time). Nothing is applied without a click.
 - Choosing a campaign to play asks which of its languages to read it in; it stays that language for that save game, like picking a dub. Your preferred languages (Options > General) decide the order texts are read in and the language of the app itself.
 - The app itself is translated into Spanish and Dutch: menus, dialogs, the game screens. Changing the language in Options updates the menu and the dialog at once. The editors stay in English.
