@@ -364,7 +364,7 @@ func interaction_boon(hero_name: String) -> void:
 		var count := int(hero_interactions_round.get(slot, 0)) + 1
 		hero_interactions_round[slot] = count
 		if count == 1 and randf() * 100.0 < (50.0 if wearer["upgraded"] else 30.0) and dialog != null:
-			await dialog.ask_ok(tr("Mage-Sight Goggles - %s gains an additional action!") % hero_name, true, false, "Mage-Sight Goggles")
+			await dialog.ask_ok(func() -> String: return tr("Mage-Sight Goggles - %s gains an additional action!") % hero_name, true, false, "Mage-Sight Goggles")
 
 
 ## Heart Thorn Root: Enfeebled monsters deal 10 percentage points less on top of the usual 20.
@@ -393,7 +393,7 @@ signal skull_kill(monster: RuntimeMonster, hero_slot: int)
 ## The Brooch's monster has spawned in this mission already (once per mission; saved with the game).
 var brooch_spawned := false
 ## A defeated monster's loot went to the party: (monster display name, text for the table, e.g. "Metal, Terros").
-signal loot_collected(monster_name: String, text: String, usable_text: String)
+signal loot_collected(monster_name: String, text: Callable, usable_text: Callable)  ## the texts are builders (language-proof for the quest log, see LogText); an invalid Callable = none
 ## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
 ## campaign when the mission is WON (CampaignState.apply_result()); saved with the game.
 var collected_loot: Dictionary = {}
@@ -793,19 +793,29 @@ func release_monster(monster_id: String) -> void:
 ## `collected_loot` (the game's real drop rules are unknown, so everything listed drops).
 func _collect_loot(monster: RuntimeMonster) -> void:
 	var gained := loot_materials(monster)
-	var usable := ConsumableData.usable_notice(loot_usable(monster))
-	var text := loot_text(monster)
+	var usable_ids := loot_usable(monster)
+	var has_loot_text := loot_text(monster) != ""
+	var compass_gold := 0
 	# Dead Man's Compass: no crafting materials from this defeat -> the party gets a little gold (5; a "+" compass sometimes a lot: 25, 20%).
 	var compass := trinket_level("TRINKET3_ID")
 	if compass > 0 and not _has_materials(gained):
-		var compass_gold := 25 if compass > 1 and randf() < 0.2 else 5
+		compass_gold = 25 if compass > 1 and randf() < 0.2 else 5
 		gained[LootMaterials.GOLD] = int(gained.get(LootMaterials.GOLD, 0)) + compass_gold
-		text = (text + ", " if text != "" else "") + tr("%d gold (Dead Man's Compass)") % compass_gold
-	if gained.is_empty() and usable == "":
+	if gained.is_empty() and usable_ids.is_empty():
 		return
 	for key in gained:
 		collected_loot[key] = int(collected_loot.get(key, 0)) + int(gained[key])
-	loot_collected.emit(monster.display_name(), text, usable)
+	var text_builder := Callable()
+	if has_loot_text or compass_gold > 0:
+		text_builder = func() -> String:
+			var text := loot_text(monster)
+			if compass_gold > 0:
+				text = (text + ", " if text != "" else "") + tr("%d gold (Dead Man's Compass)") % compass_gold
+			return text
+	var usable_builder := Callable()
+	if not usable_ids.is_empty():
+		usable_builder = func() -> String: return ConsumableData.usable_notice(usable_ids)
+	loot_collected.emit(monster.display_name(), text_builder, usable_builder)
 
 
 ## Whether a loot dictionary holds crafting materials (gold, cards and recipes are not materials).
@@ -822,6 +832,7 @@ static func _has_materials(loot: Dictionary) -> bool:
 ## off the monster, so a later defeat does not hand them out twice. Returns the display names dropped.
 func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
 	var dropped: Array[String] = []
+	var dropped_keys: Array[String] = []
 	for i in amount:
 		var slots: Array = []  ## [item, key list, index]
 		for item in monster.loot:
@@ -838,8 +849,13 @@ func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
 			monster.loot.erase(chosen[0])
 		collected_loot[key] = int(collected_loot.get(key, 0)) + 1
 		dropped.append(LootMaterials.display_name(key))
+		dropped_keys.append(key)
 	if not dropped.is_empty():
-		loot_collected.emit(monster.display_name(), ", ".join(dropped), "")
+		loot_collected.emit(monster.display_name(), func() -> String:
+			var names: Array[String] = []
+			for key in dropped_keys:
+				names.append(LootMaterials.display_name(key))
+			return ", ".join(names), Callable())
 	return dropped
 
 
@@ -849,6 +865,7 @@ func drop_loot(monster: RuntimeMonster, amount: int) -> Array[String]:
 func multiply_loot(monster: RuntimeMonster, times: int) -> String:
 	var gained := loot_materials(monster)
 	var parts: Array[String] = []
+	var extras: Dictionary = {}
 	for key in gained:
 		if LootMaterials.ESSENCES.has(key) or str(key).begins_with(LootMaterials.RECIPE_PREFIX) or str(key).begins_with(LootMaterials.CARD_PREFIX):
 			continue  # only gold and the common materials are multiplied - essences are worth too much
@@ -856,9 +873,10 @@ func multiply_loot(monster: RuntimeMonster, times: int) -> String:
 		if extra <= 0:
 			continue
 		collected_loot[key] = int(collected_loot.get(key, 0)) + extra
+		extras[key] = extra
 		parts.append(tr("%d gold") % extra if key == LootMaterials.GOLD else "%dx %s" % [extra, LootMaterials.display_name(key)])
 	if not parts.is_empty():
-		loot_collected.emit(monster.display_name(), "+" + ", ".join(parts), "")
+		loot_collected.emit(monster.display_name(), func() -> String: return "+" + loot_summary(extras, [], []), Callable())
 	return ", ".join(parts)
 
 
@@ -968,7 +986,7 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		if dialog == null:
 			push_warning("SHOW_MESSAGE effect fired but MissionRuntime.dialog isn't wired - skipped")
 			return
-		await dialog.ask_ok(_format_message(effect.message, effect.message_variables), true, false, "Message", null, null, true)
+		await dialog.ask_ok(func() -> String: return _format_message(effect.message, effect.message_variables), true, false, "Message", null, null, true)
 		return
 	if BUILTIN_TYPES.has(effect.variable_name) and not WRITABLE_BUILTINS.has(effect.variable_name):
 		push_warning("Effect cannot write built-in variable '%s' - skipped" % effect.variable_name)
@@ -1007,20 +1025,30 @@ func _apply_loot(effect: Effect) -> void:
 
 ## Adds loot to the party's collected loot; returns it as text ("2x Herbs, 10 gold, Armor: Duskplate").
 func add_loot(materials: Dictionary, cards: Array, recipes: Array) -> String:
+	for key in materials:
+		var count := int(materials[key])
+		if count > 0:
+			collected_loot[key] = int(collected_loot.get(key, 0)) + count
+	for card_id in cards:
+		collected_loot[LootMaterials.CARD_PREFIX + str(card_id)] = 1
+	for recipe_id in recipes:
+		collected_loot[LootMaterials.RECIPE_PREFIX + str(recipe_id)] = 1
+	return loot_summary(materials, cards, recipes)
+
+
+## "2x Metal, 5 gold" - the text of some loot in the current language (no state is changed: the quest log builds it once per language).
+static func loot_summary(materials: Dictionary, cards: Array, recipes: Array) -> String:
 	var parts: Array[String] = []
 	for key in materials:
 		var count := int(materials[key])
 		if count <= 0:
 			continue
-		collected_loot[key] = int(collected_loot.get(key, 0)) + count
-		parts.append(tr("%d gold") % count if key == LootMaterials.GOLD else "%dx %s" % [count, LootMaterials.display_name(str(key))])
+		parts.append(TranslationServer.translate("%d gold") % count if key == LootMaterials.GOLD else "%dx %s" % [count, LootMaterials.display_name(str(key))])
 	for card_id in cards:
-		collected_loot[LootMaterials.CARD_PREFIX + str(card_id)] = 1
 		parts.append(RecipeData.card_label(str(card_id)))
 	for recipe_id in recipes:
-		collected_loot[LootMaterials.RECIPE_PREFIX + str(recipe_id)] = 1
 		var recipe := RecipeData.find(str(recipe_id))
-		parts.append(tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(recipe_id)))
+		parts.append(TranslationServer.translate("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(recipe_id)))
 	return ", ".join(parts)
 
 
@@ -1089,7 +1117,7 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 	var lucky := _lucky_bonus(hero_name)
 	if lucky > 0:
 		successes += lucky
-		await dialog.ask_ok(tr_n("Lucky Charm: %d extra success is added to %s's result.", "Lucky Charm: %d extra successes are added to %s's result.", lucky) % [lucky, hero_name], true, false, "Lucky Charm")
+		await dialog.ask_ok(func() -> String: return tr_n("Lucky Charm: %d extra success is added to %s's result.", "Lucky Charm: %d extra successes are added to %s's result.", lucky) % [lucky, hero_name], true, false, "Lucky Charm")
 
 	if effect.accumulate_variable_name != "":
 		_accumulate(effect.accumulate_variable_name, successes)

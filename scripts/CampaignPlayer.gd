@@ -317,7 +317,36 @@ func _open_options() -> void:
 		_options_dialog.live = false
 		_options_dialog.main_menu = false
 		add_child(_options_dialog)
+		PlayerSettings.ui_language_changed.connect(_on_ui_language_changed)
+	# The language of the game can be changed here (this is a moment the game can be saved - Options is not reachable otherwise).
+	if _campaign != null and _state != null:
+		_options_dialog.game_languages = _campaign.offered_languages()
+		_options_dialog.game_language = _state.language if _state.language != "" else _campaign.best_language(PlayerSettings.preferred_languages)
+		_options_dialog.game_language_changed = _set_game_language
 	_options_dialog.open()
+
+
+## The player picked another language for this game: it is stored in the save game and everything on screen that shows the game's texts is
+## shown again (the log re-reads its entries in the new language when it is opened).
+func _set_game_language(code: String) -> void:
+	if _state == null or _campaign == null:
+		return
+	_state.language = code
+	_save()
+	_apply_language(_campaign, code)
+	_refresh_after_language()
+
+
+func _on_ui_language_changed() -> void:
+	call_deferred("_refresh_after_language")
+
+
+func _refresh_after_language() -> void:
+	if _campaign == null or _state == null:
+		return
+	_refresh_view()
+	if _detail_dialog != null and _detail_dialog.visible:
+		_rebuild_side()
 
 
 ## A pin on the map was clicked: show its panel in the popup.
@@ -431,6 +460,7 @@ func _apply_language(campaign: Campaign, language: String) -> void:
 	LText.set_preferred(order)
 	LText.edit_language = ""
 	LText.fallback_language = campaign.default_language
+	LogText.set_languages(campaign.offered_languages(), language)  # the logs are written once per language of the campaign
 
 
 ## Starts a fresh playthrough of campaign `folder` as save game `save_name`, in `language`.
@@ -873,7 +903,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		_narrative_dialog = PlayerDialog.new()
 		add_child(_narrative_dialog)
 	_narrative_dialog.characters = _state.speakers(_campaign.characters)
-	var pages: Array[String] = []
+	var pages: Array = []  # what was read and chosen: builders, written to the log once per language (see LogText)
 	var chosen: Array[NarrativeAnswer] = []
 	# Steps and answers can depend on the campaign variables - including what was answered earlier in this very
 	# story - so the chosen effects are applied to a scratch copy while reading and to the real save at the end.
@@ -892,7 +922,7 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 				offered.append(answer)
 		if offered.is_empty():
 			await _narrative_dialog.ask_narrative([step.text], "", true, Callable(), true)
-			pages.append(NarrationMarkup.plain(step.text, _campaign.characters))
+			pages.append(func() -> String: return NarrationMarkup.plain(step.text, _campaign.characters))
 			continue
 		var labels: Array[String] = []
 		for answer in offered:
@@ -903,16 +933,18 @@ func _play_narrative(chapter: CampaignChapter) -> void:
 		chosen.append(answer)
 		await _speak_answer(answer)
 		await scratch.apply_effects(_campaign, answer.effects)
-		pages.append(tr("%s\n\nYou chose: %s") % [NarrationMarkup.plain(prompt, _campaign.characters), answer.text])
+		pages.append(func() -> String:
+			var asked: String = step.text if step.question == "" else "%s\n\n%s" % [step.text, step.question]
+			return tr("%s\n\nYou chose: %s") % [NarrationMarkup.plain(asked, _campaign.characters), answer.text])
 		if answer.reply != "":
 			await _narrative_dialog.ask_ok(answer.reply, true, false, "", null, null, true)
-			pages.append(NarrationMarkup.plain(answer.reply, _campaign.characters))
+			pages.append(func() -> String: return NarrationMarkup.plain(answer.reply, _campaign.characters))
 		if answer.ends_narrative:
 			break
 		var target := chapter.find_step_index(answer.goto_step_id)
 		if target != -1:
 			position = target
-	_state.add_log(chapter.title, pages)
+	_state.add_log(func() -> String: return chapter.title, pages)
 	for answer in chosen:
 		await _state.apply_effects(_campaign, answer.effects)
 	_apply_result({"won": true, "chapter_id": chapter.id, "mission_variables": {}})

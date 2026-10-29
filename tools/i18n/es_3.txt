@@ -137,8 +137,8 @@
 517|Página de la versión
 518|Quitar
 519|¿Quitar \"%s\" versión %s de este equipo?%s
-520|Elimina una sola condición
-521|Elimina todas las condiciones de un tipo dado
+520|Elimina un solo estado
+521|Elimina todos los estados de un tipo dado
 522|Elimina toda la fatiga de una sola carta
 523|Se quitó %s v%s.
 524|Resistencia: %s

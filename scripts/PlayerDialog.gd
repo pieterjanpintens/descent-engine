@@ -199,11 +199,16 @@ func _apply_panel_layout(large: bool, width: float = PANEL_WIDTH) -> void:
 		_label.remove_theme_font_size_override("font_size")
 
 
-func ask_ok(text: String, dim: bool = true, large: bool = false, log_title: String = "", left_image: Texture2D = null, right_image: Texture2D = null, narrate: bool = false) -> void:
+## `text` is a String or a Callable that builds it. A Callable is what makes a LOGGED text language-proof: the quest log runs it once per language
+## of the content (see LogText), so it must only format (no dice, no state changes). `log_title` is a msgid, a Callable or "" (not logged).
+func ask_ok(text_source: Variant, dim: bool = true, large: bool = false, log_title: Variant = "", left_image: Texture2D = null, right_image: Texture2D = null, narrate: bool = false) -> void:
+	var text: String = text_source.call() if text_source is Callable else str(text_source)
 	_set_images(left_image, right_image)
 	_set_modal(dim)
-	if log_title != "" and journal != null:
-		journal.add(log_title, [NarrationMarkup.plain(text, characters)])
+	if journal != null and (log_title is Callable or str(log_title) != ""):
+		var builder: Callable = text_source if text_source is Callable else func() -> String: return text
+		var speakers := characters
+		journal.add(log_title, [func() -> String: return NarrationMarkup.plain(builder.call(), speakers)])
 	_apply_panel_layout(large)
 	_label.text = NarrationMarkup.plain(text, characters)
 	_count_input.visible = false
@@ -307,9 +312,9 @@ func ask_attack(cfg: Dictionary) -> int:
 ## on Confirm (or saying "ok") closes the view. If ask_attack() wasn't shown for
 ## this attack (the roll was spoken in the command) the view is opened first.
 ## `log_text` goes to the quest log under `log_title` when given, like ask_ok().
-func ask_attack_outcome(pre_cfg: Dictionary, post_cfg: Dictionary, outcome: Dictionary, log_text: String = "", log_title: String = "") -> void:
+func ask_attack_outcome(pre_cfg: Dictionary, post_cfg: Dictionary, outcome: Dictionary, log_text: Variant = "", log_title: Variant = "") -> void:
 	_ensure_combat()
-	if log_title != "" and journal != null:
+	if journal != null and (log_title is Callable or str(log_title) != ""):
 		journal.add(log_title, [log_text])
 	if not _combat_open:
 		# The PRE-attack cfg goes through configure() so the newly discovered
@@ -479,15 +484,16 @@ func _fit_choice_list() -> void:
 
 ## `on_page` (optional) is called with the page index every time a page is
 ## shown (also when going Back) - lets the caller sync the scene to the page.
-func ask_narrative(pages: Array[String], log_title: String = "", dim: bool = true, on_page: Callable = Callable(), narrate: bool = false) -> void:
+## `log_pages` (optional) are the pages as builders for the quest log, when the shown ones are only finished strings.
+func ask_narrative(pages: Array[String], log_title: Variant = "", dim: bool = true, on_page: Callable = Callable(), narrate: bool = false, log_pages: Array = []) -> void:
 	_narrative_page_callback = on_page
 	_narrate_pages = narrate
 	_set_modal(dim)
 	var shown_pages: Array[String] = []
 	for page in pages:
 		shown_pages.append(NarrationMarkup.plain(page, characters))
-	if log_title != "" and journal != null:
-		journal.add(log_title, shown_pages)
+	if journal != null and (log_title is Callable or str(log_title) != ""):
+		journal.add(log_title, log_pages if not log_pages.is_empty() else shown_pages)
 	_narrative_pages = pages
 	_narrative_index = 0
 	_count_input.visible = false

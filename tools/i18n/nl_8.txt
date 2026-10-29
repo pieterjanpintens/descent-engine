@@ -1,0 +1,4 @@
+739|Huidig doel:
+740|Taal van dit spel
+741|De taal waarin dit spel wordt gelezen, gelogd en verteld. Je kunt hem later wijzigen in Opties.
+742|Het verhaal, het logboek en de eigen termen van het spel worden in deze taal getoond. De menu's en knoppen van de app volgen de lijst hieronder.

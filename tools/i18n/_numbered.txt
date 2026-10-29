@@ -601,7 +601,6 @@
 607|The game wasn't found in the usual places. Choose the folder it is installed in.
 608|The import tool stopped without importing anything (exit code %d).
 609|The imported game assets are loaded when the app starts.\n\nRestart now?
-610|The language this game is read, logged and narrated in. You cannot change it once the game has started.
 611|The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in.
 612|The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub.
 613|The market sells materials but does not buy them.
@@ -724,6 +723,15 @@
 730|The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far.
 731|Unofficial App
 732|%s - %s\n\n%s gains an extra benefit: %s.
+733|A new act begins.
+734|act
+736|The campaign is complete.
+737|The end
+738|The story begins.
+739|Current Objective:
+740|Language of this game
+741|The language this game is read, logged and narrated in. You can change it later in Options.
+742|The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

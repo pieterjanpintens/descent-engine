@@ -44,3 +44,8 @@ def staging_dir(name: str) -> str:
     a Godot editor binary convert them). The app converts the staged files itself, so no Godot program is needed."""
     base = os.environ.get("DESCENT_STAGING_DIR")
     return os.path.join(base, name) if base else ""
+
+
+## The game's text columns -> our language codes (one localization_<code>.json per column; the game has no Dutch).
+LANGUAGE_CODES = {"English": "en", "Spanish": "es", "French": "fr", "German": "de", "Italian": "it", "Portuguese": "pt", "Polish": "pl",
+                  "Czech": "cs", "Russian": "ru", "Hungarian": "hu", "Korean": "ko", "Chinese (Simplified)": "zh", "Chinese (Traditional)": "zh-TW"}

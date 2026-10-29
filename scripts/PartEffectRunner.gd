@@ -434,7 +434,7 @@ func finish(p: Plan, r: Dictionary) -> void:
 				if randf() * 100.0 < float(e["chance"]):
 					var benefit := TrinketBenefits.pick()
 					await _before_ask()
-					await dialog.ask_ok(tr("%s - %s\n\n%s gains an extra benefit: %s.") % [hero_name, part_name, hero_name, benefit], true, false, part_name)
+					await dialog.ask_ok(func() -> String: return tr("%s - %s\n\n%s gains an extra benefit: %s.") % [hero_name, part_name, hero_name, benefit], true, false, part_name)
 					said = benefit
 			"conditions_after":
 				if _alive(target):

@@ -17,6 +17,7 @@ extends RefCounted
 const ITEMS_PATH := "user://item_data/items.json"
 
 static var _loaded := false
+static var _stamp := ""  ## the game text language the cached data was built for (ItemData.text_stamp())
 static var _recipes: Array[Dictionary] = []
 static var _by_id: Dictionary = {}
 static var _rune_ids: Dictionary = {}
@@ -138,6 +139,10 @@ static func hint(recipe: Dictionary) -> String:
 
 
 static func _load() -> void:
+	var stamp := ItemData.text_stamp()
+	if stamp != _stamp:
+		_stamp = stamp
+		reload()
 	if _loaded:
 		return
 	_loaded = true

@@ -46,6 +46,7 @@ func _ready() -> void:
 	# back from a campaign game: the reading order is the player's own again
 	LText.set_preferred(PlayerSettings.preferred_languages)
 	LText.reset_editing()
+	LogText.reset()
 	LText.fallback_language = LText.LEGACY_LANGUAGE
 	GameState.editor_language = ""
 	_scene_nodes = get_children()

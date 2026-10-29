@@ -27,8 +27,8 @@
 217|Comunes
 218|Comunidad
 219|Lista de la comunidad
-220|Condiciones
-221|Condiciones (%d)
+220|Estados
+221|Estados (%d)
 222|Confirmar
 223|Confundido
 224|Consumibles
@@ -60,7 +60,7 @@
 250|daño +%d para siempre (ahora %d)
 251|daño -%d
 252|Tipo de daño
-253|Aturdido
+253|Conmocionado
 254|Derrota.
 255|Derrotado
 256|defensa %+d hasta el final de la ronda (ahora %d)
@@ -68,11 +68,11 @@
 258|defensa +%d para siempre (ahora %d)
 259|defensa -%d
 260|defensa -%d esta ronda
-261|Habilidades de defensa: %s
-262|habilidad de defensa desactivada para el próximo ataque
-263|habilidad de defensa desactivada hasta el final de la ronda
-264|Habilidad de defensa desactivada.
-265|Habilidad de defensa: %s
+261|Capacidades de defensa: %s
+262|capacidad de defensa desactivada para el próximo ataque
+263|capacidad de defensa desactivada hasta el final de la ronda
+264|Capacidad de defensa desactivada.
+265|Capacidad de defensa: %s
 266|¿Borrar la partida guardada '%s'?
 267|Borrar esta partida guardada
 268|¿Infligió %s daño a %s?
@@ -104,7 +104,7 @@
 294|FALLÓ
 295|No se pudo cargar la misión: %s
 296|No se pudo guardar - consulta el panel de salida para más detalles.
-297|Hazañas
+297|Proezas
 298|primera
 299|Héroe fijo (%s)
 300|Da la vuelta a tu carta de héroe
@@ -128,7 +128,7 @@
 318|General
 319|Da la armadura: %s%s - %s
 320|Da la runa: %s
-321|Da la baratija: %s%s - %s
+321|Da el accesorio: %s%s - %s
 322|Da el arma: %s%s
 323|Da: %s
 324|guantes
@@ -165,7 +165,7 @@
 355|Ignos
 356|Ignos (fuego)
 357|inmune a %s
-358|Inmune a condiciones: %s
+358|Inmune a estados: %s
 359|Inmune a:
 360|Inmune: %s
 361|Inmunidad: %s

@@ -1,0 +1,4 @@
+739|Objetivo actual:
+740|Idioma de esta partida
+741|El idioma en el que se lee, registra y narra esta partida. Puedes cambiarlo más tarde en Opciones.
+742|La historia, el registro y los términos propios del juego se muestran en este idioma. Los menús y botones de la aplicación siguen la lista de abajo.

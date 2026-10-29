@@ -115,6 +115,9 @@ func _ready() -> void:
 			LText.set_preferred(order)
 			LText.player_order = PlayerSettings.preferred_languages.duplicate()
 	LText.fallback_language = mission.default_language  # what is read when none of the player's languages has a text
+	var log_languages: Array = LogText.languages.duplicate() if GameState.campaign_folder != "" else []  # the quest log is written once per language
+	log_languages.append_array(mission.offered_languages())
+	LogText.set_languages(log_languages)
 	dialog.characters = mission.characters
 	if GameState.campaign_folder != "":
 		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
@@ -169,7 +172,7 @@ func _ready() -> void:
 	hud.open_heroes = func(): heroes_dialog.open(player_roster, _runtime)
 	monster_manage_dialog = MonsterManageDialog.new()
 	dialog.get_parent().add_child(monster_manage_dialog)
-	monster_manage_dialog.logged.connect(func(text: String): journal.add("Monster", [text]))
+	monster_manage_dialog.logged.connect(func(text: Variant): journal.add("Monster", [text]))
 
 	# Embark comes before anything else - the table picks its party before
 	# there's any board state to interact with. Defines player count (the
@@ -339,6 +342,14 @@ func _ready() -> void:
 	dialog.get_parent().add_child(voice_settings)
 	voice_settings.voice_listener = voice_listener
 	voice_settings.dialog = dialog
+	voice_settings.game_languages = mission.offered_languages()
+	if GameState.campaign_folder != "":  # a campaign game: the campaign's own languages (its save game holds the language)
+		var campaign := CampaignIO.load_campaign(GameState.campaign_folder)
+		if campaign != null:
+			voice_settings.game_languages = campaign.offered_languages()
+	voice_settings.game_language = LText.reading_order()[0] if not LText.reading_order().is_empty() else "en"
+	voice_settings.game_language_changed = _set_game_language
+	PlayerSettings.ui_language_changed.connect(func(): _refresh_objective_label())
 	voice_listener.voice_ready.connect(func(_ready: bool): voice_settings._update_dialog_hints())
 	hud.open_voice_settings = voice_settings.open
 	hud.save_requested = save_game
@@ -384,7 +395,8 @@ func _ready() -> void:
 			debug_panel.toast(tr("Snapshot loaded - round %d") % current_round)
 			var report: Array[String] = progress_outcome["report"]
 			if not report.is_empty():
-				await dialog.ask_ok(tr("The snapshot was put on the edited mission, but:\n- ") + "\n- ".join(report), true, false, "Snapshot")
+				var make_report := func() -> String: return tr("The snapshot was put on the edited mission, but:\n- ") + "\n- ".join(report)
+				await dialog.ask_ok(make_report, true, false, "Snapshot")
 
 
 ## The Gear menu's "Save" item (hud.save_requested) - builds a SaveGame from
@@ -511,15 +523,20 @@ func _brew_basket_boons() -> void:
 		if pool.is_empty():
 			return
 		var hero_name := HeroCatalog.slot_name(int(wearer["slot"]))
-		var lines: Array[String] = [tr("%s's Brew Basket provides a random consumable:") % hero_name, ConsumableData.usable_notice([pool.pick_random()])]
-		if wearer["upgraded"]:
-			var found: Dictionary = {}
+		var consumable_id: Variant = pool.pick_random()
+		var found: Dictionary = {}
+		var upgraded: bool = wearer["upgraded"]
+		if upgraded:
 			for i in 2:
 				var key: String = LootMaterials.COMMON.pick_random()
 				found[key] = int(found.get(key, 0)) + 1
-			var text := _runtime.add_loot(found, [], [])
-			lines.append(tr("\nAlso some crafting materials for the party: %s.") % text)
-		await dialog.ask_ok("\n".join(lines), true, false, "Brew Basket", null, null, true)
+			_runtime.add_loot(found, [], [])
+		var make_basket := func() -> String:
+			var lines: Array[String] = [tr("%s's Brew Basket provides a random consumable:") % hero_name, ConsumableData.usable_notice([consumable_id])]
+			if upgraded:
+				lines.append(tr("\nAlso some crafting materials for the party: %s.") % MissionRuntime.loot_summary(found, [], []))
+			return "\n".join(lines)
+		await dialog.ask_ok(make_basket, true, false, "Brew Basket", null, null, true)
 
 
 func _show_spawn_area_and_confirm() -> void:
@@ -660,15 +677,16 @@ func _on_brooch_defeated(_monster: RuntimeMonster) -> void:
 	var was_upgraded := state.upgraded_cards.has(TrinketData.BROOCH_ID)
 	var count := state.add_brooch_defeat()
 	CampaignIO.save_state(state)
-	var text := tr("Tarnished Brooch: %d of %d.") % [mini(count, TrinketData.BROOCH_DEFEATS_NEEDED), TrinketData.BROOCH_DEFEATS_NEEDED]
-	if not was_upgraded and state.upgraded_cards.has(TrinketData.BROOCH_ID):
-		text = tr("Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!") % [count, TrinketData.BROOCH_DEFEATS_NEEDED]
-	journal.add("Tarnished Brooch", [text])
+	var unlocked := not was_upgraded and state.upgraded_cards.has(TrinketData.BROOCH_ID)
+	var make_text := func() -> String:
+		if unlocked:
+			return tr("Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!") % [count, TrinketData.BROOCH_DEFEATS_NEEDED]
+		return tr("Tarnished Brooch: %d of %d.") % [mini(count, TrinketData.BROOCH_DEFEATS_NEEDED), TrinketData.BROOCH_DEFEATS_NEEDED]
 	var quiet := 0
 	while quiet < 3:
 		await get_tree().process_frame
 		quiet = quiet + 1 if not dialog.visible else 0
-	await dialog.ask_ok(text, true, false, "Tarnished Brooch")
+	await dialog.ask_ok(make_text, true, false, "Tarnished Brooch")  # (this also writes it to the quest log)
 
 
 ## Undying Skull: the first (first or second on "+") time a wearer defeats an enemy TYPE the wearer gains a unique recipe - the most expensive
@@ -698,19 +716,22 @@ func _on_skull_kill(monster: RuntimeMonster, slot: int) -> void:
 		CampaignIO.save_state(state)
 	var type_name := str(MonsterDisplay.find_monster(monster.folder).get("name", monster.folder))
 	var hero_name := HeroCatalog.slot_name(slot)
-	var text := tr("Undying Skull: %s defeated a %s for the %s time.") % [hero_name, type_name, tr("first") if count == 1 else tr("second")]
-	if recipe_id == "":
-		text += " There is no recipe left to gain."
-	else:
-		text += tr(" %s gains a unique recipe: %s.") % [hero_name, RecipeData.label(RecipeData.find(recipe_id))]
-		if state == null:
-			text += " (Only campaigns keep recipes.)"
-	journal.add("Undying Skull", [text])
+	var recipe_name := RecipeData.label(RecipeData.find(recipe_id)) if recipe_id != "" else ""
+	var only_campaigns := state == null
+	var make_text := func() -> String:
+		var text := tr("Undying Skull: %s defeated a %s for the %s time.") % [hero_name, type_name, tr("first") if count == 1 else tr("second")]
+		if recipe_id == "":
+			text += tr(" There is no recipe left to gain.")
+		else:
+			text += tr(" %s gains a unique recipe: %s.") % [hero_name, recipe_name]
+			if only_campaigns:
+				text += tr(" (Only campaigns keep recipes.)")
+		return text
 	var quiet := 0
 	while quiet < 3:
 		await get_tree().process_frame
 		quiet = quiet + 1 if not dialog.visible else 0
-	await dialog.ask_ok(text, true, false, "Undying Skull")
+	await dialog.ask_ok(make_text, true, false, "Undying Skull")  # (this also writes it to the quest log)
 
 
 func _run_monster_spawn(request: Dictionary) -> void:
@@ -929,6 +950,24 @@ func _style_end_phase_button() -> void:
 var _last_objective_text := ""
 
 
+## The player picked another language for this game (Options, a moment the game can be saved): the reading order changes, a campaign
+## save keeps it, and what is on screen from the game's texts is shown again. The quest log re-reads its entries when it is opened.
+func _set_game_language(code: String) -> void:
+	var order: Array[String] = [code]
+	for preferred in PlayerSettings.preferred_languages:
+		if not order.has(preferred):
+			order.append(preferred)
+	LText.set_preferred(order)
+	if GameState.campaign_folder != "":
+		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		if campaign_state != null:
+			campaign_state.language = code
+			CampaignIO.save_state(campaign_state)
+	_last_objective_text = ", ".join(_runtime.get_current_objective_descriptions())  # (not a new objective: no log entry)
+	_refresh_objective_label()
+	monster_display.refresh_monsters(_runtime.monsters)
+
+
 func _refresh_objective_label() -> void:
 	var descriptions := _runtime.get_current_objective_descriptions()
 	if descriptions.is_empty():
@@ -939,9 +978,9 @@ func _refresh_objective_label() -> void:
 	var plain := ", ".join(descriptions)
 	if plain != _last_objective_text:
 		_last_objective_text = plain
-		journal.add("Objective", [plain])
+		journal.add("Objective", [func() -> String: return ", ".join(_runtime.get_current_objective_descriptions())])
 	var body := plain.replace("[", "[lb]")
-	objective_label.text = "[color=#8ecae6][b]Current Objective:[/b][/color]\n%s" % body
+	objective_label.text = "[color=#8ecae6][b]%s[/b][/color]\n%s" % [tr("Current Objective:"), body]
 
 
 ## Reveals a MissionGroup as part of play - the "Show Stage" effect (see
@@ -968,13 +1007,13 @@ func show_stage(group_id: String) -> void:
 	# then floor tiles, then pillars, then props. One page per (level, kind).
 	var order := ["underlay", "floor", "pillar", "prop"]
 	var bucket_labels := {"underlay": "Overlays", "floor": "Floor tiles", "pillar": "Pillars", "prop": "Props"}
-	var stage_name := group.reference_name if group.reference_name != "" else "a new area"
 	var levels: Array[int] = []
 	for piece in new_pieces:
 		if not levels.has(piece["level"]):
 			levels.append(piece["level"])
 	levels.sort()
 	var pages: Array[String] = []
+	var page_builders: Array = []  # the same pages as builders, for the quest log (once per language, see LogText)
 	var page_keys: Array[Dictionary] = []  # {level, bucket} per page
 	for level in levels:
 		for bucket in order:
@@ -988,8 +1027,15 @@ func show_stage(group_id: String) -> void:
 			for mesh_name in counts:
 				# Floor tiles are unique pieces - no "1x" prefix.
 				lines.append(str(mesh_name) if bucket == "floor" else "%dx %s" % [counts[mesh_name], mesh_name])
-			var level_text := tr("Level %d - ") % level if levels.size() > 1 else ""
-			pages.append(tr("Setting up '%s'\n%s%s - place these as shown:\n%s") % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
+			var level_n: int = level
+			var bucket_n: String = bucket
+			var lines_n := lines.duplicate()
+			var make_page := func() -> String:
+				var level_text := tr("Level %d - ") % level_n if levels.size() > 1 else ""
+				var shown_name: String = group.reference_name if group.reference_name != "" else tr("a new area")
+				return tr("Setting up '%s'\n%s%s - place these as shown:\n%s") % [shown_name, level_text, tr(bucket_labels[bucket_n]), "\n".join(lines_n)]
+			pages.append(make_page.call())
+			page_builders.append(make_page)
 			page_keys.append({"level": level, "bucket": bucket})
 
 	if not pages.is_empty() and not DebugSession.skipping():
@@ -1011,7 +1057,7 @@ func show_stage(group_id: String) -> void:
 			layered_map.repaint_visible_entries()
 			# Outline what this page is about (floor tiles also get their name).
 			stage_highlight.show_pieces(shown, page_keys[index]["bucket"] == "floor")
-		await dialog.ask_narrative(pages, tr("Setting up %s") % stage_name, false, show_upto)
+		await dialog.ask_narrative(pages, func() -> String: return tr("Setting up %s") % (group.reference_name if group.reference_name != "" else tr("a new area")), false, show_upto, false, page_builders)
 	stage_highlight.clear()
 	layered_map.held_back.clear()
 	layered_map.repaint_visible_entries()
@@ -1267,17 +1313,27 @@ func _run_time_passes() -> void:
 		var tactic := monster.current_tactic()
 		if tactic != null and tactic.time_passes_text() != "":
 			replaced.append(tactic.time_passes_text().replace("{0}", ""))
-	var text := "Time passes.\n\n"
-	text += "\n".join(replaced) if not replaced.is_empty() else "Resolve infection and terror. Each hero may discard 1 fatigue."
-	# Wanderer's Stone: each hero may take the displayed alternate benefit instead of discarding the fatigue.
-	if _runtime.trinket_level("TRINKET11_ID") > 0:
-		text += "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+	var benefits: Array[String] = []  # picked once (random); Wanderer's Stone
+	var wanderers := _runtime.trinket_level("TRINKET11_ID") > 0
+	if wanderers:
 		for slot in player_roster:
-			text += "\n%s: %s" % [HeroCatalog.slot_name(slot), TrinketBenefits.pick()]
+			benefits.append("%s: %s" % [HeroCatalog.slot_name(slot), TrinketBenefits.pick()])
+	var notes: Array[String] = []
 	for note in _runtime.time_passes_notes:
-		text += "\n" + note
+		notes.append(str(note))
 	_runtime.time_passes_notes.clear()
-	await dialog.ask_ok(text, true, false, "Time passes")
+	var make_text := func() -> String:
+		var text := tr("Time passes.\n\n")
+		text += "\n".join(replaced) if not replaced.is_empty() else tr("Resolve infection and terror. Each hero may discard 1 fatigue.")
+		# Wanderer's Stone: each hero may take the displayed alternate benefit instead of discarding the fatigue.
+		if wanderers:
+			text += tr("\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:")
+			for line in benefits:
+				text += "\n" + line
+		for note in notes:
+			text += "\n" + note
+		return text
+	await dialog.ask_ok(make_text, true, false, "Time passes")
 
 
 ## The last step of the darkness phase: Tactics. One random monster that has tactics (and is not Confused) prepares one,
@@ -1295,10 +1351,13 @@ func _run_tactics_step() -> void:
 	var chosen: RuntimeMonster = eligible.pick_random()
 	chosen.prepared_tactic = randi() % chosen.tactics.size()
 	var hero_name := HeroCatalog.slot_name(player_roster.pick_random()) if not player_roster.is_empty() else tr("a hero")
-	var hint := chosen.current_tactic().hint_text(chosen.display_name(), hero_name)
-	if hint == "":
-		hint = tr("%s is up to something...") % chosen.display_name()
-	await dialog.ask_ok(tr("Tactics") + "\n\n" + hint, true, false, "Tactics")
+	var chosen_tactic := chosen.current_tactic()
+	var make_hint := func() -> String:
+		var hint := chosen_tactic.hint_text(chosen.display_name(), hero_name)
+		if hint == "":
+			hint = tr("%s is up to something...") % chosen.display_name()
+		return tr("Tactics") + "\n\n" + hint
+	await dialog.ask_ok(make_hint, true, false, "Tactics")
 
 
 ## A monster with a prepared tactic does it instead of its normal activation: the same dialog as an attack, with the
@@ -1311,21 +1370,23 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 		return
 	var hero_name := HeroCatalog.slot_name(slot)
 	var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0)
-	var range_text := tr("melee") if tactic.attack_range == 0 else tr("range %d") % tactic.attack_range
+	var range_text := _range_text_for(tactic.attack_range, false)
 	var text := tr("%s: %s!\nTarget %s - Damage %d - %s - Speed %d") % [who, tactic.tactic_name, hero_name, damage, range_text, tactic.speed]
 	var activation := tactic.activation_text(monster.display_name(), hero_name)
 	if activation != "":
 		text += "\n\n" + activation
 	var cfg := MonsterDisplay.preview_data(monster.folder)
 	cfg["text"] = text
-	if not await _show_monster_dialog(monster, cfg, who, tr("perform %s") % tactic.tactic_name):
+	if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("perform %s") % tactic.tactic_name):
 		return
-	journal.add("Monster tactic", [tr("%s performs %s against %s.") % [who, tactic.tactic_name, hero_name]])
+	var tactic_name := tactic.tactic_name
+	journal.add("Monster tactic", [func() -> String: return tr("%s performs %s against %s.") % [_who(monster), tactic_name, hero_name]])
 	if tactic.has_test():
 		var passed := await dialog.ask_yes_no(tr("Did %s pass the test?") % hero_name)
 		var result := tactic.pass_text(monster.display_name(), hero_name) if passed else tactic.fail_text(monster.display_name(), hero_name)
 		if result != "":
-			await dialog.ask_ok(result, true, false, "Tactic")
+			var tactic_result := result
+			await dialog.ask_ok(func() -> String: return tactic_result, true, false, "Tactic")
 
 
 ## The monsters' turn: every live monster with an attack takes its turn in registry
@@ -1351,15 +1412,20 @@ func _run_monster_attacks() -> void:
 const MAX_ATTACKS_PER_TURN := 3
 
 
+## "Wolf (Yellow chip)" in the language that is current.
+func _who(monster: RuntimeMonster) -> String:
+	return tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+
+
 func _monster_attack(monster: RuntimeMonster) -> void:
-	var who := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	var who := _who(monster)
 	if monster.conditions.has(MonsterCondition.Kind.CONFUSED):
 		await _monster_action(monster, who)
 		return
 	if monster.current_tactic() != null:
 		await _monster_tactic(monster, who)
 		return
-	var range_text := tr("melee") if monster.effective_attack_range() == 0 else (tr("range %d, reach") if monster.attack_reach else tr("range %d")) % monster.effective_attack_range()
+	var range_text := _range_text_for(monster.effective_attack_range(), monster.attack_reach)
 	# What the monster's activation abilities do by themselves (ActivationRules), once per activation.
 	var activation_lines := ActivationRules.start_of_activation(_runtime, monster)
 	var excluded_slot := -1  # Bloodlust: the second attack goes to another hero
@@ -1385,9 +1451,12 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 			text += "\n" + "\n".join(ability_lines)
 		var cfg := MonsterDisplay.preview_data(monster.folder)
 		cfg["text"] = text
-		if not await _show_monster_dialog(monster, cfg, who, tr("attack %s") % hero_name):
+		if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("attack %s") % hero_name):
 			return
-		journal.add("Monster attack", [tr("%s attacks %s (damage %d, %s).") % [who, hero_name, monster.effective_attack_power(), range_text]])
+		var attack_damage := monster.effective_attack_power()
+		var attack_range := monster.effective_attack_range()
+		var attack_reach := monster.attack_reach
+		journal.add("Monster attack", [func() -> String: return tr("%s attacks %s (damage %d, %s).") % [_who(monster), hero_name, attack_damage, _range_text_for(attack_range, attack_reach)]])
 		monster.next_activation_damage = 0  # used up by this activation
 		# Bloodlust: after the attack it may attack a second hero (the table knows whether one is in reach).
 		if attack_number == 1 and ActivationRules.has_second_attack(monster) and player_roster.size() > 1:
@@ -1405,13 +1474,18 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 ## picked by MissionRuntime.pick_confused_action()), shown in the same dialog as an
 ## attack - the table carries it out. Interrupt works as for an attack; logged as
 ## "Monster action".
+func _range_text_for(range_value: int, reach: bool) -> String:
+	return tr("melee") if range_value == 0 else (tr("range %d, reach") if reach else tr("range %d")) % range_value
+
+
 func _monster_action(monster: RuntimeMonster, who: String) -> void:
 	var action := _runtime.pick_confused_action(monster)
 	var cfg := MonsterDisplay.preview_data(monster.folder)
 	cfg["text"] = tr("%s is confused!\n%s\n%s") % [who, action.action_name, action.shown_text(monster)]
-	if not await _show_monster_dialog(monster, cfg, who, "act"):
+	if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("act")):
 		return
-	journal.add("Monster action", [tr("%s is confused: %s.") % [who, action.action_name]])
+	var action_name := action.action_name
+	journal.add("Monster action", [func() -> String: return tr("%s is confused: %s.") % [_who(monster), action_name]])
 
 
 ## Shows a monster's dialog (attack or action) and handles Interrupt: the players act, the
@@ -1419,16 +1493,16 @@ func _monster_action(monster: RuntimeMonster, who: String) -> void:
 ## hero was wounded meanwhile (the hero resets their hit points and the monsters carry on
 ## with the NEXT monster; only a third wound ends the game); true to carry out the turn.
 ## `goal` completes "before it could ..." in the quest log.
-func _show_monster_dialog(monster: RuntimeMonster, cfg: Dictionary, who: String, goal: String) -> bool:
+func _show_monster_dialog(monster: RuntimeMonster, cfg: Dictionary, who: String, goal: Callable) -> bool:
 	var choice: int = await dialog.ask_monster_attack(cfg)
 	while choice == 1:  # the players interrupt
 		var wounds_before := _total_wounds()
 		await _interrupt(monster)
 		if not _runtime.monsters.has(monster):
-			journal.add("Monster attack", [tr("%s was defeated during an interrupt before it could %s.") % [who, goal]])
+			journal.add("Monster attack", [func() -> String: return tr("%s was defeated during an interrupt before it could %s.") % [_who(monster), goal.call()]])
 			return false
 		if _total_wounds() > wounds_before:
-			journal.add("Monster attack", [tr("%s wounded a hero - its turn is over.") % who])
+			journal.add("Monster attack", [func() -> String: return tr("%s wounded a hero - its turn is over.") % _who(monster)])
 			return false
 		choice = await dialog.ask_monster_attack(cfg)
 	return true
@@ -1478,15 +1552,20 @@ func _apply_affliction() -> void:
 	var results := _runtime.apply_affliction()
 	if results.is_empty():
 		return
-	var lines: Array[String] = []
+	var chips: Dictionary = {}  # a defeated monster has lost its chip by the time the text is built per language
 	for entry in results:
-		var monster: RuntimeMonster = entry["monster"]
-		var who := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
-		if entry["defeated"]:
-			lines.append(tr("%s takes %d affliction damage and is defeated! Remove it from the board.") % [who, entry["damage"]])
-		else:
-			lines.append(tr("%s takes %d affliction damage (%d hitpoints left).") % [who, entry["damage"], entry["hitpoints"]])
-	await dialog.ask_ok("\n\n".join(lines), true, false, "Affliction")
+		chips[entry["monster"]] = (entry["monster"] as RuntimeMonster).chip
+	var make_text := func() -> String:
+		var lines: Array[String] = []
+		for entry in results:
+			var monster: RuntimeMonster = entry["monster"]
+			var who := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(chips[monster])]
+			if entry["defeated"]:
+				lines.append(tr("%s takes %d affliction damage and is defeated! Remove it from the board.") % [who, entry["damage"]])
+			else:
+				lines.append(tr("%s takes %d affliction damage (%d hitpoints left).") % [who, entry["damage"], entry["hitpoints"]])
+		return "\n\n".join(lines)
+	await dialog.ask_ok(make_text, true, false, "Affliction")
 
 
 ## Updates current_checkpoint, then hands off to MissionRuntime to fire
@@ -1539,14 +1618,14 @@ var _loot_notes: Dictionary = {}
 var _usable_notes: Dictionary = {}
 
 
-func _on_loot_collected(monster_name: String, text: String, usable_text: String) -> void:
-	if text != "":
-		journal.add("Loot", [tr("%s dropped: %s.") % [monster_name, text]])
+func _on_loot_collected(monster_name: String, text: Callable, usable_text: Callable) -> void:
+	if text.is_valid():
+		journal.add("Loot", [func() -> String: return tr("%s dropped: %s.") % [monster_name, text.call()]])
 		if not _loot_notes.has(monster_name):
 			_loot_notes[monster_name] = []
 		(_loot_notes[monster_name] as Array).append(text)
-	if usable_text != "":
-		journal.add("Loot", [tr("%s dropped something usable. %s") % [monster_name, usable_text]])
+	if usable_text.is_valid():
+		journal.add("Loot", [func() -> String: return tr("%s dropped something usable. %s") % [monster_name, usable_text.call()]])
 		if not _usable_notes.has(monster_name):
 			_usable_notes[monster_name] = []
 		(_usable_notes[monster_name] as Array).append(usable_text)
@@ -1567,18 +1646,23 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 			quiet = quiet + 1 if not dialog.visible else 0
 		var gone: RuntimeMonster = _defeat_queue.pop_front()
 		var shown_name := gone.display_name()
-		var lines: Array[String] = [tr("%s has been defeated.") % shown_name]
 		var loot: Array = _loot_notes.get(shown_name, [])
 		_loot_notes.erase(shown_name)
-		if not loot.is_empty():
-			lines.append("\nLoot for the party: %s." % ", ".join(loot))
 		var usable: Array = _usable_notes.get(shown_name, [])
 		_usable_notes.erase(shown_name)
-		for notice in usable:
-			lines.append("\n" + str(notice))
-		if gone.defeat_text.strip_edges() != "":
-			lines.append("\n" + gone.defeat_text.replace("{name}", shown_name))
-		await dialog.ask_ok("\n".join(lines), true, false, "Defeated")
+		var make_text := func() -> String:
+			var lines: Array[String] = [tr("%s has been defeated.") % shown_name]
+			if not loot.is_empty():
+				var parts: Array[String] = []
+				for builder in loot:
+					parts.append((builder as Callable).call())
+				lines.append(tr("\nLoot for the party: %s.") % ", ".join(parts))
+			for notice in usable:
+				lines.append("\n" + (notice as Callable).call())
+			if gone.defeat_text.strip_edges() != "":
+				lines.append("\n" + gone.defeat_text.replace("{name}", shown_name))
+			return "\n".join(lines)
+		await dialog.ask_ok(make_text, true, false, "Defeated")
 	_defeat_busy = false
 
 
@@ -1605,17 +1689,21 @@ func _apply_wound(slot: int) -> void:
 		defeat.description = tr("%s was wounded a third time.") % hero_name
 		await _handle_game_over(defeat)
 		return
-	var wound_text := tr("%s is %s.") % [hero_name, MissionRuntime.wound_label(wounds).to_lower()]
-	if wounds == 1:
-		wound_text += tr("\n\n%s gains the \"%s\" injury: put its card in your play area.") % [hero_name, tr(_runtime.give_injury(slot))]
-	elif wounds == 2:
-		var injury := _runtime.injury_of(slot)
-		wound_text += (tr("\n\n%s must flip their injury card (%s) to its major side.") % [hero_name, tr(injury)]) if injury != "" else (tr("\n\n%s must flip their injury card to its major side.") % hero_name)
-	if _runtime.wound_health_override > 0:
-		# Remembrance Hilt: the first hero wounded this round has this health instead.
-		wound_text += tr("\n\nRemembrance Hilt: set %s's health to %d instead.") % [hero_name, _runtime.wound_health_override]
-		_runtime.wound_health_override = 0
-	await dialog.ask_ok(wound_text, true, false, "Wound")
+	var new_injury := _runtime.give_injury(slot) if wounds == 1 else ""  # (picked once)
+	var injury := _runtime.injury_of(slot) if wounds == 2 else ""
+	var health_override := _runtime.wound_health_override
+	_runtime.wound_health_override = 0
+	var make_text := func() -> String:
+		var wound_text := tr("%s is %s.") % [hero_name, MissionRuntime.wound_label(wounds).to_lower()]
+		if wounds == 1:
+			wound_text += tr("\n\n%s gains the \"%s\" injury: put its card in your play area.") % [hero_name, tr(new_injury)]
+		elif wounds == 2:
+			wound_text += (tr("\n\n%s must flip their injury card (%s) to its major side.") % [hero_name, tr(injury)]) if injury != "" else (tr("\n\n%s must flip their injury card to its major side.") % hero_name)
+		if health_override > 0:
+			# Remembrance Hilt: the first hero wounded this round has this health instead.
+			wound_text += tr("\n\nRemembrance Hilt: set %s's health to %d instead.") % [hero_name, health_override]
+		return wound_text
+	await dialog.ask_ok(make_text, true, false, "Wound")
 	await _horn_of_courage(slot)
 
 
@@ -1637,10 +1725,15 @@ func _horn_of_courage(wounded: int) -> void:
 		receivers.append(others.pick_random())
 	if receivers.is_empty():
 		return
-	var lines: Array[String] = [tr("Horn of Courage - %s was wounded.") % HeroCatalog.slot_name(wounded)]
+	var benefit_picks: Array = []  # [hero name, benefit] - picked once (random)
 	for receiver in receivers:
-		lines.append(tr("%s receives a benefit: %s.") % [HeroCatalog.slot_name(receiver), TrinketBenefits.pick(true)])
-	await dialog.ask_ok("\n\n".join(lines), true, false, "Horn of Courage")
+		benefit_picks.append([HeroCatalog.slot_name(receiver), TrinketBenefits.pick(true)])
+	var make_text := func() -> String:
+		var lines: Array[String] = [tr("Horn of Courage - %s was wounded.") % HeroCatalog.slot_name(wounded)]
+		for pick in benefit_picks:
+			lines.append(tr("%s receives a benefit: %s.") % [pick[0], pick[1]])
+		return "\n\n".join(lines)
+	await dialog.ask_ok(make_text, true, false, "Horn of Courage")
 
 
 ## Shared by both ends of the objectives DAG: the checkpoint-driven path
@@ -1652,8 +1745,11 @@ func _horn_of_courage(wounded: int) -> void:
 ## that would need to wait on this finishing.
 func _handle_game_over(objective: MissionObjective) -> void:
 	end_phase_button.disabled = true
-	var outcome_text := tr("Victory!") if objective.outcome == MissionObjective.Outcome.WIN else tr("Defeat.")
-	await dialog.ask_ok("%s\n%s" % [outcome_text, objective.description], true, false, outcome_text.trim_suffix("!").trim_suffix("."))
+	var won := objective.outcome == MissionObjective.Outcome.WIN
+	var outcome_of := func() -> String: return tr("Victory!") if won else tr("Defeat.")
+	var make_text := func() -> String: return "%s\n%s" % [outcome_of.call(), objective.description]
+	var make_title := func() -> String: return outcome_of.call().trim_suffix("!").trim_suffix(".")
+	await dialog.ask_ok(make_text, true, false, make_title)
 	_exit_mission({
 		"won": objective.outcome == MissionObjective.Outcome.WIN,
 		"chapter_id": GameState.campaign_chapter_id,

@@ -33,7 +33,7 @@
 33|¡%s - %s se activa!\n\n%s
 34|¡%s - %s se activa!\n\n%s obtiene un consumible aleatorio: %s\n\nEquípalo.
 35|¡%s - %s se activa!\n\n%s obtiene un consumible mejorado aleatorio: %s\n\nEquípalo.
-36|¡%s - %s se activa!\n\n%s\n\nComprueba si se aplica y resuélvelo en el tablero (una condición se puede aplicar desde la pantalla de monstruos).
+36|¡%s - %s se activa!\n\n%s\n\nComprueba si se aplica y resuélvelo en el tablero (un estado se puede aplicar desde la pantalla de monstruos).
 37|%s - %s\n¿Tiene %s alguna herida?
 38|%s - %s\n¿Cuánta fatiga hay en todas las cartas de %s?
 39|%s - %s\n¿Qué otro enemigo sufre el mismo daño? (Cancelar: ninguno)
@@ -99,7 +99,7 @@
 99|\n%d misión(es), %d imagen(es), %.1f MB.
 100|\n%d partida(s) guardada(s) se han apartado (user://campaign_saves/_removed), no se han borrado.
 101|\n%d éxitos x %d de daño de arma
-102|\n(+%d de daño por una habilidad de defensa en esta activación)
+102|\n(+%d de daño por una capacidad de defensa en esta activación)
 103|\n(Debilitado: daño reducido desde %d)
 104|\n\n%s obtiene la lesión \"%s\": pon su carta en tu zona de juego.
 105|\n\nA %s le quedan %d puntos de vida.
@@ -114,7 +114,7 @@
 114|\nActivación:
 115|\nAdemás, algunos materiales de artesanía para el grupo: %s.
 116|\nEn la mesa:
-117|\nCondiciones aplicadas: %s
+117|\nEstados aplicados: %s
 118|\nExpuesto: +%d de daño
 119|\nInmune a: %s
 120|\n¡Inmune! El ataque no causa daño.\n\n0 de daño infligido
@@ -125,7 +125,7 @@
 125|\nResistencia: -%d de daño
 126|\nSe ha comprobado el paquete: solo contiene datos del juego.
 127|\nDebilidad: +%d de daño
-128|\nPiezas de arma y baratija:
+128|\nPiezas de arma y accesorio:
 129|una mejora de armadura %s
 130|una receta de pieza de %s
 131|una mejora de pieza de %s
@@ -141,8 +141,8 @@
 141|un cargamento de armadura
 142|Una misión suelta
 143|Se puede tomar una instantánea en la fase de jugadores, sin ningún diálogo abierto.
-144|una baratija
-145|una mejora de baratija
+144|un accesorio
+145|una mejora de accesorio
 146|¡Acto completado!
 147|Añadir idioma
 148|añade %d de daño a su próxima activación
@@ -158,7 +158,7 @@
 158|Anemos (viento)
 159|Actualización de la aplicación
 160|Aplicado:
-161|Aplicar condiciones
+161|Aplicar estados
 162|Aquos
 163|Aquos (agua)
 164|Armadura
@@ -168,7 +168,7 @@
 168|En la mesa:
 169|Ataque
 170|atacar a %s
-171|Habilidades de ataque: %s
+171|Capacidades de ataque: %s
 172|el ataque obtiene %s
 173|Disponible ahora: %s
 174|Atrás

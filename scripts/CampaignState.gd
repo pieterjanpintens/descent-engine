@@ -11,8 +11,8 @@ extends Resource
 @export var campaign_version: String = ""
 ## The name of this save game (a campaign can have several playthroughs).
 @export var save_name: String = ""
-## The language this playthrough is read, logged and narrated in, chosen when it was started and never changed (a log in two languages
-## would be confusing). "" = a save game from before the choice existed: the player's preferred languages decide.
+## The language this playthrough is read, logged and narrated in: chosen when it was started, changeable later in Options (a moment the game
+## can be saved). "" = a save game from before the choice existed: the player's preferred languages decide.
 @export var language: String = ""
 @export var current_act: int = 0
 ## Ids of the chapters the party has won.
@@ -215,12 +215,10 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	_take_loot(summary, loot)
 	_take_loot(summary, _reward_items(quest.reward_cards, quest.reward_recipes))
 	summary["story_after"] = quest.story_after
-	var pages: Array[String] = []
-	for story in [quest.story_before, quest.story_after]:
-		if story != "":
-			pages.append(story)
-	pages.append(tr("Side quest won: %s.") % reward_text(quest.reward_xp, quest.reward_gold))
-	add_log(tr("Side quest: %s") % quest.title, pages)
+	add_log(func() -> String: return tr("Side quest: %s") % quest.title, [
+		func() -> String: return quest.story_before,
+		func() -> String: return quest.story_after,
+		func() -> String: return tr("Side quest won: %s.") % reward_text(quest.reward_xp, quest.reward_gold)])
 	await apply_mission_outputs(campaign, quest.mission_outputs, mission_values)
 	await apply_effects(campaign, quest.win_effects)
 	advance_shops(campaign)
@@ -228,8 +226,12 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	return summary
 
 
-func add_log(title: String, pages: Array[String]) -> void:
-	log_entries.append({"title": title, "pages": pages})
+## `title` and every page are a Callable (built once per language, see LogText), a language map or a finished String.
+func add_log(title: Variant, pages: Array) -> void:
+	var recorded: Array = []
+	for page in pages:
+		recorded.append(LogText.record(page))
+	log_entries.append({"title": LogText.record(title), "pages": recorded})
 
 
 ## Puts a brand-new campaign at the start of its first act (does nothing once started).
@@ -245,7 +247,7 @@ func ensure_started(campaign: Campaign) -> void:
 		owned_armors = campaign.starting_armors.duplicate()
 		owned_trinkets = campaign.starting_trinkets.duplicate()
 		upgraded_cards = campaign.starting_upgrades.duplicate()
-		add_log(campaign.campaign_name, [campaign.intro if campaign.intro != "" else "The story begins."])
+		add_log(func() -> String: return campaign.campaign_name, [func() -> String: return campaign.intro if campaign.intro != "" else tr("The story begins.")])
 	_begin_act(campaign, current_act)
 
 
@@ -254,10 +256,10 @@ func _begin_act(campaign: Campaign, index: int) -> void:
 	available_chapters.clear()
 	if index >= campaign.acts.size():
 		campaign_complete = true
-		add_log("The end", ["The campaign is complete."])
+		add_log(func() -> String: return tr("The end"), [func() -> String: return tr("The campaign is complete.")])
 		return
 	var act := campaign.acts[index]
-	add_log(act.act_name, [act.intro if act.intro != "" else "A new act begins."])
+	add_log(func() -> String: return act.act_name, [func() -> String: return act.intro if act.intro != "" else tr("A new act begins.")])
 	if act.start_experience >= 0:
 		experience = act.start_experience
 	if act.find_chapter(act.start_chapter_id) != null:
@@ -289,12 +291,10 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 		_take_loot(summary, loot)
 		_take_loot(summary, _reward_items(chapter.reward_cards, chapter.reward_recipes))
 		summary["story_after"] = chapter.story_after
-		var pages: Array[String] = []
-		for story in [chapter.story_before, chapter.story_after]:
-			if story != "":
-				pages.append(story)
-		pages.append(tr("Won: %s.") % reward_text(chapter.reward_xp, chapter.reward_gold))
-		add_log(chapter.title, pages)
+		add_log(func() -> String: return chapter.title, [
+			func() -> String: return chapter.story_before,
+			func() -> String: return chapter.story_after,
+			func() -> String: return tr("Won: %s.") % reward_text(chapter.reward_xp, chapter.reward_gold)])
 		gold += chapter.reward_gold
 	await apply_mission_outputs(campaign, chapter.mission_outputs, mission_values)
 	await apply_effects(campaign, chapter.win_effects if won else chapter.lose_effects)
