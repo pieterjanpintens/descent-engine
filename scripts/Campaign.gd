@@ -6,13 +6,25 @@ extends Resource
 ## uses, so a campaign can be shared as one folder (CampaignIO). Edited in CampaignEditor.
 ## Progress is CampaignState (the campaign save). Planned next: campaign variables.
 
-@export var campaign_name: String = "New campaign"
-@export_multiline var intro: String = ""
+@export var campaign_name_texts: Dictionary = {"en": "New campaign"}
+var campaign_name: String:
+	get:
+		return LText.pick(campaign_name_texts)
+	set(value):
+		LText.put(campaign_name_texts, value)
+@export var intro_texts: Dictionary = {}
+var intro: String:
+	get:
+		return LText.pick(intro_texts)
+	set(value):
+		LText.put(intro_texts, value)
 ## File name (not a path) of the book cover image inside the campaign folder (always the 2:3 ratio,
 ## see CampaignIO.import_cover_image()); "" = none, the campaign screen shows a plain dummy cover.
 @export var cover_image: String = ""
 ## What the library card and the community catalog show (see CampaignInfo): language codes and the play time in minutes (0 = unknown).
 @export var languages: Array[String] = []
+## The language the texts were first written in: what is read when none of the player's languages has a text (see LText).
+@export var default_language: String = "en"
 @export var duration_minutes: int = 0
 @export var acts: Array[CampaignAct] = []
 ## Source of unique chapter ids ("ch_1", "ch_2", ...), never reused.
@@ -73,6 +85,24 @@ const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]
 
 
 ## The built-in counters (INT) followed by the declared variables - everything a condition can read.
+## The languages a game of this campaign can be played in: the ones it declares plus its default language (always playable), default first.
+func offered_languages() -> Array[String]:
+	var offered: Array[String] = [default_language]
+	for code in languages:
+		if not offered.has(code):
+			offered.append(code)
+	return offered
+
+
+## The language to start a game in: the first of the player's preferred languages that the campaign offers, else its default language.
+func best_language(preferred: Array[String]) -> String:
+	var offered := offered_languages()
+	for code in preferred:
+		if offered.has(code):
+			return code
+	return default_language
+
+
 func all_variables() -> Array[MissionVariable]:
 	var all: Array[MissionVariable] = []
 	for variable_name in BUILTIN_VARIABLES:

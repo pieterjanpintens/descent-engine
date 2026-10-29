@@ -1,0 +1,174 @@
+561|Corte
+562|Ralentizado
+563|Instantánea
+564|La instantánea '%s' está vacía.
+565|Instantánea '%s' tomada (ronda %d).
+566|Instantánea cargada - ronda %d
+567|Ya hay algo con el mismo nombre en el camino: %s.
+568|lanza
+569|bastón
+570|Empezar
+571|Empezar partida
+572|Paso %s: %s...
+573|Receta de la historia
+574|Narrador:
+575|Fuerza
+576|espada
+577|Táctica
+578|Tácticas
+579|Ponerse a cubierto
+580|Broche Deslustrado
+581|Broche Deslustrado: %d de %d.
+582|Broche Deslustrado: %d de %d. ¡El Broche se desbloquea con su cara + desde la próxima misión!
+583|Broche Deslustrado: %s (ficha %s) aparece también. %s debe derrotarlo.
+584|Terros
+585|Terros (tierra)
+586|texturas y retratos
+587|Esa carpeta no contiene el juego (no se encontró en ella ninguna carpeta \"bundles\").
+588|Eso no es una dirección web (debe empezar por https://).
+589|Esa opción no está disponible
+590|Falló la descarga de %s (red %d, HTTP %d).
+591|La descarga de %s no es un zip válido.
+592|La descarga de %s dejó de recibir datos - comprueba la conexión e inténtalo de nuevo.
+593|Se canceló la descarga de %s.
+594|La descarga de %s estaba dañada (la suma de comprobación no coincide).
+595|%s ya se está descargando.
+596|La dirección debe empezar por https://
+597|La armadura que posee el grupo
+598|El autor confirma que puede compartir las imágenes.
+599|El autor no dijo si puede compartir las imágenes.
+600|¡La campaña está completa - enhorabuena!
+601|La dirección del catálogo debe empezar por https://
+602|El paquete descargado no es el que prometía la lista (%s %s en lugar de %s %s). No se importó.
+603|El paquete descargado no es el que prometía la lista. No se instaló.
+604|el enemigo tenía menos de %d de salud: derrotado
+605|No se pudieron escribir los archivos (error %d).
+606|el primer héroe herido esta ronda tiene %d de salud en su lugar
+607|No se encontró el juego en los sitios habituales. Elige la carpeta donde está instalado.
+608|La herramienta de importación se detuvo sin importar nada (código de salida %d).
+609|Los recursos importados del juego se cargan al iniciar la aplicación.\n\n¿Reiniciar ahora?
+610|El idioma en el que se lee, registra y narra esta partida. No se puede cambiar una vez empezada la partida.
+611|Los idiomas que quieres leer, el mejor primero. Una campaña o misión se muestra en el primero del que tenga texto; al empezar una partida de campaña se pregunta en qué idioma jugarla.
+612|La lista de campañas compartidas que muestra el icono de actualizar en la pantalla de Nueva partida. Por defecto, la del repositorio descent-engine-community en GitHub.
+613|El mercado vende materiales pero no los compra.
+614|Falta la misión en la carpeta de la campaña.
+615|Falta la misión del capítulo \"%s\" en la nueva versión.
+616|La variable nueva \"%s\" empieza con su valor por defecto.
+617|La nueva versión no tiene el acto %d (tu partida está en él).
+618|No se pudo abrir la versión más nueva.
+619|La partida guardada original no cambia - siempre puedes volver a ella.
+620|el paquete
+621|El grupo no lleva consumibles - elabóralos en un alquimista a partir de recetas de pociones.
+622|El grupo no tiene consumibles. Elabóralos en un alquimista a partir de recetas de pociones.
+623|El grupo tiene que volver a intentar este capítulo.
+624|El grupo aún no posee armadura.
+625|El grupo aún no posee baratijas - se compran en una tienda de recetas o se encuentran.
+626|La fase no se puede terminar ahora mismo.
+627|Las pociones que ha elaborado el grupo - disponibles en todas las misiones
+628|La lista de sumas de comprobación de la versión no tiene entrada para %s.
+629|No se pudo guardar la instantánea - consulta el panel de salida.
+630|La instantánea se aplicó a la misión editada, pero:\n-
+631|La descarga del motor de voz no tenía biblioteca para %s.
+632|se resuelve en la mesa
+633|La baratija que lleva este héroe (una por héroe; una baratija solo la puede llevar un héroe)
+634|No se pudo iniciar la actualización.
+635|La actualización no contiene %s.
+636|No se pudo guardar la copia actualizada.
+637|La variable \"%s\" ya no existe - su valor se descarta.
+638|Esta aplicación se distribuye sin el arte del juego. Si tienes \"Descent: Legends of the Dark\", las imágenes, figuras y datos reales del juego se pueden copiar de tu propia instalación. No se descarga nada del juego y nada sale de este equipo.
+639|este ataque no puede dañarlo
+640|Este paquete no se importó - está dañado o contiene algo no permitido:\n\n- %s
+641|Este paquete no se instaló - está dañado o contiene algo no permitido.
+642|Esta versión no tiene %s (o no tiene lista de sumas de comprobación).
+643|Esta partida guardada no se puede pasar a la v%s:
+644|Esta partida guardada se pasó de la versión %s de la campaña a la versión %s.
+645|Amenaza
+646|cuchillos arrojadizos
+647|Pasa el tiempo
+648|Pasa el tiempo.\n\n
+649|Cansado
+650|Demasiado corto - mantén %s mientras hablas
+651|Hacia el árbol
+652|Toxos
+653|Toxos (putrefacción)
+654|activación %d (cada %dª: %d de daño a todos los enemigos)
+655|activación %d: %d de daño a todos los enemigos
+656|Baratija
+657|Baratija %s: %s
+658|Mejora de baratija:
+659|Baratija:
+660|Baratijas
+661|Umbros
+662|Umbros (sombra)
+663|Calavera Inmortal
+664|Calavera Inmortal: %s derrotó a un %s por %s vez.
+665|Desconocido
+666|Actualización disponible: %s
+667|Actualizar a v%s…
+668|Mejora - nivel %d
+669|Mejora:
+670|Mejorada (+). En una campaña sigue las mejoras del grupo.
+671|Utilizable en esta misión: %s. Ponlo en tu zona de juego para usarlo. No se añade al inventario y desaparece al terminar la misión.
+672|Utilizables en esta misión: %s. Ponlos en tu zona de juego para usarlos. No se añaden al inventario y desaparecen al terminar la misión.
+673|Usar los objetos originales del juego en el mapa
+674|Usa la cara mejorada (+) de esta baratija.
+675|La variable '%s' cambió de tipo - vuelve a tener su valor por defecto.
+676|La variable '%s' ya no existe (era %s).
+677|Versión %s
+678|La versión %s ya está instalada.
+679|La versión %s está disponible (tienes la %s).
+680|La versión %s de este paquete ya está publicada - una versión publicada nunca se sustituye. Usa una versión superior.
+681|¡Victoria!
+682|Vigos
+683|Vigos (vida)
+684|Voz
+685|Voz -
+686|El control por voz está configurado.
+687|La voz aún no está configurada - los comandos escritos siguen funcionando.
+688|ajustes de voz (%s)
+689|La configuración de voz no está disponible en %s - los comandos escritos siguen funcionando.
+690|La configuración de voz aún no es compatible con %s.
+691|voces (%s)
+692|varita
+693|Deambular
+694|campana de guerra
+695|martillo de guerra
+696|débil a %s
+697|Débil: %s
+698|Debilidad
+699|daño por debilidad +%d
+700|Debilidad: %s
+701|arma
+702|Arma %d (%s)
+703|daño de arma +%d
+704|probabilidad de las piezas de arma +%d%%
+705|Armas
+706|Novedades
+707|Cuando un héroe ha perdido todos sus puntos de vida, pulsa Herir. La tercera herida pierde la partida.
+708|¿Qué monstruo?
+709|¿Cuál?
+710|¿Quién ataca a %s?
+711|¿Quién usa %s?
+712|Voluntad
+713|Ganado: %s.
+714|Herir
+715|Herido
+716|XP: %d  |  Oro: %d
+717|Amarillo
+718|Sí
+719|Ya tienes la versión %s - esta se instala junto a ella.
+720|Puedes jugar
+721|Llevas %d.
+722|Tienes %d de oro y %s.
+723|Tienes %d de oro.
+724|No conoces ninguna receta de poción. Las recetas se venden en las tiendas de recetas o se encuentran como botín.
+725|No conoces ninguna receta que haga algo nuevo. Las recetas se venden en las tiendas de recetas.
+726|Tus materiales:
+727|Tu progreso se guarda automáticamente con este nombre, así que puedes salir y retomar donde lo dejaste (Cargar partida en el menú principal). Usa un nombre distinto para cada grupo o partida.
+728|▶ Leer en voz alta
+729|☠ Derrotado
+P1| (%d para %d jugador)| (%d para %d jugadores)
+P2|+%d éxito|+%d éxitos
+P3|perdió %d estado, %d de daño|perdió %d estados, %d de daño
+P4|Amuleto de la Suerte: se añade %d éxito extra al resultado de %s.|Amuleto de la Suerte: se añaden %d éxitos extra al resultado de %s.
+P5|Nueva misión secundaria: %s|Nuevas misiones secundarias: %s

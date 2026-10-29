@@ -102,10 +102,19 @@ func _ready() -> void:
 	else:
 		mission = MissionIO.load_mission(GameState.current_mission_path)
 	if mission == null:
-		info_label.text = "Failed to load mission: %s" % GameState.current_mission_path
+		info_label.text = tr("Failed to load mission: %s") % GameState.current_mission_path
 		info_label.visible = true
 		return
 
+	LText.edit_language = ""
+	if GameState.campaign_folder == "":  # (a mission of a campaign game keeps the language the campaign player chose)
+		LText.reset_editing()
+		if GameState.debug_session and GameState.editor_language != "":  # played from the editor: in the language that is being edited
+			var order: Array[String] = [GameState.editor_language]
+			order.append_array(LText.player_order)
+			LText.set_preferred(order)
+			LText.player_order = PlayerSettings.preferred_languages.duplicate()
+	LText.fallback_language = mission.default_language  # what is read when none of the player's languages has a text
 	dialog.characters = mission.characters
 	if GameState.campaign_folder != "":
 		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
@@ -256,7 +265,7 @@ func _ready() -> void:
 		interaction_dock.refresh_wounds(_runtime.hero_wounds)
 		var dropped_objectives := _runtime.load_current_objective_ids(resume_save.current_objective_ids)
 		if dropped_objectives > 0 and resume_save.mission == null:
-			progress_outcome["report"].append("%d of the current objectives no longer exist." % dropped_objectives)
+			progress_outcome["report"].append(tr("%d of the current objectives no longer exist.") % dropped_objectives)
 		journal.entries = resume_save.journal_entries
 	if debug_panel != null:
 		debug_panel.runtime = _runtime
@@ -372,10 +381,10 @@ func _ready() -> void:
 		if not resume_save.camera_view.is_empty():
 			camera.import_view(resume_save.camera_view)
 		if debug_panel != null and resume_save.mission == null:
-			debug_panel.toast("Snapshot loaded - round %d" % current_round)
+			debug_panel.toast(tr("Snapshot loaded - round %d") % current_round)
 			var report: Array[String] = progress_outcome["report"]
 			if not report.is_empty():
-				await dialog.ask_ok("The snapshot was put on the edited mission, but:\n- " + "\n- ".join(report), true, false, "Snapshot")
+				await dialog.ask_ok(tr("The snapshot was put on the edited mission, but:\n- ") + "\n- ".join(report), true, false, "Snapshot")
 
 
 ## The Gear menu's "Save" item (hud.save_requested) - builds a SaveGame from
@@ -461,7 +470,7 @@ func take_snapshot(slot: String, quiet: bool = false) -> bool:
 			debug_panel.toast("The snapshot could not be saved - see the Output panel.")
 		return false
 	if not quiet:
-		debug_panel.toast("Snapshot '%s' taken (round %d)." % [slot, current_round])
+		debug_panel.toast(tr("Snapshot '%s' taken (round %d).") % [slot, current_round])
 	return true
 
 
@@ -470,7 +479,7 @@ func restore_snapshot(slot: String) -> void:
 	if not GameState.debug_session:
 		return
 	if not DebugSession.slot_exists(_snapshot_key, slot):
-		debug_panel.toast("Snapshot '%s' is empty." % slot)
+		debug_panel.toast(tr("Snapshot '%s' is empty.") % slot)
 		return
 	Narrator.stop()
 	GameState.load_save_path = DebugSession.slot_path(_snapshot_key, slot)
@@ -502,14 +511,14 @@ func _brew_basket_boons() -> void:
 		if pool.is_empty():
 			return
 		var hero_name := HeroCatalog.slot_name(int(wearer["slot"]))
-		var lines: Array[String] = ["%s's Brew Basket provides a random consumable:" % hero_name, ConsumableData.usable_notice([pool.pick_random()])]
+		var lines: Array[String] = [tr("%s's Brew Basket provides a random consumable:") % hero_name, ConsumableData.usable_notice([pool.pick_random()])]
 		if wearer["upgraded"]:
 			var found: Dictionary = {}
 			for i in 2:
 				var key: String = LootMaterials.COMMON.pick_random()
 				found[key] = int(found.get(key, 0)) + 1
 			var text := _runtime.add_loot(found, [], [])
-			lines.append("\nAlso some crafting materials for the party: %s." % text)
+			lines.append(tr("\nAlso some crafting materials for the party: %s.") % text)
 		await dialog.ask_ok("\n".join(lines), true, false, "Brew Basket", null, null, true)
 
 
@@ -637,7 +646,7 @@ func _spawn_brooch_monster(spawned: Array[RuntimeMonster]) -> String:
 	registered.brooch_target = true
 	registered.brooch_wearer = wearer
 	spawned.append(registered)
-	return "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it." % [MonsterDisplay.find_monster(registered.folder)["name"], MonsterChip.display_name(registered.chip), HeroCatalog.slot_name(wearer)]
+	return tr("Tarnished Brooch: %s (%s chip) appears too. %s must defeat it.") % [MonsterDisplay.find_monster(registered.folder)["name"], MonsterChip.display_name(registered.chip), HeroCatalog.slot_name(wearer)]
 
 
 ## The wearer defeated the Brooch's monster: one more defeat on the campaign's counter (saved at once - a lost or abandoned mission still counts),
@@ -651,9 +660,9 @@ func _on_brooch_defeated(_monster: RuntimeMonster) -> void:
 	var was_upgraded := state.upgraded_cards.has(TrinketData.BROOCH_ID)
 	var count := state.add_brooch_defeat()
 	CampaignIO.save_state(state)
-	var text := "Tarnished Brooch: %d of %d." % [mini(count, TrinketData.BROOCH_DEFEATS_NEEDED), TrinketData.BROOCH_DEFEATS_NEEDED]
+	var text := tr("Tarnished Brooch: %d of %d.") % [mini(count, TrinketData.BROOCH_DEFEATS_NEEDED), TrinketData.BROOCH_DEFEATS_NEEDED]
 	if not was_upgraded and state.upgraded_cards.has(TrinketData.BROOCH_ID):
-		text = "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!" % [count, TrinketData.BROOCH_DEFEATS_NEEDED]
+		text = tr("Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!") % [count, TrinketData.BROOCH_DEFEATS_NEEDED]
 	journal.add("Tarnished Brooch", [text])
 	var quiet := 0
 	while quiet < 3:
@@ -689,11 +698,11 @@ func _on_skull_kill(monster: RuntimeMonster, slot: int) -> void:
 		CampaignIO.save_state(state)
 	var type_name := str(MonsterDisplay.find_monster(monster.folder).get("name", monster.folder))
 	var hero_name := HeroCatalog.slot_name(slot)
-	var text := "Undying Skull: %s defeated a %s for the %s time." % [hero_name, type_name, "first" if count == 1 else "second"]
+	var text := tr("Undying Skull: %s defeated a %s for the %s time.") % [hero_name, type_name, tr("first") if count == 1 else tr("second")]
 	if recipe_id == "":
 		text += " There is no recipe left to gain."
 	else:
-		text += " %s gains a unique recipe: %s." % [hero_name, RecipeData.label(RecipeData.find(recipe_id))]
+		text += tr(" %s gains a unique recipe: %s.") % [hero_name, RecipeData.label(RecipeData.find(recipe_id))]
 		if state == null:
 			text += " (Only campaigns keep recipes.)"
 	journal.add("Undying Skull", [text])
@@ -737,7 +746,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		return
 
 	if DebugSession.skipping():
-		var skipped := "%d monster(s) spawned." % spawned.size()
+		var skipped := tr("%d monster(s) spawned.") % spawned.size()
 		if not no_chip.is_empty() or not no_base.is_empty():
 			skipped += " Not spawned: %s." % ", ".join(no_chip + no_base)
 		debug_panel.toast(skipped)
@@ -748,7 +757,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	# names are story flavour and mean nothing for finding the miniature.
 	var lines: Array[String] = ["Take these monsters out of the box:"]
 	for monster in spawned:
-		lines.append("%s - %s chip" % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
+		lines.append(tr("%s - %s chip") % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
 	if brooch_line != "":
 		lines.append("\n" + brooch_line)
 	if not no_chip.is_empty():
@@ -979,8 +988,8 @@ func show_stage(group_id: String) -> void:
 			for mesh_name in counts:
 				# Floor tiles are unique pieces - no "1x" prefix.
 				lines.append(str(mesh_name) if bucket == "floor" else "%dx %s" % [counts[mesh_name], mesh_name])
-			var level_text := "Level %d - " % level if levels.size() > 1 else ""
-			pages.append("Setting up '%s'\n%s%s - place these as shown:\n%s" % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
+			var level_text := tr("Level %d - ") % level if levels.size() > 1 else ""
+			pages.append(tr("Setting up '%s'\n%s%s - place these as shown:\n%s") % [stage_name, level_text, bucket_labels[bucket], "\n".join(lines)])
 			page_keys.append({"level": level, "bucket": bucket})
 
 	if not pages.is_empty() and not DebugSession.skipping():
@@ -1002,7 +1011,7 @@ func show_stage(group_id: String) -> void:
 			layered_map.repaint_visible_entries()
 			# Outline what this page is about (floor tiles also get their name).
 			stage_highlight.show_pieces(shown, page_keys[index]["bucket"] == "floor")
-		await dialog.ask_narrative(pages, "Setting up %s" % stage_name, false, show_upto)
+		await dialog.ask_narrative(pages, tr("Setting up %s") % stage_name, false, show_upto)
 	stage_highlight.clear()
 	layered_map.held_back.clear()
 	layered_map.repaint_visible_entries()
@@ -1144,7 +1153,7 @@ func _add_bounding_box() -> void:
 	_ground_decor.append(box)
 
 	var label := Label3D.new()
-	label.text = "%d x %d tiles" % [tile_max_x - tile_min_x, tile_max_z - tile_min_z]
+	label.text = tr("%d x %d tiles") % [tile_max_x - tile_min_x, tile_max_z - tile_min_z]
 	label.modulate = Color(1, 1, 1, 0.5)
 	label.rotation_degrees.x = -90
 	label.pixel_size = 0.01
@@ -1285,11 +1294,11 @@ func _run_tactics_step() -> void:
 		return
 	var chosen: RuntimeMonster = eligible.pick_random()
 	chosen.prepared_tactic = randi() % chosen.tactics.size()
-	var hero_name := HeroCatalog.slot_name(player_roster.pick_random()) if not player_roster.is_empty() else "a hero"
+	var hero_name := HeroCatalog.slot_name(player_roster.pick_random()) if not player_roster.is_empty() else tr("a hero")
 	var hint := chosen.current_tactic().hint_text(chosen.display_name(), hero_name)
 	if hint == "":
-		hint = "%s is up to something..." % chosen.display_name()
-	await dialog.ask_ok("Tactics\n\n" + hint, true, false, "Tactics")
+		hint = tr("%s is up to something...") % chosen.display_name()
+	await dialog.ask_ok(tr("Tactics") + "\n\n" + hint, true, false, "Tactics")
 
 
 ## A monster with a prepared tactic does it instead of its normal activation: the same dialog as an attack, with the
@@ -1302,18 +1311,18 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 		return
 	var hero_name := HeroCatalog.slot_name(slot)
 	var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0)
-	var range_text := "melee" if tactic.attack_range == 0 else "range %d" % tactic.attack_range
-	var text := "%s: %s!\nTarget %s - Damage %d - %s - Speed %d" % [who, tactic.tactic_name, hero_name, damage, range_text, tactic.speed]
+	var range_text := tr("melee") if tactic.attack_range == 0 else tr("range %d") % tactic.attack_range
+	var text := tr("%s: %s!\nTarget %s - Damage %d - %s - Speed %d") % [who, tactic.tactic_name, hero_name, damage, range_text, tactic.speed]
 	var activation := tactic.activation_text(monster.display_name(), hero_name)
 	if activation != "":
 		text += "\n\n" + activation
 	var cfg := MonsterDisplay.preview_data(monster.folder)
 	cfg["text"] = text
-	if not await _show_monster_dialog(monster, cfg, who, "perform %s" % tactic.tactic_name):
+	if not await _show_monster_dialog(monster, cfg, who, tr("perform %s") % tactic.tactic_name):
 		return
-	journal.add("Monster tactic", ["%s performs %s against %s." % [who, tactic.tactic_name, hero_name]])
+	journal.add("Monster tactic", [tr("%s performs %s against %s.") % [who, tactic.tactic_name, hero_name]])
 	if tactic.has_test():
-		var passed := await dialog.ask_yes_no("Did %s pass the test?" % hero_name)
+		var passed := await dialog.ask_yes_no(tr("Did %s pass the test?") % hero_name)
 		var result := tactic.pass_text(monster.display_name(), hero_name) if passed else tactic.fail_text(monster.display_name(), hero_name)
 		if result != "":
 			await dialog.ask_ok(result, true, false, "Tactic")
@@ -1343,14 +1352,14 @@ const MAX_ATTACKS_PER_TURN := 3
 
 
 func _monster_attack(monster: RuntimeMonster) -> void:
-	var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+	var who := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 	if monster.conditions.has(MonsterCondition.Kind.CONFUSED):
 		await _monster_action(monster, who)
 		return
 	if monster.current_tactic() != null:
 		await _monster_tactic(monster, who)
 		return
-	var range_text := "melee" if monster.effective_attack_range() == 0 else "range %d%s" % [monster.effective_attack_range(), ", reach" if monster.attack_reach else ""]
+	var range_text := tr("melee") if monster.effective_attack_range() == 0 else (tr("range %d, reach") if monster.attack_reach else tr("range %d")) % monster.effective_attack_range()
 	# What the monster's activation abilities do by themselves (ActivationRules), once per activation.
 	var activation_lines := ActivationRules.start_of_activation(_runtime, monster)
 	var excluded_slot := -1  # Bloodlust: the second attack goes to another hero
@@ -1365,30 +1374,29 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		for ability in monster.attack_abilities:
 			var shown := ability.shown_text(monster.display_name(), hero_name, monster.level) if ability.game_key != "" else ability.ability_name
 			ability_lines.append(shown if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [shown, MonsterAbility.behavior_name(ability.behavior).to_lower()])
-		var text := "%s attacks %s!%s\nDamage %d - %s - Speed %d" % [who, hero_name, "  (attacks again)" if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
+		var text := tr("%s attacks %s!%s\nDamage %d - %s - Speed %d") % [who, hero_name, "  " + tr("(attacks again)") if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
 		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
-			text += "\n(Enfeebled: damage reduced from %d)" % monster.attack_power
+			text += tr("\n(Enfeebled: damage reduced from %d)") % monster.attack_power
 		if attack_number == 1 and not activation_lines.is_empty():
-			text += "
-Activation: " + "; ".join(activation_lines)
+			text += tr("\nActivation: ") + "; ".join(activation_lines)
 		if monster.next_activation_damage > 0:
-			text += "\n(+%d damage from a defense ability this activation)" % monster.next_activation_damage
+			text += tr("\n(+%d damage from a defense ability this activation)") % monster.next_activation_damage
 		if not ability_lines.is_empty():
 			text += "\n" + "\n".join(ability_lines)
 		var cfg := MonsterDisplay.preview_data(monster.folder)
 		cfg["text"] = text
-		if not await _show_monster_dialog(monster, cfg, who, "attack %s" % hero_name):
+		if not await _show_monster_dialog(monster, cfg, who, tr("attack %s") % hero_name):
 			return
-		journal.add("Monster attack", ["%s attacks %s (damage %d, %s)." % [who, hero_name, monster.effective_attack_power(), range_text]])
+		journal.add("Monster attack", [tr("%s attacks %s (damage %d, %s).") % [who, hero_name, monster.effective_attack_power(), range_text]])
 		monster.next_activation_damage = 0  # used up by this activation
 		# Bloodlust: after the attack it may attack a second hero (the table knows whether one is in reach).
 		if attack_number == 1 and ActivationRules.has_second_attack(monster) and player_roster.size() > 1:
-			if await dialog.ask_yes_no("Can %s attack a second hero?" % monster.display_name()):
+			if await dialog.ask_yes_no(tr("Can %s attack a second hero?") % monster.display_name()):
 				excluded_slot = slot
 				continue
 		# Abilities that build on the outcome need the table's feedback.
 		if monster.has_attack_behavior(MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE):
-			if await dialog.ask_yes_no("Did %s deal damage to %s?" % [monster.display_name(), hero_name]):
+			if await dialog.ask_yes_no(tr("Did %s deal damage to %s?") % [monster.display_name(), hero_name]):
 				continue
 		return
 
@@ -1400,10 +1408,10 @@ Activation: " + "; ".join(activation_lines)
 func _monster_action(monster: RuntimeMonster, who: String) -> void:
 	var action := _runtime.pick_confused_action(monster)
 	var cfg := MonsterDisplay.preview_data(monster.folder)
-	cfg["text"] = "%s is confused!\n%s\n%s" % [who, action.action_name, action.shown_text(monster)]
+	cfg["text"] = tr("%s is confused!\n%s\n%s") % [who, action.action_name, action.shown_text(monster)]
 	if not await _show_monster_dialog(monster, cfg, who, "act"):
 		return
-	journal.add("Monster action", ["%s is confused: %s." % [who, action.action_name]])
+	journal.add("Monster action", [tr("%s is confused: %s.") % [who, action.action_name]])
 
 
 ## Shows a monster's dialog (attack or action) and handles Interrupt: the players act, the
@@ -1417,10 +1425,10 @@ func _show_monster_dialog(monster: RuntimeMonster, cfg: Dictionary, who: String,
 		var wounds_before := _total_wounds()
 		await _interrupt(monster)
 		if not _runtime.monsters.has(monster):
-			journal.add("Monster attack", ["%s was defeated during an interrupt before it could %s." % [who, goal]])
+			journal.add("Monster attack", [tr("%s was defeated during an interrupt before it could %s.") % [who, goal]])
 			return false
 		if _total_wounds() > wounds_before:
-			journal.add("Monster attack", ["%s wounded a hero - its turn is over." % who])
+			journal.add("Monster attack", [tr("%s wounded a hero - its turn is over.") % who])
 			return false
 		choice = await dialog.ask_monster_attack(cfg)
 	return true
@@ -1473,11 +1481,11 @@ func _apply_affliction() -> void:
 	var lines: Array[String] = []
 	for entry in results:
 		var monster: RuntimeMonster = entry["monster"]
-		var who := "%s (%s chip)" % [monster.display_name(), MonsterChip.display_name(monster.chip)]
+		var who := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(monster.chip)]
 		if entry["defeated"]:
-			lines.append("%s takes %d affliction damage and is defeated! Remove it from the board." % [who, entry["damage"]])
+			lines.append(tr("%s takes %d affliction damage and is defeated! Remove it from the board.") % [who, entry["damage"]])
 		else:
-			lines.append("%s takes %d affliction damage (%d hitpoints left)." % [who, entry["damage"], entry["hitpoints"]])
+			lines.append(tr("%s takes %d affliction damage (%d hitpoints left).") % [who, entry["damage"], entry["hitpoints"]])
 	await dialog.ask_ok("\n\n".join(lines), true, false, "Affliction")
 
 
@@ -1533,12 +1541,12 @@ var _usable_notes: Dictionary = {}
 
 func _on_loot_collected(monster_name: String, text: String, usable_text: String) -> void:
 	if text != "":
-		journal.add("Loot", ["%s dropped: %s." % [monster_name, text]])
+		journal.add("Loot", [tr("%s dropped: %s.") % [monster_name, text]])
 		if not _loot_notes.has(monster_name):
 			_loot_notes[monster_name] = []
 		(_loot_notes[monster_name] as Array).append(text)
 	if usable_text != "":
-		journal.add("Loot", ["%s dropped something usable. %s" % [monster_name, usable_text]])
+		journal.add("Loot", [tr("%s dropped something usable. %s") % [monster_name, usable_text]])
 		if not _usable_notes.has(monster_name):
 			_usable_notes[monster_name] = []
 		(_usable_notes[monster_name] as Array).append(usable_text)
@@ -1559,7 +1567,7 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 			quiet = quiet + 1 if not dialog.visible else 0
 		var gone: RuntimeMonster = _defeat_queue.pop_front()
 		var shown_name := gone.display_name()
-		var lines: Array[String] = ["%s has been defeated." % shown_name]
+		var lines: Array[String] = [tr("%s has been defeated.") % shown_name]
 		var loot: Array = _loot_notes.get(shown_name, [])
 		_loot_notes.erase(shown_name)
 		if not loot.is_empty():
@@ -1577,9 +1585,9 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 func _wound_hero(slot: int) -> void:
 	var hero_name := HeroCatalog.slot_name(slot)
 	var is_last := _runtime.wound_count(slot) + 1 >= MissionRuntime.HERO_WOUND_LIMIT
-	var question := "%s lost all hitpoints. Wound %s?" % [hero_name, hero_name]
+	var question := tr("%s lost all hitpoints. Wound %s?") % [hero_name, hero_name]
 	if is_last:
-		question += "\n\nThis is %s's third wound - the game will be lost!" % hero_name
+		question += tr("\n\nThis is %s's third wound - the game will be lost!") % hero_name
 	if not await dialog.ask_yes_no(question):
 		return
 	await _apply_wound(slot)
@@ -1594,22 +1602,18 @@ func _apply_wound(slot: int) -> void:
 	if wounds >= MissionRuntime.HERO_WOUND_LIMIT:
 		var defeat := MissionObjective.new()
 		defeat.outcome = MissionObjective.Outcome.LOSE
-		defeat.description = "%s was wounded a third time." % hero_name
+		defeat.description = tr("%s was wounded a third time.") % hero_name
 		await _handle_game_over(defeat)
 		return
-	var wound_text := "%s is %s." % [hero_name, MissionRuntime.wound_label(wounds).to_lower()]
+	var wound_text := tr("%s is %s.") % [hero_name, MissionRuntime.wound_label(wounds).to_lower()]
 	if wounds == 1:
-		wound_text += "
-
-%s gains the \"%s\" injury: put its card in your play area." % [hero_name, _runtime.give_injury(slot)]
+		wound_text += tr("\n\n%s gains the \"%s\" injury: put its card in your play area.") % [hero_name, tr(_runtime.give_injury(slot))]
 	elif wounds == 2:
 		var injury := _runtime.injury_of(slot)
-		wound_text += "
-
-%s must flip their injury card%s to its major side." % [hero_name, " (%s)" % injury if injury != "" else ""]
+		wound_text += (tr("\n\n%s must flip their injury card (%s) to its major side.") % [hero_name, tr(injury)]) if injury != "" else (tr("\n\n%s must flip their injury card to its major side.") % hero_name)
 	if _runtime.wound_health_override > 0:
 		# Remembrance Hilt: the first hero wounded this round has this health instead.
-		wound_text += "\n\nRemembrance Hilt: set %s's health to %d instead." % [hero_name, _runtime.wound_health_override]
+		wound_text += tr("\n\nRemembrance Hilt: set %s's health to %d instead.") % [hero_name, _runtime.wound_health_override]
 		_runtime.wound_health_override = 0
 	await dialog.ask_ok(wound_text, true, false, "Wound")
 	await _horn_of_courage(slot)
@@ -1633,9 +1637,9 @@ func _horn_of_courage(wounded: int) -> void:
 		receivers.append(others.pick_random())
 	if receivers.is_empty():
 		return
-	var lines: Array[String] = ["Horn of Courage - %s was wounded." % HeroCatalog.slot_name(wounded)]
+	var lines: Array[String] = [tr("Horn of Courage - %s was wounded.") % HeroCatalog.slot_name(wounded)]
 	for receiver in receivers:
-		lines.append("%s receives a benefit: %s." % [HeroCatalog.slot_name(receiver), TrinketBenefits.pick(true)])
+		lines.append(tr("%s receives a benefit: %s.") % [HeroCatalog.slot_name(receiver), TrinketBenefits.pick(true)])
 	await dialog.ask_ok("\n\n".join(lines), true, false, "Horn of Courage")
 
 
@@ -1648,7 +1652,7 @@ func _horn_of_courage(wounded: int) -> void:
 ## that would need to wait on this finishing.
 func _handle_game_over(objective: MissionObjective) -> void:
 	end_phase_button.disabled = true
-	var outcome_text := "Victory!" if objective.outcome == MissionObjective.Outcome.WIN else "Defeat."
+	var outcome_text := tr("Victory!") if objective.outcome == MissionObjective.Outcome.WIN else tr("Defeat.")
 	await dialog.ask_ok("%s\n%s" % [outcome_text, objective.description], true, false, outcome_text.trim_suffix("!").trim_suffix("."))
 	_exit_mission({
 		"won": objective.outcome == MissionObjective.Outcome.WIN,

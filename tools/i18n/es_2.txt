@@ -1,0 +1,190 @@
+191|Campaña
+192|Campaña completada
+193|¡Campaña completada! (%s)
+194|Editor de campañas
+195|Registro de campaña
+196|¿Puede %s atacar a un segundo héroe?
+197|Cancelar
+198|Cancelar descarga
+199|Cauterización
+200|Cauteloso
+201|Centro a centro (estricto)
+202|Centro a esquina (recomendado)
+203|Capítulo
+204|El capítulo \"%s\", que ya completaste, no está en la nueva versión.
+205|El capítulo \"%s\", donde estás ahora, no está en el acto %d de la nueva versión.
+206|Comprobar si hay una versión nueva de la aplicación en el menú principal
+207|El cofre, la puerta, el árbol y el pozo usan los modelos del propio juego tras Recursos del juego > Importar. Desactivado = los objetos que vienen con la aplicación. Se aplica la próxima vez que se abra un mapa.
+208|Elige un paquete
+209|Elegir un archivo de paquete…
+210|Elige un arma
+211|Elige la carpeta donde está instalado el juego
+212|Elegir la carpeta del juego…
+213|Elige dos armas por héroe (y accesorios opcionales)
+214|Elige tu grupo
+215|Cerrar
+216|Tela
+217|Comunes
+218|Comunidad
+219|Lista de la comunidad
+220|Condiciones
+221|Condiciones (%d)
+222|Confirmar
+223|Confundido
+224|Consumibles
+225|Consumibles…
+226|Continuar
+227|Continuar esta partida
+228|Convirtiendo modelos... %s (%s)
+229|copia %s
+230|Copia esta versión de solo lectura en un borrador nuevo que puedes modificar. La versión en sí y sus partidas guardadas no cambian.
+231|Esquina a esquina (flexible, Descent 2)
+232|Coste: %s
+233|No se pudo bifurcar %s.
+234|No se pudo abrir esa partida guardada.
+235|No se pudo abrir la campaña '%s'.
+236|No se pudo iniciar la descarga de %s (error %d).
+237|No se pudo descomprimir %s (código de salida de tar %d).
+238|No se pudo descomprimir el motor de narración (código de salida de tar %d).
+239|No se pudo escribir %s (error %d).
+240|Contar como perdida
+241|Contar como ganada
+242|Creado por
+243|Créditos
+244|ballesta
+245|Aplastamiento
+246|Curiosidades
+247|Objetivo actual
+248|Daño
+249|daño %d
+250|daño +%d para siempre (ahora %d)
+251|daño -%d
+252|Tipo de daño
+253|Aturdido
+254|Derrota.
+255|Derrotado
+256|defensa %+d hasta el final de la ronda (ahora %d)
+257|defensa +%d durante este ataque
+258|defensa +%d para siempre (ahora %d)
+259|defensa -%d
+260|defensa -%d esta ronda
+261|Habilidades de defensa: %s
+262|habilidad de defensa desactivada para el próximo ataque
+263|habilidad de defensa desactivada hasta el final de la ronda
+264|Habilidad de defensa desactivada.
+265|Habilidad de defensa: %s
+266|¿Borrar la partida guardada '%s'?
+267|Borrar esta partida guardada
+268|¿Infligió %s daño a %s?
+269|¿Superó %s la prueba?
+270|¿He oído retirada? Muévete hasta {speed} casillas, lo más lejos posible de los héroes.
+271|No se activó:
+272|No he entendido un número en el rango
+273|No he entendido nada - mantén %s e inténtalo de nuevo
+274|No lo he entendido
+275|No he entendido qué opción
+276|Hecho
+277|Hecho - reinicia la aplicación para verlo todo.
+278|Hecho. La copia actualizada está en la lista.
+279|Condenado
+280|Descargar voces extra - acentos (%s)
+281|Descargar más voces - inglés neutro (%s)
+282|Descargando %s... %d MB
+283|Descargando %s... %d%% (%d / %d MB)
+284|Descargando la actualización…
+285|espadas dobles
+286|cada enemigo sufre %d de daño (activación %d)
+287|Cada jugador puede llevar %d a la misión%s. Los consumibles fabricados están disponibles de nuevo en cada misión - ninguno se gasta.
+288|Editor
+289|Activar voz
+290|Pronto desaparecerá: esta misión secundaria se pierde cuando se gane \"%s\".
+291|Debilitado
+292|Esencias
+293|Expuesto
+294|FALLÓ
+295|No se pudo cargar la misión: %s
+296|No se pudo guardar - consulta el panel de salida para más detalles.
+297|Hazañas
+298|primera
+299|Héroe fijo (%s)
+300|Da la vuelta a tu carta de héroe
+301|Losas de suelo
+302|Concentra 2 cartas
+303|Forjar
+304|Bifurcar para editar
+305|Se bifurcó %s en tu borrador \"%s\" - ábrelo en el editor de %s.
+306|Fortunos
+307|Fortunos (suerte)
+308|Frenético
+309|gratis
+310|Fuego amigo
+311|Frustrado
+312|obtiene %s
+313|Partida %04d-%02d-%02d %02d:%02d
+314|Recursos del juego
+315|Juego encontrado:\n%s
+316|Jugabilidad
+317|guantelete
+318|General
+319|Da la armadura: %s%s - %s
+320|Da la runa: %s
+321|Da la baratija: %s%s - %s
+322|Da el arma: %s%s
+323|Da: %s
+324|guantes
+325|Oro
+326|Oro: %d
+327|¿Te han dado un paquete? Elige el archivo o pega su dirección web. Ves lo que contiene y quién lo hizo antes de instalar nada.
+328|Verde
+329|Vigilar la puerta
+330|martillo
+331|Piel Endurecida
+332|Curar
+333|Curar 2
+334|Curar 4
+335|Sano
+336|Escuchar al narrador
+337|Escuchar esta voz
+338|He oído: %s
+339|Gravemente herido
+340|Manos Pesadas
+341|Corazón Pesado
+342|Hierbas
+343|modelos de héroes
+344|Voces de los héroes
+345|Héroes
+346|Vacilante
+347|Puntos de vida %d / %d
+348|Mantén %s para hablar
+349|Cuerno del Valor
+350|Cuerno del Valor - %s ha sido herido.
+351|Pasa el cursor sobre una armadura para ver sus reglas. La armadura se lleva y se resuelve en la mesa.
+352|Cómo decide la herramienta de línea de visión si dos casillas se ven. Centro a esquina: una línea desde el centro de la casilla del observador hasta cualquier esquina del objetivo.
+353|PV %d · Nivel %d
+354|Uso %s.
+355|Ignos
+356|Ignos (fuego)
+357|inmune a %s
+358|Inmune a condiciones: %s
+359|Inmune a:
+360|Inmune: %s
+361|Inmunidad: %s
+362|Importar
+363|Importación terminada, pero no todo funcionó.
+364|Importación terminada.
+365|Importar recursos del juego
+366|Importado hasta ahora: %s.
+367|Importar desde dentro de la aplicación aún no está disponible en este equipo - usa las herramientas de recursos de la página de la versión.
+368|EN DESARROLLO
+369|Dispositivo de entrada: %s
+370|Instalar
+371|Instalar y reiniciar
+372|Instalar a mano
+373|¿Instalar este paquete?
+374|Instalado
+375|Instalado \"%s\" v%s.
+376|Instalado \"%s\".
+377|Instalando…
+378|Instalando… la aplicación se cierra y se inicia sola de nuevo.
+379|Inteligencia
+380|Interrumpir

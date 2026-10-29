@@ -1,0 +1,42 @@
+# Texts built at run time (a name from a list, a capitalised key): the extractor cannot see them in the source.
+Afflicted
+Confused
+Dazed
+Doomed
+Enfeebled
+Exposed
+Yellow
+Green
+Orange
+Purple
+Bone
+Cloth
+Curios
+Herbs
+Leather
+Metal
+Minerals
+Anemos
+Aquos
+Fortunos
+Ignos
+Lumos
+Mortos
+Terros
+Toxos
+Umbros
+Vigos
+Gold
+sword
+hammer
+warhammer
+dual blades
+gauntlet
+spear
+staff
+wand
+war bell
+bow
+crossbow
+throwing knives
+gloves

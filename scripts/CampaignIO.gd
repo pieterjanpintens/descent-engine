@@ -118,7 +118,7 @@ static func load_campaign(folder: String) -> Campaign:
 	var path := "%s/%s" % [folder_path(folder), FILE_NAME]
 	if not FileAccess.file_exists(path):
 		return null
-	var loaded: Resource = ResourceLoader.load(path, "Campaign", ResourceLoader.CACHE_MODE_IGNORE)
+	var loaded: Resource = LText.load_file(path, "Campaign")
 	return loaded as Campaign
 
 
@@ -162,12 +162,12 @@ static func load_state(folder: String, key: String) -> CampaignState:
 	var path := "%s/%s.tres" % [saves_path(folder), key]
 	if not FileAccess.file_exists(path):
 		return null
-	var state := ResourceLoader.load(path, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
+	var state := LText.load_file(path, "CampaignState") as CampaignState
 	if state == null:
 		var backup := "%s/%s/%s.tres" % [saves_path(folder), BACKUP_DIR, key]
 		if FileAccess.file_exists(backup):
 			push_warning("Save %s could not be read - using its previous state." % path)
-			state = ResourceLoader.load(backup, "CampaignState", ResourceLoader.CACHE_MODE_IGNORE) as CampaignState
+			state = LText.load_file(backup, "CampaignState") as CampaignState
 	return state
 
 

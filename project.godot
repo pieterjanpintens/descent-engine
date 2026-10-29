@@ -45,6 +45,14 @@ version_control/autoload_on_startup=true
 
 import/blender/enabled=false
 
+[gui]
+
+theme/custom="res://theme/app_theme.tres"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/es.po", "res://translations/nl.po")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
@@ -54,7 +62,3 @@ import/blender/enabled=false
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
-
-[gui]
-
-theme/custom="res://theme/app_theme.tres"

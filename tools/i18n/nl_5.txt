@@ -1,0 +1,2 @@
+730|De app zelf (menu's en dialogen) wordt getoond in de eerste taal van deze lijst waarin ze is vertaald - voorlopig Engels, Spaans en Nederlands.
+731|Onofficiële app

@@ -80,9 +80,9 @@ static func list_text(ids: Array) -> String:
 static func usable_notice(ids: Array) -> String:
 	if ids.is_empty():
 		return ""
-	return "Usable in this mission: %s. Put %s in your play area to use %s. %s not added to the inventory and %s gone when the mission ends." % [
-		list_text(ids), "them" if ids.size() > 1 else "it", "them" if ids.size() > 1 else "it",
-		"They are" if ids.size() > 1 else "It is", "they are" if ids.size() > 1 else "it is"]
+	if ids.size() > 1:
+		return TranslationServer.translate("Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends.") % list_text(ids)
+	return TranslationServer.translate("Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends.") % list_text(ids)
 
 
 static func _load() -> void:

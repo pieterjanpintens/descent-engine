@@ -24,6 +24,8 @@ const CREDITS_NOTE := "An unofficial fan project, free to use (MIT license).\n*D
 const LOGO_PATH := "res://models/logo.png"
 
 var _options_dialog: VoiceSettingsDialog
+var _options_listener: VoiceListener
+var _scene_nodes: Array = []
 var _credits_panel: VBoxContainer
 var _updater: AppUpdater
 var _update_button: Button
@@ -41,10 +43,47 @@ func _ready() -> void:
 	for dir in ["user://missions", "user://saves"]:
 		if not DirAccess.dir_exists_absolute(dir):
 			DirAccess.make_dir_recursive_absolute(dir)
+	# back from a campaign game: the reading order is the player's own again
+	LText.set_preferred(PlayerSettings.preferred_languages)
+	LText.reset_editing()
+	LText.fallback_language = LText.LEGACY_LANGUAGE
+	GameState.editor_language = ""
+	_scene_nodes = get_children()
+	PlayerSettings.ui_language_changed.connect(func(): call_deferred("_rebuild_for_language"))
+	_build_all()
+	await _build_update_banner()
+
+
+func _build_all() -> void:
 	_build_menu()
 	MenuStyle.set_entry_disabled(_load_entry, not CampaignIO.has_saves())
 	_build_credits_panel()
+
+
+## The entries got their text in the language of that moment: a changed app language builds the pages again
+## (the scene's own nodes and the Options dialog, which rebuilds itself, stay).
+func _rebuild_for_language() -> void:
+	var keep: Array = _scene_nodes.duplicate()
+	if _options_dialog != null:
+		keep.append(_options_dialog)
+		keep.append(_options_listener)
+	if _updater != null:
+		keep.append(_updater)
+	for child in get_children():
+		if not keep.has(child):
+			remove_child(child)
+			child.queue_free()
+	_changelog_dialog = null
+	_update_dialog = null
+	_build_all()
+	_options_to_front()
 	await _build_update_banner()
+	_options_to_front()
+
+
+func _options_to_front() -> void:
+	if _options_dialog != null:  # the dialog stays on top of the rebuilt pages
+		move_child(_options_dialog, -1)
 
 
 ## The layout of the mockup: logo top left with the entries centred under it, the cog (Options; its Community tab holds the installed shared packages and the manual install) bottom left;
@@ -148,7 +187,7 @@ func _build_update_banner() -> void:
 	if current == "":
 		return  # a development build: no version, no update checks
 	var version := Label.new()
-	version.text = "Version %s" % current
+	version.text = tr("Version %s") % current
 	version.modulate = Color(1, 1, 1, 0.55)
 	row.add_child(version)
 	# after an update the list of changes opens once by itself (not on a fresh install)
@@ -179,7 +218,7 @@ func _show_update(result: Dictionary) -> void:
 	if not bool(result.get("ok", false)) or not bool(result.get("newer", false)):
 		return
 	_update_result = result
-	_update_button.text = "Update available: %s" % str(result["tag"])
+	_update_button.text = tr("Update available: %s") % str(result["tag"])
 	_update_button.visible = true
 
 
@@ -241,6 +280,7 @@ func _on_options_button_pressed() -> void:
 	if _options_dialog == null:
 		var listener := VoiceListener.new()  # never started: it is only asked what is installed
 		add_child(listener)
+		_options_listener = listener
 		_options_dialog = VoiceSettingsDialog.new()
 		_options_dialog.voice_listener = listener
 		_options_dialog.live = false

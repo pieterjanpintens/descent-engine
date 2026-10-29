@@ -30,7 +30,7 @@ static func value(key: String) -> int:
 
 
 static func display_name(key: String) -> String:
-	return key.capitalize()
+	return TranslationServer.translate(key.capitalize())
 
 
 static func is_common(key: String) -> bool:

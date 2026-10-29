@@ -7,8 +7,18 @@ extends Resource
 ## of the map image, like a chapter's.
 
 @export var id: String = ""
-@export var title: String = "New place"
-@export_multiline var description: String = ""
+@export var title_texts: Dictionary = {"en": "New place"}
+var title: String:
+	get:
+		return LText.pick(title_texts)
+	set(value):
+		LText.put(title_texts, value)
+@export var description_texts: Dictionary = {}
+var description: String:
+	get:
+		return LText.pick(description_texts)
+	set(value):
+		LText.put(description_texts, value)
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 ## Id of the chapter that must be won first ("" = always available).
 @export var unlocked_by_chapter: String = ""

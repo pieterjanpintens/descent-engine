@@ -60,7 +60,7 @@ static func description(kind: int) -> String:
 
 func display_name() -> String:
 	if kind == Kind.FIXED_HERO:
-		return "Fixed hero (%s)" % HeroCatalog.slot_name(hero_slot)
+		return tr("Fixed hero (%s)") % HeroCatalog.slot_name(hero_slot)
 	return kind_name(kind)
 
 

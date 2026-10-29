@@ -5,8 +5,18 @@ extends Resource
 ## branching) path from `start_chapter_id` to the act's finale(s). Winning a finale ends
 ## the act and the campaign moves on to the next act.
 
-@export var act_name: String = "New act"
-@export_multiline var intro: String = ""
+@export var act_name_texts: Dictionary = {"en": "New act"}
+var act_name: String:
+	get:
+		return LText.pick(act_name_texts)
+	set(value):
+		LText.put(act_name_texts, value)
+@export var intro_texts: Dictionary = {}
+var intro: String:
+	get:
+		return LText.pick(intro_texts)
+	set(value):
+		LText.put(intro_texts, value)
 ## File name (not a path) of the map image inside the campaign folder; "" = no map (the
 ## editor shows a plain grid).
 @export var map_image: String = ""

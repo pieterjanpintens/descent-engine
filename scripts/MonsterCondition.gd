@@ -44,4 +44,4 @@ static func all() -> Array[int]:
 
 
 static func display_name(kind: int) -> String:
-	return str(Kind.keys()[kind]).capitalize()
+	return TranslationServer.translate(str(Kind.keys()[kind]).capitalize())

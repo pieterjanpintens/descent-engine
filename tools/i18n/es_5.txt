@@ -1,0 +1,2 @@
+730|La propia aplicación (menús y diálogos) se muestra en el primer idioma de esta lista al que está traducida - de momento inglés, español y neerlandés.
+731|Aplicación no oficial

@@ -38,11 +38,11 @@ extends Resource
 
 ## One-line description for pickers, e.g. "Spear (damage 3, Pierce, reach)".
 func summary() -> String:
-	var parts: Array[String] = ["damage %d" % damage]
+	var parts: Array[String] = [tr("damage %d") % damage]
 	for kind in damage_types:
 		parts.append(Vulnerability.display_name(kind))
 	if weapon_range > 0:
-		parts.append("range %d" % weapon_range)
+		parts.append(tr("range %d") % weapon_range)
 	if reach:
 		parts.append("reach")
 	return "%s (%s)" % [weapon_name, ", ".join(parts)]

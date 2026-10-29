@@ -1,0 +1,174 @@
+561|Snee
+562|Vertraagd
+563|Momentopname
+564|Momentopname '%s' is leeg.
+565|Momentopname '%s' gemaakt (ronde %d).
+566|Momentopname geladen - ronde %d
+567|Iets met dezelfde naam staat al in de weg: %s.
+568|speer
+569|staf
+570|Starten
+571|Spel starten
+572|Stap %s: %s...
+573|Verhaalrecept
+574|Verteller:
+575|Kracht
+576|zwaard
+577|Tactiek
+578|Tactieken
+579|Dekking zoeken
+580|Aangeslagen Broche
+581|Aangeslagen Broche: %d van %d.
+582|Aangeslagen Broche: %d van %d. De Broche wordt vanaf de volgende missie ontgrendeld als zijn +-kant!
+583|Aangeslagen Broche: %s (%s-fiche) verschijnt ook. %s moet hem verslaan.
+584|Terros
+585|Terros (aarde)
+586|texturen en portretten
+587|Die map bevat het spel niet (er is geen \"bundles\"-map in gevonden).
+588|Dat is geen webadres (het moet met https:// beginnen).
+589|Die optie is niet beschikbaar
+590|De download van %s is mislukt (netwerk %d, HTTP %d).
+591|De download van %s is geen geldig zipbestand.
+592|De download van %s ontving geen gegevens meer - controleer de verbinding en probeer opnieuw.
+593|De download van %s is geannuleerd.
+594|De download van %s was beschadigd (controlesom komt niet overeen).
+595|%s wordt al gedownload.
+596|Het adres moet met https:// beginnen
+597|Het pantser dat het gezelschap bezit
+598|De maker bevestigt dat de afbeeldingen gedeeld mogen worden.
+599|De maker zei niet of de afbeeldingen gedeeld mogen worden.
+600|De campagne is voltooid - gefeliciteerd!
+601|Het cataloogadres moet met https:// beginnen
+602|Het gedownloade pakket is niet het pakket dat de lijst beloofde (%s %s in plaats van %s %s). Het is niet geïmporteerd.
+603|Het gedownloade pakket is niet het pakket dat de lijst beloofde. Het is niet geïnstalleerd.
+604|de vijand had minder dan %d gezondheid: verslagen
+605|De bestanden konden niet worden geschreven (fout %d).
+606|de eerste held die deze ronde wordt verwond heeft in plaats daarvan %d gezondheid
+607|Het spel is niet gevonden op de gebruikelijke plaatsen. Kies de map waarin het is geïnstalleerd.
+608|De importtool stopte zonder iets te importeren (afsluitcode %d).
+609|Het geïmporteerde spelmateriaal wordt geladen wanneer de app start.\n\nNu herstarten?
+610|De taal waarin dit spel wordt gelezen, gelogd en verteld. Je kunt hem niet meer wijzigen zodra het spel is begonnen.
+611|De talen die je wilt lezen, beste eerst. Een campagne of missie wordt getoond in de eerste taal waarvoor hij tekst heeft; bij het starten van een campagnespel wordt gevraagd in welke taal je het speelt.
+612|De lijst met gedeelde campagnes die het verversicoon op het scherm Nieuw spel toont. Standaard die in de descent-engine-community-repository op GitHub.
+613|De markt verkoopt materialen maar koopt ze niet.
+614|De missie ontbreekt in de campagnemap.
+615|De missie van hoofdstuk \"%s\" ontbreekt in de nieuwe versie.
+616|De nieuwe variabele \"%s\" begint met zijn standaardwaarde.
+617|De nieuwe versie heeft geen akte %d (je opgeslagen spel zit erin).
+618|De nieuwere versie kon niet worden geopend.
+619|Het oorspronkelijke opgeslagen spel wordt niet gewijzigd - je kunt er altijd naar terug.
+620|het pakket
+621|Het gezelschap heeft geen verbruiksvoorwerpen - brouw ze bij een alchemist uit drankrecepten.
+622|Het gezelschap heeft geen verbruiksvoorwerpen. Brouw ze bij een alchemist uit drankrecepten.
+623|Het gezelschap moet dit hoofdstuk opnieuw proberen.
+624|Het gezelschap bezit nog geen pantser.
+625|Het gezelschap bezit nog geen sieraden - ze worden gekocht bij een receptenwinkel of gevonden.
+626|De fase kan nu niet worden beëindigd.
+627|De drankjes die het gezelschap heeft gemaakt - beschikbaar in elke missie
+628|De controlesomlijst van de release heeft geen item voor %s.
+629|De momentopname kon niet worden opgeslagen - zie het uitvoerpaneel.
+630|De momentopname is op de bewerkte missie gezet, maar:\n-
+631|De download van de spraakmotor had geen bibliotheek voor %s.
+632|wordt aan tafel afgehandeld
+633|Het sieraad dat deze held draagt (één per held; een sieraad kan maar door één held worden gedragen)
+634|De update kon niet worden gestart.
+635|De update bevat %s niet.
+636|De bijgewerkte kopie kon niet worden opgeslagen.
+637|De variabele \"%s\" bestaat niet meer - de waarde wordt weggegooid.
+638|Deze app wordt geleverd zonder de kunst van het spel. Als je \"Descent: Legends of the Dark\" bezit, kunnen de echte afbeeldingen, figuren en spelgegevens van je eigen installatie worden gekopieerd. Er wordt niets van het spel gedownload en er verlaat niets deze computer.
+639|deze aanval kan hem geen schade doen
+640|Dit pakket is niet geïmporteerd - het is beschadigd of bevat iets wat niet is toegestaan:\n\n- %s
+641|Dit pakket is niet geïnstalleerd - het is beschadigd of bevat iets wat niet is toegestaan.
+642|Deze release heeft geen %s (of geen controlesomlijst).
+643|Dit opgeslagen spel kan niet naar v%s worden verplaatst:
+644|Dit opgeslagen spel is van versie %s van de campagne naar versie %s verplaatst.
+645|Dreiging
+646|werpmessen
+647|De tijd verstrijkt
+648|De tijd verstrijkt.\n\n
+649|Moe
+650|Te kort - houd %s ingedrukt terwijl je praat
+651|Naar de boom
+652|Toxos
+653|Toxos (verval)
+654|activatie %d (elke %de: %d schade aan elke vijand)
+655|activatie %d: %d schade aan elke vijand
+656|Sieraad
+657|Sieraad %s: %s
+658|Sieraadverbetering:
+659|Sieraad:
+660|Sieraden
+661|Umbros
+662|Umbros (schaduw)
+663|Onsterfelijke Schedel
+664|Onsterfelijke Schedel: %s versloeg een %s voor de %s keer.
+665|Onbekend
+666|Update beschikbaar: %s
+667|Bijwerken naar v%s…
+668|Verbetering - niveau %d
+669|Verbetering:
+670|Verbeterd (+). In een campagne volgt dit de verbeteringen van het gezelschap.
+671|Bruikbaar in deze missie: %s. Leg het in je speelgebied om het te gebruiken. Het wordt niet aan de inventaris toegevoegd en verdwijnt als de missie eindigt.
+672|Bruikbaar in deze missie: %s. Leg ze in je speelgebied om ze te gebruiken. Ze worden niet aan de inventaris toegevoegd en verdwijnen als de missie eindigt.
+673|De originele spelvoorwerpen in de kaart gebruiken
+674|Gebruik de verbeterde (+) kant van dit sieraad.
+675|Variabele '%s' veranderde van type - hij heeft weer zijn standaardwaarde.
+676|Variabele '%s' bestaat niet meer (hij was %s).
+677|Versie %s
+678|Versie %s is al geïnstalleerd.
+679|Versie %s is beschikbaar (je hebt %s).
+680|Versie %s van dit pakket is al uitgebracht - een release wordt nooit vervangen. Gebruik een hogere versie.
+681|Overwinning!
+682|Vigos
+683|Vigos (leven)
+684|Stem
+685|Stem -
+686|Spraakbesturing is ingesteld.
+687|Spraak is nog niet ingesteld - getypte opdrachten werken nog steeds.
+688|steminstellingen (%s)
+689|Spraakinstelling is niet beschikbaar op %s - getypte opdrachten werken nog steeds.
+690|Spraakinstelling wordt op %s nog niet ondersteund.
+691|stemmen (%s)
+692|toverstaf
+693|Rondzwerven
+694|oorlogsbel
+695|oorlogshamer
+696|zwak voor %s
+697|Zwak: %s
+698|Zwakte
+699|zwakteschade +%d
+700|Zwakte: %s
+701|wapen
+702|Wapen %d (%s)
+703|wapenschade +%d
+704|kans van wapenonderdelen +%d%%
+705|Wapens
+706|Wat is er nieuw
+707|Als een held alle levenspunten heeft verloren, druk je op Verwonden. De derde wond verliest het spel.
+708|Welk monster?
+709|Welke?
+710|Wie valt %s aan?
+711|Wie gebruikt %s?
+712|Wil
+713|Gewonnen: %s.
+714|Verwonden
+715|Verwond
+716|XP: %d  |  Goud: %d
+717|Geel
+718|Ja
+719|Je hebt al versie %s - deze wordt ernaast geïnstalleerd.
+720|Je kunt spelen
+721|Je draagt %d.
+722|Je hebt %d goud en %s.
+723|Je hebt %d goud.
+724|Je kent geen drankrecept. Recepten worden verkocht in de receptenwinkels of gevonden als buit.
+725|Je kent geen recept dat iets nieuws maakt. Recepten worden verkocht in de receptenwinkels.
+726|Je materialen:
+727|Je voortgang wordt automatisch onder deze naam opgeslagen, zodat je kunt stoppen en verdergaan waar je bleef (Spel laden in het hoofdmenu). Gebruik een andere naam voor elke groep of speelronde.
+728|▶ Hardop voorlezen
+729|☠ Verslagen
+P1| (%d voor %d speler)| (%d voor %d spelers)
+P2|+%d succes|+%d successen
+P3|verloor %d toestand, %d schade|verloor %d toestanden, %d schade
+P4|Geluksbrenger: er wordt %d extra succes aan het resultaat van %s toegevoegd.|Geluksbrenger: er worden %d extra successen aan het resultaat van %s toegevoegd.
+P5|Nieuwe zijmissie: %s|Nieuwe zijmissies: %s

@@ -99,7 +99,7 @@ func open() -> void:
 	for i in range(entries.size() - 1, -1, -1):
 		var entry: Dictionary = entries[i]
 		var btn := Button.new()
-		btn.text = "Round %d - %s" % [entry["round"], entry["title"]] if entry.has("round") else entry["title"]
+		btn.text = tr("Round %d - %s") % [entry["round"], tr(entry["title"])] if entry.has("round") else tr(entry["title"])
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.clip_text = true
 		btn.pressed.connect(_show_entry.bind(entry))

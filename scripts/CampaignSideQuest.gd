@@ -8,11 +8,26 @@ extends Resource
 ## played again. Edited in CampaignEditor.
 
 @export var id: String = ""
-@export var title: String = "New side quest"
+@export var title_texts: Dictionary = {"en": "New side quest"}
+var title: String:
+	get:
+		return LText.pick(title_texts)
+	set(value):
+		LText.put(title_texts, value)
 ## File name (not a path) of the mission inside the campaign folder; "" = none chosen yet.
 @export var mission_file: String = ""
-@export_multiline var story_before: String = ""
-@export_multiline var story_after: String = ""
+@export var story_before_texts: Dictionary = {}
+var story_before: String:
+	get:
+		return LText.pick(story_before_texts)
+	set(value):
+		LText.put(story_before_texts, value)
+@export var story_after_texts: Dictionary = {}
+var story_after: String:
+	get:
+		return LText.pick(story_after_texts)
+	set(value):
+		LText.put(story_after_texts, value)
 ## Fraction 0..1 of the map image of the act it is shown on (the act of the chapter it is linked to).
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var reward_xp: int = 0

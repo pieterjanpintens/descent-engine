@@ -48,6 +48,11 @@ extends Resource
 @export var already_used: bool = false
 
 @export var action_id: String = ""    ## short, stable id - e.g. "push"
-@export var description: String = "" ## shown to the player - e.g. "You can push this lever"
+@export var description_texts: Dictionary = {} ## shown to the player - e.g. "You can push this lever"
+var description: String:
+	get:
+		return LText.pick(description_texts)
+	set(value):
+		LText.put(description_texts, value)
 @export var conditions: Array[Condition] = []  ## implicit AND - whether this action is currently offered
 @export var effects: Array[Effect] = []

@@ -47,13 +47,13 @@ static func start_of_activation(runtime: MissionRuntime, monster: RuntimeMonster
 			else:
 				amount = maxi(floori(monster.max_hitpoints * int(rule["heal_pct_per_level"]) * monster.level / 100.0), 1)
 			var healed := runtime.heal_monster(monster, amount)
-			lines.append("recovers %d health (now %d / %d)" % [healed, monster.hitpoints, monster.max_hitpoints])
+			lines.append(TranslationServer.translate("recovers %d health (now %d / %d)") % [healed, monster.hitpoints, monster.max_hitpoints])
 		if rule.get("clear_statuses", false) and not monster.conditions.is_empty():
 			monster.conditions.clear()
 			runtime.monsters_changed.emit()
-			lines.append("all its statuses are removed")
+			lines.append(TranslationServer.translate("all its statuses are removed"))
 		if rule.has("damage_permanent"):
 			monster.attack_power += int(rule["damage_permanent"])
 			runtime.monsters_changed.emit()
-			lines.append("damage +%d for good (now %d)" % [int(rule["damage_permanent"]), monster.attack_power])
+			lines.append(TranslationServer.translate("damage +%d for good (now %d)") % [int(rule["damage_permanent"]), monster.attack_power])
 	return lines

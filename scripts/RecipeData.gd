@@ -94,15 +94,15 @@ static func card_image(card_id: String) -> Texture2D:
 static func card_label(card_id: String) -> String:
 	match card_kind(card_id):
 		"armor":
-			return "Armor: " + ArmorData.label(card_id)
+			return TranslationServer.translate("Armor: ") + ArmorData.label(card_id)
 		"consumable":
 			return ConsumableData.label(card_id)
 		"trinket":
-			return "Trinket: " + TrinketData.label(card_id)
+			return TranslationServer.translate("Trinket: ") + TrinketData.label(card_id)
 		"rune":
-			return "Rune: " + WeaponData.part_name(card_id)
+			return TranslationServer.translate("Rune: ") + WeaponData.part_name(card_id)
 		"B", "C":
-			return "%s (%s, part %s)" % [WeaponData.part_name(card_id), WeaponData.weapon_type_of_part(card_id), WeaponData.part_slot(card_id)]
+			return TranslationServer.translate("%s (%s, part %s)") % [WeaponData.part_name(card_id), WeaponData.weapon_type_of_part(card_id), WeaponData.part_slot(card_id)]
 		_:
 			return WeaponData.weapon_label(card_id)
 
@@ -110,10 +110,10 @@ static func card_label(card_id: String) -> String:
 static func label(recipe: Dictionary) -> String:
 	var card := str(recipe["card"])
 	if recipe["upgrade"] and card_kind(card) == "armor":
-		return "Armor upgrade: " + ArmorData.label(card)
+		return TranslationServer.translate("Armor upgrade: ") + ArmorData.label(card)
 	if recipe["upgrade"] and card_kind(card) == "trinket":
-		return "Trinket upgrade: " + TrinketData.label(card)
-	return ("Upgrade: " if recipe["upgrade"] else "") + card_label(card)
+		return TranslationServer.translate("Trinket upgrade: ") + TrinketData.label(card)
+	return (TranslationServer.translate("Upgrade: ") if recipe["upgrade"] else "") + card_label(card)
 
 
 ## A deliberately vague description of a recipe ("a sword recipe", "a rune upgrade") for the shop's rumour.
@@ -121,19 +121,20 @@ static func hint(recipe: Dictionary) -> String:
 	var card := str(recipe["card"])
 	var kind := card_kind(card)
 	if kind == "consumable":
-		return "a potion recipe"
+		return TranslationServer.translate("a potion recipe")
 	if kind == "trinket":
-		return "a trinket" if recipe["direct"] else "a trinket upgrade"
+		return TranslationServer.translate("a trinket") if recipe["direct"] else TranslationServer.translate("a trinket upgrade")
 	if kind == "armor":
 		var armor_class := str(ArmorData.find(card).get("armor_class", "")).to_lower()
 		if recipe["direct"]:
-			return "a shipment of %s armor" % armor_class if armor_class != "" else "a shipment of armor"
-		return "a %s armor upgrade" % armor_class if armor_class != "" else "an armor upgrade"
+			return TranslationServer.translate("a shipment of %s armor") % armor_class if armor_class != "" else TranslationServer.translate("a shipment of armor")
+		return TranslationServer.translate("a %s armor upgrade") % armor_class if armor_class != "" else TranslationServer.translate("an armor upgrade")
 	var type_name := WeaponData.weapon_type_of_part(card).to_lower()
-	var thing := "a rune" if kind == "rune" else ("a %s" % type_name if type_name != "" else "a weapon")
+	var subject := TranslationServer.translate("rune") if kind == "rune" else (TranslationServer.translate(type_name) if type_name != "" else TranslationServer.translate("weapon"))
+	var upgrade: bool = recipe["upgrade"]
 	if kind == "B" or kind == "C":
-		thing += " part"
-	return "%s %s" % [thing, "upgrade" if recipe["upgrade"] else "recipe"]
+		return (TranslationServer.translate("a %s part upgrade") if upgrade else TranslationServer.translate("a %s part recipe")) % subject
+	return (TranslationServer.translate("a %s upgrade") if upgrade else TranslationServer.translate("a %s recipe")) % subject
 
 
 static func _load() -> void:

@@ -6,8 +6,8 @@ extends Node
 ## program on this PC (`claude -p`, signed in with the author's own Claude account - no key, nothing paid per request). Add as a
 ## child of something in the tree (it awaits timers).
 ##
-## Requests are not threaded: a threaded HTTPRequest blocks cancel_request() and freeing (see Downloader), and one
-## request at a time is all the editors need.
+## Requests are not threaded: a threaded HTTPRequest blocks cancel_request() and freeing (see Downloader). One request at a
+## time per client; something that wants several at once (the translation window) uses several AiClient nodes.
 
 const API_URL := "https://api.anthropic.com/v1/messages"
 const API_VERSION := "2023-06-01"
@@ -113,7 +113,7 @@ func _ask_cli(system_prompt: String, user_prompt: String, model: String) -> Dict
 		return _failure("Claude Code isn't installed - install it with:  %s" % INSTALL_COMMAND)
 	var work := ProjectSettings.globalize_path(WORK_DIR)
 	DirAccess.make_dir_recursive_absolute(work)
-	var id := str(Time.get_ticks_usec())
+	var id := "%d_%d" % [Time.get_ticks_usec(), get_instance_id()]  # unique per client: several run at once
 	var is_windows := OS.get_name() == "Windows"
 	var base := work.path_join(id)
 	var files := {"sys": base + ".sys", "in": base + ".in", "out": base + ".out", "err": base + ".err", "code": base + ".code", "run": base + (".bat" if is_windows else ".sh")}

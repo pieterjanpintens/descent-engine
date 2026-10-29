@@ -311,8 +311,10 @@ func _open_consumables() -> void:
 	var limit := Label.new()
 	limit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	limit.custom_minimum_size.x = 500.0
-	limit.text = "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up." % [
-		consumables_per_player, " (%d for %d player%s)" % [consumables_per_player * players, players, "" if players == 1 else "s"] if players > 0 else ""]
+	var total_text := ""
+	if players > 0:
+		total_text = tr_n(" (%d for %d player)", " (%d for %d players)", players) % [consumables_per_player * players, players]
+	limit.text = tr("Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up.") % [consumables_per_player, total_text]
 	box.add_child(limit)
 	var flow := HFlowContainer.new()
 	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -458,14 +460,14 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			picker.fit_to_longest_item = false  # else the longest weapon text decides the width of the whole page
 			picker.clip_text = true
-			picker.tooltip_text = "Weapon %d (%s)" % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
+			picker.tooltip_text = tr("Weapon %d (%s)") % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
 				_add_item(picker, ("Rune: " if weapon.is_rune else "") + weapon.summary(), weapon.icon_path)
 				if weapon.is_rune:
 					var fixed_parts: Array[String] = []
 					for fixed in weapon.attachments:
 						fixed_parts.append("%s (%s)" % [fixed.attachment_name, fixed.ability_text])
-					picker.set_item_tooltip(picker.item_count - 1, "%s: %s\nFixed parts: %s" % [weapon.ability_name, weapon.ability_text, ", ".join(fixed_parts)])
+					picker.set_item_tooltip(picker.item_count - 1, tr("%s: %s\nFixed parts: %s") % [weapon.ability_name, weapon.ability_text, ", ".join(fixed_parts)])
 
 			# A weapon and its upgraded "+" side are ONE physical card: in a campaign the picker lists the card and a
 			# box flips it; outside one every version is listed and there is nothing to flip.
@@ -496,7 +498,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 				attachment_picker.fit_to_longest_item = false
 				attachment_picker.clip_text = true
 				attachment_picker.add_theme_font_size_override("font_size", 12)
-				attachment_picker.add_item("Part %s: none" % part_slot)
+				attachment_picker.add_item(tr("Part %s: none") % part_slot)
 				for option in picker_options:
 					_add_item(attachment_picker, option.summary(), option.icon_path)
 					if option.ability_text != "":

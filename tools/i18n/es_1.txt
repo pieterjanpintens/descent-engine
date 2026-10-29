@@ -1,0 +1,190 @@
+1|  (inmune)
+2|  micro [%s%s]
+3| %s consigue una receta única: %s.
+4| (%d fallidos)
+5| (activo)
+6| (primero descarga la herramienta de importación, %s)
+7| (inmune)
+8| (Solo las campañas conservan recetas.)
+9| (XP ahora %d)
+10| - aún no importado
+11| = %d de daño\nTirada de defensa: -%d\n\n%d de daño infligido
+12| No aparecen: %s.
+13| No queda ninguna receta por conseguir.
+14|%d de daño a %s
+15|%d de daño al enemigo
+16|%d de daño extra (%d%% de su salud)
+17|%d de la comunidad para instalar.
+18|%d de oro
+19|%d de oro (Brújula del Muerto)
+20|%d h %d min
+21|%d min
+22|%d monstruo(s) aparecen.
+23|%d de los objetivos actuales ya no existen.
+24|%d x %d casillas
+25|%dx %s
+26|%s  -  XP %d,  oro %d
+27|%s %d (sin filas en la tabla)
+28|%s (ficha %s)
+29|%s (%s, pieza %s)
+30|%s (copiado por %s): %s
+31|%s +%d hasta el final de la ronda
+32|%s - ficha %s
+33|¡%s - %s se activa!\n\n%s
+34|¡%s - %s se activa!\n\n%s obtiene un consumible aleatorio: %s\n\nEquípalo.
+35|¡%s - %s se activa!\n\n%s obtiene un consumible mejorado aleatorio: %s\n\nEquípalo.
+36|¡%s - %s se activa!\n\n%s\n\nComprueba si se aplica y resuélvelo en el tablero (una condición se puede aplicar desde la pantalla de monstruos).
+37|%s - %s\n¿Tiene %s alguna herida?
+38|%s - %s\n¿Cuánta fatiga hay en todas las cartas de %s?
+39|%s - %s\n¿Qué otro enemigo sufre el mismo daño? (Cancelar: ninguno)
+40|%s - comprar por %d de oro, vender por %d
+41|%s - PV %d, Niv %d, Def %d, Atq %d
+42|%s - nivel %d
+43|%s - aún no implementado.
+44|%s \"%s\" - versión %s
+45|%s ataca a %s (daño %d, %s).
+46|%s ataca a %s - elige un arma
+47|¡%s ataca a %s!%s\nDaño %d - %s - Velocidad %d
+48|%s ataca a %s.\n¿Con qué arma?
+49|%s ataca a %s\ncon %s (daño %d)\n
+50|%s ha soltado algo utilizable. %s
+51|%s ha soltado: %s.
+52|%s obtiene %s
+53|%s ha sido derrotado.
+54|%s se ha curado %d (%d puntos de vida).
+55|%s está %s.
+56|¡%s está confundido!\n%s\n%s
+57|%s está confundido: %s.
+58|%s es inmune
+59|%s tiene menos probabilidades de ser su objetivo esta ronda
+60|%s ya no está %s.
+61|%s no está en el grupo.
+62|%s está tramando algo...
+63|%s ha perdido todos sus puntos de vida. ¿Herir a %s?
+64|%s realiza %s contra %s.
+65|%s recibe un beneficio: %s.
+66|%s sufre %d de daño
+67|%s sufre %d de daño por aflicción (le quedan %d puntos de vida).
+68|¡%s sufre %d de daño por aflicción y es derrotado! Retíralo del tablero.
+69|%s recibió %d de daño (le quedan %d puntos de vida).
+70|%s recibió %d de daño y fue derrotado.
+71|%s se activa
+72|%s fue derrotado durante una interrupción antes de poder %s.
+73|%s ha sido herido por tercera vez.
+74|%s ha herido a un héroe - su turno ha terminado.
+75|El Cesto de Preparación de %s le da un consumible aleatorio:
+76|%s: ¡%s!\nObjetivo %s - Daño %d - %s - Velocidad %d
+77|%s: %s\nPiezas fijas: %s
+78|%s: defensa +%d hasta el final de la ronda
+79|%s: interactuar con '%s'
+80|%s: botín x%d (+%s)
+81|%s: necesita %d, tienes %d
+82|%s: haz una prueba de %s - ¿cuántos éxitos?
+83|%s: el enemigo no tiene botín
+84|%s: el enemigo no ha sido derrotado, no hay botín extra
+85|%s\n\nNo se ha cambiado nada. Puedes intentarlo de nuevo o descargar la actualización desde la página de la versión.
+86|%s\n\nHas elegido: %s
+87|(ataca de nuevo)
+88|(ignorado) %s
+89|(lugar sin nombre)
+90|(misión secundaria sin nombre)
+91|(tu versión)
+92|+%d de daño
+93|+%d de daño (tirada %d-%d)
+94|+%d de daño (ronda %d)
+95|Arte 2D - logotipo y fondo del menú principal
+96|[borrador]
+97|\"%s\" versión %s ya está instalada.
+98|\n%.1f MB.
+99|\n%d misión(es), %d imagen(es), %.1f MB.
+100|\n%d partida(s) guardada(s) se han apartado (user://campaign_saves/_removed), no se han borrado.
+101|\n%d éxitos x %d de daño de arma
+102|\n(+%d de daño por una habilidad de defensa en esta activación)
+103|\n(Debilitado: daño reducido desde %d)
+104|\n\n%s obtiene la lesión \"%s\": pon su carta en tu zona de juego.
+105|\n\nA %s le quedan %d puntos de vida.
+106|\n\n¡%s ha sido derrotado! Retíralo del tablero.
+107|\n\n%s debe dar la vuelta a su carta de lesión (%s) a su cara grave.
+108|\n\n%s debe dar la vuelta a su carta de lesión a su cara grave.
+109|\n\nEmpuñadura del Recuerdo: la salud de %s pasa a ser %d.
+110|\n\nLa aplicación no puede actualizarse aquí: %s. Descárgala desde la página de la versión.
+111|\n\nLa misión que estás jugando se cerrará - guárdala antes (Opciones > Guardar) o elige Más tarde.
+112|\n\n¡Esta es la tercera herida de %s - la partida se perderá!
+113|\n\nPiedra del Caminante - cada héroe puede elegir su beneficio alternativo en lugar de descartar 1 fatiga:
+114|\nActivación:
+115|\nAdemás, algunos materiales de artesanía para el grupo: %s.
+116|\nEn la mesa:
+117|\nCondiciones aplicadas: %s
+118|\nExpuesto: +%d de daño
+119|\nInmune a: %s
+120|\n¡Inmune! El ataque no causa daño.\n\n0 de daño infligido
+121|\nEn desarrollo (un borrador)
+122|\nBotín para el grupo: %s.
+123|\nNo hay casilla de aparición libre para: %s - colócalos junto a los demás.
+124|\nAún no instalada - ábrela para instalarla.
+125|\nResistencia: -%d de daño
+126|\nSe ha comprobado el paquete: solo contiene datos del juego.
+127|\nDebilidad: +%d de daño
+128|\nPiezas de arma y baratija:
+129|una mejora de armadura %s
+130|una receta de pieza de %s
+131|una mejora de pieza de %s
+132|una receta de %s
+133|una mejora de %s
+134|Una campaña
+135|un héroe
+136|una zona nueva
+137|una receta de poción
+138|Ya existe una partida guardada llamada '%s'.
+139|Una partida guardada necesita un nombre.
+140|un cargamento de armadura %s
+141|un cargamento de armadura
+142|Una misión suelta
+143|Se puede tomar una instantánea en la fase de jugadores, sin ningún diálogo abierto.
+144|una baratija
+145|una mejora de baratija
+146|¡Acto completado!
+147|Añadir idioma
+148|añade %d de daño a su próxima activación
+149|Afligido
+150|Aflicción
+151|daño de aflicción +%d esta ronda
+152|Agilidad
+153|se eliminan todos sus estados
+154|una mejora de armadura
+155|un autor desconocido
+156|Un proyecto no oficial de fans, de uso libre (licencia MIT).\n*Descent: Legends of the Dark* y todo lo relacionado con el juego pertenecen a sus propietarios.
+157|Anemos
+158|Anemos (viento)
+159|Actualización de la aplicación
+160|Aplicado:
+161|Aplicar condiciones
+162|Aquos
+163|Aquos (agua)
+164|Armadura
+165|Mejora de armadura:
+166|Armadura:
+167|Armadura…
+168|En la mesa:
+169|Ataque
+170|atacar a %s
+171|Habilidades de ataque: %s
+172|el ataque obtiene %s
+173|Disponible ahora: %s
+174|Atrás
+175|Volver al editor
+176|Volver al editor
+177|Volver al menú
+178|queda afligido
+179|Comenzar campaña
+180|Hueso
+181|Comprado
+182|arco
+183|Elaborar
+184|Cesto de Preparación
+185|Comprar
+186|Comprar  %d
+187|Comprar  %d de oro
+188|Comprar receta  %d de oro
+189|por
+190|por %s

@@ -65,7 +65,7 @@ func _run_attack(command: Dictionary) -> void:
 			return
 		monster = matches[picked]
 
-	var slot := await _pick_hero(command["hero_slot"], "Who attacks the %s?" % _monster_label(monster))
+	var slot := await _pick_hero(command["hero_slot"], tr("Who attacks the %s?") % _monster_label(monster))
 	if slot == -1:
 		return
 	# No confirmation step: the point of voice control is to avoid mouse
@@ -88,7 +88,7 @@ func _run_interact(command: Dictionary) -> void:
 			return
 		item = matches[picked]
 
-	var slot := await _pick_hero(command["hero_slot"], "Who uses the %s?" % item["label"])
+	var slot := await _pick_hero(command["hero_slot"], tr("Who uses the %s?") % item["label"])
 	if slot == -1:
 		return
 	# The prop's own picker (if it has several available actions) follows.
@@ -102,7 +102,7 @@ func _pick_hero(spoken_slot: int, question: String) -> int:
 	if spoken_slot != -1:
 		if roster.has(spoken_slot):
 			return spoken_slot
-		await dialog.ask_ok("%s is not in the party." % HeroCatalog.slot_name(spoken_slot))
+		await dialog.ask_ok(tr("%s is not in the party.") % HeroCatalog.slot_name(spoken_slot))
 		return -1
 	if roster.size() == 1:
 		return roster[0]

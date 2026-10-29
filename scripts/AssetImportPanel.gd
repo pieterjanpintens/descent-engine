@@ -83,13 +83,13 @@ func _refresh() -> void:
 	var have: Array[String] = []
 	for folder in AssetImporter.imported_folders():
 		have.append(STEP_FOLDERS.get(folder, folder))
-	_imported_label.text = "Imported so far: %s." % ", ".join(have) if not have.is_empty() else "Nothing has been imported yet - the app shows placeholders."
-	_game_label.text = "Game found:\n%s" % _bundles if _bundles != "" else "The game wasn't found in the usual places. Choose the folder it is installed in."
+	_imported_label.text = tr("Imported so far: %s.") % ", ".join(have) if not have.is_empty() else tr("Nothing has been imported yet - the app shows placeholders.")
+	_game_label.text = tr("Game found:\n%s") % _bundles if _bundles != "" else "The game wasn't found in the usual places. Choose the folder it is installed in."
 
 	var importer := AssetImporter.new()
 	var needs_download := not importer.tool_ready()
 	importer.free()
-	_import_button.text = "Import game assets" + (" (downloads the import tool first, %s)" % AssetImporter.DOWNLOAD_SIZE_TEXT if needs_download else "")
+	_import_button.text = tr("Import game assets") + (tr(" (downloads the import tool first, %s)") % AssetImporter.DOWNLOAD_SIZE_TEXT if needs_download else "")
 	_import_button.disabled = _busy or _bundles == "" or (needs_download and not AssetImporter.is_supported_platform())
 	_choose_button.disabled = _busy
 	busy_changed.emit(_busy)
@@ -117,12 +117,12 @@ func _on_import_pressed() -> void:
 	var importer_results: Dictionary = importer.results.duplicate()
 	var lines: Array[String] = []
 	for label in importer.results:
-		lines.append("%s: %s" % [label, "ok" if importer.results[label] else "FAILED"])
+		lines.append("%s: %s" % [label, tr("ok") if importer.results[label] else tr("FAILED")])
 	if importer.meshes_converted + importer.meshes_failed > 0:
-		lines.append("Models converted: %d%s" % [importer.meshes_converted, " (%d failed)" % importer.meshes_failed if importer.meshes_failed > 0 else ""])
+		lines.append(tr("Models converted: %d%s") % [importer.meshes_converted, tr(" (%d failed)") % importer.meshes_failed if importer.meshes_failed > 0 else ""])
 	if not importer.results.is_empty():
 		lines.append("")
-		lines.append("Done - restart the app to see everything." if ok else "Not everything worked. What did work is in place - restart the app to see it.")
+		lines.append(tr("Done - restart the app to see everything.") if ok else tr("Not everything worked. What did work is in place - restart the app to see it."))
 		_status_label.text = "\n".join(lines)
 	importer.queue_free()
 	_busy = false

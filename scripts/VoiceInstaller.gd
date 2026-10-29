@@ -61,7 +61,7 @@ static func load_extension() -> bool:
 ## first so a broken link fails fast. Returns true when voice can start.
 func install() -> bool:
 	if not is_supported_platform():
-		progress.emit("Voice setup isn't supported on %s yet." % OS.get_name())
+		progress.emit(tr("Voice setup isn't supported on %s yet.") % OS.get_name())
 		return false
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(MODEL_DIR))
 	if not await _fetch(vad_url, MODEL_DIR + VAD_FILE, VAD_SHA256, "voice-activity model"):
@@ -113,7 +113,7 @@ func _install_addon() -> bool:
 		var file := FileAccess.open(target, FileAccess.WRITE)
 		if file == null:
 			reader.close()
-			progress.emit("Couldn't write %s (error %d)." % [relative, FileAccess.get_open_error()])
+			progress.emit(tr("Couldn't write %s (error %d).") % [relative, FileAccess.get_open_error()])
 			return false
 		file.store_buffer(reader.read_file(entry))
 		file.close()
@@ -121,7 +121,7 @@ func _install_addon() -> bool:
 	reader.close()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(zip_path))
 	if extracted < 2:
-		progress.emit("The speech engine download had no library for %s." % OS.get_name())
+		progress.emit(tr("The speech engine download had no library for %s.") % OS.get_name())
 		return false
 	return true
 

@@ -174,7 +174,12 @@ enum MathOperator {
 ## 2026-09-19, see that field's own doc) - substituted at evaluation time
 ## by MissionRuntime._format_message(), e.g. "$1 gave you the key" with
 ## message_variables[0] == "npc_name".
-@export var message: String = ""
+@export var message_texts: Dictionary = {}
+var message: String:
+	get:
+		return LText.pick(message_texts)
+	set(value):
+		LText.put(message_texts, value)
 
 ## SHOW_MESSAGE only, optional - an ORDERED list of declared variable
 ## names `message` can reference by position: the first entry is $1, the
@@ -233,8 +238,18 @@ enum MathOperator {
 ## them in their play area. Repeats are counted.
 @export var loot_usable: Array[String] = []
 ## Heading of the popup / quest log entry ("Chest"), blank = "Loot".
-@export var loot_title: String = ""
+@export var loot_title_texts: Dictionary = {}
+var loot_title: String:
+	get:
+		return LText.pick(loot_title_texts)
+	set(value):
+		LText.put(loot_title_texts, value)
 ## A custom line shown above the list ("Under the rotten planks you find...").
-@export var loot_text: String = ""
+@export var loot_text_texts: Dictionary = {}
+var loot_text: String:
+	get:
+		return LText.pick(loot_text_texts)
+	set(value):
+		LText.put(loot_text_texts, value)
 ## Show the popup. Off = the loot is added silently.
 @export var loot_show_popup: bool = true

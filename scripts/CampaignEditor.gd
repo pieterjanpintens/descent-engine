@@ -76,11 +76,13 @@ var _act_intro_edit: TextEdit
 var _map_label: Label
 var _cover_label: Label
 var _cover_preview: TextureRect
-var _language_holder: VBoxContainer
 var _duration_spin: SpinBox
 var _cover_dialog: FileDialog
 var _problems_button: Button
 var _problems_dialog: AcceptDialog
+var _language_bar: LanguageBar
+var _languages_dialog: LanguagesDialog
+var _translation_window: TranslationWindow
 var _problems_list: VBoxContainer
 var _problem_lines: Array[String] = []
 var _materials_dialog: LootDialog
@@ -144,6 +146,12 @@ func _ready() -> void:
 	_edit_menu.add_item("Redo", EditAction.REDO, (KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_Z) as Key)
 	_edit_menu.id_pressed.connect(_on_edit_action)
 	_update_edit_menu()
+	_language_bar = LanguageBar.new()
+	_language_bar.visible = false
+	_language_bar.language_selected.connect(_on_language_selected)
+	_language_bar.manage_pressed.connect(_open_languages_dialog)
+	_language_bar.translate_pressed.connect(_open_translation_window)
+	bar.add_child(_language_bar)
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -237,9 +245,6 @@ func _ready() -> void:
 	_cover_label = _wrapped_label("")
 	_cover_label.custom_minimum_size.x = 150.0  # a wrapping label needs a width to start from
 	book_column.add_child(_cover_label)
-	general.add_child(_label("Languages:"))
-	_language_holder = VBoxContainer.new()
-	general.add_child(_language_holder)
 	var duration_row := HBoxContainer.new()
 	general.add_child(duration_row)
 	duration_row.add_child(_label("Play time (minutes):"))
@@ -469,6 +474,15 @@ func _ready() -> void:
 	problems_scroll.add_child(_problems_list)
 	_problems_dialog.add_child(problems_scroll)
 	add_child(_problems_dialog)
+	_languages_dialog = LanguagesDialog.new()
+	_languages_dialog.root_provider = func() -> Resource: return _campaign
+	_languages_dialog.commit = _commit_language_change
+	_languages_dialog.language_requested.connect(_on_language_selected)
+	add_child(_languages_dialog)
+	_translation_window = TranslationWindow.new()
+	_translation_window.root_provider = func() -> Resource: return _campaign
+	_translation_window.commit = _commit_language_change
+	add_child(_translation_window)
 
 	# The conditions of a side quest are edited with the mission editor's own condition rows, over the
 	# campaign's values.
@@ -551,6 +565,7 @@ func _on_new_confirmed() -> void:
 		return
 	_save_if_dirty()
 	var campaign := Campaign.new()
+	LText.use_for_editing(campaign.default_language, campaign.default_language)  # the name is written in the new campaign's own language
 	campaign.campaign_name = _new_name_edit.text.strip_edges()
 	campaign.acts.append(CampaignAct.new())
 	if not CampaignIO.save_campaign(campaign, key):
@@ -586,6 +601,7 @@ func _load_folder(folder: String) -> void:
 	_baseline = campaign.duplicate(true)
 	_update_edit_menu()
 	_refresh_open_list()
+	_use_language(GameState.editor_language if campaign.offered_languages().has(GameState.editor_language) else campaign.default_language)
 	_refresh_all()
 	_status_label.text = "Opened %s" % folder
 	_apply_read_only()
@@ -760,7 +776,51 @@ func _step_history(from: Array[Campaign], to: Array[Campaign]) -> void:
 	if _manuscript_window != null:
 		_manuscript_window.hide()  # and this one at the campaign that was swapped out
 	_update_edit_menu()
+	if not _campaign.offered_languages().has(LText.edit_language):
+		_use_language(_campaign.default_language)
 	_refresh_all()
+	_translation_window.refresh()
+
+
+# ---------------------------------------------------------------- languages
+
+## From now on the texts are read, shown and written in `language` (LText is static; the player started from here also uses it).
+func _use_language(language: String) -> void:
+	LText.use_for_editing(language, _campaign.default_language)
+	GameState.editor_language = language
+
+
+func _on_language_selected(language: String) -> void:
+	if _campaign == null:
+		return
+	_use_language(language)
+	_refresh_all()
+
+
+func _update_language_bar() -> void:
+	if _campaign == null:
+		return
+	var codes := TextWalker.content_languages(_campaign, TextWalker.collect(_campaign))
+	_language_bar.show_languages(codes, LText.edit_language, _campaign.default_language)
+
+
+## What the languages dialog and the translation window do to the campaign: one undo step, then everything is shown again.
+func _commit_language_change(_label_text: String, mutate: Callable) -> void:
+	if _read_only or _campaign == null:
+		return
+	mutate.call()
+	_mark_dirty()
+	_refresh_all()
+
+
+func _open_languages_dialog() -> void:
+	_languages_dialog.read_only = _read_only
+	_languages_dialog.open()
+
+
+func _open_translation_window() -> void:
+	_translation_window.read_only = _read_only
+	_translation_window.open(LText.edit_language)
 
 
 func _update_edit_menu() -> void:
@@ -1686,6 +1746,7 @@ func _refresh_all() -> void:
 	_body.visible = has_campaign
 	_welcome_label.visible = not has_campaign
 	_problems_button.visible = has_campaign
+	_language_bar.visible = has_campaign
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.SAVE), not has_campaign)
 	_file_menu.set_item_disabled(_file_menu.get_item_index(FileAction.EXPORT), not has_campaign)
 	if not has_campaign:
@@ -1695,14 +1756,7 @@ func _refresh_all() -> void:
 	_campaign_intro_edit.text = _campaign.intro
 	_sell_spin.set_value_no_signal(_campaign.sell_percent)
 	_duration_spin.set_value_no_signal(_campaign.duration_minutes)
-	for child in _language_holder.get_children():
-		_language_holder.remove_child(child)
-		child.free()
-	_language_holder.add_child(CampaignInfo.language_row(_campaign.languages, func():
-		if _suppress or _campaign == null:
-			return
-		_mark_dirty()
-	))
+	_update_language_bar()
 	_potion_spin.set_value_no_signal(_campaign.consumables_per_player)
 	_refresh_brooch_row()
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")

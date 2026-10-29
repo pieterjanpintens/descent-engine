@@ -1,0 +1,175 @@
+381|Onderbreking - de spelers handelen
+382|Inventaris
+383|Het blijft zoals het is; je kunt het gewoon op zijn eigen versie blijven spelen.
+384|Taal
+385|Talen
+386|Val het dichtstbijzijnde andere monster aan: het krijgt {damage} schade. (Druk op Onderbreken, klik dat monster aan in de monsterweergave en pas de schade toe.)
+387|Later
+388|Leer
+389|Verdwijnt na het volgende hoofdstuk!
+390|Niveau %d -
+391|Zichtlijn
+392|Zichtlijn (aan)
+393|Zichtlijnregel
+394|Luisteren... laat %s los om te verzenden
+395|Een missie-opslag laden
+396|Spel laden
+397|Zoek naar campagnes die door de community zijn gedeeld
+398|Zoeken naar gedeelde campagnes…
+399|Buit
+400|Buit voor het gezelschap:
+401|Geluksbrenger
+402|Lumos
+403|Lumos (licht)
+404|Uitval, zonder beet
+405|Bril van het Magische Zicht
+406|Bril van het Magische Zicht - %s krijgt een extra actie!
+407|Een kopie van '%s' maken op v%s?
+408|Maakt een bijgewerkte KOPIE van dit opgeslagen spel op de nieuwere versie. Het origineel blijft zoals het is.
+409|Materialen
+410|maximale gezondheid -%d (nu %d)
+411|dichtbij
+412|Bericht
+413|Metaal
+414|Mineralen
+415|Missie
+416|Missie-editor
+417|Missies en campagnes gemaakt door andere spelers. Alles wordt gecontroleerd voordat het wordt geïnstalleerd - een pakket kan alleen spelgegevens bevatten, nooit code - en elke versie wordt naast de andere geïnstalleerd, zodat niets wat je maakte of opsloeg ooit wordt overschreven.
+418|Modellen omgezet: %d%s
+419|Monster
+420|Monsteractie
+421|Monsteraanval
+422|monsterfiguren
+423|Monsterfase
+424|Monsterfase
+425|Monstertactiek
+426|Monsters verschijnen
+427|Meer dan één komt overeen - noem een nummer
+428|Mortos
+429|Mortos (dood)
+430|Camera naar de verschijningsplekken van spelers en monsters verplaatsen
+431|Beweeg tot {speed} tegels in een willekeurige richting.
+432|Beweeg tot {speed} tegels naar de dichtstbijzijnde poort en bewaak hem.
+433|Beweeg tot {speed} tegels naar de dichtstbijzijnde pilaar en verberg je erachter.
+434|Beweeg tot {speed} tegels naar de dichtstbijzijnde boom.
+435|Beweeg tot {speed} tegels naar de dichtstbijzijnde held - maar val niet aan.
+436|Verplaatst naar v%s
+437|Vertelling
+438|De vertelling is ingesteld.
+439|Vertelling is niet beschikbaar op %s.
+440|De vertelling is nog niet ingesteld - het verhaal wordt alleen als tekst getoond.
+441|Het instellen van de vertelling wordt op %s nog niet ondersteund.
+442|Nieuw spel
+443|Volgende
+444|Nee
+445|Geen %s.
+446|Geen basissjabloon voor: %s - niet verschenen (repareer de missie in de Creator).
+447|Geen kleurfiche meer voor: %s - niet verschenen.
+448|Geen beschrijving.
+449|geen vijand om schade aan te doen
+450|Geen kaartafbeelding - kies er een voor deze akte
+451|Geen recepten bekend: importeer eerst de spelgegevens (Spelmateriaal in het hoofdmenu).
+452|Er zijn nu geen recepten te koop.
+453|Nog geen recepten - ze worden gekocht bij een receptenwinkel.
+454|Nog geen opgeslagen spellen - begin er een met Nieuw spel.
+455|Nog niets - materialen komen van verslagen monsters, missies en de markt.
+456|Niet alles werkte. Wat wel werkte staat op zijn plaats - start de app opnieuw om het te zien.
+457|Let op:
+458|Hier is niets te koop.
+459|Er is nog niets geïmporteerd - de app toont plaatshouders.
+460|Er is nog niets gebeurd.
+461|Hier is nog niets. Druk op het verversicoon om te zien wat de community heeft gedeeld, of publiceer een eigen campagne in de Campagne-editor.
+462|Nog niets geïnstalleerd. Gebruik het verversicoon op het scherm Nieuw spel om gedeelde campagnes te vinden, of installeer hieronder een pakket met de hand.
+463|Niets nieuws in de communitylijst.
+464|Nog niets.
+465|Mededeling
+466|Doel
+467|Offline - de laatste communitylijst wordt getoond.
+468|ok
+469|Vraagt alleen aan GitHub welke versie de nieuwste is. Er wordt niets gedownload of geïnstalleerd zonder jouw klik.
+470|Campagnes openen
+471|Opties
+472|Of een webadres (https://…) van een pakketbestand:
+473|Oranje
+474|Overlays
+475|Onderdeel %s: geen
+476|Onderdelen (B en C)
+477|%s uitvoeren
+478|Doe een %s-proef - hoeveel successen?
+479|Kies een stem voor elke held. Hun tekst in het verhaal wordt ermee voorgelezen en niemand anders gebruikt hem.
+480|Doorboren
+481|Pilaren
+482|Plaats de monsters op de kaart zoals getoond.
+483|Plaats je spelersfiguren in het gemarkeerde gebied en bevestig dan.
+484|Spelen
+485|Missie spelen
+486|Eén missie spelen
+487|Dit hoofdstuk spelen
+488|Deze zijmissie spelen
+489|Spelersfase
+490|Spelersfase
+491|De spelers verschijnen. Plaats je fiches en speel dan.
+492|Testspel
+493|Testspel:
+494|Voorkeursdoelwitten: %s
+495|Bereid 2 kaarten voor
+496|Bereid een kaart voor
+497|Voorwerpen
+498|Paars
+499|Indrukken om te praten (houd %s ingedrukt)
+500|Queeste
+501|Queestelogboek
+502|Afsluiten
+503|Willekeurig (naar de naam)
+504|bereik %d
+505|Bereik %d
+506|bereik %d, lang
+507|Bereik %d, lang
+508|Eerder in deze taal lezen
+509|Later in deze taal lezen
+510|Het verhaal hardop voorlezen
+511|Dit hoofdstuk lezen
+512|Recept - niveau %d
+513|Recept:
+514|Recepten
+515|herstelt %d gezondheid
+516|herstelt %d gezondheid (nu %d / %d)
+517|Releasepagina
+518|Verwijderen
+519|\"%s\" versie %s van deze computer verwijderen?%s
+520|Verwijder één toestand
+521|Verwijder alle toestanden van een bepaald type
+522|Verwijder alle vermoeidheid van één kaart
+523|%s v%s verwijderd.
+524|Weerstand: %s
+525|Weerstand biedend: %s
+526|Los besmetting en terreur op. Elke held mag 1 vermoeidheid afleggen.
+527|Herstart nodig
+528|Nu herstarten
+529|De monsteraanval hervatten
+530|Terugtocht
+531|onthult zwakte voor %s
+532|Beloning:
+533|Ronde %d - %s
+534|Regelverwijzing
+535|Rune
+536|rune
+537|Rune:
+538|Runen
+539|Opslaan
+540|Opgeslagen spel
+541|Opgeslagen.
+547|tweede
+548|Verkopen  %d
+549|Vertelling instellen (downloadt %s)
+550|Spraakbesturing instellen (downloadt %s)
+551|Stel je spel in
+552|%s opzetten
+553|'%s' opzetten\n%s%s - plaats dit zoals getoond:\n%s
+554|Verschuif 1
+555|Spraaktips tonen
+556|Toont of deze kaart is verbeterd (+). Verbeteringen verdien je in de campagne.
+557|Zijmissie
+558|Zijmissie (optioneel)
+559|Zijmissie gewonnen: %s.
+560|Zijmissie: %s

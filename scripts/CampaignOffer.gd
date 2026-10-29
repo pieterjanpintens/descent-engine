@@ -6,8 +6,18 @@ extends Resource
 ## campaign; other kinds of reward can follow). `once` offers can be bought a single time.
 
 @export var id: String = ""
-@export var title: String = "New offer"
-@export_multiline var description: String = ""
+@export var title_texts: Dictionary = {"en": "New offer"}
+var title: String:
+	get:
+		return LText.pick(title_texts)
+	set(value):
+		LText.put(title_texts, value)
+@export var description_texts: Dictionary = {}
+var description: String:
+	get:
+		return LText.pick(description_texts)
+	set(value):
+		LText.put(description_texts, value)
 @export var cost_gold: int = 0
 ## Crafting materials it costs: name -> count.
 @export var cost_materials: Dictionary = {}

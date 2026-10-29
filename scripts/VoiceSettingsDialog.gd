@@ -60,7 +60,34 @@ var _close_button: Button
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP  # the modal scrim - blocks everything behind it
+	PlayerSettings.ui_language_changed.connect(_on_ui_language_changed)
+	_build()
 
+
+## The texts were put in the widgets in the language of that moment, so a changed app language builds the dialog again
+## (the tab and the visibility are kept). Deferred: the change comes from a button inside this very dialog.
+func _on_ui_language_changed() -> void:
+	call_deferred("_rebuild")
+
+
+func _rebuild() -> void:
+	var tab := 0
+	var tabs := find_children("*", "TabContainer", true, false)
+	if not tabs.is_empty():
+		tab = (tabs[0] as TabContainer).current_tab
+	var was_visible := visible
+	for child in get_children():
+		remove_child(child)
+		child.free()
+	_build()
+	tabs = find_children("*", "TabContainer", true, false)
+	if not tabs.is_empty():
+		(tabs[0] as TabContainer).current_tab = tab
+	if was_visible:
+		open()
+
+
+func _build() -> void:
 	var scrim := ColorRect.new()
 	scrim.color = Color(0, 0, 0, 0.45)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -112,6 +139,26 @@ func _ready() -> void:
 		_assets_panel = AssetImportPanel.new()
 		_assets_panel.busy_changed.connect(func(busy: bool): _close_button.disabled = busy)
 		assets.add_child(_assets_panel)
+
+	var languages_title := Label.new()
+	languages_title.text = "Languages"
+	_bold(languages_title)
+	general.add_child(languages_title)
+	var languages_hint := Label.new()
+	languages_hint.text = "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+	languages_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	languages_hint.custom_minimum_size.x = BODY_SIZE.x - 40.0  # a wrapping label with no width wraps per letter
+	languages_hint.modulate = Color(1, 1, 1, 0.75)
+	general.add_child(languages_hint)
+	var ui_hint := Label.new()
+	ui_hint.text = "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
+	ui_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	ui_hint.custom_minimum_size.x = BODY_SIZE.x - 40.0
+	ui_hint.modulate = Color(1, 1, 1, 0.75)
+	general.add_child(ui_hint)
+	var language_editor := LanguageListEditor.new()
+	general.add_child(language_editor)
+	language_editor.setup(PlayerSettings.preferred_languages, func(list: Array[String]): PlayerSettings.set_preferred_languages(list))
 
 	var gameplay_title := Label.new()
 	gameplay_title.text = "Gameplay"
@@ -276,7 +323,7 @@ func _refresh_props_check() -> void:
 		return
 	var available := OriginalPropsLibrary.is_available()
 	_props_check.disabled = not available
-	_props_check.text = "Use the original game props in the map" + ("" if available else " - not imported yet")
+	_props_check.text = tr("Use the original game props in the map") + ("" if available else tr(" - not imported yet"))
 
 
 func open() -> void:
@@ -308,7 +355,7 @@ func _refresh() -> void:
 	if current != -1:
 		_device_picker.select(current)
 
-	_mode_check.text = "Push to talk (hold %s)" % OS.get_keycode_string(VoiceListener.PTT_KEY)
+	_mode_check.text = tr("Push to talk (hold %s)") % OS.get_keycode_string(VoiceListener.PTT_KEY)
 	_mode_check.set_pressed_no_signal(voice_listener.push_to_talk if live else PlayerSettings.push_to_talk)
 
 	if available:
@@ -316,11 +363,11 @@ func _refresh() -> void:
 		_setup_status_label.text = "Voice control is set up."
 	elif not VoiceInstaller.is_supported_platform():
 		_setup_button.visible = false
-		_setup_status_label.text = "Voice setup isn't available on %s - typed commands still work." % OS.get_name()
+		_setup_status_label.text = tr("Voice setup isn't available on %s - typed commands still work.") % OS.get_name()
 	else:
 		_setup_button.visible = true
 		_setup_button.disabled = false
-		_setup_button.text = "Set up voice control (downloads %s)" % VoiceInstaller.DOWNLOAD_SIZE_TEXT
+		_setup_button.text = tr("Set up voice control (downloads %s)") % VoiceInstaller.DOWNLOAD_SIZE_TEXT
 		_setup_status_label.text = "Voice isn't set up yet - typed commands still work."
 
 
@@ -333,11 +380,11 @@ func _refresh_narration() -> void:
 		_narration_status_label.text = "Narration is set up."
 	elif not PiperInstaller.is_supported_platform():
 		_narration_setup_button.visible = false
-		_narration_status_label.text = "Narration isn't available on %s." % OS.get_name()
+		_narration_status_label.text = tr("Narration isn't available on %s.") % OS.get_name()
 	else:
 		_narration_setup_button.visible = true
 		_narration_setup_button.disabled = false
-		_narration_setup_button.text = "Set up narration (downloads %s)" % PiperInstaller.DOWNLOAD_SIZE_TEXT
+		_narration_setup_button.text = tr("Set up narration (downloads %s)") % PiperInstaller.DOWNLOAD_SIZE_TEXT
 		_narration_status_label.text = "Narration isn't set up yet - the story is shown as text only."
 	_refresh_voices(available)
 
@@ -347,10 +394,10 @@ func _refresh_voices(available: bool) -> void:
 	_storyteller_picker.get_parent().visible = available
 	_standard_button.visible = available and not NarratorVoices.standard_installed()
 	_standard_button.disabled = false
-	_standard_button.text = "Download more voices - plain English (%s)" % NarratorVoices.STANDARD_SIZE_TEXT
+	_standard_button.text = tr("Download more voices - plain English (%s)") % NarratorVoices.STANDARD_SIZE_TEXT
 	_extras_button.visible = available and not NarratorVoices.extras_installed()
 	_extras_button.disabled = false
-	_extras_button.text = "Download extra voices - accents (%s)" % NarratorVoices.EXTRAS_SIZE_TEXT
+	_extras_button.text = tr("Download extra voices - accents (%s)") % NarratorVoices.EXTRAS_SIZE_TEXT
 	_storyteller_picker.clear()
 	_voice_ids.clear()
 	for voice in NarratorVoices.installed():

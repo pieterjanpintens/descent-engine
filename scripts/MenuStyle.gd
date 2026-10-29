@@ -2,12 +2,13 @@ class_name MenuStyle
 extends RefCounted
 
 ## The look of the menus (the designer's deliverables in models/ui): Cinzel small-caps entries with the ornamental divider under each, and his
-## button art - the cog, the Collection / Install / Begin campaign buttons (the lettering is part of the picture), the title plaque, arrows.
+## button art - the cog, arrows, the blue plaque and the gold button (both empty: the captions are drawn so they can be translated).
 ## Static helpers only - MainMenu and LibraryPage build their pages with them.
 
 const FONT_PATH := "res://fonts/Cinzel.ttf"
 const DIVIDER_PATH := "res://models/ui/divider.png"
 const PLAQUE_PATH := "res://models/ui/plaque.png"  # the blue title plaque, empty
+const GOLD_BUTTON_PATH := "res://models/ui/button_gold.png"  # the gold ornamental button, empty (the caption is drawn, so it can be translated)
 const OPTIONS_PATH := "res://models/ui/options.png"
 const COLLECTION_PATH := "res://models/ui/collection.png"
 
@@ -106,8 +107,26 @@ static func texture_button(path: String, size: Vector2, on_pressed: Callable, fl
 	return button
 
 
-## A button with text on the designer's blue plaque.
-static func plaque_button(text: String, size: Vector2, on_pressed: Callable) -> Button:
+## The biggest font size (at most `max_size`) at which `text` fits in `max_width`: captions differ in length per language.
+static func fit_font_size(text: String, max_size: int, max_width: float) -> int:
+	var f := font()
+	var chosen := max_size
+	while chosen > 10 and f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, chosen).x > max_width:
+		chosen -= 1
+	return chosen
+
+
+## The designer's gold button (no lettering on the art) with `text` drawn on it, shrunk to fit.
+static func gold_button(text: String, size: Vector2, font_size: int, on_pressed: Callable) -> TextureButton:
+	var button := texture_button(GOLD_BUTTON_PATH, size, on_pressed)
+	var label := shadow_label(text, fit_font_size(text, font_size, size.x * 0.8), TEXT_COLOR)
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.add_child(label)
+	return button
+
+
+## A button with text on the designer's blue plaque (the text shrinks to fit, up to `font_size`).
+static func plaque_button(text: String, size: Vector2, on_pressed: Callable, font_size: int = 20) -> Button:
 	var button := Button.new()
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = size
@@ -121,7 +140,7 @@ static func plaque_button(text: String, size: Vector2, on_pressed: Callable) -> 
 			"disabled": style.modulate_color = Color(1, 1, 1, 0.5)
 		button.add_theme_stylebox_override(state, style)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	var label := shadow_label(text, 20, TEXT_COLOR, SHADOW_COLOR, false)
+	var label := shadow_label(text, fit_font_size(text, font_size, size.x * 0.8), TEXT_COLOR, SHADOW_COLOR, false)
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.add_child(label)
 	if on_pressed.is_valid():

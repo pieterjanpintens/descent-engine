@@ -48,6 +48,12 @@ var _working_group_ids: Array[String] = []  # parallel to _working_group_option'
 
 var _rebuild_queued: bool = false
 
+## The texts' languages: the editing language picker and the dialogs behind it (see LanguageBar / LanguagesDialog / TranslationWindow).
+var _language_bar: LanguageBar
+var _languages_dialog: LanguagesDialog
+var _translation_window: TranslationWindow
+var _bar_mission: MissionData  ## the mission the bar was last filled for: another one (load, new, undo) means the languages are read again
+
 
 func _ready() -> void:
 	# Let CreatorController's/LayeredMap's own @onready/_ready finish first -
@@ -60,6 +66,8 @@ func _ready() -> void:
 	creator_controller.working_group_changed.connect(_on_working_group_changed)
 	layered_map.mission_objects_changed.connect(_queue_working_group_option_rebuild)
 	_rebuild_working_group_option()
+	layered_map.mission_objects_changed.connect(_on_mission_maybe_replaced)
+	_sync_language()
 
 	_check_timer = Timer.new()
 	_check_timer.one_shot = true
@@ -84,6 +92,21 @@ func _build_ui() -> void:
 	_working_group_option = OptionButton.new()
 	_working_group_option.item_selected.connect(_on_working_group_option_selected)
 	add_child(_working_group_option)
+
+	_language_bar = LanguageBar.new()
+	_language_bar.language_selected.connect(_on_language_selected)
+	_language_bar.manage_pressed.connect(_open_languages_dialog)
+	_language_bar.translate_pressed.connect(_open_translation_window)
+	add_child(_language_bar)
+	_languages_dialog = LanguagesDialog.new()
+	_languages_dialog.root_provider = func() -> Resource: return layered_map.mission
+	_languages_dialog.commit = _commit_language_change
+	_languages_dialog.language_requested.connect(_on_language_selected)
+	add_child(_languages_dialog)
+	_translation_window = TranslationWindow.new()
+	_translation_window.root_provider = func() -> Resource: return layered_map.mission
+	_translation_window.commit = _commit_language_change
+	add_child(_translation_window)
 
 	# Pushes "Show unavailable" to the right - a plain expand-filling
 	# spacer, same trick used for centering rows elsewhere in this project.
@@ -110,7 +133,8 @@ func _build_ui() -> void:
 	_build_problems_dialog()
 
 	var show_unavailable_check := CheckBox.new()
-	show_unavailable_check.text = "Show unavailable (click to locate)"
+	show_unavailable_check.text = "Show unavailable"
+	show_unavailable_check.tooltip_text = "Also list the pieces that are used up (greyed out); clicking one jumps to where it is placed."
 	show_unavailable_check.button_pressed = creator_controller.show_unavailable_meshes
 	show_unavailable_check.toggled.connect(creator_controller.set_show_unavailable_meshes)
 	add_child(show_unavailable_check)
@@ -283,3 +307,65 @@ func _show_piece(piece_index: int) -> void:
 		if node.get_parent() is TabContainer:
 			(node.get_parent() as TabContainer).current_tab = node.get_index()
 		creator_outline.select_id(str(piece["node_id"]))
+
+
+# ---------------------------------------------------------------- languages
+
+func _read_only() -> bool:
+	var save_load := get_node_or_null("../MenuBar/File") as CreatorSaveLoad
+	return save_load != null and save_load.read_only
+
+
+## From now on the texts are read, shown and written in `language`.
+func _use_language(language: String) -> void:
+	LText.use_for_editing(language, layered_map.mission.default_language)
+	GameState.editor_language = language
+
+
+## A mission that was loaded, started or restored by undo is another object: its languages are read again, and the editing language must be one it has.
+func _on_mission_maybe_replaced() -> void:
+	if layered_map.mission != _bar_mission:
+		_sync_language()
+
+
+func _sync_language() -> void:
+	var mission := layered_map.mission
+	if mission == null or _language_bar == null:
+		return
+	_bar_mission = mission
+	var wanted := LText.edit_language if LText.edit_language != "" else GameState.editor_language
+	_use_language(wanted if mission.default_language == wanted or mission.languages.has(wanted) else mission.default_language)
+	_update_language_bar()
+	_translation_window.refresh()
+
+
+func _update_language_bar() -> void:
+	var mission := layered_map.mission
+	var codes := TextWalker.content_languages(mission, TextWalker.collect(mission))
+	_language_bar.show_languages(codes, LText.edit_language, mission.default_language)
+
+
+func _on_language_selected(language: String) -> void:
+	_use_language(language)
+	_update_language_bar()
+	layered_map.notify_objects_changed()  # the outline and the properties panel show the texts again
+
+
+## What the languages dialog and the translation window do to the mission: one undo step, then everything is shown again.
+func _commit_language_change(label: String, mutate: Callable) -> void:
+	if _read_only():
+		return
+	creator_controller.operation_history.record(label, mutate)
+	_bar_mission = layered_map.mission
+	layered_map.notify_objects_changed()
+	_update_language_bar()
+
+
+func _open_languages_dialog() -> void:
+	_languages_dialog.read_only = _read_only()
+	_languages_dialog.open()
+
+
+func _open_translation_window() -> void:
+	_translation_window.read_only = _read_only()
+	_translation_window.open(LText.edit_language)

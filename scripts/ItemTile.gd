@@ -51,7 +51,7 @@ static func stock_chip(key: String, count: int) -> Control:
 static func ingredient_chip(key: String, needed: int, have: int) -> Control:
 	var chip := HBoxContainer.new()
 	chip.add_theme_constant_override("separation", 2)
-	chip.tooltip_text = "%s: needs %d, you have %d" % [LootMaterials.display_name(key), needed, have]
+	chip.tooltip_text = TranslationServer.translate("%s: needs %d, you have %d") % [LootMaterials.display_name(key), needed, have]
 	var texture := ItemData.material_image(key)
 	if texture != null:
 		var rect := TextureRect.new()

@@ -252,10 +252,10 @@ func run(bundles: String) -> bool:
 	DirAccess.remove_absolute(manifest_path)
 
 	if results.is_empty():
-		progress.emit("The import tool stopped without importing anything (exit code %d)." % code)
+		progress.emit(tr("The import tool stopped without importing anything (exit code %d).") % code)
 		return false
 	var all_ok := meshes_failed == 0 and not results.values().has(false)
-	progress.emit("Import finished." if all_ok else "Import finished, but not everything worked.")
+	progress.emit(tr("Import finished.") if all_ok else tr("Import finished, but not everything worked."))
 	return all_ok
 
 
@@ -284,7 +284,7 @@ func _read_output(stdio: FileAccess, state: Dictionary) -> void:
 func _on_tool_line(line: String) -> void:
 	if line.begins_with("##STEP "):
 		var rest := line.trim_prefix("##STEP ")
-		progress.emit("Step %s: %s..." % [rest.get_slice(" ", 0), rest.substr(rest.find(" ") + 1)])
+		progress.emit(tr("Step %s: %s...") % [rest.get_slice(" ", 0), rest.substr(rest.find(" ") + 1)])
 	elif line.begins_with("##RESULT "):
 		var parts := line.trim_prefix("##RESULT ").split("|")
 		if parts.size() == 2:
@@ -300,7 +300,7 @@ func _convert_staged(kind: String, target: String) -> void:
 		for file_name in DirAccess.get_files_at(root + folder):
 			if file_name.get_extension() != "obj":
 				continue
-			progress.emit("Converting models... %s (%s)" % [folder, file_name.get_basename()])
+			progress.emit(tr("Converting models... %s (%s)") % [folder, file_name.get_basename()])
 			await get_tree().process_frame
 			var mesh := ObjMeshBuilder.build(root + folder + "/" + file_name)
 			var out_dir := target + folder

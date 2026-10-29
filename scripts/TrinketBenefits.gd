@@ -25,4 +25,4 @@ const BASIC_CHANCE := 0.75
 ## A random benefit: `advanced_only` (Horn of Courage) always comes from the advanced list, otherwise 75% basic / 25% advanced.
 static func pick(advanced_only: bool = false) -> String:
 	var pool: Array[String] = ADVANCED if advanced_only or randf() >= BASIC_CHANCE else BASIC
-	return pool.pick_random()
+	return TranslationServer.translate(pool.pick_random())

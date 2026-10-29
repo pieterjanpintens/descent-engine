@@ -97,7 +97,7 @@ func plan(weapon: Weapon, monster: RuntimeMonster, a_conditions: Array) -> Plan:
 		runtime.part_trigger_counts[base_id] = int(runtime.part_trigger_counts.get(base_id, 0)) + 1
 		var applied: Array[String] = []
 		await _apply(spec["effects"], part, parts, p, applied, 0)
-		p.lines.append("%s: %s" % [part.attachment_name, ", ".join(applied)] if not applied.is_empty() else "%s triggered" % part.attachment_name)
+		p.lines.append("%s: %s" % [part.attachment_name, ", ".join(applied)] if not applied.is_empty() else tr("%s triggered") % part.attachment_name)
 		var told_in_dialog := false
 		for e: Dictionary in spec["effects"]:
 			if str(e["type"]) == "message":
@@ -126,7 +126,7 @@ func _apply_trinket(p: Plan) -> void:
 	var no_parts: Array[WeaponAttachment] = []
 	await _apply(effects, pseudo, no_parts, p, applied, 0)
 	if not applied.is_empty():
-		p.lines.append("Trinket %s: %s" % [pseudo.attachment_name, ", ".join(applied)])
+		p.lines.append(tr("Trinket %s: %s") % [pseudo.attachment_name, ", ".join(applied)])
 
 
 static func _trinket_effects(trinket_id: String, upgraded: bool) -> Array:
@@ -162,47 +162,35 @@ func _apply(effects: Array, part: WeaponAttachment, parts: Array[WeaponAttachmen
 				# with the monster screen).
 				await _before_ask()
 				if e.has("text"):
-					await dialog.ask_ok("%s - %s triggered!
-
-%s" % [hero_name, part.attachment_name, str(e["text"]).replace("{hero}", hero_name)])
+					await dialog.ask_ok(tr("%s - %s triggered!\n\n%s") % [hero_name, part.attachment_name, str(e["text"]).replace("{hero}", hero_name)])
 				else:
-					await dialog.ask_ok("%s - %s triggered!
-
-%s
-
-Check whether it applies and carry it out on the board (a condition can be applied from the monster screen)." % [hero_name, part.attachment_name, part.ability_text])
-				applied.append("the table carries it out")
+					await dialog.ask_ok(tr("%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen).") % [hero_name, part.attachment_name, part.ability_text])
+				applied.append(tr("the table carries it out"))
 			"random_consumable":
 				var found: String = ItemData.random_consumable(bool(e.get("upgraded", false)))
 				await _before_ask()
 				if found != "":
-					await dialog.ask_ok("%s - %s triggered!
-
-%s gains a random %sconsumable: %s
-
-Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.get("upgraded", false)) else "", found])
-					applied.append("gains %s" % found)
+					await dialog.ask_ok((tr("%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it.") if bool(e.get("upgraded", false)) else tr("%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it.")) % [hero_name, part.attachment_name, hero_name, found])
+					applied.append(tr("gains %s") % found)
 				else:
-					await dialog.ask_ok("%s - %s triggered!
-
-%s" % [hero_name, part.attachment_name, part.ability_text])
+					await dialog.ask_ok(tr("%s - %s triggered!\n\n%s") % [hero_name, part.attachment_name, part.ability_text])
 					applied.append("the table picks a consumable")
 			"deactivate_defense":
 				p.monster.defense_ability_off = maxi(p.monster.defense_ability_off, int(e["n"]))
 				p.defense_off_set = true
 				if int(e["n"]) >= 2:
 					p.ability_active = false  # "until the end of the round": this attack too
-				applied.append("defense ability deactivated %s" % ("until the end of the round" if int(e["n"]) >= 2 else "for the next attack"))
+				applied.append(tr("defense ability deactivated until the end of the round") if int(e["n"]) >= 2 else tr("defense ability deactivated for the next attack"))
 			"ignore_defense_ability":
 				p.ability_active = false
 				applied.append("the defense ability is ignored in this attack")
 			"bonus_flat":
 				p.bonus_damage += int(e["n"])
-				applied.append("+%d damage" % int(e["n"]))
+				applied.append(tr("+%d damage") % int(e["n"]))
 			"bonus_roll":
 				var rolled := randi_range(int(e["min"]), int(e["max"]))
 				p.bonus_damage += rolled
-				applied.append("+%d damage (rolled %d-%d)" % [rolled, int(e["min"]), int(e["max"])])
+				applied.append(tr("+%d damage (rolled %d-%d)") % [rolled, int(e["min"]), int(e["max"])])
 			"random_damage_type":
 				var open_types: Array[int] = []
 				for kind in Vulnerability.all():
@@ -212,22 +200,22 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 					var picked: int = open_types.pick_random()
 					p.attack_types.append(picked)
 					p.extra_types.append(picked)
-					applied.append("attack gains %s" % Vulnerability.display_name(picked))
+					applied.append(tr("attack gains %s") % Vulnerability.display_name(picked))
 			"chance_bonus":
 				p.chance_bonus += float(e["pct"]) / 100.0
-				applied.append("weapon part chances +%d%%" % int(e["pct"]))
+				applied.append(tr("weapon part chances +%d%%") % int(e["pct"]))
 			"bonus_damage":
 				var round_number := int(runtime.get_variables_state().get("round_number", 1))
 				var extra := floori(round_number / float(e["round_div"]))
 				p.bonus_damage += extra
-				applied.append("+%d damage (round %d)" % [extra, round_number])
+				applied.append(tr("+%d damage (round %d)") % [extra, round_number])
 			"shadow":
 				if hero_slot >= 0 and not p.monster.shadowed_heroes.has(hero_slot):
 					p.monster.shadowed_heroes.append(hero_slot)
-				applied.append("%s is less likely to be its target this round" % hero_name)
+				applied.append(tr("%s is less likely to be its target this round") % hero_name)
 			"wound_health":
 				runtime.wound_health_override = int(e["n"])
-				applied.append("the first hero wounded this round has health %d instead" % int(e["n"]))
+				applied.append(tr("the first hero wounded this round has health %d instead") % int(e["n"]))
 			"drop_loot":
 				p.post.append({"type": "drop_loot", "n": int(e["n"]), "part": part.attachment_name})
 			"loot_times":
@@ -249,7 +237,7 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 					if not p.attack_types.has(kind):
 						p.attack_types.append(kind)
 						p.extra_types.append(kind)
-						applied.append("attack gains %s" % Vulnerability.display_name(kind))
+						applied.append(tr("attack gains %s") % Vulnerability.display_name(kind))
 			"damage":
 				await _apply_damage(e, part, p, applied)
 			"successes":
@@ -262,16 +250,16 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 					n = int(e["n"])
 				if n > 0:
 					p.extra_successes += n
-					applied.append("+%d success%s" % [n, "" if n == 1 else "es"])
+					applied.append(tr_n("+%d success", "+%d successes", n) % n)
 			"weakness_bonus":
 				p.weakness_bonus_extra += int(e["n"])
-				applied.append("weakness damage +%d" % int(e["n"]))
+				applied.append(tr("weakness damage +%d") % int(e["n"]))
 			"ignore_defense":
 				p.ignore_defense = true
 				applied.append("ignores defense")
 			"defense_round":
 				p.monster.defense_round_penalty += int(e["n"])
-				applied.append("defense -%d this round" % int(e["n"]))
+				applied.append(tr("defense -%d this round") % int(e["n"]))
 			"become_weak":
 				_become_weak(e, p, applied)
 			"max_health_to_current":
@@ -279,7 +267,7 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 				applied.append("max health = current health")
 			"affliction_bonus":
 				runtime.affliction_bonus_round += int(e["n"])
-				applied.append("affliction damage +%d this round" % int(e["n"]))
+				applied.append(tr("affliction damage +%d this round") % int(e["n"]))
 			"copy_other":
 				if depth >= 1:
 					continue
@@ -290,13 +278,13 @@ Equip it." % [hero_name, part.attachment_name, hero_name, "upgraded " if bool(e.
 				if other == null:
 					applied.append("no other part to copy")
 					continue
-				applied.append("copies %s" % other.attachment_name)
+				applied.append(tr("copies %s") % other.attachment_name)
 				if other.ability_text != "":
-					p.notes.append("%s (copied by %s): %s" % [other.attachment_name, part.attachment_name, other.ability_text])
+					p.notes.append(tr("%s (copied by %s): %s") % [other.attachment_name, part.attachment_name, other.ability_text])
 				await _apply(_spec_for(other)["effects"], other, parts, p, applied, depth + 1)
 			"direct_ask":
 				await _before_ask()
-				var amount := await dialog.ask_count("%s - %s\nHow much fatigue is on all of %s's cards?" % [hero_name, part.attachment_name, hero_name], 0, 99)
+				var amount := await dialog.ask_count(tr("%s - %s\nHow much fatigue is on all of %s's cards?") % [hero_name, part.attachment_name, hero_name], 0, 99)
 				p.post.append({"type": "direct_ask", "amount": amount, "part": part.attachment_name})
 			"same_damage_other":
 				var chosen := await _choose_other(part, p)
@@ -325,11 +313,11 @@ func _apply_damage(e: Dictionary, part: WeaponAttachment, p: Plan, applied: Arra
 		return
 	elif e.get("ask_injury", false):
 		await _before_ask()
-		var level := await dialog.ask_choice("%s - %s\nDoes %s have an injury?" % [hero_name, part.attachment_name, hero_name], ["No injury", "A minor injury", "A major injury"], [], false)
+		var level := await dialog.ask_choice(tr("%s - %s\nDoes %s have an injury?") % [hero_name, part.attachment_name, hero_name], ["No injury", "A minor injury", "A major injury"], [], false)
 		n = 1 + maxi(level, 0)
 	if n > 0:
 		p.damage_delta += n
-		applied.append("weapon damage +%d" % n)
+		applied.append(tr("weapon damage +%d") % n)
 
 
 ## An "if" of an effect: `tag`, `already` (a condition the monster has before this effect), `weak_to_attack`, or an
@@ -356,7 +344,7 @@ func _holds(cond: Dictionary, part: WeaponAttachment, p: Plan) -> bool:
 		return _weak_to_attack(p)
 	if cond.has("ask"):
 		await _before_ask()
-		return await dialog.ask_yes_no("%s - %s\nDoes %s have an injury?" % [hero_name, part.attachment_name, hero_name])
+		return await dialog.ask_yes_no(tr("%s - %s\nDoes %s have an injury?") % [hero_name, part.attachment_name, hero_name])
 	return false
 
 
@@ -370,7 +358,7 @@ func _weak_to_attack(p: Plan) -> bool:
 ## Adds `kind` to the conditions the target gets: nothing if it is immune (said so) or already has it.
 func _add_condition(p: Plan, kind: int, applied: Array[String]) -> void:
 	if p.monster.is_condition_immune(kind, 1 if p.ability_active else 0):
-		applied.append("immune to %s" % MonsterCondition.display_name(kind))
+		applied.append(tr("immune to %s") % MonsterCondition.display_name(kind))
 	elif not p.state_conditions.has(kind):
 		p.state_conditions.append(kind)
 		p.conditions.append(kind)
@@ -390,7 +378,7 @@ func _become_weak(e: Dictionary, p: Plan, applied: Array[String]) -> void:
 	for kind in kinds:
 		if not p.monster.weaknesses.has(kind):
 			p.monster.weaknesses.append(kind)
-			applied.append("weak to %s" % Vulnerability.display_name(kind))
+			applied.append(tr("weak to %s") % Vulnerability.display_name(kind))
 		if not p.monster.known_weaknesses.has(kind):
 			p.monster.known_weaknesses.append(kind)  # the ability text tells the table
 
@@ -401,11 +389,11 @@ func _choose_other(part: WeaponAttachment, p: Plan) -> RuntimeMonster:
 	for other in runtime.monsters:
 		if other != p.monster:
 			others.append(other)
-			labels.append("%s (%s chip)" % [other.display_name(), MonsterChip.display_name(other.chip)])
+			labels.append(tr("%s (%s chip)") % [other.display_name(), MonsterChip.display_name(other.chip)])
 	if others.is_empty():
 		return null
 	await _before_ask()
-	var picked := await dialog.ask_choice("%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)" % [hero_name, part.attachment_name], labels)
+	var picked := await dialog.ask_choice(tr("%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)") % [hero_name, part.attachment_name], labels)
 	return others[picked] if picked >= 0 else null
 
 
@@ -440,15 +428,13 @@ func finish(p: Plan, r: Dictionary) -> void:
 						var chain_damage := maxi(floori(target.max_hitpoints * float(e["pct"]) / 100.0), 1)
 						var chain_target: RuntimeMonster = survivors.pick_random()
 						runtime.damage_monster(chain_target, chain_damage)
-						said = "%d damage to %s" % [chain_damage, chain_target.display_name()]
+						said = tr("%d damage to %s") % [chain_damage, chain_target.display_name()]
 			"benefit":
 				# Fae Crystal: after the attack the wearer sometimes (30%) / often (50%) gains an extra benefit, reported in a popup.
 				if randf() * 100.0 < float(e["chance"]):
 					var benefit := TrinketBenefits.pick()
 					await _before_ask()
-					await dialog.ask_ok("%s - %s
-
-%s gains an extra benefit: %s." % [hero_name, part_name, hero_name, benefit], true, false, part_name)
+					await dialog.ask_ok(tr("%s - %s\n\n%s gains an extra benefit: %s.") % [hero_name, part_name, hero_name, benefit], true, false, part_name)
 					said = benefit
 			"conditions_after":
 				if _alive(target):
@@ -468,9 +454,9 @@ func finish(p: Plan, r: Dictionary) -> void:
 					target.defense = maxi(target.defense - int(e["defense"]), 0)
 					var parts: Array[String] = []
 					if int(e["damage"]) > 0:
-						parts.append("damage -%d" % int(e["damage"]))
+						parts.append(tr("damage -%d") % int(e["damage"]))
 					if int(e["defense"]) > 0:
-						parts.append("defense -%d" % int(e["defense"]))
+						parts.append(tr("defense -%d") % int(e["defense"]))
 					said = "permanently %s" % " and ".join(parts)
 					runtime.monsters_changed.emit()
 			"reveal_weakness":
@@ -483,7 +469,7 @@ func finish(p: Plan, r: Dictionary) -> void:
 				else:
 					var revealed: int = hidden.pick_random()
 					target.known_weaknesses.append(revealed)
-					said = "reveals weakness to %s" % Vulnerability.display_name(revealed)
+					said = tr("reveals weakness to %s") % Vulnerability.display_name(revealed)
 			"direct":
 				var amount: int = int(r["successes"]) if str(e["amount"]) == "successes" else int(e["amount"])
 				var hit: Array[String] = []
@@ -492,22 +478,22 @@ func finish(p: Plan, r: Dictionary) -> void:
 					if wanted:
 						runtime.damage_monster(other, amount)
 						hit.append(other.display_name())
-				said = "%d damage to %s" % [amount, ", ".join(hit)] if not hit.is_empty() else "no enemy to damage"
+				said = tr("%d damage to %s") % [amount, ", ".join(hit)] if not hit.is_empty() else tr("no enemy to damage")
 			"direct_ask":
 				if _alive(target):
 					runtime.damage_monster(target, int(e["amount"]))
-					said = "%d damage to the enemy" % int(e["amount"])
+					said = tr("%d damage to the enemy") % int(e["amount"])
 			"execute_below":
 				if _alive(target) and target.hitpoints < int(e["hp"]):
 					runtime.damage_monster(target, target.hitpoints)
-					said = "the enemy had less than %d health: defeated" % int(e["hp"])
+					said = tr("the enemy had less than %d health: defeated") % int(e["hp"])
 			"strip_statuses":
 				if _alive(target):
 					var lost := target.conditions.size()
 					target.conditions.clear()
 					if lost > 0:
 						runtime.damage_monster(target, lost * int(e["damage_per"]))
-					said = "lost %d status%s, %d damage" % [lost, "" if lost == 1 else "es", lost * int(e["damage_per"])]
+					said = tr_n("lost %d status, %d damage", "lost %d statuses, %d damage", lost) % [lost, lost * int(e["damage_per"])]
 			"spread_status":
 				if _alive(target) and not target.conditions.is_empty():
 					var others: Array[RuntimeMonster] = []
@@ -525,12 +511,12 @@ func finish(p: Plan, r: Dictionary) -> void:
 						for kind in given:
 							if runtime.add_condition(receiver, kind):
 								given_names.append(MonsterCondition.display_name(kind))
-						said = "%s gains %s" % [receiver.display_name(), ", ".join(given_names)] if not given_names.is_empty() else "%s is immune" % receiver.display_name()
+						said = tr("%s gains %s") % [receiver.display_name(), ", ".join(given_names)] if not given_names.is_empty() else tr("%s is immune") % receiver.display_name()
 			"same_damage_other":
 				var chosen: RuntimeMonster = e["chosen"]
 				if chosen != null and _alive(chosen):
 					runtime.damage_monster(chosen, int(r["dealt"]))
-					said = "%s suffers %d damage" % [chosen.display_name(), int(r["dealt"])]
+					said = tr("%s suffers %d damage") % [chosen.display_name(), int(r["dealt"])]
 					if _alive(chosen) and not e["then"].is_empty():
 						said += ", " + _add_to_monster(chosen, e["then"]).to_lower()
 			"drop_loot":
@@ -543,7 +529,7 @@ func finish(p: Plan, r: Dictionary) -> void:
 				var times := int(runtime.part_trigger_counts.get(str(e["base_id"]), 0))
 				for other in runtime.monsters.duplicate():
 					runtime.damage_monster(other, times)
-				said = "each enemy suffers %d damage (trigger %d)" % [times, times]
+				said = tr("each enemy suffers %d damage (trigger %d)") % [times, times]
 			"damage_half":
 				var pool: Array[RuntimeMonster] = []
 				for other in runtime.monsters:
@@ -555,40 +541,40 @@ func finish(p: Plan, r: Dictionary) -> void:
 					names.append(pool[i].display_name())
 					runtime.damage_monster(pool[i], int(e["n"]))
 				if not names.is_empty():
-					said = "%d damage to %s" % [int(e["n"]), ", ".join(names)]
+					said = tr("%d damage to %s") % [int(e["n"]), ", ".join(names)]
 			"pct_health_damage":
 				if _alive(target):
 					var amount := floori(target.hitpoints * float(e["pct"]) / 100.0)
 					runtime.damage_monster(target, amount)
-					said = "%d extra damage (%d%% of its health)" % [amount, int(e["pct"])]
+					said = tr("%d extra damage (%d%% of its health)") % [amount, int(e["pct"])]
 			"max_health_pct":
 				if _alive(target):
 					var cut := ceili(target.max_hitpoints * float(e["pct"]) / 100.0)
 					target.max_hitpoints = maxi(target.max_hitpoints - cut, 1)
 					target.hitpoints = mini(target.hitpoints, target.max_hitpoints)
 					runtime.monsters_changed.emit()
-					said = "maximum health -%d (now %d)" % [cut, target.max_hitpoints]
+					said = tr("maximum health -%d (now %d)") % [cut, target.max_hitpoints]
 			"counter":
 				var count := int(runtime.part_trigger_counts.get(str(e["base_id"]), 0))
 				if int(e["every"]) > 0 and count % int(e["every"]) == 0:
 					for other in runtime.monsters.duplicate():
 						runtime.damage_monster(other, int(e["damage_all"]))
-					said = "trigger %d: %d damage to every enemy" % [count, int(e["damage_all"])]
+					said = tr("trigger %d: %d damage to every enemy") % [count, int(e["damage_all"])]
 				else:
-					said = "trigger %d (every %dth: %d damage to every enemy)" % [count, int(e["every"]), int(e["damage_all"])]
+					said = tr("trigger %d (every %dth: %d damage to every enemy)") % [count, int(e["every"]), int(e["damage_all"])]
 		if said != "":
 			p.lines.append("%s: %s" % [part_name, said])
 	for e in loot_times:
 		if _alive(target):
-			p.lines.append("%s: the enemy is not defeated, no extra loot" % str(e["part"]))
+			p.lines.append(tr("%s: the enemy is not defeated, no extra loot") % str(e["part"]))
 		else:
 			var extra := runtime.multiply_loot(target, int(e["n"]))
-			p.lines.append("%s: loot x%d (+%s)" % [str(e["part"]), int(e["n"]), extra] if extra != "" else "%s: the enemy has no loot" % str(e["part"]))
+			p.lines.append(tr("%s: loot x%d (+%s)") % [str(e["part"]), int(e["n"]), extra] if extra != "" else tr("%s: the enemy has no loot") % str(e["part"]))
 	r["hitpoints"] = target.hitpoints
 	r["defeated"] = target.hitpoints <= 0
 	var defense_lines: Array[String] = []
 	for line in r.get("defense_lines", []):
-		defense_lines.append("Defense ability: %s" % str(line))
+		defense_lines.append(tr("Defense ability: %s") % str(line))
 	r["part_lines"] = defense_lines + p.lines
 	r["part_notes"] = p.notes
 	r["parts_not_triggered"] = p.not_triggered

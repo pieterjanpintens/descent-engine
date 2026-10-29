@@ -4,9 +4,9 @@ extends Control
 ## The page between "Begin campaign" and the first chapter: everything that is chosen once per game. Full screen, in the style of the begin campaign page
 ## (the designer's detail background, back arrow, shadowed title, the plaque button). It has a SECTION per setting, so more can be added later
 ## (difficulty is the obvious next one): a section is `_section(column, title, width, hint)` plus its controls, in the left or the right column, and whatever it chooses goes into `confirmed`.
-## Now: the name of the save game, and - only when narration is installed - the voice of each hero.
+## Now: the language (chosen here and fixed for the whole game), the name of the save game, and - only when narration is installed - the voice of each hero.
 
-signal confirmed(save_name: String, hero_voices: Dictionary)
+signal confirmed(save_name: String, hero_voices: Dictionary, language: String)
 signal cancelled
 
 const BACKGROUND := "res://models/ui/bg_detail.jpg"
@@ -14,6 +14,7 @@ const BACK_ARROW := "res://models/ui/back_arrow.png"
 const LEFT_WIDTH := 440.0   ## the first column (save game name, later more settings)
 const RIGHT_WIDTH := 580.0  ## the second column (hero voices)
 
+var _language: String = "en"
 var _name_taken: Callable  ## (name: String) -> bool, supplied by the player: a save game with that name exists
 var _name_edit: LineEdit
 var _name_message: Label
@@ -21,9 +22,11 @@ var _start_button: Button
 var _picker: HeroVoicesPicker
 
 
-## `campaign_name` for the title, `suggestion` the prefilled save game name, `name_taken` tells whether a name is already used.
-func setup(campaign_name: String, suggestion: String, name_taken: Callable) -> void:
+## `campaign_name` for the title, `suggestion` the prefilled save game name, `name_taken` tells whether a name is already used,
+## `languages` the languages the campaign can be played in and `start_language` the one to start with.
+func setup(campaign_name: String, suggestion: String, name_taken: Callable, languages: Array[String] = ["en"], start_language: String = "en") -> void:
 	_name_taken = name_taken
+	_language = start_language if languages.has(start_language) else languages[0]
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var backdrop := TextureRect.new()
 	backdrop.texture = load(BACKGROUND) as Texture2D
@@ -68,6 +71,22 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable) -> v
 	center.add_child(columns)
 	var column := _new_column(LEFT_WIDTH)
 	columns.add_child(column)
+
+	# ---- Language: said clearly here because it cannot be changed once the game has started ----
+	_section(column, "Language", LEFT_WIDTH, "The language this game is read, logged and narrated in. You cannot change it once the game has started.")
+	if languages.size() > 1:
+		var picker := OptionButton.new()
+		for code in languages:
+			picker.add_item(CampaignInfo.native_name(code))
+			picker.set_item_metadata(picker.item_count - 1, code)
+			if code == _language:
+				picker.select(picker.item_count - 1)
+		picker.item_selected.connect(func(index: int): _language = str(picker.get_item_metadata(index)))
+		column.add_child(picker)
+	else:
+		var only := Label.new()
+		only.text = CampaignInfo.native_name(_language)
+		column.add_child(only)
 
 	# ---- Save game name ----
 	_section(column, "Save game", LEFT_WIDTH, "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough.")
@@ -130,7 +149,7 @@ func _check_name() -> void:
 	if entered == "":
 		problem = "A save game needs a name."
 	elif _name_taken.call(entered):
-		problem = "A save game called '%s' already exists." % entered
+		problem = tr("A save game called '%s' already exists.") % entered
 	_name_message.text = problem
 	_start_button.disabled = problem != ""
 	_start_button.modulate = Color(1, 1, 1, 0.5) if problem != "" else Color.WHITE
@@ -140,4 +159,4 @@ func _on_start_pressed() -> void:
 	_check_name()
 	if _start_button.disabled:
 		return
-	confirmed.emit(_name_edit.text.strip_edges(), _picker.answer() if _picker != null else {})
+	confirmed.emit(_name_edit.text.strip_edges(), _picker.answer() if _picker != null else {}, _language)

@@ -83,7 +83,7 @@ static func is_installed() -> bool:
 ## fails fast. Returns true when narration can start.
 func install() -> bool:
 	if not is_supported_platform():
-		progress.emit("Narration setup isn't supported on %s yet." % OS.get_name())
+		progress.emit(tr("Narration setup isn't supported on %s yet.") % OS.get_name())
 		return false
 	if needs_rosetta():
 		progress.emit("Narration needs Rosetta on this Mac: run 'softwareupdate --install-rosetta' in Terminal, then try again.")
@@ -116,7 +116,7 @@ func install_standard() -> bool:
 
 func _install_models(paths: Dictionary, done_text: String) -> bool:
 	if not is_supported_platform():
-		progress.emit("Narration setup isn't supported on %s yet." % OS.get_name())
+		progress.emit(tr("Narration setup isn't supported on %s yet.") % OS.get_name())
 		return false
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(NarratorVoices.VOICE_DIR))
 	for model in paths:
@@ -124,9 +124,9 @@ func _install_models(paths: Dictionary, done_text: String) -> bool:
 			continue
 		var url: String = extras_base_url + paths[model] + "/" + model
 		var target: String = NarratorVoices.VOICE_DIR + model
-		if not await _fetch(url + ".onnx.json", target + ".onnx.json", "", "voice settings (%s)" % model):
+		if not await _fetch(url + ".onnx.json", target + ".onnx.json", "", tr("voice settings (%s)") % model):
 			return false
-		if not await _fetch(url + ".onnx", target + ".onnx", "", "voices (%s)" % model):
+		if not await _fetch(url + ".onnx", target + ".onnx", "", tr("voices (%s)") % model):
 			return false
 	progress.emit(done_text)
 	return true
@@ -177,7 +177,7 @@ func _unpack_zip(archive: String) -> bool:
 		var file := FileAccess.open(target, FileAccess.WRITE)
 		if file == null:
 			reader.close()
-			progress.emit("Couldn't write %s (error %d)." % [entry, FileAccess.get_open_error()])
+			progress.emit(tr("Couldn't write %s (error %d).") % [entry, FileAccess.get_open_error()])
 			return false
 		file.store_buffer(reader.read_file(entry))
 		file.close()
@@ -194,6 +194,6 @@ func _unpack_tar(archive: String, into: String, extra: Array = []) -> bool:
 	var output: Array = []
 	var code := OS.execute("tar", arguments, output, true)
 	if code != 0:
-		progress.emit("Couldn't unpack the narration engine (tar exit code %d)." % code)
+		progress.emit(tr("Couldn't unpack the narration engine (tar exit code %d).") % code)
 		return false
 	return true

@@ -1,0 +1,68 @@
+# The scripts whose text is shown to players (the editors, AI help, debug tools and the import tools stay English).
+# One script name (without .gd) per line. tools/i18n/extract.py reads exactly these.
+MainMenu
+LibraryPage
+CampaignCard
+CampaignSetupPage
+LoadPage
+SaveRow
+CampaignPlayer
+CampaignHud
+CampaignState tr
+CampaignMapView
+InventoryDialog
+LogDialog
+HeroesDialog
+PhaseBanner
+PlayerHud
+MissionPlayer
+MissionRuntime
+PlayerDialog
+PlayerInteractionController
+PlayerCommandRunner
+EmbarkDialog
+CombatView
+MonsterManageDialog
+MonsterDisplay tr
+InteractionLabels
+LineOfSightMode
+VoiceSettingsDialog
+VoiceListener tr
+LanguageListEditor
+UpdateDialog
+AppUpdater tr
+CommunityPanel
+CommunityLibrary tr
+CommunityService tr
+AssetImportPanel
+AssetImporter tr
+HeroVoicesPicker
+HeroVoicesDialog
+ItemTile tr
+MonsterCondition tr
+Vulnerability
+PlayerAttribute
+Injuries
+TrinketBenefits
+PartEffectRunner tr
+DefenseRules tr
+ActivationRules tr
+RecipeData tr
+ArmorData tr
+TrinketData tr
+ConsumableData tr
+ItemData tr
+LootMaterials tr
+MonsterTemplate tr
+MonsterAction tr
+MonsterTactic tr
+MonsterAbility tr
+TargetRule tr
+SaveUpdater tr
+Weapon tr
+WeaponAttachment tr
+Downloader tr
+VoiceInstaller tr
+PiperInstaller tr
+Narrator tr
+CampaignInfo tr

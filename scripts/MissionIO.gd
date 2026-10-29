@@ -33,7 +33,7 @@ static func load_mission(path: String) -> MissionData:
 		push_error("Mission file not found: %s" % path)
 		return null
 
-	var loaded: Resource = ResourceLoader.load(path, "MissionData", ResourceLoader.CACHE_MODE_IGNORE)
+	var loaded: Resource = LText.load_file(path, "MissionData")
 	if loaded == null or not (loaded is MissionData):
 		push_error("Failed to load a valid MissionData from %s" % path)
 		return null
@@ -69,7 +69,7 @@ static func load_game(path: String) -> SaveGame:
 		push_error("Save file not found: %s" % path)
 		return null
 
-	var loaded: Resource = ResourceLoader.load(path, "SaveGame", ResourceLoader.CACHE_MODE_IGNORE)
+	var loaded: Resource = LText.load_file(path, "SaveGame")
 	if loaded == null or not (loaded is SaveGame):
 		push_error("Failed to load a valid SaveGame from %s" % path)
 		return null
