@@ -1815,9 +1815,6 @@ msgstr "La herramienta de importación se detuvo sin importar nada (código de s
 msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
 msgstr "Los recursos importados del juego se cargan al iniciar la aplicación.\n\n¿Reiniciar ahora?"
 
-msgid "The language this game is read, logged and narrated in. You cannot change it once the game has started."
-msgstr "El idioma en el que se lee, registra y narra esta partida. No se puede cambiar una vez empezada la partida."
-
 msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
 msgstr "Los idiomas que quieres leer, el mejor primero. Una campaña o misión se muestra en el primero del que tenga texto; al empezar una partida de campaña se pregunta en qué idioma jugarla."
 
@@ -2198,6 +2195,18 @@ msgstr "El final"
 
 msgid "The story begins."
 msgstr "Comienza la historia."
+
+msgid "Current Objective:"
+msgstr "Objetivo actual:"
+
+msgid "Language of this game"
+msgstr "Idioma de esta partida"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "El idioma en el que se lee, registra y narra esta partida. Puedes cambiarlo más tarde en Opciones."
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "La historia, el registro y los términos propios del juego se muestran en este idioma. Los menús y botones de la aplicación siguen la lista de abajo."
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

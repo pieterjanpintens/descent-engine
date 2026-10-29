@@ -1815,9 +1815,6 @@ msgstr "De importtool stopte zonder iets te importeren (afsluitcode %d)."
 msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
 msgstr "Het geïmporteerde spelmateriaal wordt geladen wanneer de app start.\n\nNu herstarten?"
 
-msgid "The language this game is read, logged and narrated in. You cannot change it once the game has started."
-msgstr "De taal waarin dit spel wordt gelezen, gelogd en verteld. Je kunt hem niet meer wijzigen zodra het spel is begonnen."
-
 msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
 msgstr "De talen die je wilt lezen, beste eerst. Een campagne of missie wordt getoond in de eerste taal waarvoor hij tekst heeft; bij het starten van een campagnespel wordt gevraagd in welke taal je het speelt."
 
@@ -2198,6 +2195,18 @@ msgstr "Het einde"
 
 msgid "The story begins."
 msgstr "Het verhaal begint."
+
+msgid "Current Objective:"
+msgstr "Huidig doel:"
+
+msgid "Language of this game"
+msgstr "Taal van dit spel"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "De taal waarin dit spel wordt gelezen, gelogd en verteld. Je kunt hem later wijzigen in Opties."
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "Het verhaal, het logboek en de eigen termen van het spel worden in deze taal getoond. De menu's en knoppen van de app volgen de lijst hieronder."
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

@@ -56,6 +56,14 @@ var _assets_panel: AssetImportPanel
 var _props_check: CheckBox
 var _close_button: Button
 
+## The game being played has several languages (its texts, log and game terms are read in one of them): the owner of the dialog sets
+## these before open() and the General tab then offers "Language of this game". `game_language_changed(code)` is called when another is picked.
+var game_languages: Array[String] = []
+var game_language: String = ""
+var game_language_changed: Callable
+var _game_language_box: VBoxContainer
+var _game_language_picker: OptionButton
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -139,6 +147,28 @@ func _build() -> void:
 		_assets_panel = AssetImportPanel.new()
 		_assets_panel.busy_changed.connect(func(busy: bool): _close_button.disabled = busy)
 		assets.add_child(_assets_panel)
+
+	_game_language_box = VBoxContainer.new()
+	general.add_child(_game_language_box)
+	var game_title := Label.new()
+	game_title.text = "Language of this game"
+	_bold(game_title)
+	_game_language_box.add_child(game_title)
+	var game_hint := Label.new()
+	game_hint.text = "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+	game_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	game_hint.custom_minimum_size.x = BODY_SIZE.x - 40.0
+	game_hint.modulate = Color(1, 1, 1, 0.75)
+	_game_language_box.add_child(game_hint)
+	_game_language_picker = OptionButton.new()
+	_game_language_picker.item_selected.connect(func(index: int):
+		var code := str(_game_language_picker.get_item_metadata(index))
+		if code != game_language and game_language_changed.is_valid():
+			game_language = code
+			game_language_changed.call(code))
+	_game_language_box.add_child(_game_language_picker)
+	_game_language_box.add_child(HSeparator.new())
+	_refresh_game_language()
 
 	var languages_title := Label.new()
 	languages_title.text = "Languages"
@@ -326,7 +356,19 @@ func _refresh_props_check() -> void:
 	_props_check.text = tr("Use the original game props in the map") + ("" if available else tr(" - not imported yet"))
 
 
+## The picker of the game's language: only there when the game has several, showing the current one.
+func _refresh_game_language() -> void:
+	_game_language_box.visible = game_languages.size() > 1
+	_game_language_picker.clear()
+	for code in game_languages:
+		_game_language_picker.add_item(CampaignInfo.native_name(code))
+		_game_language_picker.set_item_metadata(_game_language_picker.item_count - 1, code)
+		if code == game_language:
+			_game_language_picker.select(_game_language_picker.item_count - 1)
+
+
 func open() -> void:
+	_refresh_game_language()
 	_refresh_props_check()
 	if _assets_panel != null:
 		_assets_panel.refresh()

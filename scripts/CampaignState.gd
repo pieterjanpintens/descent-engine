@@ -11,8 +11,8 @@ extends Resource
 @export var campaign_version: String = ""
 ## The name of this save game (a campaign can have several playthroughs).
 @export var save_name: String = ""
-## The language this playthrough is read, logged and narrated in, chosen when it was started and never changed (a log in two languages
-## would be confusing). "" = a save game from before the choice existed: the player's preferred languages decide.
+## The language this playthrough is read, logged and narrated in: chosen when it was started, changeable later in Options (a moment the game
+## can be saved). "" = a save game from before the choice existed: the player's preferred languages decide.
 @export var language: String = ""
 @export var current_act: int = 0
 ## Ids of the chapters the party has won.

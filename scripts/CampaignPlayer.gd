@@ -317,7 +317,36 @@ func _open_options() -> void:
 		_options_dialog.live = false
 		_options_dialog.main_menu = false
 		add_child(_options_dialog)
+		PlayerSettings.ui_language_changed.connect(_on_ui_language_changed)
+	# The language of the game can be changed here (this is a moment the game can be saved - Options is not reachable otherwise).
+	if _campaign != null and _state != null:
+		_options_dialog.game_languages = _campaign.offered_languages()
+		_options_dialog.game_language = _state.language if _state.language != "" else _campaign.best_language(PlayerSettings.preferred_languages)
+		_options_dialog.game_language_changed = _set_game_language
 	_options_dialog.open()
+
+
+## The player picked another language for this game: it is stored in the save game and everything on screen that shows the game's texts is
+## shown again (the log re-reads its entries in the new language when it is opened).
+func _set_game_language(code: String) -> void:
+	if _state == null or _campaign == null:
+		return
+	_state.language = code
+	_save()
+	_apply_language(_campaign, code)
+	_refresh_after_language()
+
+
+func _on_ui_language_changed() -> void:
+	call_deferred("_refresh_after_language")
+
+
+func _refresh_after_language() -> void:
+	if _campaign == null or _state == null:
+		return
+	_refresh_view()
+	if _detail_dialog != null and _detail_dialog.visible:
+		_rebuild_side()
 
 
 ## A pin on the map was clicked: show its panel in the popup.

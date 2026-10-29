@@ -736,6 +736,10 @@
 736|The campaign is complete.
 737|The end
 738|The story begins.
+739|Current Objective:
+740|Language of this game
+741|The language this game is read, logged and narrated in. You can change it later in Options.
+742|The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

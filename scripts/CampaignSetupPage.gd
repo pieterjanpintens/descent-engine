@@ -73,7 +73,7 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable, lang
 	columns.add_child(column)
 
 	# ---- Language: said clearly here because it cannot be changed once the game has started ----
-	_section(column, "Language", LEFT_WIDTH, "The language this game is read, logged and narrated in. You cannot change it once the game has started.")
+	_section(column, "Language", LEFT_WIDTH, "The language this game is read, logged and narrated in. You can change it later in Options.")
 	if languages.size() > 1:
 		var picker := OptionButton.new()
 		for code in languages:

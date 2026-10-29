@@ -342,6 +342,14 @@ func _ready() -> void:
 	dialog.get_parent().add_child(voice_settings)
 	voice_settings.voice_listener = voice_listener
 	voice_settings.dialog = dialog
+	voice_settings.game_languages = mission.offered_languages()
+	if GameState.campaign_folder != "":  # a campaign game: the campaign's own languages (its save game holds the language)
+		var campaign := CampaignIO.load_campaign(GameState.campaign_folder)
+		if campaign != null:
+			voice_settings.game_languages = campaign.offered_languages()
+	voice_settings.game_language = LText.reading_order()[0] if not LText.reading_order().is_empty() else "en"
+	voice_settings.game_language_changed = _set_game_language
+	PlayerSettings.ui_language_changed.connect(func(): _refresh_objective_label())
 	voice_listener.voice_ready.connect(func(_ready: bool): voice_settings._update_dialog_hints())
 	hud.open_voice_settings = voice_settings.open
 	hud.save_requested = save_game
@@ -942,6 +950,24 @@ func _style_end_phase_button() -> void:
 var _last_objective_text := ""
 
 
+## The player picked another language for this game (Options, a moment the game can be saved): the reading order changes, a campaign
+## save keeps it, and what is on screen from the game's texts is shown again. The quest log re-reads its entries when it is opened.
+func _set_game_language(code: String) -> void:
+	var order: Array[String] = [code]
+	for preferred in PlayerSettings.preferred_languages:
+		if not order.has(preferred):
+			order.append(preferred)
+	LText.set_preferred(order)
+	if GameState.campaign_folder != "":
+		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		if campaign_state != null:
+			campaign_state.language = code
+			CampaignIO.save_state(campaign_state)
+	_last_objective_text = ", ".join(_runtime.get_current_objective_descriptions())  # (not a new objective: no log entry)
+	_refresh_objective_label()
+	monster_display.refresh_monsters(_runtime.monsters)
+
+
 func _refresh_objective_label() -> void:
 	var descriptions := _runtime.get_current_objective_descriptions()
 	if descriptions.is_empty():
@@ -954,7 +980,7 @@ func _refresh_objective_label() -> void:
 		_last_objective_text = plain
 		journal.add("Objective", [func() -> String: return ", ".join(_runtime.get_current_objective_descriptions())])
 	var body := plain.replace("[", "[lb]")
-	objective_label.text = "[color=#8ecae6][b]Current Objective:[/b][/color]\n%s" % body
+	objective_label.text = "[color=#8ecae6][b]%s[/b][/color]\n%s" % [tr("Current Objective:"), body]
 
 
 ## Reveals a MissionGroup as part of play - the "Show Stage" effect (see
