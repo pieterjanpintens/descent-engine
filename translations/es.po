@@ -112,7 +112,7 @@ msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip 
 msgstr "¡%s - %s se activa!\n\n%s obtiene un consumible mejorado aleatorio: %s\n\nEquípalo."
 
 msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
-msgstr "¡%s - %s se activa!\n\n%s\n\nComprueba si se aplica y resuélvelo en el tablero (una condición se puede aplicar desde la pantalla de monstruos)."
+msgstr "¡%s - %s se activa!\n\n%s\n\nComprueba si se aplica y resuélvelo en el tablero (un estado se puede aplicar desde la pantalla de monstruos)."
 
 msgid "%s - %s\nDoes %s have an injury?"
 msgstr "%s - %s\n¿Tiene %s alguna herida?"
@@ -310,7 +310,7 @@ msgid "\n%d successes x %d weapon damage"
 msgstr "\n%d éxitos x %d de daño de arma"
 
 msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n(+%d de daño por una habilidad de defensa en esta activación)"
+msgstr "\n(+%d de daño por una capacidad de defensa en esta activación)"
 
 msgid "\n(Enfeebled: damage reduced from %d)"
 msgstr "\n(Debilitado: daño reducido desde %d)"
@@ -355,7 +355,7 @@ msgid "\nAt the table: "
 msgstr "\nEn la mesa: "
 
 msgid "\nConditions applied: %s"
-msgstr "\nCondiciones aplicadas: %s"
+msgstr "\nEstados aplicados: %s"
 
 msgid "\nExposed: +%d damage"
 msgstr "\nExpuesto: +%d de daño"
@@ -388,7 +388,7 @@ msgid "\nWeakness: +%d damage"
 msgstr "\nDebilidad: +%d de daño"
 
 msgid "\nWeapon parts and trinket: "
-msgstr "\nPiezas de arma y baratija: "
+msgstr "\nPiezas de arma y accesorio: "
 
 msgid "a %s armor upgrade"
 msgstr "una mejora de armadura %s"
@@ -436,10 +436,10 @@ msgid "A snapshot can be taken in the player phase, with no dialog open."
 msgstr "Se puede tomar una instantánea en la fase de jugadores, sin ningún diálogo abierto."
 
 msgid "a trinket"
-msgstr "una baratija"
+msgstr "un accesorio"
 
 msgid "a trinket upgrade"
-msgstr "una mejora de baratija"
+msgstr "una mejora de accesorio"
 
 msgid "Act complete!"
 msgstr "¡Acto completado!"
@@ -487,7 +487,7 @@ msgid "Applied: "
 msgstr "Aplicado: "
 
 msgid "Apply conditions"
-msgstr "Aplicar condiciones"
+msgstr "Aplicar estados"
 
 msgid "Aquos"
 msgstr "Aquos"
@@ -517,7 +517,7 @@ msgid "attack %s"
 msgstr "atacar a %s"
 
 msgid "Attack abilities: %s"
-msgstr "Habilidades de ataque: %s"
+msgstr "Capacidades de ataque: %s"
 
 msgid "attack gains %s"
 msgstr "el ataque obtiene %s"
@@ -664,10 +664,10 @@ msgid "Community list"
 msgstr "Lista de la comunidad"
 
 msgid "Conditions"
-msgstr "Condiciones"
+msgstr "Estados"
 
 msgid "Conditions (%d)"
-msgstr "Condiciones (%d)"
+msgstr "Estados (%d)"
 
 msgid "Confirm"
 msgstr "Confirmar"
@@ -763,7 +763,7 @@ msgid "Damage Type"
 msgstr "Tipo de daño"
 
 msgid "Dazed"
-msgstr "Aturdido"
+msgstr "Conmocionado"
 
 msgid "Defeat."
 msgstr "Derrota."
@@ -787,19 +787,19 @@ msgid "defense -%d this round"
 msgstr "defensa -%d esta ronda"
 
 msgid "Defense abilities: %s"
-msgstr "Habilidades de defensa: %s"
+msgstr "Capacidades de defensa: %s"
 
 msgid "defense ability deactivated for the next attack"
-msgstr "habilidad de defensa desactivada para el próximo ataque"
+msgstr "capacidad de defensa desactivada para el próximo ataque"
 
 msgid "defense ability deactivated until the end of the round"
-msgstr "habilidad de defensa desactivada hasta el final de la ronda"
+msgstr "capacidad de defensa desactivada hasta el final de la ronda"
 
 msgid "Defense ability deactivated."
-msgstr "Habilidad de defensa desactivada."
+msgstr "Capacidad de defensa desactivada."
 
 msgid "Defense ability: %s"
-msgstr "Habilidad de defensa: %s"
+msgstr "Capacidad de defensa: %s"
 
 msgid "Delete the save game '%s'?"
 msgstr "¿Borrar la partida guardada '%s'?"
@@ -895,7 +895,7 @@ msgid "Failed to save - see the Output panel for details."
 msgstr "No se pudo guardar - consulta el panel de salida para más detalles."
 
 msgid "Feats"
-msgstr "Hazañas"
+msgstr "Proezas"
 
 msgid "first"
 msgstr "primera"
@@ -967,7 +967,7 @@ msgid "Gives the rune: %s"
 msgstr "Da la runa: %s"
 
 msgid "Gives the trinket: %s%s - %s"
-msgstr "Da la baratija: %s%s - %s"
+msgstr "Da el accesorio: %s%s - %s"
 
 msgid "Gives the weapon: %s%s"
 msgstr "Da el arma: %s%s"
@@ -1075,7 +1075,7 @@ msgid "immune to %s"
 msgstr "inmune a %s"
 
 msgid "Immune to conditions: %s"
-msgstr "Inmune a condiciones: %s"
+msgstr "Inmune a estados: %s"
 
 msgid "Immune to: "
 msgstr "Inmune a: "
@@ -1561,10 +1561,10 @@ msgid "Remove \"%s\" version %s from this computer?%s"
 msgstr "¿Quitar \"%s\" versión %s de este equipo?%s"
 
 msgid "Remove a single condition"
-msgstr "Elimina una sola condición"
+msgstr "Elimina un solo estado"
 
 msgid "Remove all conditions of a given type"
-msgstr "Elimina todas las condiciones de un tipo dado"
+msgstr "Elimina todos los estados de un tipo dado"
 
 msgid "Remove all fatigue from a single card"
 msgstr "Elimina toda la fatiga de una sola carta"
@@ -1858,7 +1858,7 @@ msgid "The party owns no armor yet."
 msgstr "El grupo aún no posee armadura."
 
 msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
-msgstr "El grupo aún no posee baratijas - se compran en una tienda de recetas o se encuentran."
+msgstr "El grupo aún no posee accesorios - se compran en una tienda de recetas o se encuentran."
 
 msgid "The phase can't be ended right now."
 msgstr "La fase no se puede terminar ahora mismo."
@@ -1882,7 +1882,7 @@ msgid "the table carries it out"
 msgstr "se resuelve en la mesa"
 
 msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
-msgstr "La baratija que lleva este héroe (una por héroe; una baratija solo la puede llevar un héroe)"
+msgstr "El accesorio que lleva este héroe (uno por héroe; un accesorio solo lo puede llevar un héroe)"
 
 msgid "The update could not be started."
 msgstr "No se pudo iniciar la actualización."
@@ -1951,19 +1951,19 @@ msgid "trigger %d: %d damage to every enemy"
 msgstr "activación %d: %d de daño a todos los enemigos"
 
 msgid "Trinket"
-msgstr "Baratija"
+msgstr "Accesorio"
 
 msgid "Trinket %s: %s"
-msgstr "Baratija %s: %s"
+msgstr "Accesorio %s: %s"
 
 msgid "Trinket upgrade: "
-msgstr "Mejora de baratija: "
+msgstr "Mejora de accesorio: "
 
 msgid "Trinket: "
-msgstr "Baratija: "
+msgstr "Accesorio: "
 
 msgid "Trinkets"
-msgstr "Baratijas"
+msgstr "Accesorios"
 
 msgid "Umbros"
 msgstr "Umbros"
@@ -2005,7 +2005,7 @@ msgid "Use the original game props in the map"
 msgstr "Usar los objetos originales del juego en el mapa"
 
 msgid "Use the upgraded (+) side of this trinket."
-msgstr "Usa la cara mejorada (+) de esta baratija."
+msgstr "Usa la cara mejorada (+) de este accesorio."
 
 msgid "Variable '%s' changed type - it has its default again."
 msgstr "La variable '%s' cambió de tipo - vuelve a tener su valor por defecto."

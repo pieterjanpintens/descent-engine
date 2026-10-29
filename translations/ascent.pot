@@ -117,7 +117,7 @@ msgstr ""
 msgid "%s (%s chip)"
 msgstr ""
 
-#: RecipeData.gd:105
+#: RecipeData.gd:106
 msgid "%s (%s, part %s)"
 msgstr ""
 
@@ -521,23 +521,23 @@ msgstr ""
 msgid "\nWeapon parts and trinket: "
 msgstr ""
 
-#: RecipeData.gd:131
+#: RecipeData.gd:132
 msgid "a %s armor upgrade"
 msgstr ""
 
-#: RecipeData.gd:136
+#: RecipeData.gd:137
 msgid "a %s part recipe"
 msgstr ""
 
-#: RecipeData.gd:136
+#: RecipeData.gd:137
 msgid "a %s part upgrade"
 msgstr ""
 
-#: RecipeData.gd:137
+#: RecipeData.gd:138
 msgid "a %s recipe"
 msgstr ""
 
-#: RecipeData.gd:137
+#: RecipeData.gd:138
 msgid "a %s upgrade"
 msgstr ""
 
@@ -557,7 +557,7 @@ msgstr ""
 msgid "a new area"
 msgstr ""
 
-#: RecipeData.gd:124
+#: RecipeData.gd:125
 msgid "a potion recipe"
 msgstr ""
 
@@ -569,11 +569,11 @@ msgstr ""
 msgid "A save game needs a name."
 msgstr ""
 
-#: RecipeData.gd:130
+#: RecipeData.gd:131
 msgid "a shipment of %s armor"
 msgstr ""
 
-#: RecipeData.gd:130
+#: RecipeData.gd:131
 msgid "a shipment of armor"
 msgstr ""
 
@@ -585,11 +585,11 @@ msgstr ""
 msgid "A snapshot can be taken in the player phase, with no dialog open."
 msgstr ""
 
-#: RecipeData.gd:126
+#: RecipeData.gd:127
 msgid "a trinket"
 msgstr ""
 
-#: RecipeData.gd:126
+#: RecipeData.gd:127
 msgid "a trinket upgrade"
 msgstr ""
 
@@ -629,7 +629,7 @@ msgstr ""
 msgid "all its statuses are removed"
 msgstr ""
 
-#: RecipeData.gd:131
+#: RecipeData.gd:132
 msgid "an armor upgrade"
 msgstr ""
 
@@ -673,11 +673,11 @@ msgstr ""
 msgid "Armor"
 msgstr ""
 
-#: RecipeData.gd:113
+#: RecipeData.gd:114
 msgid "Armor upgrade: "
 msgstr ""
 
-#: RecipeData.gd:97
+#: RecipeData.gd:98
 msgid "Armor: "
 msgstr ""
 
@@ -2161,11 +2161,11 @@ msgstr ""
 msgid "Rune"
 msgstr ""
 
-#: RecipeData.gd:133
+#: RecipeData.gd:134
 msgid "rune"
 msgstr ""
 
-#: EmbarkDialog.gd:465 RecipeData.gd:103
+#: EmbarkDialog.gd:465 RecipeData.gd:104
 msgid "Rune: "
 msgstr ""
 
@@ -2649,11 +2649,11 @@ msgstr ""
 msgid "Trinket %s: %s"
 msgstr ""
 
-#: RecipeData.gd:115
+#: RecipeData.gd:116
 msgid "Trinket upgrade: "
 msgstr ""
 
-#: RecipeData.gd:101
+#: RecipeData.gd:102
 msgid "Trinket: "
 msgstr ""
 
@@ -2697,7 +2697,7 @@ msgstr ""
 msgid "Upgrade - tier %d"
 msgstr ""
 
-#: RecipeData.gd:116
+#: RecipeData.gd:117
 msgid "Upgrade: "
 msgstr ""
 
@@ -2705,11 +2705,11 @@ msgstr ""
 msgid "Upgraded (+). In a campaign this follows the party's upgrades."
 msgstr ""
 
-#: ConsumableData.gd:85
+#: ConsumableData.gd:86
 msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
 msgstr ""
 
-#: ConsumableData.gd:84
+#: ConsumableData.gd:85
 msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
 msgstr ""
 
@@ -2825,7 +2825,7 @@ msgstr ""
 msgid "Weakness: %s"
 msgstr ""
 
-#: RecipeData.gd:133
+#: RecipeData.gd:134
 msgid "weapon"
 msgstr ""
 
