@@ -1,4 +1,10 @@
-﻿## v0.0.44 - 2026-10-28
+﻿## v0.0.45 - 2026-10-29
+- Campaigns and missions can have several languages. Authors pick the language they write in with the new language bar in both editors, can add languages, copy or move texts between them, export and import all texts as a spreadsheet (CSV) and let the AI draft translations (four at a time). Nothing is applied without a click.
+- Choosing a campaign to play asks which of its languages to read it in; it stays that language for that save game, like picking a dub. Your preferred languages (Options > General) decide the order texts are read in and the language of the app itself.
+- The app itself is translated into Spanish and Dutch: menus, dialogs, the game screens. Changing the language in Options updates the menu and the dialog at once. The editors stay in English.
+- The Install, Begin campaign and Play mission buttons draw their caption as text now, so they fit every language.
+
+## v0.0.44 - 2026-10-28
 - The Load game screen has a new look: every save game is a wide row with the campaign's art, the save game's name, the campaign and how far it is, with play and delete buttons. The rows turn like the New game cover-flow, but vertically - about three are fully visible, whatever the window size. Drag, mouse wheel, arrow keys or click a row to move the list.
 
 ## v0.0.43 - 2026-10-27
