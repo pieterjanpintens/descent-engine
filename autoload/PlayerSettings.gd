@@ -48,6 +48,23 @@ var narration_enabled: bool = true
 ## The story teller: the voice (NarratorVoices id) that reads everything no character speaks. A player setting - never a
 ## mission's choice - and characters never get this voice.
 var storyteller_voice: String = NarratorVoices.BASE_ID
+## The story teller of every other narration language (language code -> voice id); a language without an entry uses its pack's
+## first voice (NarratorVoices.default_storyteller()). `storyteller_voice` above is the English one.
+var storyteller_voices: Dictionary = {}
+
+
+## The story teller's voice id for a narration language.
+func storyteller_for(lang: String) -> String:
+	if lang == "en":
+		return storyteller_voice
+	return str(storyteller_voices.get(lang, NarratorVoices.default_storyteller(lang)))
+
+
+func set_storyteller_for(lang: String, voice_id: String) -> void:
+	if lang == "en":
+		storyteller_voice = voice_id
+	else:
+		storyteller_voices[lang] = voice_id
 ## Community sharing: where the catalog of shared missions and campaigns is fetched from (see CommunityService), and the
 ## author name the export dialog starts with.
 var community_catalog_url: String = CommunityService.DEFAULT_CATALOG_URL
@@ -130,6 +147,10 @@ func load_settings() -> void:
 	use_original_props = config.get_value(_GAMEPLAY, "use_original_props", use_original_props)
 	narration_enabled = config.get_value(_NARRATION, "narration_enabled", narration_enabled)
 	storyteller_voice = config.get_value(_NARRATION, "storyteller_voice", storyteller_voice)
+	for code in NarratorVoices.PACKS:
+		var saved_voice := str(config.get_value(_NARRATION, "storyteller_voice_" + code, ""))
+		if saved_voice != "":
+			storyteller_voices[code] = saved_voice
 	community_catalog_url = config.get_value(_COMMUNITY, "catalog_url", community_catalog_url)
 	if CommunityService.OLD_CATALOG_URLS.has(community_catalog_url):
 		community_catalog_url = CommunityService.DEFAULT_CATALOG_URL  # saved by an earlier version, now moved
@@ -157,6 +178,8 @@ func save_settings() -> void:
 	config.set_value(_GAMEPLAY, "use_original_props", use_original_props)
 	config.set_value(_NARRATION, "narration_enabled", narration_enabled)
 	config.set_value(_NARRATION, "storyteller_voice", storyteller_voice)
+	for code in storyteller_voices:
+		config.set_value(_NARRATION, "storyteller_voice_" + str(code), storyteller_voices[code])
 	config.set_value(_COMMUNITY, "catalog_url", community_catalog_url)
 	config.set_value(_COMMUNITY, "author", community_author)
 	config.set_value(_UPDATES, "check_updates", check_updates)

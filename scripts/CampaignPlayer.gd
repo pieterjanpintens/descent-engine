@@ -274,7 +274,7 @@ func _close_setup_page() -> void:
 func _on_setup_confirmed(save_name: String, hero_voices: Dictionary, language: String) -> void:
 	_close_setup_page()
 	if _begin(_folder, save_name, language):
-		_state.hero_voices = hero_voices
+		_state.set_hero_voices_for(language if language != "" else NarratorVoices.reading_language(), hero_voices)
 		_save()
 		if _campaign.intro != "":
 			await _announce(_campaign.intro, _campaign.campaign_name, _campaign.intro)
@@ -489,11 +489,12 @@ func _resume(folder: String, key: String) -> void:
 ## The players give each hero a narration voice once per playthrough - when the campaign starts (or the first resume
 ## after narration was installed). Skipped while narration isn't installed: there would be nothing to hear.
 func _ensure_hero_voices() -> void:
-	if _state == null or not _state.hero_voices.is_empty() or not Narrator.is_available():
+	var lang := NarratorVoices.reading_language()
+	if _state == null or not Narrator.is_available() or not _state.hero_voices_for(lang).is_empty() or NarratorVoices.installed_for(lang).is_empty():
 		return
 	var dialog := HeroVoicesDialog.new()
 	add_child(dialog)
-	_state.hero_voices = await dialog.ask({})
+	_state.set_hero_voices_for(lang, await dialog.ask({}, lang))
 	dialog.queue_free()
 	_save()
 

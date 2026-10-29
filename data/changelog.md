@@ -1,4 +1,9 @@
-﻿## v0.0.46 - 2026-10-29
+﻿## v0.0.47 - 2026-10-29
+- The story can be read aloud in Spanish and Dutch. In Options > Voice pick the language under "Voices for" and download its voices (four voices each, about 200-270 MB); the story teller is chosen per language, and the hero voices are chosen per language when you start a game.
+- The narration follows the language of the game: a game read in Spanish uses Spanish voices, and switching the language in Options switches the voices. A language without installed voices stays silent and tells you where to download them.
+- Narration no longer needs the English voice: the voice engine installs together with the first language you pick.
+
+## v0.0.46 - 2026-10-29
 - You can change the language of a game you are playing: Options > General has "Language of this game" (in a campaign and in a mission). The story, the log and the game's own terms follow it.
 - The quest log and the campaign log are written in every language of the campaign, so they never mix languages and show the whole history in the language you switch to.
 - Names and rules of weapons, parts, armor, trinkets, potions and recipes follow the language of the game (13 languages in the game data - run the asset import again to get them; Dutch has none and falls back to your next language).

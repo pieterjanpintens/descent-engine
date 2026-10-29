@@ -19,6 +19,9 @@ extends Node
 ## has finished, so the microphone can ignore the narrator (VoiceListener checks it).
 
 signal speaking_changed(is_speaking: bool)
+## Narration is on but no voice of the language of the text is installed: the story is shown as text only. Emitted on every
+## attempt; the small hint on screen appears once per language per session.
+signal language_unavailable(lang: String)
 
 const TEMP_DIR := "user://piper/"
 
@@ -36,6 +39,8 @@ var _generation: int = 0
 var _pending: Array[String] = []  # wav files made but not played yet
 var _synth_done: bool = true
 var _current_wav: String = ""
+var _hinted: Array[String] = []  # languages the "no voices" hint was already shown for
+var _hint_layer: CanvasLayer
 
 
 func _ready() -> void:
@@ -57,9 +62,27 @@ func is_enabled() -> bool:
 	return PlayerSettings.narration_enabled and is_available() and not DebugSession.skipping()
 
 
-func speak(text: String, characters: Array[NarratorCharacter] = []) -> void:
+## The language narration reads in now (see NarratorVoices.reading_language()).
+func language() -> String:
+	return NarratorVoices.reading_language()
+
+
+## Is there a voice installed for this language (or a test stub)?
+func has_voices(lang: String) -> bool:
+	return not command_override.is_empty() or not NarratorVoices.installed_for(lang).is_empty()
+
+
+## `lang_override`: read in the voices of this language instead of the one the game is read in (the campaign setup page's samples,
+## before the game's language has been applied).
+func speak(text: String, characters: Array[NarratorCharacter] = [], lang_override: String = "") -> void:
+	var lang := lang_override if lang_override != "" else language()
+	if not has_voices(lang):
+		stop()
+		if is_enabled():
+			_note_missing_voices(lang)
+		return
 	var jobs: Array[Dictionary] = []
-	var storyteller := _storyteller()
+	var storyteller := _storyteller(lang)
 	# Voices with an owner: every character's chosen voice ("taken" - throwaways stay away from them) and the heroes'
 	# ("hero_ids" - not even another character may use those).
 	var taken: Array[String] = []
@@ -72,9 +95,9 @@ func speak(text: String, characters: Array[NarratorCharacter] = []) -> void:
 	for segment in NarrationMarkup.segments(text, characters):
 		var voice := storyteller
 		if segment["speaker"] != null:
-			voice = _character_voice(segment["speaker"], storyteller, taken, hero_ids)
+			voice = _character_voice(segment["speaker"], storyteller, taken, hero_ids, lang)
 		elif segment["name"] != "":
-			voice = _random_voice(segment["name"], storyteller, taken, hero_ids)
+			voice = _random_voice(segment["name"], storyteller, taken, hero_ids, lang)
 		var clean := _flatten(segment["text"])
 		if clean != "":
 			jobs.append({"text": clean, "model": voice["model"], "speaker": voice["speaker"]})
@@ -123,30 +146,39 @@ func _start(jobs: Array[Dictionary]) -> void:
 	_thread.start(_synthesize.bind(jobs, _generation))
 
 
-## The player's chosen story teller, the base voice when that isn't installed.
-func _storyteller() -> Dictionary:
-	var voice := NarratorVoices.find(PlayerSettings.storyteller_voice)
-	if voice.is_empty() or not _voice_available(voice):
-		return NarratorVoices.BASE
-	return voice
+## The player's chosen story teller for a language; when that voice isn't installed the first installed voice of the language
+## (for English the base voice).
+func _storyteller(lang: String) -> Dictionary:
+	var voice := NarratorVoices.find(PlayerSettings.storyteller_for(lang))
+	if not voice.is_empty() and NarratorVoices.lang_of(voice) == lang and _voice_available(voice):
+		return voice
+	for candidate in NarratorVoices.voices_for(lang):
+		if _voice_available(candidate):
+			return candidate
+	return NarratorVoices.BASE
 
 
-func _character_voice(character: NarratorCharacter, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String]) -> Dictionary:
+func _character_voice(character: NarratorCharacter, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String], lang: String) -> Dictionary:
 	if character.voice_id == NarratorVoices.RANDOM_ID:
-		return _random_voice(character.character_name, storyteller, taken, hero_ids)
+		return _random_voice(character.character_name, storyteller, taken, hero_ids, lang)
 	var voice := NarratorVoices.find(character.voice_id)
+	if not voice.is_empty() and NarratorVoices.lang_of(voice) != lang:
+		# A voice chosen for another language (a campaign author picked an English one): here the character gets a voice of this
+		# language picked from the name, of the same gender when the chosen voice said which it is.
+		return _random_voice(character.character_name, storyteller, taken, hero_ids, lang, NarratorVoices.gender(voice))
 	var stolen := not character.is_hero and hero_ids.has(character.voice_id)  # a hero has this voice
 	if voice.is_empty() or not _voice_available(voice) or voice["id"] == storyteller["id"] or stolen:
-		return _random_voice(character.character_name, storyteller, taken, hero_ids)
+		return _random_voice(character.character_name, storyteller, taken, hero_ids, lang)
 	return voice
 
 
 ## A voice for `character_name`, picked by the name's hash: the same name always gets the same voice (while the same
 ## voices are installed). Never the story teller's; as far as the installed voices allow also none that a character
 ## has chosen ("taken"), and failing that none a hero has; plain English voices are preferred over accented ones.
-func _random_voice(character_name: String, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String]) -> Dictionary:
-	# A name starting with a capital M wants a male voice, one starting with F a female voice ("MGuard", "FInnkeeper").
-	var wanted_gender := ""
+func _random_voice(character_name: String, storyteller: Dictionary, taken: Array[String], hero_ids: Array[String], lang: String, gender_hint: String = "") -> Dictionary:
+	# A name starting with a capital M wants a male voice, one starting with F a female voice ("MGuard", "FInnkeeper"); without
+	# that prefix the hint (the gender of a voice chosen in another language) decides.
+	var wanted_gender := gender_hint
 	if character_name.begins_with("M"):
 		wanted_gender = "m"
 	elif character_name.begins_with("F"):
@@ -158,7 +190,7 @@ func _random_voice(character_name: String, storyteller: Dictionary, taken: Array
 		for avoid in [taken, hero_ids, [] as Array[String]]:
 			for plain_only in [true, false]:  # plain English first, accents only when nothing plain is left
 				var pool: Array[Dictionary] = []
-				for voice in NarratorVoices.all():
+				for voice in NarratorVoices.voices_for(lang):
 					if voice["id"] != storyteller["id"] and not avoid.has(voice["id"]) and _voice_available(voice) \
 							and (voice.get("plain", false) or not plain_only) \
 							and (gender == "" or NarratorVoices.gender(voice) == gender):
@@ -166,6 +198,35 @@ func _random_voice(character_name: String, storyteller: Dictionary, taken: Array
 				if not pool.is_empty():
 					return pool[character_name.hash() % pool.size()]
 	return storyteller
+
+
+## The language has no installed voice: tell the player once (a small hint at the bottom of the screen) and stay silent.
+func _note_missing_voices(lang: String) -> void:
+	language_unavailable.emit(lang)
+	if _hinted.has(lang):
+		return
+	_hinted.append(lang)
+	var hint := tr("No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice.") % CampaignInfo.native_name(lang)
+	if _hint_layer == null:
+		_hint_layer = CanvasLayer.new()
+		_hint_layer.layer = 100
+		add_child(_hint_layer)
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var label := Label.new()
+	label.text = hint
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 520
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(label)
+	_hint_layer.add_child(panel)
+	var tween := create_tween()
+	tween.tween_interval(6.0)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.8)
+	tween.tween_callback(panel.queue_free)
 
 
 func _voice_available(voice: Dictionary) -> bool:

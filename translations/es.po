@@ -2208,6 +2208,24 @@ msgstr "El idioma en el que se lee, registra y narra esta partida. Puedes cambia
 msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
 msgstr "La historia, el registro y los términos propios del juego se muestran en este idioma. Los menús y botones de la aplicación siguen la lista de abajo."
 
+msgid "Download %s voices (%s)"
+msgstr "Descargar voces de %s (%s)"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "No hay voces de narración de %s instaladas, así que la historia se muestra solo como texto."
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "No hay voces de narración de %s instaladas, así que la historia se muestra solo como texto. Descárgalas en Opciones > Voz."
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "Configurar la narración: voces de %s (descarga unos %d MB)"
+
+msgid "Voices for:"
+msgstr "Voces para:"
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "No hay voces de narración de %s instaladas, así que esta partida se muestra solo como texto. Descárgalas en Opciones > Voz."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

@@ -1,0 +1,6 @@
+743|Descargar voces de %s (%s)
+744|No hay voces de narración de %s instaladas, así que la historia se muestra solo como texto.
+745|No hay voces de narración de %s instaladas, así que la historia se muestra solo como texto. Descárgalas en Opciones > Voz.
+746|Configurar la narración: voces de %s (descarga unos %d MB)
+747|Voces para:
+748|No hay voces de narración de %s instaladas, así que esta partida se muestra solo como texto. Descárgalas en Opciones > Voz.

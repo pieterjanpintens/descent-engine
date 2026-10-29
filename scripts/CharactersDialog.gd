@@ -14,7 +14,6 @@ const DEFAULT_COLORS: Array[Color] = [
 	Color(0.95, 0.75, 0.3), Color(0.45, 0.8, 0.95), Color(0.95, 0.5, 0.5), Color(0.6, 0.9, 0.5),
 	Color(0.8, 0.6, 0.95), Color(0.95, 0.65, 0.85), Color(0.5, 0.9, 0.8), Color(0.9, 0.85, 0.5),
 ]
-const SAMPLE_LINE := "The old road is longer than it looks, friend, and the night is nearly upon us."
 
 var _characters: Array[NarratorCharacter]
 ## (label: String, mutate: Callable) - applies `mutate` and records/refreshes however the owner wants.
@@ -121,7 +120,10 @@ func _build_row(character: NarratorCharacter) -> Control:
 	play.tooltip_text = "Hear this character"
 	play.pressed.connect(func():
 		var as_character: Array[NarratorCharacter] = [character]
-		Narrator.speak("[%s]%s[/%s]" % [character.character_name, SAMPLE_LINE, character.character_name], as_character)
+		# The sample is read in the language of the chosen voice (a random voice: the language the app reads in).
+		var chosen := NarratorVoices.find(character.voice_id)
+		var lang := NarratorVoices.lang_of(chosen) if not chosen.is_empty() else NarratorVoices.reading_language()
+		Narrator.speak("[%s]%s[/%s]" % [character.character_name, NarratorVoices.sample_line(lang), character.character_name], as_character, lang)
 	)
 	row.add_child(play)
 

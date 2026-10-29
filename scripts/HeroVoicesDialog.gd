@@ -10,7 +10,7 @@ signal done
 var _picker: HeroVoicesPicker
 
 
-func ask(current: Dictionary) -> Dictionary:
+func ask(current: Dictionary, lang: String = "") -> Dictionary:
 	title = "Hero voices"
 	exclusive = true
 	unresizable = true
@@ -28,7 +28,7 @@ func ask(current: Dictionary) -> Dictionary:
 	root.add_child(intro)
 	_picker = HeroVoicesPicker.new()
 	root.add_child(_picker)
-	_picker.setup(current)
+	_picker.setup(current, lang)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(spacer)

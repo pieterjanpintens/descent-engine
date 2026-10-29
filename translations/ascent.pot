@@ -37,11 +37,11 @@ msgstr ""
 msgid " (Only campaigns keep recipes.)"
 msgstr ""
 
-#: CampaignPlayer.gd:986
+#: CampaignPlayer.gd:987
 msgid " (XP now %d)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:356
+#: VoiceSettingsDialog.gd:378
 msgid " - not imported yet"
 msgstr ""
 
@@ -73,7 +73,7 @@ msgstr ""
 msgid "%d from the community to install."
 msgstr ""
 
-#: CampaignPlayer.gd:665 CampaignState.gd:137 MissionRuntime.gd:1046
+#: CampaignPlayer.gd:666 CampaignState.gd:154 MissionRuntime.gd:1046
 msgid "%d gold"
 msgstr ""
 
@@ -165,7 +165,7 @@ msgstr ""
 msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
 msgstr ""
 
-#: CampaignPlayer.gd:709
+#: CampaignPlayer.gd:710
 msgid "%s - buy for %d gold, sell for %d"
 msgstr ""
 
@@ -349,7 +349,7 @@ msgstr ""
 msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
 msgstr ""
 
-#: CampaignPlayer.gd:938
+#: CampaignPlayer.gd:939
 msgid "%s\n\nYou chose: %s"
 msgstr ""
 
@@ -549,7 +549,7 @@ msgstr ""
 msgid "a hero"
 msgstr ""
 
-#: CampaignState.gd:262
+#: CampaignState.gd:279
 msgid "A new act begins."
 msgstr ""
 
@@ -561,11 +561,11 @@ msgstr ""
 msgid "a potion recipe"
 msgstr ""
 
-#: CampaignSetupPage.gd:152
+#: CampaignSetupPage.gd:176
 msgid "A save game called '%s' already exists."
 msgstr ""
 
-#: CampaignSetupPage.gd:150
+#: CampaignSetupPage.gd:174
 msgid "A save game needs a name."
 msgstr ""
 
@@ -597,7 +597,7 @@ msgstr ""
 msgid "act"
 msgstr ""
 
-#: CampaignPlayer.gd:998
+#: CampaignPlayer.gd:999
 msgid "Act complete!"
 msgstr ""
 
@@ -705,7 +705,7 @@ msgstr ""
 msgid "attack gains %s"
 msgstr ""
 
-#: CampaignPlayer.gd:1006
+#: CampaignPlayer.gd:1007
 msgid "Available now: %s"
 msgstr ""
 
@@ -737,7 +737,7 @@ msgstr ""
 msgid "Bone"
 msgstr ""
 
-#: CampaignPlayer.gd:680
+#: CampaignPlayer.gd:681
 msgid "Bought"
 msgstr ""
 
@@ -745,7 +745,7 @@ msgstr ""
 msgid "bow"
 msgstr ""
 
-#: CampaignPlayer.gd:814
+#: CampaignPlayer.gd:815
 msgid "Brew"
 msgstr ""
 
@@ -753,19 +753,19 @@ msgstr ""
 msgid "Brew Basket"
 msgstr ""
 
-#: CampaignPlayer.gd:680
+#: CampaignPlayer.gd:681
 msgid "Buy"
 msgstr ""
 
-#: CampaignPlayer.gd:703
+#: CampaignPlayer.gd:704
 msgid "Buy  %d"
 msgstr ""
 
-#: CampaignPlayer.gd:731
+#: CampaignPlayer.gd:732
 msgid "Buy  %d gold"
 msgstr ""
 
-#: CampaignPlayer.gd:731
+#: CampaignPlayer.gd:732
 msgid "Buy recipe  %d gold"
 msgstr ""
 
@@ -785,7 +785,7 @@ msgstr ""
 msgid "Campaign complete"
 msgstr ""
 
-#: CampaignPlayer.gd:551
+#: CampaignPlayer.gd:552
 msgid "Campaign complete! (%s)"
 msgstr ""
 
@@ -817,15 +817,15 @@ msgstr ""
 msgid "Cautious"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:212
+#: VoiceSettingsDialog.gd:215
 msgid "Centre to centre (strict)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:210
+#: VoiceSettingsDialog.gd:213
 msgid "Centre to corner (recommended)"
 msgstr ""
 
-#: CampaignPlayer.gd:597
+#: CampaignPlayer.gd:598
 msgid "Chapter"
 msgstr ""
 
@@ -837,11 +837,11 @@ msgstr ""
 msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:233
+#: VoiceSettingsDialog.gd:236
 msgid "Check for a newer version of the app at the main menu"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:222
+#: VoiceSettingsDialog.gd:225
 msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
 msgstr ""
 
@@ -885,7 +885,7 @@ msgstr ""
 msgid "Common"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:137
+#: VoiceSettingsDialog.gd:140
 msgid "Community"
 msgstr ""
 
@@ -937,11 +937,11 @@ msgstr ""
 msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:211
+#: VoiceSettingsDialog.gd:214
 msgid "Corner to corner (loose, Descent 2)"
 msgstr ""
 
-#: CampaignPlayer.gd:668
+#: CampaignPlayer.gd:669
 msgid "Cost: %s"
 msgstr ""
 
@@ -949,7 +949,7 @@ msgstr ""
 msgid "Could not fork %s."
 msgstr ""
 
-#: CampaignPlayer.gd:506
+#: CampaignPlayer.gd:507
 msgid "Could not open that save game."
 msgstr ""
 
@@ -965,11 +965,11 @@ msgstr ""
 msgid "Couldn't unpack the %s (tar exit code %d)."
 msgstr ""
 
-#: PiperInstaller.gd:197
+#: PiperInstaller.gd:221
 msgid "Couldn't unpack the narration engine (tar exit code %d)."
 msgstr ""
 
-#: Downloader.gd:138 PiperInstaller.gd:180 VoiceInstaller.gd:116
+#: Downloader.gd:138 PiperInstaller.gd:204 VoiceInstaller.gd:116
 msgid "Couldn't write %s (error %d)."
 msgstr ""
 
@@ -1033,7 +1033,7 @@ msgstr ""
 msgid "Dazed"
 msgstr ""
 
-#: CampaignPlayer.gd:982 MissionPlayer.gd:1749
+#: CampaignPlayer.gd:983 MissionPlayer.gd:1749
 msgid "Defeat."
 msgstr ""
 
@@ -1137,11 +1137,15 @@ msgstr ""
 msgid "Doomed"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:442
+#: VoiceSettingsDialog.gd:459
+msgid "Download %s voices (%s)"
+msgstr ""
+
+#: VoiceSettingsDialog.gd:483
 msgid "Download extra voices - accents (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:439
+#: VoiceSettingsDialog.gd:480
 msgid "Download more voices - plain English (%s)"
 msgstr ""
 
@@ -1173,11 +1177,11 @@ msgstr ""
 msgid "Editor"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:250
+#: VoiceSettingsDialog.gd:253
 msgid "Enable voice"
 msgstr ""
 
-#: CampaignPlayer.gd:619
+#: CampaignPlayer.gd:620
 msgid "Ending soon: this side quest is gone once \"%s\" is won."
 msgstr ""
 
@@ -1229,7 +1233,7 @@ msgstr ""
 msgid "Focus 2 cards"
 msgstr ""
 
-#: CampaignPlayer.gd:800
+#: CampaignPlayer.gd:801
 msgid "Forge"
 msgstr ""
 
@@ -1253,7 +1257,7 @@ msgstr ""
 msgid "Frantic"
 msgstr ""
 
-#: CampaignPlayer.gd:668
+#: CampaignPlayer.gd:669
 msgid "free"
 msgstr ""
 
@@ -1273,7 +1277,7 @@ msgstr ""
 msgid "Game %04d-%02d-%02d %02d:%02d"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:135
+#: VoiceSettingsDialog.gd:138
 msgid "Game assets"
 msgstr ""
 
@@ -1281,7 +1285,7 @@ msgstr ""
 msgid "Game found:\n%s"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:194
+#: VoiceSettingsDialog.gd:197
 msgid "Gameplay"
 msgstr ""
 
@@ -1289,27 +1293,27 @@ msgstr ""
 msgid "gauntlet"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:131
+#: VoiceSettingsDialog.gd:134
 msgid "General"
 msgstr ""
 
-#: CampaignPlayer.gd:676
+#: CampaignPlayer.gd:677
 msgid "Gives the armor: %s%s - %s"
 msgstr ""
 
-#: CampaignPlayer.gd:674
+#: CampaignPlayer.gd:675
 msgid "Gives the rune: %s"
 msgstr ""
 
-#: CampaignPlayer.gd:678
+#: CampaignPlayer.gd:679
 msgid "Gives the trinket: %s%s - %s"
 msgstr ""
 
-#: CampaignPlayer.gd:672
+#: CampaignPlayer.gd:673
 msgid "Gives the weapon: %s%s"
 msgstr ""
 
-#: CampaignPlayer.gd:670
+#: CampaignPlayer.gd:671
 msgid "Gives: %s"
 msgstr ""
 
@@ -1361,11 +1365,11 @@ msgstr ""
 msgid "Healthy"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:305
+#: VoiceSettingsDialog.gd:323
 msgid "Hear the story teller"
 msgstr ""
 
-#: HeroVoicesPicker.gd:73
+#: HeroVoicesPicker.gd:76
 msgid "Hear this voice"
 msgstr ""
 
@@ -1393,7 +1397,7 @@ msgstr ""
 msgid "hero models"
 msgstr ""
 
-#: CampaignSetupPage.gd:107 HeroVoicesDialog.gd:14
+#: CampaignSetupPage.gd:110 HeroVoicesDialog.gd:14
 msgid "Hero voices"
 msgstr ""
 
@@ -1425,7 +1429,7 @@ msgstr ""
 msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:214
+#: VoiceSettingsDialog.gd:217
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr ""
 
@@ -1549,15 +1553,15 @@ msgstr ""
 msgid "It stays as it is; you can keep playing it on its own version."
 msgstr ""
 
-#: CampaignSetupPage.gd:76
+#: CampaignSetupPage.gd:77
 msgid "Language"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:154
+#: VoiceSettingsDialog.gd:157
 msgid "Language of this game"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:174
+#: VoiceSettingsDialog.gd:177
 msgid "Languages"
 msgstr ""
 
@@ -1573,7 +1577,7 @@ msgstr ""
 msgid "Leather"
 msgstr ""
 
-#: CampaignPlayer.gd:733
+#: CampaignPlayer.gd:734
 msgid "Leaves after the next chapter!"
 msgstr ""
 
@@ -1589,7 +1593,7 @@ msgstr ""
 msgid "Line of Sight (on)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:207
+#: VoiceSettingsDialog.gd:210
 msgid "Line of sight rule"
 msgstr ""
 
@@ -1737,7 +1741,7 @@ msgstr ""
 msgid "Mortos (dead)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:199
+#: VoiceSettingsDialog.gd:202
 msgid "Move camera to player and monster spawns"
 msgstr ""
 
@@ -1765,23 +1769,23 @@ msgstr ""
 msgid "Moved to v%s"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:281
+#: VoiceSettingsDialog.gd:284
 msgid "Narration"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:422
+#: VoiceSettingsDialog.gd:453
 msgid "Narration is set up."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:425
+#: VoiceSettingsDialog.gd:462
 msgid "Narration isn't available on %s."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:430
+#: VoiceSettingsDialog.gd:470
 msgid "Narration isn't set up yet - the story is shown as text only."
 msgstr ""
 
-#: PiperInstaller.gd:119 PiperInstaller.gd:86
+#: PiperInstaller.gd:124 PiperInstaller.gd:143 PiperInstaller.gd:92
 msgid "Narration setup isn't supported on %s yet."
 msgstr ""
 
@@ -1821,11 +1825,23 @@ msgstr ""
 msgid "No map image - choose one for this act"
 msgstr ""
 
-#: CampaignPlayer.gd:724
+#: VoiceSettingsDialog.gd:455
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr ""
+
+#: Narrator.gd:209
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr ""
+
+#: CampaignSetupPage.gd:136
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr ""
+
+#: CampaignPlayer.gd:725
 msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
 msgstr ""
 
-#: CampaignPlayer.gd:728
+#: CampaignPlayer.gd:729
 msgid "No recipes for sale right now."
 msgstr ""
 
@@ -1837,7 +1853,7 @@ msgstr ""
 msgid "No save games yet - start one with New game."
 msgstr ""
 
-#: CampaignPlayer.gd:840
+#: CampaignPlayer.gd:841
 msgid "None yet - materials come from defeated monsters, missions and the market."
 msgstr ""
 
@@ -1849,7 +1865,7 @@ msgstr ""
 msgid "Note:"
 msgstr ""
 
-#: CampaignPlayer.gd:657
+#: CampaignPlayer.gd:658
 msgid "Nothing for sale here."
 msgstr ""
 
@@ -1877,7 +1893,7 @@ msgstr ""
 msgid "Nothing yet."
 msgstr ""
 
-#: CampaignPlayer.gd:1009 CampaignPlayer.gd:1037 CampaignPlayer.gd:1074
+#: CampaignPlayer.gd:1010 CampaignPlayer.gd:1038 CampaignPlayer.gd:1075
 msgid "Notice"
 msgstr ""
 
@@ -1893,7 +1909,7 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:234
+#: VoiceSettingsDialog.gd:237
 msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
 msgstr ""
 
@@ -1901,7 +1917,7 @@ msgstr ""
 msgid "Open campaigns"
 msgstr ""
 
-#: CampaignHud.gd:141 PlayerHud.gd:81 VoiceSettingsDialog.gd:118
+#: CampaignHud.gd:141 PlayerHud.gd:81 VoiceSettingsDialog.gd:121
 msgid "Options"
 msgstr ""
 
@@ -1933,7 +1949,7 @@ msgstr ""
 msgid "Perform a %s test - how many successes?"
 msgstr ""
 
-#: CampaignSetupPage.gd:107 HeroVoicesDialog.gd:26
+#: CampaignSetupPage.gd:110 HeroVoicesDialog.gd:26
 msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
 msgstr ""
 
@@ -1965,11 +1981,11 @@ msgstr ""
 msgid "Play one mission"
 msgstr ""
 
-#: CampaignPlayer.gd:604
+#: CampaignPlayer.gd:605
 msgid "Play this chapter"
 msgstr ""
 
-#: CampaignPlayer.gd:625
+#: CampaignPlayer.gd:626
 msgid "Play this side quest"
 msgstr ""
 
@@ -2013,7 +2029,7 @@ msgstr ""
 msgid "Purple"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:400
+#: VoiceSettingsDialog.gd:426
 msgid "Push to talk (hold %s)"
 msgstr ""
 
@@ -2029,7 +2045,7 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: HeroVoicesPicker.gd:64
+#: HeroVoicesPicker.gd:67
 msgid "Random (from the name)"
 msgstr ""
 
@@ -2057,19 +2073,19 @@ msgstr ""
 msgid "Read in this language later"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:286
+#: VoiceSettingsDialog.gd:289
 msgid "Read the story aloud"
 msgstr ""
 
-#: CampaignPlayer.gd:604
+#: CampaignPlayer.gd:605
 msgid "Read this chapter"
 msgstr ""
 
-#: CampaignPlayer.gd:755
+#: CampaignPlayer.gd:756
 msgid "Recipe - tier %d"
 msgstr ""
 
-#: CampaignState.gd:389 MissionRuntime.gd:1051 MissionRuntime.gd:922
+#: CampaignState.gd:406 MissionRuntime.gd:1051 MissionRuntime.gd:922
 msgid "Recipe: "
 msgstr ""
 
@@ -2145,7 +2161,7 @@ msgstr ""
 msgid "reveals weakness to %s"
 msgstr ""
 
-#: CampaignPlayer.gd:601 CampaignPlayer.gd:622
+#: CampaignPlayer.gd:602 CampaignPlayer.gd:623
 msgid "Reward: "
 msgstr ""
 
@@ -2177,7 +2193,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: CampaignSetupPage.gd:92
+#: CampaignSetupPage.gd:95
 msgid "Save game"
 msgstr ""
 
@@ -2189,19 +2205,23 @@ msgstr ""
 msgid "second"
 msgstr ""
 
-#: CampaignPlayer.gd:706
+#: CampaignPlayer.gd:707
 msgid "Sell  %d"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:429
+#: VoiceSettingsDialog.gd:469
 msgid "Set up narration (downloads %s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:412
+#: VoiceSettingsDialog.gd:467
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr ""
+
+#: VoiceSettingsDialog.gd:438
 msgid "Set up voice control (downloads %s)"
 msgstr ""
 
-#: CampaignSetupPage.gd:51
+#: CampaignSetupPage.gd:52
 msgid "Set up your game"
 msgstr ""
 
@@ -2217,7 +2237,7 @@ msgstr ""
 msgid "Shift 1"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:255
+#: VoiceSettingsDialog.gd:258
 msgid "Show voice hints"
 msgstr ""
 
@@ -2225,19 +2245,19 @@ msgstr ""
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr ""
 
-#: CampaignPlayer.gd:590
+#: CampaignPlayer.gd:591
 msgid "Side quest"
 msgstr ""
 
-#: CampaignPlayer.gd:611
+#: CampaignPlayer.gd:612
 msgid "Side quest (optional)"
 msgstr ""
 
-#: CampaignState.gd:221
+#: CampaignState.gd:238
 msgid "Side quest won: %s."
 msgstr ""
 
-#: CampaignState.gd:218
+#: CampaignState.gd:235
 msgid "Side quest: %s"
 msgstr ""
 
@@ -2281,7 +2301,7 @@ msgstr ""
 msgid "Start"
 msgstr ""
 
-#: CampaignSetupPage.gd:114
+#: CampaignSetupPage.gd:117
 msgid "Start game"
 msgstr ""
 
@@ -2289,11 +2309,11 @@ msgstr ""
 msgid "Step %s: %s..."
 msgstr ""
 
-#: CampaignPlayer.gd:755
+#: CampaignPlayer.gd:756
 msgid "Story recipe"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:297
+#: VoiceSettingsDialog.gd:315
 msgid "Story teller:"
 msgstr ""
 
@@ -2385,7 +2405,7 @@ msgstr ""
 msgid "The address must start with https://"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:184
+#: VoiceSettingsDialog.gd:187
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
 msgstr ""
 
@@ -2401,11 +2421,11 @@ msgstr ""
 msgid "The author did not say whether they may share the pictures."
 msgstr ""
 
-#: CampaignPlayer.gd:1000
+#: CampaignPlayer.gd:1001
 msgid "The campaign is complete - congratulations!"
 msgstr ""
 
-#: CampaignState.gd:259
+#: CampaignState.gd:276
 msgid "The campaign is complete."
 msgstr ""
 
@@ -2421,7 +2441,7 @@ msgstr ""
 msgid "The downloaded package is not the one the list promised. It was not installed."
 msgstr ""
 
-#: CampaignState.gd:259
+#: CampaignState.gd:276
 msgid "The end"
 msgstr ""
 
@@ -2449,11 +2469,11 @@ msgstr ""
 msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
 msgstr ""
 
-#: CampaignSetupPage.gd:76
+#: CampaignSetupPage.gd:77
 msgid "The language this game is read, logged and narrated in. You can change it later in Options."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:178
+#: VoiceSettingsDialog.gd:181
 msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
 msgstr ""
 
@@ -2461,11 +2481,11 @@ msgstr ""
 msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
 msgstr ""
 
-#: CampaignPlayer.gd:689
+#: CampaignPlayer.gd:690
 msgid "The market sells materials but does not buy them."
 msgstr ""
 
-#: CampaignPlayer.gd:877
+#: CampaignPlayer.gd:878
 msgid "The mission is missing from the campaign folder."
 msgstr ""
 
@@ -2501,7 +2521,7 @@ msgstr ""
 msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
 msgstr ""
 
-#: CampaignPlayer.gd:996
+#: CampaignPlayer.gd:997
 msgid "The party has to try this chapter again."
 msgstr ""
 
@@ -2537,11 +2557,11 @@ msgstr ""
 msgid "The speech engine download had no library for %s."
 msgstr ""
 
-#: CampaignState.gd:250
+#: CampaignState.gd:267
 msgid "The story begins."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:158
+#: VoiceSettingsDialog.gd:161
 msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
 msgstr ""
 
@@ -2693,7 +2713,7 @@ msgstr ""
 msgid "Update to v%s…"
 msgstr ""
 
-#: CampaignPlayer.gd:755
+#: CampaignPlayer.gd:756
 msgid "Upgrade - tier %d"
 msgstr ""
 
@@ -2713,7 +2733,7 @@ msgstr ""
 msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:356
+#: VoiceSettingsDialog.gd:378
 msgid "Use the original game props in the map"
 msgstr ""
 
@@ -2745,7 +2765,7 @@ msgstr ""
 msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
 msgstr ""
 
-#: CampaignPlayer.gd:982 MissionPlayer.gd:1749
+#: CampaignPlayer.gd:983 MissionPlayer.gd:1749
 msgid "Victory!"
 msgstr ""
 
@@ -2757,7 +2777,7 @@ msgstr ""
 msgid "Vigos (life)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:132 VoiceSettingsDialog.gd:245
+#: VoiceSettingsDialog.gd:135 VoiceSettingsDialog.gd:248
 msgid "Voice"
 msgstr ""
 
@@ -2765,19 +2785,19 @@ msgstr ""
 msgid "Voice - "
 msgstr ""
 
-#: VoiceSettingsDialog.gd:405
+#: VoiceSettingsDialog.gd:431
 msgid "Voice control is set up."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:413
+#: VoiceSettingsDialog.gd:439
 msgid "Voice isn't set up yet - typed commands still work."
 msgstr ""
 
-#: PiperInstaller.gd:127
+#: PiperInstaller.gd:151
 msgid "voice settings (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:408
+#: VoiceSettingsDialog.gd:434
 msgid "Voice setup isn't available on %s - typed commands still work."
 msgstr ""
 
@@ -2785,8 +2805,12 @@ msgstr ""
 msgid "Voice setup isn't supported on %s yet."
 msgstr ""
 
-#: PiperInstaller.gd:129
+#: PiperInstaller.gd:153
 msgid "voices (%s)"
+msgstr ""
+
+#: VoiceSettingsDialog.gd:301
+msgid "Voices for:"
 msgstr ""
 
 #: extra
@@ -2873,7 +2897,7 @@ msgstr ""
 msgid "Will"
 msgstr ""
 
-#: CampaignState.gd:297
+#: CampaignState.gd:314
 msgid "Won: %s."
 msgstr ""
 
@@ -2885,7 +2909,7 @@ msgstr ""
 msgid "Wounded"
 msgstr ""
 
-#: CampaignPlayer.gd:569
+#: CampaignPlayer.gd:570
 msgid "XP: %d  |  Gold: %d"
 msgstr ""
 
@@ -2905,35 +2929,35 @@ msgstr ""
 msgid "You can play"
 msgstr ""
 
-#: CampaignPlayer.gd:816
+#: CampaignPlayer.gd:817
 msgid "You carry %d."
 msgstr ""
 
-#: CampaignPlayer.gd:639
+#: CampaignPlayer.gd:640
 msgid "You have %d gold and %s."
 msgstr ""
 
-#: CampaignPlayer.gd:639
+#: CampaignPlayer.gd:640
 msgid "You have %d gold."
 msgstr ""
 
-#: CampaignPlayer.gd:811
+#: CampaignPlayer.gd:812
 msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
 msgstr ""
 
-#: CampaignPlayer.gd:797
+#: CampaignPlayer.gd:798
 msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
 msgstr ""
 
-#: CampaignPlayer.gd:827
+#: CampaignPlayer.gd:828
 msgid "Your materials:"
 msgstr ""
 
-#: CampaignSetupPage.gd:92
+#: CampaignSetupPage.gd:95
 msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
 msgstr ""
 
-#: CampaignPlayer.gd:1071
+#: CampaignPlayer.gd:1072
 msgid "▶ Read aloud"
 msgstr ""
 
@@ -2965,7 +2989,7 @@ msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
 msgstr[0] ""
 msgstr[1] ""
 
-#: CampaignPlayer.gd:1008
+#: CampaignPlayer.gd:1009
 msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] ""
