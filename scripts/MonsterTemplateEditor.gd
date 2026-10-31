@@ -72,8 +72,12 @@ func _ready() -> void:
 		margin.add_theme_constant_override("margin_" + side, 8)
 	add_child(margin)
 
+	var outer := VBoxContainer.new()
+	margin.add_child(outer)
+	outer.add_child(FullScreenWindow.header("Monster Templates", hide))
 	var split := HSplitContainer.new()
-	margin.add_child(split)
+	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(split)
 
 	# --- left: the library
 	var left := VBoxContainer.new()
@@ -244,8 +248,8 @@ func _ready() -> void:
 ## Opens the window on the library's current contents.
 func open() -> void:
 	_refresh_list("")
-	# Clamped to 90% of the game window so it always fits (the form scrolls).
-	popup_centered_clamped(Vector2i(820, 720), 0.9)
+	# Covers the whole game window like the other big editors (the form scrolls; the header has the Close button).
+	FullScreenWindow.show(self)
 
 
 # ---------------------------------------------------------------- library

@@ -1,4 +1,9 @@
-﻿## v0.0.48 - 2026-10-30
+﻿## v0.0.49 - 2026-10-31
+- Mission editor: the Languages menu moved to the top menu bar, and a new AI menu holds "Generate stage…". The toolbar is narrower, so it fits small windows.
+- Scrolling the side panel in the mission editor no longer zooms the 3D view.
+- The monster template editor now fills the whole window.
+
+## v0.0.48 - 2026-10-30
 - A mission trigger on an event can now listen to several events at once: "when the lever is pulled OR the door is kicked in". In the Triggers editor use "+ or another event". With one shot ticked it fires for whichever event happens first, and then never again.
 
 ## v0.0.47 - 2026-10-29

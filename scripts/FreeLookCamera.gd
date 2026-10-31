@@ -66,8 +66,14 @@ func _input(event: InputEvent) -> void:
 			_rotating = event.pressed
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if _rotating else Input.MOUSE_MODE_VISIBLE
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			# Same reason as the right-click guard above: a wheel turn over a
+			# panel (the side panel's scroll areas) belongs to that panel.
+			if get_viewport().gui_get_hovered_control() != null:
+				return
 			translate(Vector3(0, 0, -zoom_step))
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			if get_viewport().gui_get_hovered_control() != null:
+				return
 			translate(Vector3(0, 0, zoom_step))
 	elif event is InputEventMouseMotion and _rotating:
 		_yaw -= event.relative.x * look_sensitivity

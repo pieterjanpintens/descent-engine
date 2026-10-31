@@ -52,6 +52,7 @@ var _rebuild_queued: bool = false
 var _language_bar: LanguageBar
 var _languages_dialog: LanguagesDialog
 var _translation_window: TranslationWindow
+var _languages_menu: PopupMenu  ## the "Languages" and "AI" top-level menus live in the MenuBar above this toolbar
 var _bar_mission: MissionData  ## the mission the bar was last filled for: another one (load, new, undo) means the languages are read again
 
 
@@ -95,8 +96,7 @@ func _build_ui() -> void:
 
 	_language_bar = LanguageBar.new()
 	_language_bar.language_selected.connect(_on_language_selected)
-	_language_bar.manage_pressed.connect(_open_languages_dialog)
-	_language_bar.translate_pressed.connect(_open_translation_window)
+	_language_bar.menu_in_bar = false  # the menu itself is a top-level menu (_build_top_menus)
 	add_child(_language_bar)
 	_languages_dialog = LanguagesDialog.new()
 	_languages_dialog.root_provider = func() -> Resource: return layered_map.mission
@@ -114,16 +114,12 @@ func _build_ui() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
 
-	var stage_button := Button.new()
-	stage_button.text = "Generate stage..."
-	stage_button.tooltip_text = "Describe an area in words and let the AI design it from the pieces in the box (experimental)."
-	stage_button.pressed.connect(func(): _stage_dialog.open())
-	add_child(stage_button)
 	_stage_dialog = StageDialog.new()
 	_stage_dialog.creator_controller = creator_controller
 	_stage_dialog.layered_map = layered_map
 	_stage_dialog.visible = false
 	add_child(_stage_dialog)
+	_build_top_menus()
 
 	_problems_button = Button.new()
 	_problems_button.flat = true
@@ -138,6 +134,29 @@ func _build_ui() -> void:
 	show_unavailable_check.button_pressed = creator_controller.show_unavailable_meshes
 	show_unavailable_check.toggled.connect(creator_controller.set_show_unavailable_meshes)
 	add_child(show_unavailable_check)
+
+
+## "Languages" and "AI" next to File / Edit / View / Play in the MenuBar above the toolbar (a PopupMenu child of a MenuBar is a top-level menu).
+func _build_top_menus() -> void:
+	var menu_bar := get_parent().get_node_or_null("MenuBar")
+	if menu_bar == null:
+		return
+	_languages_menu = PopupMenu.new()
+	_languages_menu.name = "Languages"
+	_languages_menu.add_item("Manage languages…", 0)
+	_languages_menu.add_item("Translate…", 1)
+	_languages_menu.id_pressed.connect(func(id: int):
+		if id == 0:
+			_open_languages_dialog()
+		else:
+			_open_translation_window())
+	menu_bar.add_child(_languages_menu)
+	var ai_menu := PopupMenu.new()
+	ai_menu.name = "AI"
+	ai_menu.add_item("Generate stage…", 0)
+	ai_menu.set_item_tooltip(0, "Describe an area in words and let the AI design it from the pieces in the box (experimental).")
+	ai_menu.id_pressed.connect(func(_id: int): _stage_dialog.open())
+	menu_bar.add_child(ai_menu)
 
 
 ## Coalesces rapid repeated triggers (mission_objects_changed can fire once
@@ -343,6 +362,8 @@ func _update_language_bar() -> void:
 	var mission := layered_map.mission
 	var codes := TextWalker.content_languages(mission, TextWalker.collect(mission))
 	_language_bar.show_languages(codes, LText.edit_language, mission.default_language)
+	if _languages_menu != null:
+		_languages_menu.set_item_disabled(1, codes.size() < 2)
 
 
 func _on_language_selected(language: String) -> void:
