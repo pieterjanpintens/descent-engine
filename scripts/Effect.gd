@@ -223,6 +223,10 @@ var message: String:
 ## corner and covers the three tiles toward -X/-Z, same convention as
 ## FootprintRegistry's footprints.
 @export var spawn_monsters: Array[MonsterTemplate] = []
+## SPAWN_MONSTERS only - the id of a MonsterGroup (MissionData.monster_groups) to spawn INSTEAD of `spawn_monsters` ("" = this effect's own
+## list). The two are mutually exclusive: with a group set, the own list is not used (and is kept empty by the editor). Use
+## MissionData.monsters_for(effect) to get the list that applies.
+@export var spawn_group_id: String = ""
 
 ## LOOT (new 2026-10-22) - what the party finds in a chest, a bookshelf, a tree...: it goes to the party's inventory (the mission's
 ## collected loot, paid to the campaign when the mission is won, exactly like a monster's loot). Everything is optional; a popup
