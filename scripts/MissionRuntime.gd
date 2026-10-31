@@ -177,6 +177,7 @@ func restore_monsters(dicts: Array[Dictionary]) -> void:
 		var parts := monster.id.split("_")
 		if parts.size() == 2 and parts[0] == "monster" and parts[1].is_valid_int():
 			_next_monster_number = maxi(_next_monster_number, int(parts[1]) + 1)
+		_next_spawn_batch = maxi(_next_spawn_batch, monster.spawn_batch + 1)
 	monsters_changed.emit()
 
 
@@ -394,7 +395,10 @@ var affliction_bonus_round: int = 0
 ## monster view can rebuild.
 var monsters: Array[RuntimeMonster] = []
 var _next_monster_number: int = 1
+var _next_spawn_batch: int = 1
 signal monsters_changed
+## Unaware monsters woke up (the whole group at once): (the monsters, why: "attack", "status", "conditions" or "effect"). MissionPlayer tells the table.
+signal monsters_woke(woken: Array, reason: String)
 ## A monster was defeated and removed (every way of defeating one ends in release_monster()).
 signal monster_defeated(monster: RuntimeMonster)
 ## The hero wearing the Tarnished Brooch defeated the Brooch's monster with an attack.
@@ -565,6 +569,12 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		elif not monster.conditions.has(condition):
 			monster.conditions.append(condition)
 			conditions_applied.append(condition)
+	# A surprised monster: an attack wakes it and its whole group - or, when it sleeps through attacks, a status put on it does.
+	if monster.unaware:
+		if monster.wake_on_attack:
+			wake_monsters([monster], "attack")
+		elif monster.wake_on_status and not conditions_applied.is_empty():
+			wake_monsters([monster], "status")
 	var bonus := 0
 	var penalty := 0
 	var immune := false
@@ -634,6 +644,8 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 ## `amount` hitpoints are removed - no weapon, defense roll, weakness or resistance; at 0 or
 ## less the monster is defeated and released, as in combat. Returns {hitpoints, defeated}.
 func damage_monster(monster: RuntimeMonster, amount: int) -> Dictionary:
+	if amount > 0 and monster.unaware and monster.wake_on_attack:
+		wake_monsters([monster], "attack")
 	monster.hitpoints -= maxi(amount, 0)
 	var defeated := monster.hitpoints <= 0
 	if defeated:
@@ -656,8 +668,61 @@ func add_condition(monster: RuntimeMonster, kind: int) -> bool:
 	if monster.is_condition_immune(kind) or monster.conditions.has(kind):
 		return false
 	monster.conditions.append(kind)
+	if monster.unaware and monster.wake_on_status:
+		wake_monsters([monster], "status")
 	monsters_changed.emit()
 	return true
+
+
+## ---- Surprises: unaware monsters (Effect.spawn_unaware) ----
+
+## Marks the monsters one Spawn Monsters effect just created (`request` is the queued spawn, see apply_effect()): they share a batch number
+## (so they wake together), remember the group and spawn area they came from, and - for a surprise - start unaware with their wake rules.
+func mark_spawn_batch(spawned: Array[RuntimeMonster], request: Dictionary) -> void:
+	var batch := _next_spawn_batch
+	_next_spawn_batch += 1
+	for monster in spawned:
+		monster.spawn_batch = batch
+		monster.spawn_group_id = str(request.get("group_id", ""))
+		monster.spawn_area_id = str(request.get("spawn_id", ""))
+		monster.unaware = bool(request.get("unaware", false))
+		if monster.unaware:
+			monster.wake_on_attack = bool(request.get("wake_on_attack", true))
+			monster.wake_on_status = bool(request.get("wake_on_status", true))
+			monster.wake_conditions.clear()
+			for condition: Condition in request.get("wake_conditions", []):
+				monster.wake_conditions.append(condition.duplicate())
+	monsters_changed.emit()
+
+
+## Wakes `seeds` (the unaware ones among them) AND every other unaware monster of their groups; returns everyone who woke. One
+## `monsters_woke` signal tells why: "attack", "status", "conditions" or "effect".
+func wake_monsters(seeds: Array, reason: String) -> Array[RuntimeMonster]:
+	var batches := {}
+	for seed_monster: RuntimeMonster in seeds:
+		if seed_monster.unaware and seed_monster.spawn_batch > 0:
+			batches[seed_monster.spawn_batch] = true
+	var woken: Array[RuntimeMonster] = []
+	for monster in monsters:
+		if monster.unaware and (seeds.has(monster) or batches.has(monster.spawn_batch)):
+			monster.unaware = false
+			woken.append(monster)
+	if not woken.is_empty():
+		monsters_changed.emit()
+		monsters_woke.emit(woken, reason)
+	return woken
+
+
+## Wakes the groups whose wake conditions hold now (a group is awake when ANY of its monsters' conditions hold - they share them). Called at
+## the start of the monster phase and after every player action.
+func check_wake_conditions() -> Array[RuntimeMonster]:
+	var ready: Array[RuntimeMonster] = []
+	for monster in monsters:
+		if monster.unaware and not monster.wake_conditions.is_empty() and evaluate_conditions(monster.wake_conditions):
+			ready.append(monster)
+	if ready.is_empty():
+		return []
+	return wake_monsters(ready, "conditions")
 
 
 func remove_condition(monster: RuntimeMonster, kind: int) -> void:
@@ -1009,6 +1074,9 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 	if effect.type == Effect.Type.RUN_TEST:
 		await _run_test(effect, hero_name)
 		return
+	if effect.type == Effect.Type.ASK_QUESTION:
+		await _run_question(effect, hero_name)
+		return
 	if effect.type == Effect.Type.SPAWN_MONSTERS:
 		# a monster with conditions (e.g. player_count >= 4) only spawns when they hold now; the others take the tiles in order
 		var qualifying: Array[MonsterTemplate] = []
@@ -1016,7 +1084,21 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 			if evaluate_conditions(spawned.conditions):
 				qualifying.append(spawned)
 		if not qualifying.is_empty():
-			_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": qualifying})
+			_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": qualifying, "group_id": effect.spawn_group_id,
+				"unaware": effect.spawn_unaware, "wake_conditions": effect.spawn_wake_conditions,
+				"wake_on_attack": effect.spawn_wake_on_attack, "wake_on_status": effect.spawn_wake_on_status})
+		return
+	if effect.type == Effect.Type.WAKE_MONSTERS:
+		var targets: Array[RuntimeMonster] = []
+		for candidate in monsters:
+			if not candidate.unaware:
+				continue
+			if effect.spawn_group_id != "" and candidate.spawn_group_id != effect.spawn_group_id:
+				continue
+			if effect.spawn_group_id == "" and effect.target_object_id != "" and candidate.spawn_area_id != effect.target_object_id:
+				continue
+			targets.append(candidate)
+		wake_monsters(targets, "effect")
 		return
 	if effect.type == Effect.Type.LOOT:
 		await _apply_loot(effect)
@@ -1170,6 +1252,25 @@ func _run_test(effect: Effect, hero_name: String) -> void:
 			await apply_effects(effect.pass_effects, hero_name)
 		else:
 			await apply_effects(effect.fail_effects, hero_name)
+
+
+## Effect.Type.ASK_QUESTION: asks the table a yes/no question (the effect's message, $1/$2... filled in) and runs
+## pass_effects on "Yes", fail_effects on "No". Like a Test's branches either list can hold any effect, including
+## another question.
+func _run_question(effect: Effect, hero_name: String) -> void:
+	if dialog == null:
+		push_warning("ASK_QUESTION effect fired but MissionRuntime.dialog isn't wired - skipped")
+		return
+	var text := _format_message(effect.message, effect.message_variables)
+	if text == "":
+		push_warning("ASK_QUESTION effect has no question text - skipped")
+		return
+	var yes: bool = await dialog.ask_yes_no(text)
+	print("MissionRuntime._run_question: '%s' -> %s" % [text, "yes" if yes else "no"])
+	if yes:
+		await apply_effects(effect.pass_effects, hero_name)
+	else:
+		await apply_effects(effect.fail_effects, hero_name)
 
 
 ## The extra successes the Lucky Charm of the hero called `hero_name` adds to a test (0 when the hero does not wear one).

@@ -83,6 +83,18 @@ var defeat_effects: Array[Effect] = []
 ## Its tactics (from its base template) and the one prepared for the next monster phase (-1 = none).
 var tactics: Array[MonsterTactic] = []
 var prepared_tactic: int = -1
+## A SURPRISE (Effect.spawn_unaware): while `unaware` the monster is skipped in the monster phase - no attack, no tactic - but can still be seen and
+## attacked. It wakes when its `wake_conditions` hold, when it is attacked (`wake_on_attack`), when a status is put on it (`wake_on_status`) or by a
+## Wake Monsters effect - and then the WHOLE group (everything with the same `spawn_batch`) wakes with it.
+var unaware: bool = false
+var wake_conditions: Array[Condition] = []
+var wake_on_attack: bool = true
+var wake_on_status: bool = true
+## All monsters one Spawn Monsters effect created share a batch number (0 = none); `spawn_group_id` is the MonsterGroup they came from and
+## `spawn_area_id` the MonsterSpawn they appeared at - what a Wake Monsters effect can aim at.
+var spawn_batch: int = 0
+var spawn_group_id: String = ""
+var spawn_area_id: String = ""
 
 
 ## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
@@ -192,6 +204,8 @@ func to_dict() -> Dictionary:
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
 		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text, "defeat_effects": defeat_effects.duplicate(), "prepared_tactic": prepared_tactic, "tactics": _to_dicts(tactics),
+			"unaware": unaware, "wake_conditions": wake_conditions.duplicate(), "wake_on_attack": wake_on_attack, "wake_on_status": wake_on_status,
+			"spawn_batch": spawn_batch, "spawn_group_id": spawn_group_id, "spawn_area_id": spawn_area_id,
 	}
 
 
@@ -254,6 +268,15 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.prepared_tactic = int(d.get("prepared_tactic", -1))
 	for entry in d.get("tactics", []):
 		m.tactics.append(MonsterTactic.from_dict(entry))
+	m.unaware = bool(d.get("unaware", false))
+	for entry in d.get("wake_conditions", []):
+		if entry is Condition:
+			m.wake_conditions.append(entry)
+	m.wake_on_attack = bool(d.get("wake_on_attack", true))
+	m.wake_on_status = bool(d.get("wake_on_status", true))
+	m.spawn_batch = int(d.get("spawn_batch", 0))
+	m.spawn_group_id = str(d.get("spawn_group_id", ""))
+	m.spawn_area_id = str(d.get("spawn_area_id", ""))
 	return m
 
 

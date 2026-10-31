@@ -758,6 +758,17 @@
 758|The game as the author designed it.
 759|Veteran
 760|Tougher monsters and a harder mission at the higher numbers. You can change it before each mission.
+761|%d monster(s) woke up.
+762|A condition was put on one of them.
+763|Monsters wake
+764|Something has alerted them.
+765|Something has woken them.
+766|The monsters wake up!
+767|They have not noticed the heroes: they stay where they are until something wakes them.
+768|They noticed the attack.
+769|Unaware
+770|Unaware - it and its group are skipped in the monster phase
+771|Wake up
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

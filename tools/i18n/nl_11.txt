@@ -1,0 +1,11 @@
+761|%d monster(s) zijn wakker geworden.
+762|Er is een toestand op een van hen gelegd.
+763|Monsters worden wakker
+764|Iets heeft hen gealarmeerd.
+765|Iets heeft hen wakker gemaakt.
+766|De monsters worden wakker!
+767|Ze hebben de helden niet opgemerkt: ze blijven waar ze zijn tot iets hen wakker maakt.
+768|Ze merkten de aanval op.
+769|Onoplettend
+770|Onoplettend: hij en zijn groep slaan de monsterfase over
+771|Wakker maken
