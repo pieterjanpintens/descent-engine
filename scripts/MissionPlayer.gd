@@ -238,6 +238,7 @@ func _ready() -> void:
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	_runtime.monster_defeated.connect(_on_monster_defeated)
+	_runtime.monsters_woke.connect(_on_monsters_woke)
 	_runtime.loot_collected.connect(_on_loot_collected)
 	_runtime.brooch_defeated.connect(_on_brooch_defeated)
 	_runtime.skull_kill.connect(_on_skull_kill)
@@ -766,6 +767,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 			no_chip.append(MonsterDisplay.find_monster(template.folder)["name"])
 			continue
 		spawned.append(registered)
+	_runtime.mark_spawn_batch(spawned, request)  # one group: they share their wake rules and wake together
 	var brooch_line := _spawn_brooch_monster(spawned)
 	if spawned.is_empty() and no_chip.is_empty() and no_base.is_empty():
 		return
@@ -785,6 +787,8 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		lines.append(tr("%s - %s chip") % [MonsterDisplay.find_monster(monster.folder)["name"], MonsterChip.display_name(monster.chip)])
 	if brooch_line != "":
 		lines.append("\n" + brooch_line)
+	if bool(request.get("unaware", false)) and not spawned.is_empty():
+		lines.append("\n" + tr("They have not noticed the heroes: they stay where they are until something wakes them."))
 	if not no_chip.is_empty():
 		lines.append("No colour chip left for: %s - not spawned." % ", ".join(no_chip))
 	if not no_base.is_empty():
@@ -1301,6 +1305,9 @@ func _run_darkness_and_loop() -> void:
 		await phase_banner.finished
 	# Step 1 of the darkness phase: Time passes.
 	await _run_time_passes()
+	# Surprised monsters whose wake conditions now hold wake up (and the table is told) before anyone acts.
+	_runtime.check_wake_conditions()
+	await _flush_wake_notices()
 	# Start of the monster phase: Afflicted monsters take their affliction damage.
 	await _apply_affliction()
 	# Every live monster takes its turn (picks a target, attacks). With none alive a
@@ -1365,7 +1372,7 @@ func _run_tactics_step() -> void:
 	for monster in _runtime.monsters:
 		if monster.prepared_tactic >= 0:
 			return
-		if not monster.tactics.is_empty() and not monster.conditions.has(MonsterCondition.Kind.CONFUSED):
+		if not monster.tactics.is_empty() and not monster.unaware and not monster.conditions.has(MonsterCondition.Kind.CONFUSED):
 			eligible.append(monster)
 	if eligible.is_empty():
 		return
@@ -1414,7 +1421,7 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 ## order (_monster_attack()).
 func _run_monster_attacks() -> void:
 	for monster in _runtime.monsters.duplicate():
-		if _runtime.monsters.has(monster) and monster.attack_power > 0:
+		if _runtime.monsters.has(monster) and monster.attack_power > 0 and not monster.unaware:  # a surprised group stays put
 			await _monster_attack(monster)
 
 
@@ -1618,6 +1625,7 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
 		await _run_monster_spawn(spawn_request)
+	_runtime.check_wake_conditions()  # a surprised group whose wake conditions now hold wakes up
 	if objective == null:
 		return true
 	await _handle_game_over(objective)
@@ -1655,6 +1663,52 @@ func _on_loot_collected(monster_name: String, text: Callable, usable_text: Calla
 ## EVERY defeated monster tells the table so in an OK dialog - "<name> has been defeated", the loot it gave the party and, when
 ## its base template has one, its "on defeat" text - once the dialog it was defeated in (the combat outcome, the manage dialog...)
 ## is closed; several in a row are shown one after the other.
+## ---- Surprised monsters wake up (MissionRuntime.monsters_woke) ----
+## The table is told once no dialog is open (so an attack's combat view closes first); the monster phase waits for the notices before anyone acts.
+var _wake_queue: Array[Dictionary] = []
+var _wake_busy: bool = false
+
+
+func _on_monsters_woke(woken: Array, reason: String) -> void:
+	_wake_queue.append({"monsters": woken.duplicate(), "reason": reason})
+	if _wake_busy:
+		return
+	_wake_busy = true
+	while not _wake_queue.is_empty():
+		var quiet := 0
+		while quiet < 3:  # wait until no dialog is open for a few frames in a row
+			await get_tree().process_frame
+			quiet = quiet + 1 if not dialog.visible else 0
+		var item: Dictionary = _wake_queue.pop_front()
+		var group: Array = item["monsters"]
+		var why: String = item["reason"]
+		var make_text := func() -> String:
+			var lines: Array[String] = [tr("The monsters wake up!"), ""]
+			for monster: RuntimeMonster in group:
+				lines.append(_who(monster))
+			match why:
+				"attack":
+					lines.append("\n" + tr("They noticed the attack."))
+				"status":
+					lines.append("\n" + tr("A condition was put on one of them."))
+				"conditions":
+					lines.append("\n" + tr("Something has alerted them."))
+				_:
+					lines.append("\n" + tr("Something has woken them."))
+			return "\n".join(lines)
+		if DebugSession.skipping():
+			debug_panel.toast(tr("%d monster(s) woke up.") % group.size())
+		else:
+			await dialog.ask_ok(make_text, true, false, "Monsters wake")
+	_wake_busy = false
+
+
+## Waits until every wake notice has been shown.
+func _flush_wake_notices() -> void:
+	while _wake_busy or not _wake_queue.is_empty():
+		await get_tree().process_frame
+
+
 func _on_monster_defeated(monster: RuntimeMonster) -> void:
 	_defeat_queue.append(monster)
 	if _defeat_busy:

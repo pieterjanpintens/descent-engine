@@ -63,7 +63,13 @@ enum Type {
 	LOOT,
 	SHOW_OBJECT,
 	HIDE_OBJECT,
+	WAKE_MONSTERS,
+	ASK_QUESTION,
 }
+
+## ASK_QUESTION (appended) asks the table a yes/no question - the text is `message` (with its $1/$2... `message_variables`),
+## "Yes" runs `pass_effects`, "No" runs `fail_effects` (the same two lists a Test uses, no accumulation, no roll).
+## Use it for things the app cannot see on the board ("is a hero on tile X?") and let the answer decide what happens next.
 
 ## target_object_id value meaning "the prop this action belongs to" - offered as the
 ## first entry of the object picker, in prop actions only (Remove/Move/Show/Hide Object).
@@ -227,6 +233,16 @@ var message: String:
 ## list). The two are mutually exclusive: with a group set, the own list is not used (and is kept empty by the editor). Use
 ## MissionData.monsters_for(effect) to get the list that applies.
 @export var spawn_group_id: String = ""
+## SPAWN_MONSTERS only - a SURPRISE: the monsters spawn UNAWARE. The players can see them (positions, hitpoints...) but they are skipped in the
+## monster phase (no attack, no tactic) until they wake up. The whole spawn (this effect firing) is one group: they all wake together.
+@export var spawn_unaware: bool = false
+## They wake when ALL of these hold (checked at the start of every monster phase and after every player action; empty = never by conditions).
+@export var spawn_wake_conditions: Array[Condition] = []
+## Any hero attack on one of them wakes the whole group (default), and/or any status condition put on one of them.
+@export var spawn_wake_on_attack: bool = true
+@export var spawn_wake_on_status: bool = true
+## WAKE_MONSTERS (new 2026-10-31) wakes unaware monsters (and so their whole group): the monsters of the group `spawn_group_id`, or those spawned at
+## the MonsterSpawn `target_object_id`, or - both empty - every unaware monster. See MissionRuntime.apply_effect().
 
 ## LOOT (new 2026-10-22) - what the party finds in a chest, a bookshelf, a tree...: it goes to the party's inventory (the mission's
 ## collected loot, paid to the campaign when the mission is won, exactly like a monster's loot). Everything is optional; a popup

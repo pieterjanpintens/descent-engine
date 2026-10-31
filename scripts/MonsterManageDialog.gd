@@ -19,6 +19,7 @@ var _monster: RuntimeMonster
 
 var _title: Label
 var _hp_label: Label
+var _unaware_row: HBoxContainer
 var _amount: SpinBox
 var _condition_boxes: Dictionary = {}  # MonsterCondition.Kind -> CheckBox
 var _suppress: bool = false
@@ -55,6 +56,21 @@ func _ready() -> void:
 	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hp_label.add_theme_font_size_override("font_size", 20)
 	vbox.add_child(_hp_label)
+
+	# A surprised monster (spawned unaware) can be woken by hand when the table decides it noticed the heroes.
+	_unaware_row = HBoxContainer.new()
+	_unaware_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_unaware_row.add_theme_constant_override("separation", 8)
+	var unaware_label := Label.new()
+	unaware_label.text = "Unaware - it and its group are skipped in the monster phase"
+	_unaware_row.add_child(unaware_label)
+	var wake_button := Button.new()
+	wake_button.text = "Wake up"
+	wake_button.pressed.connect(func():
+		_runtime.wake_monsters([_monster], "manual")
+		_refresh())
+	_unaware_row.add_child(wake_button)
+	vbox.add_child(_unaware_row)
 
 	var amount_row := HBoxContainer.new()
 	amount_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -106,6 +122,7 @@ func open(monster: RuntimeMonster, runtime: MissionRuntime) -> void:
 func _refresh() -> void:
 	_title.text = tr("%s (%s chip)") % [_monster.display_name(), MonsterChip.display_name(_monster.chip)]
 	_hp_label.text = tr("Hitpoints %d / %d") % [_monster.hitpoints, _monster.max_hitpoints]
+	_unaware_row.visible = _monster.unaware
 	_suppress = true
 	for kind in _condition_boxes:
 		var box: CheckBox = _condition_boxes[kind]

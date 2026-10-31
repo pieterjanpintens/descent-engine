@@ -57,7 +57,7 @@ func _commit_field(label: String, mutate: Callable) -> void:
 ## Closes the small nested editors (Edit Test, Conditions, Variables, Monsters, Loot) - they hold effects of the old
 ## mission, so they must go when an undo/redo replaces the mission under them.
 func hide_nested() -> void:
-	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor, _defeat_editor]:
+	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor, _defeat_editor, _surprise_editor, _question_editor]:
 		if window != null:
 			window.hide()
 
@@ -104,6 +104,48 @@ const LIST_WINDOW_WIDTH := 640
 ## Built-in variable names (MissionRuntime.BUILTIN_TYPES) plus every
 ## declared MissionData.custom_variables name - the full set a Condition/
 ## Effect's variable_name can validly reference right now.
+## The declared type (MissionVariable.Type as int) of a variable the pickers offer, -1 when unknown. Built-ins are INT.
+func _declared_type_of(variable_name: String) -> int:
+	if not campaign_variables.is_empty():
+		for variable in campaign_variables:
+			if variable.name == variable_name:
+				return variable.type
+		return -1
+	if ["round_number", "player_count", "affliction_damage", "difficulty"].has(variable_name):
+		return MissionVariable.Type.INT
+	for variable in mission.custom_variables:
+		if variable.name == variable_name:
+			return variable.type
+	return -1
+
+
+## Whether `value` is a usable value for a variable of this declared type (an INT is fine for a FLOAT variable).
+func _value_fits_type(value: Variant, declared: int) -> bool:
+	match declared:
+		MissionVariable.Type.BOOL:
+			return typeof(value) == TYPE_BOOL
+		MissionVariable.Type.INT:
+			return typeof(value) == TYPE_INT
+		MissionVariable.Type.FLOAT:
+			return typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT
+		MissionVariable.Type.STRING:
+			return typeof(value) == TYPE_STRING
+	return true
+
+
+func _zero_for_type(declared: int) -> Variant:
+	match declared:
+		MissionVariable.Type.BOOL:
+			return false
+		MissionVariable.Type.INT:
+			return 0
+		MissionVariable.Type.FLOAT:
+			return 0.0
+		MissionVariable.Type.STRING:
+			return ""
+	return null
+
+
 func _known_variable_names() -> Array[String]:
 	if not campaign_variables.is_empty():
 		var campaign_names: Array[String] = []
@@ -216,8 +258,19 @@ func _build_math_operand_editor(effect: Effect, prefix: String) -> Control:
 func build_condition_row(conditions_list: Array[Condition], condition: Condition, on_changed: Callable) -> Control:
 	var row := HFlowContainer.new()  # wraps when the editor is narrow
 
+	# An unset value (null) would never match the variable's type at play time (the condition is then false for good), so it starts at the
+	# variable's own zero value - the editor below then shows the right widget (a Bool check box for a yes/no variable).
+	var declared_type := _declared_type_of(condition.variable_name)
+	if declared_type != -1 and typeof(condition.value) == TYPE_NIL:
+		condition.value = _zero_for_type(declared_type)
 	var var_option := _build_variable_name_option(condition.variable_name, func(new_name: String):
-		_commit_field("Edit condition variable", func(): condition.variable_name = new_name)
+		_commit_field("Edit condition variable", func():
+			condition.variable_name = new_name
+			var new_type := _declared_type_of(new_name)
+			if new_type != -1 and not _value_fits_type(condition.value, new_type):
+				condition.value = _zero_for_type(new_type)
+		)
+		on_changed.call_deferred()  # not while this dropdown is still handling its own click
 	)
 	row.add_child(var_option)
 
@@ -287,14 +340,24 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Loot", Effect.Type.LOOT],
-			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT]]:
+			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
 	row.add_child(type_option)
 
+	var effect_declared_type := _declared_type_of(effect.variable_name)
+	if effect.type == Effect.Type.SET_VARIABLE and effect_declared_type != -1 and typeof(effect.value) == TYPE_NIL:
+		effect.value = _zero_for_type(effect_declared_type)  # see build_condition_row(): an unset value never matches the variable's type
 	var var_option := _build_variable_name_option(effect.variable_name, func(new_name: String):
-		_commit_field("Edit effect variable", func(): effect.variable_name = new_name)
+		_commit_field("Edit effect variable", func():
+			effect.variable_name = new_name
+			var new_type := _declared_type_of(new_name)
+			if effect.type == Effect.Type.SET_VARIABLE and new_type != -1 and not _value_fits_type(effect.value, new_type):
+				effect.value = _zero_for_type(new_type)
+		)
+		if effect.type == Effect.Type.SET_VARIABLE:
+			on_changed.call_deferred()
 	)
 	row.add_child(var_option)
 
@@ -359,6 +422,13 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		func(): return "Text for the board game Descent: Legends of the Dark. This is a message popup shown to the players during a mission (placeholders like $1 are replaced by variable values - keep them). Mission: %s." % mission.mission_name,
 		func(new_text: String): _commit_field("Edit effect message", func(): effect.message = new_text))
 	row.add_child(message_edit)
+
+	## ASK_QUESTION reuses the message text above as the question; "Edit answers…" holds the Yes / No effect lists.
+	var question_button := Button.new()
+	question_button.text = "Edit answers…"
+	question_button.tooltip_text = "What happens when the table answers Yes, and when it answers No"
+	question_button.pressed.connect(func(): _open_question_editor(effect))
+	row.add_child(question_button)
 
 	var message_variables_button := Button.new()
 	message_variables_button.text = "Variables…"
@@ -454,6 +524,40 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	spawn_monsters_button.pressed.connect(func(): _open_spawn_monsters_editor(effect, refresh_spawn_button))
 	row.add_child(spawn_monsters_button)
 
+	var surprise_button := Button.new()
+	surprise_button.tooltip_text = "A surprise: the monsters spawn unaware (visible, attackable, but skipped in the monster phase) until something wakes them"
+	var refresh_surprise_button := func():
+		surprise_button.text = "Unaware: yes…" if effect.spawn_unaware else "Unaware: no…"
+	refresh_surprise_button.call()
+	surprise_button.pressed.connect(func(): _open_surprise_editor(effect, refresh_surprise_button))
+	row.add_child(surprise_button)
+
+	## WAKE_MONSTERS - wakes unaware monsters (and so their groups): all of them, one monster group, or those spawned at one spawn area.
+	var wake_option := OptionButton.new()
+	var wake_targets: Array = [["", ""]]  # [kind, id] per entry; "" = every unaware monster
+	wake_option.add_item("All unaware monsters")
+	for wake_group in mission.monster_groups:
+		wake_option.add_item("Group: %s" % wake_group.display_name())
+		wake_targets.append(["group", wake_group.id])
+	for wake_index in mission.monster_spawns.size():
+		var wake_area: MonsterSpawn = mission.monster_spawns[wake_index]
+		wake_option.add_item("Spawned at: %s" % (wake_area.reference_name if wake_area.reference_name != "" else "Monster Spawn %d" % (wake_index + 1)))
+		wake_targets.append(["area", wake_area.id])
+	var wake_selected := 0
+	for target_index in wake_targets.size():
+		if (wake_targets[target_index][0] == "group" and wake_targets[target_index][1] == effect.spawn_group_id) \
+				or (wake_targets[target_index][0] == "area" and effect.spawn_group_id == "" and wake_targets[target_index][1] == effect.target_object_id):
+			wake_selected = target_index
+	wake_option.select(wake_selected)
+	wake_option.item_selected.connect(func(index: int):
+		var picked: Array = wake_targets[index]
+		_commit_field("Edit wake target", func():
+			effect.spawn_group_id = picked[1] if picked[0] == "group" else ""
+			effect.target_object_id = picked[1] if picked[0] == "area" else ""
+		)
+	)
+	row.add_child(wake_option)
+
 	## LOOT - gold, materials, cards, recipes, a title and a custom text, edited in its own small Window.
 	var loot_button := Button.new()
 	loot_button.tooltip_text = "What the party finds (chest, bookshelf, tree...): gold, materials, cards, recipes, and the text shown"
@@ -469,13 +573,16 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		loot_button.visible = type == Effect.Type.LOOT
 		spawn_option.visible = type == Effect.Type.SPAWN_MONSTERS
 		spawn_monsters_button.visible = type == Effect.Type.SPAWN_MONSTERS
+		surprise_button.visible = type == Effect.Type.SPAWN_MONSTERS
+		wake_option.visible = type == Effect.Type.WAKE_MONSTERS
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
 		object_option.visible = type == Effect.Type.REMOVE_OBJECT or type == Effect.Type.MOVE_OBJECT or type == Effect.Type.SHOW_OBJECT or type == Effect.Type.HIDE_OBJECT
 		test_button.visible = type == Effect.Type.RUN_TEST
-		message_edit.visible = type == Effect.Type.SHOW_MESSAGE
-		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE
+		message_edit.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION
+		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION
+		question_button.visible = type == Effect.Type.ASK_QUESTION
 		move_cell_box.visible = type == Effect.Type.MOVE_OBJECT
 		math_box.visible = type == Effect.Type.MATH
 	update_visibility.call()
@@ -581,7 +688,16 @@ func _build_value_editor(current_value: Variant, on_commit: Callable) -> Control
 		int_spin.visible = type == _ValueType.INT
 		float_spin.visible = type == _ValueType.FLOAT
 	update_visibility.call()
-	type_option.item_selected.connect(func(_index): update_visibility.call())
+	# Picking another type must also STORE a value of that type; before, only the widget changed and the old (or unset) value stayed
+	# until the new widget was touched - so forgetting to toggle the check box left the value as it was.
+	type_option.item_selected.connect(func(_index):
+		update_visibility.call()
+		match type_option.get_selected_id():
+			_ValueType.STRING: on_commit.call(string_edit.text)
+			_ValueType.BOOL: on_commit.call(bool_check.button_pressed)
+			_ValueType.INT: on_commit.call(int(int_spin.value))
+			_ValueType.FLOAT: on_commit.call(float_spin.value)
+	)
 
 	var commit_string := func(): on_commit.call(string_edit.text)
 	string_edit.text_submitted.connect(func(_t): commit_string.call())
@@ -1182,6 +1298,136 @@ func _open_spawn_monsters_editor(effect: Effect, after: Callable = Callable()) -
 
 	if not _spawn_monsters_editor.visible:
 		_spawn_monsters_editor.popup_centered_clamped(Vector2i(640, 460), 0.9)
+
+
+## ---- Nested "Ask Question" answers dialog ----
+## The question text itself is the effect row's message box; this window holds what a Yes and a No do (any effects, incl. another question).
+var _question_editor: Window
+var _question_editor_container: VBoxContainer
+
+
+func _open_question_editor(effect: Effect) -> void:
+	if _question_editor == null:
+		_question_editor = Window.new()
+		_question_editor.title = "Question answers"
+		_question_editor.size = Vector2i(560, 420)
+		_question_editor.close_requested.connect(_question_editor.hide)
+		_question_editor.visible = false
+		host.add_child(_question_editor)
+		var scroll := ScrollContainer.new()
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 8
+		scroll.offset_top = 8
+		scroll.offset_right = -8
+		scroll.offset_bottom = -8
+		_question_editor.add_child(scroll)
+		_question_editor_container = VBoxContainer.new()
+		_question_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(_question_editor_container)
+
+	for child in _question_editor_container.get_children():
+		_question_editor_container.remove_child(child)
+		child.queue_free()
+	var refresh := func(): _open_question_editor(effect)
+
+	_question_editor_container.add_child(_wrapped_label("The table is asked the question in the message box of this effect and answers Yes or No.", 520))
+	for branch in [["If the answer is Yes:", effect.pass_effects, "Add Yes effect"], ["If the answer is No:", effect.fail_effects, "Add No effect"]]:
+		var effects_list: Array[Effect] = branch[1]
+		_question_editor_container.add_child(HSeparator.new())
+		_question_editor_container.add_child(_label(branch[0]))
+		for branch_effect in effects_list:
+			_question_editor_container.add_child(build_effect_row(effects_list, branch_effect, refresh))
+		var add_button := Button.new()
+		add_button.text = branch[2]
+		add_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		add_button.pressed.connect(func():
+			var new_effect := Effect.new()
+			_commit_field("Add question effect", func(): effects_list.append(new_effect))
+			refresh.call()
+		)
+		_question_editor_container.add_child(add_button)
+
+	if not _question_editor.visible:
+		_question_editor.popup_centered_clamped(Vector2i(560, 420), 0.9)
+
+
+## ---- Nested "make this spawn a surprise" dialog ----
+## An unaware group is visible and attackable but skipped in the monster phase until it wakes: by conditions (checked at the start of every monster
+## phase and after every player action), by an attack on one of them, by a status put on one of them, or by a Wake Monsters effect. The whole group
+## (everything this effect spawned) wakes together.
+var _surprise_editor: Window
+var _surprise_editor_container: VBoxContainer
+
+
+func _open_surprise_editor(effect: Effect, after: Callable) -> void:
+	if _surprise_editor == null:
+		_surprise_editor = Window.new()
+		_surprise_editor.title = "Unaware monsters"
+		_surprise_editor.size = Vector2i(600, 340)
+		_surprise_editor.close_requested.connect(_surprise_editor.hide)
+		_surprise_editor.visible = false
+		host.add_child(_surprise_editor)
+		var scroll := ScrollContainer.new()
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 8
+		scroll.offset_top = 8
+		scroll.offset_right = -8
+		scroll.offset_bottom = -8
+		_surprise_editor.add_child(scroll)
+		_surprise_editor_container = VBoxContainer.new()
+		_surprise_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(_surprise_editor_container)
+
+	for child in _surprise_editor_container.get_children():
+		_surprise_editor_container.remove_child(child)
+		child.queue_free()
+	var refresh := func():
+		after.call()
+		_open_surprise_editor(effect, after)
+
+	var unaware_check := CheckBox.new()
+	unaware_check.text = "The monsters spawn unaware"
+	unaware_check.button_pressed = effect.spawn_unaware
+	unaware_check.toggled.connect(func(on: bool):
+		_commit_field("Edit spawn unaware", func(): effect.spawn_unaware = on)
+		refresh.call())
+	_surprise_editor_container.add_child(unaware_check)
+	_surprise_editor_container.add_child(_wrapped_label("The heroes can see them (position, hitpoints...) but they do nothing in the monster phase - no attack, no tactic - until they wake up. The whole group wakes together.", 560))
+	if not effect.spawn_unaware:
+		_surprise_editor.title = "Unaware monsters"
+		if not _surprise_editor.visible:
+			_surprise_editor.popup_centered_clamped(Vector2i(600, 340), 0.9)
+		return
+
+	var attack_check := CheckBox.new()
+	attack_check.text = "An attack on one of them wakes the whole group"
+	attack_check.button_pressed = effect.spawn_wake_on_attack
+	attack_check.toggled.connect(func(on: bool):
+		_commit_field("Edit wake on attack", func(): effect.spawn_wake_on_attack = on)
+		after.call())
+	_surprise_editor_container.add_child(attack_check)
+	var status_check := CheckBox.new()
+	status_check.text = "A status condition put on one of them wakes the whole group"
+	status_check.button_pressed = effect.spawn_wake_on_status
+	status_check.toggled.connect(func(on: bool):
+		_commit_field("Edit wake on status", func(): effect.spawn_wake_on_status = on)
+		after.call())
+	_surprise_editor_container.add_child(status_check)
+
+	var count := effect.spawn_wake_conditions.size()
+	var conditions_button := Button.new()
+	conditions_button.text = "They also wake when… (no conditions)" if count == 0 else "They also wake when… (%d condition%s)" % [count, "" if count == 1 else "s"]
+	conditions_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	conditions_button.tooltip_text = "Checked at the start of every monster phase and after every player action"
+	conditions_button.pressed.connect(func():
+		open_condition_list(effect.spawn_wake_conditions, "The group wakes up when ALL of these hold (checked at the start of every monster phase and after every player action). Empty = never by conditions.", "Wake conditions", func():
+			after.call()
+			_open_surprise_editor(effect, after))
+	)
+	_surprise_editor_container.add_child(conditions_button)
+	_surprise_editor_container.add_child(_wrapped_label("A Wake Monsters effect (fired by a trigger, an action or an objective) can also wake them: pick this group or this spawn area in it.", 560))
+	if not _surprise_editor.visible:
+		_surprise_editor.popup_centered_clamped(Vector2i(600, 340), 0.9)
 
 
 ## ---- Nested "edit one LOOT effect" dialog ----

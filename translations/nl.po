@@ -2259,6 +2259,39 @@ msgstr "Veteraan"
 msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
 msgstr "Sterkere monsters en een zwaardere missie bij de hogere nummers. Je kunt het vóór elke missie wijzigen."
 
+msgid "%d monster(s) woke up."
+msgstr "%d monster(s) zijn wakker geworden."
+
+msgid "A condition was put on one of them."
+msgstr "Er is een toestand op een van hen gelegd."
+
+msgid "Monsters wake"
+msgstr "Monsters worden wakker"
+
+msgid "Something has alerted them."
+msgstr "Iets heeft hen gealarmeerd."
+
+msgid "Something has woken them."
+msgstr "Iets heeft hen wakker gemaakt."
+
+msgid "The monsters wake up!"
+msgstr "De monsters worden wakker!"
+
+msgid "They have not noticed the heroes: they stay where they are until something wakes them."
+msgstr "Ze hebben de helden niet opgemerkt: ze blijven waar ze zijn tot iets hen wakker maakt."
+
+msgid "They noticed the attack."
+msgstr "Ze merkten de aanval op."
+
+msgid "Unaware"
+msgstr "Onoplettend"
+
+msgid "Unaware - it and its group are skipped in the monster phase"
+msgstr "Onoplettend: hij en zijn groep slaan de monsterfase over"
+
+msgid "Wake up"
+msgstr "Wakker maken"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

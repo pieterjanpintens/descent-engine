@@ -1,0 +1,11 @@
+761|%d monstruo(s) se despertó/despertaron.
+762|Se puso un estado sobre uno de ellos.
+763|Los monstruos despiertan
+764|Algo los ha alertado.
+765|Algo los ha despertado.
+766|¡Los monstruos despiertan!
+767|No han notado a los héroes: se quedan donde están hasta que algo los despierte.
+768|Notaron el ataque.
+769|Desprevenido
+770|Desprevenido: él y su grupo se saltan la fase de monstruos
+771|Despertar

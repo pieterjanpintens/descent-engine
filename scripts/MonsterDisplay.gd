@@ -279,6 +279,8 @@ func refresh_monsters(monsters: Array) -> void:
 			continue
 		info["name"] = monster.display_name()
 		info["extra"] = tr("HP %d · Level %d") % [monster.hitpoints, monster.level]
+		if monster.unaware:
+			info["extra"] += "\n" + tr("Unaware")  # a surprised monster: skipped in the monster phase until it wakes
 		if not monster.conditions.is_empty():
 			var condition_names: Array[String] = []
 			for condition in monster.conditions:
