@@ -15,6 +15,10 @@ extends Window
 
 var commit_field: Callable  ## (label: String, mutate: Callable) -> void
 var on_changed: Callable  ## () -> void
+## (template: MonsterTemplate, after: Callable) -> void - opens the "When defeated" effect list (set by EffectEditor).
+var edit_defeat_effects: Callable
+## (template: MonsterTemplate, after: Callable) -> void - opens the spawn conditions list (set by EffectEditor).
+var edit_spawn_conditions: Callable
 
 var _template: MonsterTemplate
 var _suppress: bool = false
@@ -26,6 +30,8 @@ var _base_warning: Label
 var _template_rows: VBoxContainer
 var _template_picker: OptionButton
 var _resolved_label: Label
+var _defeat_button: Button
+var _conditions_button: Button
 
 
 func _ready() -> void:
@@ -95,6 +101,26 @@ func _ready() -> void:
 	template_add_row.add_child(template_add)
 	vbox.add_child(template_add_row)
 
+	# Whether it spawns at all (player count, a variable...): e.g. an extra monster for big parties.
+	_conditions_button = Button.new()
+	_conditions_button.tooltip_text = "Only spawn this monster when conditions hold - e.g. player_count >= 4 for an extra monster, or two versions of a monster (different levels) with opposite conditions."
+	_conditions_button.pressed.connect(func():
+		if _template != null and edit_spawn_conditions.is_valid():
+			edit_spawn_conditions.call(_template, func():
+				_update_defeat_button()
+				_notify_changed())
+	)
+	vbox.add_child(_conditions_button)
+
+	# What happens when this monster is defeated (tracks "defeat X" mission objectives through variables).
+	_defeat_button = Button.new()
+	_defeat_button.tooltip_text = "Effects applied when this monster is defeated, e.g. set a variable your objective waits for."
+	_defeat_button.pressed.connect(func():
+		if _template != null and edit_defeat_effects.is_valid():
+			edit_defeat_effects.call(_template, _update_defeat_button)
+	)
+	vbox.add_child(_defeat_button)
+
 	# What the monster will actually be once its templates are applied (read-only).
 	var resolved_title := Label.new()
 	resolved_title.text = "Effective (with templates)"
@@ -115,8 +141,18 @@ func open_for(template: MonsterTemplate) -> void:
 	_refresh_template_picker()
 	_rebuild_template_rows()
 	_refresh_resolved()
+	_update_defeat_button()
 	_suppress = false
 	popup_centered_clamped(Vector2i(440, 560), 0.9)  # never taller than the game window (the form scrolls)
+
+
+func _update_defeat_button() -> void:
+	if _template == null or _defeat_button == null:
+		return
+	var condition_count := _template.conditions.size()
+	_conditions_button.text = "Spawns always…" if condition_count == 0 else "Spawns only if… (%d condition%s)" % [condition_count, "" if condition_count == 1 else "s"]
+	var count := _template.defeat_effects.size()
+	_defeat_button.text = "When defeated…" if count == 0 else "When defeated… (%d effect%s)" % [count, "" if count == 1 else "s"]
 
 
 func _notify_changed() -> void:

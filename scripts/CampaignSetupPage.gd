@@ -3,10 +3,10 @@ extends Control
 
 ## The page between "Begin campaign" and the first chapter: everything that is chosen once per game. Full screen, in the style of the begin campaign page
 ## (the designer's detail background, back arrow, shadowed title, the plaque button). It has a SECTION per setting, so more can be added later
-## (difficulty is the obvious next one): a section is `_section(column, title, width, hint)` plus its controls, in the left or the right column, and whatever it chooses goes into `confirmed`.
+## (more can follow): a section is `_section(column, title, width, hint)` plus its controls, in the left or the right column, and whatever it chooses goes into `confirmed`.
 ## Now: the language (chosen here and fixed for the whole game), the name of the save game, and - only when narration is installed - the voice of each hero.
 
-signal confirmed(save_name: String, hero_voices: Dictionary, language: String)
+signal confirmed(save_name: String, hero_voices: Dictionary, language: String, difficulty: int)
 signal cancelled
 
 const BACKGROUND := "res://models/ui/bg_detail.jpg"
@@ -15,6 +15,7 @@ const LEFT_WIDTH := 440.0   ## the first column (save game name, later more sett
 const RIGHT_WIDTH := 580.0  ## the second column (hero voices)
 
 var _language: String = "en"
+var _difficulty: int = PlayerSettings.mission_difficulty  ## the one the player chose last, in any game
 var _name_taken: Callable  ## (name: String) -> bool, supplied by the player: a save game with that name exists
 var _name_edit: LineEdit
 var _name_message: Label
@@ -90,6 +91,23 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable, lang
 		var only := Label.new()
 		only.text = CampaignInfo.native_name(_language)
 		column.add_child(only)
+
+	# ---- Difficulty: 1-4 with a name; also a variable (difficulty) the campaign's conditions can read ----
+	_section(column, "Difficulty", LEFT_WIDTH, "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission.")
+	var difficulty_picker := OptionButton.new()
+	for value in Difficulty.all():
+		difficulty_picker.add_item(Difficulty.label(value), value)
+	difficulty_picker.select(difficulty_picker.get_item_index(_difficulty))
+	var difficulty_hint := Label.new()
+	difficulty_hint.text = Difficulty.description(_difficulty)
+	difficulty_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	difficulty_hint.custom_minimum_size.x = LEFT_WIDTH
+	difficulty_hint.modulate = Color(1, 1, 1, 0.75)
+	difficulty_picker.item_selected.connect(func(index: int):
+		_difficulty = difficulty_picker.get_item_id(index)
+		difficulty_hint.text = Difficulty.description(_difficulty))
+	column.add_child(difficulty_picker)
+	column.add_child(difficulty_hint)
 
 	# ---- Save game name ----
 	_section(column, "Save game", LEFT_WIDTH, "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough.")
@@ -183,4 +201,4 @@ func _on_start_pressed() -> void:
 	_check_name()
 	if _start_button.disabled:
 		return
-	confirmed.emit(_name_edit.text.strip_edges(), _picker.answer() if _picker != null else {}, _language)
+	confirmed.emit(_name_edit.text.strip_edges(), _picker.answer() if _picker != null else {}, _language, _difficulty)

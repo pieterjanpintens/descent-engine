@@ -22,7 +22,7 @@ var _grid_item_index: int
 
 
 func _ready() -> void:
-	add_check_item("Grid", _ViewAction.GRID)
+	add_check_item("Grid (G)", _ViewAction.GRID)
 	_grid_item_index = get_item_index(_ViewAction.GRID)
 	creator_controller.grid_overlay_changed.connect(func(enabled: bool): set_item_checked(_grid_item_index, enabled))
 	set_item_checked(_grid_item_index, creator_controller.show_grid_overlay)

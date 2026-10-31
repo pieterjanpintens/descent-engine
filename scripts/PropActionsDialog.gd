@@ -156,6 +156,23 @@ func _build_action_block(action: PropAction) -> Control:
 	remove_button.pressed.connect(func(): _on_remove_action_pressed(action))
 	id_row.add_child(remove_button)
 
+	var name_row := HBoxContainer.new()
+	box.add_child(name_row)
+	var name_label := Label.new()
+	name_label.text = "Name:"
+	name_label.tooltip_text = "What the players pick (and say, with voice control). The description is shown below it."
+	name_row.add_child(name_label)
+	var name_edit := LineEdit.new()
+	name_edit.text = action.action_name
+	name_edit.placeholder_text = "e.g. Push the lever (blank = the description is the choice)"
+	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var commit_name := func():
+		if name_edit.text != action.action_name:
+			_commit_field("Edit action name", func(): action.action_name = name_edit.text)
+	name_edit.text_submitted.connect(func(_t): commit_name.call())
+	name_edit.focus_exited.connect(commit_name)
+	name_row.add_child(name_edit)
+
 	var desc_label := Label.new()
 	desc_label.text = "Description (shown to the player):"
 	box.add_child(desc_label)

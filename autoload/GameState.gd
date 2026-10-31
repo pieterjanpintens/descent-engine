@@ -21,6 +21,8 @@ var campaign_folder: String = ""
 var campaign_save: String = ""
 ## Mission variable name -> value handed over by the campaign when the mission starts (MissionPlayer presets them).
 var campaign_mission_inputs: Dictionary = {}
+## The difficulty (1-4, Difficulty) of the campaign game the mission is played in; a mission outside a campaign uses PlayerSettings.mission_difficulty.
+var campaign_difficulty: int = 2
 ## Which page the campaign screen opens on when no save game is given: "new" (pick a campaign book) or "load".
 var campaign_screen: String = "new"
 var campaign_chapter_id: String = ""
@@ -71,5 +73,6 @@ func clear_campaign() -> void:
 	campaign_folder = ""
 	campaign_save = ""
 	campaign_mission_inputs = {}
+	campaign_difficulty = Difficulty.DEFAULT
 	campaign_chapter_id = ""
 	campaign_result = {}

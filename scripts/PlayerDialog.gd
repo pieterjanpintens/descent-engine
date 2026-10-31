@@ -440,16 +440,20 @@ func ask_count(text: String, min_value: int = 0, max_value: int = 99, left_image
 ## player can see it exists but can no longer be chosen. Defaults to all
 ## enabled - a shorter (or empty) array than option_labels just leaves the
 ## remaining ones enabled.
-func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = [], allow_cancel: bool = true, narrate: bool = false) -> int:
+func ask_choice(text: String, option_labels: Array[String], option_disabled: Array[bool] = [], allow_cancel: bool = true, narrate: bool = false, option_details: Array[String] = []) -> int:
 	_label.text = NarrationMarkup.plain(text, characters)
 	_count_input.visible = false
 	var specs: Array = []
 	for i in option_labels.size():
 		var disabled: bool = option_disabled[i] if i < option_disabled.size() else false
-		specs.append({"text": NarrationMarkup.plain(option_labels[i], characters), "result": i, "disabled": disabled})
+		var detail: String = option_details[i] if i < option_details.size() else ""
+		specs.append({"text": NarrationMarkup.plain(option_labels[i], characters), "result": i, "disabled": disabled, "detail": NarrationMarkup.plain(detail, characters)})
 	if allow_cancel:
 		specs.append({"text": "Cancel", "result": -1})
 	var as_list := option_labels.size() > CHOICE_LIST_THRESHOLD
+	for detail in option_details:
+		if detail != "":
+			as_list = true  # a description under each option needs the list layout
 	for label in option_labels:
 		if NarrationMarkup.plain(label, characters).length() > CHOICE_SHORT_LENGTH:
 			as_list = true
@@ -458,7 +462,8 @@ func ask_choice(text: String, option_labels: Array[String], option_disabled: Arr
 	_set_buttons(specs, as_list)
 	var names: Array[String] = []
 	for label in option_labels:
-		names.append(VoiceAnswerParser.option_name(NarrationMarkup.plain(label, characters)))
+		# the table says an option's name (an action id like "open_door" is spoken "open door")
+		names.append(VoiceAnswerParser.option_name(NarrationMarkup.plain(label, characters)).replace("_", " "))
 	_set_voice_context("choice", names)
 	if narrate:
 		Narrator.speak(text, characters)
@@ -548,7 +553,26 @@ func _set_buttons(specs: Array, as_list: bool = false) -> void:
 			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			btn.custom_minimum_size.x = 200.0  # a wrapping button needs a width to start from
-			_choice_list.add_child(btn)
+			var detail: String = spec.get("detail", "")
+			if detail != "":
+				# the button names the option, a smaller description sits right below it
+				var holder := VBoxContainer.new()
+				holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				holder.add_theme_constant_override("separation", 2)
+				holder.add_child(btn)
+				var detail_label := Label.new()
+				detail_label.text = detail
+				detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				detail_label.custom_minimum_size.x = 200.0
+				detail_label.add_theme_font_size_override("font_size", 14)
+				detail_label.add_theme_color_override("font_color", Color(0.78, 0.8, 0.88))
+				var indent := MarginContainer.new()
+				indent.add_theme_constant_override("margin_left", 10)
+				indent.add_child(detail_label)
+				holder.add_child(indent)
+				_choice_list.add_child(holder)
+			else:
+				_choice_list.add_child(btn)
 		else:
 			_button_row.add_child(btn)
 		_buttons.append(btn)

@@ -492,6 +492,13 @@ func _rebuild_properties_panel() -> void:
 			_commit_field("Edit objective description", func(): objective.description = new_text)
 			_refresh_graph_node(objective))
 	_props_panel.add_child(desc_edit)
+	var desc_vars_button := Button.new()
+	desc_vars_button.text = "Variables…" if objective.description_variables.is_empty() else "Variables… (%d)" % objective.description_variables.size()
+	desc_vars_button.tooltip_text = "Show the current value of variables in the description: write $1, $2, ... in the text (e.g. \"$1 bandits remaining\") and list the variables here in the same order."
+	desc_vars_button.pressed.connect(func():
+		_editor.open_variable_list(objective.description_variables, "description", "Description Variables")
+	)
+	_props_panel.add_child(desc_vars_button)
 
 	_props_panel.add_child(_label("Outcome (only applies to a leaf - no children):"))
 	var outcome_option := OptionButton.new()

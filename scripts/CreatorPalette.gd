@@ -49,6 +49,8 @@ var _active_blocker_option: OptionButton
 var _active_blocker_ids: Array[String] = []
 var _blocker_option_rebuild_queued: bool = false
 var _active_spawn_option: OptionButton
+var _spawn_draw_button: Button  ## toggles drawing tiles into the active spawn (add a tile, or click one of its tiles again to remove it)
+var _blocker_draw_button: Button
 var _active_spawn_ids: Array[String] = []
 var _spawn_option_rebuild_queued: bool = false
 
@@ -64,6 +66,8 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
+	creator_controller.monster_spawn_paint_mode_changed.connect(func(enabled: bool): _spawn_draw_button.set_pressed_no_signal(enabled))
+	creator_controller.los_blocker_paint_mode_changed.connect(func(enabled: bool): _blocker_draw_button.set_pressed_no_signal(enabled))
 	creator_controller.active_los_blocker_changed.connect(_queue_blocker_option_rebuild.unbind(1))
 	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# The "Show unavailable" state is owned by the controller (so it survives a palette rebuild); the checkbox below the grid is back in this
@@ -227,6 +231,13 @@ func _build_ui() -> void:
 	new_spawn_button.text = "New spawn"
 	new_spawn_button.pressed.connect(_on_new_spawn_pressed)
 	spawn_row.add_child(new_spawn_button)
+	# Picking the already-active spawn in the dropdown does nothing, so editing a spawn later (select it in the outline, or here) needs this toggle.
+	_spawn_draw_button = Button.new()
+	_spawn_draw_button.text = "Draw / erase tiles"
+	_spawn_draw_button.toggle_mode = true
+	_spawn_draw_button.tooltip_text = "On: click a tile square to add it to the active spawn; click one of its tiles again to remove it. (Tiles can also be removed or reordered in the Outline tab.)"
+	_spawn_draw_button.toggled.connect(func(pressed: bool): creator_controller.set_monster_spawn_paint_mode(pressed))
+	spawn_row.add_child(_spawn_draw_button)
 
 	# Virtual line-of-sight walls (LosBlocker entities - they can be put in a stage group). Choosing one in the dropdown, or "New blocker",
 	# engages the tool; click tile squares to add/remove them.
@@ -246,6 +257,12 @@ func _build_ui() -> void:
 	new_blocker_button.text = "New blocker"
 	new_blocker_button.pressed.connect(_on_new_blocker_pressed)
 	blocker_row.add_child(new_blocker_button)
+	_blocker_draw_button = Button.new()
+	_blocker_draw_button.text = "Draw / erase squares"
+	_blocker_draw_button.toggle_mode = true
+	_blocker_draw_button.tooltip_text = "On: click a tile square to add it to the active blocker; click one of its squares again to remove it."
+	_blocker_draw_button.toggled.connect(func(pressed: bool): creator_controller.set_los_blocker_paint_mode(pressed))
+	blocker_row.add_child(_blocker_draw_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -

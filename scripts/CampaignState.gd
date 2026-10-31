@@ -14,6 +14,9 @@ extends Resource
 ## The language this playthrough is read, logged and narrated in: chosen when it was started, changeable later in Options (a moment the game
 ## can be saved). "" = a save game from before the choice existed: the player's preferred languages decide.
 @export var language: String = ""
+## The difficulty of this playthrough (1-4, Difficulty): chosen when it was started, changeable in Options. Missions played in it spawn
+## their monsters at a shifted level, and conditions can read it as the variable `difficulty`. A save from before it existed is Adventurer (2).
+@export var difficulty: int = Difficulty.DEFAULT
 @export var current_act: int = 0
 ## Ids of the chapters the party has won.
 @export var completed_chapters: Array[String] = []
@@ -114,7 +117,7 @@ func _runtime(campaign: Campaign) -> MissionRuntime:
 	data.custom_variables = campaign.all_variables()
 	var runtime := MissionRuntime.new(data)
 	runtime.log_evaluations = false
-	var values := {"experience": experience, "gold": gold, "act_number": current_act + 1}
+	var values := {"experience": experience, "gold": gold, "act_number": current_act + 1, "difficulty": Difficulty.clamped(difficulty)}
 	for variable in campaign.variables:
 		values[variable.name] = variables.get(variable.name, variable.default_value)
 	runtime.load_variables_state(values)

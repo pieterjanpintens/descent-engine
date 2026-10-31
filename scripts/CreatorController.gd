@@ -1080,6 +1080,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				set_occupancy_overlay(not show_occupancy_overlay)
 			KEY_N:
 				set_tile_labels(not show_tile_labels)
+			KEY_G:
+				set_grid_overlay(not show_grid_overlay)
 			KEY_P:
 				set_spawn_paint_mode(not spawn_paint_mode)
 				# The spawn overlay itself stays visible all the time now
@@ -1931,6 +1933,13 @@ func select_at_cursor() -> void:
 	var hit_cell: Vector3i = hit["cell"]
 	var origin := _origin_for_hit(hit_grid, hit_cell)
 	var resolved := _resolve_placed_at(hit_grid, origin)
+	# A monster spawn tile / LOS blocker square under the click is selected (and so becomes the one the draw tools edit) - unless a prop
+	# stands there; they win over the floor tile beneath them, which stays selectable from the outline.
+	if resolved["kind"] != "object" and not (Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)):
+		var overlay := _overlay_entity_at(hit_cell)
+		if overlay["id"] != "":
+			object_picked.emit(overlay["kind"], overlay["id"])
+			return
 	if resolved["id"] != "":
 		# Ctrl (Cmd on macOS) + click adds the piece to the selection, or takes it out when it is already in.
 		if Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META):
@@ -1939,6 +1948,24 @@ func select_at_cursor() -> void:
 			object_picked.emit(resolved["kind"], resolved["id"])
 	# Nothing matched at this origin - nothing to select, print()s already
 	# covered by _raycast_hit_cell()'s own diagnostics.
+
+
+## The monster spawn (or, failing that, LOS blocker) whose tile square covers this fine cell, as {"kind", "id"} ("" id = none).
+func _overlay_entity_at(fine_cell: Vector3i) -> Dictionary:
+	var square := FootprintRegistry.fine_cell_to_tile_square(fine_cell)
+	for spawn in layered_map.mission.monster_spawns:
+		if layered_map.is_editor_hidden(spawn):
+			continue
+		for cell in spawn.cells:
+			if cell.x == square.x and cell.z == square.z:
+				return {"kind": "monster_spawn", "id": spawn.id}
+	for blocker in layered_map.mission.los_blockers:
+		if layered_map.is_editor_hidden(blocker):
+			continue
+		for cell in blocker.cells:
+			if cell.x == square.x and cell.z == square.z:
+				return {"kind": "los_blocker", "id": blocker.id}
+	return {"kind": "", "id": ""}
 
 
 ## The placed prop / floor / hazard tile under the mouse as {"kind", "id"} ("" id = nothing there) - what the right-click context menu works on.

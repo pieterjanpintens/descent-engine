@@ -2226,6 +2226,39 @@ msgstr "Stemmen voor:"
 msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
 msgstr "Er zijn geen vertelstemmen voor %s geïnstalleerd, dus dit spel wordt alleen als tekst getoond. Download ze in Opties > Stem."
 
+msgid " - only if %d condition(s)"
+msgstr " - alleen bij %d voorwaarde(n)"
+
+msgid "Difficulty"
+msgstr "Moeilijkheid"
+
+msgid "Adventurer"
+msgstr "Avonturier"
+
+msgid "Apprentice"
+msgstr "Leerling"
+
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr "Monsters zijn één niveau sterker dan de auteur ze instelde, en de missie kan zwaarder voor je zijn."
+
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr "Monsters zijn één niveau zwakker dan de auteur ze instelde, en de missie kan milder voor je zijn."
+
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr "Monsters zijn twee niveaus sterker dan de auteur ze instelde, en de missie kent misschien geen genade."
+
+msgid "Nightmare"
+msgstr "Nachtmerrie"
+
+msgid "The game as the author designed it."
+msgstr "Het spel zoals de auteur het ontworpen heeft."
+
+msgid "Veteran"
+msgstr "Veteraan"
+
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
+msgstr "Sterkere monsters en een zwaardere missie bij de hogere nummers. Je kunt het vóór elke missie wijzigen."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

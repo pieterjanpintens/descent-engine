@@ -1,0 +1,11 @@
+749| - solo si se cumplen %d condición(es)
+750|Dificultad
+760|Monstruos más duros y una misión más difícil con los números altos. Puedes cambiarlo antes de cada misión.
+752|Aventurero
+753|Aprendiz
+754|Los monstruos son un nivel más fuertes de lo que fijó el autor, y la misión puede ser más dura contigo.
+755|Los monstruos son un nivel más débiles de lo que fijó el autor, y la misión puede ser más suave contigo.
+756|Los monstruos son dos niveles más fuertes de lo que fijó el autor, y la misión puede no tener piedad.
+757|Pesadilla
+758|El juego tal como lo diseñó el autor.
+759|Veterano

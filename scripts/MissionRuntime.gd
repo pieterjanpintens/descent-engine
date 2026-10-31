@@ -28,6 +28,7 @@ const BUILTIN_TYPES := {
 	"round_number": MissionVariable.Type.INT,
 	"player_count": MissionVariable.Type.INT,
 	"affliction_damage": MissionVariable.Type.INT,
+	"difficulty": MissionVariable.Type.INT,  ## 1-4 (Difficulty), read-only: the player chooses it
 }
 
 ## Built-ins an Effect MAY write (the rest are runtime-owned). `affliction_damage`
@@ -78,6 +79,7 @@ var _current_groups: Array = []  # Array[Array[MissionObjective]]
 func _init(p_mission: MissionData) -> void:
 	mission = p_mission
 	_variables["affliction_damage"] = DEFAULT_AFFLICTION_DAMAGE
+	_variables["difficulty"] = Difficulty.DEFAULT
 	for variable in mission.custom_variables:
 		var coerced: Variant = _coerce(variable.default_value, variable.type)
 		if typeof(coerced) == TYPE_NIL:
@@ -93,6 +95,15 @@ func _init(p_mission: MissionData) -> void:
 func sync_builtins(round_number: int, player_count: int) -> void:
 	_variables["round_number"] = round_number
 	_variables["player_count"] = player_count
+
+
+## The difficulty (1-4) of this game: the built-in variable `difficulty`, and the level shift of every monster that spawns from now on.
+func set_difficulty(value: int) -> void:
+	_variables["difficulty"] = Difficulty.clamped(value)
+
+
+func difficulty() -> int:
+	return Difficulty.clamped(int(_variables.get("difficulty", Difficulty.DEFAULT)))
 
 
 func get_variable(name: String) -> Variant:
@@ -441,10 +452,12 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	_next_monster_number += 1
 	created.folder = folder
 	created.custom_name = template.custom_name
-	created.level = template.level
+	# The difficulty moves the monster's level (Apprentice -1 ... Nightmare +2), so the level tables of its templates give it other numbers.
+	var level_shift := Difficulty.level_offset(difficulty())
+	created.level = template.shifted_level(level_shift)
 	# The template's own values combined with its attached monster templates
 	# (MonsterTemplate.resolve()): merged lists, highest attack/defense, name affixes.
-	var resolved := template.resolve()
+	var resolved := template.resolve(level_shift)
 	created.hitpoints = resolved["hitpoints"]
 	created.max_hitpoints = resolved["hitpoints"]
 	created.name_prefix = resolved["name_prefix"]
@@ -465,6 +478,8 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.confused_actions = resolved["confused_actions"]
 	created.loot = resolved["loot"]
 	created.defeat_text = resolved["defeat_text"]
+	for defeat_effect in template.defeat_effects:
+		created.defeat_effects.append(defeat_effect.duplicate(true))
 	created.tactics = resolved["tactics"]
 	created.chip = candidates[randi() % candidates.size()]
 	created.enfeeble_extra_percent = _enfeeble_extra()
@@ -977,7 +992,13 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		await _run_test(effect, hero_name)
 		return
 	if effect.type == Effect.Type.SPAWN_MONSTERS:
-		_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": effect.spawn_monsters.duplicate()})
+		# a monster with conditions (e.g. player_count >= 4) only spawns when they hold now; the others take the tiles in order
+		var qualifying: Array[MonsterTemplate] = []
+		for spawned in effect.spawn_monsters:
+			if evaluate_conditions(spawned.conditions):
+				qualifying.append(spawned)
+		if not qualifying.is_empty():
+			_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": qualifying})
 		return
 	if effect.type == Effect.Type.LOOT:
 		await _apply_loot(effect)
@@ -1423,13 +1444,21 @@ func _check_current_objectives(hero_name: String = "") -> MissionObjective:
 ## used to do, reading mission.objectives directly) spoiled branches
 ## nobody has reached - this reads the runtime's own traversal frontier
 ## instead, which is already exactly the "what's live right now" set.
-func get_current_objective_descriptions() -> Array[String]:
+func get_current_objective_descriptions(raw: bool = false) -> Array[String]:
 	var descriptions: Array[String] = []
 	for group in _current_groups:
 		for node in group:
 			if node.description != "":
-				descriptions.append(node.description)
+				descriptions.append(node.description if raw else objective_text(node))
 	return descriptions
+
+
+## An objective's description as the table sees it: $1, $2, ... replaced by the current values of its description_variables
+## (a description without variables is shown as written - a plain "$5" in it is left alone).
+func objective_text(objective: MissionObjective) -> String:
+	if objective.description_variables.is_empty():
+		return objective.description
+	return _format_message(objective.description, objective.description_variables)
 
 
 ## Load-time safety net for an accidentally-authored cycle - a DFS from

@@ -99,6 +99,9 @@ func _rebuild() -> void:
 
 
 func _build() -> void:
+	# Only the Options opened from the main menu wears the violet app look; from a mission or the campaign player it is the normal style.
+	theme = AppTheme.build() if (main_menu and not live) else null
+
 	var scrim := ColorRect.new()
 	scrim.color = Color(0, 0, 0, 0.45)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

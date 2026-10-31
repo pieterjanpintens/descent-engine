@@ -34,6 +34,9 @@ enum Outcome {
 
 @export var id: String = ""
 @export var description_texts: Dictionary = {}
+## Variables whose current values replace $1, $2, ... in the description ("$1 bandits remaining"), in order - same idea as
+## Effect.message_variables. Shown to the table through MissionRuntime.objective_text().
+@export var description_variables: Array[String] = []
 var description: String:
 	get:
 		return LText.pick(description_texts)

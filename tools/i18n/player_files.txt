@@ -66,3 +66,4 @@ VoiceInstaller tr
 PiperInstaller tr
 Narrator tr
 CampaignInfo tr
+Difficulty tr

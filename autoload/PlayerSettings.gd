@@ -41,6 +41,9 @@ var input_device: String = ""
 var auto_camera_to_spawns: bool = true
 ## Gameplay: the line-of-sight rule (SightLine.Mode): 0 corner to corner (loose), 1 centre to corner (default), 2 centre to centre (strict).
 var sight_rule: int = 1
+## The difficulty (1-4, see Difficulty) of a single mission played outside a campaign: chosen on the embark screen, changeable in Options.
+## A campaign game keeps its own in CampaignState.difficulty.
+var mission_difficulty: int = Difficulty.DEFAULT
 ## Use the game's own prop models (chest, gate...) in the map when they were imported (OriginalPropsLibrary); off = the shipped ones.
 var use_original_props: bool = true
 ## Narration: read the story aloud (Narrator, needs the Piper engine installed on demand).
@@ -144,6 +147,7 @@ func load_settings() -> void:
 	input_device = config.get_value(_SECTION, "input_device", input_device)
 	auto_camera_to_spawns = config.get_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
 	sight_rule = clampi(int(config.get_value(_GAMEPLAY, "sight_rule", sight_rule)), 0, 2)
+	mission_difficulty = Difficulty.clamped(int(config.get_value(_GAMEPLAY, "mission_difficulty", mission_difficulty)))
 	use_original_props = config.get_value(_GAMEPLAY, "use_original_props", use_original_props)
 	narration_enabled = config.get_value(_NARRATION, "narration_enabled", narration_enabled)
 	storyteller_voice = config.get_value(_NARRATION, "storyteller_voice", storyteller_voice)
@@ -175,6 +179,7 @@ func save_settings() -> void:
 	config.set_value(_SECTION, "input_device", input_device)
 	config.set_value(_GAMEPLAY, "auto_camera_to_spawns", auto_camera_to_spawns)
 	config.set_value(_GAMEPLAY, "sight_rule", sight_rule)
+	config.set_value(_GAMEPLAY, "mission_difficulty", mission_difficulty)
 	config.set_value(_GAMEPLAY, "use_original_props", use_original_props)
 	config.set_value(_NARRATION, "narration_enabled", narration_enabled)
 	config.set_value(_NARRATION, "storyteller_voice", storyteller_voice)

@@ -237,6 +237,8 @@ func collect_monster_templates() -> Array[MonsterTemplate]:
 func _collect_monster_templates(effects: Array[Effect], into: Array[MonsterTemplate]) -> void:
 	for effect in effects:
 		into.append_array(effect.spawn_monsters)
+		for spawned in effect.spawn_monsters:
+			_collect_monster_templates(spawned.defeat_effects, into)  # a monster's own "when defeated" effects may spawn more
 		_collect_monster_templates(effect.pass_effects, into)
 		_collect_monster_templates(effect.fail_effects, into)
 
