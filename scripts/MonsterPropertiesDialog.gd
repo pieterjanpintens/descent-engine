@@ -19,7 +19,10 @@ var on_changed: Callable  ## () -> void
 var edit_defeat_effects: Callable
 ## (template: MonsterTemplate, after: Callable) -> void - opens the spawn conditions list (set by EffectEditor).
 var edit_spawn_conditions: Callable
+## (template: MonsterTemplate, after: Callable) -> void - opens the level shift formula editor (set by EffectEditor).
+var edit_level_formula: Callable
 
+var _level_formula_button: Button
 var _template: MonsterTemplate
 var _suppress: bool = false
 var _title_label: Label
@@ -74,6 +77,17 @@ func _ready() -> void:
 		_notify_changed()
 	)
 	vbox.add_child(_row("Level:", _level_spin))
+
+	# How the difficulty (and the number of heroes...) moves the level this monster spawns at; blank = the mission's formula.
+	_level_formula_button = Button.new()
+	_level_formula_button.tooltip_text = "A formula that moves the level this monster spawns at, from the difficulty, the number of heroes and more. By default the mission's formula; 0 ignores the difficulty."
+	_level_formula_button.pressed.connect(func():
+		if _template != null and edit_level_formula.is_valid():
+			edit_level_formula.call(_template, func():
+				_update_defeat_button()
+				_notify_changed())
+	)
+	vbox.add_child(_level_formula_button)
 
 	# The BASE template (File > Monster Templates…): every monster needs one. Attaching
 	# embeds a COPY of the library entry (see MonsterArchetype).
@@ -149,6 +163,8 @@ func open_for(template: MonsterTemplate) -> void:
 func _update_defeat_button() -> void:
 	if _template == null or _defeat_button == null:
 		return
+	var own_formula := _template.level_formula.strip_edges()
+	_level_formula_button.text = tr("Level shift: the mission's formula…") if own_formula == "" else tr("Level shift: %s…") % own_formula
 	var condition_count := _template.conditions.size()
 	_conditions_button.text = "Spawns always…" if condition_count == 0 else "Spawns only if… (%d condition%s)" % [condition_count, "" if condition_count == 1 else "s"]
 	var count := _template.defeat_effects.size()

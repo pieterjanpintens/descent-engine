@@ -1,4 +1,8 @@
-﻿## v0.0.51 - 2026-10-31
+﻿## v0.0.52 - 2026-10-31
+- Mission editor: how difficulty changes monsters is now a formula you control. Mission menu > Monster levels sets the default for the mission (it can use the difficulty, the number of heroes, the round and your own variables); a monster's properties > Level shift overrides it for that monster (for example 0 to ignore the difficulty). A preview table shows the result for every difficulty and party size.
+- Mission editor: monster groups. In a Spawn Monsters effect, "Make a reusable group of this list" names the list as a group; other Spawn Monsters effects can then use the same group at their own spawn area, so the same encounter can appear in two places and is edited once.
+
+## v0.0.51 - 2026-10-31
 - New: difficulty, a number from 1 to 4 (Apprentice, Adventurer, Veteran, Nightmare). Pick it when you start a campaign and before every mission (on the party screen); the last choice is suggested next time. Monsters spawn one level weaker/stronger per step, and missions and campaigns can read it as the variable `difficulty`.
 - Mission editor: monsters can have spawn conditions (e.g. only with 4+ players or on a high difficulty) and "When defeated..." effects, so a mission objective can depend on defeating monsters.
 - Mission editor: objective texts can show variables ($1 remaining); prop actions have a name (shown and spoken) separate from their technical id; spawn and line-of-sight areas can be selected by clicking them and redrawn with a toggle; G toggles the grid.

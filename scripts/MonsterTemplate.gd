@@ -25,6 +25,9 @@ var custom_name: String:
 		LText.put(custom_name_texts, value)
 ## Picks the rows of the base/additive templates' scaling tables.
 @export_range(0, 9999) var level: int = 1
+## This monster's own "level shift" formula (see LevelFormula): "" = the mission's default (MissionData.level_formula), "0" = ignore the
+## difficulty. The shift is added to `level` when the monster spawns.
+@export var level_formula: String = ""
 ## The monster's BASE template (an embedded COPY of the library entry, so the
 ## mission is self-contained). Required.
 @export var base_archetype: MonsterArchetype
@@ -77,7 +80,7 @@ const STAT_TABLES := {
 ## breakdown the totals were summed from). Used by MissionRuntime.register_monster()
 ## and the properties dialog's preview.
 ##
-## `level_shift` (the game's difficulty, see Difficulty.level_offset()) moves the level the tables are read at; 0 = the level as authored.
+## `level_shift` (see LevelFormula, MissionRuntime.monster_level_shift()) moves the level the tables are read at; 0 = the level as authored.
 func resolve(level_shift: int = 0) -> Dictionary:
 	var at_level := shifted_level(level_shift)
 	var prefix := ""

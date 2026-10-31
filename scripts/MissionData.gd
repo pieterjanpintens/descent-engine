@@ -37,6 +37,9 @@ func offered_languages() -> Array[String]:
 ## stays unrestricted. Enforced by EmbarkDialog (greys out remaining slots
 ## once max_players are selected, requires at least min_players to start).
 @export var min_players: int = 1
+## The default "level shift" of the monsters of this mission as a formula (see LevelFormula): the shift is added to the level a monster was given.
+## "" = LevelFormula.DEFAULT (follow the difficulty). A monster can override it (MonsterTemplate.level_formula).
+@export var level_formula: String = ""
 @export var max_players: int = 6  ## keep in sync with HeroCatalog.SLOT_COUNT
 
 ## Logical per-cell data. Key = Vector3i cell coordinate. Y is the level -
@@ -118,6 +121,8 @@ func offered_languages() -> Array[String]:
 ## top of the runtime's own built-ins (round_number, player_count, ...)
 ## which aren't declared here - see MissionVariable.
 @export var custom_variables: Array[MissionVariable] = []
+## Reusable monster lists that several Spawn Monsters effects can share (Effect.spawn_group_id).
+@export var monster_groups: Array[MonsterGroup] = []
 ## The named speakers of this mission's messages: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
 @export var characters: Array[NarratorCharacter] = []
 
@@ -231,6 +236,10 @@ func collect_monster_templates() -> Array[MonsterTemplate]:
 	var result: Array[MonsterTemplate] = []
 	for effects in _effect_lists():
 		_collect_monster_templates(effects, result)
+	for group in monster_groups:
+		result.append_array(group.monsters)
+		for spawned in group.monsters:
+			_collect_monster_templates(spawned.defeat_effects, result)
 	return result
 
 
@@ -241,6 +250,44 @@ func _collect_monster_templates(effects: Array[Effect], into: Array[MonsterTempl
 			_collect_monster_templates(spawned.defeat_effects, into)  # a monster's own "when defeated" effects may spawn more
 		_collect_monster_templates(effect.pass_effects, into)
 		_collect_monster_templates(effect.fail_effects, into)
+
+
+func find_monster_group(group_id: String) -> MonsterGroup:
+	if group_id == "":
+		return null
+	for group in monster_groups:
+		if group.id == group_id:
+			return group
+	return null
+
+
+## The monsters a SPAWN_MONSTERS effect spawns: its group's list when it points at an existing group, else its own list.
+func monsters_for(effect: Effect) -> Array[MonsterTemplate]:
+	var group := find_monster_group(effect.spawn_group_id)
+	return group.monsters if group != null else effect.spawn_monsters
+
+
+## How many Spawn Monsters effects (anywhere, incl. Test branches and monsters' "when defeated" effects) use the group.
+func group_use_count(group_id: String) -> int:
+	var count := 0
+	for effects in _effect_lists():
+		count += _count_group_uses(effects, group_id)
+	for group in monster_groups:
+		for spawned in group.monsters:
+			count += _count_group_uses(spawned.defeat_effects, group_id)
+	return count
+
+
+func _count_group_uses(effects: Array[Effect], group_id: String) -> int:
+	var count := 0
+	for effect in effects:
+		if effect.type == Effect.Type.SPAWN_MONSTERS and effect.spawn_group_id == group_id:
+			count += 1
+		for spawned in effect.spawn_monsters:
+			count += _count_group_uses(spawned.defeat_effects, group_id)
+		count += _count_group_uses(effect.pass_effects, group_id)
+		count += _count_group_uses(effect.fail_effects, group_id)
+	return count
 
 
 func get_tile(cell: Vector3i) -> TileEntry:

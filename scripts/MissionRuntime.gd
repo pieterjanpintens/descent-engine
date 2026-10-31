@@ -418,6 +418,23 @@ var world_log: Array[Dictionary] = []
 var wound_health_override: int = 0
 
 
+## How many levels `template` is moved when it spawns now: its own formula, else the mission's, else LevelFormula.DEFAULT, calculated from the
+## difficulty, the player count, the round, the monster's authored level and the mission's INT variables. A broken formula shifts nothing
+## (and warns), so a typo can never stop a mission.
+func monster_level_shift(template: MonsterTemplate) -> int:
+	var formula := template.level_formula.strip_edges()
+	if formula == "":
+		formula = mission.level_formula.strip_edges()
+	var values := {"level": template.level}
+	for variable_name in LevelFormula.variables(mission):
+		if not values.has(variable_name):
+			values[variable_name] = int(_variables.get(variable_name, 0))
+	var result := LevelFormula.evaluate(formula, values)
+	if not result["ok"]:
+		push_warning("Level formula '%s' of monster '%s': %s" % [formula, template.folder, result["error"]])
+	return int(result["shift"])
+
+
 ## Registers a newly spawned monster from `template` (its properties are
 ## inherited) with a random colour chip.
 ## Rules: a chip colour is never shared by two live monsters of the SAME
@@ -452,8 +469,9 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	_next_monster_number += 1
 	created.folder = folder
 	created.custom_name = template.custom_name
-	# The difficulty moves the monster's level (Apprentice -1 ... Nightmare +2), so the level tables of its templates give it other numbers.
-	var level_shift := Difficulty.level_offset(difficulty())
+	# The level shift formula (the monster's own or the mission's, by default "difficulty - 2") moves the monster's level, so the level
+	# tables of its templates give it other numbers.
+	var level_shift := monster_level_shift(template)
 	created.level = template.shifted_level(level_shift)
 	# The template's own values combined with its attached monster templates
 	# (MonsterTemplate.resolve()): merged lists, highest attack/defense, name affixes.
@@ -994,7 +1012,7 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 	if effect.type == Effect.Type.SPAWN_MONSTERS:
 		# a monster with conditions (e.g. player_count >= 4) only spawns when they hold now; the others take the tiles in order
 		var qualifying: Array[MonsterTemplate] = []
-		for spawned in effect.spawn_monsters:
+		for spawned in mission.monsters_for(effect):  # the effect's group, or its own list
 			if evaluate_conditions(spawned.conditions):
 				qualifying.append(spawned)
 		if not qualifying.is_empty():

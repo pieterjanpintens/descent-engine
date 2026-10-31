@@ -33,6 +33,7 @@ var variables_changed: Callable = Callable()
 var host: Node
 var _commit: Callable
 
+var _level_formula_dialog: LevelFormulaDialog
 var _test_editor: Window
 var _test_editor_container: VBoxContainer
 var _effect_conditions_editor: Window
@@ -86,6 +87,18 @@ func _label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	return label
+
+
+## A label that wraps at `width` (a wrapping label with no minimum width wraps per letter).
+func _wrapped_label(text: String, width: int) -> Label:
+	var label := _label(text)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = width
+	return label
+
+
+## The width of the small list windows (an effect's conditions, a monster's spawn conditions, the $1/$2 variables): a condition row is long.
+const LIST_WINDOW_WIDTH := 640
 
 
 ## Built-in variable names (MissionRuntime.BUILTIN_TYPES) plus every
@@ -433,9 +446,12 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	row.add_child(spawn_option)
 
 	var spawn_monsters_button := Button.new()
-	spawn_monsters_button.text = "Monsters…"
-	spawn_monsters_button.tooltip_text = "Which monsters spawn, in tile order (first = tile 1)"
-	spawn_monsters_button.pressed.connect(func(): _open_spawn_monsters_editor(effect))
+	spawn_monsters_button.tooltip_text = "Which monsters spawn, in tile order (first = tile 1): this effect's own list, or a named group several effects can share"
+	var refresh_spawn_button := func():
+		var shared := mission.find_monster_group(effect.spawn_group_id)
+		spawn_monsters_button.text = "Monsters…" if shared == null else "Group: %s…" % shared.display_name()
+	refresh_spawn_button.call()
+	spawn_monsters_button.pressed.connect(func(): _open_spawn_monsters_editor(effect, refresh_spawn_button))
 	row.add_child(spawn_monsters_button)
 
 	## LOOT - gold, materials, cards, recipes, a title and a custom text, edited in its own small Window.
@@ -740,9 +756,10 @@ func _open_effect_conditions_editor(effect: Effect) -> void:
 ## `after` (optional) is called after every change.
 func open_condition_list(list: Array[Condition], hint: String, window_title: String, after: Callable = Callable()) -> void:
 	for child in _effect_conditions_editor_container.get_children():
+		_effect_conditions_editor_container.remove_child(child)
 		child.queue_free()
 
-	_effect_conditions_editor_container.add_child(_label(hint))
+	_effect_conditions_editor_container.add_child(_wrapped_label(hint, LIST_WINDOW_WIDTH - 40))
 	var rebuild := func():
 		if after.is_valid():
 			after.call()
@@ -750,7 +767,8 @@ func open_condition_list(list: Array[Condition], hint: String, window_title: Str
 	for condition in list:
 		_effect_conditions_editor_container.add_child(build_condition_row(list, condition, rebuild))
 	var add_condition_button := Button.new()
-	add_condition_button.text = "Add Condition"
+	add_condition_button.text = "+ Add condition"
+	add_condition_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN  # a bare button in a VBox would stretch over the whole window
 	add_condition_button.pressed.connect(func():
 		var condition := Condition.new()
 		_commit_field("Add condition", func(): list.append(condition))
@@ -759,7 +777,8 @@ func open_condition_list(list: Array[Condition], hint: String, window_title: Str
 	_effect_conditions_editor_container.add_child(add_condition_button)
 
 	_effect_conditions_editor.title = window_title
-	_effect_conditions_editor.popup_centered()
+	if not _effect_conditions_editor.visible:  # rebuilding after an edit keeps the window where (and as big as) the author left it
+		_effect_conditions_editor.popup_centered_clamped(Vector2i(LIST_WINDOW_WIDTH, 440), 0.9)
 
 
 ## ---- Nested "edit one SHOW_MESSAGE effect's $1/$2/... list" dialog ----
@@ -809,9 +828,10 @@ func _open_message_variables_editor(effect: Effect) -> void:
 ## `list` is edited in place; `what` names the text in the hint.
 func open_variable_list(list: Array[String], what: String, window_title: String) -> void:
 	for child in _message_variables_editor_container.get_children():
+		_message_variables_editor_container.remove_child(child)
 		child.queue_free()
 
-	_message_variables_editor_container.add_child(_label("$1, $2, ... in the " + what + ", in order - any declared variable, any type:"))
+	_message_variables_editor_container.add_child(_wrapped_label("$1, $2, ... in the " + what + ", in order - any declared variable, any type:", LIST_WINDOW_WIDTH - 40))
 	for i in list.size():
 		var index := i  # captured by value for this row's own closures below
 		var row := HBoxContainer.new()
@@ -861,7 +881,8 @@ func open_variable_list(list: Array[String], what: String, window_title: String)
 		_message_variables_editor_container.add_child(row)
 
 	var add_button := Button.new()
-	add_button.text = "Add Variable"
+	add_button.text = "+ Add variable"
+	add_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	add_button.pressed.connect(func():
 		_commit_field("Add message variable", func(): list.append(""))
 		open_variable_list(list, what, window_title)
@@ -869,7 +890,8 @@ func open_variable_list(list: Array[String], what: String, window_title: String)
 	_message_variables_editor_container.add_child(add_button)
 
 	_message_variables_editor.title = window_title
-	_message_variables_editor.popup_centered()
+	if not _message_variables_editor.visible:
+		_message_variables_editor.popup_centered_clamped(Vector2i(LIST_WINDOW_WIDTH, 360), 0.9)
 
 
 ## Shared-shape helper for the "Properties…" button on each monster row:
@@ -885,6 +907,13 @@ func _open_monster_properties(template: MonsterTemplate, refresh: Callable) -> v
 	_monster_properties_dialog.commit_field = _commit_field
 	_monster_properties_dialog.on_changed = refresh
 	_monster_properties_dialog.edit_defeat_effects = _open_defeat_editor
+	_monster_properties_dialog.edit_level_formula = func(t: MonsterTemplate, after: Callable):
+		if _level_formula_dialog == null:
+			_level_formula_dialog = LevelFormulaDialog.new()
+			host.add_child(_level_formula_dialog)
+		_level_formula_dialog.open_for("Level shift of this monster", t.level_formula, mission, true, mission.level_formula, t.level, func(formula: String):
+			_commit_field("Edit monster level formula", func(): t.level_formula = formula)
+			after.call())
 	_monster_properties_dialog.edit_spawn_conditions = func(t: MonsterTemplate, after: Callable):
 		open_condition_list(t.conditions, "This monster only spawns when ALL of these hold when the spawn happens (empty = always). E.g. player_count >= 4 for an extra monster in a big party.", "Spawn conditions", after)
 	_monster_properties_dialog.open_for(template)
@@ -945,11 +974,11 @@ var _spawn_monsters_editor: Window
 var _spawn_monsters_editor_container: VBoxContainer
 
 
-func _open_spawn_monsters_editor(effect: Effect) -> void:
+func _open_spawn_monsters_editor(effect: Effect, after: Callable = Callable()) -> void:
 	if _spawn_monsters_editor == null:
 		_spawn_monsters_editor = Window.new()
 		_spawn_monsters_editor.title = "Spawn Monsters"
-		_spawn_monsters_editor.size = Vector2i(520, 360)
+		_spawn_monsters_editor.size = Vector2i(640, 460)
 		_spawn_monsters_editor.close_requested.connect(_spawn_monsters_editor.hide)
 		_spawn_monsters_editor.visible = false
 		host.add_child(_spawn_monsters_editor)
@@ -965,12 +994,117 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 		scroll.add_child(_spawn_monsters_editor_container)
 
 	for child in _spawn_monsters_editor_container.get_children():
+		_spawn_monsters_editor_container.remove_child(child)
 		child.queue_free()
 
-	_spawn_monsters_editor_container.add_child(_label("Monsters in spawn-tile order (1st on tile 1, ...). Name, hitpoints, level: Properties…"))
-	for i in effect.spawn_monsters.size():
+	# An effect spawns EITHER its own list OR one named group (shared with other effects) - never both.
+	var group: MonsterGroup = mission.find_monster_group(effect.spawn_group_id)
+	var list: Array[MonsterTemplate] = group.monsters if group != null else effect.spawn_monsters
+	var refresh := func():
+		if after.is_valid():
+			after.call()
+		_open_spawn_monsters_editor(effect, after)
+
+	var source_row := HBoxContainer.new()
+	source_row.add_child(_label("Monsters:"))
+	var source_option := OptionButton.new()
+	source_option.add_item("This effect's own list", 0)
+	for group_index in mission.monster_groups.size():
+		var candidate: MonsterGroup = mission.monster_groups[group_index]
+		source_option.add_item("Group: %s (%d)" % [candidate.display_name(), candidate.monsters.size()], group_index + 1)
+	source_option.select(0 if group == null else mission.monster_groups.find(group) + 1)
+	source_option.item_selected.connect(func(_selected: int):
+		var picked := source_option.get_selected_id()
+		_commit_field("Choose spawned monster list", func():
+			if picked == 0:
+				if group != null:  # leaving a group: this effect gets its own, independent copy of the monsters
+					var copies: Array[MonsterTemplate] = []
+					for member in group.monsters:
+						copies.append(member.duplicate(true))
+					effect.spawn_monsters = copies
+				effect.spawn_group_id = ""
+			else:
+				effect.spawn_monsters = []  # exclusive: a group replaces the own list
+				effect.spawn_group_id = mission.monster_groups[picked - 1].id
+		)
+		refresh.call()
+	)
+	source_row.add_child(source_option)
+	_spawn_monsters_editor_container.add_child(source_row)
+
+	if group != null:
+		# The group's name (several effects point at it), how many use it, and what can be done with it.
+		var name_row := HBoxContainer.new()
+		name_row.add_child(_label("Group name:"))
+		var name_edit := LineEdit.new()
+		name_edit.text = group.group_name
+		name_edit.placeholder_text = "e.g. Bandit ambush"
+		name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var commit_name := func():
+			var new_name := name_edit.text.strip_edges()
+			if new_name != group.group_name:
+				_commit_field("Rename monster group", func(): group.group_name = new_name)
+				refresh.call()
+		name_edit.text_submitted.connect(func(_text: String): commit_name.call())
+		name_edit.focus_exited.connect(commit_name)
+		name_row.add_child(name_edit)
+		_spawn_monsters_editor_container.add_child(name_row)
+		var uses := mission.group_use_count(group.id)
+		_spawn_monsters_editor_container.add_child(_wrapped_label("Used by %d spawn effect%s - changing this list changes all of them." % [uses, "" if uses == 1 else "s"], 600))
+		var group_buttons := HBoxContainer.new()
+		var duplicate_button := Button.new()
+		duplicate_button.text = "Duplicate group"
+		duplicate_button.tooltip_text = "A new group with a copy of these monsters, which this effect then uses"
+		duplicate_button.pressed.connect(func():
+			_commit_field("Duplicate monster group", func():
+				var copy := MonsterGroup.new()
+				copy.id = mission.allocate_object_id()
+				copy.group_name = group.display_name() + " copy"
+				for member in group.monsters:
+					copy.monsters.append(member.duplicate(true))
+				mission.monster_groups.append(copy)
+				effect.spawn_group_id = copy.id
+			)
+			refresh.call()
+		)
+		group_buttons.add_child(duplicate_button)
+		var dissolve_button := Button.new()
+		dissolve_button.text = "Remove group (keep monsters here)"
+		dissolve_button.disabled = uses > 1
+		dissolve_button.tooltip_text = "Only possible while no other effect uses the group" if uses > 1 else "Deletes the group; this effect keeps the monsters as its own list"
+		dissolve_button.pressed.connect(func():
+			_commit_field("Remove monster group", func():
+				effect.spawn_monsters = group.monsters.duplicate()
+				effect.spawn_group_id = ""
+				mission.monster_groups.erase(group)
+			)
+			refresh.call()
+		)
+		group_buttons.add_child(dissolve_button)
+		_spawn_monsters_editor_container.add_child(group_buttons)
+	else:
+		var make_group_button := Button.new()
+		make_group_button.text = "Make a reusable group of this list"
+		make_group_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		make_group_button.tooltip_text = "Names this list as a group that other Spawn Monsters effects can use too (for the same encounter at two spots)"
+		make_group_button.pressed.connect(func():
+			_commit_field("Make monster group", func():
+				var created_group := MonsterGroup.new()
+				created_group.id = mission.allocate_object_id()
+				created_group.group_name = "Group %d" % (mission.monster_groups.size() + 1)
+				created_group.monsters.assign(effect.spawn_monsters)
+				effect.spawn_monsters = []
+				mission.monster_groups.append(created_group)
+				effect.spawn_group_id = created_group.id
+			)
+			refresh.call()
+		)
+		_spawn_monsters_editor_container.add_child(make_group_button)
+
+	_spawn_monsters_editor_container.add_child(_wrapped_label("Monsters in spawn-tile order (1st on tile 1, ...). Name, hitpoints, level: Properties…", 600))
+	for i in list.size():
 		var index := i  # captured by value for this row's own closures below
-		var template: MonsterTemplate = effect.spawn_monsters[index]
+		var template: MonsterTemplate = list[index]
 		var row := HBoxContainer.new()
 		row.add_child(_label("%d:" % (index + 1)))
 
@@ -1002,50 +1136,52 @@ func _open_spawn_monsters_editor(effect: Effect) -> void:
 		move_up_button.disabled = index == 0
 		move_up_button.pressed.connect(func():
 			_commit_field("Reorder spawned monster", func():
-				var tmp: MonsterTemplate = effect.spawn_monsters[index]
-				effect.spawn_monsters[index] = effect.spawn_monsters[index - 1]
-				effect.spawn_monsters[index - 1] = tmp
+				var tmp: MonsterTemplate = list[index]
+				list[index] = list[index - 1]
+				list[index - 1] = tmp
 			)
-			_open_spawn_monsters_editor(effect)
+			refresh.call()
 		)
 		row.add_child(move_up_button)
 
 		var move_down_button := Button.new()
 		move_down_button.text = "↓"
-		move_down_button.disabled = index == effect.spawn_monsters.size() - 1
+		move_down_button.disabled = index == list.size() - 1
 		move_down_button.pressed.connect(func():
 			_commit_field("Reorder spawned monster", func():
-				var tmp: MonsterTemplate = effect.spawn_monsters[index]
-				effect.spawn_monsters[index] = effect.spawn_monsters[index + 1]
-				effect.spawn_monsters[index + 1] = tmp
+				var tmp: MonsterTemplate = list[index]
+				list[index] = list[index + 1]
+				list[index + 1] = tmp
 			)
-			_open_spawn_monsters_editor(effect)
+			refresh.call()
 		)
 		row.add_child(move_down_button)
 
 		var remove_button := Button.new()
 		remove_button.text = "×"
 		remove_button.pressed.connect(func():
-			_commit_field("Remove spawned monster", func(): effect.spawn_monsters.remove_at(index))
-			_open_spawn_monsters_editor(effect)
+			_commit_field("Remove spawned monster", func(): list.remove_at(index))
+			refresh.call()
 		)
 		row.add_child(remove_button)
 
 		_spawn_monsters_editor_container.add_child(row)
 
 	var add_button := Button.new()
-	add_button.text = "Add Monster"
+	add_button.text = "+ Add monster"
+	add_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	add_button.pressed.connect(func():
 		var created := MonsterTemplate.create_with_default_base()
 		if created == null:
 			OS.alert("Every monster needs a base template. Create one first (File > Monster Templates…).", "No base template")
 			return
-		_commit_field("Add spawned monster", func(): effect.spawn_monsters.append(created))
-		_open_spawn_monsters_editor(effect)
+		_commit_field("Add spawned monster", func(): list.append(created))
+		refresh.call()
 	)
 	_spawn_monsters_editor_container.add_child(add_button)
 
-	_spawn_monsters_editor.popup_centered()
+	if not _spawn_monsters_editor.visible:
+		_spawn_monsters_editor.popup_centered_clamped(Vector2i(640, 460), 0.9)
 
 
 ## ---- Nested "edit one LOOT effect" dialog ----
