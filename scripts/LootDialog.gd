@@ -50,7 +50,7 @@ func open_for(heading: String, materials: Dictionary, on_change: Callable, read_
 func _build() -> void:
 	for child in _content.get_children():
 		_content.remove_child(child)
-		child.free()
+		child.queue_free()  # not free(): the button that triggered this rebuild is still inside its own signal
 	if _with_gold:
 		_add_gold_row()
 	_add_section("Common", LootMaterials.COMMON)

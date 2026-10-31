@@ -47,7 +47,15 @@ extends Resource
 @export var auto_apply: bool = false
 @export var already_used: bool = false
 
-@export var action_id: String = ""    ## short, stable id - e.g. "push"
+@export var action_id: String = ""    ## short, stable id for triggers - e.g. "push" (not shown to the player)
+## What the table sees as the thing to activate, and what voice control listens for - e.g. "Push the lever". Empty = the description is
+## the choice itself (how actions without a name used to look).
+@export var action_name_texts: Dictionary = {}
+var action_name: String:
+	get:
+		return LText.pick(action_name_texts)
+	set(value):
+		LText.put(action_name_texts, value)
 @export var description_texts: Dictionary = {} ## shown to the player - e.g. "You can push this lever"
 var description: String:
 	get:

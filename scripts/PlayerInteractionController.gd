@@ -579,12 +579,20 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	if actions.is_empty():
 		return
 
+	# The action's NAME is what is activated (and what voice control listens for); its description sits below it.
+	# An action without a name keeps the old look: the description (or, failing that, the id) is the choice.
 	var option_labels: Array[String] = []
+	var option_details: Array[String] = []
 	var option_disabled: Array[bool] = []
 	for action in actions:
-		option_labels.append(action.description if action.description != "" else action.action_id)
+		if action.action_name != "":
+			option_labels.append(action.action_name)
+			option_details.append(action.description)
+		else:
+			option_labels.append(action.description if action.description != "" else action.action_id)
+			option_details.append("")
 		option_disabled.append(action.single_shot and action.already_used)
-	var choice: int = await dialog.ask_choice(tr("%s: interact with '%s'") % [hero_name, label], option_labels, option_disabled)
+	var choice: int = await dialog.ask_choice(tr("%s: interact with '%s'") % [hero_name, label], option_labels, option_disabled, true, false, option_details)
 
 	if choice < 0 or choice >= actions.size():
 		print("%s: cancelled interacting with '%s'" % [hero_name, label])
