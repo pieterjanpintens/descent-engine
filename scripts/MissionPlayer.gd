@@ -218,7 +218,9 @@ func _ready() -> void:
 				var embark_campaign := CampaignIO.load_campaign(GameState.campaign_folder)
 				if embark_campaign != null:
 					embark_dialog.consumables_per_player = embark_campaign.consumables_per_player
+		embark_dialog.difficulty = GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty
 		player_roster = await embark_dialog.ask_roster(mission)
+		_store_difficulty(embark_dialog.difficulty)  # the one place to change it: at embark time, not during the mission
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
 		player_trinkets = embark_dialog.chosen_trinkets.duplicate(true)
 		_set_ground_decor_visible(true)
@@ -231,6 +233,8 @@ func _ready() -> void:
 	_runtime = MissionRuntime.new(mission)
 	_runtime.hero_trinkets = player_trinkets
 	_runtime.sync_builtins(current_round, player_roster.size())
+	# the difficulty chosen on the embark screen (a campaign game keeps its own, a single mission uses the player setting; a resumed save restores its own below)
+	_runtime.set_difficulty(GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty)
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
 	_runtime.monster_defeated.connect(_on_monster_defeated)
@@ -963,9 +967,24 @@ func _set_game_language(code: String) -> void:
 		if campaign_state != null:
 			campaign_state.language = code
 			CampaignIO.save_state(campaign_state)
-	_last_objective_text = ", ".join(_runtime.get_current_objective_descriptions())  # (not a new objective: no log entry)
+	_last_objective_text = ", ".join(_runtime.get_current_objective_descriptions(true))  # (not a new objective: no log entry)
 	_refresh_objective_label()
 	monster_display.refresh_monsters(_runtime.monsters)
+
+
+## The difficulty picked on the embark screen is remembered: in the campaign save of a campaign game (its next mission suggests it) and always
+## as the player's last choice, which a single mission or a new campaign suggests. (It cannot be changed once the mission has started.)
+func _store_difficulty(value: int) -> void:
+	value = Difficulty.clamped(value)
+	if GameState.campaign_folder != "":
+		GameState.campaign_difficulty = value
+		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		if campaign_state != null:
+			campaign_state.difficulty = value
+			CampaignIO.save_state(campaign_state)
+	if PlayerSettings.mission_difficulty != value:
+		PlayerSettings.mission_difficulty = value
+		PlayerSettings.save_settings()
 
 
 func _refresh_objective_label() -> void:
@@ -976,8 +995,10 @@ func _refresh_objective_label() -> void:
 	# [lb] escapes a literal "[" - a mission-authored description could
 	# otherwise contain one and get misread as a BBCode tag.
 	var plain := ", ".join(descriptions)
-	if plain != _last_objective_text:
-		_last_objective_text = plain
+	# the log gets an entry when the objective changes, not each time a counter in its text does ($1 remaining)
+	var key := ", ".join(_runtime.get_current_objective_descriptions(true))
+	if key != _last_objective_text:
+		_last_objective_text = key
 		journal.add("Objective", [func() -> String: return ", ".join(_runtime.get_current_objective_descriptions())])
 	var body := plain.replace("[", "[lb]")
 	objective_label.text = "[color=#8ecae6][b]%s[/b][/color]\n%s" % [tr("Current Objective:"), body]
@@ -1663,6 +1684,12 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 				lines.append("\n" + gone.defeat_text.replace("{name}", shown_name))
 			return "\n".join(lines)
 		await dialog.ask_ok(make_text, true, false, "Defeated")
+		# the monster's own "when defeated" effects (e.g. captain_dead = true), then the objectives are checked - "defeat X" objectives
+		await _runtime.apply_effects(gone.defeat_effects, "")
+		var ended := await _runtime.fire_event("monster_defeated")
+		await _on_objectives_progressed()
+		if ended != null:
+			await _handle_game_over(ended)
 	_defeat_busy = false
 
 
@@ -1747,7 +1774,7 @@ func _handle_game_over(objective: MissionObjective) -> void:
 	end_phase_button.disabled = true
 	var won := objective.outcome == MissionObjective.Outcome.WIN
 	var outcome_of := func() -> String: return tr("Victory!") if won else tr("Defeat.")
-	var make_text := func() -> String: return "%s\n%s" % [outcome_of.call(), objective.description]
+	var make_text := func() -> String: return "%s\n%s" % [outcome_of.call(), _runtime.objective_text(objective)]
 	var make_title := func() -> String: return outcome_of.call().trim_suffix("!").trim_suffix(".")
 	await dialog.ask_ok(make_text, true, false, make_title)
 	_exit_mission({

@@ -746,6 +746,18 @@
 746|Set up narration - %s voices (downloads about %d MB)
 747|Voices for:
 748|No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice.
+749| - only if %d condition(s)
+750|Difficulty
+751|Tougher monsters and a harder mission at the higher numbers. You can change it later in Options.
+752|Adventurer
+753|Apprentice
+754|Monsters are one level stronger than the author set them, and the mission may be harder on you.
+755|Monsters are one level weaker than the author set them, and the mission may go easier on you.
+756|Monsters are two levels stronger than the author set them, and the mission may show no mercy.
+757|Nightmare
+758|The game as the author designed it.
+759|Veteran
+760|Tougher monsters and a harder mission at the higher numbers. You can change it before each mission.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

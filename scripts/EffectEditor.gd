@@ -56,7 +56,7 @@ func _commit_field(label: String, mutate: Callable) -> void:
 ## Closes the small nested editors (Edit Test, Conditions, Variables, Monsters, Loot) - they hold effects of the old
 ## mission, so they must go when an undo/redo replaces the mission under them.
 func hide_nested() -> void:
-	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor]:
+	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor, _defeat_editor]:
 		if window != null:
 			window.hide()
 
@@ -97,7 +97,7 @@ func _known_variable_names() -> Array[String]:
 		for variable in campaign_variables:
 			campaign_names.append(variable.name)
 		return campaign_names
-	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty"]
 	for variable in mission.custom_variables:
 		names.append(variable.name)
 	return names
@@ -134,7 +134,7 @@ func _known_int_variable_names() -> Array[String]:
 			if variable.type == MissionVariable.Type.INT:
 				campaign_names.append(variable.name)
 		return campaign_names
-	var names: Array[String] = ["round_number", "player_count", "affliction_damage"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty"]
 	for variable in mission.custom_variables:
 		if variable.type == MissionVariable.Type.INT:
 			names.append(variable.name)
@@ -733,21 +733,32 @@ func _build_effect_conditions_editor() -> void:
 ## fail_effects, since conditions apply uniformly regardless of type (see
 ## MissionRuntime.apply_effect()'s own doc).
 func _open_effect_conditions_editor(effect: Effect) -> void:
+	open_condition_list(effect.conditions, "Implicit AND - empty means this effect always fires:", "Effect Conditions")
+
+
+## An ordered list of conditions in the small conditions window (effects, a monster's spawn conditions...). `list` is edited in place;
+## `after` (optional) is called after every change.
+func open_condition_list(list: Array[Condition], hint: String, window_title: String, after: Callable = Callable()) -> void:
 	for child in _effect_conditions_editor_container.get_children():
 		child.queue_free()
 
-	_effect_conditions_editor_container.add_child(_label("Implicit AND - empty means this effect always fires:"))
-	for condition in effect.conditions:
-		_effect_conditions_editor_container.add_child(build_condition_row(effect.conditions, condition, func(): _open_effect_conditions_editor(effect)))
+	_effect_conditions_editor_container.add_child(_label(hint))
+	var rebuild := func():
+		if after.is_valid():
+			after.call()
+		open_condition_list(list, hint, window_title, after)
+	for condition in list:
+		_effect_conditions_editor_container.add_child(build_condition_row(list, condition, rebuild))
 	var add_condition_button := Button.new()
 	add_condition_button.text = "Add Condition"
 	add_condition_button.pressed.connect(func():
 		var condition := Condition.new()
-		_commit_field("Add effect condition", func(): effect.conditions.append(condition))
-		_open_effect_conditions_editor(effect)
+		_commit_field("Add condition", func(): list.append(condition))
+		rebuild.call()
 	)
 	_effect_conditions_editor_container.add_child(add_condition_button)
 
+	_effect_conditions_editor.title = window_title
 	_effect_conditions_editor.popup_centered()
 
 
@@ -791,17 +802,23 @@ func _build_message_variables_editor() -> void:
 ## nothing at runtime (not the literal "$N" text) - see
 ## MissionRuntime._format_message()'s own doc for the full reasoning.
 func _open_message_variables_editor(effect: Effect) -> void:
+	open_variable_list(effect.message_variables, "message text", "Message Variables")
+
+
+## The ordered list of variables behind $1, $2, ... in a text (a message, an objective description): any declared variable, any type.
+## `list` is edited in place; `what` names the text in the hint.
+func open_variable_list(list: Array[String], what: String, window_title: String) -> void:
 	for child in _message_variables_editor_container.get_children():
 		child.queue_free()
 
-	_message_variables_editor_container.add_child(_label("$1, $2, ... in the message text, in order - any declared variable, any type:"))
-	for i in effect.message_variables.size():
+	_message_variables_editor_container.add_child(_label("$1, $2, ... in the " + what + ", in order - any declared variable, any type:"))
+	for i in list.size():
 		var index := i  # captured by value for this row's own closures below
 		var row := HBoxContainer.new()
 		row.add_child(_label("$%d:" % (index + 1)))
 
-		var var_option := _build_variable_name_option(effect.message_variables[index], func(new_name: String):
-			_commit_field("Edit message variable", func(): effect.message_variables[index] = new_name)
+		var var_option := _build_variable_name_option(list[index], func(new_name: String):
+			_commit_field("Edit message variable", func(): list[index] = new_name)
 		)
 		row.add_child(var_option)
 
@@ -811,33 +828,33 @@ func _open_message_variables_editor(effect: Effect) -> void:
 		move_up_button.disabled = index == 0
 		move_up_button.pressed.connect(func():
 			_commit_field("Reorder message variable", func():
-				var tmp: String = effect.message_variables[index]
-				effect.message_variables[index] = effect.message_variables[index - 1]
-				effect.message_variables[index - 1] = tmp
+				var tmp: String = list[index]
+				list[index] = list[index - 1]
+				list[index - 1] = tmp
 			)
-			_open_message_variables_editor(effect)
+			open_variable_list(list, what, window_title)
 		)
 		row.add_child(move_up_button)
 
 		var move_down_button := Button.new()
 		move_down_button.text = "↓"
 		move_down_button.tooltip_text = "Move down"
-		move_down_button.disabled = index == effect.message_variables.size() - 1
+		move_down_button.disabled = index == list.size() - 1
 		move_down_button.pressed.connect(func():
 			_commit_field("Reorder message variable", func():
-				var tmp: String = effect.message_variables[index]
-				effect.message_variables[index] = effect.message_variables[index + 1]
-				effect.message_variables[index + 1] = tmp
+				var tmp: String = list[index]
+				list[index] = list[index + 1]
+				list[index + 1] = tmp
 			)
-			_open_message_variables_editor(effect)
+			open_variable_list(list, what, window_title)
 		)
 		row.add_child(move_down_button)
 
 		var remove_button := Button.new()
 		remove_button.text = "×"
 		remove_button.pressed.connect(func():
-			_commit_field("Remove message variable", func(): effect.message_variables.remove_at(index))
-			_open_message_variables_editor(effect)
+			_commit_field("Remove message variable", func(): list.remove_at(index))
+			open_variable_list(list, what, window_title)
 		)
 		row.add_child(remove_button)
 
@@ -846,11 +863,12 @@ func _open_message_variables_editor(effect: Effect) -> void:
 	var add_button := Button.new()
 	add_button.text = "Add Variable"
 	add_button.pressed.connect(func():
-		_commit_field("Add message variable", func(): effect.message_variables.append(""))
-		_open_message_variables_editor(effect)
+		_commit_field("Add message variable", func(): list.append(""))
+		open_variable_list(list, what, window_title)
 	)
 	_message_variables_editor_container.add_child(add_button)
 
+	_message_variables_editor.title = window_title
 	_message_variables_editor.popup_centered()
 
 
@@ -866,7 +884,57 @@ func _open_monster_properties(template: MonsterTemplate, refresh: Callable) -> v
 		host.add_child(_monster_properties_dialog)
 	_monster_properties_dialog.commit_field = _commit_field
 	_monster_properties_dialog.on_changed = refresh
+	_monster_properties_dialog.edit_defeat_effects = _open_defeat_editor
+	_monster_properties_dialog.edit_spawn_conditions = func(t: MonsterTemplate, after: Callable):
+		open_condition_list(t.conditions, "This monster only spawns when ALL of these hold when the spawn happens (empty = always). E.g. player_count >= 4 for an extra monster in a big party.", "Spawn conditions", after)
 	_monster_properties_dialog.open_for(template)
+
+
+## ---- "When defeated" effects of one monster (MonsterTemplate.defeat_effects) ----
+## A plain list of effect rows; `after` is called after every change (the properties dialog refreshes its button text).
+var _defeat_editor: Window
+var _defeat_editor_container: VBoxContainer
+
+
+func _open_defeat_editor(template: MonsterTemplate, after: Callable) -> void:
+	if _defeat_editor == null:
+		_defeat_editor = Window.new()
+		_defeat_editor.title = "When defeated"
+		_defeat_editor.size = Vector2i(460, 420)
+		_defeat_editor.close_requested.connect(_defeat_editor.hide)
+		_defeat_editor.visible = false
+		host.add_child(_defeat_editor)
+		var scroll := ScrollContainer.new()
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 8
+		scroll.offset_top = 8
+		scroll.offset_right = -8
+		scroll.offset_bottom = -8
+		_defeat_editor.add_child(scroll)
+		_defeat_editor_container = VBoxContainer.new()
+		_defeat_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(_defeat_editor_container)
+	for child in _defeat_editor_container.get_children():
+		_defeat_editor_container.remove_child(child)
+		child.queue_free()
+	var hint := _label("Applied when this monster is defeated, then the mission objectives are checked. For a \"defeat the captain\" objective: set a variable here (captain_dead = true) and use it in the objective's conditions; count kills with Math (kills + 1).")
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	hint.custom_minimum_size.x = 420
+	_defeat_editor_container.add_child(hint)
+	var rebuild := func():
+		after.call()
+		_open_defeat_editor(template, after)
+	for effect in template.defeat_effects:
+		_defeat_editor_container.add_child(build_effect_row(template.defeat_effects, effect, rebuild))
+	var add_button := Button.new()
+	add_button.text = "Add Effect"
+	add_button.pressed.connect(func():
+		var new_effect := Effect.new()
+		_commit_field("Add monster defeat effect", func(): template.defeat_effects.append(new_effect))
+		rebuild.call()
+	)
+	_defeat_editor_container.add_child(add_button)
+	_defeat_editor.popup_centered()
 
 
 ## ---- Nested "edit one SPAWN_MONSTERS effect's monster list" dialog ----

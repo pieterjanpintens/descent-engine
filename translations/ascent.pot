@@ -13,7 +13,7 @@ msgstr ""
 msgid "  mic [%s%s]"
 msgstr ""
 
-#: MissionPlayer.gd:726
+#: MissionPlayer.gd:730
 msgid " %s gains a unique recipe: %s."
 msgstr ""
 
@@ -33,27 +33,31 @@ msgstr ""
 msgid " (immune)"
 msgstr ""
 
-#: MissionPlayer.gd:728
+#: MissionPlayer.gd:732
 msgid " (Only campaigns keep recipes.)"
 msgstr ""
 
-#: CampaignPlayer.gd:987
+#: CampaignPlayer.gd:992
 msgid " (XP now %d)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:378
+#: VoiceSettingsDialog.gd:381
 msgid " - not imported yet"
+msgstr ""
+
+#: MonsterTemplate.gd:267
+msgid " - only if %d condition(s)"
 msgstr ""
 
 #: PlayerInteractionController.gd:481
 msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
 msgstr ""
 
-#: MissionPlayer.gd:772
+#: MissionPlayer.gd:776
 msgid " Not spawned: %s."
 msgstr ""
 
-#: MissionPlayer.gd:724
+#: MissionPlayer.gd:728
 msgid " There is no recipe left to gain."
 msgstr ""
 
@@ -73,11 +77,11 @@ msgstr ""
 msgid "%d from the community to install."
 msgstr ""
 
-#: CampaignPlayer.gd:666 CampaignState.gd:154 MissionRuntime.gd:1046
+#: CampaignPlayer.gd:670 CampaignState.gd:157 MissionRuntime.gd:1067
 msgid "%d gold"
 msgstr ""
 
-#: MissionRuntime.gd:813
+#: MissionRuntime.gd:828
 msgid "%d gold (Dead Man's Compass)"
 msgstr ""
 
@@ -89,19 +93,19 @@ msgstr ""
 msgid "%d min"
 msgstr ""
 
-#: MissionPlayer.gd:770
+#: MissionPlayer.gd:774
 msgid "%d monster(s) spawned."
 msgstr ""
 
-#: MissionPlayer.gd:271
+#: MissionPlayer.gd:275
 msgid "%d of the current objectives no longer exist."
 msgstr ""
 
-#: MissionPlayer.gd:1202
+#: MissionPlayer.gd:1223
 msgid "%d x %d tiles"
 msgstr ""
 
-#: MissionPlayer.gd:1029 MissionRuntime.gd:1046 MissionRuntime.gd:877
+#: MissionPlayer.gd:1050 MissionRuntime.gd:1067 MissionRuntime.gd:892
 msgid "%dx %s"
 msgstr ""
 
@@ -109,11 +113,11 @@ msgstr ""
 msgid "%s  -  XP %d,  gold %d"
 msgstr ""
 
-#: MonsterTemplate.gd:181
+#: MonsterTemplate.gd:197
 msgid "%s %d (no table rows)"
 msgstr ""
 
-#: MissionPlayer.gd:1417 MissionPlayer.gd:1562 MonsterManageDialog.gd:107
+#: MissionPlayer.gd:1438 MissionPlayer.gd:1583 MonsterManageDialog.gd:107
 msgid "%s (%s chip)"
 msgstr ""
 
@@ -129,7 +133,7 @@ msgstr ""
 msgid "%s +%d until the end of the round"
 msgstr ""
 
-#: MissionPlayer.gd:781
+#: MissionPlayer.gd:785
 msgid "%s - %s chip"
 msgstr ""
 
@@ -165,15 +169,15 @@ msgstr ""
 msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
 msgstr ""
 
-#: CampaignPlayer.gd:710
+#: CampaignPlayer.gd:714
 msgid "%s - buy for %d gold, sell for %d"
 msgstr ""
 
-#: MonsterTemplate.gd:249
+#: MonsterTemplate.gd:265
 msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
 msgstr ""
 
-#: MonsterTemplate.gd:158
+#: MonsterTemplate.gd:174
 msgid "%s - level %d"
 msgstr ""
 
@@ -185,7 +189,7 @@ msgstr ""
 msgid "%s \"%s\" - version %s"
 msgstr ""
 
-#: MissionPlayer.gd:1459
+#: MissionPlayer.gd:1480
 msgid "%s attacks %s (damage %d, %s)."
 msgstr ""
 
@@ -193,7 +197,7 @@ msgstr ""
 msgid "%s attacks %s - choose a weapon"
 msgstr ""
 
-#: MissionPlayer.gd:1443
+#: MissionPlayer.gd:1464
 msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
 msgstr ""
 
@@ -205,11 +209,11 @@ msgstr ""
 msgid "%s attacks %s\nwith the %s (damage %d)\n"
 msgstr ""
 
-#: MissionPlayer.gd:1628
+#: MissionPlayer.gd:1649
 msgid "%s dropped something usable. %s"
 msgstr ""
 
-#: MissionPlayer.gd:1623
+#: MissionPlayer.gd:1644
 msgid "%s dropped: %s."
 msgstr ""
 
@@ -217,7 +221,7 @@ msgstr ""
 msgid "%s gains %s"
 msgstr ""
 
-#: MissionPlayer.gd:1654
+#: MissionPlayer.gd:1675
 msgid "%s has been defeated."
 msgstr ""
 
@@ -225,15 +229,15 @@ msgstr ""
 msgid "%s healed %d (%d hitpoints)."
 msgstr ""
 
-#: MissionPlayer.gd:1697 MonsterManageDialog.gd:152
+#: MissionPlayer.gd:1724 MonsterManageDialog.gd:152
 msgid "%s is %s."
 msgstr ""
 
-#: MissionPlayer.gd:1484
+#: MissionPlayer.gd:1505
 msgid "%s is confused!\n%s\n%s"
 msgstr ""
 
-#: MissionPlayer.gd:1488
+#: MissionPlayer.gd:1509
 msgid "%s is confused: %s."
 msgstr ""
 
@@ -253,19 +257,19 @@ msgstr ""
 msgid "%s is not in the party."
 msgstr ""
 
-#: MissionPlayer.gd:1358
+#: MissionPlayer.gd:1379
 msgid "%s is up to something..."
 msgstr ""
 
-#: MissionPlayer.gd:1672
+#: MissionPlayer.gd:1699
 msgid "%s lost all hitpoints. Wound %s?"
 msgstr ""
 
-#: MissionPlayer.gd:1383
+#: MissionPlayer.gd:1404
 msgid "%s performs %s against %s."
 msgstr ""
 
-#: MissionPlayer.gd:1734
+#: MissionPlayer.gd:1761
 msgid "%s receives a benefit: %s."
 msgstr ""
 
@@ -273,11 +277,11 @@ msgstr ""
 msgid "%s suffers %d damage"
 msgstr ""
 
-#: MissionPlayer.gd:1566
+#: MissionPlayer.gd:1587
 msgid "%s takes %d affliction damage (%d hitpoints left)."
 msgstr ""
 
-#: MissionPlayer.gd:1564
+#: MissionPlayer.gd:1585
 msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
 msgstr ""
 
@@ -293,27 +297,27 @@ msgstr ""
 msgid "%s triggered"
 msgstr ""
 
-#: MissionPlayer.gd:1502
+#: MissionPlayer.gd:1523
 msgid "%s was defeated during an interrupt before it could %s."
 msgstr ""
 
-#: MissionPlayer.gd:1689
+#: MissionPlayer.gd:1716
 msgid "%s was wounded a third time."
 msgstr ""
 
-#: MissionPlayer.gd:1505
+#: MissionPlayer.gd:1526
 msgid "%s wounded a hero - its turn is over."
 msgstr ""
 
-#: MissionPlayer.gd:535
+#: MissionPlayer.gd:539
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr ""
 
-#: MissionPlayer.gd:1374
+#: MissionPlayer.gd:1395
 msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
 msgstr ""
 
-#: EmbarkDialog.gd:470
+#: EmbarkDialog.gd:492
 msgid "%s: %s\nFixed parts: %s"
 msgstr ""
 
@@ -321,7 +325,7 @@ msgstr ""
 msgid "%s: defense +%d until the end of the round"
 msgstr ""
 
-#: PlayerInteractionController.gd:587
+#: PlayerInteractionController.gd:595
 msgid "%s: interact with '%s'"
 msgstr ""
 
@@ -333,7 +337,7 @@ msgstr ""
 msgid "%s: needs %d, you have %d"
 msgstr ""
 
-#: MissionRuntime.gd:1113
+#: MissionRuntime.gd:1134
 msgid "%s: perform a %s test - how many successes?"
 msgstr ""
 
@@ -349,11 +353,11 @@ msgstr ""
 msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
 msgstr ""
 
-#: CampaignPlayer.gd:939
+#: CampaignPlayer.gd:944
 msgid "%s\n\nYou chose: %s"
 msgstr ""
 
-#: MissionPlayer.gd:1443
+#: MissionPlayer.gd:1464
 msgid "(attacks again)"
 msgstr ""
 
@@ -413,15 +417,15 @@ msgstr ""
 msgid "\n%d successes x %d weapon damage"
 msgstr ""
 
-#: MissionPlayer.gd:1449
+#: MissionPlayer.gd:1470
 msgid "\n(+%d damage from a defense ability this activation)"
 msgstr ""
 
-#: MissionPlayer.gd:1445
+#: MissionPlayer.gd:1466
 msgid "\n(Enfeebled: damage reduced from %d)"
 msgstr ""
 
-#: MissionPlayer.gd:1699
+#: MissionPlayer.gd:1726
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr ""
 
@@ -433,15 +437,15 @@ msgstr ""
 msgid "\n\n%s is defeated! Remove it from the board."
 msgstr ""
 
-#: MissionPlayer.gd:1701
+#: MissionPlayer.gd:1728
 msgid "\n\n%s must flip their injury card (%s) to its major side."
 msgstr ""
 
-#: MissionPlayer.gd:1701
+#: MissionPlayer.gd:1728
 msgid "\n\n%s must flip their injury card to its major side."
 msgstr ""
 
-#: MissionPlayer.gd:1704
+#: MissionPlayer.gd:1731
 msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
 msgstr ""
 
@@ -453,19 +457,19 @@ msgstr ""
 msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
 msgstr ""
 
-#: MissionPlayer.gd:1674
+#: MissionPlayer.gd:1701
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr ""
 
-#: MissionPlayer.gd:1330
+#: MissionPlayer.gd:1351
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr ""
 
-#: MissionPlayer.gd:1447
+#: MissionPlayer.gd:1468
 msgid "\nActivation: "
 msgstr ""
 
-#: MissionPlayer.gd:537
+#: MissionPlayer.gd:541
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr ""
 
@@ -493,11 +497,11 @@ msgstr ""
 msgid "\nIn development (a draft)"
 msgstr ""
 
-#: MissionPlayer.gd:1659 PlayerInteractionController.gd:485
+#: MissionPlayer.gd:1680 PlayerInteractionController.gd:485
 msgid "\nLoot for the party: %s."
 msgstr ""
 
-#: MissionPlayer.gd:834
+#: MissionPlayer.gd:838
 msgid "\nNo free spawn tile for: %s - place them next to the others."
 msgstr ""
 
@@ -545,15 +549,15 @@ msgstr ""
 msgid "A campaign"
 msgstr ""
 
-#: MissionPlayer.gd:1353
+#: MissionPlayer.gd:1374
 msgid "a hero"
 msgstr ""
 
-#: CampaignState.gd:279
+#: CampaignState.gd:282
 msgid "A new act begins."
 msgstr ""
 
-#: MissionPlayer.gd:1035 MissionPlayer.gd:1060
+#: MissionPlayer.gd:1056 MissionPlayer.gd:1081
 msgid "a new area"
 msgstr ""
 
@@ -561,11 +565,11 @@ msgstr ""
 msgid "a potion recipe"
 msgstr ""
 
-#: CampaignSetupPage.gd:176
+#: CampaignSetupPage.gd:194
 msgid "A save game called '%s' already exists."
 msgstr ""
 
-#: CampaignSetupPage.gd:174
+#: CampaignSetupPage.gd:192
 msgid "A save game needs a name."
 msgstr ""
 
@@ -581,7 +585,7 @@ msgstr ""
 msgid "A single mission"
 msgstr ""
 
-#: MissionPlayer.gd:477
+#: MissionPlayer.gd:481
 msgid "A snapshot can be taken in the player phase, with no dialog open."
 msgstr ""
 
@@ -593,11 +597,11 @@ msgstr ""
 msgid "a trinket upgrade"
 msgstr ""
 
-#: MissionPlayer.gd:1485
+#: MissionPlayer.gd:1506
 msgid "act"
 msgstr ""
 
-#: CampaignPlayer.gd:999
+#: CampaignPlayer.gd:1004
 msgid "Act complete!"
 msgstr ""
 
@@ -609,11 +613,15 @@ msgstr ""
 msgid "adds %d damage to its next activation"
 msgstr ""
 
+#: Difficulty.gd:39
+msgid "Adventurer"
+msgstr ""
+
 #: extra
 msgid "Afflicted"
 msgstr ""
 
-#: MissionPlayer.gd:1568
+#: MissionPlayer.gd:1589
 msgid "Affliction"
 msgstr ""
 
@@ -661,6 +669,10 @@ msgstr ""
 msgid "Apply conditions"
 msgstr ""
 
+#: Difficulty.gd:34
+msgid "Apprentice"
+msgstr ""
+
 #: extra
 msgid "Aquos"
 msgstr ""
@@ -669,7 +681,7 @@ msgstr ""
 msgid "Aquos (water)"
 msgstr ""
 
-#: EmbarkDialog.gd:246 InventoryDialog.gd:80
+#: EmbarkDialog.gd:265 InventoryDialog.gd:80
 msgid "Armor"
 msgstr ""
 
@@ -681,7 +693,7 @@ msgstr ""
 msgid "Armor: "
 msgstr ""
 
-#: EmbarkDialog.gd:236
+#: EmbarkDialog.gd:255
 msgid "Armor…"
 msgstr ""
 
@@ -693,11 +705,11 @@ msgstr ""
 msgid "Attack"
 msgstr ""
 
-#: MissionPlayer.gd:1454
+#: MissionPlayer.gd:1475
 msgid "attack %s"
 msgstr ""
 
-#: MonsterTemplate.gd:170
+#: MonsterTemplate.gd:186
 msgid "Attack abilities: %s"
 msgstr ""
 
@@ -705,11 +717,11 @@ msgstr ""
 msgid "attack gains %s"
 msgstr ""
 
-#: CampaignPlayer.gd:1007
+#: CampaignPlayer.gd:1012
 msgid "Available now: %s"
 msgstr ""
 
-#: MainMenu.gd:139 MainMenu.gd:261 PlayerDialog.gd:522
+#: MainMenu.gd:139 MainMenu.gd:261 PlayerDialog.gd:527
 msgid "Back"
 msgstr ""
 
@@ -737,7 +749,7 @@ msgstr ""
 msgid "Bone"
 msgstr ""
 
-#: CampaignPlayer.gd:681
+#: CampaignPlayer.gd:685
 msgid "Bought"
 msgstr ""
 
@@ -745,27 +757,27 @@ msgstr ""
 msgid "bow"
 msgstr ""
 
-#: CampaignPlayer.gd:815
+#: CampaignPlayer.gd:819
 msgid "Brew"
 msgstr ""
 
-#: MissionPlayer.gd:539
+#: MissionPlayer.gd:543
 msgid "Brew Basket"
 msgstr ""
 
-#: CampaignPlayer.gd:681
+#: CampaignPlayer.gd:685
 msgid "Buy"
 msgstr ""
 
-#: CampaignPlayer.gd:704
+#: CampaignPlayer.gd:708
 msgid "Buy  %d"
 msgstr ""
 
-#: CampaignPlayer.gd:732
+#: CampaignPlayer.gd:736
 msgid "Buy  %d gold"
 msgstr ""
 
-#: CampaignPlayer.gd:732
+#: CampaignPlayer.gd:736
 msgid "Buy recipe  %d gold"
 msgstr ""
 
@@ -785,7 +797,7 @@ msgstr ""
 msgid "Campaign complete"
 msgstr ""
 
-#: CampaignPlayer.gd:552
+#: CampaignPlayer.gd:556
 msgid "Campaign complete! (%s)"
 msgstr ""
 
@@ -797,11 +809,11 @@ msgstr ""
 msgid "Campaign Log"
 msgstr ""
 
-#: MissionPlayer.gd:1463
+#: MissionPlayer.gd:1484
 msgid "Can %s attack a second hero?"
 msgstr ""
 
-#: CombatView.gd:375 CombatView.gd:574 PlayerDialog.gd:451
+#: CombatView.gd:375 CombatView.gd:574 PlayerDialog.gd:452
 msgid "Cancel"
 msgstr ""
 
@@ -817,15 +829,15 @@ msgstr ""
 msgid "Cautious"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:215
+#: VoiceSettingsDialog.gd:218
 msgid "Centre to centre (strict)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:213
+#: VoiceSettingsDialog.gd:216
 msgid "Centre to corner (recommended)"
 msgstr ""
 
-#: CampaignPlayer.gd:598
+#: CampaignPlayer.gd:602
 msgid "Chapter"
 msgstr ""
 
@@ -837,11 +849,11 @@ msgstr ""
 msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:236
+#: VoiceSettingsDialog.gd:239
 msgid "Check for a newer version of the app at the main menu"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:225
+#: VoiceSettingsDialog.gd:228
 msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
 msgstr ""
 
@@ -865,15 +877,15 @@ msgstr ""
 msgid "Choose the game folder…"
 msgstr ""
 
-#: EmbarkDialog.gd:195
+#: EmbarkDialog.gd:214
 msgid "Choose two weapons per hero (and optional attachments)"
 msgstr ""
 
-#: EmbarkDialog.gd:124
+#: EmbarkDialog.gd:127
 msgid "Choose your party"
 msgstr ""
 
-#: CampaignPlayer.gd:91 CombatView.gd:994 EmbarkDialog.gd:247
+#: CampaignPlayer.gd:91 CombatView.gd:994 EmbarkDialog.gd:266
 msgid "Close"
 msgstr ""
 
@@ -885,7 +897,7 @@ msgstr ""
 msgid "Common"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:140
+#: VoiceSettingsDialog.gd:143
 msgid "Community"
 msgstr ""
 
@@ -909,11 +921,11 @@ msgstr ""
 msgid "Confused"
 msgstr ""
 
-#: EmbarkDialog.gd:291 InventoryDialog.gd:82
+#: EmbarkDialog.gd:310 InventoryDialog.gd:82
 msgid "Consumables"
 msgstr ""
 
-#: EmbarkDialog.gd:226
+#: EmbarkDialog.gd:245
 msgid "Consumables…"
 msgstr ""
 
@@ -937,11 +949,11 @@ msgstr ""
 msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:214
+#: VoiceSettingsDialog.gd:217
 msgid "Corner to corner (loose, Descent 2)"
 msgstr ""
 
-#: CampaignPlayer.gd:669
+#: CampaignPlayer.gd:673
 msgid "Cost: %s"
 msgstr ""
 
@@ -949,11 +961,11 @@ msgstr ""
 msgid "Could not fork %s."
 msgstr ""
 
-#: CampaignPlayer.gd:507
+#: CampaignPlayer.gd:511
 msgid "Could not open that save game."
 msgstr ""
 
-#: CampaignPlayer.gd:470
+#: CampaignPlayer.gd:474
 msgid "Could not open the campaign '%s'."
 msgstr ""
 
@@ -973,11 +985,11 @@ msgstr ""
 msgid "Couldn't write %s (error %d)."
 msgstr ""
 
-#: CampaignPlayer.gd:447
+#: CampaignPlayer.gd:451
 msgid "Count as lost"
 msgstr ""
 
-#: CampaignPlayer.gd:446
+#: CampaignPlayer.gd:450
 msgid "Count as won"
 msgstr ""
 
@@ -1005,7 +1017,7 @@ msgstr ""
 msgid "Current objective"
 msgstr ""
 
-#: MissionPlayer.gd:983
+#: MissionPlayer.gd:1004
 msgid "Current Objective:"
 msgstr ""
 
@@ -1033,11 +1045,11 @@ msgstr ""
 msgid "Dazed"
 msgstr ""
 
-#: CampaignPlayer.gd:983 MissionPlayer.gd:1749
+#: CampaignPlayer.gd:988 MissionPlayer.gd:1776
 msgid "Defeat."
 msgstr ""
 
-#: MissionPlayer.gd:1665 MissionRuntime.gd:775
+#: MissionPlayer.gd:1686 MissionRuntime.gd:790
 msgid "Defeated"
 msgstr ""
 
@@ -1045,7 +1057,7 @@ msgstr ""
 msgid "defense %+d until the end of the round (now %d)"
 msgstr ""
 
-#: MissionRuntime.gd:570
+#: MissionRuntime.gd:585
 msgid "defense +%d during this attack"
 msgstr ""
 
@@ -1061,7 +1073,7 @@ msgstr ""
 msgid "defense -%d this round"
 msgstr ""
 
-#: MonsterTemplate.gd:171
+#: MonsterTemplate.gd:187
 msgid "Defense abilities: %s"
 msgstr ""
 
@@ -1089,11 +1101,11 @@ msgstr ""
 msgid "Delete this save game"
 msgstr ""
 
-#: MissionPlayer.gd:1468
+#: MissionPlayer.gd:1489
 msgid "Did %s deal damage to %s?"
 msgstr ""
 
-#: MissionPlayer.gd:1385
+#: MissionPlayer.gd:1406
 msgid "Did %s pass the test?"
 msgstr ""
 
@@ -1105,7 +1117,7 @@ msgstr ""
 msgid "Did not trigger: "
 msgstr ""
 
-#: PlayerDialog.gd:658
+#: PlayerDialog.gd:682
 msgid "Didn't catch a number in range"
 msgstr ""
 
@@ -1113,12 +1125,16 @@ msgstr ""
 msgid "Didn't catch anything - hold %s and try again"
 msgstr ""
 
-#: PlayerDialog.gd:648 PlayerDialog.gd:654 PlayerDialog.gd:667
+#: PlayerDialog.gd:672 PlayerDialog.gd:678 PlayerDialog.gd:691
 msgid "Didn't catch that"
 msgstr ""
 
-#: PlayerDialog.gd:674
+#: PlayerDialog.gd:698
 msgid "Didn't catch which option"
+msgstr ""
+
+#: CampaignSetupPage.gd:96 EmbarkDialog.gd:182
+msgid "Difficulty"
 msgstr ""
 
 #: CombatView.gd:829 HeroVoicesDialog.gd:36
@@ -1137,15 +1153,15 @@ msgstr ""
 msgid "Doomed"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:459
+#: VoiceSettingsDialog.gd:462
 msgid "Download %s voices (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:483
+#: VoiceSettingsDialog.gd:486
 msgid "Download extra voices - accents (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:480
+#: VoiceSettingsDialog.gd:483
 msgid "Download more voices - plain English (%s)"
 msgstr ""
 
@@ -1169,7 +1185,7 @@ msgstr ""
 msgid "each enemy suffers %d damage (trigger %d)"
 msgstr ""
 
-#: EmbarkDialog.gd:317
+#: EmbarkDialog.gd:336
 msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
 msgstr ""
 
@@ -1177,11 +1193,11 @@ msgstr ""
 msgid "Editor"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:253
+#: VoiceSettingsDialog.gd:256
 msgid "Enable voice"
 msgstr ""
 
-#: CampaignPlayer.gd:620
+#: CampaignPlayer.gd:624
 msgid "Ending soon: this side quest is gone once \"%s\" is won."
 msgstr ""
 
@@ -1205,7 +1221,7 @@ msgstr ""
 msgid "Failed to load mission: %s"
 msgstr ""
 
-#: MissionPlayer.gd:415
+#: MissionPlayer.gd:419
 msgid "Failed to save - see the Output panel for details."
 msgstr ""
 
@@ -1213,7 +1229,7 @@ msgstr ""
 msgid "Feats"
 msgstr ""
 
-#: MissionPlayer.gd:722
+#: MissionPlayer.gd:726
 msgid "first"
 msgstr ""
 
@@ -1225,7 +1241,7 @@ msgstr ""
 msgid "Flip your hero card"
 msgstr ""
 
-#: MissionPlayer.gd:1009
+#: MissionPlayer.gd:1030
 msgid "Floor tiles"
 msgstr ""
 
@@ -1233,7 +1249,7 @@ msgstr ""
 msgid "Focus 2 cards"
 msgstr ""
 
-#: CampaignPlayer.gd:801
+#: CampaignPlayer.gd:805
 msgid "Forge"
 msgstr ""
 
@@ -1257,7 +1273,7 @@ msgstr ""
 msgid "Frantic"
 msgstr ""
 
-#: CampaignPlayer.gd:669
+#: CampaignPlayer.gd:673
 msgid "free"
 msgstr ""
 
@@ -1277,7 +1293,7 @@ msgstr ""
 msgid "Game %04d-%02d-%02d %02d:%02d"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:138
+#: VoiceSettingsDialog.gd:141
 msgid "Game assets"
 msgstr ""
 
@@ -1285,7 +1301,7 @@ msgstr ""
 msgid "Game found:\n%s"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:197
+#: VoiceSettingsDialog.gd:200
 msgid "Gameplay"
 msgstr ""
 
@@ -1293,27 +1309,27 @@ msgstr ""
 msgid "gauntlet"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:134
+#: VoiceSettingsDialog.gd:137
 msgid "General"
 msgstr ""
 
-#: CampaignPlayer.gd:677
+#: CampaignPlayer.gd:681
 msgid "Gives the armor: %s%s - %s"
 msgstr ""
 
-#: CampaignPlayer.gd:675
+#: CampaignPlayer.gd:679
 msgid "Gives the rune: %s"
 msgstr ""
 
-#: CampaignPlayer.gd:679
+#: CampaignPlayer.gd:683
 msgid "Gives the trinket: %s%s - %s"
 msgstr ""
 
-#: CampaignPlayer.gd:673
+#: CampaignPlayer.gd:677
 msgid "Gives the weapon: %s%s"
 msgstr ""
 
-#: CampaignPlayer.gd:671
+#: CampaignPlayer.gd:675
 msgid "Gives: %s"
 msgstr ""
 
@@ -1361,11 +1377,11 @@ msgstr ""
 msgid "Heal 4"
 msgstr ""
 
-#: MissionRuntime.gd:770
+#: MissionRuntime.gd:785
 msgid "Healthy"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:323
+#: VoiceSettingsDialog.gd:326
 msgid "Hear the story teller"
 msgstr ""
 
@@ -1377,7 +1393,7 @@ msgstr ""
 msgid "Heard: %s"
 msgstr ""
 
-#: MissionRuntime.gd:774
+#: MissionRuntime.gd:789
 msgid "Heavily wounded"
 msgstr ""
 
@@ -1397,7 +1413,7 @@ msgstr ""
 msgid "hero models"
 msgstr ""
 
-#: CampaignSetupPage.gd:110 HeroVoicesDialog.gd:14
+#: CampaignSetupPage.gd:128 HeroVoicesDialog.gd:14
 msgid "Hero voices"
 msgstr ""
 
@@ -1417,19 +1433,19 @@ msgstr ""
 msgid "Hold %s to talk"
 msgstr ""
 
-#: MissionPlayer.gd:1736
+#: MissionPlayer.gd:1763
 msgid "Horn of Courage"
 msgstr ""
 
-#: MissionPlayer.gd:1732
+#: MissionPlayer.gd:1759
 msgid "Horn of Courage - %s was wounded."
 msgstr ""
 
-#: EmbarkDialog.gd:279
+#: EmbarkDialog.gd:298
 msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:217
+#: VoiceSettingsDialog.gd:220
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr ""
 
@@ -1449,7 +1465,7 @@ msgstr ""
 msgid "immune to %s"
 msgstr ""
 
-#: MonsterTemplate.gd:169
+#: MonsterTemplate.gd:185
 msgid "Immune to conditions: %s"
 msgstr ""
 
@@ -1457,7 +1473,7 @@ msgstr ""
 msgid "Immune to: "
 msgstr ""
 
-#: MonsterTemplate.gd:168
+#: MonsterTemplate.gd:184
 msgid "Immune: %s"
 msgstr ""
 
@@ -1541,7 +1557,7 @@ msgstr ""
 msgid "Interrupt"
 msgstr ""
 
-#: MissionPlayer.gd:1531
+#: MissionPlayer.gd:1552
 msgid "Interrupt - the players act"
 msgstr ""
 
@@ -1553,15 +1569,15 @@ msgstr ""
 msgid "It stays as it is; you can keep playing it on its own version."
 msgstr ""
 
-#: CampaignSetupPage.gd:77
+#: CampaignSetupPage.gd:78
 msgid "Language"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:157
+#: VoiceSettingsDialog.gd:160
 msgid "Language of this game"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:177
+#: VoiceSettingsDialog.gd:180
 msgid "Languages"
 msgstr ""
 
@@ -1577,11 +1593,11 @@ msgstr ""
 msgid "Leather"
 msgstr ""
 
-#: CampaignPlayer.gd:734
+#: CampaignPlayer.gd:738
 msgid "Leaves after the next chapter!"
 msgstr ""
 
-#: MissionPlayer.gd:1034
+#: MissionPlayer.gd:1055
 msgid "Level %d - "
 msgstr ""
 
@@ -1593,7 +1609,7 @@ msgstr ""
 msgid "Line of Sight (on)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:210
+#: VoiceSettingsDialog.gd:213
 msgid "Line of sight rule"
 msgstr ""
 
@@ -1617,15 +1633,15 @@ msgstr ""
 msgid "Looking for shared campaigns…"
 msgstr ""
 
-#: MissionPlayer.gd:1623 MissionPlayer.gd:1628 MissionRuntime.gd:1021
+#: MissionPlayer.gd:1644 MissionPlayer.gd:1649 MissionRuntime.gd:1042
 msgid "Loot"
 msgstr ""
 
-#: MissionRuntime.gd:1017
+#: MissionRuntime.gd:1038
 msgid "Loot for the party: "
 msgstr ""
 
-#: MissionRuntime.gd:1120
+#: MissionRuntime.gd:1141
 msgid "Lucky Charm"
 msgstr ""
 
@@ -1641,11 +1657,11 @@ msgstr ""
 msgid "Lunge, no bite"
 msgstr ""
 
-#: MissionRuntime.gd:367
+#: MissionRuntime.gd:378
 msgid "Mage-Sight Goggles"
 msgstr ""
 
-#: MissionRuntime.gd:367
+#: MissionRuntime.gd:378
 msgid "Mage-Sight Goggles - %s gains an additional action!"
 msgstr ""
 
@@ -1665,11 +1681,11 @@ msgstr ""
 msgid "maximum health -%d (now %d)"
 msgstr ""
 
-#: MissionPlayer.gd:1478
+#: MissionPlayer.gd:1499
 msgid "melee"
 msgstr ""
 
-#: MissionRuntime.gd:989
+#: MissionRuntime.gd:1010
 msgid "Message"
 msgstr ""
 
@@ -1701,11 +1717,11 @@ msgstr ""
 msgid "Monster"
 msgstr ""
 
-#: MissionPlayer.gd:1488
+#: MissionPlayer.gd:1509
 msgid "Monster action"
 msgstr ""
 
-#: MissionPlayer.gd:1459 MissionPlayer.gd:1502 MissionPlayer.gd:1505
+#: MissionPlayer.gd:1480 MissionPlayer.gd:1523 MissionPlayer.gd:1526
 msgid "Monster attack"
 msgstr ""
 
@@ -1713,23 +1729,35 @@ msgstr ""
 msgid "monster figures"
 msgstr ""
 
-#: MissionPlayer.gd:1275
+#: MissionPlayer.gd:1296
 msgid "Monster phase"
 msgstr ""
 
-#: MissionPlayer.gd:1278
+#: MissionPlayer.gd:1299
 msgid "Monster Phase"
 msgstr ""
 
-#: MissionPlayer.gd:1383
+#: MissionPlayer.gd:1404
 msgid "Monster tactic"
 msgstr ""
 
-#: MissionPlayer.gd:789
+#: MissionPlayer.gd:793
 msgid "Monsters appear"
 msgstr ""
 
-#: PlayerDialog.gd:676
+#: Difficulty.gd:52
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr ""
+
+#: Difficulty.gd:50
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr ""
+
+#: Difficulty.gd:54
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr ""
+
+#: PlayerDialog.gd:700
 msgid "More than one matches - say a number"
 msgstr ""
 
@@ -1741,7 +1769,7 @@ msgstr ""
 msgid "Mortos (dead)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:202
+#: VoiceSettingsDialog.gd:205
 msgid "Move camera to player and monster spawns"
 msgstr ""
 
@@ -1769,19 +1797,19 @@ msgstr ""
 msgid "Moved to v%s"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:284
+#: VoiceSettingsDialog.gd:287
 msgid "Narration"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:453
+#: VoiceSettingsDialog.gd:456
 msgid "Narration is set up."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:462
+#: VoiceSettingsDialog.gd:465
 msgid "Narration isn't available on %s."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:470
+#: VoiceSettingsDialog.gd:473
 msgid "Narration isn't set up yet - the story is shown as text only."
 msgstr ""
 
@@ -1793,8 +1821,12 @@ msgstr ""
 msgid "New game"
 msgstr ""
 
-#: PlayerDialog.gd:524 PlayerDialog.gd:666
+#: PlayerDialog.gd:529 PlayerDialog.gd:690
 msgid "Next"
+msgstr ""
+
+#: Difficulty.gd:38
+msgid "Nightmare"
 msgstr ""
 
 #: PlayerDialog.gd:407
@@ -1805,11 +1837,11 @@ msgstr ""
 msgid "No %s."
 msgstr ""
 
-#: MissionPlayer.gd:787
+#: MissionPlayer.gd:791
 msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
 msgstr ""
 
-#: MissionPlayer.gd:785
+#: MissionPlayer.gd:789
 msgid "No colour chip left for: %s - not spawned."
 msgstr ""
 
@@ -1825,7 +1857,7 @@ msgstr ""
 msgid "No map image - choose one for this act"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:455
+#: VoiceSettingsDialog.gd:458
 msgid "No narration voices for %s are installed, so the story is shown as text only."
 msgstr ""
 
@@ -1833,15 +1865,15 @@ msgstr ""
 msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
 msgstr ""
 
-#: CampaignSetupPage.gd:136
+#: CampaignSetupPage.gd:154
 msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
 msgstr ""
 
-#: CampaignPlayer.gd:725
+#: CampaignPlayer.gd:729
 msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
 msgstr ""
 
-#: CampaignPlayer.gd:729
+#: CampaignPlayer.gd:733
 msgid "No recipes for sale right now."
 msgstr ""
 
@@ -1853,7 +1885,7 @@ msgstr ""
 msgid "No save games yet - start one with New game."
 msgstr ""
 
-#: CampaignPlayer.gd:841
+#: CampaignPlayer.gd:845
 msgid "None yet - materials come from defeated monsters, missions and the market."
 msgstr ""
 
@@ -1865,7 +1897,7 @@ msgstr ""
 msgid "Note:"
 msgstr ""
 
-#: CampaignPlayer.gd:658
+#: CampaignPlayer.gd:662
 msgid "Nothing for sale here."
 msgstr ""
 
@@ -1893,11 +1925,11 @@ msgstr ""
 msgid "Nothing yet."
 msgstr ""
 
-#: CampaignPlayer.gd:1010 CampaignPlayer.gd:1038 CampaignPlayer.gd:1075
+#: CampaignPlayer.gd:1015 CampaignPlayer.gd:1043 CampaignPlayer.gd:1080
 msgid "Notice"
 msgstr ""
 
-#: MissionPlayer.gd:981
+#: MissionPlayer.gd:1002
 msgid "Objective"
 msgstr ""
 
@@ -1909,7 +1941,7 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:237
+#: VoiceSettingsDialog.gd:240
 msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
 msgstr ""
 
@@ -1917,7 +1949,7 @@ msgstr ""
 msgid "Open campaigns"
 msgstr ""
 
-#: CampaignHud.gd:141 PlayerHud.gd:81 VoiceSettingsDialog.gd:121
+#: CampaignHud.gd:141 PlayerHud.gd:81 VoiceSettingsDialog.gd:124
 msgid "Options"
 msgstr ""
 
@@ -1929,11 +1961,11 @@ msgstr ""
 msgid "Orange"
 msgstr ""
 
-#: MissionPlayer.gd:1009
+#: MissionPlayer.gd:1030
 msgid "Overlays"
 msgstr ""
 
-#: EmbarkDialog.gd:501
+#: EmbarkDialog.gd:523
 msgid "Part %s: none"
 msgstr ""
 
@@ -1941,15 +1973,15 @@ msgstr ""
 msgid "Parts (B and C)"
 msgstr ""
 
-#: MissionPlayer.gd:1380
+#: MissionPlayer.gd:1401
 msgid "perform %s"
 msgstr ""
 
-#: MissionRuntime.gd:1113
+#: MissionRuntime.gd:1134
 msgid "Perform a %s test - how many successes?"
 msgstr ""
 
-#: CampaignSetupPage.gd:110 HeroVoicesDialog.gd:26
+#: CampaignSetupPage.gd:128 HeroVoicesDialog.gd:26
 msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
 msgstr ""
 
@@ -1957,15 +1989,15 @@ msgstr ""
 msgid "Pierce"
 msgstr ""
 
-#: MissionPlayer.gd:1009
+#: MissionPlayer.gd:1030
 msgid "Pillars"
 msgstr ""
 
-#: MissionPlayer.gd:832
+#: MissionPlayer.gd:836
 msgid "Place the monsters on the map as shown."
 msgstr ""
 
-#: MissionPlayer.gd:548
+#: MissionPlayer.gd:552
 msgid "Place your player figures in the highlighted area, then confirm."
 msgstr ""
 
@@ -1981,23 +2013,23 @@ msgstr ""
 msgid "Play one mission"
 msgstr ""
 
-#: CampaignPlayer.gd:605
+#: CampaignPlayer.gd:609
 msgid "Play this chapter"
 msgstr ""
 
-#: CampaignPlayer.gd:626
+#: CampaignPlayer.gd:630
 msgid "Play this side quest"
 msgstr ""
 
-#: MissionPlayer.gd:1235
+#: MissionPlayer.gd:1256
 msgid "Player Phase"
 msgstr ""
 
-#: MissionPlayer.gd:1240
+#: MissionPlayer.gd:1261
 msgid "Player phase"
 msgstr ""
 
-#: MissionPlayer.gd:1238
+#: MissionPlayer.gd:1259
 msgid "Players spawn. Place your tokens, then play."
 msgstr ""
 
@@ -2005,11 +2037,11 @@ msgstr ""
 msgid "Playtest"
 msgstr ""
 
-#: CampaignPlayer.gd:443
+#: CampaignPlayer.gd:447
 msgid "Playtest:"
 msgstr ""
 
-#: MonsterTemplate.gd:175
+#: MonsterTemplate.gd:191
 msgid "Preferred targets: %s"
 msgstr ""
 
@@ -2021,7 +2053,7 @@ msgstr ""
 msgid "Prepare a card"
 msgstr ""
 
-#: MissionPlayer.gd:1009
+#: MissionPlayer.gd:1030
 msgid "Props"
 msgstr ""
 
@@ -2029,7 +2061,7 @@ msgstr ""
 msgid "Purple"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:426
+#: VoiceSettingsDialog.gd:429
 msgid "Push to talk (hold %s)"
 msgstr ""
 
@@ -2049,19 +2081,19 @@ msgstr ""
 msgid "Random (from the name)"
 msgstr ""
 
-#: MissionPlayer.gd:1478 PlayerInteractionController.gd:531 Weapon.gd:45
+#: MissionPlayer.gd:1499 PlayerInteractionController.gd:531 Weapon.gd:45
 msgid "range %d"
 msgstr ""
 
-#: MonsterTemplate.gd:165
+#: MonsterTemplate.gd:181
 msgid "Range %d"
 msgstr ""
 
-#: MissionPlayer.gd:1478
+#: MissionPlayer.gd:1499
 msgid "range %d, reach"
 msgstr ""
 
-#: MonsterTemplate.gd:165
+#: MonsterTemplate.gd:181
 msgid "Range %d, reach"
 msgstr ""
 
@@ -2073,19 +2105,19 @@ msgstr ""
 msgid "Read in this language later"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:289
+#: VoiceSettingsDialog.gd:292
 msgid "Read the story aloud"
 msgstr ""
 
-#: CampaignPlayer.gd:605
+#: CampaignPlayer.gd:609
 msgid "Read this chapter"
 msgstr ""
 
-#: CampaignPlayer.gd:756
+#: CampaignPlayer.gd:760
 msgid "Recipe - tier %d"
 msgstr ""
 
-#: CampaignState.gd:406 MissionRuntime.gd:1051 MissionRuntime.gd:922
+#: CampaignState.gd:409 MissionRuntime.gd:1072 MissionRuntime.gd:937
 msgid "Recipe: "
 msgstr ""
 
@@ -2133,11 +2165,11 @@ msgstr ""
 msgid "Resistance: %s"
 msgstr ""
 
-#: MonsterTemplate.gd:167
+#: MonsterTemplate.gd:183
 msgid "Resistant: %s"
 msgstr ""
 
-#: MissionPlayer.gd:1327
+#: MissionPlayer.gd:1348
 msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
 msgstr ""
 
@@ -2149,7 +2181,7 @@ msgstr ""
 msgid "Restart now"
 msgstr ""
 
-#: MissionPlayer.gd:1536
+#: MissionPlayer.gd:1557
 msgid "Resume monster attack"
 msgstr ""
 
@@ -2161,7 +2193,7 @@ msgstr ""
 msgid "reveals weakness to %s"
 msgstr ""
 
-#: CampaignPlayer.gd:602 CampaignPlayer.gd:623
+#: CampaignPlayer.gd:606 CampaignPlayer.gd:627
 msgid "Reward: "
 msgstr ""
 
@@ -2181,7 +2213,7 @@ msgstr ""
 msgid "rune"
 msgstr ""
 
-#: EmbarkDialog.gd:465 RecipeData.gd:104
+#: EmbarkDialog.gd:487 RecipeData.gd:104
 msgid "Rune: "
 msgstr ""
 
@@ -2193,43 +2225,43 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: CampaignSetupPage.gd:95
+#: CampaignSetupPage.gd:113
 msgid "Save game"
 msgstr ""
 
-#: MissionPlayer.gd:413
+#: MissionPlayer.gd:417
 msgid "Saved."
 msgstr ""
 
-#: MissionPlayer.gd:722
+#: MissionPlayer.gd:726
 msgid "second"
 msgstr ""
 
-#: CampaignPlayer.gd:707
+#: CampaignPlayer.gd:711
 msgid "Sell  %d"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:469
+#: VoiceSettingsDialog.gd:472
 msgid "Set up narration (downloads %s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:467
+#: VoiceSettingsDialog.gd:470
 msgid "Set up narration - %s voices (downloads about %d MB)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:438
+#: VoiceSettingsDialog.gd:441
 msgid "Set up voice control (downloads %s)"
 msgstr ""
 
-#: CampaignSetupPage.gd:52
+#: CampaignSetupPage.gd:53
 msgid "Set up your game"
 msgstr ""
 
-#: MissionPlayer.gd:1060
+#: MissionPlayer.gd:1081
 msgid "Setting up %s"
 msgstr ""
 
-#: MissionPlayer.gd:1036
+#: MissionPlayer.gd:1057
 msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
 msgstr ""
 
@@ -2237,27 +2269,27 @@ msgstr ""
 msgid "Shift 1"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:258
+#: VoiceSettingsDialog.gd:261
 msgid "Show voice hints"
 msgstr ""
 
-#: EmbarkDialog.gd:672
+#: EmbarkDialog.gd:694
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr ""
 
-#: CampaignPlayer.gd:591
+#: CampaignPlayer.gd:595
 msgid "Side quest"
 msgstr ""
 
-#: CampaignPlayer.gd:612
+#: CampaignPlayer.gd:616
 msgid "Side quest (optional)"
 msgstr ""
 
-#: CampaignState.gd:238
+#: CampaignState.gd:241
 msgid "Side quest won: %s."
 msgstr ""
 
-#: CampaignState.gd:235
+#: CampaignState.gd:238
 msgid "Side quest: %s"
 msgstr ""
 
@@ -2269,19 +2301,19 @@ msgstr ""
 msgid "Slowed"
 msgstr ""
 
-#: MissionPlayer.gd:399
+#: MissionPlayer.gd:403
 msgid "Snapshot"
 msgstr ""
 
-#: MissionPlayer.gd:494
+#: MissionPlayer.gd:498
 msgid "Snapshot '%s' is empty."
 msgstr ""
 
-#: MissionPlayer.gd:485
+#: MissionPlayer.gd:489
 msgid "Snapshot '%s' taken (round %d)."
 msgstr ""
 
-#: MissionPlayer.gd:395
+#: MissionPlayer.gd:399
 msgid "Snapshot loaded - round %d"
 msgstr ""
 
@@ -2297,11 +2329,11 @@ msgstr ""
 msgid "staff"
 msgstr ""
 
-#: EmbarkDialog.gd:175 EmbarkDialog.gd:218
+#: EmbarkDialog.gd:194 EmbarkDialog.gd:237
 msgid "Start"
 msgstr ""
 
-#: CampaignSetupPage.gd:117
+#: CampaignSetupPage.gd:135
 msgid "Start game"
 msgstr ""
 
@@ -2309,11 +2341,11 @@ msgstr ""
 msgid "Step %s: %s..."
 msgstr ""
 
-#: CampaignPlayer.gd:756
+#: CampaignPlayer.gd:760
 msgid "Story recipe"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:315
+#: VoiceSettingsDialog.gd:318
 msgid "Story teller:"
 msgstr ""
 
@@ -2325,11 +2357,11 @@ msgstr ""
 msgid "sword"
 msgstr ""
 
-#: MissionPlayer.gd:1389
+#: MissionPlayer.gd:1410
 msgid "Tactic"
 msgstr ""
 
-#: MissionPlayer.gd:1359 MissionPlayer.gd:1360
+#: MissionPlayer.gd:1380 MissionPlayer.gd:1381
 msgid "Tactics"
 msgstr ""
 
@@ -2337,19 +2369,19 @@ msgstr ""
 msgid "Take cover"
 msgstr ""
 
-#: MissionPlayer.gd:689
+#: MissionPlayer.gd:693
 msgid "Tarnished Brooch"
 msgstr ""
 
-#: MissionPlayer.gd:684
+#: MissionPlayer.gd:688
 msgid "Tarnished Brooch: %d of %d."
 msgstr ""
 
-#: MissionPlayer.gd:683
+#: MissionPlayer.gd:687
 msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
 msgstr ""
 
-#: MissionPlayer.gd:666
+#: MissionPlayer.gd:670
 msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
 msgstr ""
 
@@ -2373,7 +2405,7 @@ msgstr ""
 msgid "That is not a web address (it must start with https://)."
 msgstr ""
 
-#: PlayerDialog.gd:680
+#: PlayerDialog.gd:704
 msgid "That option isn't available"
 msgstr ""
 
@@ -2405,11 +2437,11 @@ msgstr ""
 msgid "The address must start with https://"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:187
+#: VoiceSettingsDialog.gd:190
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
 msgstr ""
 
-#: EmbarkDialog.gd:237
+#: EmbarkDialog.gd:256
 msgid "The armor the party owns"
 msgstr ""
 
@@ -2421,11 +2453,11 @@ msgstr ""
 msgid "The author did not say whether they may share the pictures."
 msgstr ""
 
-#: CampaignPlayer.gd:1001
+#: CampaignPlayer.gd:1006
 msgid "The campaign is complete - congratulations!"
 msgstr ""
 
-#: CampaignState.gd:276
+#: CampaignState.gd:279
 msgid "The campaign is complete."
 msgstr ""
 
@@ -2441,7 +2473,7 @@ msgstr ""
 msgid "The downloaded package is not the one the list promised. It was not installed."
 msgstr ""
 
-#: CampaignState.gd:276
+#: CampaignState.gd:279
 msgid "The end"
 msgstr ""
 
@@ -2457,6 +2489,10 @@ msgstr ""
 msgid "the first hero wounded this round has health %d instead"
 msgstr ""
 
+#: Difficulty.gd:55
+msgid "The game as the author designed it."
+msgstr ""
+
 #: AssetImportPanel.gd:87
 msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
 msgstr ""
@@ -2469,11 +2505,11 @@ msgstr ""
 msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
 msgstr ""
 
-#: CampaignSetupPage.gd:77
+#: CampaignSetupPage.gd:78
 msgid "The language this game is read, logged and narrated in. You can change it later in Options."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:181
+#: VoiceSettingsDialog.gd:184
 msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
 msgstr ""
 
@@ -2481,11 +2517,11 @@ msgstr ""
 msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
 msgstr ""
 
-#: CampaignPlayer.gd:690
+#: CampaignPlayer.gd:694
 msgid "The market sells materials but does not buy them."
 msgstr ""
 
-#: CampaignPlayer.gd:878
+#: CampaignPlayer.gd:882
 msgid "The mission is missing from the campaign folder."
 msgstr ""
 
@@ -2517,15 +2553,15 @@ msgstr ""
 msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
 msgstr ""
 
-#: EmbarkDialog.gd:332
+#: EmbarkDialog.gd:351
 msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
 msgstr ""
 
-#: CampaignPlayer.gd:997
+#: CampaignPlayer.gd:1002
 msgid "The party has to try this chapter again."
 msgstr ""
 
-#: EmbarkDialog.gd:274
+#: EmbarkDialog.gd:293
 msgid "The party owns no armor yet."
 msgstr ""
 
@@ -2533,11 +2569,11 @@ msgstr ""
 msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
 msgstr ""
 
-#: MissionPlayer.gd:1250
+#: MissionPlayer.gd:1271
 msgid "The phase can't be ended right now."
 msgstr ""
 
-#: EmbarkDialog.gd:227
+#: EmbarkDialog.gd:246
 msgid "The potions the party has crafted - available in every mission"
 msgstr ""
 
@@ -2545,11 +2581,11 @@ msgstr ""
 msgid "The release's checksum list has no entry for %s."
 msgstr ""
 
-#: MissionPlayer.gd:482
+#: MissionPlayer.gd:486
 msgid "The snapshot could not be saved - see the Output panel."
 msgstr ""
 
-#: MissionPlayer.gd:398
+#: MissionPlayer.gd:402
 msgid "The snapshot was put on the edited mission, but:\n- "
 msgstr ""
 
@@ -2557,11 +2593,11 @@ msgstr ""
 msgid "The speech engine download had no library for %s."
 msgstr ""
 
-#: CampaignState.gd:267
+#: CampaignState.gd:270
 msgid "The story begins."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:161
+#: VoiceSettingsDialog.gd:164
 msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
 msgstr ""
 
@@ -2569,7 +2605,7 @@ msgstr ""
 msgid "the table carries it out"
 msgstr ""
 
-#: EmbarkDialog.gd:544
+#: EmbarkDialog.gd:566
 msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
 msgstr ""
 
@@ -2593,7 +2629,7 @@ msgstr ""
 msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
 msgstr ""
 
-#: MissionRuntime.gd:553
+#: MissionRuntime.gd:568
 msgid "this attack cannot damage it"
 msgstr ""
 
@@ -2625,11 +2661,11 @@ msgstr ""
 msgid "throwing knives"
 msgstr ""
 
-#: MissionPlayer.gd:1336
+#: MissionPlayer.gd:1357
 msgid "Time passes"
 msgstr ""
 
-#: MissionPlayer.gd:1326
+#: MissionPlayer.gd:1347
 msgid "Time passes.\n\n"
 msgstr ""
 
@@ -2639,6 +2675,10 @@ msgstr ""
 
 #: VoiceListener.gd:380
 msgid "Too short - hold %s while you speak"
+msgstr ""
+
+#: CampaignSetupPage.gd:96
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
 msgstr ""
 
 #: MonsterAction.gd:89
@@ -2661,7 +2701,7 @@ msgstr ""
 msgid "trigger %d: %d damage to every enemy"
 msgstr ""
 
-#: EmbarkDialog.gd:536
+#: EmbarkDialog.gd:558
 msgid "Trinket"
 msgstr ""
 
@@ -2689,11 +2729,11 @@ msgstr ""
 msgid "Umbros (shadow)"
 msgstr ""
 
-#: MissionPlayer.gd:734
+#: MissionPlayer.gd:738
 msgid "Undying Skull"
 msgstr ""
 
-#: MissionPlayer.gd:722
+#: MissionPlayer.gd:726
 msgid "Undying Skull: %s defeated a %s for the %s time."
 msgstr ""
 
@@ -2713,7 +2753,7 @@ msgstr ""
 msgid "Update to v%s…"
 msgstr ""
 
-#: CampaignPlayer.gd:756
+#: CampaignPlayer.gd:760
 msgid "Upgrade - tier %d"
 msgstr ""
 
@@ -2721,7 +2761,7 @@ msgstr ""
 msgid "Upgrade: "
 msgstr ""
 
-#: EmbarkDialog.gd:563
+#: EmbarkDialog.gd:585
 msgid "Upgraded (+). In a campaign this follows the party's upgrades."
 msgstr ""
 
@@ -2733,19 +2773,19 @@ msgstr ""
 msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:378
+#: VoiceSettingsDialog.gd:381
 msgid "Use the original game props in the map"
 msgstr ""
 
-#: EmbarkDialog.gd:563
+#: EmbarkDialog.gd:585
 msgid "Use the upgraded (+) side of this trinket."
 msgstr ""
 
-#: MissionRuntime.gd:148
+#: MissionRuntime.gd:159
 msgid "Variable '%s' changed type - it has its default again."
 msgstr ""
 
-#: MissionRuntime.gd:144
+#: MissionRuntime.gd:155
 msgid "Variable '%s' no longer exists (it was %s)."
 msgstr ""
 
@@ -2765,7 +2805,11 @@ msgstr ""
 msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
 msgstr ""
 
-#: CampaignPlayer.gd:983 MissionPlayer.gd:1749
+#: Difficulty.gd:36
+msgid "Veteran"
+msgstr ""
+
+#: CampaignPlayer.gd:988 MissionPlayer.gd:1776
 msgid "Victory!"
 msgstr ""
 
@@ -2777,19 +2821,19 @@ msgstr ""
 msgid "Vigos (life)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:135 VoiceSettingsDialog.gd:248
+#: VoiceSettingsDialog.gd:138 VoiceSettingsDialog.gd:251
 msgid "Voice"
 msgstr ""
 
-#: PlayerDialog.gd:613
+#: PlayerDialog.gd:637
 msgid "Voice - "
 msgstr ""
 
-#: VoiceSettingsDialog.gd:431
+#: VoiceSettingsDialog.gd:434
 msgid "Voice control is set up."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:439
+#: VoiceSettingsDialog.gd:442
 msgid "Voice isn't set up yet - typed commands still work."
 msgstr ""
 
@@ -2797,7 +2841,7 @@ msgstr ""
 msgid "voice settings (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:434
+#: VoiceSettingsDialog.gd:437
 msgid "Voice setup isn't available on %s - typed commands still work."
 msgstr ""
 
@@ -2809,7 +2853,7 @@ msgstr ""
 msgid "voices (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:301
+#: VoiceSettingsDialog.gd:304
 msgid "Voices for:"
 msgstr ""
 
@@ -2833,7 +2877,7 @@ msgstr ""
 msgid "weak to %s"
 msgstr ""
 
-#: MonsterTemplate.gd:166
+#: MonsterTemplate.gd:182
 msgid "Weak: %s"
 msgstr ""
 
@@ -2853,7 +2897,7 @@ msgstr ""
 msgid "weapon"
 msgstr ""
 
-#: EmbarkDialog.gd:463
+#: EmbarkDialog.gd:485
 msgid "Weapon %d (%s)"
 msgstr ""
 
@@ -2897,19 +2941,19 @@ msgstr ""
 msgid "Will"
 msgstr ""
 
-#: CampaignState.gd:314
+#: CampaignState.gd:317
 msgid "Won: %s."
 msgstr ""
 
-#: HeroesDialog.gd:88 MissionPlayer.gd:1706
+#: HeroesDialog.gd:88 MissionPlayer.gd:1733
 msgid "Wound"
 msgstr ""
 
-#: MissionRuntime.gd:772
+#: MissionRuntime.gd:787
 msgid "Wounded"
 msgstr ""
 
-#: CampaignPlayer.gd:570
+#: CampaignPlayer.gd:574
 msgid "XP: %d  |  Gold: %d"
 msgstr ""
 
@@ -2929,35 +2973,35 @@ msgstr ""
 msgid "You can play"
 msgstr ""
 
-#: CampaignPlayer.gd:817
+#: CampaignPlayer.gd:821
 msgid "You carry %d."
 msgstr ""
 
-#: CampaignPlayer.gd:640
+#: CampaignPlayer.gd:644
 msgid "You have %d gold and %s."
 msgstr ""
 
-#: CampaignPlayer.gd:640
+#: CampaignPlayer.gd:644
 msgid "You have %d gold."
 msgstr ""
 
-#: CampaignPlayer.gd:812
+#: CampaignPlayer.gd:816
 msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
 msgstr ""
 
-#: CampaignPlayer.gd:798
+#: CampaignPlayer.gd:802
 msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
 msgstr ""
 
-#: CampaignPlayer.gd:828
+#: CampaignPlayer.gd:832
 msgid "Your materials:"
 msgstr ""
 
-#: CampaignSetupPage.gd:95
+#: CampaignSetupPage.gd:113
 msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
 msgstr ""
 
-#: CampaignPlayer.gd:1072
+#: CampaignPlayer.gd:1077
 msgid "▶ Read aloud"
 msgstr ""
 
@@ -2965,7 +3009,7 @@ msgstr ""
 msgid "☠ Defeated"
 msgstr ""
 
-#: EmbarkDialog.gd:316
+#: EmbarkDialog.gd:335
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] ""
@@ -2983,13 +3027,13 @@ msgid_plural "lost %d statuses, %d damage"
 msgstr[0] ""
 msgstr[1] ""
 
-#: MissionRuntime.gd:1120
+#: MissionRuntime.gd:1141
 msgid "Lucky Charm: %d extra success is added to %s's result."
 msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
 msgstr[0] ""
 msgstr[1] ""
 
-#: CampaignPlayer.gd:1009
+#: CampaignPlayer.gd:1014
 msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] ""

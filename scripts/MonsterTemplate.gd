@@ -30,6 +30,14 @@ var custom_name: String:
 @export var base_archetype: MonsterArchetype
 ## ADDITIVE templates attached to this monster (embedded copies, in order).
 @export var archetypes: Array[MonsterArchetype] = []
+## The monster only spawns when these hold at the moment its spawn effect fires (implicit AND, empty = always) - e.g. `player_count >= 4` for an
+## extra monster in a big party. Two monsters with opposite conditions give "level 3 for up to 3 players, level 4 for more". Monsters that
+## do not qualify are left out and the rest take the spawn's tiles in order (no gaps). Checked in MissionRuntime.apply_effect().
+@export var conditions: Array[Condition] = []
+## Effects applied when THIS monster is defeated (after the table has been told, see MissionPlayer._on_monster_defeated()), then the objectives
+## are checked - how a mission objective like "defeat the captain" is tracked: set a variable (captain_dead = true) or count (kills + 1)
+## and use that variable in the objective's conditions.
+@export var defeat_effects: Array[Effect] = []
 
 ## A new monster definition with the first BASE template in the library attached
 ## (every monster needs a base), or null if the library has none yet.
@@ -68,7 +76,10 @@ const STAT_TABLES := {
 ## (`sources`: stat -> [[template name, value], ...], the
 ## breakdown the totals were summed from). Used by MissionRuntime.register_monster()
 ## and the properties dialog's preview.
-func resolve() -> Dictionary:
+##
+## `level_shift` (the game's difficulty, see Difficulty.level_offset()) moves the level the tables are read at; 0 = the level as authored.
+func resolve(level_shift: int = 0) -> Dictionary:
+	var at_level := shifted_level(level_shift)
 	var prefix := ""
 	var postfix := ""
 	var weak: Array[int] = []
@@ -109,7 +120,7 @@ func resolve() -> Dictionary:
 		for stat in STAT_TABLES:
 			var table: Array[LevelValue] = base_archetype.get(STAT_TABLES[stat])
 			if LevelValue.has_rows(table):
-				sources[stat].append([base_archetype.template_name, LevelValue.pick(table, level)])
+				sources[stat].append([base_archetype.template_name, LevelValue.pick(table, at_level)])
 
 	for additive in archetypes:
 		prefix += additive.name_prefix
@@ -123,7 +134,7 @@ func resolve() -> Dictionary:
 		for stat in STAT_TABLES:
 			var table: Array[LevelValue] = additive.get(STAT_TABLES[stat])
 			if LevelValue.has_rows(table):
-				sources[stat].append([additive.template_name, LevelValue.pick(table, level)])
+				sources[stat].append([additive.template_name, LevelValue.pick(table, at_level)])
 
 	var totals := {}
 	for stat in STAT_TABLES:
@@ -141,6 +152,11 @@ func resolve() -> Dictionary:
 		"speed": totals["speed"],
 		"sources": sources,
 	}
+
+
+## The authored level moved by `level_shift` levels, never below 1 (unchanged when the shift is 0).
+func shifted_level(level_shift: int) -> int:
+	return self.level if level_shift == 0 else maxi(self.level + level_shift, 1)
 
 
 ## The final display name with every prefix/postfix applied.
@@ -246,4 +262,7 @@ static func _merge_rules(into: Array[TargetRule], extra: Array[TargetRule]) -> v
 ## name when no custom name is set).
 func summary() -> String:
 	var r := resolve()
-	return tr("%s - HP %d, Lv %d, Def %d, Atk %d") % [full_name(), r["hitpoints"], level, r["defense"], r["attack_power"]]
+	var text := tr("%s - HP %d, Lv %d, Def %d, Atk %d") % [full_name(), r["hitpoints"], level, r["defense"], r["attack_power"]]
+	if not conditions.is_empty():
+		text += tr(" - only if %d condition(s)") % conditions.size()
+	return text

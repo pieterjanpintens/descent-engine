@@ -1,4 +1,11 @@
-﻿## v0.0.50 - 2026-10-31
+﻿## v0.0.51 - 2026-10-31
+- New: difficulty, a number from 1 to 4 (Apprentice, Adventurer, Veteran, Nightmare). Pick it when you start a campaign and before every mission (on the party screen); the last choice is suggested next time. Monsters spawn one level weaker/stronger per step, and missions and campaigns can read it as the variable `difficulty`.
+- Mission editor: monsters can have spawn conditions (e.g. only with 4+ players or on a high difficulty) and "When defeated..." effects, so a mission objective can depend on defeating monsters.
+- Mission editor: objective texts can show variables ($1 remaining); prop actions have a name (shown and spoken) separate from their technical id; spawn and line-of-sight areas can be selected by clicking them and redrawn with a toggle; G toggles the grid.
+- The purple look is only used in the Options dialog of the main menu now; everywhere else the standard look is back.
+- Fixed a crash when editing loot in the effect editor.
+
+## v0.0.50 - 2026-10-31
 - Mission editor: right-click on the board (without dragging) opens a menu. On a piece: Actions, Properties, Move to stage, Visible, Rotate, Delete. On empty ground: Select / Draw / Move mode and level up / down. Holding the right button and dragging still looks around.
 - Mission editor: a new Mission menu opens Objectives, Variables, Characters and Triggers directly, without selecting the root first.
 - The palette now has the "Show unavailable" checkbox, and shows how many copies of each prop, pillar or hazard are left (not on floor tiles).

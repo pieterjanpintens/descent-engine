@@ -1,0 +1,11 @@
+749| - alleen bij %d voorwaarde(n)
+750|Moeilijkheid
+760|Sterkere monsters en een zwaardere missie bij de hogere nummers. Je kunt het vóór elke missie wijzigen.
+752|Avonturier
+753|Leerling
+754|Monsters zijn één niveau sterker dan de auteur ze instelde, en de missie kan zwaarder voor je zijn.
+755|Monsters zijn één niveau zwakker dan de auteur ze instelde, en de missie kan milder voor je zijn.
+756|Monsters zijn twee niveaus sterker dan de auteur ze instelde, en de missie kent misschien geen genade.
+757|Nachtmerrie
+758|Het spel zoals de auteur het ontworpen heeft.
+759|Veteraan

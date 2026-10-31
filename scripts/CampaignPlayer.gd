@@ -271,9 +271,13 @@ func _close_setup_page() -> void:
 		_setup_page = null
 
 
-func _on_setup_confirmed(save_name: String, hero_voices: Dictionary, language: String) -> void:
+func _on_setup_confirmed(save_name: String, hero_voices: Dictionary, language: String, difficulty: int) -> void:
 	_close_setup_page()
 	if _begin(_folder, save_name, language):
+		_state.difficulty = Difficulty.clamped(difficulty)
+		if PlayerSettings.mission_difficulty != _state.difficulty:  # the next game and single missions suggest this one
+			PlayerSettings.mission_difficulty = _state.difficulty
+			PlayerSettings.save_settings()
 		_state.set_hero_voices_for(language if language != "" else NarratorVoices.reading_language(), hero_voices)
 		_save()
 		if _campaign.intro != "":
@@ -883,6 +887,7 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 	GameState.campaign_folder = _folder
 	GameState.campaign_save = CampaignIO.save_key(_state.save_name)
 	GameState.campaign_chapter_id = id
+	GameState.campaign_difficulty = Difficulty.clamped(_state.difficulty)
 	var values := _state.variable_values(_campaign)
 	GameState.campaign_mission_inputs = {}
 	for input in inputs:

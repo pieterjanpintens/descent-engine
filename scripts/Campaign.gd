@@ -80,8 +80,10 @@ func brooch_problems() -> Array[String]:
 			found.append("The Tarnished Brooch is given out, but the campaign defines no Brooch monster (General tab) - it stays out of the game")
 	return found
 
-## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only.
-const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number"]
+## Always there besides `variables`: the party's counters. `act_number` is 1-based and read-only, `difficulty` (1-4, see Difficulty) is
+## the game's difficulty and read-only too (the player chooses it).
+const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number", "difficulty"]
+const READ_ONLY_VARIABLES: Array[String] = ["act_number", "difficulty"]
 
 
 ## The built-in counters (INT) followed by the declared variables - everything a condition can read.
@@ -115,11 +117,11 @@ func all_variables() -> Array[MissionVariable]:
 	return all
 
 
-## What an effect may write: all of all_variables() except act_number.
+## What an effect may write: all of all_variables() except the read-only ones (act_number, difficulty).
 func writable_variables() -> Array[MissionVariable]:
 	var writable: Array[MissionVariable] = []
 	for variable in all_variables():
-		if variable.name != "act_number":
+		if not READ_ONLY_VARIABLES.has(variable.name):
 			writable.append(variable)
 	return writable
 

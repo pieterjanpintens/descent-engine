@@ -61,6 +61,9 @@ var _party_panel: CenterContainer
 var _loadout_panel: CenterContainer
 var _loadout_scroll: ScrollContainer
 var _loadout_rows: VBoxContainer
+## The difficulty (1-4, Difficulty) the party plays at: set before ask_roster(), read back after it.
+var difficulty: int = Difficulty.DEFAULT
+var _difficulty_picker: OptionButton
 var _min_players: int = 1
 var _max_players: int = HeroCatalog.SLOT_COUNT
 
@@ -170,6 +173,22 @@ func _build_ui() -> void:
 	party_shortcuts.add_child(_armor_button_party)
 	_consumables_button_party = _consumables_button()
 	party_shortcuts.add_child(_consumables_button_party)
+
+	# The difficulty of this game: the only place to change it, since it cannot change once the mission has started. MissionPlayer sets
+	# `difficulty` before ask_roster() and keeps the answer (campaign save or player setting) for the next mission.
+	var difficulty_row := HBoxContainer.new()
+	difficulty_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var difficulty_label := Label.new()
+	difficulty_label.text = "Difficulty"
+	difficulty_row.add_child(difficulty_label)
+	_difficulty_picker = OptionButton.new()
+	for value in Difficulty.all():
+		_difficulty_picker.add_item(Difficulty.label(value), value)
+	_difficulty_picker.item_selected.connect(func(index: int):
+		difficulty = _difficulty_picker.get_item_id(index)
+		_difficulty_picker.tooltip_text = Difficulty.description(difficulty))
+	difficulty_row.add_child(_difficulty_picker)
+	vbox.add_child(difficulty_row)
 
 	_start_button = Button.new()
 	_start_button.text = "Start"
@@ -377,6 +396,9 @@ func ask_roster(mission: MissionData) -> Array[int]:
 	_roster_size = 0
 	_consumables_button_party.visible = restrict_to_owned
 	_armor_button_party.visible = restrict_to_owned
+	difficulty = Difficulty.clamped(difficulty)
+	_difficulty_picker.select(_difficulty_picker.get_item_index(difficulty))
+	_difficulty_picker.tooltip_text = Difficulty.description(difficulty)
 
 	visible = true
 	await _closed
