@@ -5,8 +5,9 @@ extends RefCounted
 ## CampaignState.difficulty) and changeable at embark time, before each mission (EmbarkDialog), never during one; a single mission outside a
 ## campaign remembers its last choice in PlayerSettings.mission_difficulty.
 ## Never instantiated, an enum namespace like Vulnerability. Two things use it:
-## - monsters: every monster spawns `level_offset()` levels above/below the level its author gave it, so the level scaling
-##   tables of its templates (MonsterTemplate.resolve()) give it weaker or stronger numbers;
+## - monsters: a level shift FORMULA (LevelFormula; by default `difficulty - 2`, so -1, 0, +1, +2) moves the level every monster spawns at,
+##   so the level scaling tables of its templates (MonsterTemplate.resolve()) give it weaker or stronger numbers. The mission sets the
+##   default formula (MissionData.level_formula) and a monster can override it (MonsterTemplate.level_formula);
 ## - missions: the built-in INT variable `difficulty` (1-4) can be used in any condition, e.g. a spawn condition
 ##   `difficulty >= 3` for an extra monster, or a Test that needs fewer successes.
 
@@ -21,11 +22,6 @@ static func all() -> Array[int]:
 
 static func clamped(value: int) -> int:
 	return clampi(value, MIN, MAX)
-
-
-## How many levels a monster is moved: 1 = -1, 2 = 0 (as designed), 3 = +1, 4 = +2.
-static func level_offset(value: int) -> int:
-	return clamped(value) - DEFAULT
 
 
 static func display_name(value: int) -> String:

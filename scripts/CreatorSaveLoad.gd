@@ -205,11 +205,31 @@ func _build_mission_menu(characters_button: Button) -> void:
 	]
 	for i in entries.size():
 		mission_menu.add_item(entries[i][0], i)
+	mission_menu.add_separator()
+	mission_menu.add_item("Monster levels…", entries.size())
+	mission_menu.set_item_tooltip(mission_menu.item_count - 1, "The default formula that moves the level monsters spawn at, from the difficulty, the number of heroes...")
 	mission_menu.id_pressed.connect(func(id: int):
+		if id == entries.size():
+			_open_level_formula()
+			return
 		var button: Button = entries[id][1]
 		button.pressed.emit())
 	# The menu bar is still setting up its children while this runs, so adding to it has to wait a moment.
 	_attach_mission_menu.call_deferred(menu_bar, mission_menu)
+
+
+var _level_formula_dialog: LevelFormulaDialog
+
+
+## The mission's default level shift formula (MissionData.level_formula) - one undo step per change.
+func _open_level_formula() -> void:
+	if _level_formula_dialog == null:
+		_level_formula_dialog = LevelFormulaDialog.new()
+		add_child(_level_formula_dialog)
+	var mission := layered_map.mission
+	_level_formula_dialog.open_for("Monster levels", mission.level_formula, mission, false, "", 1, func(formula: String):
+		operation_history.record("Edit monster level formula", func(): layered_map.mission.level_formula = formula)
+		layered_map.notify_objects_changed())
 
 
 func _attach_mission_menu(menu_bar: Node, mission_menu: PopupMenu) -> void:
