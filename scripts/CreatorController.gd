@@ -153,6 +153,10 @@ signal object_toggled(kind: String, id: String)
 ## layer_changed/mesh_changed/draw_mode_changed above).
 signal occupancy_overlay_changed(enabled: bool)
 signal tile_labels_changed(enabled: bool)
+signal grid_overlay_changed(enabled: bool)
+
+## The reference grid drawn around the hovered square (View menu > Grid). On by default, as it always was.
+var show_grid_overlay: bool = true
 
 ## Whether left-click paints/erases (true) or selects an object for the
 ## outline tree (false, see object_picked above) - see set_draw_mode().
@@ -867,6 +871,15 @@ func set_occupancy_overlay(enabled: bool) -> void:
 	occupancy_overlay_changed.emit(enabled)
 
 
+func set_grid_overlay(enabled: bool) -> void:
+	if show_grid_overlay == enabled:
+		return
+	show_grid_overlay = enabled
+	if not enabled:
+		_grid_overlay.visible = false
+	grid_overlay_changed.emit(enabled)
+
+
 func set_tile_labels(enabled: bool) -> void:
 	if show_tile_labels == enabled:
 		return
@@ -1554,7 +1567,7 @@ func _update_origin_overlay() -> void:
 ## snapped the same way, so the lines stay aligned to it regardless of
 ## which step size is in effect.
 func _update_grid_overlay() -> void:
-	if not _has_hover:
+	if not _has_hover or not show_grid_overlay:
 		_grid_overlay.visible = false
 		return
 
@@ -1708,6 +1721,17 @@ func is_mesh_available(mesh_name: String) -> bool:
 	var group := ComponentInventory.get_group(mesh_name)
 	var usage := layered_map.mission.get_component_usage()
 	return usage.get(group, 0) < max_count
+
+
+## How many physical copies of mesh_name are still free, and how many exist in all: {"left": int, "max": int}.
+## max is -1 for an untracked mesh (no limit). Both faces of a double-sided tile share one count.
+func copies_left(mesh_name: String) -> Dictionary:
+	var max_count := ComponentInventory.get_max_count(mesh_name)
+	if max_count < 0:
+		return {"left": -1, "max": -1}
+	var group := ComponentInventory.get_group(mesh_name)
+	var used: int = layered_map.mission.get_component_usage().get(group, 0)
+	return {"left": maxi(max_count - used, 0), "max": max_count}
 
 
 ## True if placing mesh_name at target_cell would stay within its physical
@@ -1915,6 +1939,16 @@ func select_at_cursor() -> void:
 			object_picked.emit(resolved["kind"], resolved["id"])
 	# Nothing matched at this origin - nothing to select, print()s already
 	# covered by _raycast_hit_cell()'s own diagnostics.
+
+
+## The placed prop / floor / hazard tile under the mouse as {"kind", "id"} ("" id = nothing there) - what the right-click context menu works on.
+## Unlike select_at_cursor() it only looks, it selects nothing.
+func pick_at_cursor() -> Dictionary:
+	var hit := _raycast_hit_cell("pick_at_cursor")
+	if hit.is_empty():
+		return {"kind": "", "id": ""}
+	var hit_grid: GridMap = hit["grid"]
+	return _resolve_placed_at(hit_grid, _origin_for_hit(hit_grid, hit["cell"]))
 
 
 ## Looks up which placed InteractableEntry/TilePlacement (if any) has its

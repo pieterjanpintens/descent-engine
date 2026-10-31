@@ -14,13 +14,18 @@ extends PopupMenu
 
 @export var creator_controller: CreatorController
 
-enum _ViewAction { OCCUPANCY_OVERLAY, TILE_LABELS }
+enum _ViewAction { OCCUPANCY_OVERLAY, TILE_LABELS, GRID }
 
 var _occupancy_item_index: int
 var _tile_labels_item_index: int
+var _grid_item_index: int
 
 
 func _ready() -> void:
+	add_check_item("Grid", _ViewAction.GRID)
+	_grid_item_index = get_item_index(_ViewAction.GRID)
+	creator_controller.grid_overlay_changed.connect(func(enabled: bool): set_item_checked(_grid_item_index, enabled))
+	set_item_checked(_grid_item_index, creator_controller.show_grid_overlay)
 	add_check_item("Occupancy Overlay (O)", _ViewAction.OCCUPANCY_OVERLAY)
 	_occupancy_item_index = get_item_index(_ViewAction.OCCUPANCY_OVERLAY)
 	add_check_item("Tile Name Labels (N)", _ViewAction.TILE_LABELS)
@@ -36,6 +41,8 @@ func _ready() -> void:
 
 func _on_id_pressed(id: int) -> void:
 	match id:
+		_ViewAction.GRID:
+			creator_controller.set_grid_overlay(not creator_controller.show_grid_overlay)
 		_ViewAction.OCCUPANCY_OVERLAY:
 			creator_controller.set_occupancy_overlay(not creator_controller.show_occupancy_overlay)
 		_ViewAction.TILE_LABELS:

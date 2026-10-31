@@ -165,6 +165,8 @@ func _ready() -> void:
 	add_child(_triggers_dialog)
 	triggers_button.pressed.connect(func(): _triggers_dialog.open_for(layered_map.mission))
 
+	_build_mission_menu(characters_button)
+
 	min_players_spin_box.value_changed.connect(_on_min_players_changed)
 	max_players_spin_box.value_changed.connect(_on_max_players_changed)
 
@@ -185,6 +187,36 @@ func _ready() -> void:
 		_load_from.call_deferred(path)
 	if GameState.edit_mission_return_folder != "":
 		set_item_text(get_item_index(FileAction.BACK), "Back to Campaign Editor")
+
+
+## A top-level "Mission" menu (after View) with shortcuts to the mission-wide editors, so they can be opened without selecting the root row in the outline first.
+## Each entry presses the same button the root's properties panel has, so both routes always do the same thing.
+func _build_mission_menu(characters_button: Button) -> void:
+	var menu_bar := get_parent()
+	if menu_bar == null:
+		return
+	var mission_menu := PopupMenu.new()
+	mission_menu.name = "Mission"
+	var entries: Array[Array] = [
+		["Objectives…", objectives_button],
+		["Variables…", variables_button],
+		["Characters…", characters_button],
+		["Triggers…", triggers_button],
+	]
+	for i in entries.size():
+		mission_menu.add_item(entries[i][0], i)
+	mission_menu.id_pressed.connect(func(id: int):
+		var button: Button = entries[id][1]
+		button.pressed.emit())
+	# The menu bar is still setting up its children while this runs, so adding to it has to wait a moment.
+	_attach_mission_menu.call_deferred(menu_bar, mission_menu)
+
+
+func _attach_mission_menu(menu_bar: Node, mission_menu: PopupMenu) -> void:
+	menu_bar.add_child(mission_menu)
+	var view_menu := menu_bar.get_node_or_null("View")
+	if view_menu != null:
+		menu_bar.move_child(mission_menu, view_menu.get_index() + 1)
 
 
 func _on_mission_objects_changed() -> void:

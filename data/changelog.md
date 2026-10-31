@@ -1,4 +1,10 @@
-﻿## v0.0.49 - 2026-10-31
+﻿## v0.0.50 - 2026-10-31
+- Mission editor: right-click on the board (without dragging) opens a menu. On a piece: Actions, Properties, Move to stage, Visible, Rotate, Delete. On empty ground: Select / Draw / Move mode and level up / down. Holding the right button and dragging still looks around.
+- Mission editor: a new Mission menu opens Objectives, Variables, Characters and Triggers directly, without selecting the root first.
+- The palette now has the "Show unavailable" checkbox, and shows how many copies of each prop, pillar or hazard are left (not on floor tiles).
+- View menu: the reference grid can be switched off.
+
+## v0.0.49 - 2026-10-31
 - Mission editor: the Languages menu moved to the top menu bar, and a new AI menu holds "Generate stage…". The toolbar is narrower, so it fits small windows.
 - Scrolling the side panel in the mission editor no longer zooms the 3D view.
 - The monster template editor now fills the whole window.
