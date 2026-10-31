@@ -1,10 +1,9 @@
 class_name AppTheme
 extends RefCounted
 
-## The look of the whole app, in the spirit of the main menu: a dark indigo palette, an orange accent, and Cinzel for headings and buttons only
+## The violet look of the Options dialog opened from the main menu (VoiceSettingsDialog sets AppTheme.build() on itself; nowhere else uses it any more):  a dark indigo palette, an orange accent, and Cinzel for headings and buttons only
 ## (body text - labels, text boxes, check boxes, dropdown values, popup menu items - keeps the normal font so long texts stay readable).
-## One Theme (the project theme, filled by the AppThemeSetup autoload), so every Control and every Window (the editors, Options, the dialogs, the
-## campaign screens, the mission HUD) picks it up; a hand-made override in a script still wins over it.
+## A hand-made override in a script still wins over it.
 ## Anything this theme does not mention falls back to Godot's default theme.
 
 const FONT_PATH := "res://fonts/Cinzel.ttf"
@@ -77,9 +76,7 @@ static func build() -> Theme:
 	return populate(Theme.new())
 
 
-## Fills a theme with the app's look. The project theme (res://theme/app_theme.tres, set in the project settings, an empty stub) is filled at
-## startup rather than saved with the content, so the fonts and styles live here in code - and a project theme, unlike a theme set on the
-## root window, also reaches controls that sit under a non-Control parent such as a CanvasLayer.
+## Fills a theme with the app's look (the fonts and styles live here in code, not in a saved resource).
 static func populate(theme: Theme) -> Theme:
 	var cinzel := font(600)
 	var cinzel_light := font(500)
@@ -223,41 +220,9 @@ static func populate(theme: Theme) -> Theme:
 	return theme
 
 
-## The editors (mission Creator, campaign editor and every window they open) keep Godot's normal look: a theme on their root control that gives
-## every item the app theme defines back its default value. (Not set on the root window: a theme on a control only reaches its own children.)
-static var _classic: Theme
-
-
-static func classic() -> Theme:
-	if _classic != null:
-		return _classic
-	var app := build()
-	var base := ThemeDB.get_default_theme()
-	var classic_theme := Theme.new()
-	for type_name in app.get_type_list():
-		var base_type := app.get_type_variation_base(type_name)
-		if base_type != &"":
-			classic_theme.set_type_variation(type_name, base_type)
-		for item in app.get_stylebox_list(type_name):
-			if base.has_stylebox(item, type_name):
-				classic_theme.set_stylebox(item, type_name, base.get_stylebox(item, type_name))
-		for item in app.get_font_list(type_name):
-			classic_theme.set_font(item, type_name, base.get_font(item, type_name) if base.has_font(item, type_name) else ThemeDB.fallback_font)
-		for item in app.get_font_size_list(type_name):
-			classic_theme.set_font_size(item, type_name, base.get_font_size(item, type_name) if base.has_font_size(item, type_name) else ThemeDB.fallback_font_size)
-		for item in app.get_color_list(type_name):
-			if base.has_color(item, type_name):
-				classic_theme.set_color(item, type_name, base.get_color(item, type_name))
-		for item in app.get_icon_list(type_name):
-			if base.has_icon(item, type_name):
-				classic_theme.set_icon(item, type_name, base.get_icon(item, type_name))
-	_classic = classic_theme
-	return _classic
-
-
+## The editors (mission Creator, campaign editor and every window they open) stay in English: everything under the control inherits that.
 static func apply_classic(control: Control) -> void:
-	control.theme = classic()
-	control.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED  # the editors stay in English (everything under this control inherits it)
+	control.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 
 
 ## A check box picture that shows on the dark panels: a light frame, and an orange tick when checked.
