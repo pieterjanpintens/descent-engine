@@ -433,6 +433,20 @@ func _on_multi_move_button_pressed() -> void:
 	layered_map.notify_objects_changed()
 
 
+## The prop the panel is showing right now (null for a tile, a group, several things or nothing) - what the 3D context menu's
+## "Actions…" / "Properties…" open.
+func current_prop() -> InteractableEntry:
+	return _current_node as InteractableEntry
+
+
+func open_actions() -> void:
+	_on_actions_button_pressed()
+
+
+func open_properties() -> void:
+	_on_properties_button_pressed()
+
+
 func _on_properties_button_pressed() -> void:
 	if _current_node is InteractableEntry:
 		_properties_dialog.open_for(_current_node as InteractableEntry)

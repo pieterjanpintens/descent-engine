@@ -108,7 +108,7 @@ func _build_ui() -> void:
 	_translation_window.commit = _commit_language_change
 	add_child(_translation_window)
 
-	# Pushes "Show unavailable" to the right - a plain expand-filling
+	# Pushes the Problems button to the right - a plain expand-filling
 	# spacer, same trick used for centering rows elsewhere in this project.
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -127,13 +127,7 @@ func _build_ui() -> void:
 	_problems_button.pressed.connect(_open_problems_dialog)
 	add_child(_problems_button)
 	_build_problems_dialog()
-
-	var show_unavailable_check := CheckBox.new()
-	show_unavailable_check.text = "Show unavailable"
-	show_unavailable_check.tooltip_text = "Also list the pieces that are used up (greyed out); clicking one jumps to where it is placed."
-	show_unavailable_check.button_pressed = creator_controller.show_unavailable_meshes
-	show_unavailable_check.toggled.connect(creator_controller.set_show_unavailable_meshes)
-	add_child(show_unavailable_check)
+	# "Show unavailable" lives in the Palette now (it only concerns the piece list shown there).
 
 
 ## "Languages" and "AI" next to File / Edit / View / Play in the MenuBar above the toolbar (a PopupMenu child of a MenuBar is a top-level menu).

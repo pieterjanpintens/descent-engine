@@ -28,6 +28,7 @@ var _layer_buttons: Array[Button] = []
 var _mesh_buttons: Dictionary = {}  # mesh_item_name -> Button
 var _mesh_grid: GridContainer
 var _mesh_scroll: ScrollContainer  ## wraps _mesh_grid - hidden while the Misc tab is active
+var _show_unavailable_check: CheckBox  ## hidden together with _mesh_scroll
 var _selected_mesh_name: String = ""
 var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 
@@ -65,10 +66,10 @@ func _ready() -> void:
 	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
 	creator_controller.active_los_blocker_changed.connect(_queue_blocker_option_rebuild.unbind(1))
 	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
-	# "Show unavailable" moved to the persistent toolbar 2026-09-14 (see
-	# CreatorToolbar.gd) - this palette just reacts to the controller-owned
-	# state now instead of owning the checkbox itself.
+	# The "Show unavailable" state is owned by the controller (so it survives a palette rebuild); the checkbox below the grid is back in this
+	# palette (moved from the toolbar 2026-10-31), and keeps in step when something else changes it.
 	creator_controller.show_unavailable_meshes_changed.connect(_queue_mesh_grid_rebuild.unbind(1))
+	creator_controller.show_unavailable_meshes_changed.connect(func(enabled: bool): _show_unavailable_check.set_pressed_no_signal(enabled))
 	# Nothing else used to tell this palette "a placement changed, an
 	# item's availability may now be different" - painting the same mesh
 	# repeatedly (e.g. several floor tiles in a row without switching
@@ -182,6 +183,14 @@ func _build_ui() -> void:
 	_mesh_grid.columns = 3
 	_mesh_scroll.add_child(_mesh_grid)
 
+	# Belongs to the piece list above, so it shows and hides with it (not on the Misc tab).
+	_show_unavailable_check = CheckBox.new()
+	_show_unavailable_check.text = "Show unavailable"
+	_show_unavailable_check.tooltip_text = "Also list the pieces that are used up (greyed out); clicking one jumps to where it is placed."
+	_show_unavailable_check.button_pressed = creator_controller.show_unavailable_meshes
+	_show_unavailable_check.toggled.connect(creator_controller.set_show_unavailable_meshes)
+	vbox.add_child(_show_unavailable_check)
+
 	# Misc tab content - not a mesh grid at all, see this tab's own doc
 	# comment above. Currently just the one tool; built as a plain
 	# VBoxContainer of entries specifically so more can be appended here
@@ -263,6 +272,7 @@ func _on_layer_changed(layer: CreatorController.PaintLayer) -> void:
 		_layer_buttons[i].button_pressed = (i == layer)
 	_misc_button.button_pressed = false
 	_mesh_scroll.visible = true
+	_show_unavailable_check.visible = true
 	_misc_container.visible = false
 	_queue_mesh_grid_rebuild()
 
@@ -282,6 +292,7 @@ func _on_misc_tab_pressed() -> void:
 		btn.button_pressed = false
 	_misc_button.button_pressed = true
 	_mesh_scroll.visible = false
+	_show_unavailable_check.visible = false
 	_misc_container.visible = true
 	creator_controller.set_draw_mode(false)
 
@@ -396,8 +407,14 @@ func _rebuild_mesh_grid() -> void:
 			btn.expand_icon = true
 			btn.text = ""
 
+		# A "N left" badge on every limited piece except floor tiles (a floor tile is one physical tile, its face a/b is not a count).
+		var copies := creator_controller.copies_left(mesh_name)
+		var has_counter: bool = int(copies["max"]) >= 1 and FootprintRegistry.get_layer(mesh_name) != "floor"
+		if has_counter:
+			_add_counter_badge(btn, int(copies["left"]))
+
 		if available:
-			btn.tooltip_text = mesh_name
+			btn.tooltip_text = mesh_name if not has_counter else "%s - %d of %d left" % [mesh_name, copies["left"], copies["max"]]
 			btn.pressed.connect(_on_mesh_button_pressed.bind(mesh_name))
 		else:
 			# Greyed + repurposed: can't be selected for painting (no
@@ -411,6 +428,23 @@ func _rebuild_mesh_grid() -> void:
 		_mesh_buttons[mesh_name] = btn
 
 	_update_mesh_selection_highlight()
+
+
+## The number of copies still free, small in the button's bottom-right corner (outlined so it reads on any picture).
+func _add_counter_badge(btn: Button, left: int) -> void:
+	var badge := Label.new()
+	badge.text = str(left)
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_theme_font_size_override("font_size", 14)
+	badge.add_theme_color_override("font_color", Color(1, 1, 1) if left > 0 else Color(1, 0.6, 0.55))
+	badge.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	badge.add_theme_constant_override("outline_size", 5)
+	badge.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	badge.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	badge.offset_right = -4
+	badge.offset_bottom = -2
+	btn.add_child(badge)
 
 
 func _on_mesh_button_pressed(mesh_name: String) -> void:

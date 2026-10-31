@@ -3953,7 +3953,20 @@ first working version).
 	`CreatorPalette` var so the toolbar checkbox that controls it
 	(`CreatorToolbar.gd`) and the palette that reads it stay decoupled -
 	same "controller emits, UI listens" reasoning as `working_group_id`
-	above.
+	above. **Moved back into the Palette 2026-10-31**: the "Show unavailable"
+	`CheckBox` now sits under the mesh grid in `CreatorPalette` (hidden with
+	the grid on the Misc tab, kept in step with this state by the signal) and
+	is gone from the toolbar (the toolbar paragraph below describes the
+	original 2026-09-14 layout). The palette also shows a **"copies left"
+	badge** (bottom-right of the button, tooltip "N of M left") on every
+	limited piece (`CreatorController.copies_left()` -> `{left, max}`, -1 =
+	untracked) EXCEPT floor tiles (a tile's a/b faces are one physical tile, a
+	count says nothing); props, pillars, hazards show it even with a single copy.
+	Headless-checked; not seen on screen.
+  - **`show_grid_overlay`** (new 2026-10-31, `set_grid_overlay()` /
+	`grid_overlay_changed`, View menu > "Grid", default on) - the reference grid
+	drawn around the hovered square can be switched off; `_update_grid_overlay()`
+	hides it. Not persisted between sessions (like the other View toggles).
 - **`CreatorToolbar.gd`** (new 2026-09-14, attached to `Toolbar`, a plain
   `HBoxContainer` sibling of `MenuBar` under `MainLayout` — see
   **Scene structure** below) — the Creator's persistent, always-visible
@@ -5228,6 +5241,7 @@ first working version).
   inline-text hints rather than real accelerators - `O`/`N` are already
   bound manually, a second native binding risks double-firing.
   **Unverified in-editor.**
+- **`CreatorContextMenu`** (`scripts/CreatorContextMenu.gd`, a node under `MainLayout` in `MissionMap.tscn`, branch `feature/editor-context-menu`, 2026-10-31) - the 3D view's right-click menu. `FreeLookCamera` only starts looking around once the mouse has moved more than `CLICK_SLOP` (4 px) with the right button down, and a right-click that never did emits `context_requested` instead (so a plain click no longer hides/captures the cursor). On a piece (`CreatorController.pick_at_cursor()`) it selects it like a Select-mode click - unless it already belongs to the selection - and offers **Actions…** and **Properties…** (props only; `CreatorPropertiesPanel.current_prop()/open_actions()/open_properties()`), **Move to stage** (submenu: root + every group; puts every selected piece under it, one undo step) , **Rotate** and **Delete** (the selection). On empty ground: Select / Draw / Move mode and Level up / down. Checked headlessly (click vs drag, menu contents, Actions dialog opens, stage move, delete) and the menus in a real window; the real right-click on the board not tried by hand. **Visible** (2026-10-31): a check item toggling `OutlineNode.visible` of the selected pieces (all visible -> hide, else show; one undo step; groups are not pickable so not covered). **Mission menu** (`CreatorSaveLoad._build_mission_menu()`, top-level, after View): Objectives… / Variables… / Characters… / Triggers… press the same buttons as the root's properties panel (added deferred, the menu bar is still setting up its children in `_ready()`). **View > Grid** (`show_grid_overlay`) hides the hover reference grid.
 - `FreeLookCamera.gd` — editor-style navigation: right-click-drag to look, WASD to
   move while dragging, scroll wheel to dolly (not while the pointer is over a Control, so scrolling a side panel never zooms the 3D view), Shift to boost speed. Its
   `_input()` bails out on a right-click that's over a `Control`
