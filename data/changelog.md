@@ -1,4 +1,10 @@
-﻿## v0.0.52 - 2026-11-01
+﻿## v0.0.53 - 2026-11-02
+- Mission editor: a prop's floating name label in the Player is now opt-in. Tick "Show name to players" on a prop to show its name over it; unticked (the default) there is no label, so names you use to find things in the editor no longer leak. Voice commands still work on props without a label.
+- Player: moving the mouse over a prop a hero can interact with now highlights it.
+- Mission editor: the Loot effect's text box has the same AI help, dictation and spell check as other text boxes.
+- Mission editor: a prop's description is no longer lost when the prop is repainted, rotated or moved.
+
+## v0.0.52 - 2026-11-01
 - Mission editor: how difficulty changes monsters is now a formula you control. Mission menu > Monster levels sets the default for the mission (it can use the difficulty, the number of heroes, the round and your own variables); a monster's properties > Level shift overrides it for that monster (for example 0 to ignore the difficulty). A preview table shows the result for every difficulty and party size.
 - Mission editor: monster groups. In a Spawn Monsters effect, "Make a reusable group of this list" names the list as a group; other Spawn Monsters effects can then use the same group at their own spawn area, so the same encounter can appear in two places and is edited once.
 - Mission editor: a new effect "Ask Question". It asks the table a yes/no question (your own text, with $1/$2 variables like a message) and runs the "Yes" effects or the "No" effects. Use it for things the app cannot see on the board, for example "is a hero standing on tile 4?" together with Wake Monsters.
