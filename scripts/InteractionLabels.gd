@@ -111,7 +111,9 @@ func refresh() -> void:
 		if counts[base] > 1:
 			seen[base] = int(seen.get(base, 0)) + 1
 			text = "%s %d" % [base, seen[base]]
-		_shown.append({"entry": entry, "label": text})
+		_shown.append({"entry": entry, "label": text})  # voice commands resolve against this, labelled or not
+		if not entry.shows_name():
+			continue  # no floating label unless the author switched "Show name to players" on
 		alive[entry.id] = true
 
 		var label: Label3D = _labels.get(entry.id)
@@ -129,7 +131,7 @@ func refresh() -> void:
 
 
 func _base_name(entry: InteractableEntry) -> String:
-	return entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
+	return entry.player_name()
 
 
 ## Per frame: size and fade every label by its distance to the camera (a label

@@ -238,6 +238,15 @@ func _on_portrait_gui_input(event: InputEvent, dock_position: int) -> void:
 ## the only reliable way to track it.
 func _input(event: InputEvent) -> void:
 	if not _dragging:
+		# Not dragging: light up the prop under the mouse when a hero could interact with it.
+		if event is InputEventMouseMotion:
+			var over_ui := get_viewport().gui_get_hovered_control() != null
+			if over_ui or (dialog != null and dialog.visible):
+				if _hovered_entry != null:
+					_hovered_entry = null
+					_rebuild_highlight()
+			else:
+				_update_hover_highlight(event.position)
 		return
 	if event is InputEventMouseMotion:
 		_update_drag_line(event.position)
@@ -553,7 +562,7 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	var actions := mission_runtime.available_actions(entry)
 	if actions.is_empty():
 		return
-	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
+	var label := entry.player_name()
 
 	# Actions marked "apply automatically" just happen - no dialog. Only the others are offered as a choice.
 	var chosen_actions: Array[PropAction] = []
@@ -641,7 +650,7 @@ func show_description_at(screen_pos: Vector2) -> bool:
 	var entry := _prop_at(screen_pos)
 	if entry == null or entry.description.strip_edges() == "" or dialog == null or dialog.visible:
 		return false
-	var label := entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
+	var label := entry.player_name()
 	await dialog.ask_ok(func() -> String: return entry.description, true, false, func() -> String: return label, null, null, true)
 	return true
 
