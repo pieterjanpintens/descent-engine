@@ -1517,6 +1517,7 @@ func _carry_identity(from: OutlineNode, to: OutlineNode) -> void:
 	if from is InteractableEntry and to is InteractableEntry:
 		to.props = from.props
 		to.actions = from.actions
+		to.description_texts = from.description_texts
 
 
 func _update_ghost_transform() -> void:

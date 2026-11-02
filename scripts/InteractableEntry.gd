@@ -38,6 +38,19 @@ var description: String:
 	set(value):
 		LText.put(description_texts, value)
 
+## Whether the Player shows a floating label (and the author's name) on this prop (props["show_name"], default
+## FALSE). The name is also the author's handle for finding the prop in the editor, so it stays private unless
+## this is switched on.
+func shows_name() -> bool:
+	return bool(props.get("show_name", false))
+
+
+## What the Player calls this prop in dialogs and voice commands: its name when it has one and may show it, else
+## the generic piece name ("exploration", "chest"...).
+func player_name() -> String:
+	return reference_name if reference_name != "" and shows_name() else mesh_item_name
+
+
 ## Only meaningful when type == LEVEL_LINK. Two cells this connector joins -
 ## covers both "real" floor-to-floor stairs (large Y difference) and a
 ## localized dais/ledge step within one room (often just Y+1). Movement/LOS

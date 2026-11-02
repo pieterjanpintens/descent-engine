@@ -51,6 +51,7 @@ var _token_row: HBoxContainer
 var _token_option: OptionButton
 var _name_edit: LineEdit
 var _visible_check: CheckBox
+var _show_name_check: CheckBox  ## props only: InteractableEntry.props["show_name"]
 var _properties_button: Button
 var _properties_dialog: PropertiesDialog
 var _actions_button: Button
@@ -117,6 +118,12 @@ func _build_object_fields() -> void:
 	var name_label := Label.new()
 	name_label.text = "Name:"
 	name_row.add_child(name_label)
+	_show_name_check = CheckBox.new()
+	_show_name_check.text = "Show name to players"
+	_show_name_check.tooltip_text = "Off (default): no floating label in the Player, and the name stays private to the editor. On: the name floats over the prop."
+	_show_name_check.toggled.connect(_on_show_name_toggled)
+	_show_name_check.visible = false
+	_object_content.add_child(_show_name_check)
 	_name_edit = LineEdit.new()
 	_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# Fires on Enter or losing focus, not per keystroke - same reasoning
@@ -253,6 +260,7 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 		_info_label.text = "(not found)"
 		_name_edit.editable = false
 		_visible_check.disabled = true
+		_show_name_check.visible = false
 		_properties_button.visible = false
 		_actions_button.visible = false
 		_description_box.visible = false
@@ -279,6 +287,9 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	_suppress_field_signals = true
 	_name_edit.text = _current_node.reference_name
 	_visible_check.button_pressed = _current_node.visible
+	_show_name_check.visible = _current_node is InteractableEntry
+	if _current_node is InteractableEntry:
+		_show_name_check.button_pressed = (_current_node as InteractableEntry).shows_name()
 	_suppress_field_signals = false
 
 
@@ -562,6 +573,19 @@ func _on_name_committed() -> void:
 	var node := _current_node
 	operation_history.record("Set name", func():
 		node.reference_name = new_name
+	)
+	layered_map.notify_objects_changed()
+
+
+func _on_show_name_toggled(pressed: bool) -> void:
+	var entry := _current_node as InteractableEntry
+	if _suppress_field_signals or entry == null:
+		return
+	operation_history.record("Set show name", func():
+		if pressed:
+			entry.props["show_name"] = true
+		else:
+			entry.props.erase("show_name")  # false is the default - keep the dictionary clean
 	)
 	layered_map.notify_objects_changed()
 

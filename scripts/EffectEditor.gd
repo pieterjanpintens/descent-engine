@@ -1489,11 +1489,9 @@ func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 	box.add_child(title_edit)
 
 	box.add_child(_label("Text shown above the list (optional):"))
-	var text_edit := TextEdit.new()
-	text_edit.text = effect.loot_text
-	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	text_edit.custom_minimum_size = Vector2(0, 80)
-	text_edit.focus_exited.connect(func(): _commit_field("Edit loot text", func(): effect.loot_text = text_edit.text))
+	var text_edit := ProseEdit.build(effect.loot_text, "You find a rusty key under the bones.", Vector2(0, 100), mission.characters,
+		func(): return "Text for the board game Descent: Legends of the Dark. This is a line shown above the list of loot (gold, materials, cards) the party finds, e.g. in a chest. Mission: %s." % mission.mission_name,
+		func(new_text: String): _commit_field("Edit loot text", func(): effect.loot_text = new_text))
 	box.add_child(text_edit)
 
 	var popup_check := CheckBox.new()
