@@ -52,8 +52,7 @@ var _token_option: OptionButton
 var _name_edit: LineEdit
 var _visible_check: CheckBox
 var _show_name_check: CheckBox  ## props only: InteractableEntry.props["show_name"]
-var _properties_button: Button
-var _properties_dialog: PropertiesDialog
+var _interactible_check: CheckBox  ## props only: InteractableEntry.props["interactible"]
 var _actions_button: Button
 
 ## MonsterSpawn only - the ordered tile list with reorder/remove buttons,
@@ -158,10 +157,13 @@ func _build_object_fields() -> void:
 	_visible_check.toggled.connect(_on_visible_toggled)
 	_object_content.add_child(_visible_check)
 
-	# Object-only (InteractableEntry.props doesn't exist on TilePlacement/
-	# MissionGroup) - a popup rather than inline rows here, requested
-	# 2026-09-10: a dynamic add/remove/type-aware list would get cramped
-	# in this 260px-wide panel. See PropertiesDialog.gd's own doc comment.
+	_interactible_check = CheckBox.new()
+	_interactible_check.text = "Interactible"
+	_interactible_check.tooltip_text = "Off: the heroes cannot use this prop's actions (no label, no highlight, not offered), until something turns it on again."
+	_interactible_check.toggled.connect(_on_interactible_toggled)
+	_interactible_check.visible = false
+	_object_content.add_child(_interactible_check)
+
 	# Event tokens only: swap exploration / interact / umbra without losing the name, group, properties and actions.
 	_token_row = HBoxContainer.new()
 	var token_label := Label.new()
@@ -175,16 +177,6 @@ func _build_object_fields() -> void:
 	_token_row.add_child(_token_option)
 	_token_row.visible = false
 	_object_content.add_child(_token_row)
-
-	_properties_button = Button.new()
-	_properties_button.text = "Custom Properties…"
-	_properties_button.pressed.connect(_on_properties_button_pressed)
-	_object_content.add_child(_properties_button)
-
-	_properties_dialog = PropertiesDialog.new()
-	_properties_dialog.operation_history = operation_history
-	_properties_dialog.layered_map = layered_map
-	add_child(_properties_dialog)
 
 	# Object-only, same reasoning as "Custom Properties…" above - what a
 	# player can report doing to this prop (InteractableEntry.actions),
@@ -261,7 +253,7 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 		_name_edit.editable = false
 		_visible_check.disabled = true
 		_show_name_check.visible = false
-		_properties_button.visible = false
+		_interactible_check.visible = false
 		_actions_button.visible = false
 		_description_box.visible = false
 		_spawn_tiles_box.visible = false
@@ -271,7 +263,6 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	_visible_check.disabled = false
 	_info_label.text = _describe(type)
 	_name_edit.placeholder_text = _fallback_name(type)
-	_properties_button.visible = type == CreatorOutline.SelectionType.OBJECT
 	_actions_button.visible = type == CreatorOutline.SelectionType.OBJECT
 	var token_index := -1
 	if _current_node is InteractableEntry:
@@ -290,6 +281,9 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	_show_name_check.visible = _current_node is InteractableEntry
 	if _current_node is InteractableEntry:
 		_show_name_check.button_pressed = (_current_node as InteractableEntry).shows_name()
+	_interactible_check.visible = _current_node is InteractableEntry
+	if _current_node is InteractableEntry:
+		_interactible_check.button_pressed = bool((_current_node as InteractableEntry).props.get("interactible", true))
 	_suppress_field_signals = false
 
 
@@ -479,15 +473,6 @@ func open_actions() -> void:
 	_on_actions_button_pressed()
 
 
-func open_properties() -> void:
-	_on_properties_button_pressed()
-
-
-func _on_properties_button_pressed() -> void:
-	if _current_node is InteractableEntry:
-		_properties_dialog.open_for(_current_node as InteractableEntry)
-
-
 func _on_token_type_selected(index: int) -> void:
 	var entry := _current_node as InteractableEntry
 	if entry == null or index < 0 or index >= LayeredMap.TOKEN_MESHES.size():
@@ -586,6 +571,19 @@ func _on_show_name_toggled(pressed: bool) -> void:
 			entry.props["show_name"] = true
 		else:
 			entry.props.erase("show_name")  # false is the default - keep the dictionary clean
+	)
+	layered_map.notify_objects_changed()
+
+
+func _on_interactible_toggled(pressed: bool) -> void:
+	var entry := _current_node as InteractableEntry
+	if _suppress_field_signals or entry == null:
+		return
+	operation_history.record("Set interactible", func():
+		if pressed:
+			entry.props.erase("interactible")  # true is the default - keep the dictionary clean
+		else:
+			entry.props["interactible"] = false
 	)
 	layered_map.notify_objects_changed()
 

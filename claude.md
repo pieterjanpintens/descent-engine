@@ -4623,32 +4623,16 @@ first working version).
 	them together — a single undo step for the whole batch, same "several
 	related edits, one Operation" reasoning `CreatorSaveLoad`'s
 	player-count fields already establish.
-  - **`InteractableEntry.props`** (the free-form custom-property dict -
-	OBJECT only, `TilePlacement`/`MissionGroup` don't have one) gets its
-	own **"Custom Properties…" button** (OBJECT selections only) opening
-	`PropertiesDialog` (new, `scripts/PropertiesDialog.gd`, requested
-	2026-09-10 as a popup rather than embedded inline — "it will become
-	too clumsy otherwise" in a 260px-wide panel). One instance, created in
-	code (`PropertiesDialog.new()` in `_build_object_fields()` - not a
-	`.tscn` node, so `operation_history`/`layered_map` are assigned
-	directly rather than through `@export`/`NodePath`) and reused across
-	selections via `open_for(entry)`. Each existing key's row picks a
-	value widget from the property's CURRENT `typeof()` - `CheckBox` for
-	bool, `SpinBox` for int/float, `LineEdit` otherwise - so an
-	already-bool key like `"interactible"` can't get flattened into a
-	string by editing it here. Adding a NEW key opens a second, nested
-	`ConfirmationDialog` (built in the same script) asking for
-	name/type/default value up front, rather than an inline "type a key,
-	pick a type" row - keeps the main list simple and the add flow
-	focused on the one decision that actually needs asking. Every edit
-	(set/add/remove) goes through `operation_history.record()` then
-	`layered_map.notify_objects_changed()`, same pattern as everywhere
-	else in the Creator by now.
+  - **`InteractableEntry.props`** (free-form dict, OBJECT only) has no editor for custom keys any more (the "Custom Properties…" button
+	and `PropertiesDialog` were removed 2026-11-03: nothing read any key but two). The two keys that exist have a tick each in the
+	properties panel, one undo step each: **"Interactible"** (`props["interactible"]`, default true = key absent; unticking stores
+	`false`, ticking erases the key) and **"Show name to players"** (`props["show_name"]`, default false). Other keys already saved in
+	a mission stay in the file untouched.
   - **`InteractableEntry.actions`** (`Array[PropAction]` - what a player
 	can report doing to this prop, e.g. "push" this lever, and the
 	`Effect`s that fire when they do, see **Story layer**'s `PropAction`
 	entry) gets its own **"Actions…" button** (new 2026-09-13, OBJECT
-	selections only, sibling of "Custom Properties…" above) opening
+	selections only) opening
 	`PropActionsDialog` (new, `scripts/PropActionsDialog.gd`). Same
 	code-built, one-instance-reused-via-`open_for(entry)` pattern as
 	`PropertiesDialog` - `operation_history`/`layered_map` assigned
