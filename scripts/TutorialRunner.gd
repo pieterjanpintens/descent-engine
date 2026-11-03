@@ -1,0 +1,394 @@
+class_name TutorialRunner
+extends Node
+
+## The in-editor tutorials (Help menu in the Creator). A tutorial is a list of steps in data/tutorials/<id>.json; the runner shows the
+## current step in a small panel at the bottom left, frames the controls it is about, and tells when the step is done.
+##
+## DESIGN: a step is done when the MISSION reaches a state (TutorialChecks), not when one particular click happened - so people can do
+## things in another order, undo, or already have it. Every step can have a "Do it for me" (TutorialAssists) that does it through the
+## editor's own code, which also lets a test run a whole tutorial. Nothing here takes the mouse except the panel itself.
+##
+## Controls are found through `tutorial_target(id)` on the palette / toolbar / properties panel (stable ids, not node paths), so a
+## rearranged UI does not silently break a tutorial.
+
+const TUTORIALS: Array[Dictionary] = [
+	{"id": "build_a_mission", "title": "Build a mission", "file": "res://data/tutorials/build_a_mission.json"},
+]
+const FINISHED_MISSION := "res://data/tutorials/finished_mission.tres"
+const PROGRESS_FILE := "user://configuration/tutorial.cfg"
+const PANEL_WIDTH := 410.0
+const CHECK_SECONDS := 0.25
+
+var controller: CreatorController
+var layered_map: LayeredMap
+var history: OperationHistory
+var save_load: CreatorSaveLoad
+var camera: FreeLookCamera
+var menu_bar: MenuBar
+var side_panel: TabContainer
+var palette: Control
+var outline_tree: Control
+var inspector: Control
+var toolbar: Control
+var viewport_spacer: Control
+
+var _tutorial: Dictionary = {}
+var _steps: Array = []
+var _index := -1
+
+var _events: Dictionary = {}  ## "op:Rotate" / "undo" / "redo" -> how often since the step began
+var _camera_origin := Vector3.ZERO
+var _camera_rotation := Quaternion.IDENTITY
+var _done := false
+
+var _canvas: CanvasLayer
+var _highlight: TutorialHighlight
+var _panel: PanelContainer
+var _chapter_label: Label
+var _title_label: Label
+var _body: RichTextLabel
+var _note_label: Label
+var _status_label: Label
+var _back_button: Button
+var _next_button: Button
+var _assist_button: Button
+var _skip_button: Button
+var _peek_button: Button
+var _confirm: ConfirmationDialog
+var _confirmed_action: Callable
+
+
+func _ready() -> void:
+	# The palette and the other panels build their UI one frame after they start - wait for them.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_resolve()
+	_build_ui()
+	history.recorded.connect(func(label: String): _bump("op:" + label))
+	history.undone.connect(func(): _bump("undo"))
+	history.redone.connect(func(): _bump("redo"))
+	var timer := Timer.new()
+	timer.wait_time = CHECK_SECONDS
+	timer.autostart = true
+	timer.timeout.connect(_refresh_state)
+	add_child(timer)
+	_add_help_menu.call_deferred()
+	if GameState.resume_tutorial != "":  # back from a peek at the finished mission: carry on where the user was
+		var id := GameState.resume_tutorial
+		GameState.resume_tutorial = ""
+		start(id)
+
+
+func _resolve() -> void:
+	var root := get_parent()
+	controller = root.get_node("CreatorController")
+	layered_map = root.get_node("LayeredMap")
+	camera = root.get_node("Camera3D")
+	var main := root.get_node("CanvasLayer/MainLayout")
+	menu_bar = main.get_node("MenuBar")
+	history = menu_bar.get_node("Edit")
+	save_load = menu_bar.get_node("File")
+	toolbar = main.get_node("Toolbar")
+	viewport_spacer = main.get_node("EditorArea/ViewportSpacer")
+	side_panel = main.get_node("EditorArea/SidePanel")
+	palette = side_panel.get_node("Palette")
+	outline_tree = side_panel.get_node("Outline/Split/OutlineTree")
+	inspector = side_panel.get_node("Outline/Split/Inspector")
+
+
+# ---- Starting and stopping ----
+
+func is_running() -> bool:
+	return _panel != null and _panel.visible
+
+
+## Starts the tutorial `id`: where the user stopped last time, or from the first step when `restart` (or nothing was stored).
+func start(id: String = "build_a_mission", restart: bool = false) -> void:
+	for tutorial in TUTORIALS:
+		if tutorial["id"] == id:
+			_tutorial = tutorial
+	if _tutorial.is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(_tutorial["file"]))
+	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("steps"):
+		push_warning("TutorialRunner: %s could not be read" % _tutorial["file"])
+		return
+	_steps = parsed["steps"]
+	var stored := 0 if restart else _stored_step(id)
+	_panel.visible = true
+	_go_to(clampi(stored, 0, _steps.size() - 1))
+
+
+func stop() -> void:
+	_panel.visible = false
+	_highlight.visible = false
+
+
+func _finish() -> void:
+	_store_step(_tutorial["id"], 0)
+	stop()
+
+
+func _stored_step(id: String) -> int:
+	var config := ConfigFile.new()
+	if config.load(PROGRESS_FILE) != OK:
+		return 0
+	return int(config.get_value("progress", id, 0))
+
+
+func _store_step(id: String, index: int) -> void:
+	var config := ConfigFile.new()
+	config.load(PROGRESS_FILE)
+	config.set_value("progress", id, index)
+	DirAccess.make_dir_recursive_absolute(PROGRESS_FILE.get_base_dir())
+	config.save(PROGRESS_FILE)
+
+
+# ---- Steps ----
+
+func _go_to(index: int) -> void:
+	_index = index
+	var step: Dictionary = _steps[index]
+	_store_step(_tutorial["id"], index)
+	_events.clear()
+	_camera_origin = camera.global_position
+	_camera_rotation = camera.global_transform.basis.get_rotation_quaternion()
+	var tab: String = step.get("tab", "")
+	if tab != "" and side_panel.has_node(tab):
+		side_panel.current_tab = side_panel.get_tab_idx_from_control(side_panel.get_node(tab))
+
+	_chapter_label.text = "%s  -  step %d of %d" % [step.get("chapter", ""), index + 1, _steps.size()]
+	_title_label.text = step.get("title", "")
+	_body.text = step.get("text", "")
+	_note_label.text = ""
+	_assist_button.visible = step.has("assist")
+	_assist_button.text = step.get("assist_label", "Do it for me")
+	_back_button.disabled = index == 0
+	_next_button.text = "Finish" if index == _steps.size() - 1 else "Next"
+	_skip_button.visible = step.has("done") and index < _steps.size() - 1
+	_highlight.visible = true
+	_refresh_state()
+
+
+func _refresh_state() -> void:
+	if _panel == null or not _panel.visible or _index < 0:
+		return
+	var step: Dictionary = _steps[_index]
+	var has_check := step.has("done")
+	_done = has_check and TutorialChecks.check(step["done"], self)
+	_status_label.text = "Done - click Next" if _done else ""
+	_next_button.disabled = has_check and not _done
+
+
+func _on_next() -> void:
+	if _index >= _steps.size() - 1:
+		_finish()
+	else:
+		_go_to(_index + 1)
+
+
+func _on_assist() -> void:
+	var step: Dictionary = _steps[_index]
+	var message := TutorialAssists.run(step["assist"], self)
+	_note_label.text = message
+	_refresh_state.call_deferred()
+
+
+# ---- What the checks look at ----
+
+func _bump(event: String) -> void:
+	_events[event] = int(_events.get(event, 0)) + 1
+
+
+func event_count(event: String) -> int:
+	return int(_events.get(event, 0))
+
+
+func camera_turned_degrees() -> float:
+	return rad_to_deg(_camera_rotation.angle_to(camera.global_transform.basis.get_rotation_quaternion()))
+
+
+func camera_moved_distance() -> float:
+	return camera.global_position.distance_to(_camera_origin)
+
+
+# ---- Things the assists need ----
+
+## File > New, asking first when there is unsaved work.
+func start_empty_mission() -> void:
+	if history.is_dirty():
+		_ask("This replaces the mission you have open, and its unsaved changes are lost. Start a new, empty one?", save_load._on_new_button_pressed)
+	else:
+		save_load._on_new_button_pressed()
+
+
+func _ask(text: String, action: Callable) -> void:
+	_confirmed_action = action
+	_confirm.dialog_text = text
+	_confirm.popup_centered()
+
+
+## Plays the finished tutorial mission in the Player (the editor's own mission is kept; Ctrl+E comes back).
+func peek() -> void:
+	GameState.resume_tutorial = str(_tutorial.get("id", "")) if is_running() else ""
+	save_load.start_peek(FINISHED_MISSION)
+
+
+# ---- Highlights ----
+
+func target_control(id: String) -> Control:
+	match id:
+		"menu_bar":
+			return menu_bar
+		"viewport":
+			return viewport_spacer
+		"side_tabs":
+			return side_panel.get_tab_bar()
+		"outline_tree":
+			return outline_tree
+	for owner: Control in [palette, toolbar, inspector]:
+		if owner.has_method("tutorial_target"):
+			var found: Control = owner.tutorial_target(id)
+			if found != null:
+				return found
+	return null
+
+
+func _highlight_rects() -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	if _index < 0 or _index >= _steps.size():
+		return rects
+	for id: String in _steps[_index].get("highlight", []):
+		var control := target_control(id)
+		if control != null and control.is_visible_in_tree():
+			rects.append(control.get_global_rect())
+	return rects
+
+
+# ---- UI ----
+
+func _build_ui() -> void:
+	_canvas = CanvasLayer.new()
+	_canvas.layer = 20
+	_canvas.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED  # the editors stay in English
+	add_child(_canvas)
+
+	_highlight = TutorialHighlight.new()
+	_highlight.rects_provider = _highlight_rects
+	_highlight.visible = false
+	_canvas.add_child(_highlight)
+
+	_panel = PanelContainer.new()
+	_panel.visible = false
+	_panel.custom_minimum_size.x = PANEL_WIDTH
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	_panel.offset_left = 12.0
+	_panel.offset_right = 12.0 + PANEL_WIDTH
+	_panel.offset_bottom = -44.0  # above the status bar
+	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.13, 0.14, 0.17, 0.97)
+	style.border_color = Color(1.0, 0.78, 0.25)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(12)
+	_panel.add_theme_stylebox_override("panel", style)
+	_canvas.add_child(_panel)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	_panel.add_child(box)
+
+	var header := HBoxContainer.new()
+	box.add_child(header)
+	_chapter_label = Label.new()
+	_chapter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_chapter_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.25))
+	_chapter_label.add_theme_font_size_override("font_size", 13)
+	header.add_child(_chapter_label)
+	var close := _button("Close")
+	close.tooltip_text = "Hide the tutorial. Help > Tutorial continues where you stopped."
+	close.pressed.connect(stop)
+	header.add_child(close)
+
+	_title_label = Label.new()
+	_title_label.add_theme_font_size_override("font_size", 19)
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.custom_minimum_size.x = PANEL_WIDTH - 24.0
+	box.add_child(_title_label)
+
+	_body = RichTextLabel.new()
+	_body.bbcode_enabled = true
+	_body.fit_content = true
+	_body.scroll_active = false
+	_body.custom_minimum_size.x = PANEL_WIDTH - 24.0
+	box.add_child(_body)
+
+	_note_label = Label.new()
+	_note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_note_label.custom_minimum_size.x = PANEL_WIDTH - 24.0
+	_note_label.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0))
+	box.add_child(_note_label)
+	_status_label = Label.new()
+	_status_label.add_theme_color_override("font_color", Color(0.55, 0.9, 0.55))
+	box.add_child(_status_label)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	box.add_child(row)
+	_back_button = _button("Back")
+	_back_button.pressed.connect(func(): _go_to(_index - 1))
+	row.add_child(_back_button)
+	_assist_button = _button("Do it for me")
+	_assist_button.tooltip_text = "Does this step for you, the way you would have done it."
+	_assist_button.pressed.connect(_on_assist)
+	row.add_child(_assist_button)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	_next_button = _button("Next")
+	_next_button.pressed.connect(_on_next)
+	row.add_child(_next_button)
+
+	var row2 := HBoxContainer.new()
+	box.add_child(row2)
+	_skip_button = _button("Skip step")
+	_skip_button.flat = true
+	_skip_button.pressed.connect(func(): _go_to(_index + 1))
+	row2.add_child(_skip_button)
+	_peek_button = _button("Peek at the finished mission")
+	_peek_button.flat = true
+	_peek_button.tooltip_text = "Plays the finished tutorial mission. Your own mission is kept; Ctrl+E in the Player brings you back."
+	_peek_button.pressed.connect(peek)
+	row2.add_child(_peek_button)
+
+	_confirm = ConfirmationDialog.new()
+	_confirm.confirmed.connect(func(): _confirmed_action.call())
+	add_child(_confirm)
+
+
+func _button(text: String) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE  # keys like R, D and M still belong to the editor after a click here
+	return button
+
+
+## The "Help" menu in the menu bar.
+func _add_help_menu() -> void:
+	var menu := PopupMenu.new()
+	menu.name = "Help"
+	menu.add_item("Tutorial: build a mission…", 0)
+	menu.add_item("Start the tutorial from the beginning", 1)
+	menu.add_separator()
+	menu.add_item("Peek at the finished tutorial mission", 2)
+	menu.id_pressed.connect(func(id: int):
+		match id:
+			0:
+				start("build_a_mission")
+			1:
+				start("build_a_mission", true)
+			2:
+				peek()
+	)
+	menu_bar.add_child(menu)

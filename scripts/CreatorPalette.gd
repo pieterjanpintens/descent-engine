@@ -92,6 +92,22 @@ func _ready() -> void:
 	_on_spawn_paint_mode_changed(creator_controller.spawn_paint_mode)
 
 
+## The controls the tutorial frames (TutorialRunner): stable ids instead of node paths.
+func tutorial_target(id: String) -> Control:
+	match id:
+		"palette_floor":
+			return _layer_buttons[0]
+		"palette_prop":
+			return _layer_buttons[1]
+		"palette_misc":
+			return _misc_button
+		"palette_grid":
+			return _mesh_scroll
+		"palette_player_start":
+			return _player_start_button
+	return null
+
+
 ## Draw/spawn-paint mode only make sense while the Palette is the active
 ## tab - they're what picks WHAT a click does. Switching to another tab
 ## (e.g. Outline, to browse/select placed objects) turns both off -

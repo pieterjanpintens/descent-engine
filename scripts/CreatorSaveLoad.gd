@@ -445,6 +445,13 @@ func start_play(snapshot_slot: String) -> void:
 	get_tree().change_scene_to_file(GameState.PLAYER_SCENE)
 
 
+## Like start_play(), but the Player plays a shipped mission file (the tutorial's finished mission) instead of the editor's mission.
+## The editor's own mission is parked as for any play, and Ctrl+E in the Player brings it back.
+func start_peek(path: String) -> void:
+	start_play("")
+	GameState.peek_mission_path = path
+
+
 func _restore_from_play() -> void:
 	var mission := GameState.editor_mission
 	if mission != null:

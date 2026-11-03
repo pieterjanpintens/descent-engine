@@ -287,6 +287,9 @@ func has_hover() -> bool:
 	return _has_hover
 
 
+var _setup_done := false  ## _ready() builds the overlays one frame late; _process() must not touch them before that
+
+
 func _ready() -> void:
 	# Wait one frame so every node's own _ready() (including LayeredMap's
 	# @onready floor_grid/prop_grid) has definitely run first,
@@ -315,6 +318,7 @@ func _ready() -> void:
 	layered_map.set_spawn_overlay_visible(true)
 	layered_map.refresh_monster_spawn_overlay()
 	layered_map.refresh_blocker_overlay()
+	_setup_done = true
 
 
 ## Computes the real GridMap orientation index for each of the four flat
@@ -1123,6 +1127,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
+	if not _setup_done:
+		return
 	_update_hover()
 	_update_ghost_transform()
 	_update_grid_overlay()
@@ -1710,6 +1716,33 @@ func place_at_cursor() -> void:
 	)
 	if carry != null:
 		layered_map.notify_objects_changed()
+
+
+## Places `mesh_name` exactly as a click would with the mouse over `tile_square` (a tile-square index, y = the level) and the
+## given rotation: same limits, same working group, one undo step. For things that do the clicking for the user (the tutorial's
+## "do it for me"). Returns false when nothing was placed (unknown piece, used up, ...). Leaves that piece selected in the palette.
+func place_mesh_at_tile_square(mesh_name: String, tile_square: Vector3i, quarter_turns: int = 0) -> bool:
+	var layer_name := FootprintRegistry.get_layer(mesh_name)
+	var layer := PaintLayer.FLOOR
+	if layer_name == "underlay":
+		layer = PaintLayer.UNDERLAY
+	elif layer_name != "floor":
+		layer = PaintLayer.PROP
+	if current_layer != layer:
+		select_layer(layer)
+	if not get_available_mesh_names().has(mesh_name):
+		return false
+	select_mesh(mesh_name)
+	current_quarter_turn = posmod(quarter_turns, 4)
+	_update_ghost_transform()
+	var mission := layered_map.mission
+	var before := mission.floor_placements.size() + mission.underlay_placements.size() + mission.interactables.size()
+	var had_hover := _has_hover
+	_hovered_cell = FootprintRegistry.tile_square_to_fine_far_corner(tile_square)
+	_has_hover = true
+	place_at_cursor()
+	_has_hover = had_hover
+	return mission.floor_placements.size() + mission.underlay_placements.size() + mission.interactables.size() > before
 
 
 ## True if there's at least one more physical copy of mesh_name available

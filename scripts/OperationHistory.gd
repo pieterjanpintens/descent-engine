@@ -56,6 +56,12 @@ const MELD_WINDOW_MSEC := 1500
 
 @export var layered_map: LayeredMap
 
+## What the user just did, for things that watch the editor (the tutorial): the label of every recorded operation (also when it
+## melds into the previous one), and every undo / redo.
+signal recorded(label: String)
+signal undone
+signal redone
+
 enum _EditAction { UNDO, REDO }
 
 
@@ -179,6 +185,7 @@ func record(label: String, mutate: Callable) -> void:
 	_recording = false
 
 	_push_or_meld(label, before, after)
+	recorded.emit(label)
 
 
 func _push_or_meld(label: String, before: MissionData, after: MissionData) -> void:
@@ -221,6 +228,7 @@ func undo() -> void:
 		return
 	_cursor -= 1
 	_apply(_operations[_cursor].before)
+	undone.emit()
 
 
 func redo() -> void:
@@ -229,6 +237,7 @@ func redo() -> void:
 	var snapshot: MissionData = _operations[_cursor].after
 	_cursor += 1
 	_apply(snapshot)
+	redone.emit()
 
 
 ## Never hands the live MissionData the snapshot object stored IN the

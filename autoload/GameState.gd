@@ -40,6 +40,8 @@ var editor_mission_path: String = ""  ## the file the editor has the mission fro
 var editor_history: Dictionary = {}  ## OperationHistory.export_state(), so undo survives the round trip
 var editor_view: Dictionary = {}  ## the editor camera, FreeLookCamera.export_view()
 var editor_returning: bool = false  ## true from "back to the editor" until the Creator has taken the mission back
+var resume_tutorial: String = ""  ## the tutorial to reopen when the Creator starts again (after a peek at the finished mission)
+var peek_mission_path: String = ""  ## a debug session that plays THIS shipped mission instead of the editor's (the tutorial's "peek")
 
 
 func clear_debug() -> void:
@@ -49,6 +51,7 @@ func clear_debug() -> void:
 	editor_history = {}
 	editor_view = {}
 	editor_returning = false
+	peek_mission_path = ""
 
 
 ## "Edit mission" in the campaign editor: the mission file the mission editor opens when it starts (consumed there), and the campaign

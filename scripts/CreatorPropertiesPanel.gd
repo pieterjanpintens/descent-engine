@@ -465,6 +465,16 @@ func _on_multi_move_button_pressed() -> void:
 
 ## The prop the panel is showing right now (null for a tile, a group, several things or nothing) - what the 3D context menu's
 ## "Actions…" / "Properties…" open.
+## The controls the tutorial frames (TutorialRunner): stable ids instead of node paths.
+func tutorial_target(id: String) -> Control:
+	match id:
+		"name_field":
+			return _name_edit
+		"max_players":
+			return mission_fields.get_node_or_null("MaxPlayersSpinBox") as Control
+	return null
+
+
 func current_prop() -> InteractableEntry:
 	return _current_node as InteractableEntry
 

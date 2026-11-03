@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/CreatorPlayMenu.gd" id="16_playmenu"]
 [ext_resource type="Script" path="res://scripts/EditorLook.gd" id="17_editorlook"]
 [ext_resource type="Script" path="res://scripts/CreatorContextMenu.gd" id="18_contextmenu"]
+[ext_resource type="Script" path="res://scripts/TutorialRunner.gd" id="19_tutorial"]
 
 [node name="MissionMap" type="Node3D" unique_id=196911830]
 
@@ -27,6 +28,9 @@ layered_map = NodePath("../LayeredMap")
 script = ExtResource("6_a7isx")
 layered_map = NodePath("../LayeredMap")
 operation_history = NodePath("../CanvasLayer/MainLayout/MenuBar/Edit")
+
+[node name="TutorialRunner" type="Node" parent="."]
+script = ExtResource("19_tutorial")
 
 [node name="CreatorAutosave" type="Node" parent="." node_paths=PackedStringArray("layered_map")]
 script = ExtResource("13_autosave")

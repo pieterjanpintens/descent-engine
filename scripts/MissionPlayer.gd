@@ -92,7 +92,12 @@ func _ready() -> void:
 	# and the editor's own must stay as it was. A debug snapshot holds no mission, only the progress to put on it.
 	var snapshot_progress := {}
 	var progress_outcome := MissionProgress.new_outcome()
-	if GameState.debug_session and GameState.editor_mission != null and (resume_save == null or resume_save.mission == null):
+	if GameState.debug_session and GameState.peek_mission_path != "" and (resume_save == null or resume_save.mission == null):
+		mission = MissionIO.load_mission(GameState.peek_mission_path)  # the tutorial's finished mission, a fresh copy each time
+		if resume_save != null:
+			snapshot_progress = resume_save.progress
+		_snapshot_key = "tutorial_peek"
+	elif GameState.debug_session and GameState.editor_mission != null and (resume_save == null or resume_save.mission == null):
 		mission = GameState.editor_mission.duplicate(true)
 		if resume_save != null:
 			snapshot_progress = resume_save.progress

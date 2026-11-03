@@ -131,6 +131,16 @@ func _build_ui() -> void:
 
 
 ## "Languages" and "AI" next to File / Edit / View / Play in the MenuBar above the toolbar (a PopupMenu child of a MenuBar is a top-level menu).
+## The controls the tutorial frames (TutorialRunner): stable ids instead of node paths.
+func tutorial_target(id: String) -> Control:
+	match id:
+		"toolbar_working_group":
+			return _working_group_option
+		"toolbar_problems":
+			return _problems_button
+	return null
+
+
 func _build_top_menus() -> void:
 	var menu_bar := get_parent().get_node_or_null("MenuBar")
 	if menu_bar == null:

@@ -1,0 +1,613 @@
+[gd_resource type="Resource" script_class="MissionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/NarratorCharacter.gd" id="1_l5pqi"]
+[ext_resource type="Script" path="res://scripts/MissionVariable.gd" id="2_aqt76"]
+[ext_resource type="Script" path="res://scripts/TilePlacement.gd" id="3_axy5d"]
+[ext_resource type="Script" path="res://scripts/MissionGroup.gd" id="4_fyt1c"]
+[ext_resource type="Script" path="res://scripts/InteractableEntry.gd" id="5_734aw"]
+[ext_resource type="Script" path="res://scripts/PropAction.gd" id="6_jfilu"]
+[ext_resource type="Script" path="res://scripts/LosBlocker.gd" id="7_qga4y"]
+[ext_resource type="Script" path="res://scripts/MonsterGroup.gd" id="8_5v1pe"]
+[ext_resource type="Script" path="res://scripts/MonsterSpawn.gd" id="9_tpd33"]
+[ext_resource type="Script" path="res://scripts/MissionObjective.gd" id="10_4o07p"]
+[ext_resource type="Script" path="res://scripts/MissionData.gd" id="11_xyjnu"]
+[ext_resource type="Script" path="res://scripts/TileEntry.gd" id="12_53a23"]
+[ext_resource type="Script" path="res://scripts/MissionTrigger.gd" id="13_drdj4"]
+
+[sub_resource type="Resource" id="Resource_e36yk"]
+script = ExtResource("3_axy5d")
+origin_cell = Vector3i(6, 0, 6)
+mesh_item_name = "19a"
+id = "obj_2"
+parent_id = "obj_1"
+
+[sub_resource type="Resource" id="Resource_078lc"]
+script = ExtResource("3_axy5d")
+origin_cell = Vector3i(6, 0, 10)
+mesh_item_name = "1a"
+id = "obj_3"
+parent_id = "obj_1"
+
+[sub_resource type="Resource" id="Resource_m7xoh"]
+script = ExtResource("3_axy5d")
+origin_cell = Vector3i(12, 0, 10)
+mesh_item_name = "2a"
+id = "obj_4"
+parent_id = "obj_1"
+
+[sub_resource type="Resource" id="Resource_en45m"]
+script = ExtResource("4_fyt1c")
+id = "obj_1"
+reference_name = "Cave"
+
+[sub_resource type="Resource" id="Resource_crj4p"]
+script = ExtResource("5_734aw")
+mesh_item_name = "chest"
+origin_cell = Vector3i(12, 0, 10)
+footprint = Array[Vector3i]([Vector3i(-2, 0, -2), Vector3i(-2, 0, -1), Vector3i(-1, 0, -2), Vector3i(-1, 0, -1)])
+id = "obj_5"
+parent_id = "obj_1"
+reference_name = "treasure_chest"
+
+[sub_resource type="Resource" id="Resource_kgy24"]
+script = ExtResource("5_734aw")
+mesh_item_name = "tree"
+origin_cell = Vector3i(8, 0, 2)
+footprint = Array[Vector3i]([Vector3i(-2, 0, -2), Vector3i(-2, 0, -1), Vector3i(-1, 0, -2), Vector3i(-1, 0, -1)])
+id = "obj_6"
+parent_id = "obj_1"
+
+[sub_resource type="Resource" id="Resource_be50x"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_gs8de"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_a41b7"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_sgjmm"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_hsd1g"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_amp7o"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_jbhed"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_b48ym"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ut4vh"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_qcsfi"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_v28ve"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_7dxx1"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_vapsd"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_7m730"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_xyio2"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_3fdhc"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ixevu"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_cur3q"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_x3psj"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_g0qi0"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_h0l6y"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_5jj1l"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_tuqex"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_hcyrk"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_i30xh"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_rqufo"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_bmafm"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_15o3m"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_r8k4t"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_wxcmg"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_peig4"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_d0s0m"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_venfb"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_w3vn5"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_dgccb"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_sfrbu"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_pcvo2"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_3tq4g"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_tpe70"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_3dpe2"]
+script = ExtResource("12_53a23")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_xgcm1"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_whkku"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_gpyb4"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_nxyis"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_3eoxf"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ci8yx"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_hmc53"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_7kibj"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ol8on"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_8jkk5"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_lb56l"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_yp8ha"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_130ag"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_j1n21"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_g7nsk"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_st0y3"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_g60me"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_hakgs"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_w6yio"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ea0pu"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ondqh"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ux8nm"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_3smfh"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_cnkkt"]
+script = ExtResource("12_53a23")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_5f7y1"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_bt3ul"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_2qf1e"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_h57v1"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_wnrec"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_80l6c"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_efejn"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_cgjk3"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_nufld"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_8bjw1"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_fie7i"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_ncyci"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_w2vbc"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_t2pgt"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_2erwt"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_2oqfq"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_a5n8a"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_7nr7v"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_t1lwy"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_fn5xq"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_2qoe1"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_ew43y"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_vgncl"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_e7lgx"]
+script = ExtResource("12_53a23")
+mesh_item_name = "2a"
+
+[resource]
+script = ExtResource("11_xyjnu")
+mission_name_texts = {
+"en": "Tutorial: the cave"
+}
+max_players = 4
+tiles = {
+Vector3i(0, 0, 0): SubResource("Resource_be50x"),
+Vector3i(0, 0, 1): SubResource("Resource_gs8de"),
+Vector3i(0, 0, 2): SubResource("Resource_ixevu"),
+Vector3i(0, 0, 3): SubResource("Resource_cur3q"),
+Vector3i(0, 0, 6): SubResource("Resource_xgcm1"),
+Vector3i(0, 0, 7): SubResource("Resource_whkku"),
+Vector3i(0, 0, 8): SubResource("Resource_130ag"),
+Vector3i(0, 0, 9): SubResource("Resource_j1n21"),
+Vector3i(1, 0, 0): SubResource("Resource_a41b7"),
+Vector3i(1, 0, 1): SubResource("Resource_sgjmm"),
+Vector3i(1, 0, 2): SubResource("Resource_x3psj"),
+Vector3i(1, 0, 3): SubResource("Resource_g0qi0"),
+Vector3i(1, 0, 6): SubResource("Resource_gpyb4"),
+Vector3i(1, 0, 7): SubResource("Resource_nxyis"),
+Vector3i(1, 0, 8): SubResource("Resource_g7nsk"),
+Vector3i(1, 0, 9): SubResource("Resource_st0y3"),
+Vector3i(2, 0, 0): SubResource("Resource_hsd1g"),
+Vector3i(2, 0, 1): SubResource("Resource_amp7o"),
+Vector3i(2, 0, 2): SubResource("Resource_h0l6y"),
+Vector3i(2, 0, 3): SubResource("Resource_5jj1l"),
+Vector3i(2, 0, 4): SubResource("Resource_venfb"),
+Vector3i(2, 0, 5): SubResource("Resource_w3vn5"),
+Vector3i(2, 0, 6): SubResource("Resource_3eoxf"),
+Vector3i(2, 0, 7): SubResource("Resource_ci8yx"),
+Vector3i(2, 0, 8): SubResource("Resource_g60me"),
+Vector3i(2, 0, 9): SubResource("Resource_hakgs"),
+Vector3i(3, 0, 0): SubResource("Resource_jbhed"),
+Vector3i(3, 0, 1): SubResource("Resource_b48ym"),
+Vector3i(3, 0, 2): SubResource("Resource_tuqex"),
+Vector3i(3, 0, 3): SubResource("Resource_hcyrk"),
+Vector3i(3, 0, 4): SubResource("Resource_dgccb"),
+Vector3i(3, 0, 5): SubResource("Resource_sfrbu"),
+Vector3i(3, 0, 6): SubResource("Resource_hmc53"),
+Vector3i(3, 0, 7): SubResource("Resource_7kibj"),
+Vector3i(3, 0, 8): SubResource("Resource_w6yio"),
+Vector3i(3, 0, 9): SubResource("Resource_ea0pu"),
+Vector3i(4, 0, 0): SubResource("Resource_ut4vh"),
+Vector3i(4, 0, 1): SubResource("Resource_qcsfi"),
+Vector3i(4, 0, 2): SubResource("Resource_i30xh"),
+Vector3i(4, 0, 3): SubResource("Resource_rqufo"),
+Vector3i(4, 0, 4): SubResource("Resource_pcvo2"),
+Vector3i(4, 0, 5): SubResource("Resource_3tq4g"),
+Vector3i(4, 0, 6): SubResource("Resource_ol8on"),
+Vector3i(4, 0, 7): SubResource("Resource_8jkk5"),
+Vector3i(4, 0, 8): SubResource("Resource_ondqh"),
+Vector3i(4, 0, 9): SubResource("Resource_ux8nm"),
+Vector3i(5, 0, 0): SubResource("Resource_v28ve"),
+Vector3i(5, 0, 1): SubResource("Resource_7dxx1"),
+Vector3i(5, 0, 2): SubResource("Resource_bmafm"),
+Vector3i(5, 0, 3): SubResource("Resource_15o3m"),
+Vector3i(5, 0, 4): SubResource("Resource_tpe70"),
+Vector3i(5, 0, 5): SubResource("Resource_3dpe2"),
+Vector3i(5, 0, 6): SubResource("Resource_lb56l"),
+Vector3i(5, 0, 7): SubResource("Resource_yp8ha"),
+Vector3i(5, 0, 8): SubResource("Resource_3smfh"),
+Vector3i(5, 0, 9): SubResource("Resource_cnkkt"),
+Vector3i(6, 0, 0): SubResource("Resource_vapsd"),
+Vector3i(6, 0, 1): SubResource("Resource_7m730"),
+Vector3i(6, 0, 2): SubResource("Resource_r8k4t"),
+Vector3i(6, 0, 3): SubResource("Resource_wxcmg"),
+Vector3i(6, 0, 6): SubResource("Resource_5f7y1"),
+Vector3i(6, 0, 7): SubResource("Resource_bt3ul"),
+Vector3i(6, 0, 8): SubResource("Resource_w2vbc"),
+Vector3i(6, 0, 9): SubResource("Resource_t2pgt"),
+Vector3i(7, 0, 0): SubResource("Resource_xyio2"),
+Vector3i(7, 0, 1): SubResource("Resource_3fdhc"),
+Vector3i(7, 0, 2): SubResource("Resource_peig4"),
+Vector3i(7, 0, 3): SubResource("Resource_d0s0m"),
+Vector3i(7, 0, 6): SubResource("Resource_2qf1e"),
+Vector3i(7, 0, 7): SubResource("Resource_h57v1"),
+Vector3i(7, 0, 8): SubResource("Resource_2erwt"),
+Vector3i(7, 0, 9): SubResource("Resource_2oqfq"),
+Vector3i(8, 0, 6): SubResource("Resource_wnrec"),
+Vector3i(8, 0, 7): SubResource("Resource_80l6c"),
+Vector3i(8, 0, 8): SubResource("Resource_a5n8a"),
+Vector3i(8, 0, 9): SubResource("Resource_7nr7v"),
+Vector3i(9, 0, 6): SubResource("Resource_efejn"),
+Vector3i(9, 0, 7): SubResource("Resource_cgjk3"),
+Vector3i(9, 0, 8): SubResource("Resource_t1lwy"),
+Vector3i(9, 0, 9): SubResource("Resource_fn5xq"),
+Vector3i(10, 0, 6): SubResource("Resource_nufld"),
+Vector3i(10, 0, 7): SubResource("Resource_8bjw1"),
+Vector3i(10, 0, 8): SubResource("Resource_2qoe1"),
+Vector3i(10, 0, 9): SubResource("Resource_ew43y"),
+Vector3i(11, 0, 6): SubResource("Resource_fie7i"),
+Vector3i(11, 0, 7): SubResource("Resource_ncyci"),
+Vector3i(11, 0, 8): SubResource("Resource_vgncl"),
+Vector3i(11, 0, 9): SubResource("Resource_e7lgx")
+}
+floor_placements = Array[ExtResource("3_axy5d")]([SubResource("Resource_e36yk"), SubResource("Resource_078lc"), SubResource("Resource_m7xoh")])
+floor_occupied_cells = {
+Vector3i(0, 0, 0): Vector3i(6, 0, 6),
+Vector3i(0, 0, 1): Vector3i(6, 0, 6),
+Vector3i(0, 0, 2): Vector3i(6, 0, 6),
+Vector3i(0, 0, 3): Vector3i(6, 0, 6),
+Vector3i(0, 0, 6): Vector3i(6, 0, 10),
+Vector3i(0, 0, 7): Vector3i(6, 0, 10),
+Vector3i(0, 0, 8): Vector3i(6, 0, 10),
+Vector3i(0, 0, 9): Vector3i(6, 0, 10),
+Vector3i(1, 0, 0): Vector3i(6, 0, 6),
+Vector3i(1, 0, 1): Vector3i(6, 0, 6),
+Vector3i(1, 0, 2): Vector3i(6, 0, 6),
+Vector3i(1, 0, 3): Vector3i(6, 0, 6),
+Vector3i(1, 0, 6): Vector3i(6, 0, 10),
+Vector3i(1, 0, 7): Vector3i(6, 0, 10),
+Vector3i(1, 0, 8): Vector3i(6, 0, 10),
+Vector3i(1, 0, 9): Vector3i(6, 0, 10),
+Vector3i(2, 0, 0): Vector3i(6, 0, 6),
+Vector3i(2, 0, 1): Vector3i(6, 0, 6),
+Vector3i(2, 0, 2): Vector3i(6, 0, 6),
+Vector3i(2, 0, 3): Vector3i(6, 0, 6),
+Vector3i(2, 0, 4): Vector3i(6, 0, 6),
+Vector3i(2, 0, 5): Vector3i(6, 0, 6),
+Vector3i(2, 0, 6): Vector3i(6, 0, 10),
+Vector3i(2, 0, 7): Vector3i(6, 0, 10),
+Vector3i(2, 0, 8): Vector3i(6, 0, 10),
+Vector3i(2, 0, 9): Vector3i(6, 0, 10),
+Vector3i(3, 0, 0): Vector3i(6, 0, 6),
+Vector3i(3, 0, 1): Vector3i(6, 0, 6),
+Vector3i(3, 0, 2): Vector3i(6, 0, 6),
+Vector3i(3, 0, 3): Vector3i(6, 0, 6),
+Vector3i(3, 0, 4): Vector3i(6, 0, 6),
+Vector3i(3, 0, 5): Vector3i(6, 0, 6),
+Vector3i(3, 0, 6): Vector3i(6, 0, 10),
+Vector3i(3, 0, 7): Vector3i(6, 0, 10),
+Vector3i(3, 0, 8): Vector3i(6, 0, 10),
+Vector3i(3, 0, 9): Vector3i(6, 0, 10),
+Vector3i(4, 0, 0): Vector3i(6, 0, 6),
+Vector3i(4, 0, 1): Vector3i(6, 0, 6),
+Vector3i(4, 0, 2): Vector3i(6, 0, 6),
+Vector3i(4, 0, 3): Vector3i(6, 0, 6),
+Vector3i(4, 0, 4): Vector3i(6, 0, 6),
+Vector3i(4, 0, 5): Vector3i(6, 0, 6),
+Vector3i(4, 0, 6): Vector3i(6, 0, 10),
+Vector3i(4, 0, 7): Vector3i(6, 0, 10),
+Vector3i(4, 0, 8): Vector3i(6, 0, 10),
+Vector3i(4, 0, 9): Vector3i(6, 0, 10),
+Vector3i(5, 0, 0): Vector3i(6, 0, 6),
+Vector3i(5, 0, 1): Vector3i(6, 0, 6),
+Vector3i(5, 0, 2): Vector3i(6, 0, 6),
+Vector3i(5, 0, 3): Vector3i(6, 0, 6),
+Vector3i(5, 0, 4): Vector3i(6, 0, 6),
+Vector3i(5, 0, 5): Vector3i(6, 0, 6),
+Vector3i(5, 0, 6): Vector3i(6, 0, 10),
+Vector3i(5, 0, 7): Vector3i(6, 0, 10),
+Vector3i(5, 0, 8): Vector3i(6, 0, 10),
+Vector3i(5, 0, 9): Vector3i(6, 0, 10),
+Vector3i(6, 0, 0): Vector3i(6, 0, 6),
+Vector3i(6, 0, 1): Vector3i(6, 0, 6),
+Vector3i(6, 0, 2): Vector3i(6, 0, 6),
+Vector3i(6, 0, 3): Vector3i(6, 0, 6),
+Vector3i(6, 0, 6): Vector3i(12, 0, 10),
+Vector3i(6, 0, 7): Vector3i(12, 0, 10),
+Vector3i(6, 0, 8): Vector3i(12, 0, 10),
+Vector3i(6, 0, 9): Vector3i(12, 0, 10),
+Vector3i(7, 0, 0): Vector3i(6, 0, 6),
+Vector3i(7, 0, 1): Vector3i(6, 0, 6),
+Vector3i(7, 0, 2): Vector3i(6, 0, 6),
+Vector3i(7, 0, 3): Vector3i(6, 0, 6),
+Vector3i(7, 0, 6): Vector3i(12, 0, 10),
+Vector3i(7, 0, 7): Vector3i(12, 0, 10),
+Vector3i(7, 0, 8): Vector3i(12, 0, 10),
+Vector3i(7, 0, 9): Vector3i(12, 0, 10),
+Vector3i(8, 0, 6): Vector3i(12, 0, 10),
+Vector3i(8, 0, 7): Vector3i(12, 0, 10),
+Vector3i(8, 0, 8): Vector3i(12, 0, 10),
+Vector3i(8, 0, 9): Vector3i(12, 0, 10),
+Vector3i(9, 0, 6): Vector3i(12, 0, 10),
+Vector3i(9, 0, 7): Vector3i(12, 0, 10),
+Vector3i(9, 0, 8): Vector3i(12, 0, 10),
+Vector3i(9, 0, 9): Vector3i(12, 0, 10),
+Vector3i(10, 0, 6): Vector3i(12, 0, 10),
+Vector3i(10, 0, 7): Vector3i(12, 0, 10),
+Vector3i(10, 0, 8): Vector3i(12, 0, 10),
+Vector3i(10, 0, 9): Vector3i(12, 0, 10),
+Vector3i(11, 0, 6): Vector3i(12, 0, 10),
+Vector3i(11, 0, 7): Vector3i(12, 0, 10),
+Vector3i(11, 0, 8): Vector3i(12, 0, 10),
+Vector3i(11, 0, 9): Vector3i(12, 0, 10)
+}
+occupied_cells = {
+Vector3i(6, 0, 0): [Vector3i(8, 0, 2)],
+Vector3i(6, 0, 1): [Vector3i(8, 0, 2)],
+Vector3i(7, 0, 0): [Vector3i(8, 0, 2)],
+Vector3i(7, 0, 1): [Vector3i(8, 0, 2)],
+Vector3i(10, 0, 8): [Vector3i(12, 0, 10)],
+Vector3i(10, 0, 9): [Vector3i(12, 0, 10)],
+Vector3i(11, 0, 8): [Vector3i(12, 0, 10)],
+Vector3i(11, 0, 9): [Vector3i(12, 0, 10)]
+}
+interactables = Array[ExtResource("5_734aw")]([SubResource("Resource_crj4p"), SubResource("Resource_kgy24")])
+groups = Array[ExtResource("4_fyt1c")]([SubResource("Resource_en45m")])
+_next_object_id = 7
+player_spawn_cells = Array[Vector3i]([Vector3i(1, 0, 1), Vector3i(1, 0, 2), Vector3i(1, 0, 4), Vector3i(1, 0, 5)])
+metadata/_custom_type_script = "uid://dld1c2y0qdnt8"
