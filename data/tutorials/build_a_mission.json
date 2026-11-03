@@ -1,0 +1,384 @@
+{
+	"id": "build_a_mission",
+	"title": "Build a mission",
+	"steps": [
+		{
+			"id": "welcome",
+			"chapter": "Welcome",
+			"title": "Let's build a mission",
+			"text": "In this tutorial you build a small mission in the editor itself: a cave with a treasure chest, a heroes' entrance and, in later parts, a monster that guards the loot.\n\nThis first part is the [b]map[/b]. Start from an empty mission so nothing gets mixed up: [b]File > New[/b].\n\n[color=#9fb4c8]Stuck at any step? [b]Do it for me[/b] does the step, [b]Skip step[/b] moves on, and [b]Peek[/b] shows the finished mission. Your own work is kept.[/color]",
+			"highlight": [
+				"menu_bar"
+			],
+			"assist": "new_mission",
+			"assist_label": "Start with an empty mission"
+		},
+		{
+			"id": "camera_look",
+			"chapter": "Moving the camera",
+			"title": "Look around",
+			"text": "Hold the [b]right mouse button[/b] and drag to look around, like in the Godot editor.\n\nTry it now: turn the view a little.",
+			"highlight": [
+				"viewport"
+			],
+			"done": {
+				"check": "camera_turned"
+			}
+		},
+		{
+			"id": "camera_move",
+			"chapter": "Moving the camera",
+			"title": "Fly around",
+			"text": "While you hold the right mouse button, [b]W A S D[/b] move you around, [b]Q[/b] goes down and [b]E[/b] goes up. Hold [b]Shift[/b] to go faster. The [b]mouse wheel[/b] zooms in and out.\n\nMove the camera a good distance.",
+			"highlight": [
+				"viewport"
+			],
+			"done": {
+				"check": "camera_moved"
+			}
+		},
+		{
+			"id": "stage_why",
+			"chapter": "Stages",
+			"title": "What is a stage?",
+			"tab": "Outline",
+			"text": "A mission is built from [b]stages[/b]: groups of tiles and props, usually a room or an area. The players only see a stage once it is [i]revealed[/i], by an effect later on, like opening a door. The first stage, where the heroes start, is revealed automatically.\n\nSo stages are how you keep a map secret, and the table builds the physical board piece by piece as each stage appears.\n\nThey live in the [b]Outline[/b] tab: a tree of everything you placed.",
+			"highlight": [
+				"side_tabs",
+				"outline_tree"
+			]
+		},
+		{
+			"id": "stage_create",
+			"chapter": "Stages",
+			"title": "Make your first stage",
+			"tab": "Outline",
+			"text": "[b]Right-click[/b] the mission name at the top of the outline and choose [b]New Group[/b]. Double-click it to give it a name, like [i]Cave[/i].\n\nThen choose it as the [b]Working group[/b] in the toolbar: everything you draw from now on lands in that stage.",
+			"highlight": [
+				"outline_tree",
+				"toolbar_working_group"
+			],
+			"done": {
+				"check": "stage_ready"
+			},
+			"assist": "make_stage",
+			"assist_label": "Make the stage for me"
+		},
+		{
+			"id": "floor_first",
+			"chapter": "Tiles",
+			"title": "Place a floor tile",
+			"tab": "Palette",
+			"text": "Open the [b]Floor[/b] tab and click a tile. A green ghost follows your mouse: [b]R[/b] turns it, [b]left-click[/b] places it and [b]Shift+click[/b] erases a tile.\n\nJust like the physical box, every tile exists once: a tile you used is gone from the list.\n\nPlace one tile.",
+			"highlight": [
+				"palette_floor",
+				"palette_grid"
+			],
+			"done": {
+				"check": "floors",
+				"n": 1,
+				"in_stage": true
+			},
+			"assist": "place_first_floor",
+			"assist_label": "Place a tile for me"
+		},
+		{
+			"id": "floor_room",
+			"chapter": "Tiles",
+			"title": "Build a room",
+			"tab": "Palette",
+			"text": "Add two more tiles [b]touching[/b] the first one, so you get one connected room of three tiles. Tiles snap to the board's grid, so edges line up by themselves.",
+			"highlight": [
+				"palette_grid"
+			],
+			"done": {
+				"check": "floors",
+				"n": 3,
+				"in_stage": true,
+				"connected": true
+			},
+			"assist": "place_room",
+			"assist_label": "Place the room for me"
+		},
+		{
+			"id": "rotate",
+			"chapter": "Tiles",
+			"title": "Rotate a tile",
+			"tab": "Palette",
+			"text": "Press [b]D[/b] to switch between [b]Draw[/b] and [b]Select[/b] mode. In Select mode a click selects a piece, and a piece in the Outline is selected too.\n\nSelect one of your tiles and press [b]R[/b]: it turns a quarter turn.",
+			"highlight": [
+				"viewport"
+			],
+			"done": {
+				"check": "event",
+				"name": "op:Rotate"
+			},
+			"assist": "rotate_tile",
+			"assist_label": "Rotate a tile for me"
+		},
+		{
+			"id": "move",
+			"chapter": "Tiles",
+			"title": "Move a tile",
+			"tab": "Palette",
+			"text": "Press [b]M[/b] for [b]Move[/b] mode, then drag a tile to somewhere else. The original stays where it is until you let go. Press [b]D[/b] afterwards to leave Move mode.",
+			"highlight": [
+				"viewport"
+			],
+			"done": {
+				"check": "event",
+				"name": "op:Move"
+			},
+			"assist": "move_tile",
+			"assist_label": "Move a tile for me"
+		},
+		{
+			"id": "undo",
+			"chapter": "Tiles",
+			"title": "Undo",
+			"tab": "Palette",
+			"text": "Everything in the editor can be undone. [b]Ctrl+Z[/b] steps back, [b]Ctrl+Shift+Z[/b] steps forward again (both are in the [b]Edit[/b] menu).\n\nUndo your move and your rotation to put the room back together.",
+			"highlight": [
+				"menu_bar"
+			],
+			"done": {
+				"check": "event",
+				"name": "undo",
+				"n": 2
+			},
+			"assist": "undo_twice",
+			"assist_label": "Undo twice for me"
+		},
+		{
+			"id": "save",
+			"chapter": "Tiles",
+			"title": "Save your work",
+			"text": "Use [b]File > Save[/b] (Ctrl+S) and give the mission a name. The editor can also keep automatic backups: see [b]File > Settings[/b].\n\nSaving needs a file name, so this step has no \"do it for me\": skip it if you prefer.",
+			"highlight": [
+				"menu_bar"
+			],
+			"done": {
+				"check": "saved"
+			}
+		},
+		{
+			"id": "props",
+			"chapter": "Props",
+			"title": "Add props",
+			"tab": "Palette",
+			"text": "Props are the objects on the map: chests, trees, pillars, doors. Open the [b]Prop[/b] tab, pick a [b]chest[/b] and click on a floor tile. Add a second prop too, a tree or a pillar.\n\nProps stand on tiles: a prop with no floor under it is reported by the checker. Many are limited by the box as well.",
+			"highlight": [
+				"palette_prop",
+				"palette_grid"
+			],
+			"done": {
+				"check": "props",
+				"n": 2
+			},
+			"assist": "place_props",
+			"assist_label": "Place a chest and a tree"
+		},
+		{
+			"id": "name_prop",
+			"chapter": "Props",
+			"title": "Give the chest a name",
+			"tab": "Outline",
+			"text": "Select the chest, with a click in Select mode ([b]D[/b]) or in the Outline. Type a name in the [b]Name[/b] field, like [i]treasure_chest[/i], and press Enter.\n\nA name is how effects and actions will point at this chest later, and it stays private to the editor unless you tick [b]Show name to players[/b].",
+			"highlight": [
+				"outline_tree",
+				"name_field"
+			],
+			"done": {
+				"check": "named_prop"
+			},
+			"assist": "name_chest",
+			"assist_label": "Name it for me"
+		},
+		{
+			"id": "start",
+			"chapter": "Start position",
+			"title": "Where the heroes start",
+			"tab": "Palette",
+			"text": "Open the [b]Misc[/b] tab and click [b]Player Start[/b] (or press [b]P[/b]). Click tile squares to mark them: that is where the heroes stand when the mission begins. Click a marked square again to remove it.\n\nMark [b]four[/b] squares on your floor, one for each hero.",
+			"highlight": [
+				"palette_misc",
+				"palette_player_start"
+			],
+			"done": {
+				"check": "starts",
+				"n": 4
+			},
+			"assist": "add_starts",
+			"assist_label": "Mark four squares"
+		},
+		{
+			"id": "problems",
+			"chapter": "Start position",
+			"title": "The checker",
+			"tab": "Outline",
+			"text": "The [b]Problems[/b] button in the toolbar checks your mission as you build and lists what is wrong or unfinished. It probably says there are fewer start squares than the most heroes that may play (up to six).\n\nClick the mission name at the top of the Outline and set [b]Max players[/b] to 4. The warning about the missing win condition stays until we add objectives, at the end of this tutorial.",
+			"highlight": [
+				"toolbar_problems",
+				"max_players"
+			],
+			"done": {
+				"check": "players_fit"
+			},
+			"assist": "fit_players",
+			"assist_label": "Set Max players for me"
+		},
+		{
+			"id": "templates",
+			"chapter": "Monsters",
+			"title": "Monster templates",
+			"text": "Every monster is built from a [b]template[/b] that says how tough it is. Open [b]File > Monster Templates…[/b].\n\nIf you imported your game assets (Options > Game assets), click [b]Import the game's monsters…[/b] there and the library fills with the game's own monsters. Without them, [b]Do it for me[/b] saves one simple template instead.\n\n[color=#9fb4c8]A later tutorial goes deep into templates. For now we only need one base template to exist.[/color]",
+			"highlight": [
+				"menu_bar",
+				"button:Import the game's monsters…"
+			],
+			"done": {
+				"check": "template"
+			},
+			"assist": "make_template",
+			"assist_label": "Make a simple template"
+		},
+		{
+			"id": "spawn_area",
+			"chapter": "Monsters",
+			"title": "Where the monster appears",
+			"tab": "Palette",
+			"text": "A monster needs a place to appear: a [b]spawn area[/b]. Open [b]Misc[/b], press [b]New spawn[/b] under Monster Spawn, then click two tile squares on your floor, away from the heroes. The first monster takes the first square, the next one the second. Click a square again to remove it.\n\nThe area is only a place: nothing spawns yet. We make that happen with a trigger, later.",
+			"highlight": [
+				"palette_misc",
+				"button:New spawn"
+			],
+			"done": {
+				"check": "monster_spawn",
+				"n": 2
+			},
+			"assist": "add_spawn_area",
+			"assist_label": "Draw the spawn area"
+		},
+		{
+			"id": "los",
+			"chapter": "Line of sight",
+			"title": "A wall for the eyes",
+			"tab": "Palette",
+			"text": "Heroes and monsters can only shoot or cast at what they can [i]see[/i]. Tiles and tall props already block sight, but sometimes you need a wall where there is none. A [b]LOS blocker[/b] is an invisible wall that blocks sight only, not walking.\n\nIn [b]Misc[/b] press [b]New blocker[/b] and click two squares to mark where it stands. Because it was drawn while your stage was the working group, it belongs to that stage and stays secret until the stage is revealed.",
+			"highlight": [
+				"palette_misc",
+				"button:New blocker"
+			],
+			"done": {
+				"check": "los_blocker",
+				"n": 2
+			},
+			"assist": "add_blocker",
+			"assist_label": "Draw a blocker"
+		},
+		{
+			"id": "variables",
+			"chapter": "Variables",
+			"title": "What the mission remembers",
+			"tab": "Outline",
+			"text": "A [b]variable[/b] is something the mission remembers: a yes/no, a number, a text. We need two yes/no ones: [i]monster_dead[/i] (is the monster defeated?) and [i]chest_looted[/i] (was the chest searched?). The objectives will read them at the end.\n\nClick the mission name at the top of the Outline, press [b]Variables…[/b], then [b]Add Variable[/b] twice. Name them exactly like that and keep the type [b]Bool[/b].",
+			"highlight": [
+				"outline_tree",
+				"button:Variables…",
+				"button:Add Variable"
+			],
+			"done": {
+				"check": "variables"
+			},
+			"assist": "add_variables",
+			"assist_label": "Add the two variables"
+		},
+		{
+			"id": "chest_action",
+			"chapter": "Actions and effects",
+			"title": "Search the chest",
+			"tab": "Outline",
+			"text": "Props can offer [b]actions[/b]: things a hero can do with them. Select the chest, press [b]Actions…[/b], then [b]Add Action[/b]. Call it [i]Search[/i] and tick [b]Single shot[/b], so it can only be done once.\n\nAn action runs [b]effects[/b]. Add two: [b]Loot[/b] (some gold) and [b]Set Variable[/b] with chest_looted set to true. The effect is what happens; the variable is how the mission remembers it.",
+			"highlight": [
+				"outline_tree",
+				"button:Actions…",
+				"button:Add Action",
+				"button:Add Effect"
+			],
+			"done": {
+				"check": "chest_action"
+			},
+			"assist": "add_chest_action",
+			"assist_label": "Give the chest its action"
+		},
+		{
+			"id": "spawn_trigger",
+			"chapter": "Triggers",
+			"title": "Make the monster appear",
+			"tab": "Outline",
+			"text": "A [b]trigger[/b] runs effects at a moment: a point in the round, or when an action happens. Click the mission name in the Outline, press [b]Triggers…[/b] and [b]Add Trigger[/b]. Its moment is [b]Before the player phase[/b], which is right when the mission starts.\n\nGive it the effect [b]Spawn Monsters[/b]: pick your spawn area, then [b]Monsters…[/b] and [b]Add Monster[/b] (it takes your first base template). A trigger fires once unless you untick [b]One shot[/b].",
+			"highlight": [
+				"outline_tree",
+				"button:Triggers…",
+				"button:Add Trigger",
+				"button:Add Monster"
+			],
+			"done": {
+				"check": "spawn_trigger"
+			},
+			"assist": "add_spawn_trigger",
+			"assist_label": "Add the trigger"
+		},
+		{
+			"id": "defeat_effect",
+			"chapter": "Triggers",
+			"title": "When the monster dies",
+			"tab": "Outline",
+			"text": "How does the mission know the monster died? Effects can hang on a monster too. In the monster's [b]Properties…[/b] (in the trigger's spawn effect, under [b]Monsters…[/b]) press [b]When defeated…[/b] and add [b]Set Variable[/b]: monster_dead = true.",
+			"highlight": [
+				"button:Properties…",
+				"button:When defeated…"
+			],
+			"done": {
+				"check": "defeat_effect"
+			},
+			"assist": "add_defeat_effect",
+			"assist_label": "Add the effect"
+		},
+		{
+			"id": "objectives",
+			"chapter": "Objectives",
+			"title": "How the mission is won",
+			"tab": "Outline",
+			"text": "Objectives decide when the mission is won. Click the mission name in the Outline and press [b]Objectives…[/b], then [b]Add Node[/b] twice.\n\nFirst: [i]Defeat the monster[/i], with the condition monster_dead = true. Second: [i]Loot the monster's lair[/i], with the condition chest_looted = true and the outcome [b]Win[/b]. Drag from the first node's right dot to the second node's left dot: the second only counts once the first is reached.",
+			"highlight": [
+				"outline_tree",
+				"button:Objectives…",
+				"button:Add Node"
+			],
+			"done": {
+				"check": "objectives"
+			},
+			"assist": "add_objectives",
+			"assist_label": "Add the objectives"
+		},
+		{
+			"id": "play",
+			"chapter": "Play it",
+			"title": "Play your mission",
+			"text": "Time to play what you built: [b]Play > Play[/b] (Ctrl+Enter). Place the heroes, press [b]M[/b] for the monster view and attack the wolf by dragging a hero onto it, then drag a hero onto the chest to search it. That wins the mission.\n\n[b]Ctrl+E[/b] brings you back to the editor. The Play menu's [b]Fast start[/b] skips the setup dialogs: switch it off to see them all.",
+			"highlight": [
+				"menu_bar"
+			],
+			"assist": "play_now",
+			"assist_label": "Play it now"
+		},
+		{
+			"id": "finished",
+			"chapter": "Done",
+			"title": "You built a mission",
+			"text": "A map with a stage, a room and props, a place for the heroes, a monster that appears and a chest that rewards you, an invisible wall for sight, and objectives that make it a game.\n\nCompare with [b]Peek[/b] if something works differently. Next up in the tutorials: monster templates in depth, and stages that reveal each other.",
+			"highlight": []
+		}
+	]
+}

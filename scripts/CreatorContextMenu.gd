@@ -3,7 +3,7 @@ extends Node
 
 ## The mission editor's right-click menu in the 3D view (a right-click that is not a drag - FreeLookCamera.context_requested).
 ## On a piece it selects it (like a left-click in Select mode, unless it already belongs to the selection) and offers what you
-## need most: Actions…, Properties…, Move to stage, Rotate, Delete. On empty ground it offers the tool switches and the level.
+## need most: Actions…, Move to stage, Rotate, Delete. On empty ground it offers the tool switches and the level.
 ## It only wires things together: the work is done by the controller, the outline and the properties panel.
 
 @export var creator_controller: CreatorController
@@ -12,7 +12,8 @@ extends Node
 @export var properties_panel: CreatorPropertiesPanel
 @export var operation_history: OperationHistory
 
-enum Action { ACTIONS, PROPERTIES, VISIBLE, ROTATE, DELETE, SELECT_MODE, DRAW_MODE, MOVE_MODE, LEVEL_UP, LEVEL_DOWN }
+## High ids: an item added without one (separators, submenus) gets its index as id, which must not match these.
+enum Action { ACTIONS = 1000, VISIBLE, ROTATE, DELETE, SELECT_MODE, DRAW_MODE, MOVE_MODE, LEVEL_UP, LEVEL_DOWN }
 
 var _menu: PopupMenu
 var _stage_menu: PopupMenu
@@ -53,7 +54,6 @@ func _fill_piece_menu() -> void:
 	var prop := properties_panel.current_prop() if properties_panel != null else null
 	if prop != null:
 		_menu.add_item("Actions…", Action.ACTIONS)
-		_menu.add_item("Properties…", Action.PROPERTIES)
 		_menu.add_separator()
 	_fill_stage_menu()
 	_menu.add_submenu_node_item("Move to stage", _stage_menu)
@@ -108,8 +108,6 @@ func _on_action(id: int) -> void:
 	match id:
 		Action.ACTIONS:
 			properties_panel.open_actions()
-		Action.PROPERTIES:
-			properties_panel.open_properties()
 		Action.VISIBLE:
 			var nodes := _selected_nodes()
 			if nodes.is_empty():

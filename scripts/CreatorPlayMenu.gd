@@ -11,7 +11,9 @@ extends PopupMenu
 @export var layered_map: LayeredMap
 @export var save_load: CreatorSaveLoad  ## the File menu - it owns the mission's file path and starts the Player
 
-enum Action { PLAY, FAST_START, FORGET_PARTY }
+## Explicit ids: an item added without one gets its INDEX as id, which collided with FAST_START (the submenu item has
+## index 1), so the check mark was set on the submenu entry instead of the check item.
+enum Action { PLAY = 0, FAST_START = 1, FORGET_PARTY = 2, SNAPSHOTS = 10 }
 
 var _snapshots: PopupMenu
 
@@ -21,7 +23,7 @@ func _ready() -> void:
 	_snapshots = PopupMenu.new()
 	_snapshots.name = "Snapshots"
 	add_child(_snapshots)
-	add_submenu_node_item("Play from snapshot", _snapshots)
+	add_submenu_node_item("Play from snapshot", _snapshots, Action.SNAPSHOTS)
 	add_separator()
 	add_check_item("Fast start (skip setup dialogs and banners)", Action.FAST_START)
 	add_item("Forget the remembered party", Action.FORGET_PARTY)

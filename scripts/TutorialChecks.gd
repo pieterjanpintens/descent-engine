@@ -1,0 +1,179 @@
+class_name TutorialChecks
+extends RefCounted
+
+## The "done when" tests of the tutorial steps (data/tutorials/*.json: "done": {"check": "<name>", ...}). Every check looks at the
+## mission as it is NOW (or at what the user did since the step began), never at one particular click - so steps can be done in any
+## order, an undo takes a step back, and a step that is already true shows as done at once.
+
+const TOKENS := ["exploration", "interact", "umbra"]
+## The two variables the tutorial mission uses: the monster was defeated, the lair was looted.
+const MONSTER_DEAD := "monster_dead"
+const CHEST_LOOTED := "chest_looted"
+
+
+static func check(spec: Dictionary, r: TutorialRunner) -> bool:
+	var mission := r.layered_map.mission
+	if mission == null:
+		return false
+	match str(spec.get("check", "")):
+		"camera_turned":
+			return r.camera_turned_degrees() >= 8.0
+		"camera_moved":
+			return r.camera_moved_distance() >= 3.0
+		"stage_ready":
+			return not mission.groups.is_empty() and r.controller.working_group_id != ""
+		"floors":
+			return _floors(spec, mission)
+		"event":
+			return r.event_count(str(spec["name"])) >= int(spec.get("n", 1))
+		"saved":
+			return r.save_load.current_path != ""
+		"props":
+			return placed_props(mission).size() >= int(spec.get("n", 1))
+		"named_prop":
+			for entry in placed_props(mission):
+				if entry.reference_name != "":
+					return true
+			return false
+		"starts":
+			return mission.player_spawn_cells.size() >= int(spec.get("n", 1))
+		"players_fit":
+			return not mission.player_spawn_cells.is_empty() and mission.max_players <= mission.player_spawn_cells.size()
+		"template":
+			return not MonsterArchetypeLibrary.names_of_kind(MonsterArchetype.Kind.BASE).is_empty()
+		"monster_spawn":
+			for spawn in mission.monster_spawns:
+				if spawn.cells.size() >= int(spec.get("n", 1)):
+					return true
+			return false
+		"los_blocker":
+			for blocker in mission.los_blockers:
+				if blocker.cells.size() >= int(spec.get("n", 1)):
+					return true
+			return false
+		"variables":
+			return _has_bool_variable(mission, MONSTER_DEAD) and _has_bool_variable(mission, CHEST_LOOTED)
+		"chest_action":
+			return chest_action_sets(mission, CHEST_LOOTED)
+		"spawn_trigger":
+			return not spawn_effects(mission).is_empty()
+		"defeat_effect":
+			for effect in spawn_effects(mission):
+				for monster in effect.spawn_monsters:
+					if sets_variable(monster.defeat_effects, MONSTER_DEAD):
+						return true
+			return false
+		"objectives":
+			return objective_chain_ok(mission)
+	push_warning("TutorialChecks: unknown check '%s'" % spec.get("check", ""))
+	return false
+
+
+static func _has_bool_variable(mission: MissionData, variable_name: String) -> bool:
+	for variable in mission.custom_variables:
+		if variable.name == variable_name and variable.type == MissionVariable.Type.BOOL:
+			return true
+	return false
+
+
+## True when some effect in the list sets `variable_name` to true.
+static func sets_variable(effects: Array[Effect], variable_name: String) -> bool:
+	for effect in effects:
+		if effect.type == Effect.Type.SET_VARIABLE and effect.variable_name == variable_name and effect.value == true:
+			return true
+	return false
+
+
+## True when an action of a prop in the mission sets `variable_name` to true (the chest's "Search").
+static func chest_action_sets(mission: MissionData, variable_name: String) -> bool:
+	for entry in mission.interactables:
+		for action in entry.actions:
+			if sets_variable(action.effects, variable_name):
+				return true
+	return false
+
+
+## Every Spawn Monsters effect (with at least one monster) of the mission's triggers.
+static func spawn_effects(mission: MissionData) -> Array[Effect]:
+	var found: Array[Effect] = []
+	for trigger in mission.triggers:
+		for effect in trigger.effects:
+			if effect.type == Effect.Type.SPAWN_MONSTERS and effect.target_object_id != "" and not effect.spawn_monsters.is_empty():
+				found.append(effect)
+	return found
+
+
+## A root objective that waits for the monster to be dead, leading to a winning objective that waits for the lair to be looted.
+static func objective_chain_ok(mission: MissionData) -> bool:
+	for root in mission.objectives:
+		if not _waits_for(root, MONSTER_DEAD):
+			continue
+		for child in root.children:
+			if child.children.is_empty() and child.outcome == MissionObjective.Outcome.WIN and _waits_for(child, CHEST_LOOTED):
+				return true
+	return false
+
+
+static func _waits_for(objective: MissionObjective, variable_name: String) -> bool:
+	for condition in objective.conditions:
+		if condition.variable_name == variable_name and condition.operator == Condition.Operator.EQUALS and condition.value == true:
+			return true
+	return false
+
+
+## The props that are not event tokens.
+static func placed_props(mission: MissionData) -> Array[InteractableEntry]:
+	var found: Array[InteractableEntry] = []
+	for entry in mission.interactables:
+		if not TOKENS.has(entry.mesh_item_name):
+			found.append(entry)
+	return found
+
+
+static func _floors(spec: Dictionary, mission: MissionData) -> bool:
+	var placements: Array[TilePlacement] = []
+	for placement in mission.floor_placements:
+		if bool(spec.get("in_stage", false)) and placement.parent_id == "":
+			continue
+		placements.append(placement)
+	if placements.size() < int(spec.get("n", 1)):
+		return false
+	if bool(spec.get("connected", false)):
+		return connected_components(mission, placements) == 1
+	return true
+
+
+## How many separate groups the given floor tiles form (tiles that share an edge belong together).
+static func connected_components(mission: MissionData, placements: Array[TilePlacement]) -> int:
+	var wanted := {}
+	for placement in placements:
+		wanted[placement.origin_cell] = true
+	var parent := {}
+	for origin in wanted:
+		parent[origin] = origin
+	for cell: Vector3i in mission.floor_occupied_cells:
+		var origin: Vector3i = mission.floor_occupied_cells[cell]
+		if not wanted.has(origin):
+			continue
+		for step in [Vector3i(1, 0, 0), Vector3i(0, 0, 1)]:
+			var neighbour: Vector3i = cell + step
+			if not mission.floor_occupied_cells.has(neighbour):
+				continue
+			var other: Vector3i = mission.floor_occupied_cells[neighbour]
+			if other != origin and wanted.has(other):
+				_union(parent, origin, other)
+	var roots := {}
+	for origin in wanted:
+		roots[_find(parent, origin)] = true
+	return roots.size()
+
+
+static func _find(parent: Dictionary, node: Vector3i) -> Vector3i:
+	while parent[node] != node:
+		parent[node] = parent[parent[node]]
+		node = parent[node]
+	return node
+
+
+static func _union(parent: Dictionary, a: Vector3i, b: Vector3i) -> void:
+	parent[_find(parent, a)] = _find(parent, b)

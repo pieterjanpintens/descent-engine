@@ -223,6 +223,48 @@ static func populate(theme: Theme) -> Theme:
 ## The editors (mission Creator, campaign editor and every window they open) stay in English: everything under the control inherits that.
 static func apply_classic(control: Control) -> void:
 	control.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	control.theme = check_theme()
+
+
+static var _check_theme_cache: Theme
+
+## Godot's own look, except for the check marks: its unchecked box is a dark square that cannot be seen on dark panels
+## (a menu's "Fast start" looked like it had no check box at all). Only these icons are replaced, in plain grey and white.
+## Set it as the `theme` of any screen (editors, the Player's debug panel) that uses the standard look.
+static func check_theme() -> Theme:
+	if _check_theme_cache == null:
+		var theme := Theme.new()
+		var unchecked := _plain_check_icon(false)
+		var checked := _plain_check_icon(true)
+		for type_name in ["CheckBox", "PopupMenu"]:
+			theme.set_icon("unchecked", type_name, unchecked)
+			theme.set_icon("checked", type_name, checked)
+			theme.set_icon("unchecked_disabled", type_name, unchecked)
+			theme.set_icon("checked_disabled", type_name, checked)
+		_check_theme_cache = theme
+	return _check_theme_cache
+
+
+## A small grey-framed box, with a white tick when checked.
+static func _plain_check_icon(is_checked: bool) -> Texture2D:
+	var size := 16
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var frame := Color(0.78, 0.78, 0.78)
+	var fill := Color(0.12, 0.12, 0.12)
+	for x in size:
+		for y in size:
+			var edge := x < 1 or y < 1 or x >= size - 1 or y >= size - 1
+			var corner := (x == 0 or x == size - 1) and (y == 0 or y == size - 1)
+			if corner:
+				image.set_pixel(x, y, Color(0, 0, 0, 0))
+			else:
+				image.set_pixel(x, y, frame if edge else fill)
+	if is_checked:
+		for i in 3:
+			_dot(image, 3 + i, 7 + i, Color.WHITE)
+		for i in 6:
+			_dot(image, 6 + i, 10 - i, Color.WHITE)
+	return ImageTexture.create_from_image(image)
 
 
 ## A check box picture that shows on the dark panels: a light frame, and an orange tick when checked.

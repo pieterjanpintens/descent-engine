@@ -4623,32 +4623,16 @@ first working version).
 	them together — a single undo step for the whole batch, same "several
 	related edits, one Operation" reasoning `CreatorSaveLoad`'s
 	player-count fields already establish.
-  - **`InteractableEntry.props`** (the free-form custom-property dict -
-	OBJECT only, `TilePlacement`/`MissionGroup` don't have one) gets its
-	own **"Custom Properties…" button** (OBJECT selections only) opening
-	`PropertiesDialog` (new, `scripts/PropertiesDialog.gd`, requested
-	2026-09-10 as a popup rather than embedded inline — "it will become
-	too clumsy otherwise" in a 260px-wide panel). One instance, created in
-	code (`PropertiesDialog.new()` in `_build_object_fields()` - not a
-	`.tscn` node, so `operation_history`/`layered_map` are assigned
-	directly rather than through `@export`/`NodePath`) and reused across
-	selections via `open_for(entry)`. Each existing key's row picks a
-	value widget from the property's CURRENT `typeof()` - `CheckBox` for
-	bool, `SpinBox` for int/float, `LineEdit` otherwise - so an
-	already-bool key like `"interactible"` can't get flattened into a
-	string by editing it here. Adding a NEW key opens a second, nested
-	`ConfirmationDialog` (built in the same script) asking for
-	name/type/default value up front, rather than an inline "type a key,
-	pick a type" row - keeps the main list simple and the add flow
-	focused on the one decision that actually needs asking. Every edit
-	(set/add/remove) goes through `operation_history.record()` then
-	`layered_map.notify_objects_changed()`, same pattern as everywhere
-	else in the Creator by now.
+  - **`InteractableEntry.props`** (free-form dict, OBJECT only) has no editor for custom keys any more (the "Custom Properties…" button
+	and `PropertiesDialog` were removed 2026-11-03: nothing read any key but two). The two keys that exist have a tick each in the
+	properties panel, one undo step each: **"Interactible"** (`props["interactible"]`, default true = key absent; unticking stores
+	`false`, ticking erases the key) and **"Show name to players"** (`props["show_name"]`, default false). Other keys already saved in
+	a mission stay in the file untouched.
   - **`InteractableEntry.actions`** (`Array[PropAction]` - what a player
 	can report doing to this prop, e.g. "push" this lever, and the
 	`Effect`s that fire when they do, see **Story layer**'s `PropAction`
 	entry) gets its own **"Actions…" button** (new 2026-09-13, OBJECT
-	selections only, sibling of "Custom Properties…" above) opening
+	selections only) opening
 	`PropActionsDialog` (new, `scripts/PropActionsDialog.gd`). Same
 	code-built, one-instance-reused-via-`open_for(entry)` pattern as
 	`PropertiesDialog` - `operation_history`/`layered_map` assigned
@@ -7083,6 +7067,10 @@ that only LOOKS like headers inside strings, the dialog flows (review, already i
 size cap, no leftovers), the export dialog writing a valid package, and the main menu / campaign editor / mission editor opening the new dialogs. **Not verified**: the dialogs on screen, the native
 file dialogs, the real GitHub catalog URL (until the community repository exists on GitHub it is a 404), downloading from a real GitHub release. **Not built**: "new version available" hints
 (the browse tab only shows what you have vs the listed version), signing/author identity (a package's author is just text), sharing monster templates separately (they are embedded in missions).
+
+## In-editor tutorials (branch `feature/tutorial`, 2026-11-03)
+
+Guided tutorials inside the mission Creator (**Help** menu: "Tutorial: build a mission…", "Start from the beginning", "Peek at the finished tutorial mission"). `TutorialRunner` (`scripts/TutorialRunner.gd`, a node of `MissionMap.tscn`) shows the current step in a fixed-size panel at the bottom left (chapter, title, bbcode text, Back / Do it for me / Next, Skip step, Peek, Close) and frames the controls a step is about (`TutorialHighlight`, a pulsing frame on its own CanvasLayer that never takes the mouse). **Steps are data**: `data/tutorials/<id>.json` (`TutorialRunner.TUTORIALS` lists them) with `chapter`, `title`, `text`, optional `tab` (the side tab to show), `highlight` (target ids), `done` and `assist`. **A step is done when the mission reaches a state** (`TutorialChecks.check()`: camera turned/moved since the step began, stage + working group, floors n / in_stage / connected, an operation label or undo seen since the step began, saved, props, named prop, starts, players fit) - never a particular click - so steps can be done in any order, an undo takes one back, and an already-true step shows done at once. **"Do it for me"** (`TutorialAssists`) does the step through the editor's own code (same undo steps and limits): stage, a room of three tiles (19a first, 1a and 2a right below it; falls back to scanning for a spot touching the user's floor), rotate, move, undo twice, chest + tree, name the chest, four start squares, set Max players. New small public pieces for it: `CreatorController.place_mesh_at_tile_square()` (a click on a tile square), `OperationHistory` signals `recorded(label)` / `undone` / `redone`, and `tutorial_target(id)` on `CreatorPalette`, `CreatorToolbar` and `CreatorPropertiesPanel` (stable ids instead of node paths: palette_floor / palette_prop / palette_misc / palette_grid / palette_player_start, toolbar_working_group / toolbar_problems, name_field / max_players; the runner itself knows menu_bar, viewport, side_tabs, outline_tree). **The panel can be moved and shrunk**: drag its header (the chapter line) to move it; "Shrink" turns it into a small "Tutorial n/25" icon (click it to open the panel again, drag it to move it; a drag is not a click, `DRAG_SLOP`); the position is kept as an offset from the bottom left corner and clamped into whichever window holds the overlay. Progress (step index), the shrunk state and the position are kept in `user://configuration/tutorial.cfg`. **Peek**: `data/tutorials/finished_mission.tres` (a shipped mission; regenerate it by running the assists in order in a scratch scene and `MissionIO.save_mission()`) is played through a debug session (`CreatorSaveLoad.start_peek()`, `GameState.peek_mission_path`, `MissionPlayer` loads it instead of the editor's mission, snapshot key "tutorial_peek"); the editor's own mission is parked as for any Play and Ctrl+E brings it back, and the tutorial reopens where it was (`GameState.resume_tutorial`). **The tutorial "Build a mission" has 25 steps**: welcome, camera, stages, tiles (place, room, rotate, move, undo, save), props (place, name), start squares, the Problems checker, then monsters (a base template - the game import or a simple one - and a spawn area), a LOS blocker, variables (monster_dead, chest_looted), the chest's Search action (Loot + Set Variable), a trigger that spawns the monster before the first player phase, the monster's "When defeated" effect, the two objectives (defeat the monster, then loot the lair = Win; objectives come last because they read the variables), and playing it (Play menu; "Play it now"). Its "do it for me" for those: `make_template` (saves "Tutorial monster" into the user's template library ONLY when it has no base template), `add_spawn_area`, `add_blocker`, `add_variables`, `add_chest_action`, `add_spawn_trigger`, `add_defeat_effect`, `add_objectives`, `play_now`; checks `template`, `monster_spawn`, `los_blocker`, `variables`, `chest_action`, `spawn_trigger`, `defeat_effect`, `objectives`. **Highlight ids** also accept `button:<exact button text>` (e.g. `button:Add Node`): any visible button of the editor or its windows is found by its text, which is how steps point into dialogs without those dialogs exposing anything. **The panel follows the big editor windows**: while a window that covers the whole game window (Objectives, Actions, Triggers, templates) is open, `TutorialRunner._follow_window()` reparents its CanvasLayer (panel + frames) into that window so it stays on top; frames are only drawn for controls of the window the overlay is in. Not in a dialog the tutorial can point at: menu ITEMS (it frames the whole menu bar). **Planned**: separate in-depth tutorials (monster templates, stages that reveal each other), a first-run offer, a per-dialog "?" help with reference pages. Headless-checked: every step's assist makes its check true (camera and save steps are skip-only), the finished mission has no Problems and, on a real `MissionRuntime`, spawns the monster, wins through the two objectives after the defeat effect and the chest search, and loads in the Player; the panel was screenshotted in the main window and inside the Objectives window. Not seen: the panel with a real mouse session, the Help menu click, Peek then Ctrl+E round trip, an exported build (the `data/*` include filter should carry the json and the mission).
 
 ## Scene structure (post-refactor)
 

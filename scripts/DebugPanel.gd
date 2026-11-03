@@ -35,6 +35,7 @@ var _group_option: OptionButton
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	theme = AppTheme.check_theme()  # the standard look, but with a check box you can see
 
 	_toast = Label.new()
 	_toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
