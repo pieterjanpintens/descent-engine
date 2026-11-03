@@ -173,6 +173,7 @@ func _go_to(index: int) -> void:
 func _refresh_state() -> void:
 	if _panel == null or not _panel.visible or _index < 0:
 		return
+	_follow_window()
 	var step: Dictionary = _steps[_index]
 	var has_check := step.has("done")
 	_done = has_check and TutorialChecks.check(step["done"], self)
@@ -228,6 +229,11 @@ func _ask(text: String, action: Callable) -> void:
 	_confirm.popup_centered()
 
 
+## Plays the mission being built, as it is now (the Play menu's Play).
+func play() -> void:
+	save_load.start_play("")
+
+
 ## Plays the finished tutorial mission in the Player (the editor's own mission is kept; Ctrl+E comes back).
 func peek() -> void:
 	GameState.resume_tutorial = str(_tutorial.get("id", "")) if is_running() else ""
@@ -237,6 +243,8 @@ func peek() -> void:
 # ---- Highlights ----
 
 func target_control(id: String) -> Control:
+	if id.begins_with("button:"):
+		return _find_button(id.substr(7))
 	match id:
 		"menu_bar":
 			return menu_bar
@@ -254,13 +262,35 @@ func target_control(id: String) -> Control:
 	return null
 
 
+## A visible button anywhere in the editor (its windows included) by its text: how steps point into the editors' dialogs.
+func _find_button(text: String) -> Button:
+	for node in get_parent().find_children("*", "Button", true, false):
+		var button := node as Button
+		if button.text == text and button.is_visible_in_tree():
+			return button
+	return null
+
+
+## The panel and the frames live in the main window, or - while one of the big editor windows (Objectives, Actions, Triggers, templates)
+## covers the whole game window - inside that window, so they stay visible on top of it.
+func _follow_window() -> void:
+	var screen := Vector2(get_tree().root.get_visible_rect().size)
+	var host: Node = self
+	for node in get_parent().find_children("*", "Window", true, false):
+		var window := node as Window
+		if window.visible and not window is Popup and Vector2(window.size).x >= screen.x * 0.9 and Vector2(window.size).y >= screen.y * 0.9:
+			host = window
+	if _canvas.get_parent() != host:
+		_canvas.reparent(host, false)
+
+
 func _highlight_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
 	if _index < 0 or _index >= _steps.size():
 		return rects
 	for id: String in _steps[_index].get("highlight", []):
 		var control := target_control(id)
-		if control != null and control.is_visible_in_tree():
+		if control != null and control.is_visible_in_tree() and control.get_window() == _canvas.get_window():
 			rects.append(control.get_global_rect())
 	return rects
 

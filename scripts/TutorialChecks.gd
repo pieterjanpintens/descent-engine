@@ -6,6 +6,9 @@ extends RefCounted
 ## order, an undo takes a step back, and a step that is already true shows as done at once.
 
 const TOKENS := ["exploration", "interact", "umbra"]
+## The two variables the tutorial mission uses: the monster was defeated, the lair was looted.
+const MONSTER_DEAD := "monster_dead"
+const CHEST_LOOTED := "chest_looted"
 
 
 static func check(spec: Dictionary, r: TutorialRunner) -> bool:
@@ -36,7 +39,85 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 			return mission.player_spawn_cells.size() >= int(spec.get("n", 1))
 		"players_fit":
 			return not mission.player_spawn_cells.is_empty() and mission.max_players <= mission.player_spawn_cells.size()
+		"template":
+			return not MonsterArchetypeLibrary.names_of_kind(MonsterArchetype.Kind.BASE).is_empty()
+		"monster_spawn":
+			for spawn in mission.monster_spawns:
+				if spawn.cells.size() >= int(spec.get("n", 1)):
+					return true
+			return false
+		"los_blocker":
+			for blocker in mission.los_blockers:
+				if blocker.cells.size() >= int(spec.get("n", 1)):
+					return true
+			return false
+		"variables":
+			return _has_bool_variable(mission, MONSTER_DEAD) and _has_bool_variable(mission, CHEST_LOOTED)
+		"chest_action":
+			return chest_action_sets(mission, CHEST_LOOTED)
+		"spawn_trigger":
+			return not spawn_effects(mission).is_empty()
+		"defeat_effect":
+			for effect in spawn_effects(mission):
+				for monster in effect.spawn_monsters:
+					if sets_variable(monster.defeat_effects, MONSTER_DEAD):
+						return true
+			return false
+		"objectives":
+			return objective_chain_ok(mission)
 	push_warning("TutorialChecks: unknown check '%s'" % spec.get("check", ""))
+	return false
+
+
+static func _has_bool_variable(mission: MissionData, variable_name: String) -> bool:
+	for variable in mission.custom_variables:
+		if variable.name == variable_name and variable.type == MissionVariable.Type.BOOL:
+			return true
+	return false
+
+
+## True when some effect in the list sets `variable_name` to true.
+static func sets_variable(effects: Array[Effect], variable_name: String) -> bool:
+	for effect in effects:
+		if effect.type == Effect.Type.SET_VARIABLE and effect.variable_name == variable_name and effect.value == true:
+			return true
+	return false
+
+
+## True when an action of a prop in the mission sets `variable_name` to true (the chest's "Search").
+static func chest_action_sets(mission: MissionData, variable_name: String) -> bool:
+	for entry in mission.interactables:
+		for action in entry.actions:
+			if sets_variable(action.effects, variable_name):
+				return true
+	return false
+
+
+## Every Spawn Monsters effect (with at least one monster) of the mission's triggers.
+static func spawn_effects(mission: MissionData) -> Array[Effect]:
+	var found: Array[Effect] = []
+	for trigger in mission.triggers:
+		for effect in trigger.effects:
+			if effect.type == Effect.Type.SPAWN_MONSTERS and effect.target_object_id != "" and not effect.spawn_monsters.is_empty():
+				found.append(effect)
+	return found
+
+
+## A root objective that waits for the monster to be dead, leading to a winning objective that waits for the lair to be looted.
+static func objective_chain_ok(mission: MissionData) -> bool:
+	for root in mission.objectives:
+		if not _waits_for(root, MONSTER_DEAD):
+			continue
+		for child in root.children:
+			if child.children.is_empty() and child.outcome == MissionObjective.Outcome.WIN and _waits_for(child, CHEST_LOOTED):
+				return true
+	return false
+
+
+static func _waits_for(objective: MissionObjective, variable_name: String) -> bool:
+	for condition in objective.conditions:
+		if condition.variable_name == variable_name and condition.operator == Condition.Operator.EQUALS and condition.value == true:
+			return true
 	return false
 
 

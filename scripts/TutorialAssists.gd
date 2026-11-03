@@ -37,6 +37,25 @@ static func run(name: String, r: TutorialRunner) -> String:
 			return _add_starts(r)
 		"fit_players":
 			return _fit_players(r)
+		"make_template":
+			return _make_template()
+		"add_spawn_area":
+			return _add_spawn_area(r)
+		"add_blocker":
+			return _add_blocker(r)
+		"add_variables":
+			return _add_variables(r)
+		"add_chest_action":
+			return _add_chest_action(r)
+		"add_spawn_trigger":
+			return _add_spawn_trigger(r)
+		"add_defeat_effect":
+			return _add_defeat_effect(r)
+		"add_objectives":
+			return _add_objectives(r)
+		"play_now":
+			r.play()
+			return ""
 	push_warning("TutorialAssists: unknown assist '%s'" % name)
 	return ""
 
@@ -190,11 +209,15 @@ static func _prop_squares(mission: MissionData) -> Array[Vector3i]:
 	return squares
 
 
-## Floor squares without a prop or a start square on them, west to east, north to south.
+## Floor squares without a prop, a start square, a monster spawn tile or a LOS blocker on them, west to east, north to south.
 static func _free_squares(mission: MissionData) -> Array[Vector3i]:
 	var taken := _prop_squares(mission)
 	for start in mission.player_spawn_cells:
 		taken.append(start)
+	for spawn in mission.monster_spawns:
+		taken.append_array(spawn.cells)
+	for blocker in mission.los_blockers:
+		taken.append_array(blocker.cells)
 	var free: Array[Vector3i] = []
 	for square in _floor_squares(mission):
 		if not taken.has(square):
@@ -266,3 +289,178 @@ static func _fit_players(r: TutorialRunner) -> String:
 	)
 	r.layered_map.notify_objects_changed()
 	return "Max players is now %d." % mission.max_players
+
+
+# ---- Monsters, variables, actions, triggers, objectives ----
+
+static func _rows(value: int) -> Array[LevelValue]:
+	var row := LevelValue.new()
+	row.min_level = 1
+	row.max_level = 99
+	row.value = value
+	var rows: Array[LevelValue] = [row]
+	return rows
+
+
+## A simple base monster template for people who have not imported the game's monsters.
+static func _make_template() -> String:
+	if not MonsterArchetypeLibrary.names_of_kind(MonsterArchetype.Kind.BASE).is_empty():
+		return "You already have a base template."
+	var archetype := MonsterArchetype.new()
+	archetype.template_name = "Tutorial monster"
+	archetype.kind = MonsterArchetype.Kind.BASE
+	archetype.hitpoints_scaling = _rows(10)
+	archetype.attack_scaling = _rows(3)
+	archetype.defense_scaling = _rows(1)
+	archetype.speed_scaling = _rows(4)
+	if MonsterArchetypeLibrary.save_template(archetype) == "":
+		return "The template could not be saved."
+	return "Saved a simple base template, 'Tutorial monster' (10 hitpoints, attack 3, defense 1, speed 4)."
+
+
+static func _add_spawn_area(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var free := _free_squares(mission)
+	if free.size() < 2:
+		return "There is no free floor for a spawn area."
+	var id := r.controller.create_monster_spawn()
+	var spawn: MonsterSpawn = r.controller._find_monster_spawn(id)
+	var tiles: Array[Vector3i] = [free[free.size() - 1], free[free.size() - 2]]  # the far east of the room
+	r.history.record("Toggle spawn tile", func(): spawn.cells.append_array(tiles))
+	r.layered_map.refresh_monster_spawn_overlay()
+	r.layered_map.notify_objects_changed()
+	return "Drew a spawn area of two squares at the far end of the room."
+
+
+static func _add_blocker(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var free := _free_squares(mission)
+	if free.size() < 2:
+		return "There is no free floor for a blocker."
+	var id := r.controller.create_los_blocker()
+	var blocker: LosBlocker = r.controller._find_los_blocker(id)
+	var middle := free.size() / 2
+	var tiles: Array[Vector3i] = [free[middle], free[middle + 1]]
+	r.history.record("Toggle LOS blocker square", func(): blocker.cells.append_array(tiles))
+	r.layered_map.refresh_blocker_overlay()
+	r.layered_map.notify_objects_changed()
+	return "Drew a blocker on two squares in the middle of the room."
+
+
+static func _add_variables(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var added := 0
+	for variable_name: String in [TutorialChecks.MONSTER_DEAD, TutorialChecks.CHEST_LOOTED]:
+		var exists := false
+		for variable in mission.custom_variables:
+			if variable.name == variable_name:
+				exists = true
+		if exists:
+			continue
+		r.history.record("Add variable", func():
+			var variable := MissionVariable.new()
+			variable.name = variable_name
+			variable.type = MissionVariable.Type.BOOL
+			variable.default_value = false
+			mission.custom_variables.append(variable)
+		)
+		added += 1
+	r.layered_map.notify_objects_changed()
+	return "Added %d variable(s)." % added
+
+
+static func _set_true(variable_name: String) -> Effect:
+	var effect := Effect.new()
+	effect.type = Effect.Type.SET_VARIABLE
+	effect.variable_name = variable_name
+	effect.value = true
+	return effect
+
+
+static func _add_chest_action(r: TutorialRunner) -> String:
+	var props := TutorialChecks.placed_props(r.layered_map.mission)
+	if props.is_empty():
+		return "Place a chest first."
+	var target := props[0]
+	for entry in props:
+		if entry.mesh_item_name == "chest":
+			target = entry
+	var action := PropAction.new()
+	action.action_id = "search"
+	action.action_name = "Search"
+	action.description = "You search the chest."
+	action.single_shot = true
+	var loot := Effect.new()
+	loot.type = Effect.Type.LOOT
+	loot.loot_materials = {LootMaterials.GOLD: 50}
+	loot.loot_title = "The monster's hoard"
+	action.effects.append(loot)
+	action.effects.append(_set_true(TutorialChecks.CHEST_LOOTED))
+	r.history.record("Add action", func(): target.actions.append(action))
+	r.layered_map.notify_objects_changed()
+	return "Gave the chest a 'Search' action: it gives 50 gold and sets chest_looted."
+
+
+static func _add_spawn_trigger(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	if mission.monster_spawns.is_empty():
+		return "Draw the monster spawn area first."
+	var monster := MonsterTemplate.create_with_default_base()
+	if monster == null:
+		return "Make a base monster template first (File > Monster Templates)."
+	monster.folder = "wolf"
+	var effect := Effect.new()
+	effect.type = Effect.Type.SPAWN_MONSTERS
+	effect.target_object_id = mission.monster_spawns[0].id
+	effect.spawn_monsters.append(monster)
+	var trigger := MissionTrigger.new()
+	trigger.id = mission.allocate_object_id()
+	trigger.checkpoint = RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE
+	trigger.one_shot = true
+	trigger.effects.append(effect)
+	r.history.record("Add trigger", func(): mission.triggers.append(trigger))
+	r.layered_map.notify_objects_changed()
+	return "Added a trigger that puts a wolf on the spawn area before the first player phase."
+
+
+static func _add_defeat_effect(r: TutorialRunner) -> String:
+	var effects := TutorialChecks.spawn_effects(r.layered_map.mission)
+	if effects.is_empty():
+		return "Add the trigger that spawns the monster first."
+	r.history.record("Edit defeat effects", func():
+		for effect in effects:
+			for monster in effect.spawn_monsters:
+				if not TutorialChecks.sets_variable(monster.defeat_effects, TutorialChecks.MONSTER_DEAD):
+					monster.defeat_effects.append(_set_true(TutorialChecks.MONSTER_DEAD))
+	)
+	r.layered_map.notify_objects_changed()
+	return "The monster now sets monster_dead when it is defeated."
+
+
+static func _condition(variable_name: String) -> Condition:
+	var condition := Condition.new()
+	condition.variable_name = variable_name
+	condition.operator = Condition.Operator.EQUALS
+	condition.value = true
+	return condition
+
+
+static func _add_objectives(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	if TutorialChecks.objective_chain_ok(mission):
+		return "The objectives are already there."
+	var first := MissionObjective.new()
+	first.id = mission.allocate_object_id()
+	first.description = "Defeat the monster"
+	first.conditions.append(_condition(TutorialChecks.MONSTER_DEAD))
+	var second := MissionObjective.new()
+	second.id = mission.allocate_object_id()
+	second.description = "Loot the monster's lair"
+	second.outcome = MissionObjective.Outcome.WIN
+	second.conditions.append(_condition(TutorialChecks.CHEST_LOOTED))
+	first.children.append(second)
+	first.editor_position = Vector2(60, 80)
+	second.editor_position = Vector2(360, 80)
+	r.history.record("Add objective", func(): mission.objectives.append(first))
+	r.layered_map.notify_objects_changed()
+	return "Added the two objectives: defeat the monster, then loot the lair (that wins the mission)."
