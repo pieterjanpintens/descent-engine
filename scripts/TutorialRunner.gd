@@ -18,6 +18,9 @@ const FINISHED_MISSION := "res://data/tutorials/finished_mission.tres"
 const PROGRESS_FILE := "user://configuration/tutorial.cfg"
 const PANEL_WIDTH := 410.0
 const CHECK_SECONDS := 0.25
+const MARGIN := Vector2(12.0, 44.0)  ## the default distance of the panel from the bottom left corner (44: above the status bar)
+const ICON_SIZE := Vector2(104.0, 34.0)
+const DRAG_SLOP := 4.0  ## the mouse may move this far on the little icon and it still counts as a click
 
 var controller: CreatorController
 var layered_map: LayeredMap
@@ -44,6 +47,12 @@ var _done := false
 var _canvas: CanvasLayer
 var _highlight: TutorialHighlight
 var _panel: PanelContainer
+var _icon: Button  ## the small stand-in the panel shrinks to
+var _running := false
+var _collapsed := false
+var _drag_offset := Vector2.ZERO  ## how far the user moved the panel from its default place (right, down)
+var _dragging := false
+var _drag_distance := 0.0
 var _chapter_label: Label
 var _title_label: Label
 var _body: RichTextLabel
@@ -64,6 +73,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_resolve()
 	_build_ui()
+	_load_ui()
+	_apply_visibility()
 	history.recorded.connect(func(label: String): _bump("op:" + label))
 	history.undone.connect(func(): _bump("undo"))
 	history.redone.connect(func(): _bump("redo"))
@@ -99,7 +110,7 @@ func _resolve() -> void:
 # ---- Starting and stopping ----
 
 func is_running() -> bool:
-	return _panel != null and _panel.visible
+	return _running
 
 
 ## Starts the tutorial `id`: where the user stopped last time, or from the first step when `restart` (or nothing was stored).
@@ -115,13 +126,89 @@ func start(id: String = "build_a_mission", restart: bool = false) -> void:
 		return
 	_steps = parsed["steps"]
 	var stored := 0 if restart else _stored_step(id)
-	_panel.visible = true
+	_running = true
+	_apply_visibility()
 	_go_to(clampi(stored, 0, _steps.size() - 1))
 
 
 func stop() -> void:
-	_panel.visible = false
+	_running = false
+	_apply_visibility()
 	_highlight.visible = false
+
+
+## The panel, or - shrunk - the small icon; neither when the tutorial is closed.
+func _apply_visibility() -> void:
+	_panel.visible = _running and not _collapsed
+	_icon.visible = _running and _collapsed
+	_update_icon()
+	_place_controls()
+
+
+func _set_collapsed(collapsed: bool) -> void:
+	_collapsed = collapsed
+	_apply_visibility()
+	_store_ui()
+
+
+func _update_icon() -> void:
+	if _index >= 0 and not _steps.is_empty():
+		_icon.text = "Tutorial %d/%d" % [_index + 1, _steps.size()]
+
+
+## Panel and icon sit at the bottom left, moved by what the user dragged, and never leave the window (it can be smaller than last time,
+## and each step has a different height).
+func _place_controls() -> void:
+	if _panel == null:
+		return
+	var view := _canvas.get_viewport().get_visible_rect().size
+	var size := ICON_SIZE if _collapsed else Vector2(PANEL_WIDTH, _panel.size.y)
+	_drag_offset.x = clampf(_drag_offset.x, -MARGIN.x, view.x - MARGIN.x - size.x)
+	_drag_offset.y = clampf(_drag_offset.y, size.y + MARGIN.y - view.y, MARGIN.y)
+	var left := MARGIN.x + _drag_offset.x
+	var bottom := -MARGIN.y + _drag_offset.y
+	_panel.offset_left = left
+	_panel.offset_right = left + PANEL_WIDTH
+	_panel.offset_bottom = bottom
+	_icon.offset_left = left
+	_icon.offset_right = left + ICON_SIZE.x
+	_icon.offset_bottom = bottom
+	_icon.offset_top = bottom - ICON_SIZE.y
+
+
+## Dragging by the header of the panel or by the icon.
+func _on_drag_input(event: InputEvent) -> void:
+	var button := event as InputEventMouseButton
+	if button != null and button.button_index == MOUSE_BUTTON_LEFT:
+		_dragging = button.pressed
+		if button.pressed:
+			_drag_distance = 0.0
+		else:
+			_store_ui()
+		return
+	var motion := event as InputEventMouseMotion
+	if motion != null and _dragging:
+		_drag_distance += motion.relative.length()
+		_drag_offset += motion.relative
+		_place_controls()
+
+
+func _store_ui() -> void:
+	var config := ConfigFile.new()
+	config.load(PROGRESS_FILE)
+	config.set_value("ui", "collapsed", _collapsed)
+	config.set_value("ui", "offset_x", _drag_offset.x)
+	config.set_value("ui", "offset_y", _drag_offset.y)
+	DirAccess.make_dir_recursive_absolute(PROGRESS_FILE.get_base_dir())
+	config.save(PROGRESS_FILE)
+
+
+func _load_ui() -> void:
+	var config := ConfigFile.new()
+	if config.load(PROGRESS_FILE) != OK:
+		return
+	_collapsed = bool(config.get_value("ui", "collapsed", false))
+	_drag_offset = Vector2(float(config.get_value("ui", "offset_x", 0.0)), float(config.get_value("ui", "offset_y", 0.0)))
 
 
 func _finish() -> void:
@@ -148,6 +235,7 @@ func _store_step(id: String, index: int) -> void:
 
 func _go_to(index: int) -> void:
 	_index = index
+	_update_icon()
 	var step: Dictionary = _steps[index]
 	_store_step(_tutorial["id"], index)
 	_events.clear()
@@ -171,9 +259,10 @@ func _go_to(index: int) -> void:
 
 
 func _refresh_state() -> void:
-	if _panel == null or not _panel.visible or _index < 0:
+	if _panel == null or not _running or _index < 0:
 		return
 	_follow_window()
+	_place_controls()
 	var step: Dictionary = _steps[_index]
 	var has_check := step.has("done")
 	_done = has_check and TutorialChecks.check(step["done"], self)
@@ -325,6 +414,25 @@ func _build_ui() -> void:
 	_panel.add_theme_stylebox_override("panel", style)
 	_canvas.add_child(_panel)
 
+	_icon = Button.new()
+	_icon.visible = false
+	_icon.focus_mode = Control.FOCUS_NONE
+	_icon.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	_icon.tooltip_text = "Click to open the tutorial. Drag to move it."
+	_icon.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var icon_style := style.duplicate() as StyleBoxFlat
+	icon_style.set_content_margin_all(6)
+	for state in ["normal", "hover", "pressed", "focus"]:
+		_icon.add_theme_stylebox_override(state, icon_style)
+	_icon.add_theme_color_override("font_color", Color(1.0, 0.78, 0.25))
+	_icon.add_theme_font_size_override("font_size", 13)
+	_icon.gui_input.connect(_on_drag_input)
+	_icon.pressed.connect(func():
+		if _drag_distance <= DRAG_SLOP:  # a drag ends with a release too, and is not a click
+			_set_collapsed(false)
+	)
+	_canvas.add_child(_icon)
+
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	_panel.add_child(box)
@@ -335,7 +443,15 @@ func _build_ui() -> void:
 	_chapter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chapter_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.25))
 	_chapter_label.add_theme_font_size_override("font_size", 13)
+	_chapter_label.mouse_filter = Control.MOUSE_FILTER_STOP  # the handle the panel is dragged by
+	_chapter_label.mouse_default_cursor_shape = Control.CURSOR_MOVE
+	_chapter_label.tooltip_text = "Drag to move the tutorial."
+	_chapter_label.gui_input.connect(_on_drag_input)
 	header.add_child(_chapter_label)
+	var shrink := _button("Shrink")
+	shrink.tooltip_text = "Shrink the tutorial to a small icon (click the icon to open it again)."
+	shrink.pressed.connect(func(): _set_collapsed(true))
+	header.add_child(shrink)
 	var close := _button("Close")
 	close.tooltip_text = "Hide the tutorial. Help > Tutorial continues where you stopped."
 	close.pressed.connect(stop)
