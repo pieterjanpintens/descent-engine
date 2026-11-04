@@ -663,3 +663,7 @@ func _open_optional_editor(parent_objective: MissionObjective, optional: Mission
 		_open_optional_editor(parent_objective, optional)
 	)
 	_optional_editor_container.add_child(add_effect_button)
+
+	# Every add / remove rebuilds the content through this same function: only pop the window up the first time, so it stays where the user put it.
+	if not _optional_editor.visible:
+		_optional_editor.popup_centered_clamped(Vector2i(460, 600), 0.9)

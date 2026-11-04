@@ -9,3 +9,7 @@
 769|Desprevenido
 770|Desprevenido: él y su grupo se saltan la fase de monstruos
 771|Despertar
+772|%s (opcional)
+773|Objetivo opcional
+774|Objetivo opcional completado:\n%s
+775|Opcional:

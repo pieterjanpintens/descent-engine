@@ -2292,6 +2292,18 @@ msgstr "Desprevenido: él y su grupo se saltan la fase de monstruos"
 msgid "Wake up"
 msgstr "Despertar"
 
+msgid "%s (optional)"
+msgstr "%s (opcional)"
+
+msgid "Optional objective"
+msgstr "Objetivo opcional"
+
+msgid "Optional objective completed:\n%s"
+msgstr "Objetivo opcional completado:\n%s"
+
+msgid "Optional:"
+msgstr "Opcional:"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

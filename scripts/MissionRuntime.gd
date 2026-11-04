@@ -1542,6 +1542,8 @@ func _check_current_objectives(hero_name: String = "") -> MissionObjective:
 				if not optional.already_achieved and evaluate_conditions(optional.conditions):
 					await apply_effects(optional.effects, hero_name)
 					optional.already_achieved = true
+					if optional.description != "":
+						_pending_optional_completions.append(optional)
 
 		for node in sorted:
 			if node.already_achieved or not evaluate_conditions(node.conditions):
@@ -1553,6 +1555,29 @@ func _check_current_objectives(hero_name: String = "") -> MissionObjective:
 			_current_groups[group_index] = node.children.duplicate()
 			break
 	return null
+
+
+## Optional objectives completed since the last drain (with a description to tell the table). MissionPlayer drains this after anything that can
+## complete one (a checkpoint, a fired action, a defeated monster) and tells the table, like the other pending queues.
+var _pending_optional_completions: Array[MissionObjective] = []
+
+
+func drain_pending_optional_completions() -> Array[MissionObjective]:
+	var completed := _pending_optional_completions
+	_pending_optional_completions = []
+	return completed
+
+
+## The optional objectives of the nodes that are current right now (the ones with a description): [{"objective", "text", "achieved"}].
+## An optional objective is only possible while its node is current, so once the story moves on it disappears from here.
+func get_current_optional_objectives() -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	for group in _current_groups:
+		for node in group:
+			for optional in node.optional_objectives:
+				if optional.description != "":
+					found.append({"objective": optional, "text": objective_text(optional), "achieved": optional.already_achieved})
+	return found
 
 
 ## Every currently-active objective node's own description, one per
