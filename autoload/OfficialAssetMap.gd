@@ -55,6 +55,12 @@ const MAP: Dictionary = {
 	# one object anywhere is named "Button_EnemyView"), so no container-path
 	# disambiguation is needed in the import script for this one.
 	"res://models/hud_threat.png": "Button_EnemyView",
+	# The interaction arrow dragged from a hero portrait (PlayerInteractionController): a scrolling strip + the arrow head.
+	"res://models/arrow_body.png": "TargetingArcBody",
+	"res://models/arrow_tip.png": "Arrow_Tip",
+	# The huge ground planes (GroundFloor): the map view's stone and the monster view's floor.
+	"res://models/floor_concrete.jpg": "GroundStone_Diffuse",
+	"res://models/floor_enemy.jpg": "EnemyGround",
 	# PlayerHud's "Quest" (map-view) icon button - same case as
 	# Button_EnemyView above, also confirmed unique.
 	"res://models/hud_quest.png": "Button_MapView",

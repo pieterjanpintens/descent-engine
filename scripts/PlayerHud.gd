@@ -84,8 +84,12 @@ const PARTY_ITEMS: Array[String] = ["Quest Log", "Campaign Log", "Feats", "Heroe
 const ICON_SIZE := 64.0
 const TOGGLE_SIZE := 48.0
 const MARGIN := 12.0
+## The icon of the view that is showing is this much bigger than normal, the other one this much smaller.
+const ACTIVE_SCALE := 0.15
 
 var _view_buttons: Control  ## the top-right Quest/Threat icons
+var _quest_button: Button
+var _threat_button: Button
 var _gear_button: Button
 var _party_button: Button
 var _gear_menu: VBoxContainer
@@ -131,8 +135,30 @@ func _build_top_right() -> void:
 	icons.add_theme_constant_override("separation", 8)
 	icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(icons)
-	icons.add_child(_round_icon_button("Quest", Color(0.2, 0.4, 0.65), _on_quest_pressed, QUEST_ICON_PATH))
-	icons.add_child(_round_icon_button("Threat", Color(0.55, 0.22, 0.08), _on_threat_pressed, THREAT_ICON_PATH))
+	_quest_button = _round_icon_button("Quest", Color(0.2, 0.4, 0.65), _on_quest_pressed, QUEST_ICON_PATH)
+	_threat_button = _round_icon_button("Threat", Color(0.55, 0.22, 0.08), _on_threat_pressed, THREAT_ICON_PATH)
+	icons.add_child(_quest_button)
+	icons.add_child(_threat_button)
+	set_active_view(false, false)  # the map is the view a mission starts in
+
+
+## Marks which view is showing: its icon grows by ACTIVE_SCALE, the other one shrinks by the same amount (scaled around the
+## icon's centre, so the layout does not move). Called by MissionPlayer whenever the map / monster view switches.
+func set_active_view(monsters_shown: bool, animate: bool = true) -> void:
+	_scale_icon(_threat_button, 1.0 + ACTIVE_SCALE if monsters_shown else 1.0 - ACTIVE_SCALE, animate)
+	_scale_icon(_quest_button, 1.0 - ACTIVE_SCALE if monsters_shown else 1.0 + ACTIVE_SCALE, animate)
+
+
+func _scale_icon(btn: Button, factor: float, animate: bool) -> void:
+	if btn == null:
+		return
+	btn.pivot_offset = Vector2(ICON_SIZE, ICON_SIZE) / 2.0
+	var target := Vector2(factor, factor)
+	if not animate or not is_inside_tree():
+		btn.scale = target
+		return
+	var tween := create_tween()
+	tween.tween_property(btn, "scale", target, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 ## `icon_path` (new 2026-09-23, "Threat", then "Quest" the same day) swaps

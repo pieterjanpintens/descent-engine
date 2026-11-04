@@ -11,11 +11,16 @@ const SIZE := 2000.0
 const TEXTURE_REPEAT := 500.0
 
 
-static func create(y: float) -> MeshInstance3D:
+const MAP_TEXTURE := "res://models/floor_concrete.jpg"      ## official: GroundStone_Diffuse
+const MONSTER_TEXTURE := "res://models/floor_enemy.jpg"      ## official: EnemyGround
+
+
+## `placeholder` is one of the two constants above; the original game's texture is used when it was imported.
+static func create(y: float, placeholder: String = MAP_TEXTURE) -> MeshInstance3D:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(SIZE, SIZE)
 	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = load("res://models/floor_concrete.jpg")
+	mat.albedo_texture = OfficialAssetOverrides.texture_for(placeholder)
 	mat.uv1_scale = Vector3(TEXTURE_REPEAT, TEXTURE_REPEAT, 1.0)
 	mat.texture_repeat = true
 	mat.roughness = 1.0

@@ -1,4 +1,9 @@
-﻿## v0.0.61 - 2026-11-04
+﻿## v0.0.62 - 2026-11-05
+- Player: the arrow dragged from a hero now uses the game's own arrow: a strip of chevrons that slides towards a wider arrow head, coloured like the hero's portrait background (Kehli blue, Syrus purple, ...). It starts in the middle of the portrait, behind it.
+- Player: the map-view and monster-view icons (top right) grow by 15% for the view that is showing and shrink by 15% for the other.
+- Player: the map and monster-view floors use the original game's ground textures when the game assets are imported.
+
+## v0.0.61 - 2026-11-04
 - The app's menus and dialogs are now translated into French, German, Italian, Portuguese, Polish, Czech, Hungarian, Russian, Korean, Simplified Chinese and Traditional Chinese (besides English, Spanish and Dutch). Key terms follow the game's own glossary where it has one. The translations are machine-made and still need a native speaker's review.
 - These languages can also be used as the language of a campaign or mission, and the language list in Options shows all of them.
 - Narration: German and French voices (four each, about 205 MB per language) can be downloaded in Options > Voice, like the Spanish and Dutch ones.
