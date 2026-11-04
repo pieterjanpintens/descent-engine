@@ -4944,6 +4944,8 @@ first working version).
 	`PropertiesDialog`'s own Add-Property `ConfirmationDialog` already
 	established. Every edit goes through `_commit_field()` (a thin wrapper
 	around `operation_history.record()` + `layered_map.notify_objects_changed()`).
+	**Fixed again 2026-11-04: the optional objective's "Edit…" button did nothing** - `_open_optional_editor()` had lost its final `popup_centered()` (it was probably removed together with the stray one described next), so an optional objective could be added but never edited. It now pops up (only when not already open, so the add/remove rebuilds do not move it). The runtime was fine (an optional objective's effects apply once when its conditions hold, while its parent node is current); the Player still shows nothing about optional objectives (no label line, no quest log entry).
+
 	**Confirmed bug, found and fixed 2026-09-18 while adding the feature
 	below**: `_open_test_editor()`'s body ended with BOTH
 	`_test_editor.popup_centered()` AND a stray, leftover
