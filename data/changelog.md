@@ -1,4 +1,8 @@
-﻿## v0.0.59 - 2026-11-04
+﻿## v0.0.60 - 2026-11-04
+- Player: dragging from a hero now draws a smooth arch that starts at the top of the portrait, is wide at the start and thin at the end, and finishes in an arrow head.
+- Player: the "Players spawn. Place your tokens, then play." text is gone, and the phase label now sits right under the objective label, so it no longer overlaps the optional objectives.
+
+## v0.0.59 - 2026-11-04
 - Campaign map: the marker under the mouse grows a little and the cursor turns into a hand, so it is clear what can be clicked.
 
 ## v0.0.58 - 2026-11-04
