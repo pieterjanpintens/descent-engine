@@ -131,8 +131,12 @@ func _build_ui() -> void:
 	# there's nothing to show a portrait row FOR until the party is chosen.
 
 	_drag_line = Line2D.new()
-	_drag_line.width = 4.0
-	_drag_line.default_color = Color(1.0, 1.0, 1.0, 0.85)
+	_drag_line.width = 10.0
+	var taper := Curve.new()  # thick where it leaves the portrait, thin where the arrow head sits
+	taper.add_point(Vector2(0.0, 1.0))
+	taper.add_point(Vector2(1.0, 0.25))
+	_drag_line.width_curve = taper
+	_drag_line.default_color = Color(1.0, 1.0, 1.0, 1.0)  # fully opaque: where the line runs under the arrow head a translucent colour would show the overlap
 	_drag_line.visible = false
 	_drag_line.antialiased = true
 	_drag_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
@@ -281,7 +285,7 @@ func _update_drag_line(mouse_pos: Vector2) -> void:
 		var t := float(i) / STEPS
 		curve.append(start.lerp(control, t).lerp(control.lerp(mouse_pos, t), t))
 	var direction := (mouse_pos - curve[STEPS - 3]).normalized()  # where the curve is heading at its end
-	curve[STEPS] = mouse_pos - direction * 12.0  # the line stops where the arrow head begins
+	curve[STEPS] = mouse_pos - direction * 6.0  # the end of the line runs under the arrow head, which is drawn over it
 	_drag_line.points = curve
 	_drag_arrow.visible = true
 	_drag_arrow.position = mouse_pos
