@@ -258,7 +258,7 @@ func _ready() -> void:
 	if standalone:
 		return
 	# Same big concrete floor as the world map; the figures stand right on it.
-	add_child(GroundFloor.create(-0.01))
+	add_child(GroundFloor.create(-0.01, GroundFloor.MONSTER_TEXTURE))
 	_build_camera()
 	refresh_monsters([])
 

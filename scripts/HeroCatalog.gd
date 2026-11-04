@@ -77,6 +77,23 @@ static func slot_crop(index: int, weapon_index: int) -> Texture2D:
 	return OfficialAssetOverrides.texture_for("res://models/crops/hero_%s_weapon%d.png" % [HERO_NAMES[index].to_lower(), weapon_index + 1])
 
 
+## The colour of the interaction arrow dragged from each hero's portrait (index-aligned with HERO_NAMES): it mimics the
+## background colour of the hero's portrait, as in the game. Hard-coded, measured from the portraits' backgrounds: the grey arrow
+## pictures are multiplied by it, so the brightest channel is about 0.9.
+const ARROW_COLORS: Array[Color] = [
+	Color(0.85, 0.90, 0.77),  # Chance - pale green
+	Color(0.76, 0.90, 0.68),  # Galaden - green
+	Color(0.90, 0.82, 0.64),  # Brynn - sand
+	Color(0.90, 0.65, 0.40),  # Vaerix - orange-brown
+	Color(0.60, 0.80, 0.92),  # Kehli - blue
+	Color(0.78, 0.66, 0.92),  # Syrus - purple
+]
+
+
+static func arrow_color(index: int) -> Color:
+	return ARROW_COLORS[index] if index >= 0 and index < ARROW_COLORS.size() else Color(0.66, 0.85, 0.62)
+
+
 static func slot_portrait(index: int) -> Texture2D:
 	return OfficialAssetOverrides.texture_for(PORTRAIT_PATHS[index])
 

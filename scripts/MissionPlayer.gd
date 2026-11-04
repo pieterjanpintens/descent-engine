@@ -902,6 +902,8 @@ func _set_monster_display_visible(shown: bool) -> void:
 	camera.current = not shown
 	camera.set_process_input(not shown)
 	camera.set_process_unhandled_input(not shown)
+	if hud != null:
+		hud.set_active_view(shown)
 
 
 func _on_back_button_pressed() -> void:

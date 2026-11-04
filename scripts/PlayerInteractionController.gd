@@ -79,14 +79,39 @@ var _portraits: Array[Control] = []
 ## slots 0..N-1 in order (e.g. roster [0, 2, 5]).
 var _roster: Array[int] = []
 
-var _drag_line: Line2D
-var _drag_arrow: Polygon2D  ## the arrow head at the end of the line (a child of the line, so it shows and hides with it)
+var _drag_line: MeshInstance2D  ## the strip of the arrow (see _set_strip())
+var _drag_arrow: Sprite2D  ## the arrow head at the end of the line
+## The arrow's pictures (placeholders; OfficialAssetMap swaps in the game's TargetingArcBody / Arrow_Tip when imported) and its width in pixels.
+const ARROW_BODY_TEXTURE := "res://models/arrow_body.png"
+const ARROW_TIP_TEXTURE := "res://models/arrow_tip.png"
+const ARROW_WIDTH := 30.0  ## the arrow head's width; the strip is ARROW_STRIP_WIDTH wide
+## Which rows (V0..V1 of its height) of the game's strip picture are used - all of it, as in the game.
+const ARROW_BODY_V0 := 0.0
+const ARROW_BODY_V1 := 1.0
+const ARROW_STRIP_WIDTH := 34.0
+const ARROW_TINT := Color(0.66, 0.85, 0.62)  ## the arrow's colour before a hero is chosen; while dragging it is HeroCatalog.arrow_color() (the pictures are grey, the colour is multiplied over them)
+const ARROW_SLIDE_SPEED := 0.25  ## picture repeats per second the chevrons slide along the strip
+const ARROW_WIDTH_AT_HEAD := 0.6  ## the strip's width where the arrow head begins, as a fraction of its width at the base (the game: 0.5 / 0.79 to 0.58)
+const ARROW_REPEATS := 3.0  ## repeats of the strip picture along the whole strip (the game's material tiling), whatever its length
+const ARROW_HEAD_WIDEN := 1.45  ## the arrow head is this much wider than the strip, so it covers the strip's end
 var _dragging: bool = false
 var _drag_dock_position: int = -1
 
 var _highlight_overlay: MeshInstance3D
 var _highlight_overlay_mesh: ImmediateMesh
 var _hovered_entry: InteractableEntry = null
+
+
+## How far the arrow's picture has slid, in picture repeats (0..1).
+var _slide: float = 0.0
+var _strip_curve: PackedVector2Array = PackedVector2Array()  ## the curve the strip was last built along
+
+
+func _process(delta: float) -> void:
+	if _drag_line == null or not _drag_line.visible:
+		return
+	_slide = fposmod(_slide + delta * ARROW_SLIDE_SPEED, 1.0)
+	_set_strip(_strip_curve)
 
 
 func _ready() -> void:
@@ -130,23 +155,31 @@ func _build_ui() -> void:
 	# Empty until set_roster() is called (after EmbarkDialog resolves) -
 	# there's nothing to show a portrait row FOR until the party is chosen.
 
-	_drag_line = Line2D.new()
-	_drag_line.width = 10.0
-	var taper := Curve.new()  # thick where it leaves the portrait, thin where the arrow head sits
-	taper.add_point(Vector2(0.0, 1.0))
-	taper.add_point(Vector2(1.0, 0.25))
-	_drag_line.width_curve = taper
-	_drag_line.default_color = Color(1.0, 1.0, 1.0, 1.0)  # fully opaque: where the line runs under the arrow head a translucent colour would show the overlap
+	# The game's own arrow: a strip of chevrons tiled along the curve and sliding toward the tip as a whole (the strip is a mesh
+	# built in _set_strip(), its texture coordinates shifted a little every frame), ending in an arrow head.
+	_drag_line = MeshInstance2D.new()
+	_drag_line.texture = _mipmapped(OfficialAssetOverrides.texture_for(ARROW_BODY_TEXTURE))  # the picture is shown much smaller than it is: mipmaps keep it from shimmering while it slides
+	_drag_line.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_drag_line.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	# Like the game: the strip picture is grey and the game tints it green (a plain multiply: white arrows become light green,
+	# the grey ground mid green, the dark outline dark green). The picture slides because the strip's texture coordinates are
+	# shifted a little every frame (see _process()); no shader is involved.
+	_drag_line.self_modulate = ARROW_TINT
 	_drag_line.visible = false
-	_drag_line.antialiased = true
-	_drag_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	_drag_line.joint_mode = Line2D.LINE_JOINT_ROUND
 	add_child(_drag_line)
-	_drag_arrow = Polygon2D.new()
-	_drag_arrow.color = _drag_line.default_color
-	_drag_arrow.antialiased = true
-	_drag_arrow.polygon = PackedVector2Array([Vector2.ZERO, Vector2(-17, -8), Vector2(-17, 8)])  # the tip at the origin, pointing right
-	_drag_line.add_child(_drag_arrow)
+	move_child(_drag_line, 0)  # drawn before the portrait row, so the arrow comes out from behind the portrait
+	_drag_arrow = Sprite2D.new()
+	_drag_arrow.texture = OfficialAssetOverrides.texture_for(ARROW_TIP_TEXTURE)
+	_drag_arrow.flip_h = true  # the game's tip texture points left; the arrow points along the drag
+	_drag_arrow.centered = false
+	var tip_size := _drag_arrow.texture.get_size()
+	_drag_arrow.offset = Vector2(-tip_size.x, -tip_size.y / 2.0)  # the tip of the flipped picture at the origin
+	_drag_arrow.scale = Vector2(ARROW_WIDTH / tip_size.y, ARROW_WIDTH / tip_size.y * ARROW_HEAD_WIDEN)
+	_drag_arrow.self_modulate = ARROW_TINT  # the head gets the strip's colour too
+	_drag_arrow.visible = false
+	add_child(_drag_arrow)
+	move_child(_drag_arrow, 0)  # both are drawn before the portrait row; the head over the strip, so the head hides the end of the strip
+	move_child(_drag_line, 0)
 
 
 ## Rebuilds the portrait row from the party EmbarkDialog.ask_roster()
@@ -241,6 +274,9 @@ func _on_portrait_gui_input(event: InputEvent, dock_position: int) -> void:
 			return  # a placement dialog leaves the screen clickable - no interacting yet
 		_dragging = true
 		_drag_dock_position = dock_position
+		var tint := HeroCatalog.arrow_color(_roster[dock_position])  # the arrow takes the colour of the hero's portrait background
+		_drag_line.self_modulate = tint
+		_drag_arrow.self_modulate = tint
 		_drag_line.visible = true
 		_update_drag_line(get_viewport().get_mouse_position())  # visible from the first moment, before the mouse moves
 		get_viewport().set_input_as_handled()
@@ -271,25 +307,98 @@ func _input(event: InputEvent) -> void:
 
 func _update_drag_line(mouse_pos: Vector2) -> void:
 	var portrait := _portraits[_drag_dock_position]
-	var start := portrait.global_position + Vector2(portrait.size.x / 2.0, 0.0)  # the line leaves from the top edge of the portrait
+	var start := portrait.global_position + portrait.size / 2.0  # the line starts in the middle of the portrait (drawn behind it)
 	# A gentle arch: a quadratic curve whose middle is pulled up, more the longer the line, ending in an arrow head on the mouse.
 	var distance := start.distance_to(mouse_pos)
+	var tip_length := ARROW_WIDTH * 2.0  # the tip texture is twice as long as it is wide
 	if distance < 6.0:
-		_drag_line.points = PackedVector2Array([start, mouse_pos])
+		_set_strip(PackedVector2Array())
 		_drag_arrow.visible = false
 		return
-	var control := (start + mouse_pos) / 2.0 + Vector2(0.0, -minf(distance * 0.3, 160.0))
+	if distance < tip_length + 12.0:
+		# Closer than the arrow head is long: just the head, pointing from the portrait toward the mouse.
+		_set_strip(PackedVector2Array())
+		_drag_arrow.visible = true
+		_drag_arrow.position = mouse_pos
+		_drag_arrow.rotation = (mouse_pos - start).angle()
+		return
+	# The arrow head's tip sits on the mouse and the strip aims for the MIDDLE of the head, so the head always continues the
+	# strip in its own direction: the end point depends on the direction the curve arrives with, which depends on the end
+	# point - a few rounds settle it.
+	var middle := mouse_pos
 	var curve := PackedVector2Array()
-	const STEPS := 28
-	for i in STEPS + 1:
-		var t := float(i) / STEPS
-		curve.append(start.lerp(control, t).lerp(control.lerp(mouse_pos, t), t))
-	var direction := (mouse_pos - curve[STEPS - 3]).normalized()  # where the curve is heading at its end
-	curve[STEPS] = mouse_pos - direction * 6.0  # the end of the line runs under the arrow head, which is drawn over it
-	_drag_line.points = curve
+	var direction := (mouse_pos - start).normalized()
+	const STEPS := 40
+	for _round in 4:
+		var reach := start.distance_to(middle)
+		var control := (start + middle) / 2.0 + Vector2(0.0, -minf(reach * 0.3, 160.0))
+		curve.clear()
+		for i in STEPS + 1:
+			var t := float(i) / STEPS
+			curve.append(start.lerp(control, t).lerp(control.lerp(middle, t), t))
+		direction = (curve[STEPS] - curve[STEPS - 2]).normalized()  # where the curve is heading at its end
+		middle = mouse_pos - direction * (tip_length / 2.0)
+	curve.append(mouse_pos)  # like the game's line, the strip runs on to the arrow's tip, under the arrow head, which hides its narrowest part
+	_set_strip(curve)
 	_drag_arrow.visible = true
 	_drag_arrow.position = mouse_pos
 	_drag_arrow.rotation = direction.angle()
+
+
+static func _mipmapped(texture: Texture2D) -> Texture2D:
+	var image := texture.get_image()
+	if image == null:
+		return texture
+	image = image.duplicate()
+	if image.is_compressed():
+		image.decompress()
+	image.generate_mipmaps()
+	return ImageTexture.create_from_image(image)
+
+
+## The strip's width, as a fraction of its base width, at `from_tip` pixels before the arrow's tip: like the game it is about
+## 60% wide where the arrow head begins (ARROW_WIDTH * 2 from the tip), widening evenly to the full width at the base; under the
+## head it narrows to a point (hidden). `total` = the strip's whole length.
+static func _strip_width_at(from_tip: float, total: float) -> float:
+	var head := ARROW_WIDTH * 2.0
+	if from_tip < head:
+		return ARROW_WIDTH_AT_HEAD * from_tip / head
+	return lerpf(ARROW_WIDTH_AT_HEAD, 1.0, clampf((from_tip - head) / maxf(total - head, 1.0), 0.0, 1.0))
+
+
+## Builds the arrow's strip along `curve`: a ribbon that narrows evenly from ARROW_STRIP_WIDTH to 60% of it where the head begins,
+## textured like the game's line: a fixed number of repeats stretched over the whole length.
+func _set_strip(curve: PackedVector2Array) -> void:
+	_strip_curve = curve
+	if curve.size() < 2:
+		_drag_line.mesh = null
+		return
+	var vertices := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	# As in the game (its ArcRenderer line: texture mode Stretch, material tiling 3): the picture is stretched over the WHOLE strip and
+	# repeated ARROW_REPEATS times, so a longer strip has longer arrows, never more of them. The width follows the game's width
+	# curve: full at the base, a bit narrower at 75% of the length, a point at the end (which is hidden under the arrow head).
+	var lengths := PackedFloat32Array([0.0])
+	for i in range(1, curve.size()):
+		lengths.append(lengths[i - 1] + curve[i].distance_to(curve[i - 1]))
+	var total := maxf(lengths[lengths.size() - 1], 0.001)
+	for i in curve.size():
+		var ahead := curve[mini(i + 1, curve.size() - 1)] - curve[maxi(i - 1, 0)]
+		var side := ahead.normalized().orthogonal() if ahead.length() > 0.001 else Vector2.DOWN
+		var along := lengths[i] / total
+		var half := ARROW_STRIP_WIDTH / 2.0 * _strip_width_at(total - lengths[i], total)
+		vertices.append(curve[i] - side * half)
+		vertices.append(curve[i] + side * half)
+		var u := along * ARROW_REPEATS - _slide
+		uvs.append(Vector2(u, 0.0))
+		uvs.append(Vector2(u, 1.0))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, arrays)
+	_drag_line.mesh = mesh
 
 
 ## True while the M monster view is what's on screen - drags then target
@@ -327,6 +436,7 @@ func _end_drag(screen_pos: Vector2) -> void:
 	_dragging = false
 	_drag_dock_position = -1
 	_drag_line.visible = false
+	_drag_arrow.visible = false
 	_hovered_entry = null
 	_rebuild_highlight()
 
