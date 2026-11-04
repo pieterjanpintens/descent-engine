@@ -158,7 +158,7 @@ const EXTRA_MODEL_PATHS := {
 
 
 ## The narration languages that have voices (the text of a game read in any other language is not narrated).
-const LANGUAGES: Array[String] = ["en", "es", "nl"]
+const LANGUAGES: Array[String] = ["en", "es", "nl", "de", "fr"]
 
 ## One voice pack per non-English language: `voices` (the same shape as the English ones, with `lang`, and a `gender` that is
 ## checked by pitch; the first one is the default story teller), `paths` (model -> folder in the voices repository) and the
@@ -195,6 +195,36 @@ const PACKS := {
 			"nl_NL-mls-medium": "nl/nl_NL/mls/medium",
 		},
 	},
+	"de": {
+		"size_text": "about 205 MB",
+		"size_mb": 203,
+		"voices": [
+			{"id": "de_thorsten", "lang": "de", "label": "German - man (Thorsten)", "gender": "m", "model": "de_DE-thorsten-medium", "speaker": -1, "plain": true},
+			{"id": "de_ramona", "lang": "de", "label": "German - woman (Ramona)", "gender": "f", "model": "de_DE-ramona-low", "speaker": -1, "plain": true},
+			{"id": "de_mls_f", "lang": "de", "label": "German - woman (audiobook reader)", "gender": "f", "model": "de_DE-mls-medium", "speaker": 12, "plain": true},
+			{"id": "de_mls_m", "lang": "de", "label": "German - man (audiobook reader)", "gender": "m", "model": "de_DE-mls-medium", "speaker": 1, "plain": true},
+		],
+		"paths": {
+			"de_DE-thorsten-medium": "de/de_DE/thorsten/medium",
+			"de_DE-ramona-low": "de/de_DE/ramona/low",
+			"de_DE-mls-medium": "de/de_DE/mls/medium",
+		},
+	},
+	"fr": {
+		"size_text": "about 205 MB",
+		"size_mb": 203,
+		"voices": [
+			{"id": "fr_siwis", "lang": "fr", "label": "French - woman (Siwis)", "gender": "f", "model": "fr_FR-siwis-medium", "speaker": -1, "plain": true},
+			{"id": "fr_tom", "lang": "fr", "label": "French - man (Tom)", "gender": "m", "model": "fr_FR-tom-medium", "speaker": -1, "plain": true},
+			{"id": "fr_upmc_f", "lang": "fr", "label": "French - woman (Jessica)", "gender": "f", "model": "fr_FR-upmc-medium", "speaker": 0, "plain": true},
+			{"id": "fr_upmc_m", "lang": "fr", "label": "French - man (Pierre)", "gender": "m", "model": "fr_FR-upmc-medium", "speaker": 1, "plain": true},
+		],
+		"paths": {
+			"fr_FR-siwis-medium": "fr/fr_FR/siwis/medium",
+			"fr_FR-tom-medium": "fr/fr_FR/tom/medium",
+			"fr_FR-upmc-medium": "fr/fr_FR/upmc/medium",
+		},
+	},
 }
 
 ## A line each language's samples ("hear this voice") read - written per language, not translated through the UI language,
@@ -203,11 +233,15 @@ const SAMPLE_LINES := {
 	"en": "The old road is longer than it looks, friend, and the night is nearly upon us.",
 	"es": "El viejo camino es más largo de lo que parece, amigo, y la noche está a punto de caer sobre nosotros.",
 	"nl": "De oude weg is langer dan hij lijkt, vriend, en de nacht valt bijna over ons heen.",
+	"de": "Der alte Weg ist länger, als er aussieht, mein Freund, und die Nacht bricht bald über uns herein.",
+	"fr": "Le vieux chemin est plus long qu'il n'en a l'air, mon ami, et la nuit va bientôt tomber sur nous.",
 }
 const TELLER_SAMPLE_LINES := {
 	"en": "The old door creaks open, and a cold wind carries the smell of smoke.",
 	"es": "La vieja puerta se abre con un crujido, y un viento frío trae olor a humo.",
 	"nl": "De oude deur kraakt open en een koude wind brengt de geur van rook mee.",
+	"de": "Die alte Tür knarrt auf, und ein kalter Wind trägt den Geruch von Rauch herein.",
+	"fr": "La vieille porte s'ouvre en grinçant, et un vent froid apporte une odeur de fumée.",
 }
 
 

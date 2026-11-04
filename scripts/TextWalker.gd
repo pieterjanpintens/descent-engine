@@ -234,8 +234,8 @@ static func from_csv(text: String, entries: Array[Dictionary]) -> Dictionary:
 		by_key[entry["path"]] = entry
 	var columns := {}
 	for index in range(2, header.size()):
-		var code := str(header[index]).strip_edges().to_lower()
-		if CampaignInfo.is_known(code):
+		var code := CampaignInfo.canonical(str(header[index]))
+		if code != "":
 			columns[index] = code
 			if not result["languages"].has(code):
 				result["languages"].append(code)

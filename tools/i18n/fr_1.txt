@@ -1,0 +1,772 @@
+1|(immunisé)
+2|micro [%s%s]
+3|%s obtient une recette unique : %s.
+4|(%d échec)
+5|(actif)
+6|(télécharge d'abord l'outil d'importation, %s)
+7|(immunisé)
+8|(Seules les campagnes conservent les recettes.)
+9|(XP maintenant %d)
+10|- pas encore importé
+11|= %d dégâts\nJet de défense : -%d\n\n%d dégâts infligés
+12|Non apparu : %s.
+13|Il n'y a plus de recette à obtenir.
+14|%d dégâts à %s
+15|%d dégâts à l'ennemi
+16|%d dégâts supplémentaires (%d %% de sa santé)
+17|%d de la communauté à installer.
+18|%d or
+19|%d or (Boussole du mort)
+20|%d h %d min
+21|%d min
+22|%d monstre(s) apparu(s).
+23|%d des objectifs actuels n'existent plus.
+24|%d x %d tuiles
+25|%dx %s
+26|%s  -  XP %d,  or %d
+27|%s %d (aucune ligne de table)
+28|%s (jeton %s)
+29|%s (%s, pièce %s)
+30|%s (copié par %s) : %s
+31|%s +%d jusqu'à la fin du round
+32|%s - jeton %s
+33|%s - %s s'active !\n\n%s
+34|%s - %s s'active !\n\n%s reçoit une denrée aléatoire : %s\n\nÉquipez-la.
+35|%s - %s s'active !\n\n%s reçoit une denrée améliorée aléatoire : %s\n\nÉquipez-la.
+36|%s - %s s'active !\n\n%s\n\nVérifiez si cela s'applique et exécutez-le sur le plateau (un état peut être appliqué depuis l'écran des monstres).
+37|%s - %s\n%s a-t-il une blessure ?
+38|%s - %s\nCombien de fatigue y a-t-il sur toutes les cartes de %s ?
+39|%s - %s\nQuel autre ennemi subit les mêmes dégâts ? (Annuler : aucun)
+40|%s - achat %d or, vente %d
+41|%s - PV %d, Niv %d, Déf %d, Att %d
+42|%s - niveau %d
+43|%s - pas encore implémenté.
+44|%s « %s » - version %s
+45|%s attaque %s (dégâts %d, %s).
+46|%s attaque %s - choisissez une arme
+47|%s attaque %s !%s\nDégâts %d - %s - Vitesse %d
+48|%s attaque %s.\nQuelle arme ?
+49|%s attaque %s\navec %s (dégâts %d)\n
+50|%s a laissé tomber quelque chose d'utilisable. %s
+51|%s a laissé tomber : %s.
+52|%s obtient %s
+53|%s a été vaincu.
+54|%s a soigné %d (%d points de vie).
+55|%s est %s.
+56|%s est désorienté !\n%s\n%s
+57|%s est désorienté : %s.
+58|%s est immunisé
+59|%s a moins de chances d'être sa cible ce round
+60|%s n'est plus %s.
+61|%s ne fait pas partie du groupe.
+62|%s prépare quelque chose...
+63|%s a perdu tous ses points de vie. Blesser %s ?
+64|%s exécute %s contre %s.
+65|%s reçoit un avantage : %s.
+66|%s subit %d dégâts
+67|%s subit %d dégâts d'accablement (%d points de vie restants).
+68|%s subit %d dégâts d'accablement et est vaincu ! Retirez-le du plateau.
+69|%s a subi %d dégâts (%d points de vie restants).
+70|%s a subi %d dégâts et a été vaincu.
+71|%s s'est activé
+72|%s a été vaincu pendant une interruption avant de pouvoir %s.
+73|%s a été blessé une troisième fois.
+74|%s a blessé un héros - son tour est terminé.
+75|Le Panier à décoctions de %s fournit une denrée aléatoire :
+76|%s : %s !\nCible %s - Dégâts %d - %s - Vitesse %d
+77|%s : %s\nPièces fixes : %s
+78|%s : défense +%d jusqu'à la fin du round
+79|%s : interagir avec « %s »
+80|%s : butin x%d (+%s)
+81|%s : il faut %d, vous avez %d
+82|%s : effectuez un test de %s - combien de réussites ?
+83|%s : l'ennemi n'a pas de butin
+84|%s : l'ennemi n'est pas vaincu, pas de butin supplémentaire
+85|%s\n\nRien n'a été modifié. Vous pouvez réessayer ou télécharger la mise à jour depuis la page des versions.
+86|%s\n\nVous avez choisi : %s
+87|(attaque à nouveau)
+88|(ignoré) %s
+89|(lieu sans nom)
+90|(quête annexe sans nom)
+91|(votre version)
+92|+%d dégâts
+93|+%d dégâts (obtenu %d-%d)
+94|+%d dégâts (round %d)
+95|Illustrations 2D - logo et fond du menu principal
+96|[brouillon]
+97|« %s » version %s est déjà installé.
+98|\n%.1f Mo.
+99|\n%d mission(s), %d image(s), %.1f Mo.
+100|\n%d sauvegarde(s) de celle-ci sont mises de côté (user://campaign_saves/_removed), pas supprimées.
+101|\n%d réussites x %d dégâts de l'arme
+102|\n(+%d dégâts d'une capacité défensive pendant cette activation)
+103|\n(Affaibli : dégâts réduits de %d)
+104|\n\n%s obtient la blessure « %s » : placez sa carte dans votre zone de jeu.
+105|\n\n%s a encore %d points de vie.
+106|\n\n%s est vaincu ! Retirez-le du plateau.
+107|\n\n%s doit retourner sa carte de blessure (%s) sur sa face majeure.
+108|\n\n%s doit retourner sa carte de blessure sur sa face majeure.
+109|\n\nFusée commémorative : fixez la santé de %s à %d à la place.
+110|\n\nL'application ne peut pas se mettre à jour ici : %s. Téléchargez-la depuis la page des versions.
+111|\n\nLa mission en cours sera fermée - sauvegardez-la d'abord (Options > Sauvegarder) ou choisissez Plus tard.
+112|\n\nC'est la troisième blessure de %s - la partie sera perdue !
+113|\n\nPierre de vagabond - chaque héros peut choisir son autre avantage au lieu de défausser 1 fatigue :
+114|\nActivation :
+115|\nAinsi que quelques matériaux d'artisanat pour le groupe : %s.
+116|\nÀ la table :
+117|\nÉtats appliqués : %s
+118|\nExposé : +%d dégâts
+119|\nImmunisé contre : %s
+120|\nImmunisé ! L'attaque ne cause aucun dégât.\n\n0 dégât infligé
+121|\nEn développement (un brouillon)
+122|\nButin pour le groupe : %s.
+123|\nAucune tuile d'apparition libre pour : %s - placez-les à côté des autres.
+124|\nPas encore installé - ouvrez-le pour l'installer.
+125|\nRésistance : -%d dégâts
+126|\nLe paquet a été vérifié : il ne contient que des données de jeu.
+127|\nFaiblesse : +%d dégâts
+128|\nPièces d'arme et accessoire :
+129|une amélioration d'armure %s
+130|une recette de pièce %s
+131|une amélioration de pièce %s
+132|une recette %s
+133|une amélioration %s
+134|Une campagne
+135|un héros
+136|une nouvelle zone
+137|une recette de potion
+138|Une sauvegarde nommée « %s » existe déjà.
+139|Une sauvegarde doit avoir un nom.
+140|une cargaison d'armures %s
+141|une cargaison d'armures
+142|Une mission unique
+143|Un instantané peut être pris pendant la phase des joueurs, sans dialogue ouvert.
+144|un accessoire
+145|une amélioration d'accessoire
+146|Acte terminé !
+147|Ajouter une langue
+148|ajoute %d dégâts à sa prochaine activation
+149|Accablé
+150|Accablement
+151|dégâts d'accablement +%d ce round
+152|Agilité
+153|tous ses statuts sont retirés
+154|une amélioration d'armure
+155|un auteur inconnu
+156|Un projet de fan non officiel, libre d'utilisation (licence MIT).\n*Descent : Légendes des Ténèbres* et tout ce qui touche au jeu appartiennent à leurs propriétaires.
+157|Anemos
+158|Anemos (vent)
+159|Mise à jour de l'application
+160|Appliqué :
+161|Appliquer des états
+162|Aquos
+163|Aquos (eau)
+164|Armure
+165|Amélioration d'armure :
+166|Armure :
+167|Armure…
+168|À la table :
+169|Attaque
+170|attaquer %s
+171|Capacités d'attaque : %s
+172|l'attaque obtient %s
+173|Disponible maintenant : %s
+174|Retour
+175|Retour à l'éditeur
+176|Retour à l'éditeur
+177|Retour au menu
+178|devient accablé
+179|Commencer la campagne
+180|Os
+181|Acheté
+182|arc
+183|Infuser
+184|Panier à décoctions
+185|Acheter
+186|Acheter  %d
+187|Acheter  %d or
+188|Acheter la recette  %d or
+189|par
+190|par %s
+191|Campagne
+192|Campagne terminée
+193|Campagne terminée ! (%s)
+194|Éditeur de campagne
+195|Journal de campagne
+196|%s peut-il attaquer un deuxième héros ?
+197|Annuler
+198|Annuler le téléchargement
+199|Cautérisation
+200|Prudent
+201|Centre à centre (strict)
+202|Centre à coin (recommandé)
+203|Chapitre
+204|Le chapitre « %s » que vous avez déjà terminé n'est pas dans la nouvelle version.
+205|Le chapitre « %s », où vous êtes actuellement, n'est pas dans l'acte %d de la nouvelle version.
+206|Rechercher une version plus récente de l'application dans le menu principal
+207|Le coffre, la porte, l'arbre et le puits utilisent les modèles du jeu après Ressources du jeu > Importer. Désactivé = les accessoires fournis avec l'application. Effet à la prochaine ouverture d'une carte.
+208|Choisir un paquet
+209|Choisir un fichier de paquet…
+210|Choisir une arme
+211|Choisissez le dossier où le jeu est installé
+212|Choisir le dossier du jeu…
+213|Choisissez deux armes par héros (et des accessoires facultatifs)
+214|Choisissez votre groupe
+215|Fermer
+216|Tissu
+217|Ordinaire
+218|Communauté
+219|Liste de la communauté
+220|États
+221|États (%d)
+222|Confirmer
+223|Désorienté
+224|Denrées
+225|Denrées…
+226|Continuer
+227|Continuer cette partie
+228|Conversion des modèles... %s (%s)
+229|copie %s
+230|Copie cette version en lecture seule dans un nouveau brouillon modifiable. La version elle-même et ses sauvegardes restent inchangées.
+231|Coin à coin (souple, Descent 2)
+232|Coût : %s
+233|Impossible de dupliquer %s.
+234|Impossible d'ouvrir cette sauvegarde.
+235|Impossible d'ouvrir la campagne « %s ».
+236|Impossible de démarrer le téléchargement de %s (erreur %d).
+237|Impossible de décompresser %s (code de sortie tar %d).
+238|Impossible de décompresser le moteur de narration (code de sortie tar %d).
+239|Impossible d'écrire %s (erreur %d).
+240|Compter comme perdu
+241|Compter comme gagné
+242|Créé par
+243|Crédits
+244|arbalète
+245|Contondant
+246|Curiosités
+247|Objectif actuel
+248|Dégâts
+249|dégâts %d
+250|dégâts +%d définitivement (maintenant %d)
+251|dégâts -%d
+252|Type de dégâts
+253|Étourdi
+254|Défaite.
+255|Vaincu
+256|défense %+d jusqu'à la fin du round (maintenant %d)
+257|défense +%d pendant cette attaque
+258|défense +%d définitivement (maintenant %d)
+259|défense -%d
+260|défense -%d ce round
+261|Capacités défensives : %s
+262|capacité défensive désactivée pour la prochaine attaque
+263|capacité défensive désactivée jusqu'à la fin du round
+264|Capacité défensive désactivée.
+265|Capacité défensive : %s
+266|Supprimer la sauvegarde « %s » ?
+267|Supprimer cette sauvegarde
+268|%s a-t-il infligé des dégâts à %s ?
+269|%s a-t-il réussi le test ?
+270|J'ai entendu retraite ? Déplacez-vous de {speed} tuiles maximum, aussi loin des héros que possible.
+271|N'a pas été déclenché :
+272|Aucun nombre valide entendu
+273|Rien entendu - maintenez %s et réessayez
+274|Pas compris
+275|Option non reconnue
+276|Terminé
+277|Terminé - redémarrez l'application pour tout voir.
+278|Terminé. La copie mise à jour est dans la liste.
+279|Damné
+280|Télécharger des voix supplémentaires - accents (%s)
+281|Télécharger d'autres voix - anglais standard (%s)
+282|Téléchargement de %s... %d Mo
+283|Téléchargement de %s... %d %% (%d / %d Mo)
+284|Téléchargement de la mise à jour…
+285|lames jumelles
+286|chaque ennemi subit %d dégâts (activation %d)
+287|Chaque joueur peut emporter %d dans la mission%s. Les denrées fabriquées sont de nouveau disponibles à chaque mission - aucune n'est consommée.
+288|Éditeur
+289|Activer la voix
+290|Bientôt terminée : cette quête annexe disparaît une fois « %s » gagné.
+291|Affaibli
+292|Essences
+293|Exposé
+294|ÉCHEC
+295|Échec du chargement de la mission : %s
+296|Échec de la sauvegarde - voir le panneau Sortie pour les détails.
+297|Exploits
+298|premier
+299|Héros fixe (%s)
+300|Retournez votre carte de héros
+301|Tuiles de sol
+302|Canaliser 2 cartes
+303|Forger
+304|Dupliquer pour modifier
+305|%s dupliqué dans votre brouillon « %s » - ouvrez-le dans l'éditeur %s.
+306|Fortunos
+307|Fortunos (chance)
+308|Éperdu
+309|libre
+310|Tir ami
+311|Frustré
+312|obtient %s
+313|Partie %04d-%02d-%02d %02d:%02d
+314|Ressources du jeu
+315|Jeu trouvé :\n%s
+316|Jeu
+317|gantelet
+318|Général
+319|Donne l'armure : %s%s - %s
+320|Donne la rune : %s
+321|Donne l'accessoire : %s%s - %s
+322|Donne l'arme : %s%s
+323|Donne : %s
+324|gants
+325|Or
+326|Or : %d
+327|Vous avez reçu un paquet de quelqu'un ? Choisissez le fichier ou collez son adresse web. Vous voyez ce qu'il contient, et qui l'a créé, avant toute installation.
+328|Vert
+329|Garder la porte
+330|marteau
+331|Épiderme endurci
+332|Soin
+333|Soin 2
+334|Soin 4
+335|En bonne santé
+336|Écouter le conteur
+337|Écouter cette voix
+338|Entendu : %s
+339|Gravement blessé
+340|Mains lourdes
+341|Cœur lourd
+342|Herbes
+343|modèles de héros
+344|Voix des héros
+345|Héros
+346|Hésitant
+347|Points de vie %d / %d
+348|Maintenez %s pour parler
+349|Cor de vaillance
+350|Cor de vaillance - %s a été blessé.
+351|Survolez une armure pour voir ses règles. L'armure se porte et se résout à la table.
+352|Comment l'outil de ligne de vue décide si deux cases se voient. Centre à coin : une ligne du milieu de la case de l'observateur à n'importe quel coin de la cible.
+353|PV %d · Niveau %d
+355|Ignos
+356|Ignos (feu)
+357|immunisé contre %s
+358|Immunisé contre les états : %s
+359|Immunisé contre :
+360|Immunisé : %s
+361|Immunité : %s
+362|Importer
+363|Importation terminée, mais tout n'a pas fonctionné.
+364|Importation terminée.
+365|Importer les ressources du jeu
+366|Déjà importé : %s.
+367|L'importation depuis l'application n'est pas encore disponible sur cet ordinateur - utilisez plutôt les outils de ressources de la page des versions.
+368|EN DÉVELOPPEMENT
+369|Périphérique d'entrée : %s
+370|Installer
+371|Installer et redémarrer
+372|Installer à la main
+373|Installer ce paquet ?
+374|Installé
+375|« %s » v%s installé.
+376|« %s » installé.
+377|Installation…
+378|Installation… l'application se ferme et redémarre toute seule.
+379|Intelligence
+380|Interrompre
+381|Interruption - les joueurs agissent
+382|Inventaire
+383|Elle reste telle quelle ; vous pouvez continuer à y jouer avec sa propre version.
+384|Langue
+385|Langues
+386|Frappez le monstre le plus proche : il subit {damage} dégâts. (Appuyez sur Interrompre, cliquez sur ce monstre dans la vue des monstres et appliquez les dégâts.)
+387|Plus tard
+388|Cuir
+389|Part après le prochain chapitre !
+390|Niveau %d -
+391|Ligne de vue
+392|Ligne de vue (activée)
+393|Règle de ligne de vue
+394|Écoute... relâchez %s pour envoyer
+395|Charger une sauvegarde de mission
+396|Charger une partie
+397|Rechercher des campagnes partagées par la communauté
+398|Recherche de campagnes partagées…
+399|Butin
+400|Butin pour le groupe :
+401|Porte-bonheur
+402|Lumos
+403|Lumos (lumière)
+404|Fente, sans morsure
+405|Lunettes de Magevue
+406|Lunettes de Magevue - %s obtient une action supplémentaire !
+408|Crée une COPIE mise à jour de cette sauvegarde sur la version plus récente. L'original reste inchangé.
+409|Matériaux
+410|santé maximale -%d (maintenant %d)
+411|mêlée
+412|Message
+413|Métal
+414|Minéraux
+415|Mission
+416|Éditeur de mission
+417|Missions et campagnes créées par d'autres joueurs. Tout est vérifié avant l'installation - un paquet ne peut contenir que des données de jeu, jamais de code - et chaque version est installée à côté des autres, donc rien de ce que vous avez créé ou sauvegardé n'est jamais écrasé.
+418|Modèles convertis : %d%s
+419|Monstre
+420|Action du monstre
+421|Attaque du monstre
+422|figurines de monstres
+423|Phase des monstres
+424|Phase des monstres
+425|Tactique du monstre
+426|Les monstres apparaissent
+427|Plusieurs correspondent - dites un numéro
+428|Mortos
+429|Mortos (mort)
+430|Déplacer la caméra vers les zones d'apparition des joueurs et des monstres
+431|Déplacez-vous de {speed} tuiles maximum dans une direction aléatoire.
+432|Déplacez-vous de {speed} tuiles maximum vers la porte la plus proche et gardez-la.
+433|Déplacez-vous de {speed} tuiles maximum vers le pilier le plus proche et cachez-vous derrière.
+434|Déplacez-vous de {speed} tuiles maximum vers l'arbre le plus proche.
+435|Déplacez-vous de {speed} tuiles maximum vers le héros le plus proche - mais n'attaquez pas.
+436|Passé à la v%s
+437|Narration
+438|La narration est configurée.
+439|La narration n'est pas disponible sur %s.
+440|La narration n'est pas encore configurée - l'histoire est affichée en texte seulement.
+441|La configuration de la narration n'est pas encore prise en charge sur %s.
+442|Nouvelle partie
+443|Suivant
+444|Non
+445|Aucun %s.
+446|Aucun modèle de base pour : %s - non apparu (corrigez la mission dans le Créateur).
+447|Plus aucun jeton de couleur pour : %s - non apparu.
+448|Aucune description.
+449|aucun ennemi à blesser
+450|Aucune image de carte - choisissez-en une pour cet acte
+451|Aucune recette connue : importez d'abord les données du jeu (Ressources du jeu dans le menu principal).
+452|Aucune recette en vente pour le moment.
+453|Pas encore de recettes - elles s'achètent dans une boutique de recettes.
+454|Aucune sauvegarde pour l'instant - commencez-en une avec Nouvelle partie.
+455|Aucun pour l'instant - les matériaux viennent des monstres vaincus, des missions et du marché.
+456|Tout n'a pas fonctionné. Ce qui a fonctionné est en place - redémarrez l'application pour le voir.
+457|Note :
+458|Rien à vendre ici.
+459|Rien n'a encore été importé - l'application affiche des images de remplacement.
+460|Rien ne s'est encore passé.
+461|Rien ici pour l'instant. Appuyez sur l'icône d'actualisation pour voir ce que la communauté a partagé, ou publiez votre propre campagne dans l'éditeur de campagne.
+462|Rien d'installé pour l'instant. Utilisez l'icône d'actualisation de l'écran Nouvelle partie pour trouver des campagnes partagées, ou installez un paquet à la main ci-dessous.
+463|Rien de nouveau dans la liste de la communauté.
+464|Rien pour l'instant.
+465|Avis
+466|Objectif
+467|Hors ligne - dernière liste de la communauté affichée.
+468|ok
+469|Demande seulement à GitHub quelle est la dernière version. Rien n'est téléchargé ni installé sans votre clic.
+470|Ouvrir les campagnes
+471|Options
+472|Ou une adresse web (https://…) d'un fichier de paquet :
+473|Orange
+474|Superpositions
+475|Pièce %s : aucune
+476|Pièces (B et C)
+477|exécuter %s
+478|Effectuez un test de %s - combien de réussites ?
+479|Choisissez une voix pour chaque héros. Ses répliques dans l'histoire sont lues avec elle, et personne d'autre ne l'utilisera.
+480|Perforant
+481|Piliers
+482|Placez les monstres sur la carte comme indiqué.
+483|Placez vos figurines de joueurs dans la zone en surbrillance, puis confirmez.
+484|Jouer
+485|Jouer la mission
+486|Jouer une mission
+487|Jouer ce chapitre
+488|Jouer cette quête annexe
+489|Phase des joueurs
+490|Phase des joueurs
+491|Les joueurs apparaissent. Placez vos pions, puis jouez.
+492|Test
+493|Test :
+494|Cibles préférées : %s
+495|Préparer 2 cartes
+496|Préparer une carte
+497|Accessoires de décor
+498|Violet
+499|Appuyer pour parler (maintenir %s)
+500|Quête
+501|Journal des quêtes
+502|Quitter
+503|Aléatoire (d'après le nom)
+504|portée %d
+505|Portée %d
+506|portée %d, allonge
+507|Portée %d, allonge
+508|Lu plus tôt dans cette langue
+509|Lu plus tard dans cette langue
+510|Lire l'histoire à voix haute
+511|Lire ce chapitre
+512|Recette - rang %d
+513|Recette :
+514|Recettes
+515|récupère %d points de vie
+516|récupère %d points de vie (maintenant %d / %d)
+517|Page des versions
+518|Retirer
+519|Retirer « %s » version %s de cet ordinateur ?%s
+520|Retirer un seul état
+521|Retirer tous les états d'un type donné
+522|Retirer toute la fatigue d'une seule carte
+523|%s v%s retiré.
+524|Résistance : %s
+525|Résistant : %s
+526|Résolvez l'infection et la terreur. Chaque héros peut défausser 1 fatigue.
+527|Redémarrage nécessaire
+528|Redémarrer maintenant
+529|Reprendre l'attaque du monstre
+530|Retraite
+531|révèle la faiblesse à %s
+532|Récompense :
+533|Round %d - %s
+534|Guide de Référence
+535|Rune
+536|rune
+537|Rune :
+538|Runes
+539|Sauvegarder
+540|Sauvegarde
+541|Sauvegardé.
+547|deuxième
+548|Vendre  %d
+549|Configurer la narration (télécharge %s)
+550|Configurer la commande vocale (télécharge %s)
+551|Configurez votre partie
+552|Mise en place de %s
+553|Mise en place de « %s »\n%s%s - placez-les comme indiqué :\n%s
+554|Glisse 1
+555|Afficher les indications vocales
+556|Indique si cette carte est améliorée (+). Les améliorations se gagnent dans la campagne.
+557|Quête annexe
+558|Quête annexe (facultative)
+559|Quête annexe gagnée : %s.
+560|Quête annexe : %s
+561|Tranchant
+562|Freiné
+563|Instantané
+564|L'instantané « %s » est vide.
+565|Instantané « %s » pris (round %d).
+566|Instantané chargé - round %d
+567|Quelque chose du même nom gêne déjà : %s.
+568|lance
+569|bâton
+570|Commencer
+571|Commencer la partie
+572|Étape %s : %s...
+573|Recette d'histoire
+574|Conteur :
+575|Force
+576|épée
+577|Tactique
+578|Tactiques
+579|Se mettre à couvert
+580|Broche ternie
+581|Broche ternie : %d sur %d.
+582|Broche ternie : %d sur %d. La Broche est débloquée avec son côté + dès la prochaine mission !
+583|Broche ternie : %s (jeton %s) apparaît aussi. %s doit le vaincre.
+584|Terros
+585|Terros (terre)
+586|textures et portraits
+587|Ce dossier ne contient pas le jeu (aucun dossier « bundles » n'y a été trouvé).
+588|Ce n'est pas une adresse web (elle doit commencer par https://).
+589|Cette option n'est pas disponible
+590|Le téléchargement de %s a échoué (réseau %d, HTTP %d).
+591|Le téléchargement de %s n'est pas un zip valide.
+592|Le téléchargement de %s ne reçoit plus de données - vérifiez la connexion et réessayez.
+593|Le téléchargement de %s a été annulé.
+594|Le téléchargement de %s est corrompu (somme de contrôle incorrecte).
+595|%s est déjà en cours de téléchargement.
+596|L'adresse doit commencer par https://
+597|Les armures que possède le groupe
+598|L'auteur confirme qu'il a le droit de partager les images.
+599|L'auteur n'a pas dit s'il a le droit de partager les images.
+600|La campagne est terminée - félicitations !
+601|L'adresse du catalogue doit commencer par https://
+602|Le paquet téléchargé n'est pas celui que la liste promettait (%s %s au lieu de %s %s). Il n'a pas été importé.
+603|Le paquet téléchargé n'est pas celui que la liste promettait. Il n'a pas été installé.
+604|l'ennemi avait moins de %d points de vie : vaincu
+605|Les fichiers n'ont pas pu être écrits (erreur %d).
+606|le premier héros blessé ce round a %d de santé à la place
+607|Le jeu n'a pas été trouvé aux emplacements habituels. Choisissez le dossier où il est installé.
+608|L'outil d'importation s'est arrêté sans rien importer (code de sortie %d).
+609|Les ressources du jeu importées sont chargées au démarrage de l'application.\n\nRedémarrer maintenant ?
+611|Les langues que vous voulez lire, la meilleure en premier. Une campagne ou une mission est affichée dans la première langue pour laquelle elle a un texte ; lancer une partie de campagne demande dans quelle langue la jouer.
+612|La liste des campagnes partagées que l'icône d'actualisation de l'écran Nouvelle partie affiche. Par défaut celle du dépôt descent-engine-community sur GitHub.
+613|Le marché vend des matériaux mais n'en achète pas.
+614|La mission est absente du dossier de la campagne.
+615|La mission du chapitre « %s » est absente de la nouvelle version.
+616|La nouvelle variable « %s » démarre à sa valeur par défaut.
+617|La nouvelle version n'a pas d'acte %d (votre sauvegarde s'y trouve).
+618|La version plus récente n'a pas pu être ouverte.
+619|La sauvegarde d'origine n'est pas modifiée - vous pouvez toujours y revenir.
+620|le paquet
+621|Le groupe ne porte aucune denrée - infusez-en chez un alchimiste à partir de recettes de potions.
+622|Le groupe n'a aucune denrée. Infusez-en chez un alchimiste à partir de recettes de potions.
+623|Le groupe doit retenter ce chapitre.
+624|Le groupe ne possède pas encore d'armure.
+625|Le groupe ne possède pas encore d'accessoires - on les achète dans une boutique de recettes ou on les trouve.
+626|La phase ne peut pas être terminée maintenant.
+627|Les potions que le groupe a fabriquées - disponibles à chaque mission
+628|La liste des sommes de contrôle de la version n'a pas d'entrée pour %s.
+629|L'instantané n'a pas pu être sauvegardé - voir le panneau Sortie.
+630|L'instantané a été appliqué à la mission modifiée, mais :\n-
+631|Le téléchargement du moteur vocal n'avait pas de bibliothèque pour %s.
+632|la table l'exécute
+633|L'accessoire que porte ce héros (un par héros ; un accessoire ne peut être porté que par un héros)
+634|La mise à jour n'a pas pu être lancée.
+635|La mise à jour ne contient pas %s.
+636|La copie mise à jour n'a pas pu être sauvegardée.
+637|La variable « %s » n'existe plus - sa valeur est abandonnée.
+638|Cette application est fournie sans les illustrations du jeu. Si vous possédez « Descent : Légendes des Ténèbres », les vraies images, figurines et données du jeu peuvent être copiées depuis votre propre installation. Rien du jeu n'est téléchargé et rien ne quitte cet ordinateur.
+639|cette attaque ne peut pas le blesser
+640|Ce paquet n'a pas été importé - il est endommagé ou contient quelque chose d'interdit :\n\n- %s
+641|Ce paquet n'a pas été installé - il est endommagé ou contient quelque chose d'interdit.
+642|Cette version n'a pas de %s (ni de liste de sommes de contrôle).
+643|Cette sauvegarde ne peut pas être passée à la v%s :
+644|Cette sauvegarde est passée de la version %s de la campagne à la version %s.
+645|Menace
+646|couteaux de lancer
+647|Le temps passe
+648|Le temps passe...\n\n
+649|Fourbu
+650|Trop court - maintenez %s pendant que vous parlez
+651|Vers l'arbre
+652|Toxos
+653|Toxos (pourriture)
+654|activation %d (toutes les %de : %d dégâts à chaque ennemi)
+655|activation %d : %d dégâts à chaque ennemi
+656|Accessoire
+657|Accessoire %s : %s
+658|Amélioration d'accessoire :
+659|Accessoire :
+660|Accessoires
+661|Umbros
+662|Umbros (ombre)
+663|Crâne immortel
+664|Crâne immortel : %s a vaincu un(e) %s pour la %s fois.
+665|Inconnu
+666|Mise à jour disponible : %s
+667|Passer à la v%s…
+668|Amélioration - rang %d
+669|Amélioration :
+670|Améliorée (+). Dans une campagne, cela suit les améliorations du groupe.
+671|Utilisable dans cette mission : %s. Mettez-le dans votre zone de jeu pour l'utiliser. Il n'est pas ajouté à l'inventaire et disparaît à la fin de la mission.
+672|Utilisables dans cette mission : %s. Mettez-les dans votre zone de jeu pour les utiliser. Ils ne sont pas ajoutés à l'inventaire et disparaissent à la fin de la mission.
+673|Utiliser les accessoires de décor d'origine du jeu sur la carte
+674|Utiliser la face améliorée (+) de cet accessoire.
+675|La variable « %s » a changé de type - elle a de nouveau sa valeur par défaut.
+676|La variable « %s » n'existe plus (c'était %s).
+677|Version %s
+678|La version %s est déjà installée.
+679|La version %s est disponible (vous avez %s).
+680|La version %s de ce paquet est déjà publiée - une version publiée n'est jamais remplacée. Utilisez une version plus élevée.
+681|Victoire !
+682|Vigos
+683|Vigos (vie)
+684|Voix
+685|Voix -
+686|La commande vocale est configurée.
+687|La voix n'est pas encore configurée - les commandes saisies fonctionnent toujours.
+688|paramètres vocaux (%s)
+689|La configuration vocale n'est pas disponible sur %s - les commandes saisies fonctionnent toujours.
+690|La configuration vocale n'est pas encore prise en charge sur %s.
+691|voix (%s)
+692|baguette
+693|Errer
+694|cloche de guerre
+695|marteau de guerre
+696|faible contre %s
+697|Faible : %s
+698|Faiblesse
+699|dégâts de faiblesse +%d
+700|Faiblesse : %s
+701|arme
+702|Arme %d (%s)
+703|dégâts de l'arme +%d
+704|chances des pièces d'arme +%d %%
+705|Armes
+706|Nouveautés
+707|Quand un héros a perdu tous ses points de vie, appuyez sur Blesser. La troisième blessure fait perdre la partie.
+708|Quel monstre ?
+709|Lequel ?
+710|Qui attaque %s ?
+711|Qui utilise %s ?
+712|Volonté
+713|Gagné : %s.
+714|Blesser
+715|Blessé
+716|XP : %d  |  Or : %d
+717|Jaune
+718|Oui
+719|Vous avez déjà la version %s - celle-ci est installée à côté.
+720|Vous pouvez jouer
+721|Vous portez %d.
+722|Vous avez %d or et %s.
+723|Vous avez %d or.
+724|Vous ne connaissez aucune recette de potion. Les recettes se vendent dans les boutiques de recettes ou se trouvent comme butin.
+725|Vous ne connaissez aucune recette qui crée quelque chose de nouveau. Les recettes se vendent dans les boutiques de recettes.
+726|Vos matériaux :
+727|Votre progression est sauvegardée automatiquement sous ce nom, pour que vous puissiez partir et reprendre où vous vous êtes arrêté (Charger une partie dans le menu principal). Utilisez un nom différent pour chaque groupe ou partie.
+728|▶ Lire à voix haute
+729|☠ Vaincu
+730|L'application elle-même (menus et dialogues) est affichée dans la première langue de cette liste dans laquelle elle est traduite - anglais, español, Nederlands et français pour l'instant.
+731|Application non officielle
+732|%s - %s\n\n%s obtient un avantage supplémentaire : %s.
+733|Un nouvel acte commence.
+734|acte
+736|La campagne est terminée.
+737|La fin
+738|L'histoire commence.
+739|Objectif actuel :
+740|Langue de cette partie
+741|La langue dans laquelle cette partie est lue, consignée et narrée. Vous pourrez la changer plus tard dans les Options.
+742|L'histoire, le journal et les termes du jeu sont affichés dans cette langue. Les menus et boutons de l'application suivent la liste ci-dessous.
+743|Télécharger les voix %s (%s)
+744|Aucune voix de narration pour %s n'est installée, l'histoire est donc affichée en texte seulement.
+745|Aucune voix de narration pour %s n'est installée, l'histoire est donc affichée en texte seulement. Téléchargez-les dans Options > Voix.
+746|Configurer la narration - voix %s (télécharge environ %d Mo)
+747|Voix pour :
+748|Aucune voix de narration pour %s n'est installée, cette partie est donc affichée en texte seulement. Téléchargez-les dans Options > Voix.
+749| - seulement si %d condition(s)
+750|Difficulté
+752|Aventurier
+753|Apprenti
+754|Les monstres ont un niveau de plus que ce que l'auteur a prévu, et la mission peut être plus difficile pour vous.
+755|Les monstres ont un niveau de moins que ce que l'auteur a prévu, et la mission peut être plus facile pour vous.
+756|Les monstres ont deux niveaux de plus que ce que l'auteur a prévu, et la mission peut être sans pitié.
+757|Cauchemar
+758|Le jeu tel que l'auteur l'a conçu.
+759|Vétéran
+760|Des monstres plus coriaces et une mission plus difficile aux nombres élevés. Vous pouvez le changer avant chaque mission.
+761|%d monstre(s) se sont réveillés.
+762|Un état a été appliqué à l'un d'eux.
+763|Les monstres se réveillent
+764|Quelque chose les a alertés.
+765|Quelque chose les a réveillés.
+766|Les monstres se réveillent !
+767|Ils n'ont pas remarqué les héros : ils restent où ils sont jusqu'à ce que quelque chose les réveille.
+768|Ils ont remarqué l'attaque.
+769|Inconscient
+770|Inconscient - lui et son groupe passent la phase des monstres
+771|Réveiller
+772|%s (facultatif)
+773|Objectif facultatif
+774|Objectif facultatif accompli :\n%s
+775|Facultatif :
+P1| (%d pour %d joueur)| (%d pour %d joueurs)
+P2|+%d réussite|+%d réussites
+P3|%d état perdu, %d dégâts|%d états perdus, %d dégâts
+P4|Porte-bonheur : %d réussite supplémentaire est ajoutée au résultat de %s.|Porte-bonheur : %d réussites supplémentaires sont ajoutées au résultat de %s.
+P5|Nouvelle quête annexe : %s|Nouvelles quêtes annexes : %s
+407|Faire une copie de « %s » sur la v%s ?
+776|L'application elle-même (menus et dialogues) est affichée dans la première langue de cette liste dans laquelle elle est traduite - pour l'instant %s.

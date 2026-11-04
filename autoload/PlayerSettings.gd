@@ -91,7 +91,7 @@ var preferred_languages: Array[String] = _default_languages()
 
 
 ## The languages the app's own texts (menus, dialogs) are translated into: translations/<code>.po, registered in the project settings.
-const UI_LANGUAGES: Array[String] = ["en", "es", "nl"]
+const UI_LANGUAGES: Array[String] = ["en", "es", "nl", "fr", "de", "it", "pt", "pl", "cs", "hu", "ru", "ko", "zh", "zh-TW"]
 
 
 func _ready() -> void:
@@ -121,7 +121,11 @@ func apply_ui_language() -> void:
 
 ## The OS language first (when it is one we know), then English.
 static func _default_languages() -> Array[String]:
-	var list: Array = [OS.get_locale_language(), "en"]
+	var locale := OS.get_locale()
+	var own := OS.get_locale_language()
+	if own == "zh" and (locale.contains("TW") or locale.contains("HK") or locale.contains("MO") or locale.contains("Hant")):
+		own = "zh-TW"
+	var list: Array = [own, "en"]
 	return LText.clean_codes(list)
 
 

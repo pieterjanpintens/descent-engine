@@ -1,0 +1,772 @@
+1|(immun)
+2|Mikro [%s%s]
+3|%s erhält ein einzigartiges Rezept: %s.
+4|(%d fehlgeschlagen)
+5|(aktiv)
+6|(lädt zuerst das Importwerkzeug herunter, %s)
+7|(immun)
+8|(Nur Kampagnen behalten Rezepte.)
+9|(EP jetzt %d)
+10|- noch nicht importiert
+11|= %d Schaden\nVerteidigungswurf: -%d\n\n%d Schaden verursacht
+12|Nicht erschienen: %s.
+13|Es gibt kein Rezept mehr zu erhalten.
+14|%d Schaden an %s
+15|%d Schaden am Gegner
+16|%d zusätzlicher Schaden (%d %% seiner Lebenspunkte)
+17|%d aus der Community zum Installieren.
+18|%d Gold
+19|%d Gold (Totenmanns Kompass)
+20|%d Std. %d Min.
+21|%d Min.
+22|%d Monster erschienen.
+23|%d der aktuellen Aufgaben gibt es nicht mehr.
+24|%d x %d Felder
+25|%dx %s
+26|%s  -  EP %d,  Gold %d
+27|%s %d (keine Tabellenzeilen)
+28|%s (%s-Marker)
+29|%s (%s, Teil %s)
+30|%s (kopiert von %s): %s
+31|%s +%d bis zum Ende der Runde
+32|%s - %s-Marker
+33|%s - %s ausgelöst!\n\n%s
+34|%s - %s ausgelöst!\n\n%s erhält einen zufälligen Verbrauchsgegenstand: %s\n\nRüste ihn aus.
+35|%s - %s ausgelöst!\n\n%s erhält einen zufälligen verbesserten Verbrauchsgegenstand: %s\n\nRüste ihn aus.
+36|%s - %s ausgelöst!\n\n%s\n\nPrüft, ob es zutrifft, und führt es auf dem Spielplan aus (ein Zustand kann im Monsterbildschirm angewendet werden).
+37|%s - %s\nHat %s eine Verletzung?
+38|%s - %s\nWie viel Erschöpfung liegt auf allen Karten von %s?
+39|%s - %s\nWelcher andere Gegner erleidet denselben Schaden? (Abbrechen: keiner)
+40|%s - Kauf für %d Gold, Verkauf für %d
+41|%s - LP %d, St. %d, Vert. %d, Ang. %d
+42|%s - Stufe %d
+43|%s - noch nicht umgesetzt.
+44|%s „%s“ - Version %s
+45|%s greift %s an (Schaden %d, %s).
+46|%s greift %s an - wähle eine Waffe
+47|%s greift %s an!%s\nSchaden %d - %s - Geschwindigkeit %d
+48|%s greift %s an.\nWelche Waffe?
+49|%s greift %s an\nmit %s (Schaden %d)\n
+50|%s hat etwas Brauchbares fallen lassen. %s
+51|%s hat fallen lassen: %s.
+52|%s erhält %s
+53|%s wurde besiegt.
+54|%s hat %d geheilt (%d Lebenspunkte).
+55|%s ist %s.
+56|%s ist geblendet!\n%s\n%s
+57|%s ist geblendet: %s.
+58|%s ist immun
+59|%s ist in dieser Runde weniger wahrscheinlich sein Ziel
+60|%s ist nicht mehr %s.
+61|%s ist nicht in der Gruppe.
+62|%s führt etwas im Schilde...
+63|%s hat alle Lebenspunkte verloren. %s verwunden?
+64|%s führt %s gegen %s aus.
+65|%s erhält einen Vorteil: %s.
+66|%s erleidet %d Schaden
+67|%s erleidet %d Zermürbungsschaden (%d Lebenspunkte übrig).
+68|%s erleidet %d Zermürbungsschaden und wird besiegt! Entferne es vom Spielplan.
+69|%s erlitt %d Schaden (%d Lebenspunkte übrig).
+70|%s erlitt %d Schaden und wurde besiegt.
+71|%s ausgelöst
+72|%s wurde bei einer Unterbrechung besiegt, bevor es %s konnte.
+73|%s wurde ein drittes Mal verwundet.
+74|%s hat einen Helden verwundet - sein Zug ist vorbei.
+75|%ss Alchemistenkorb liefert einen zufälligen Verbrauchsgegenstand:
+76|%s: %s!\nZiel %s - Schaden %d - %s - Geschwindigkeit %d
+77|%s: %s\nFeste Teile: %s
+78|%s: Verteidigung +%d bis zum Ende der Runde
+79|%s: mit „%s“ interagieren
+80|%s: Beute x%d (+%s)
+81|%s: benötigt %d, du hast %d
+82|%s: Führe einen %s-Test durch - wie viele Erfolge?
+83|%s: Der Gegner hat keine Beute
+84|%s: Der Gegner ist nicht besiegt, keine zusätzliche Beute
+85|%s\n\nEs wurde nichts geändert. Du kannst es erneut versuchen oder das Update von der Release-Seite herunterladen.
+86|%s\n\nDu hast gewählt: %s
+87|(greift erneut an)
+88|(ignoriert) %s
+89|(Ort ohne Namen)
+90|(Nebenabenteuer ohne Namen)
+91|(deine Veröffentlichung)
+92|+%d Schaden
+93|+%d Schaden (gewürfelt %d-%d)
+94|+%d Schaden (Runde %d)
+95|2D-Grafik - Logo und Hintergrund des Hauptmenüs
+96|[Entwurf]
+97|„%s“ Version %s ist bereits installiert.
+98|\n%.1f MB.
+99|\n%d Mission(en), %d Bild(er), %.1f MB.
+100|\n%d Spielstand/Spielstände davon wurden beiseitegelegt (user://campaign_saves/_removed), nicht gelöscht.
+101|\n%d Erfolge x %d Waffenschaden
+102|\n(+%d Schaden durch eine Verteidigungsfähigkeit in dieser Aktivierung)
+103|\n(Entkräftet: Schaden um %d verringert)
+104|\n\n%s erhält die Verletzung „%s“: Lege ihre Karte in deinen Spielbereich.
+105|\n\n%s hat noch %d Lebenspunkte.
+106|\n\n%s wurde besiegt! Entferne es vom Spielplan.
+107|\n\n%s muss die Verletzungskarte (%s) auf ihre schwere Seite drehen.
+108|\n\n%s muss die Verletzungskarte auf ihre schwere Seite drehen.
+109|\n\nHeft der Erinnerung: Setze die Gesundheit von %s stattdessen auf %d.
+110|\n\nDie App kann sich hier nicht selbst aktualisieren: %s. Lade sie von der Release-Seite herunter.
+111|\n\nDie laufende Mission wird geschlossen - speichere sie zuerst (Optionen > Speichern) oder wähle Später.
+112|\n\nDas ist die dritte Verwundung von %s - das Spiel ist verloren!
+113|\n\nStein des Wanderers - jeder Held darf statt 1 Erschöpfung abzuwerfen seinen alternativen Vorteil wählen:
+114|\nAktivierung:
+115|\nAußerdem einige Handwerksmaterialien für die Gruppe: %s.
+116|\nAm Tisch:
+117|\nAngewendete Zustände: %s
+118|\nBedrängt: +%d Schaden
+119|\nImmun gegen: %s
+120|\nImmun! Der Angriff richtet keinen Schaden an.\n\n0 Schaden verursacht
+121|\nIn Entwicklung (ein Entwurf)
+122|\nBeute für die Gruppe: %s.
+123|\nKein freies Erscheinungsfeld für: %s - platziere sie neben den anderen.
+124|\nNoch nicht installiert - öffne es, um es zu installieren.
+125|\nResistenz: -%d Schaden
+126|\nDas Paket wurde geprüft: Es enthält nur Spieldaten.
+127|\nSchwäche: +%d Schaden
+128|\nWaffenteile und Schmuck:
+129|ein %s-Rüstungs-Upgrade
+130|ein %s-Teilerezept
+131|ein %s-Teile-Upgrade
+132|ein %s-Rezept
+133|ein %s-Upgrade
+134|Eine Kampagne
+135|ein Held
+136|ein neuer Bereich
+137|ein Trankrezept
+138|Ein Spielstand namens „%s“ existiert bereits.
+139|Ein Spielstand braucht einen Namen.
+140|eine Lieferung %s-Rüstung
+141|eine Lieferung Rüstung
+142|Eine einzelne Mission
+143|Ein Schnappschuss kann in der Spielerphase ohne offenen Dialog gemacht werden.
+144|ein Schmuckstück
+145|ein Schmuck-Upgrade
+146|Akt abgeschlossen!
+147|Sprache hinzufügen
+148|fügt seiner nächsten Aktivierung %d Schaden hinzu
+149|Zermürbt
+150|Zermürbung
+151|Zermürbungsschaden +%d in dieser Runde
+152|Gewandtheit
+153|alle seine Statuseffekte werden entfernt
+154|ein Rüstungs-Upgrade
+155|ein unbekannter Autor
+156|Ein inoffizielles Fanprojekt, frei nutzbar (MIT-Lizenz).\n*Descent: Legenden der Finsternis* und alles zum Spiel gehört seinen Eigentümern.
+157|Anemos
+158|Anemos (Wind)
+159|App-Update
+160|Angewendet:
+161|Zustände anwenden
+162|Aquos
+163|Aquos (Wasser)
+164|Rüstung
+165|Rüstungs-Upgrade:
+166|Rüstung:
+167|Rüstung…
+168|Am Tisch:
+169|Angriff
+170|%s angreifen
+171|Angriffsfähigkeiten: %s
+172|Angriff erhält %s
+173|Jetzt verfügbar: %s
+174|Zurück
+175|Zurück zum Editor
+176|Zurück zum Editor
+177|Zurück zum Menü
+178|wird zermürbt
+179|Kampagne beginnen
+180|Knochen
+181|Gekauft
+182|Bogen
+183|Brauen
+184|Alchemistenkorb
+185|Kaufen
+186|Kaufen  %d
+187|Kaufen  %d Gold
+188|Rezept kaufen  %d Gold
+189|von
+190|von %s
+191|Kampagne
+192|Kampagne abgeschlossen
+193|Kampagne abgeschlossen! (%s)
+194|Kampagneneditor
+195|Kampagnen-Logbuch
+196|Kann %s einen zweiten Helden angreifen?
+197|Abbrechen
+198|Download abbrechen
+199|Kauterisiert
+200|Nervös
+201|Mitte zu Mitte (streng)
+202|Mitte zu Ecke (empfohlen)
+203|Kapitel
+204|Das Kapitel „%s“, das du bereits abgeschlossen hast, ist in der neuen Version nicht enthalten.
+205|Das Kapitel „%s“, in dem du dich gerade befindest, ist in Akt %d der neuen Version nicht enthalten.
+206|Im Hauptmenü nach einer neueren Version der App suchen
+207|Truhe, Tor, Baum und Brunnen verwenden die Modelle des Spiels nach Spielressourcen > Importieren. Aus = die Requisiten, die mit der App kommen. Wirkt beim nächsten Öffnen einer Karte.
+208|Ein Paket wählen
+209|Eine Paketdatei wählen…
+210|Eine Waffe wählen
+211|Wähle den Ordner, in dem das Spiel installiert ist
+212|Spielordner wählen…
+213|Wähle zwei Waffen pro Held (und optionale Aufsätze)
+214|Wähle deine Gruppe
+215|Schließen
+216|Stoff
+217|Gewöhnlich
+218|Community
+219|Community-Liste
+220|Zustände
+221|Zustände (%d)
+222|Bestätigen
+223|Geblendet
+224|Verbrauchsgegenstände
+225|Verbrauchsgegenstände…
+226|Weiter
+227|Dieses Spiel fortsetzen
+228|Modelle werden konvertiert... %s (%s)
+229|kopiert %s
+230|Kopiert diese schreibgeschützte Veröffentlichung in einen neuen Entwurf, den du ändern kannst. Die Veröffentlichung selbst und ihre Spielstände bleiben unverändert.
+231|Ecke zu Ecke (locker, Descent 2)
+232|Kosten: %s
+233|%s konnte nicht dupliziert werden.
+234|Dieser Spielstand konnte nicht geöffnet werden.
+235|Die Kampagne „%s“ konnte nicht geöffnet werden.
+236|Der Download von %s konnte nicht gestartet werden (Fehler %d).
+237|%s konnte nicht entpackt werden (tar-Exitcode %d).
+238|Die Erzähl-Engine konnte nicht entpackt werden (tar-Exitcode %d).
+239|%s konnte nicht geschrieben werden (Fehler %d).
+240|Als verloren zählen
+241|Als gewonnen zählen
+242|Erstellt von
+243|Mitwirkende
+244|Armbrust
+245|Wucht
+246|Kuriositäten
+247|Aktuelle Aufgabe
+248|Schaden
+249|Schaden %d
+250|Schaden +%d dauerhaft (jetzt %d)
+251|Schaden -%d
+252|Schadensart
+253|Verwirrt
+254|Niederlage.
+255|Besiegt
+256|Verteidigung %+d bis zum Ende der Runde (jetzt %d)
+257|Verteidigung +%d während dieses Angriffs
+258|Verteidigung +%d dauerhaft (jetzt %d)
+259|Verteidigung -%d
+260|Verteidigung -%d in dieser Runde
+261|Verteidigungsfähigkeiten: %s
+262|Verteidigungsfähigkeit für den nächsten Angriff deaktiviert
+263|Verteidigungsfähigkeit bis zum Ende der Runde deaktiviert
+264|Verteidigungsfähigkeit deaktiviert.
+265|Verteidigungsfähigkeit: %s
+266|Den Spielstand „%s“ löschen?
+267|Diesen Spielstand löschen
+268|Hat %s %s Schaden zugefügt?
+269|Hat %s den Test bestanden?
+270|Habe ich Rückzug gehört? Bewege dich bis zu {speed} Felder, so weit von den Helden weg wie möglich.
+271|Nicht ausgelöst:
+272|Keine gültige Zahl verstanden
+273|Nichts verstanden - halte %s und versuche es erneut
+274|Nicht verstanden
+275|Option nicht erkannt
+276|Fertig
+277|Fertig - starte die App neu, um alles zu sehen.
+278|Fertig. Die aktualisierte Kopie steht in der Liste.
+279|Verdammt
+280|Zusätzliche Stimmen herunterladen - Akzente (%s)
+281|Weitere Stimmen herunterladen - Standard-Englisch (%s)
+282|%s wird heruntergeladen... %d MB
+283|%s wird heruntergeladen... %d %% (%d / %d MB)
+284|Update wird heruntergeladen…
+285|Doppelklingen
+286|jeder Gegner erleidet %d Schaden (Auslösung %d)
+287|Jeder Spieler darf %d in die Mission mitnehmen%s. Hergestellte Verbrauchsgegenstände sind in jeder Mission wieder verfügbar - keiner wird verbraucht.
+288|Editor
+289|Stimme aktivieren
+290|Bald vorbei: Dieses Nebenabenteuer ist weg, sobald „%s“ gewonnen ist.
+291|Entkräftet
+292|Essenzen
+293|Bedrängt
+294|FEHLGESCHLAGEN
+295|Mission konnte nicht geladen werden: %s
+296|Speichern fehlgeschlagen - Details im Ausgabe-Bereich.
+297|Errungenschaften
+298|erste
+299|Fester Held (%s)
+300|Drehe deine Heldenkarte um
+301|Bodenfelder
+302|2 Karten fokussieren
+303|Schmieden
+304|Zum Bearbeiten duplizieren
+305|%s wurde in deinen Entwurf „%s“ dupliziert - öffne ihn im %s-Editor.
+306|Fortunos
+307|Fortunos (Glück)
+308|Aufgekratzt
+309|frei
+310|Eigenbeschuss
+311|Frustriert
+312|erhält %s
+313|Spiel %04d-%02d-%02d %02d:%02d
+314|Spielressourcen
+315|Spiel gefunden:\n%s
+316|Spielablauf
+317|Panzerhandschuh
+318|Allgemein
+319|Gibt die Rüstung: %s%s - %s
+320|Gibt die Rune: %s
+321|Gibt den Schmuck: %s%s - %s
+322|Gibt die Waffe: %s%s
+323|Gibt: %s
+324|Handschuhe
+325|Gold
+326|Gold: %d
+327|Hast du ein Paket von jemandem bekommen? Wähle die Datei oder füge ihre Webadresse ein. Du siehst, was darin ist und wer es erstellt hat, bevor etwas installiert wird.
+328|Grün
+329|Das Tor bewachen
+330|Hammer
+331|Verhärtete Haut
+332|Heilen
+333|Heilen 2
+334|Heilen 4
+335|Gesund
+336|Den Erzähler hören
+337|Diese Stimme hören
+338|Gehört: %s
+339|Schwer verwundet
+340|Schwere Hände
+341|Schweres Herz
+342|Kräuter
+343|Heldenmodelle
+344|Heldenstimmen
+345|Helden
+346|Zaghaft
+347|Lebenspunkte %d / %d
+348|Halte %s zum Sprechen
+349|Horn der Tapferkeit
+350|Horn der Tapferkeit - %s wurde verwundet.
+351|Fahre über eine Rüstung, um ihre Regeln zu sehen. Rüstung wird am Tisch getragen und abgehandelt.
+352|Wie das Sichtlinien-Werkzeug entscheidet, ob zwei Felder einander sehen. Mitte zu Ecke: eine Linie von der Mitte des Feldes des Betrachters zu irgendeiner Ecke des Ziels.
+353|LP %d · Stufe %d
+355|Ignos
+356|Ignos (Feuer)
+357|immun gegen %s
+358|Immun gegen Zustände: %s
+359|Immun gegen:
+360|Immun: %s
+361|Immunität: %s
+362|Importieren
+363|Import beendet, aber nicht alles hat funktioniert.
+364|Import beendet.
+365|Spielressourcen importieren
+366|Bisher importiert: %s.
+367|Das Importieren aus der App ist auf diesem Computer noch nicht verfügbar - nutze stattdessen die Ressourcen-Werkzeuge von der Release-Seite.
+368|IN ENTWICKLUNG
+369|Eingabegerät: %s
+370|Installieren
+371|Installieren und neu starten
+372|Von Hand installieren
+373|Dieses Paket installieren?
+374|Installiert
+375|„%s“ v%s installiert.
+376|„%s“ installiert.
+377|Wird installiert…
+378|Wird installiert… die App schließt sich und startet von selbst neu.
+379|Intelligenz
+380|Unterbrechen
+381|Unterbrechung - die Spieler handeln
+382|Inventar
+383|Sie bleibt, wie sie ist; du kannst sie weiter in ihrer eigenen Version spielen.
+384|Sprache
+385|Sprachen
+386|Schlage auf das nächste andere Monster ein: Es erleidet {damage} Schaden. (Drücke Unterbrechen, klicke dieses Monster in der Monsteransicht an und wende den Schaden an.)
+387|Später
+388|Leder
+389|Verschwindet nach dem nächsten Kapitel!
+390|Stufe %d -
+391|Sichtlinie
+392|Sichtlinie (an)
+393|Sichtlinien-Regel
+394|Hört zu... lass %s zum Senden los
+395|Einen Missions-Spielstand laden
+396|Spiel laden
+397|Nach Kampagnen suchen, die die Community geteilt hat
+398|Suche nach geteilten Kampagnen…
+399|Beute
+400|Beute für die Gruppe:
+401|Glücksbringer
+402|Lumos
+403|Lumos (Licht)
+404|Ausfall, kein Biss
+405|Magisches Augenglas
+406|Magisches Augenglas - %s erhält eine zusätzliche Aktion!
+407|Eine Kopie von „%s“ auf v%s erstellen?
+408|Erstellt eine aktualisierte KOPIE dieses Spielstands auf der neueren Version. Das Original bleibt unverändert.
+409|Materialien
+410|maximale Gesundheit -%d (jetzt %d)
+411|Nahkampf
+412|Nachricht
+413|Metall
+414|Mineralien
+415|Mission
+416|Missionseditor
+417|Missionen und Kampagnen von anderen Spielern. Alles wird vor der Installation geprüft - ein Paket kann nur Spieldaten enthalten, niemals Code - und jede Version wird neben den anderen installiert, sodass nichts, was du erstellt oder gespeichert hast, jemals überschrieben wird.
+418|Modelle konvertiert: %d%s
+419|Monster
+420|Monsteraktion
+421|Monsterangriff
+422|Monsterfiguren
+423|Monsterphase
+424|Monsterphase
+425|Monstertaktik
+426|Monster erscheinen
+427|Mehr als eines passt - sage eine Zahl
+428|Mortos
+429|Mortos (Tod)
+430|Kamera zu den Erscheinungsorten der Spieler und Monster bewegen
+431|Bewege dich bis zu {speed} Felder in eine zufällige Richtung.
+432|Bewege dich bis zu {speed} Felder zum nächsten Tor und bewache es.
+433|Bewege dich bis zu {speed} Felder zur nächsten Säule und verstecke dich dahinter.
+434|Bewege dich bis zu {speed} Felder zum nächsten Baum.
+435|Bewege dich bis zu {speed} Felder zum nächsten Helden - greife aber nicht an.
+436|Auf v%s umgestellt
+437|Erzählung
+438|Die Erzählung ist eingerichtet.
+439|Die Erzählung ist auf %s nicht verfügbar.
+440|Die Erzählung ist noch nicht eingerichtet - die Geschichte wird nur als Text gezeigt.
+441|Das Einrichten der Erzählung wird auf %s noch nicht unterstützt.
+442|Neues Spiel
+443|Weiter
+444|Nein
+445|Kein %s.
+446|Keine Basisvorlage für: %s - nicht erschienen (korrigiere die Mission im Creator).
+447|Kein Farbmarker mehr übrig für: %s - nicht erschienen.
+448|Keine Beschreibung.
+449|kein Gegner, der Schaden nehmen kann
+450|Kein Kartenbild - wähle eines für diesen Akt
+451|Keine Rezepte bekannt: Importiere zuerst die Spieldaten (Spielressourcen im Hauptmenü).
+452|Im Moment keine Rezepte im Angebot.
+453|Noch keine Rezepte - sie werden in einem Rezepthandel gekauft.
+454|Noch keine Spielstände - starte einen mit Neues Spiel.
+455|Noch keine - Materialien kommen von besiegten Monstern, aus Missionen und vom Markt.
+456|Nicht alles hat funktioniert. Was funktioniert hat, ist vorhanden - starte die App neu, um es zu sehen.
+457|Hinweis:
+458|Hier gibt es nichts zu kaufen.
+459|Es wurde noch nichts importiert - die App zeigt Platzhalter.
+460|Es ist noch nichts passiert.
+461|Hier ist noch nichts. Drücke das Aktualisieren-Symbol, um zu sehen, was die Community geteilt hat, oder veröffentliche eine eigene Kampagne im Kampagneneditor.
+462|Noch nichts installiert. Nutze das Aktualisieren-Symbol im Bildschirm Neues Spiel, um geteilte Kampagnen zu finden, oder installiere unten ein Paket von Hand.
+463|Nichts Neues in der Community-Liste.
+464|Noch nichts.
+465|Hinweis
+466|Aufgabe
+467|Offline - zeigt die letzte Community-Liste.
+468|OK
+469|Fragt nur GitHub, welche Version die neueste ist. Ohne deinen Klick wird nichts heruntergeladen oder installiert.
+470|Kampagnen öffnen
+471|Optionen
+472|Oder eine Webadresse (https://…) einer Paketdatei:
+473|Orange
+474|Überlagerungen
+475|Teil %s: keines
+476|Teile (B und C)
+477|%s ausführen
+478|Führe einen %s-Test durch - wie viele Erfolge?
+479|Wähle eine Stimme für jeden Helden. Seine Zeilen in der Geschichte werden damit gelesen, und sonst benutzt sie niemand.
+480|Stich
+481|Säulen
+482|Platziere die Monster wie gezeigt auf der Karte.
+483|Platziere deine Spielerfiguren im hervorgehobenen Bereich und bestätige dann.
+484|Spielen
+485|Mission spielen
+486|Eine Mission spielen
+487|Dieses Kapitel spielen
+488|Dieses Nebenabenteuer spielen
+489|Spielerphase
+490|Spielerphase
+491|Die Spieler erscheinen. Platziert eure Marker und spielt dann.
+492|Testspiel
+493|Testspiel:
+494|Bevorzugte Ziele: %s
+495|2 Karten vorbereiten
+496|Eine Karte vorbereiten
+497|Requisiten
+498|Violett
+499|Zum Sprechen drücken (%s halten)
+500|Abenteuer
+501|Logbuch
+502|Beenden
+503|Zufällig (nach dem Namen)
+504|Reichweite %d
+505|Reichweite %d
+506|Reichweite %d, weitreichend
+507|Reichweite %d, weitreichend
+508|Früher in dieser Sprache gelesen
+509|Später in dieser Sprache gelesen
+510|Die Geschichte vorlesen
+511|Dieses Kapitel lesen
+512|Rezept - Stufe %d
+513|Rezept:
+514|Rezepte
+515|erholt %d Gesundheit
+516|erholt %d Gesundheit (jetzt %d / %d)
+517|Release-Seite
+518|Entfernen
+519|„%s“ Version %s von diesem Computer entfernen?%s
+520|Einen einzelnen Zustand entfernen
+521|Alle Zustände einer bestimmten Art entfernen
+522|Alle Erschöpfung von einer einzelnen Karte entfernen
+523|%s v%s entfernt.
+524|Resistenz: %s
+525|Resistent: %s
+526|Handle Infektion und Schrecken ab. Jeder Held darf 1 Erschöpfung abwerfen.
+527|Neustart nötig
+528|Jetzt neu starten
+529|Monsterangriff fortsetzen
+530|Rückzug
+531|enthüllt Schwäche gegen %s
+532|Belohnung:
+533|Runde %d - %s
+534|Referenzhandbuch
+535|Rune
+536|Rune
+537|Rune:
+538|Runen
+539|Speichern
+540|Spielstand
+541|Gespeichert.
+547|zweite
+548|Verkaufen  %d
+549|Erzählung einrichten (lädt %s herunter)
+550|Sprachsteuerung einrichten (lädt %s herunter)
+551|Richte dein Spiel ein
+552|%s wird aufgebaut
+553|„%s“ wird aufgebaut\n%s%s - platziere diese wie gezeigt:\n%s
+554|Schritt 1
+555|Sprachhinweise anzeigen
+556|Zeigt, ob diese Karte verbessert (+) ist. Verbesserungen werden in der Kampagne verdient.
+557|Nebenabenteuer
+558|Nebenabenteuer (optional)
+559|Nebenabenteuer gewonnen: %s.
+560|Nebenabenteuer: %s
+561|Hieb
+562|Verlangsamt
+563|Schnappschuss
+564|Der Schnappschuss „%s“ ist leer.
+565|Schnappschuss „%s“ aufgenommen (Runde %d).
+566|Schnappschuss geladen - Runde %d
+567|Etwas mit demselben Namen steht bereits im Weg: %s.
+568|Speer
+569|Stab
+570|Start
+571|Spiel starten
+572|Schritt %s: %s...
+573|Geschichtsrezept
+574|Erzähler:
+575|Stärke
+576|Schwert
+577|Taktik
+578|Taktiken
+579|In Deckung gehen
+580|Angelaufene Brosche
+581|Angelaufene Brosche: %d von %d.
+582|Angelaufene Brosche: %d von %d. Die Brosche wird ab der nächsten Mission mit ihrer +-Seite freigeschaltet!
+583|Angelaufene Brosche: %s (%s-Marker) erscheint ebenfalls. %s muss es besiegen.
+584|Terros
+585|Terros (Erde)
+586|Texturen und Porträts
+587|Dieser Ordner enthält das Spiel nicht (es wurde kein Ordner „bundles“ darin gefunden).
+588|Das ist keine Webadresse (sie muss mit https:// beginnen).
+589|Diese Option ist nicht verfügbar
+590|Der Download von %s ist fehlgeschlagen (Netzwerk %d, HTTP %d).
+591|Der Download von %s ist keine gültige Zip-Datei.
+592|Der Download von %s empfängt keine Daten mehr - prüfe die Verbindung und versuche es erneut.
+593|Der Download von %s wurde abgebrochen.
+594|Der Download von %s war beschädigt (Prüfsumme stimmt nicht).
+595|%s wird bereits heruntergeladen.
+596|Die Adresse muss mit https:// beginnen
+597|Die Rüstung, die die Gruppe besitzt
+598|Der Autor bestätigt, dass er die Bilder teilen darf.
+599|Der Autor hat nicht gesagt, ob er die Bilder teilen darf.
+600|Die Kampagne ist abgeschlossen - herzlichen Glückwunsch!
+601|Die Katalogadresse muss mit https:// beginnen
+602|Das heruntergeladene Paket ist nicht das, was die Liste versprochen hat (%s %s statt %s %s). Es wurde nicht importiert.
+603|Das heruntergeladene Paket ist nicht das, was die Liste versprochen hat. Es wurde nicht installiert.
+604|der Gegner hatte weniger als %d Lebenspunkte: besiegt
+605|Die Dateien konnten nicht geschrieben werden (Fehler %d).
+606|der erste in dieser Runde verwundete Held hat stattdessen %d Gesundheit
+607|Das Spiel wurde an den üblichen Orten nicht gefunden. Wähle den Ordner, in dem es installiert ist.
+608|Das Importwerkzeug hat angehalten, ohne etwas zu importieren (Exitcode %d).
+609|Die importierten Spielressourcen werden beim Start der App geladen.\n\nJetzt neu starten?
+611|Die Sprachen, die du lesen möchtest, die beste zuerst. Eine Kampagne oder Mission wird in der ersten Sprache angezeigt, für die sie einen Text hat; beim Start eines Kampagnenspiels wirst du gefragt, in welcher Sprache du es spielen möchtest.
+612|Die Liste geteilter Kampagnen, die das Aktualisieren-Symbol im Bildschirm Neues Spiel zeigt. Standardmäßig die im Repository descent-engine-community auf GitHub.
+613|Der Markt verkauft Materialien, kauft sie aber nicht an.
+614|Die Mission fehlt im Kampagnenordner.
+615|Die Mission des Kapitels „%s“ fehlt in der neuen Version.
+616|Die neue Variable „%s“ beginnt mit ihrem Standardwert.
+617|Die neue Version hat keinen Akt %d (dein Spielstand ist darin).
+618|Die neuere Version konnte nicht geöffnet werden.
+619|Der ursprüngliche Spielstand bleibt unverändert - du kannst jederzeit zu ihm zurück.
+620|das Paket
+621|Die Gruppe trägt keine Verbrauchsgegenstände - braue sie bei einem Alchemisten aus Trankrezepten.
+622|Die Gruppe hat keine Verbrauchsgegenstände. Braue sie bei einem Alchemisten aus Trankrezepten.
+623|Die Gruppe muss dieses Kapitel erneut versuchen.
+624|Die Gruppe besitzt noch keine Rüstung.
+625|Die Gruppe besitzt noch keinen Schmuck - er wird in einem Rezepthandel gekauft oder gefunden.
+626|Die Phase kann jetzt nicht beendet werden.
+627|Die Tränke, die die Gruppe hergestellt hat - in jeder Mission verfügbar
+628|Die Prüfsummenliste der Veröffentlichung hat keinen Eintrag für %s.
+629|Der Schnappschuss konnte nicht gespeichert werden - siehe Ausgabe-Bereich.
+630|Der Schnappschuss wurde auf die bearbeitete Mission angewendet, aber:\n-
+631|Der Download der Sprach-Engine hatte keine Bibliothek für %s.
+632|der Tisch führt es aus
+633|Der Schmuck, den dieser Held trägt (einer pro Held; ein Schmuckstück kann nur von einem Helden getragen werden)
+634|Das Update konnte nicht gestartet werden.
+635|Das Update enthält %s nicht.
+636|Die aktualisierte Kopie konnte nicht gespeichert werden.
+637|Die Variable „%s“ gibt es nicht mehr - ihr Wert wird verworfen.
+638|Diese App wird ohne die Grafiken des Spiels ausgeliefert. Wenn du „Descent: Legenden der Finsternis“ besitzt, können die echten Bilder, Figuren und Spieldaten aus deiner eigenen Installation kopiert werden. Nichts vom Spiel wird heruntergeladen und nichts verlässt diesen Computer.
+639|dieser Angriff kann es nicht verletzen
+640|Dieses Paket wurde nicht importiert - es ist beschädigt oder enthält etwas Unzulässiges:\n\n- %s
+641|Dieses Paket wurde nicht installiert - es ist beschädigt oder enthält etwas Unzulässiges.
+642|Diese Veröffentlichung hat kein %s (oder keine Prüfsummenliste).
+643|Dieser Spielstand kann nicht auf v%s umgestellt werden:
+644|Dieser Spielstand wurde von Version %s der Kampagne auf Version %s umgestellt.
+645|Bedrohung
+646|Wurfmesser
+647|Zeit vergeht
+648|Zeit vergeht.\n\n
+649|Müde
+650|Zu kurz - halte %s, während du sprichst
+651|Zum Baum
+652|Toxos
+653|Toxos (Verfall)
+654|Auslösung %d (jede %d.: %d Schaden an jedem Gegner)
+655|Auslösung %d: %d Schaden an jedem Gegner
+656|Schmuck
+657|Schmuck %s: %s
+658|Schmuck-Upgrade:
+659|Schmuck:
+660|Schmuck
+661|Umbros
+662|Umbros (Schatten)
+663|Untoter Schädel
+664|Untoter Schädel: %s hat ein(e) %s zum %s. Mal besiegt.
+665|Unbekannt
+666|Update verfügbar: %s
+667|Auf v%s aktualisieren…
+668|Upgrade - Stufe %d
+669|Upgrade:
+670|Verbessert (+). In einer Kampagne folgt dies den Verbesserungen der Gruppe.
+671|In dieser Mission verwendbar: %s. Lege es in deinen Spielbereich, um es zu benutzen. Es wird nicht dem Inventar hinzugefügt und ist weg, wenn die Mission endet.
+672|In dieser Mission verwendbar: %s. Lege sie in deinen Spielbereich, um sie zu benutzen. Sie werden nicht dem Inventar hinzugefügt und sind weg, wenn die Mission endet.
+673|Die Original-Requisiten des Spiels auf der Karte verwenden
+674|Die verbesserte (+) Seite dieses Schmuckstücks verwenden.
+675|Die Variable „%s“ hat ihren Typ geändert - sie hat wieder ihren Standardwert.
+676|Die Variable „%s“ gibt es nicht mehr (sie war %s).
+677|Version %s
+678|Version %s ist bereits installiert.
+679|Version %s ist verfügbar (du hast %s).
+680|Version %s dieses Pakets ist bereits veröffentlicht - eine Veröffentlichung wird nie ersetzt. Verwende eine höhere Version.
+681|Sieg!
+682|Vigos
+683|Vigos (Leben)
+684|Stimme
+685|Stimme -
+686|Die Sprachsteuerung ist eingerichtet.
+687|Die Sprache ist noch nicht eingerichtet - getippte Befehle funktionieren weiterhin.
+688|Spracheinstellungen (%s)
+689|Die Spracheinrichtung ist auf %s nicht verfügbar - getippte Befehle funktionieren weiterhin.
+690|Die Spracheinrichtung wird auf %s noch nicht unterstützt.
+691|Stimmen (%s)
+692|Zauberstab
+693|Umherirren
+694|Kriegsglocke
+695|Kriegshammer
+696|schwach gegen %s
+697|Schwach: %s
+698|Schwäche
+699|Schwächeschaden +%d
+700|Schwäche: %s
+701|Waffe
+702|Waffe %d (%s)
+703|Waffenschaden +%d
+704|Chancen der Waffenteile +%d %%
+705|Waffen
+706|Neuigkeiten
+707|Wenn ein Held alle Lebenspunkte verloren hat, drücke Verwunden. Die dritte Verwundung verliert das Spiel.
+708|Welches Monster?
+709|Welches?
+710|Wer greift %s an?
+711|Wer benutzt %s?
+712|Wille
+713|Gewonnen: %s.
+714|Verwunden
+715|Verwundet
+716|EP: %d  |  Gold: %d
+717|Gelb
+718|Ja
+719|Du hast bereits Version %s - diese wird daneben installiert.
+720|Du kannst spielen
+721|Du trägst %d.
+722|Du hast %d Gold und %s.
+723|Du hast %d Gold.
+724|Du kennst kein Trankrezept. Rezepte werden in den Rezepthandeln verkauft oder als Beute gefunden.
+725|Du kennst kein Rezept, das etwas Neues herstellt. Rezepte werden in den Rezepthandeln verkauft.
+726|Deine Materialien:
+727|Dein Fortschritt wird unter diesem Namen automatisch gespeichert, sodass du aufhören und später weitermachen kannst (Spiel laden im Hauptmenü). Verwende für jede Gruppe oder jeden Durchgang einen anderen Namen.
+728|▶ Vorlesen
+729|☠ Besiegt
+730|Die App selbst (Menüs und Dialoge) wird in der ersten Sprache dieser Liste angezeigt, in die sie übersetzt ist - bisher Englisch, Español, Nederlands, Français und Deutsch.
+731|Inoffizielle App
+732|%s - %s\n\n%s erhält einen zusätzlichen Vorteil: %s.
+733|Ein neuer Akt beginnt.
+734|Akt
+736|Die Kampagne ist abgeschlossen.
+737|Das Ende
+738|Die Geschichte beginnt.
+739|Aktuelle Aufgabe:
+740|Sprache dieses Spiels
+741|Die Sprache, in der dieses Spiel gelesen, protokolliert und erzählt wird. Du kannst sie später in den Optionen ändern.
+742|Die Geschichte, das Logbuch und die Begriffe des Spiels werden in dieser Sprache angezeigt. Die Menüs und Schaltflächen der App folgen der Liste unten.
+743|%s-Stimmen herunterladen (%s)
+744|Es sind keine Erzählstimmen für %s installiert, daher wird die Geschichte nur als Text gezeigt.
+745|Es sind keine Erzählstimmen für %s installiert, daher wird die Geschichte nur als Text gezeigt. Lade sie unter Optionen > Stimme herunter.
+746|Erzählung einrichten - %s-Stimmen (lädt etwa %d MB herunter)
+747|Stimmen für:
+748|Es sind keine Erzählstimmen für %s installiert, daher wird dieses Spiel nur als Text gezeigt. Lade sie unter Optionen > Stimme herunter.
+749| - nur wenn %d Bedingung(en)
+750|Schwierigkeitsgrad
+752|Abenteurer
+753|Lehrling
+754|Monster sind eine Stufe stärker, als der Autor sie festgelegt hat, und die Mission kann härter für dich sein.
+755|Monster sind eine Stufe schwächer, als der Autor sie festgelegt hat, und die Mission kann leichter für dich sein.
+756|Monster sind zwei Stufen stärker, als der Autor sie festgelegt hat, und die Mission kennt vielleicht keine Gnade.
+757|Albtraum
+758|Das Spiel, wie der Autor es entworfen hat.
+759|Veteran
+760|Zähere Monster und eine härtere Mission bei den höheren Zahlen. Du kannst es vor jeder Mission ändern.
+761|%d Monster sind aufgewacht.
+762|Auf eines davon wurde ein Zustand angewendet.
+763|Monster erwachen
+764|Etwas hat sie alarmiert.
+765|Etwas hat sie geweckt.
+766|Die Monster erwachen!
+767|Sie haben die Helden nicht bemerkt: Sie bleiben, wo sie sind, bis etwas sie weckt.
+768|Sie haben den Angriff bemerkt.
+769|Ahnungslos
+770|Ahnungslos - es und seine Gruppe überspringen die Monsterphase
+771|Aufwecken
+772|%s (optional)
+773|Optionale Aufgabe
+774|Optionale Aufgabe erledigt:\n%s
+775|Optional:
+P1| (%d für %d Spieler)| (%d für %d Spieler)
+P2|+%d Erfolg|+%d Erfolge
+P3|%d Zustand verloren, %d Schaden|%d Zustände verloren, %d Schaden
+P4|Glücksbringer: %d zusätzlicher Erfolg wird zu %ss Ergebnis addiert.|Glücksbringer: %d zusätzliche Erfolge werden zu %ss Ergebnis addiert.
+P5|Neues Nebenabenteuer: %s|Neue Nebenabenteuer: %s
+776|Die App selbst (Menüs und Dialoge) wird in der ersten Sprache dieser Liste angezeigt, in die sie übersetzt ist - bisher %s.

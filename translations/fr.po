@@ -1,0 +1,2327 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ascent\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "  (immune)"
+msgstr "  (immunisé)"
+
+msgid "  mic [%s%s]"
+msgstr "  micro [%s%s]"
+
+msgid " %s gains a unique recipe: %s."
+msgstr " %s obtient une recette unique : %s."
+
+msgid " (%d failed)"
+msgstr " (%d échec)"
+
+msgid " (active)"
+msgstr " (actif)"
+
+msgid " (downloads the import tool first, %s)"
+msgstr " (télécharge d'abord l'outil d'importation, %s)"
+
+msgid " (immune)"
+msgstr " (immunisé)"
+
+msgid " (Only campaigns keep recipes.)"
+msgstr " (Seules les campagnes conservent les recettes.)"
+
+msgid " (XP now %d)"
+msgstr " (XP maintenant %d)"
+
+msgid " - not imported yet"
+msgstr " - pas encore importé"
+
+msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
+msgstr " = %d dégâts\nJet de défense : -%d\n\n%d dégâts infligés"
+
+msgid " Not spawned: %s."
+msgstr " Non apparu : %s."
+
+msgid " There is no recipe left to gain."
+msgstr " Il n'y a plus de recette à obtenir."
+
+msgid "%d damage to %s"
+msgstr "%d dégâts à %s"
+
+msgid "%d damage to the enemy"
+msgstr "%d dégâts à l'ennemi"
+
+msgid "%d extra damage (%d%% of its health)"
+msgstr "%d dégâts supplémentaires (%d %% de sa santé)"
+
+msgid "%d from the community to install."
+msgstr "%d de la communauté à installer."
+
+msgid "%d gold"
+msgstr "%d or"
+
+msgid "%d gold (Dead Man's Compass)"
+msgstr "%d or (Boussole du mort)"
+
+msgid "%d h %d min"
+msgstr "%d h %d min"
+
+msgid "%d min"
+msgstr "%d min"
+
+msgid "%d monster(s) spawned."
+msgstr "%d monstre(s) apparu(s)."
+
+msgid "%d of the current objectives no longer exist."
+msgstr "%d des objectifs actuels n'existent plus."
+
+msgid "%d x %d tiles"
+msgstr "%d x %d tuiles"
+
+msgid "%dx %s"
+msgstr "%dx %s"
+
+msgid "%s  -  XP %d,  gold %d"
+msgstr "%s  -  XP %d,  or %d"
+
+msgid "%s %d (no table rows)"
+msgstr "%s %d (aucune ligne de table)"
+
+msgid "%s (%s chip)"
+msgstr "%s (jeton %s)"
+
+msgid "%s (%s, part %s)"
+msgstr "%s (%s, pièce %s)"
+
+msgid "%s (copied by %s): %s"
+msgstr "%s (copié par %s) : %s"
+
+msgid "%s +%d until the end of the round"
+msgstr "%s +%d jusqu'à la fin du round"
+
+msgid "%s - %s chip"
+msgstr "%s - jeton %s"
+
+msgid "%s - %s triggered!\n\n%s"
+msgstr "%s - %s s'active !\n\n%s"
+
+msgid "%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it."
+msgstr "%s - %s s'active !\n\n%s reçoit une denrée aléatoire : %s\n\nÉquipez-la."
+
+msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it."
+msgstr "%s - %s s'active !\n\n%s reçoit une denrée améliorée aléatoire : %s\n\nÉquipez-la."
+
+msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
+msgstr "%s - %s s'active !\n\n%s\n\nVérifiez si cela s'applique et exécutez-le sur le plateau (un état peut être appliqué depuis l'écran des monstres)."
+
+msgid "%s - %s\nDoes %s have an injury?"
+msgstr "%s - %s\n%s a-t-il une blessure ?"
+
+msgid "%s - %s\nHow much fatigue is on all of %s's cards?"
+msgstr "%s - %s\nCombien de fatigue y a-t-il sur toutes les cartes de %s ?"
+
+msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
+msgstr "%s - %s\nQuel autre ennemi subit les mêmes dégâts ? (Annuler : aucun)"
+
+msgid "%s - buy for %d gold, sell for %d"
+msgstr "%s - achat %d or, vente %d"
+
+msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
+msgstr "%s - PV %d, Niv %d, Déf %d, Att %d"
+
+msgid "%s - level %d"
+msgstr "%s - niveau %d"
+
+msgid "%s - not yet implemented."
+msgstr "%s - pas encore implémenté."
+
+msgid "%s \"%s\" - version %s"
+msgstr "%s « %s » - version %s"
+
+msgid "%s attacks %s (damage %d, %s)."
+msgstr "%s attaque %s (dégâts %d, %s)."
+
+msgid "%s attacks %s - choose a weapon"
+msgstr "%s attaque %s - choisissez une arme"
+
+msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
+msgstr "%s attaque %s !%s\nDégâts %d - %s - Vitesse %d"
+
+msgid "%s attacks %s.\nWhich weapon?"
+msgstr "%s attaque %s.\nQuelle arme ?"
+
+msgid "%s attacks %s\nwith the %s (damage %d)\n"
+msgstr "%s attaque %s\navec %s (dégâts %d)\n"
+
+msgid "%s dropped something usable. %s"
+msgstr "%s a laissé tomber quelque chose d'utilisable. %s"
+
+msgid "%s dropped: %s."
+msgstr "%s a laissé tomber : %s."
+
+msgid "%s gains %s"
+msgstr "%s obtient %s"
+
+msgid "%s has been defeated."
+msgstr "%s a été vaincu."
+
+msgid "%s healed %d (%d hitpoints)."
+msgstr "%s a soigné %d (%d points de vie)."
+
+msgid "%s is %s."
+msgstr "%s est %s."
+
+msgid "%s is confused!\n%s\n%s"
+msgstr "%s est désorienté !\n%s\n%s"
+
+msgid "%s is confused: %s."
+msgstr "%s est désorienté : %s."
+
+msgid "%s is immune"
+msgstr "%s est immunisé"
+
+msgid "%s is less likely to be its target this round"
+msgstr "%s a moins de chances d'être sa cible ce round"
+
+msgid "%s is no longer %s."
+msgstr "%s n'est plus %s."
+
+msgid "%s is not in the party."
+msgstr "%s ne fait pas partie du groupe."
+
+msgid "%s is up to something..."
+msgstr "%s prépare quelque chose..."
+
+msgid "%s lost all hitpoints. Wound %s?"
+msgstr "%s a perdu tous ses points de vie. Blesser %s ?"
+
+msgid "%s performs %s against %s."
+msgstr "%s exécute %s contre %s."
+
+msgid "%s receives a benefit: %s."
+msgstr "%s reçoit un avantage : %s."
+
+msgid "%s suffers %d damage"
+msgstr "%s subit %d dégâts"
+
+msgid "%s takes %d affliction damage (%d hitpoints left)."
+msgstr "%s subit %d dégâts d'accablement (%d points de vie restants)."
+
+msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr "%s subit %d dégâts d'accablement et est vaincu ! Retirez-le du plateau."
+
+msgid "%s took %d damage (%d hitpoints left)."
+msgstr "%s a subi %d dégâts (%d points de vie restants)."
+
+msgid "%s took %d damage and was defeated."
+msgstr "%s a subi %d dégâts et a été vaincu."
+
+msgid "%s triggered"
+msgstr "%s s'est activé"
+
+msgid "%s was defeated during an interrupt before it could %s."
+msgstr "%s a été vaincu pendant une interruption avant de pouvoir %s."
+
+msgid "%s was wounded a third time."
+msgstr "%s a été blessé une troisième fois."
+
+msgid "%s wounded a hero - its turn is over."
+msgstr "%s a blessé un héros - son tour est terminé."
+
+msgid "%s's Brew Basket provides a random consumable:"
+msgstr "Le Panier à décoctions de %s fournit une denrée aléatoire :"
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
+msgstr "%s : %s !\nCible %s - Dégâts %d - %s - Vitesse %d"
+
+msgid "%s: %s\nFixed parts: %s"
+msgstr "%s : %s\nPièces fixes : %s"
+
+msgid "%s: defense +%d until the end of the round"
+msgstr "%s : défense +%d jusqu'à la fin du round"
+
+msgid "%s: interact with '%s'"
+msgstr "%s : interagir avec « %s »"
+
+msgid "%s: loot x%d (+%s)"
+msgstr "%s : butin x%d (+%s)"
+
+msgid "%s: needs %d, you have %d"
+msgstr "%s : il faut %d, vous avez %d"
+
+msgid "%s: perform a %s test - how many successes?"
+msgstr "%s : effectuez un test de %s - combien de réussites ?"
+
+msgid "%s: the enemy has no loot"
+msgstr "%s : l'ennemi n'a pas de butin"
+
+msgid "%s: the enemy is not defeated, no extra loot"
+msgstr "%s : l'ennemi n'est pas vaincu, pas de butin supplémentaire"
+
+msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
+msgstr "%s\n\nRien n'a été modifié. Vous pouvez réessayer ou télécharger la mise à jour depuis la page des versions."
+
+msgid "%s\n\nYou chose: %s"
+msgstr "%s\n\nVous avez choisi : %s"
+
+msgid "(attacks again)"
+msgstr "(attaque à nouveau)"
+
+msgid "(ignored) %s"
+msgstr "(ignoré) %s"
+
+msgid "(unnamed place)"
+msgstr "(lieu sans nom)"
+
+msgid "(unnamed side quest)"
+msgstr "(quête annexe sans nom)"
+
+msgid "(your release)"
+msgstr "(votre version)"
+
+msgid "+%d damage"
+msgstr "+%d dégâts"
+
+msgid "+%d damage (rolled %d-%d)"
+msgstr "+%d dégâts (obtenu %d-%d)"
+
+msgid "+%d damage (round %d)"
+msgstr "+%d dégâts (round %d)"
+
+msgid "2D art - logo and main menu background"
+msgstr "Illustrations 2D - logo et fond du menu principal"
+
+msgid "[draft]"
+msgstr "[brouillon]"
+
+msgid "\"%s\" version %s is already installed."
+msgstr "« %s » version %s est déjà installé."
+
+msgid "\n%.1f MB."
+msgstr "\n%.1f Mo."
+
+msgid "\n%d mission(s), %d picture(s), %.1f MB."
+msgstr "\n%d mission(s), %d image(s), %.1f Mo."
+
+msgid "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted."
+msgstr "\n%d sauvegarde(s) de celle-ci sont mises de côté (user://campaign_saves/_removed), pas supprimées."
+
+msgid "\n%d successes x %d weapon damage"
+msgstr "\n%d réussites x %d dégâts de l'arme"
+
+msgid "\n(+%d damage from a defense ability this activation)"
+msgstr "\n(+%d dégâts d'une capacité défensive pendant cette activation)"
+
+msgid "\n(Enfeebled: damage reduced from %d)"
+msgstr "\n(Affaibli : dégâts réduits de %d)"
+
+msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
+msgstr "\n\n%s obtient la blessure « %s » : placez sa carte dans votre zone de jeu."
+
+msgid "\n\n%s has %d hitpoints left."
+msgstr "\n\n%s a encore %d points de vie."
+
+msgid "\n\n%s is defeated! Remove it from the board."
+msgstr "\n\n%s est vaincu ! Retirez-le du plateau."
+
+msgid "\n\n%s must flip their injury card (%s) to its major side."
+msgstr "\n\n%s doit retourner sa carte de blessure (%s) sur sa face majeure."
+
+msgid "\n\n%s must flip their injury card to its major side."
+msgstr "\n\n%s doit retourner sa carte de blessure sur sa face majeure."
+
+msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
+msgstr "\n\nFusée commémorative : fixez la santé de %s à %d à la place."
+
+msgid "\n\nThe app can't update itself here: %s. Download it from the release page."
+msgstr "\n\nL'application ne peut pas se mettre à jour ici : %s. Téléchargez-la depuis la page des versions."
+
+msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+msgstr "\n\nLa mission en cours sera fermée - sauvegardez-la d'abord (Options > Sauvegarder) ou choisissez Plus tard."
+
+msgid "\n\nThis is %s's third wound - the game will be lost!"
+msgstr "\n\nC'est la troisième blessure de %s - la partie sera perdue !"
+
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgstr "\n\nPierre de vagabond - chaque héros peut choisir son autre avantage au lieu de défausser 1 fatigue :"
+
+msgid "\nActivation: "
+msgstr "\nActivation : "
+
+msgid "\nAlso some crafting materials for the party: %s."
+msgstr "\nAinsi que quelques matériaux d'artisanat pour le groupe : %s."
+
+msgid "\nAt the table: "
+msgstr "\nÀ la table : "
+
+msgid "\nConditions applied: %s"
+msgstr "\nÉtats appliqués : %s"
+
+msgid "\nExposed: +%d damage"
+msgstr "\nExposé : +%d dégâts"
+
+msgid "\nImmune to: %s"
+msgstr "\nImmunisé contre : %s"
+
+msgid "\nImmune! The attack does no damage.\n\n0 damage dealt"
+msgstr "\nImmunisé ! L'attaque ne cause aucun dégât.\n\n0 dégât infligé"
+
+msgid "\nIn development (a draft)"
+msgstr "\nEn développement (un brouillon)"
+
+msgid "\nLoot for the party: %s."
+msgstr "\nButin pour le groupe : %s."
+
+msgid "\nNo free spawn tile for: %s - place them next to the others."
+msgstr "\nAucune tuile d'apparition libre pour : %s - placez-les à côté des autres."
+
+msgid "\nNot installed yet - open it to install."
+msgstr "\nPas encore installé - ouvrez-le pour l'installer."
+
+msgid "\nResistance: -%d damage"
+msgstr "\nRésistance : -%d dégâts"
+
+msgid "\nThe package was checked: it only contains game data."
+msgstr "\nLe paquet a été vérifié : il ne contient que des données de jeu."
+
+msgid "\nWeakness: +%d damage"
+msgstr "\nFaiblesse : +%d dégâts"
+
+msgid "\nWeapon parts and trinket: "
+msgstr "\nPièces d'arme et accessoire : "
+
+msgid "a %s armor upgrade"
+msgstr "une amélioration d'armure %s"
+
+msgid "a %s part recipe"
+msgstr "une recette de pièce %s"
+
+msgid "a %s part upgrade"
+msgstr "une amélioration de pièce %s"
+
+msgid "a %s recipe"
+msgstr "une recette %s"
+
+msgid "a %s upgrade"
+msgstr "une amélioration %s"
+
+msgid "A campaign"
+msgstr "Une campagne"
+
+msgid "a hero"
+msgstr "un héros"
+
+msgid "a new area"
+msgstr "une nouvelle zone"
+
+msgid "a potion recipe"
+msgstr "une recette de potion"
+
+msgid "A save game called '%s' already exists."
+msgstr "Une sauvegarde nommée « %s » existe déjà."
+
+msgid "A save game needs a name."
+msgstr "Une sauvegarde doit avoir un nom."
+
+msgid "a shipment of %s armor"
+msgstr "une cargaison d'armures %s"
+
+msgid "a shipment of armor"
+msgstr "une cargaison d'armures"
+
+msgid "A single mission"
+msgstr "Une mission unique"
+
+msgid "A snapshot can be taken in the player phase, with no dialog open."
+msgstr "Un instantané peut être pris pendant la phase des joueurs, sans dialogue ouvert."
+
+msgid "a trinket"
+msgstr "un accessoire"
+
+msgid "a trinket upgrade"
+msgstr "une amélioration d'accessoire"
+
+msgid "Act complete!"
+msgstr "Acte terminé !"
+
+msgid "Add language"
+msgstr "Ajouter une langue"
+
+msgid "adds %d damage to its next activation"
+msgstr "ajoute %d dégâts à sa prochaine activation"
+
+msgid "Afflicted"
+msgstr "Accablé"
+
+msgid "Affliction"
+msgstr "Accablement"
+
+msgid "affliction damage +%d this round"
+msgstr "dégâts d'accablement +%d ce round"
+
+msgid "Agility"
+msgstr "Agilité"
+
+msgid "all its statuses are removed"
+msgstr "tous ses statuts sont retirés"
+
+msgid "an armor upgrade"
+msgstr "une amélioration d'armure"
+
+msgid "an unknown author"
+msgstr "un auteur inconnu"
+
+msgid "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+msgstr "Un projet de fan non officiel, libre d'utilisation (licence MIT).\n*Descent : Légendes des Ténèbres* et tout ce qui touche au jeu appartiennent à leurs propriétaires."
+
+msgid "Anemos"
+msgstr "Anemos"
+
+msgid "Anemos (wind)"
+msgstr "Anemos (vent)"
+
+msgid "App update"
+msgstr "Mise à jour de l'application"
+
+msgid "Applied: "
+msgstr "Appliqué : "
+
+msgid "Apply conditions"
+msgstr "Appliquer des états"
+
+msgid "Aquos"
+msgstr "Aquos"
+
+msgid "Aquos (water)"
+msgstr "Aquos (eau)"
+
+msgid "Armor"
+msgstr "Armure"
+
+msgid "Armor upgrade: "
+msgstr "Amélioration d'armure : "
+
+msgid "Armor: "
+msgstr "Armure : "
+
+msgid "Armor…"
+msgstr "Armure…"
+
+msgid "At the table:"
+msgstr "À la table :"
+
+msgid "Attack"
+msgstr "Attaque"
+
+msgid "attack %s"
+msgstr "attaquer %s"
+
+msgid "Attack abilities: %s"
+msgstr "Capacités d'attaque : %s"
+
+msgid "attack gains %s"
+msgstr "l'attaque obtient %s"
+
+msgid "Available now: %s"
+msgstr "Disponible maintenant : %s"
+
+msgid "Back"
+msgstr "Retour"
+
+msgid "Back to Editor"
+msgstr "Retour à l'éditeur"
+
+msgid "Back to editor"
+msgstr "Retour à l'éditeur"
+
+msgid "Back to Menu"
+msgstr "Retour au menu"
+
+msgid "becomes afflicted"
+msgstr "devient accablé"
+
+msgid "Begin Campaign"
+msgstr "Commencer la campagne"
+
+msgid "Bone"
+msgstr "Os"
+
+msgid "Bought"
+msgstr "Acheté"
+
+msgid "bow"
+msgstr "arc"
+
+msgid "Brew"
+msgstr "Infuser"
+
+msgid "Brew Basket"
+msgstr "Panier à décoctions"
+
+msgid "Buy"
+msgstr "Acheter"
+
+msgid "Buy  %d"
+msgstr "Acheter  %d"
+
+msgid "Buy  %d gold"
+msgstr "Acheter  %d or"
+
+msgid "Buy recipe  %d gold"
+msgstr "Acheter la recette  %d or"
+
+msgid "by "
+msgstr "par "
+
+msgid "by %s"
+msgstr "par %s"
+
+msgid "Campaign"
+msgstr "Campagne"
+
+msgid "Campaign complete"
+msgstr "Campagne terminée"
+
+msgid "Campaign complete! (%s)"
+msgstr "Campagne terminée ! (%s)"
+
+msgid "Campaign editor"
+msgstr "Éditeur de campagne"
+
+msgid "Campaign Log"
+msgstr "Journal de campagne"
+
+msgid "Can %s attack a second hero?"
+msgstr "%s peut-il attaquer un deuxième héros ?"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Cancel download"
+msgstr "Annuler le téléchargement"
+
+msgid "Cauterization"
+msgstr "Cautérisation"
+
+msgid "Cautious"
+msgstr "Prudent"
+
+msgid "Centre to centre (strict)"
+msgstr "Centre à centre (strict)"
+
+msgid "Centre to corner (recommended)"
+msgstr "Centre à coin (recommandé)"
+
+msgid "Chapter"
+msgstr "Chapitre"
+
+msgid "Chapter \"%s\" that you already completed is not in the new version."
+msgstr "Le chapitre « %s » que vous avez déjà terminé n'est pas dans la nouvelle version."
+
+msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
+msgstr "Le chapitre « %s », où vous êtes actuellement, n'est pas dans l'acte %d de la nouvelle version."
+
+msgid "Check for a newer version of the app at the main menu"
+msgstr "Rechercher une version plus récente de l'application dans le menu principal"
+
+msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+msgstr "Le coffre, la porte, l'arbre et le puits utilisent les modèles du jeu après Ressources du jeu > Importer. Désactivé = les accessoires fournis avec l'application. Effet à la prochaine ouverture d'une carte."
+
+msgid "Choose a package"
+msgstr "Choisir un paquet"
+
+msgid "Choose a package file…"
+msgstr "Choisir un fichier de paquet…"
+
+msgid "Choose a weapon"
+msgstr "Choisir une arme"
+
+msgid "Choose the folder the game is installed in"
+msgstr "Choisissez le dossier où le jeu est installé"
+
+msgid "Choose the game folder…"
+msgstr "Choisir le dossier du jeu…"
+
+msgid "Choose two weapons per hero (and optional attachments)"
+msgstr "Choisissez deux armes par héros (et des accessoires facultatifs)"
+
+msgid "Choose your party"
+msgstr "Choisissez votre groupe"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Cloth"
+msgstr "Tissu"
+
+msgid "Common"
+msgstr "Ordinaire"
+
+msgid "Community"
+msgstr "Communauté"
+
+msgid "Community list"
+msgstr "Liste de la communauté"
+
+msgid "Conditions"
+msgstr "États"
+
+msgid "Conditions (%d)"
+msgstr "États (%d)"
+
+msgid "Confirm"
+msgstr "Confirmer"
+
+msgid "Confused"
+msgstr "Désorienté"
+
+msgid "Consumables"
+msgstr "Denrées"
+
+msgid "Consumables…"
+msgstr "Denrées…"
+
+msgid "Continue"
+msgstr "Continuer"
+
+msgid "Continue this game"
+msgstr "Continuer cette partie"
+
+msgid "Converting models... %s (%s)"
+msgstr "Conversion des modèles... %s (%s)"
+
+msgid "copies %s"
+msgstr "copie %s"
+
+msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+msgstr "Copie cette version en lecture seule dans un nouveau brouillon modifiable. La version elle-même et ses sauvegardes restent inchangées."
+
+msgid "Corner to corner (loose, Descent 2)"
+msgstr "Coin à coin (souple, Descent 2)"
+
+msgid "Cost: %s"
+msgstr "Coût : %s"
+
+msgid "Could not fork %s."
+msgstr "Impossible de dupliquer %s."
+
+msgid "Could not open that save game."
+msgstr "Impossible d'ouvrir cette sauvegarde."
+
+msgid "Could not open the campaign '%s'."
+msgstr "Impossible d'ouvrir la campagne « %s »."
+
+msgid "Couldn't start the %s download (error %d)."
+msgstr "Impossible de démarrer le téléchargement de %s (erreur %d)."
+
+msgid "Couldn't unpack the %s (tar exit code %d)."
+msgstr "Impossible de décompresser %s (code de sortie tar %d)."
+
+msgid "Couldn't unpack the narration engine (tar exit code %d)."
+msgstr "Impossible de décompresser le moteur de narration (code de sortie tar %d)."
+
+msgid "Couldn't write %s (error %d)."
+msgstr "Impossible d'écrire %s (erreur %d)."
+
+msgid "Count as lost"
+msgstr "Compter comme perdu"
+
+msgid "Count as won"
+msgstr "Compter comme gagné"
+
+msgid "Created by"
+msgstr "Créé par"
+
+msgid "Credits"
+msgstr "Crédits"
+
+msgid "crossbow"
+msgstr "arbalète"
+
+msgid "Crush"
+msgstr "Contondant"
+
+msgid "Curios"
+msgstr "Curiosités"
+
+msgid "Current objective"
+msgstr "Objectif actuel"
+
+msgid "Damage"
+msgstr "Dégâts"
+
+msgid "damage %d"
+msgstr "dégâts %d"
+
+msgid "damage +%d for good (now %d)"
+msgstr "dégâts +%d définitivement (maintenant %d)"
+
+msgid "damage -%d"
+msgstr "dégâts -%d"
+
+msgid "Damage Type"
+msgstr "Type de dégâts"
+
+msgid "Dazed"
+msgstr "Étourdi"
+
+msgid "Defeat."
+msgstr "Défaite."
+
+msgid "Defeated"
+msgstr "Vaincu"
+
+msgid "defense %+d until the end of the round (now %d)"
+msgstr "défense %+d jusqu'à la fin du round (maintenant %d)"
+
+msgid "defense +%d during this attack"
+msgstr "défense +%d pendant cette attaque"
+
+msgid "defense +%d for good (now %d)"
+msgstr "défense +%d définitivement (maintenant %d)"
+
+msgid "defense -%d"
+msgstr "défense -%d"
+
+msgid "defense -%d this round"
+msgstr "défense -%d ce round"
+
+msgid "Defense abilities: %s"
+msgstr "Capacités défensives : %s"
+
+msgid "defense ability deactivated for the next attack"
+msgstr "capacité défensive désactivée pour la prochaine attaque"
+
+msgid "defense ability deactivated until the end of the round"
+msgstr "capacité défensive désactivée jusqu'à la fin du round"
+
+msgid "Defense ability deactivated."
+msgstr "Capacité défensive désactivée."
+
+msgid "Defense ability: %s"
+msgstr "Capacité défensive : %s"
+
+msgid "Delete the save game '%s'?"
+msgstr "Supprimer la sauvegarde « %s » ?"
+
+msgid "Delete this save game"
+msgstr "Supprimer cette sauvegarde"
+
+msgid "Did %s deal damage to %s?"
+msgstr "%s a-t-il infligé des dégâts à %s ?"
+
+msgid "Did %s pass the test?"
+msgstr "%s a-t-il réussi le test ?"
+
+msgid "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."
+msgstr "J'ai entendu retraite ? Déplacez-vous de {speed} tuiles maximum, aussi loin des héros que possible."
+
+msgid "Did not trigger: "
+msgstr "N'a pas été déclenché : "
+
+msgid "Didn't catch a number in range"
+msgstr "Aucun nombre valide entendu"
+
+msgid "Didn't catch anything - hold %s and try again"
+msgstr "Rien entendu - maintenez %s et réessayez"
+
+msgid "Didn't catch that"
+msgstr "Pas compris"
+
+msgid "Didn't catch which option"
+msgstr "Option non reconnue"
+
+msgid "Done"
+msgstr "Terminé"
+
+msgid "Done - restart the app to see everything."
+msgstr "Terminé - redémarrez l'application pour tout voir."
+
+msgid "Done. The updated copy is in the list."
+msgstr "Terminé. La copie mise à jour est dans la liste."
+
+msgid "Doomed"
+msgstr "Damné"
+
+msgid "Download extra voices - accents (%s)"
+msgstr "Télécharger des voix supplémentaires - accents (%s)"
+
+msgid "Download more voices - plain English (%s)"
+msgstr "Télécharger d'autres voix - anglais standard (%s)"
+
+msgid "Downloading %s... %d MB"
+msgstr "Téléchargement de %s... %d Mo"
+
+msgid "Downloading %s... %d%% (%d / %d MB)"
+msgstr "Téléchargement de %s... %d %% (%d / %d Mo)"
+
+msgid "Downloading the update…"
+msgstr "Téléchargement de la mise à jour…"
+
+msgid "dual blades"
+msgstr "lames jumelles"
+
+msgid "each enemy suffers %d damage (trigger %d)"
+msgstr "chaque ennemi subit %d dégâts (activation %d)"
+
+msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
+msgstr "Chaque joueur peut emporter %d dans la mission%s. Les denrées fabriquées sont de nouveau disponibles à chaque mission - aucune n'est consommée."
+
+msgid "Editor"
+msgstr "Éditeur"
+
+msgid "Enable voice"
+msgstr "Activer la voix"
+
+msgid "Ending soon: this side quest is gone once \"%s\" is won."
+msgstr "Bientôt terminée : cette quête annexe disparaît une fois « %s » gagné."
+
+msgid "Enfeebled"
+msgstr "Affaibli"
+
+msgid "Essences"
+msgstr "Essences"
+
+msgid "Exposed"
+msgstr "Exposé"
+
+msgid "FAILED"
+msgstr "ÉCHEC"
+
+msgid "Failed to load mission: %s"
+msgstr "Échec du chargement de la mission : %s"
+
+msgid "Failed to save - see the Output panel for details."
+msgstr "Échec de la sauvegarde - voir le panneau Sortie pour les détails."
+
+msgid "Feats"
+msgstr "Exploits"
+
+msgid "first"
+msgstr "premier"
+
+msgid "Fixed hero (%s)"
+msgstr "Héros fixe (%s)"
+
+msgid "Flip your hero card"
+msgstr "Retournez votre carte de héros"
+
+msgid "Floor tiles"
+msgstr "Tuiles de sol"
+
+msgid "Focus 2 cards"
+msgstr "Canaliser 2 cartes"
+
+msgid "Forge"
+msgstr "Forger"
+
+msgid "Fork to edit"
+msgstr "Dupliquer pour modifier"
+
+msgid "Forked %s into your draft \"%s\" - open it in the %s editor."
+msgstr "%s dupliqué dans votre brouillon « %s » - ouvrez-le dans l'éditeur %s."
+
+msgid "Fortunos"
+msgstr "Fortunos"
+
+msgid "Fortunos (luck)"
+msgstr "Fortunos (chance)"
+
+msgid "Frantic"
+msgstr "Éperdu"
+
+msgid "free"
+msgstr "libre"
+
+msgid "Friendly fire"
+msgstr "Tir ami"
+
+msgid "Frustrated"
+msgstr "Frustré"
+
+msgid "gains %s"
+msgstr "obtient %s"
+
+msgid "Game %04d-%02d-%02d %02d:%02d"
+msgstr "Partie %04d-%02d-%02d %02d:%02d"
+
+msgid "Game assets"
+msgstr "Ressources du jeu"
+
+msgid "Game found:\n%s"
+msgstr "Jeu trouvé :\n%s"
+
+msgid "Gameplay"
+msgstr "Jeu"
+
+msgid "gauntlet"
+msgstr "gantelet"
+
+msgid "General"
+msgstr "Général"
+
+msgid "Gives the armor: %s%s - %s"
+msgstr "Donne l'armure : %s%s - %s"
+
+msgid "Gives the rune: %s"
+msgstr "Donne la rune : %s"
+
+msgid "Gives the trinket: %s%s - %s"
+msgstr "Donne l'accessoire : %s%s - %s"
+
+msgid "Gives the weapon: %s%s"
+msgstr "Donne l'arme : %s%s"
+
+msgid "Gives: %s"
+msgstr "Donne : %s"
+
+msgid "gloves"
+msgstr "gants"
+
+msgid "Gold"
+msgstr "Or"
+
+msgid "Gold: %d"
+msgstr "Or : %d"
+
+msgid "Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."
+msgstr "Vous avez reçu un paquet de quelqu'un ? Choisissez le fichier ou collez son adresse web. Vous voyez ce qu'il contient, et qui l'a créé, avant toute installation."
+
+msgid "Green"
+msgstr "Vert"
+
+msgid "Guard the gate"
+msgstr "Garder la porte"
+
+msgid "hammer"
+msgstr "marteau"
+
+msgid "Hardened Skin"
+msgstr "Épiderme endurci"
+
+msgid "Heal"
+msgstr "Soin"
+
+msgid "Heal 2"
+msgstr "Soin 2"
+
+msgid "Heal 4"
+msgstr "Soin 4"
+
+msgid "Healthy"
+msgstr "En bonne santé"
+
+msgid "Hear the story teller"
+msgstr "Écouter le conteur"
+
+msgid "Hear this voice"
+msgstr "Écouter cette voix"
+
+msgid "Heard: %s"
+msgstr "Entendu : %s"
+
+msgid "Heavily wounded"
+msgstr "Gravement blessé"
+
+msgid "Heavy Hands"
+msgstr "Mains lourdes"
+
+msgid "Heavy Heart"
+msgstr "Cœur lourd"
+
+msgid "Herbs"
+msgstr "Herbes"
+
+msgid "hero models"
+msgstr "modèles de héros"
+
+msgid "Hero voices"
+msgstr "Voix des héros"
+
+msgid "Heroes"
+msgstr "Héros"
+
+msgid "Hesitant"
+msgstr "Hésitant"
+
+msgid "Hitpoints %d / %d"
+msgstr "Points de vie %d / %d"
+
+msgid "Hold %s to talk"
+msgstr "Maintenez %s pour parler"
+
+msgid "Horn of Courage"
+msgstr "Cor de vaillance"
+
+msgid "Horn of Courage - %s was wounded."
+msgstr "Cor de vaillance - %s a été blessé."
+
+msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
+msgstr "Survolez une armure pour voir ses règles. L'armure se porte et se résout à la table."
+
+msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+msgstr "Comment l'outil de ligne de vue décide si deux cases se voient. Centre à coin : une ligne du milieu de la case de l'observateur à n'importe quel coin de la cible."
+
+msgid "HP %d · Level %d"
+msgstr "PV %d · Niveau %d"
+
+msgid "Ignos"
+msgstr "Ignos"
+
+msgid "Ignos (fire)"
+msgstr "Ignos (feu)"
+
+msgid "immune to %s"
+msgstr "immunisé contre %s"
+
+msgid "Immune to conditions: %s"
+msgstr "Immunisé contre les états : %s"
+
+msgid "Immune to: "
+msgstr "Immunisé contre : "
+
+msgid "Immune: %s"
+msgstr "Immunisé : %s"
+
+msgid "Immunity: %s"
+msgstr "Immunité : %s"
+
+msgid "Import"
+msgstr "Importer"
+
+msgid "Import finished, but not everything worked."
+msgstr "Importation terminée, mais tout n'a pas fonctionné."
+
+msgid "Import finished."
+msgstr "Importation terminée."
+
+msgid "Import game assets"
+msgstr "Importer les ressources du jeu"
+
+msgid "Imported so far: %s."
+msgstr "Déjà importé : %s."
+
+msgid "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
+msgstr "L'importation depuis l'application n'est pas encore disponible sur cet ordinateur - utilisez plutôt les outils de ressources de la page des versions."
+
+msgid "IN DEVELOPMENT"
+msgstr "EN DÉVELOPPEMENT"
+
+msgid "Input device: %s"
+msgstr "Périphérique d'entrée : %s"
+
+msgid "Install"
+msgstr "Installer"
+
+msgid "Install and restart"
+msgstr "Installer et redémarrer"
+
+msgid "Install by hand"
+msgstr "Installer à la main"
+
+msgid "Install this package?"
+msgstr "Installer ce paquet ?"
+
+msgid "Installed"
+msgstr "Installé"
+
+msgid "Installed \"%s\" v%s."
+msgstr "« %s » v%s installé."
+
+msgid "Installed \"%s\"."
+msgstr "« %s » installé."
+
+msgid "Installing…"
+msgstr "Installation…"
+
+msgid "Installing… the app closes and starts again by itself."
+msgstr "Installation… l'application se ferme et redémarre toute seule."
+
+msgid "Intelligence"
+msgstr "Intelligence"
+
+msgid "Interrupt"
+msgstr "Interrompre"
+
+msgid "Interrupt - the players act"
+msgstr "Interruption - les joueurs agissent"
+
+msgid "Inventory"
+msgstr "Inventaire"
+
+msgid "It stays as it is; you can keep playing it on its own version."
+msgstr "Elle reste telle quelle ; vous pouvez continuer à y jouer avec sa propre version."
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "Languages"
+msgstr "Langues"
+
+msgid "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"
+msgstr "Frappez le monstre le plus proche : il subit {damage} dégâts. (Appuyez sur Interrompre, cliquez sur ce monstre dans la vue des monstres et appliquez les dégâts.)"
+
+msgid "Later"
+msgstr "Plus tard"
+
+msgid "Leather"
+msgstr "Cuir"
+
+msgid "Leaves after the next chapter!"
+msgstr "Part après le prochain chapitre !"
+
+msgid "Level %d - "
+msgstr "Niveau %d - "
+
+msgid "Line of Sight"
+msgstr "Ligne de vue"
+
+msgid "Line of Sight (on)"
+msgstr "Ligne de vue (activée)"
+
+msgid "Line of sight rule"
+msgstr "Règle de ligne de vue"
+
+msgid "Listening... release %s to send"
+msgstr "Écoute... relâchez %s pour envoyer"
+
+msgid "Load a mission save"
+msgstr "Charger une sauvegarde de mission"
+
+msgid "Load game"
+msgstr "Charger une partie"
+
+msgid "Look for campaigns shared by the community"
+msgstr "Rechercher des campagnes partagées par la communauté"
+
+msgid "Looking for shared campaigns…"
+msgstr "Recherche de campagnes partagées…"
+
+msgid "Loot"
+msgstr "Butin"
+
+msgid "Loot for the party: "
+msgstr "Butin pour le groupe : "
+
+msgid "Lucky Charm"
+msgstr "Porte-bonheur"
+
+msgid "Lumos"
+msgstr "Lumos"
+
+msgid "Lumos (light)"
+msgstr "Lumos (lumière)"
+
+msgid "Lunge, no bite"
+msgstr "Fente, sans morsure"
+
+msgid "Mage-Sight Goggles"
+msgstr "Lunettes de Magevue"
+
+msgid "Mage-Sight Goggles - %s gains an additional action!"
+msgstr "Lunettes de Magevue - %s obtient une action supplémentaire !"
+
+msgid "Make a copy of '%s' on v%s?"
+msgstr "Faire une copie de « %s » sur la v%s ?"
+
+msgid "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+msgstr "Crée une COPIE mise à jour de cette sauvegarde sur la version plus récente. L'original reste inchangé."
+
+msgid "Materials"
+msgstr "Matériaux"
+
+msgid "maximum health -%d (now %d)"
+msgstr "santé maximale -%d (maintenant %d)"
+
+msgid "melee"
+msgstr "mêlée"
+
+msgid "Message"
+msgstr "Message"
+
+msgid "Metal"
+msgstr "Métal"
+
+msgid "Minerals"
+msgstr "Minéraux"
+
+msgid "Mission"
+msgstr "Mission"
+
+msgid "Mission editor"
+msgstr "Éditeur de mission"
+
+msgid "Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."
+msgstr "Missions et campagnes créées par d'autres joueurs. Tout est vérifié avant l'installation - un paquet ne peut contenir que des données de jeu, jamais de code - et chaque version est installée à côté des autres, donc rien de ce que vous avez créé ou sauvegardé n'est jamais écrasé."
+
+msgid "Models converted: %d%s"
+msgstr "Modèles convertis : %d%s"
+
+msgid "Monster"
+msgstr "Monstre"
+
+msgid "Monster action"
+msgstr "Action du monstre"
+
+msgid "Monster attack"
+msgstr "Attaque du monstre"
+
+msgid "monster figures"
+msgstr "figurines de monstres"
+
+msgid "Monster phase"
+msgstr "Phase des monstres"
+
+msgid "Monster Phase"
+msgstr "Phase des monstres"
+
+msgid "Monster tactic"
+msgstr "Tactique du monstre"
+
+msgid "Monsters appear"
+msgstr "Les monstres apparaissent"
+
+msgid "More than one matches - say a number"
+msgstr "Plusieurs correspondent - dites un numéro"
+
+msgid "Mortos"
+msgstr "Mortos"
+
+msgid "Mortos (dead)"
+msgstr "Mortos (mort)"
+
+msgid "Move camera to player and monster spawns"
+msgstr "Déplacer la caméra vers les zones d'apparition des joueurs et des monstres"
+
+msgid "Move up to {speed} tiles in a random direction."
+msgstr "Déplacez-vous de {speed} tuiles maximum dans une direction aléatoire."
+
+msgid "Move up to {speed} tiles to the closest gate and guard it."
+msgstr "Déplacez-vous de {speed} tuiles maximum vers la porte la plus proche et gardez-la."
+
+msgid "Move up to {speed} tiles to the nearest pillar and hide behind it."
+msgstr "Déplacez-vous de {speed} tuiles maximum vers le pilier le plus proche et cachez-vous derrière."
+
+msgid "Move up to {speed} tiles towards the closest tree."
+msgstr "Déplacez-vous de {speed} tuiles maximum vers l'arbre le plus proche."
+
+msgid "Move up to {speed} tiles towards the nearest hero - but do not attack."
+msgstr "Déplacez-vous de {speed} tuiles maximum vers le héros le plus proche - mais n'attaquez pas."
+
+msgid "Moved to v%s"
+msgstr "Passé à la v%s"
+
+msgid "Narration"
+msgstr "Narration"
+
+msgid "Narration is set up."
+msgstr "La narration est configurée."
+
+msgid "Narration isn't available on %s."
+msgstr "La narration n'est pas disponible sur %s."
+
+msgid "Narration isn't set up yet - the story is shown as text only."
+msgstr "La narration n'est pas encore configurée - l'histoire est affichée en texte seulement."
+
+msgid "Narration setup isn't supported on %s yet."
+msgstr "La configuration de la narration n'est pas encore prise en charge sur %s."
+
+msgid "New game"
+msgstr "Nouvelle partie"
+
+msgid "Next"
+msgstr "Suivant"
+
+msgid "No"
+msgstr "Non"
+
+msgid "No %s."
+msgstr "Aucun %s."
+
+msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
+msgstr "Aucun modèle de base pour : %s - non apparu (corrigez la mission dans le Créateur)."
+
+msgid "No colour chip left for: %s - not spawned."
+msgstr "Plus aucun jeton de couleur pour : %s - non apparu."
+
+msgid "No description."
+msgstr "Aucune description."
+
+msgid "no enemy to damage"
+msgstr "aucun ennemi à blesser"
+
+msgid "No map image - choose one for this act"
+msgstr "Aucune image de carte - choisissez-en une pour cet acte"
+
+msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
+msgstr "Aucune recette connue : importez d'abord les données du jeu (Ressources du jeu dans le menu principal)."
+
+msgid "No recipes for sale right now."
+msgstr "Aucune recette en vente pour le moment."
+
+msgid "No recipes yet - they are bought at a recipe shop."
+msgstr "Pas encore de recettes - elles s'achètent dans une boutique de recettes."
+
+msgid "No save games yet - start one with New game."
+msgstr "Aucune sauvegarde pour l'instant - commencez-en une avec Nouvelle partie."
+
+msgid "None yet - materials come from defeated monsters, missions and the market."
+msgstr "Aucun pour l'instant - les matériaux viennent des monstres vaincus, des missions et du marché."
+
+msgid "Not everything worked. What did work is in place - restart the app to see it."
+msgstr "Tout n'a pas fonctionné. Ce qui a fonctionné est en place - redémarrez l'application pour le voir."
+
+msgid "Note:"
+msgstr "Note :"
+
+msgid "Nothing for sale here."
+msgstr "Rien à vendre ici."
+
+msgid "Nothing has been imported yet - the app shows placeholders."
+msgstr "Rien n'a encore été importé - l'application affiche des images de remplacement."
+
+msgid "Nothing has happened yet."
+msgstr "Rien ne s'est encore passé."
+
+msgid "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
+msgstr "Rien ici pour l'instant. Appuyez sur l'icône d'actualisation pour voir ce que la communauté a partagé, ou publiez votre propre campagne dans l'éditeur de campagne."
+
+msgid "Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."
+msgstr "Rien d'installé pour l'instant. Utilisez l'icône d'actualisation de l'écran Nouvelle partie pour trouver des campagnes partagées, ou installez un paquet à la main ci-dessous."
+
+msgid "Nothing new in the community list."
+msgstr "Rien de nouveau dans la liste de la communauté."
+
+msgid "Nothing yet."
+msgstr "Rien pour l'instant."
+
+msgid "Notice"
+msgstr "Avis"
+
+msgid "Objective"
+msgstr "Objectif"
+
+msgid "Offline - showing the last community list. "
+msgstr "Hors ligne - dernière liste de la communauté affichée. "
+
+msgid "ok"
+msgstr "ok"
+
+msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+msgstr "Demande seulement à GitHub quelle est la dernière version. Rien n'est téléchargé ni installé sans votre clic."
+
+msgid "Open campaigns"
+msgstr "Ouvrir les campagnes"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Or a web address (https://…) of a package file:"
+msgstr "Ou une adresse web (https://…) d'un fichier de paquet :"
+
+msgid "Orange"
+msgstr "Orange"
+
+msgid "Overlays"
+msgstr "Superpositions"
+
+msgid "Part %s: none"
+msgstr "Pièce %s : aucune"
+
+msgid "Parts (B and C)"
+msgstr "Pièces (B et C)"
+
+msgid "perform %s"
+msgstr "exécuter %s"
+
+msgid "Perform a %s test - how many successes?"
+msgstr "Effectuez un test de %s - combien de réussites ?"
+
+msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
+msgstr "Choisissez une voix pour chaque héros. Ses répliques dans l'histoire sont lues avec elle, et personne d'autre ne l'utilisera."
+
+msgid "Pierce"
+msgstr "Perforant"
+
+msgid "Pillars"
+msgstr "Piliers"
+
+msgid "Place the monsters on the map as shown."
+msgstr "Placez les monstres sur la carte comme indiqué."
+
+msgid "Place your player figures in the highlighted area, then confirm."
+msgstr "Placez vos figurines de joueurs dans la zone en surbrillance, puis confirmez."
+
+msgid "Play"
+msgstr "Jouer"
+
+msgid "Play mission"
+msgstr "Jouer la mission"
+
+msgid "Play one mission"
+msgstr "Jouer une mission"
+
+msgid "Play this chapter"
+msgstr "Jouer ce chapitre"
+
+msgid "Play this side quest"
+msgstr "Jouer cette quête annexe"
+
+msgid "Player Phase"
+msgstr "Phase des joueurs"
+
+msgid "Player phase"
+msgstr "Phase des joueurs"
+
+msgid "Playtest"
+msgstr "Test"
+
+msgid "Playtest:"
+msgstr "Test :"
+
+msgid "Preferred targets: %s"
+msgstr "Cibles préférées : %s"
+
+msgid "Prepare 2 cards"
+msgstr "Préparer 2 cartes"
+
+msgid "Prepare a card"
+msgstr "Préparer une carte"
+
+msgid "Props"
+msgstr "Accessoires de décor"
+
+msgid "Purple"
+msgstr "Violet"
+
+msgid "Push to talk (hold %s)"
+msgstr "Appuyer pour parler (maintenir %s)"
+
+msgid "Quest"
+msgstr "Quête"
+
+msgid "Quest Log"
+msgstr "Journal des quêtes"
+
+msgid "Quit"
+msgstr "Quitter"
+
+msgid "Random (from the name)"
+msgstr "Aléatoire (d'après le nom)"
+
+msgid "range %d"
+msgstr "portée %d"
+
+msgid "Range %d"
+msgstr "Portée %d"
+
+msgid "range %d, reach"
+msgstr "portée %d, allonge"
+
+msgid "Range %d, reach"
+msgstr "Portée %d, allonge"
+
+msgid "Read in this language earlier"
+msgstr "Lu plus tôt dans cette langue"
+
+msgid "Read in this language later"
+msgstr "Lu plus tard dans cette langue"
+
+msgid "Read the story aloud"
+msgstr "Lire l'histoire à voix haute"
+
+msgid "Read this chapter"
+msgstr "Lire ce chapitre"
+
+msgid "Recipe - tier %d"
+msgstr "Recette - rang %d"
+
+msgid "Recipe: "
+msgstr "Recette : "
+
+msgid "Recipes"
+msgstr "Recettes"
+
+msgid "recovers %d health"
+msgstr "récupère %d points de vie"
+
+msgid "recovers %d health (now %d / %d)"
+msgstr "récupère %d points de vie (maintenant %d / %d)"
+
+msgid "Release page"
+msgstr "Page des versions"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Remove \"%s\" version %s from this computer?%s"
+msgstr "Retirer « %s » version %s de cet ordinateur ?%s"
+
+msgid "Remove a single condition"
+msgstr "Retirer un seul état"
+
+msgid "Remove all conditions of a given type"
+msgstr "Retirer tous les états d'un type donné"
+
+msgid "Remove all fatigue from a single card"
+msgstr "Retirer toute la fatigue d'une seule carte"
+
+msgid "Removed %s v%s."
+msgstr "%s v%s retiré."
+
+msgid "Resistance: %s"
+msgstr "Résistance : %s"
+
+msgid "Resistant: %s"
+msgstr "Résistant : %s"
+
+msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgstr "Résolvez l'infection et la terreur. Chaque héros peut défausser 1 fatigue."
+
+msgid "Restart needed"
+msgstr "Redémarrage nécessaire"
+
+msgid "Restart now"
+msgstr "Redémarrer maintenant"
+
+msgid "Resume monster attack"
+msgstr "Reprendre l'attaque du monstre"
+
+msgid "Retreat"
+msgstr "Retraite"
+
+msgid "reveals weakness to %s"
+msgstr "révèle la faiblesse à %s"
+
+msgid "Reward: "
+msgstr "Récompense : "
+
+msgid "Round %d - %s"
+msgstr "Round %d - %s"
+
+msgid "Rules Reference"
+msgstr "Guide de Référence"
+
+msgid "Rune"
+msgstr "Rune"
+
+msgid "rune"
+msgstr "rune"
+
+msgid "Rune: "
+msgstr "Rune : "
+
+msgid "Runes"
+msgstr "Runes"
+
+msgid "Save"
+msgstr "Sauvegarder"
+
+msgid "Save game"
+msgstr "Sauvegarde"
+
+msgid "Saved."
+msgstr "Sauvegardé."
+
+msgid "second"
+msgstr "deuxième"
+
+msgid "Sell  %d"
+msgstr "Vendre  %d"
+
+msgid "Set up narration (downloads %s)"
+msgstr "Configurer la narration (télécharge %s)"
+
+msgid "Set up voice control (downloads %s)"
+msgstr "Configurer la commande vocale (télécharge %s)"
+
+msgid "Set up your game"
+msgstr "Configurez votre partie"
+
+msgid "Setting up %s"
+msgstr "Mise en place de %s"
+
+msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
+msgstr "Mise en place de « %s »\n%s%s - placez-les comme indiqué :\n%s"
+
+msgid "Shift 1"
+msgstr "Glisse 1"
+
+msgid "Show voice hints"
+msgstr "Afficher les indications vocales"
+
+msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+msgstr "Indique si cette carte est améliorée (+). Les améliorations se gagnent dans la campagne."
+
+msgid "Side quest"
+msgstr "Quête annexe"
+
+msgid "Side quest (optional)"
+msgstr "Quête annexe (facultative)"
+
+msgid "Side quest won: %s."
+msgstr "Quête annexe gagnée : %s."
+
+msgid "Side quest: %s"
+msgstr "Quête annexe : %s"
+
+msgid "Slash"
+msgstr "Tranchant"
+
+msgid "Slowed"
+msgstr "Freiné"
+
+msgid "Snapshot"
+msgstr "Instantané"
+
+msgid "Snapshot '%s' is empty."
+msgstr "L'instantané « %s » est vide."
+
+msgid "Snapshot '%s' taken (round %d)."
+msgstr "Instantané « %s » pris (round %d)."
+
+msgid "Snapshot loaded - round %d"
+msgstr "Instantané chargé - round %d"
+
+msgid "Something with the same name is already in the way: %s."
+msgstr "Quelque chose du même nom gêne déjà : %s."
+
+msgid "spear"
+msgstr "lance"
+
+msgid "staff"
+msgstr "bâton"
+
+msgid "Start"
+msgstr "Commencer"
+
+msgid "Start game"
+msgstr "Commencer la partie"
+
+msgid "Step %s: %s..."
+msgstr "Étape %s : %s..."
+
+msgid "Story recipe"
+msgstr "Recette d'histoire"
+
+msgid "Story teller:"
+msgstr "Conteur :"
+
+msgid "Strength"
+msgstr "Force"
+
+msgid "sword"
+msgstr "épée"
+
+msgid "Tactic"
+msgstr "Tactique"
+
+msgid "Tactics"
+msgstr "Tactiques"
+
+msgid "Take cover"
+msgstr "Se mettre à couvert"
+
+msgid "Tarnished Brooch"
+msgstr "Broche ternie"
+
+msgid "Tarnished Brooch: %d of %d."
+msgstr "Broche ternie : %d sur %d."
+
+msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
+msgstr "Broche ternie : %d sur %d. La Broche est débloquée avec son côté + dès la prochaine mission !"
+
+msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
+msgstr "Broche ternie : %s (jeton %s) apparaît aussi. %s doit le vaincre."
+
+msgid "Terros"
+msgstr "Terros"
+
+msgid "Terros (earth)"
+msgstr "Terros (terre)"
+
+msgid "textures and portraits"
+msgstr "textures et portraits"
+
+msgid "That folder doesn't contain the game (no \"bundles\" folder was found in it)."
+msgstr "Ce dossier ne contient pas le jeu (aucun dossier « bundles » n'y a été trouvé)."
+
+msgid "That is not a web address (it must start with https://)."
+msgstr "Ce n'est pas une adresse web (elle doit commencer par https://)."
+
+msgid "That option isn't available"
+msgstr "Cette option n'est pas disponible"
+
+msgid "The %s download failed (network %d, HTTP %d)."
+msgstr "Le téléchargement de %s a échoué (réseau %d, HTTP %d)."
+
+msgid "The %s download isn't a valid zip."
+msgstr "Le téléchargement de %s n'est pas un zip valide."
+
+msgid "The %s download stopped receiving data - check the connection and try again."
+msgstr "Le téléchargement de %s ne reçoit plus de données - vérifiez la connexion et réessayez."
+
+msgid "The %s download was cancelled."
+msgstr "Le téléchargement de %s a été annulé."
+
+msgid "The %s download was corrupt (checksum mismatch)."
+msgstr "Le téléchargement de %s est corrompu (somme de contrôle incorrecte)."
+
+msgid "The %s is already being downloaded."
+msgstr "%s est déjà en cours de téléchargement."
+
+msgid "The address must start with https://"
+msgstr "L'adresse doit commencer par https://"
+
+msgid "The armor the party owns"
+msgstr "Les armures que possède le groupe"
+
+msgid "The author confirms they may share the pictures."
+msgstr "L'auteur confirme qu'il a le droit de partager les images."
+
+msgid "The author did not say whether they may share the pictures."
+msgstr "L'auteur n'a pas dit s'il a le droit de partager les images."
+
+msgid "The campaign is complete - congratulations!"
+msgstr "La campagne est terminée - félicitations !"
+
+msgid "The catalog address must start with https://"
+msgstr "L'adresse du catalogue doit commencer par https://"
+
+msgid "The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported."
+msgstr "Le paquet téléchargé n'est pas celui que la liste promettait (%s %s au lieu de %s %s). Il n'a pas été importé."
+
+msgid "The downloaded package is not the one the list promised. It was not installed."
+msgstr "Le paquet téléchargé n'est pas celui que la liste promettait. Il n'a pas été installé."
+
+msgid "the enemy had less than %d health: defeated"
+msgstr "l'ennemi avait moins de %d points de vie : vaincu"
+
+msgid "The files could not be written (error %d)."
+msgstr "Les fichiers n'ont pas pu être écrits (erreur %d)."
+
+msgid "the first hero wounded this round has health %d instead"
+msgstr "le premier héros blessé ce round a %d de santé à la place"
+
+msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
+msgstr "Le jeu n'a pas été trouvé aux emplacements habituels. Choisissez le dossier où il est installé."
+
+msgid "The import tool stopped without importing anything (exit code %d)."
+msgstr "L'outil d'importation s'est arrêté sans rien importer (code de sortie %d)."
+
+msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
+msgstr "Les ressources du jeu importées sont chargées au démarrage de l'application.\n\nRedémarrer maintenant ?"
+
+msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+msgstr "Les langues que vous voulez lire, la meilleure en premier. Une campagne ou une mission est affichée dans la première langue pour laquelle elle a un texte ; lancer une partie de campagne demande dans quelle langue la jouer."
+
+msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
+msgstr "La liste des campagnes partagées que l'icône d'actualisation de l'écran Nouvelle partie affiche. Par défaut celle du dépôt descent-engine-community sur GitHub."
+
+msgid "The market sells materials but does not buy them."
+msgstr "Le marché vend des matériaux mais n'en achète pas."
+
+msgid "The mission is missing from the campaign folder."
+msgstr "La mission est absente du dossier de la campagne."
+
+msgid "The mission of chapter \"%s\" is missing from the new version."
+msgstr "La mission du chapitre « %s » est absente de la nouvelle version."
+
+msgid "The new variable \"%s\" starts at its default value."
+msgstr "La nouvelle variable « %s » démarre à sa valeur par défaut."
+
+msgid "The new version has no act %d (your save is in it)."
+msgstr "La nouvelle version n'a pas d'acte %d (votre sauvegarde s'y trouve)."
+
+msgid "The newer version could not be opened."
+msgstr "La version plus récente n'a pas pu être ouverte."
+
+msgid "The original save game is not changed - you can always go back to it."
+msgstr "La sauvegarde d'origine n'est pas modifiée - vous pouvez toujours y revenir."
+
+msgid "the package"
+msgstr "le paquet"
+
+msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
+msgstr "Le groupe ne porte aucune denrée - infusez-en chez un alchimiste à partir de recettes de potions."
+
+msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
+msgstr "Le groupe n'a aucune denrée. Infusez-en chez un alchimiste à partir de recettes de potions."
+
+msgid "The party has to try this chapter again."
+msgstr "Le groupe doit retenter ce chapitre."
+
+msgid "The party owns no armor yet."
+msgstr "Le groupe ne possède pas encore d'armure."
+
+msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
+msgstr "Le groupe ne possède pas encore d'accessoires - on les achète dans une boutique de recettes ou on les trouve."
+
+msgid "The phase can't be ended right now."
+msgstr "La phase ne peut pas être terminée maintenant."
+
+msgid "The potions the party has crafted - available in every mission"
+msgstr "Les potions que le groupe a fabriquées - disponibles à chaque mission"
+
+msgid "The release's checksum list has no entry for %s."
+msgstr "La liste des sommes de contrôle de la version n'a pas d'entrée pour %s."
+
+msgid "The snapshot could not be saved - see the Output panel."
+msgstr "L'instantané n'a pas pu être sauvegardé - voir le panneau Sortie."
+
+msgid "The snapshot was put on the edited mission, but:\n- "
+msgstr "L'instantané a été appliqué à la mission modifiée, mais :\n- "
+
+msgid "The speech engine download had no library for %s."
+msgstr "Le téléchargement du moteur vocal n'avait pas de bibliothèque pour %s."
+
+msgid "the table carries it out"
+msgstr "la table l'exécute"
+
+msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+msgstr "L'accessoire que porte ce héros (un par héros ; un accessoire ne peut être porté que par un héros)"
+
+msgid "The update could not be started."
+msgstr "La mise à jour n'a pas pu être lancée."
+
+msgid "The update does not contain %s."
+msgstr "La mise à jour ne contient pas %s."
+
+msgid "The updated copy could not be saved."
+msgstr "La copie mise à jour n'a pas pu être sauvegardée."
+
+msgid "The variable \"%s\" no longer exists - its value is dropped."
+msgstr "La variable « %s » n'existe plus - sa valeur est abandonnée."
+
+msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
+msgstr "Cette application est fournie sans les illustrations du jeu. Si vous possédez « Descent : Légendes des Ténèbres », les vraies images, figurines et données du jeu peuvent être copiées depuis votre propre installation. Rien du jeu n'est téléchargé et rien ne quitte cet ordinateur."
+
+msgid "this attack cannot damage it"
+msgstr "cette attaque ne peut pas le blesser"
+
+msgid "This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s"
+msgstr "Ce paquet n'a pas été importé - il est endommagé ou contient quelque chose d'interdit :\n\n- %s"
+
+msgid "This package was not installed - it is damaged or contains something that is not allowed."
+msgstr "Ce paquet n'a pas été installé - il est endommagé ou contient quelque chose d'interdit."
+
+msgid "This release has no %s (or no checksum list)."
+msgstr "Cette version n'a pas de %s (ni de liste de sommes de contrôle)."
+
+msgid "This save game cannot be moved to v%s:"
+msgstr "Cette sauvegarde ne peut pas être passée à la v%s :"
+
+msgid "This save game was moved from version %s of the campaign to version %s."
+msgstr "Cette sauvegarde est passée de la version %s de la campagne à la version %s."
+
+msgid "Threat"
+msgstr "Menace"
+
+msgid "throwing knives"
+msgstr "couteaux de lancer"
+
+msgid "Time passes"
+msgstr "Le temps passe"
+
+msgid "Time passes.\n\n"
+msgstr "Le temps passe...\n\n"
+
+msgid "Tired"
+msgstr "Fourbu"
+
+msgid "Too short - hold %s while you speak"
+msgstr "Trop court - maintenez %s pendant que vous parlez"
+
+msgid "Towards the tree"
+msgstr "Vers l'arbre"
+
+msgid "Toxos"
+msgstr "Toxos"
+
+msgid "Toxos (decay)"
+msgstr "Toxos (pourriture)"
+
+msgid "trigger %d (every %dth: %d damage to every enemy)"
+msgstr "activation %d (toutes les %de : %d dégâts à chaque ennemi)"
+
+msgid "trigger %d: %d damage to every enemy"
+msgstr "activation %d : %d dégâts à chaque ennemi"
+
+msgid "Trinket"
+msgstr "Accessoire"
+
+msgid "Trinket %s: %s"
+msgstr "Accessoire %s : %s"
+
+msgid "Trinket upgrade: "
+msgstr "Amélioration d'accessoire : "
+
+msgid "Trinket: "
+msgstr "Accessoire : "
+
+msgid "Trinkets"
+msgstr "Accessoires"
+
+msgid "Umbros"
+msgstr "Umbros"
+
+msgid "Umbros (shadow)"
+msgstr "Umbros (ombre)"
+
+msgid "Undying Skull"
+msgstr "Crâne immortel"
+
+msgid "Undying Skull: %s defeated a %s for the %s time."
+msgstr "Crâne immortel : %s a vaincu un(e) %s pour la %s fois."
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "Update available: %s"
+msgstr "Mise à jour disponible : %s"
+
+msgid "Update to v%s…"
+msgstr "Passer à la v%s…"
+
+msgid "Upgrade - tier %d"
+msgstr "Amélioration - rang %d"
+
+msgid "Upgrade: "
+msgstr "Amélioration : "
+
+msgid "Upgraded (+). In a campaign this follows the party's upgrades."
+msgstr "Améliorée (+). Dans une campagne, cela suit les améliorations du groupe."
+
+msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
+msgstr "Utilisable dans cette mission : %s. Mettez-le dans votre zone de jeu pour l'utiliser. Il n'est pas ajouté à l'inventaire et disparaît à la fin de la mission."
+
+msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
+msgstr "Utilisables dans cette mission : %s. Mettez-les dans votre zone de jeu pour les utiliser. Ils ne sont pas ajoutés à l'inventaire et disparaissent à la fin de la mission."
+
+msgid "Use the original game props in the map"
+msgstr "Utiliser les accessoires de décor d'origine du jeu sur la carte"
+
+msgid "Use the upgraded (+) side of this trinket."
+msgstr "Utiliser la face améliorée (+) de cet accessoire."
+
+msgid "Variable '%s' changed type - it has its default again."
+msgstr "La variable « %s » a changé de type - elle a de nouveau sa valeur par défaut."
+
+msgid "Variable '%s' no longer exists (it was %s)."
+msgstr "La variable « %s » n'existe plus (c'était %s)."
+
+msgid "Version %s"
+msgstr "Version %s"
+
+msgid "Version %s is already installed."
+msgstr "La version %s est déjà installée."
+
+msgid "Version %s is available (you have %s)."
+msgstr "La version %s est disponible (vous avez %s)."
+
+msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
+msgstr "La version %s de ce paquet est déjà publiée - une version publiée n'est jamais remplacée. Utilisez une version plus élevée."
+
+msgid "Victory!"
+msgstr "Victoire !"
+
+msgid "Vigos"
+msgstr "Vigos"
+
+msgid "Vigos (life)"
+msgstr "Vigos (vie)"
+
+msgid "Voice"
+msgstr "Voix"
+
+msgid "Voice - "
+msgstr "Voix - "
+
+msgid "Voice control is set up."
+msgstr "La commande vocale est configurée."
+
+msgid "Voice isn't set up yet - typed commands still work."
+msgstr "La voix n'est pas encore configurée - les commandes saisies fonctionnent toujours."
+
+msgid "voice settings (%s)"
+msgstr "paramètres vocaux (%s)"
+
+msgid "Voice setup isn't available on %s - typed commands still work."
+msgstr "La configuration vocale n'est pas disponible sur %s - les commandes saisies fonctionnent toujours."
+
+msgid "Voice setup isn't supported on %s yet."
+msgstr "La configuration vocale n'est pas encore prise en charge sur %s."
+
+msgid "voices (%s)"
+msgstr "voix (%s)"
+
+msgid "wand"
+msgstr "baguette"
+
+msgid "Wander"
+msgstr "Errer"
+
+msgid "war bell"
+msgstr "cloche de guerre"
+
+msgid "warhammer"
+msgstr "marteau de guerre"
+
+msgid "weak to %s"
+msgstr "faible contre %s"
+
+msgid "Weak: %s"
+msgstr "Faible : %s"
+
+msgid "Weakness"
+msgstr "Faiblesse"
+
+msgid "weakness damage +%d"
+msgstr "dégâts de faiblesse +%d"
+
+msgid "Weakness: %s"
+msgstr "Faiblesse : %s"
+
+msgid "weapon"
+msgstr "arme"
+
+msgid "Weapon %d (%s)"
+msgstr "Arme %d (%s)"
+
+msgid "weapon damage +%d"
+msgstr "dégâts de l'arme +%d"
+
+msgid "weapon part chances +%d%%"
+msgstr "chances des pièces d'arme +%d %%"
+
+msgid "Weapons"
+msgstr "Armes"
+
+msgid "What's new"
+msgstr "Nouveautés"
+
+msgid "When a hero has lost all hitpoints, press Wound. The third wound loses the game."
+msgstr "Quand un héros a perdu tous ses points de vie, appuyez sur Blesser. La troisième blessure fait perdre la partie."
+
+msgid "Which monster?"
+msgstr "Quel monstre ?"
+
+msgid "Which one?"
+msgstr "Lequel ?"
+
+msgid "Who attacks the %s?"
+msgstr "Qui attaque %s ?"
+
+msgid "Who uses the %s?"
+msgstr "Qui utilise %s ?"
+
+msgid "Will"
+msgstr "Volonté"
+
+msgid "Won: %s."
+msgstr "Gagné : %s."
+
+msgid "Wound"
+msgstr "Blesser"
+
+msgid "Wounded"
+msgstr "Blessé"
+
+msgid "XP: %d  |  Gold: %d"
+msgstr "XP : %d  |  Or : %d"
+
+msgid "Yellow"
+msgstr "Jaune"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "You already have version %s - this one is installed next to it."
+msgstr "Vous avez déjà la version %s - celle-ci est installée à côté."
+
+msgid "You can play"
+msgstr "Vous pouvez jouer"
+
+msgid "You carry %d."
+msgstr "Vous portez %d."
+
+msgid "You have %d gold and %s."
+msgstr "Vous avez %d or et %s."
+
+msgid "You have %d gold."
+msgstr "Vous avez %d or."
+
+msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
+msgstr "Vous ne connaissez aucune recette de potion. Les recettes se vendent dans les boutiques de recettes ou se trouvent comme butin."
+
+msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
+msgstr "Vous ne connaissez aucune recette qui crée quelque chose de nouveau. Les recettes se vendent dans les boutiques de recettes."
+
+msgid "Your materials:"
+msgstr "Vos matériaux :"
+
+msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
+msgstr "Votre progression est sauvegardée automatiquement sous ce nom, pour que vous puissiez partir et reprendre où vous vous êtes arrêté (Charger une partie dans le menu principal). Utilisez un nom différent pour chaque groupe ou partie."
+
+msgid "▶ Read aloud"
+msgstr "▶ Lire à voix haute"
+
+msgid "☠ Defeated"
+msgstr "☠ Vaincu"
+
+msgid "Unofficial App"
+msgstr "Application non officielle"
+
+msgid "%s - %s\n\n%s gains an extra benefit: %s."
+msgstr "%s - %s\n\n%s obtient un avantage supplémentaire : %s."
+
+msgid "A new act begins."
+msgstr "Un nouvel acte commence."
+
+msgid "act"
+msgstr "acte"
+
+msgid "The campaign is complete."
+msgstr "La campagne est terminée."
+
+msgid "The end"
+msgstr "La fin"
+
+msgid "The story begins."
+msgstr "L'histoire commence."
+
+msgid "Current Objective:"
+msgstr "Objectif actuel :"
+
+msgid "Language of this game"
+msgstr "Langue de cette partie"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "La langue dans laquelle cette partie est lue, consignée et narrée. Vous pourrez la changer plus tard dans les Options."
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "L'histoire, le journal et les termes du jeu sont affichés dans cette langue. Les menus et boutons de l'application suivent la liste ci-dessous."
+
+msgid "Download %s voices (%s)"
+msgstr "Télécharger les voix %s (%s)"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "Aucune voix de narration pour %s n'est installée, l'histoire est donc affichée en texte seulement."
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "Aucune voix de narration pour %s n'est installée, l'histoire est donc affichée en texte seulement. Téléchargez-les dans Options > Voix."
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "Configurer la narration - voix %s (télécharge environ %d Mo)"
+
+msgid "Voices for:"
+msgstr "Voix pour :"
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "Aucune voix de narration pour %s n'est installée, cette partie est donc affichée en texte seulement. Téléchargez-les dans Options > Voix."
+
+msgid " - only if %d condition(s)"
+msgstr " - seulement si %d condition(s)"
+
+msgid "Difficulty"
+msgstr "Difficulté"
+
+msgid "Adventurer"
+msgstr "Aventurier"
+
+msgid "Apprentice"
+msgstr "Apprenti"
+
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr "Les monstres ont un niveau de plus que ce que l'auteur a prévu, et la mission peut être plus difficile pour vous."
+
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr "Les monstres ont un niveau de moins que ce que l'auteur a prévu, et la mission peut être plus facile pour vous."
+
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr "Les monstres ont deux niveaux de plus que ce que l'auteur a prévu, et la mission peut être sans pitié."
+
+msgid "Nightmare"
+msgstr "Cauchemar"
+
+msgid "The game as the author designed it."
+msgstr "Le jeu tel que l'auteur l'a conçu."
+
+msgid "Veteran"
+msgstr "Vétéran"
+
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
+msgstr "Des monstres plus coriaces et une mission plus difficile aux nombres élevés. Vous pouvez le changer avant chaque mission."
+
+msgid "%d monster(s) woke up."
+msgstr "%d monstre(s) se sont réveillés."
+
+msgid "A condition was put on one of them."
+msgstr "Un état a été appliqué à l'un d'eux."
+
+msgid "Monsters wake"
+msgstr "Les monstres se réveillent"
+
+msgid "Something has alerted them."
+msgstr "Quelque chose les a alertés."
+
+msgid "Something has woken them."
+msgstr "Quelque chose les a réveillés."
+
+msgid "The monsters wake up!"
+msgstr "Les monstres se réveillent !"
+
+msgid "They have not noticed the heroes: they stay where they are until something wakes them."
+msgstr "Ils n'ont pas remarqué les héros : ils restent où ils sont jusqu'à ce que quelque chose les réveille."
+
+msgid "They noticed the attack."
+msgstr "Ils ont remarqué l'attaque."
+
+msgid "Unaware"
+msgstr "Inconscient"
+
+msgid "Unaware - it and its group are skipped in the monster phase"
+msgstr "Inconscient - lui et son groupe passent la phase des monstres"
+
+msgid "Wake up"
+msgstr "Réveiller"
+
+msgid "%s (optional)"
+msgstr "%s (facultatif)"
+
+msgid "Optional objective"
+msgstr "Objectif facultatif"
+
+msgid "Optional objective completed:\n%s"
+msgstr "Objectif facultatif accompli :\n%s"
+
+msgid "Optional:"
+msgstr "Facultatif :"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "L'application elle-même (menus et dialogues) est affichée dans la première langue de cette liste dans laquelle elle est traduite - pour l'instant %s."
+
+msgid " (%d for %d player)"
+msgid_plural " (%d for %d players)"
+msgstr[0] " (%d pour %d joueur)"
+msgstr[1] " (%d pour %d joueurs)"
+
+msgid "+%d success"
+msgid_plural "+%d successes"
+msgstr[0] "+%d réussite"
+msgstr[1] "+%d réussites"
+
+msgid "lost %d status, %d damage"
+msgid_plural "lost %d statuses, %d damage"
+msgstr[0] "%d état perdu, %d dégâts"
+msgstr[1] "%d états perdus, %d dégâts"
+
+msgid "Lucky Charm: %d extra success is added to %s's result."
+msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
+msgstr[0] "Porte-bonheur : %d réussite supplémentaire est ajoutée au résultat de %s."
+msgstr[1] "Porte-bonheur : %d réussites supplémentaires sont ajoutées au résultat de %s."
+
+msgid "New side quest: %s"
+msgid_plural "New side quests: %s"
+msgstr[0] "Nouvelle quête annexe : %s"
+msgstr[1] "Nouvelles quêtes annexes : %s"

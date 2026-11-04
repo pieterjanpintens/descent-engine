@@ -1473,9 +1473,6 @@ msgstr "Fase de jugadores"
 msgid "Player phase"
 msgstr "Fase de jugadores"
 
-msgid "Players spawn. Place your tokens, then play."
-msgstr "Aparecen los jugadores. Coloca tus fichas y luego juega."
-
 msgid "Playtest"
 msgstr "Prueba de juego"
 
@@ -2172,9 +2169,6 @@ msgstr "▶ Leer en voz alta"
 msgid "☠ Defeated"
 msgstr "☠ Derrotado"
 
-msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
-msgstr "La propia aplicación (menús y diálogos) se muestra en el primer idioma de esta lista al que está traducida - de momento inglés, español y neerlandés."
-
 msgid "Unofficial App"
 msgstr "Aplicación no oficial"
 
@@ -2303,6 +2297,9 @@ msgstr "Objetivo opcional completado:\n%s"
 
 msgid "Optional:"
 msgstr "Opcional:"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "La propia aplicación (menús y diálogos) se muestra en el primer idioma de esta lista al que está traducida - hasta ahora %s."
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

@@ -1473,9 +1473,6 @@ msgstr "Spelersfase"
 msgid "Player phase"
 msgstr "Spelersfase"
 
-msgid "Players spawn. Place your tokens, then play."
-msgstr "De spelers verschijnen. Plaats je fiches en speel dan."
-
 msgid "Playtest"
 msgstr "Testspel"
 
@@ -2172,9 +2169,6 @@ msgstr "▶ Hardop voorlezen"
 msgid "☠ Defeated"
 msgstr "☠ Verslagen"
 
-msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
-msgstr "De app zelf (menu's en dialogen) wordt getoond in de eerste taal van deze lijst waarin ze is vertaald - voorlopig Engels, Spaans en Nederlands."
-
 msgid "Unofficial App"
 msgstr "Onofficiële app"
 
@@ -2303,6 +2297,9 @@ msgstr "Optioneel doel bereikt:\n%s"
 
 msgid "Optional:"
 msgstr "Optioneel:"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "De app zelf (menu's en dialogen) wordt getoond in de eerste taal van deze lijst waarin ze vertaald is - tot nu toe %s."
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

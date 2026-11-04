@@ -14,8 +14,14 @@ const LANGUAGES: Array[Dictionary] = [
 	{"code": "it", "name": "Italian", "native": "Italiano"},
 	{"code": "pt", "name": "Portuguese", "native": "Português"},
 	{"code": "pl", "name": "Polish", "native": "Polski"},
+	{"code": "cs", "name": "Czech", "native": "Čeština"},
+	{"code": "hu", "name": "Hungarian", "native": "Magyar"},
+	{"code": "ru", "name": "Russian", "native": "Русский"},
+	{"code": "ko", "name": "Korean", "native": "한국어"},
+	{"code": "zh", "name": "Chinese (Simplified)", "native": "简体中文"},
+	{"code": "zh-TW", "name": "Chinese (Traditional)", "native": "繁體中文"},
 ]
-const MAX_LANGUAGES := 8
+const MAX_LANGUAGES := 14
 const MAX_MINUTES := 6000
 
 
@@ -27,7 +33,7 @@ static func clean_languages(raw: Variant) -> Array[String]:
 			wanted.append(str(item).to_lower().strip_edges())
 	var result: Array[String] = []
 	for language in LANGUAGES:
-		if wanted.has(language["code"]) and result.size() < MAX_LANGUAGES:
+		if wanted.has(String(language["code"]).to_lower()) and result.size() < MAX_LANGUAGES:
 			result.append(language["code"])
 	return result
 
@@ -47,6 +53,15 @@ static func duration_text(minutes: int) -> String:
 	if rest == 0:
 		return "%d h" % hours
 	return TranslationServer.translate("%d h %d min") % [hours, rest]
+
+
+## The code as listed in LANGUAGES ("zh-tw" -> "zh-TW"), whatever the case it was written in; "" when unknown.
+static func canonical(code: String) -> String:
+	var wanted := code.strip_edges().to_lower().replace("_", "-")
+	for language in LANGUAGES:
+		if String(language["code"]).to_lower() == wanted:
+			return language["code"]
+	return ""
 
 
 static func is_known(code: String) -> bool:

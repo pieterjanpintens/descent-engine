@@ -1,0 +1,772 @@
+1|(immune)
+2|microfono [%s%s]
+3|%s ottiene una ricetta unica: %s.
+4|(%d fallito)
+5|(attivo)
+6|(scarica prima lo strumento di importazione, %s)
+7|(immune)
+8|(Solo le campagne conservano le ricette.)
+9|(PE ora %d)
+10|- non ancora importato
+11|= %d danni\nTiro difesa: -%d\n\n%d danni inflitti
+12|Non apparso: %s.
+13|Non c'è più nessuna ricetta da ottenere.
+14|%d danni a %s
+15|%d danni al nemico
+16|%d danni extra (%d %% della sua salute)
+17|%d dalla comunità da installare.
+18|%d monete d'oro
+19|%d monete d'oro (Bussola del Morto)
+20|%d h %d min
+21|%d min
+22|%d mostro/i apparso/i.
+23|%d degli obiettivi attuali non esistono più.
+24|%d x %d tessere
+25|%dx %s
+26|%s  -  PE %d,  oro %d
+27|%s %d (nessuna riga di tabella)
+28|%s (segnalino %s)
+29|%s (%s, parte %s)
+30|%s (copiato da %s): %s
+31|%s +%d fino alla fine del round
+32|%s - segnalino %s
+33|%s - %s attivato!\n\n%s
+34|%s - %s attivato!\n\n%s ottiene un consumabile casuale: %s\n\nEquipaggialo.
+35|%s - %s attivato!\n\n%s ottiene un consumabile potenziato casuale: %s\n\nEquipaggialo.
+36|%s - %s attivato!\n\n%s\n\nControlla se si applica ed eseguilo sul tabellone (una condizione può essere applicata dalla schermata dei mostri).
+37|%s - %s\n%s ha una ferita?
+38|%s - %s\nQuanta fatica c'è su tutte le carte di %s?
+39|%s - %s\nQuale altro nemico subisce gli stessi danni? (Annulla: nessuno)
+40|%s - acquisto per %d oro, vendita per %d
+41|%s - PS %d, Liv %d, Dif %d, Att %d
+42|%s - livello %d
+43|%s - non ancora implementato.
+44|%s «%s» - versione %s
+45|%s attacca %s (danni %d, %s).
+46|%s attacca %s - scegli un'arma
+47|%s attacca %s!%s\nDanni %d - %s - Velocità %d
+48|%s attacca %s.\nQuale arma?
+49|%s attacca %s\ncon %s (danni %d)\n
+50|%s ha lasciato cadere qualcosa di utilizzabile. %s
+51|%s ha lasciato cadere: %s.
+52|%s ottiene %s
+53|%s è stato sconfitto.
+54|%s ha guarito %d (%d punti salute).
+55|%s è %s.
+56|%s è confuso!\n%s\n%s
+57|%s è confuso: %s.
+58|%s è immune
+59|%s è meno probabile come suo bersaglio in questo round
+60|%s non è più %s.
+61|%s non fa parte del gruppo.
+62|%s sta tramando qualcosa...
+63|%s ha perso tutti i punti salute. Ferire %s?
+64|%s esegue %s contro %s.
+65|%s riceve un beneficio: %s.
+66|%s subisce %d danni
+67|%s subisce %d danni da afflizione (%d punti salute rimasti).
+68|%s subisce %d danni da afflizione ed è sconfitto! Toglilo dal tabellone.
+69|%s ha subito %d danni (%d punti salute rimasti).
+70|%s ha subito %d danni ed è stato sconfitto.
+71|%s attivato
+72|%s è stato sconfitto durante un'interruzione prima di poter %s.
+73|%s è stato ferito per la terza volta.
+74|%s ha ferito un eroe - il suo turno è finito.
+75|Il Cestino del Mescitore di %s fornisce un consumabile casuale:
+76|%s: %s!\nBersaglio %s - Danni %d - %s - Velocità %d
+77|%s: %s\nParti fisse: %s
+78|%s: difesa +%d fino alla fine del round
+79|%s: interagire con «%s»
+80|%s: bottino x%d (+%s)
+81|%s: servono %d, hai %d
+82|%s: effettua una prova di %s - quanti successi?
+83|%s: il nemico non ha bottino
+84|%s: il nemico non è sconfitto, nessun bottino extra
+85|%s\n\nNon è stato modificato nulla. Puoi riprovare o scaricare l'aggiornamento dalla pagina delle versioni.
+86|%s\n\nHai scelto: %s
+87|(attacca di nuovo)
+88|(ignorato) %s
+89|(luogo senza nome)
+90|(impresa secondaria senza nome)
+91|(la tua versione)
+92|+%d danni
+93|+%d danni (tirato %d-%d)
+94|+%d danni (round %d)
+95|Grafica 2D - logo e sfondo del menu principale
+96|[bozza]
+97|«%s» versione %s è già installato.
+98|\n%.1f MB.
+99|\n%d missione/i, %d immagine/i, %.1f MB.
+100|\n%d salvataggio/i di essa sono stati messi da parte (user://campaign_saves/_removed), non eliminati.
+101|\n%d successi x %d danni dell'arma
+102|\n(+%d danni da un'abilità difensiva in questa attivazione)
+103|\n(Indebolito: danni ridotti di %d)
+104|\n\n%s ottiene la ferita «%s»: metti la sua carta nella tua area di gioco.
+105|\n\n%s ha ancora %d punti salute.
+106|\n\n%s è sconfitto! Toglilo dal tabellone.
+107|\n\n%s deve girare la carta ferita (%s) sul suo lato grave.
+108|\n\n%s deve girare la carta ferita sul suo lato grave.
+109|\n\nElsa del Ricordo: imposta invece la salute di %s a %d.
+110|\n\nL'app non può aggiornarsi da sola qui: %s. Scaricala dalla pagina delle versioni.
+111|\n\nLa missione in corso verrà chiusa - salvala prima (Opzioni > Salva) o scegli Più tardi.
+112|\n\nQuesta è la terza ferita di %s - la partita sarà persa!
+113|\n\nPietra del Viandante - ogni eroe può scegliere il proprio beneficio alternativo invece di scartare 1 fatica:
+114|\nAttivazione:
+115|\nInoltre alcuni materiali da creazione per il gruppo: %s.
+116|\nAl tavolo:
+117|\nCondizioni applicate: %s
+118|\nEsposto: +%d danni
+119|\nImmune a: %s
+120|\nImmune! L'attacco non infligge danni.\n\n0 danni inflitti
+121|\nIn sviluppo (una bozza)
+122|\nBottino per il gruppo: %s.
+123|\nNessuna tessera di comparsa libera per: %s - mettili accanto agli altri.
+124|\nNon ancora installato - aprilo per installarlo.
+125|\nResistenza: -%d danni
+126|\nIl pacchetto è stato controllato: contiene solo dati di gioco.
+127|\nVulnerabilità: +%d danni
+128|\nParti dell'arma e accessorio:
+129|un potenziamento di armatura %s
+130|una ricetta di parte %s
+131|un potenziamento di parte %s
+132|una ricetta %s
+133|un potenziamento %s
+134|Una campagna
+135|un eroe
+136|una nuova area
+137|una ricetta di pozione
+138|Esiste già un salvataggio chiamato «%s».
+139|Un salvataggio ha bisogno di un nome.
+140|un carico di armature %s
+141|un carico di armature
+142|Una missione singola
+143|Un'istantanea può essere scattata durante la fase dei giocatori, senza finestre aperte.
+144|un accessorio
+145|un potenziamento di accessorio
+146|Atto completato!
+147|Aggiungi lingua
+148|aggiunge %d danni alla sua prossima attivazione
+149|Afflitto
+150|Afflizione
+151|danni da afflizione +%d in questo round
+152|Agilità
+153|tutti i suoi status vengono rimossi
+154|un potenziamento di armatura
+155|un autore sconosciuto
+156|Un progetto di fan non ufficiale, libero da usare (licenza MIT).\n*Descent: Leggende delle Tenebre* e tutto ciò che riguarda il gioco appartengono ai rispettivi proprietari.
+157|Anemos
+158|Anemos (vento)
+159|Aggiornamento dell'app
+160|Applicato:
+161|Applica condizioni
+162|Aquos
+163|Aquos (acqua)
+164|Armatura
+165|Potenziamento di armatura:
+166|Armatura:
+167|Armatura…
+168|Al tavolo:
+169|Attacco
+170|attaccare %s
+171|Abilità di attacco: %s
+172|l'attacco ottiene %s
+173|Disponibile ora: %s
+174|Indietro
+175|Torna all'editor
+176|Torna all'editor
+177|Torna al menu
+178|diventa afflitto
+179|Inizia la campagna
+180|Osso
+181|Acquistato
+182|arco
+183|Prepara
+184|Cestino del Mescitore
+185|Compra
+186|Compra  %d
+187|Compra  %d oro
+188|Compra la ricetta  %d oro
+189|di
+190|di %s
+191|Campagna
+192|Campagna completata
+193|Campagna completata! (%s)
+194|Editor di campagna
+195|Diario della Campagna
+196|%s può attaccare un secondo eroe?
+197|Annulla
+198|Annulla il download
+199|Cauterizzazione
+200|Cautela
+201|Centro a centro (rigido)
+202|Centro ad angolo (consigliato)
+203|Capitolo
+204|Il capitolo «%s» che hai già completato non è nella nuova versione.
+205|Il capitolo «%s», dove ti trovi ora, non è nell'atto %d della nuova versione.
+206|Cerca una versione più recente dell'app nel menu principale
+207|Forziere, cancello, albero e pozzo usano i modelli del gioco dopo Risorse di gioco > Importa. Disattivato = gli oggetti di scena forniti con l'app. Ha effetto alla prossima apertura di una mappa.
+208|Scegli un pacchetto
+209|Scegli un file pacchetto…
+210|Scegli un'arma
+211|Scegli la cartella in cui è installato il gioco
+212|Scegli la cartella del gioco…
+213|Scegli due armi per eroe (e accessori facoltativi)
+214|Scegli il tuo gruppo
+215|Chiudi
+216|Stoffa
+217|Comune
+218|Comunità
+219|Elenco della comunità
+220|Condizioni
+221|Condizioni (%d)
+222|Conferma
+223|Confuso
+224|Consumabili
+225|Consumabili…
+226|Continua
+227|Continua questa partita
+228|Conversione dei modelli... %s (%s)
+229|copia %s
+230|Copia questa versione di sola lettura in una nuova bozza che puoi modificare. La versione stessa e i suoi salvataggi restano come sono.
+231|Angolo ad angolo (largo, Descent 2)
+232|Costo: %s
+233|Impossibile duplicare %s.
+234|Impossibile aprire questo salvataggio.
+235|Impossibile aprire la campagna «%s».
+236|Impossibile avviare il download di %s (errore %d).
+237|Impossibile decomprimere %s (codice di uscita tar %d).
+238|Impossibile decomprimere il motore di narrazione (codice di uscita tar %d).
+239|Impossibile scrivere %s (errore %d).
+240|Conta come persa
+241|Conta come vinta
+242|Creato da
+243|Riconoscimenti
+244|balestra
+245|Impatto
+246|Curiosità
+247|Obiettivo attuale
+248|Danni
+249|danni %d
+250|danni +%d in modo permanente (ora %d)
+251|danni -%d
+252|Tipo di danni
+253|Frastornato
+254|Sconfitta.
+255|Sconfitto
+256|difesa %+d fino alla fine del round (ora %d)
+257|difesa +%d durante questo attacco
+258|difesa +%d in modo permanente (ora %d)
+259|difesa -%d
+260|difesa -%d in questo round
+261|Abilità difensive: %s
+262|abilità difensiva disattivata per il prossimo attacco
+263|abilità difensiva disattivata fino alla fine del round
+264|Abilità difensiva disattivata.
+265|Abilità difensiva: %s
+266|Eliminare il salvataggio «%s»?
+267|Elimina questo salvataggio
+268|%s ha inflitto danni a %s?
+269|%s ha superato la prova?
+270|Ho sentito ritirata? Muoviti fino a {speed} tessere, il più lontano possibile dagli eroi.
+271|Non attivato:
+272|Nessun numero valido compreso
+273|Non ho sentito nulla - tieni premuto %s e riprova
+274|Non ho capito
+275|Opzione non riconosciuta
+276|Fatto
+277|Fatto - riavvia l'app per vedere tutto.
+278|Fatto. La copia aggiornata è nell'elenco.
+279|Oppresso
+280|Scarica voci aggiuntive - accenti (%s)
+281|Scarica altre voci - inglese standard (%s)
+282|Download di %s... %d MB
+283|Download di %s... %d %% (%d / %d MB)
+284|Download dell'aggiornamento…
+285|lame gemelle
+286|ogni nemico subisce %d danni (attivazione %d)
+287|Ogni giocatore può portare %d nella missione%s. I consumabili creati sono di nuovo disponibili a ogni missione - nessuno viene consumato.
+288|Editor
+289|Attiva la voce
+290|Presto finita: questa impresa secondaria sparisce quando «%s» è vinto.
+291|Indebolito
+292|Essenze
+293|Esposto
+294|FALLITO
+295|Impossibile caricare la missione: %s
+296|Salvataggio non riuscito - vedi il pannello Output per i dettagli.
+297|Traguardi
+298|primo
+299|Eroe fisso (%s)
+300|Gira la carta del tuo eroe
+301|Tessere pavimento
+302|Concentrare 2 carte
+303|Forgia
+304|Duplica per modificare
+305|%s duplicato nella tua bozza «%s» - aprila nell'editor %s.
+306|Fortunos
+307|Fortunos (fortuna)
+308|Agitazione
+309|libero
+310|Fuoco amico
+311|Frustrazione
+312|ottiene %s
+313|Partita %04d-%02d-%02d %02d:%02d
+314|Risorse di gioco
+315|Gioco trovato:\n%s
+316|Gameplay
+317|guanto d'arme
+318|Generale
+319|Dà l'armatura: %s%s - %s
+320|Dà la runa: %s
+321|Dà l'accessorio: %s%s - %s
+322|Dà l'arma: %s%s
+323|Dà: %s
+324|guanti
+325|Oro
+326|Oro: %d
+327|Hai ricevuto un pacchetto da qualcuno? Scegli il file o incolla il suo indirizzo web. Vedi cosa contiene, e chi l'ha creato, prima che venga installato qualsiasi cosa.
+328|Verde
+329|Proteggi il cancello
+330|martello
+331|Pelle Indurita
+332|Cura
+333|Cura 2
+334|Cura 4
+335|In salute
+336|Ascolta il narratore
+337|Ascolta questa voce
+338|Sentito: %s
+339|Gravemente ferito
+340|Mani Pesanti
+341|Cuore Pesante
+342|Erba
+343|modelli degli eroi
+344|Voci degli eroi
+345|Eroi
+346|Esitazione
+347|Punti salute %d / %d
+348|Tieni premuto %s per parlare
+349|Corno del Coraggio
+350|Corno del Coraggio - %s è stato ferito.
+351|Passa sopra un'armatura per vederne le regole. L'armatura si indossa e si risolve al tavolo.
+352|Come lo strumento della linea di vista decide se due caselle si vedono. Centro ad angolo: una linea dal centro della casella dell'osservatore a un qualsiasi angolo del bersaglio.
+353|PS %d · Livello %d
+355|Ignos
+356|Ignos (fuoco)
+357|immune a %s
+358|Immune alle condizioni: %s
+359|Immune a:
+360|Immune: %s
+361|Immunità: %s
+362|Importa
+363|Importazione terminata, ma non tutto ha funzionato.
+364|Importazione terminata.
+365|Importa le risorse di gioco
+366|Importato finora: %s.
+367|L'importazione dall'interno dell'app non è ancora disponibile su questo computer - usa invece gli strumenti per le risorse dalla pagina delle versioni.
+368|IN SVILUPPO
+369|Dispositivo di ingresso: %s
+370|Installa
+371|Installa e riavvia
+372|Installa a mano
+373|Installare questo pacchetto?
+374|Installato
+375|«%s» v%s installato.
+376|«%s» installato.
+377|Installazione…
+378|Installazione… l'app si chiude e si riavvia da sola.
+379|Intelligenza
+380|Interrompi
+381|Interruzione - i giocatori agiscono
+382|Inventario
+383|Resta com'è; puoi continuare a giocarla con la sua versione.
+384|Lingua
+385|Lingue
+386|Colpisci il mostro più vicino: subisce {damage} danni. (Premi Interrompi, clicca quel mostro nella vista dei mostri e applica i danni.)
+387|Più tardi
+388|Pelle
+389|Se ne va dopo il prossimo capitolo!
+390|Livello %d -
+391|Linea di vista
+392|Linea di vista (attiva)
+393|Regola della linea di vista
+394|In ascolto... rilascia %s per inviare
+395|Carica un salvataggio di missione
+396|Carica partita
+397|Cerca campagne condivise dalla comunità
+398|Ricerca di campagne condivise…
+399|Bottino
+400|Bottino per il gruppo:
+401|Portafortuna
+402|Lumos
+403|Lumos (luce)
+404|Affondo, senza morso
+405|Occhialoni della Vista Magica
+406|Occhialoni della Vista Magica - %s ottiene un'azione aggiuntiva!
+407|Fare una copia di «%s» sulla v%s?
+408|Crea una COPIA aggiornata di questo salvataggio sulla versione più recente. L'originale resta com'è.
+409|Materiali
+410|salute massima -%d (ora %d)
+411|corpo a corpo
+412|Messaggio
+413|Metallo
+414|Minerale
+415|Missione
+416|Editor di missioni
+417|Missioni e campagne create da altri giocatori. Tutto viene controllato prima dell'installazione - un pacchetto può contenere solo dati di gioco, mai codice - e ogni versione viene installata accanto alle altre, così nulla di ciò che hai creato o salvato viene mai sovrascritto.
+418|Modelli convertiti: %d%s
+419|Mostro
+420|Azione del mostro
+421|Attacco del mostro
+422|figure dei mostri
+423|Fase dei mostri
+424|Fase dei mostri
+425|Tattica del mostro
+426|I mostri appaiono
+427|Ne corrispondono più di uno - di' un numero
+428|Mortos
+429|Mortos (morte)
+430|Sposta la telecamera sulle zone di comparsa dei giocatori e dei mostri
+431|Muoviti fino a {speed} tessere in una direzione casuale.
+432|Muoviti fino a {speed} tessere verso il cancello più vicino e proteggilo.
+433|Muoviti fino a {speed} tessere verso il pilastro più vicino e nasconditi dietro.
+434|Muoviti fino a {speed} tessere verso l'albero più vicino.
+435|Muoviti fino a {speed} tessere verso l'eroe più vicino - ma non attaccare.
+436|Passato alla v%s
+437|Narrazione
+438|La narrazione è configurata.
+439|La narrazione non è disponibile su %s.
+440|La narrazione non è ancora configurata - la storia viene mostrata solo come testo.
+441|La configurazione della narrazione non è ancora supportata su %s.
+442|Nuova partita
+443|Successivo
+444|No
+445|Nessun %s.
+446|Nessun modello di base per: %s - non apparso (correggi la missione nel Creator).
+447|Nessun segnalino colore rimasto per: %s - non apparso.
+448|Nessuna descrizione.
+449|nessun nemico da danneggiare
+450|Nessuna immagine della mappa - sceglierne una per questo atto
+451|Nessuna ricetta nota: importa prima i dati del gioco (Risorse di gioco nel menu principale).
+452|Nessuna ricetta in vendita al momento.
+453|Ancora nessuna ricetta - si comprano in un negozio di ricette.
+454|Ancora nessun salvataggio - iniziane uno con Nuova partita.
+455|Ancora nessuno - i materiali vengono dai mostri sconfitti, dalle missioni e dal mercato.
+456|Non tutto ha funzionato. Ciò che ha funzionato è a posto - riavvia l'app per vederlo.
+457|Nota:
+458|Niente in vendita qui.
+459|Non è stato ancora importato nulla - l'app mostra dei segnaposto.
+460|Non è ancora successo nulla.
+461|Ancora niente qui. Premi l'icona di aggiornamento per vedere cosa ha condiviso la comunità, oppure pubblica una tua campagna nell'editor di campagna.
+462|Ancora niente installato. Usa l'icona di aggiornamento nella schermata Nuova partita per trovare campagne condivise, oppure installa un pacchetto a mano qui sotto.
+463|Niente di nuovo nell'elenco della comunità.
+464|Ancora niente.
+465|Avviso
+466|Obiettivo
+467|Offline - mostra l'ultimo elenco della comunità.
+468|ok
+469|Chiede solo a GitHub qual è l'ultima versione. Nulla viene scaricato o installato senza il tuo clic.
+470|Apri campagne
+471|Opzioni
+472|Oppure un indirizzo web (https://…) di un file pacchetto:
+473|Arancione
+474|Sovrapposizioni
+475|Parte %s: nessuna
+476|Parti (B e C)
+477|eseguire %s
+478|Effettua una prova di %s - quanti successi?
+479|Scegli una voce per ogni eroe. Le sue battute nella storia vengono lette con essa, e nessun altro la userà.
+480|Punta
+481|Pilastri
+482|Metti i mostri sulla mappa come mostrato.
+483|Metti le tue figure dei giocatori nell'area evidenziata, poi conferma.
+484|Gioca
+485|Gioca la missione
+486|Gioca una missione
+487|Gioca questo capitolo
+488|Gioca questa impresa secondaria
+489|Fase dei giocatori
+490|Fase dei giocatori
+491|I giocatori appaiono. Metti i tuoi segnalini, poi gioca.
+492|Prova
+493|Prova:
+494|Bersagli preferiti: %s
+495|Preparare 2 carte
+496|Preparare una carta
+497|Oggetti di scena
+498|Viola
+499|Premi per parlare (tieni premuto %s)
+500|Impresa
+501|Diario dell'Impresa
+502|Esci
+503|Casuale (dal nome)
+504|gittata %d
+505|Gittata %d
+506|gittata %d, portata
+507|Gittata %d, portata
+508|Letto prima in questa lingua
+509|Letto dopo in questa lingua
+510|Leggi la storia ad alta voce
+511|Leggi questo capitolo
+512|Ricetta - livello %d
+513|Ricetta:
+514|Ricette
+515|recupera %d salute
+516|recupera %d salute (ora %d / %d)
+517|Pagina delle versioni
+518|Rimuovi
+519|Rimuovere «%s» versione %s da questo computer?%s
+520|Rimuovere una singola condizione
+521|Rimuovere tutte le condizioni di un dato tipo
+522|Rimuovere tutta la fatica da una singola carta
+523|%s v%s rimosso.
+524|Resistenza: %s
+525|Resistente: %s
+526|Risolvi infezione e terrore. Ogni eroe può scartare 1 fatica.
+527|Riavvio necessario
+528|Riavvia ora
+529|Riprendi l'attacco del mostro
+530|Ritirata
+531|rivela la vulnerabilità a %s
+532|Ricompensa:
+533|Round %d - %s
+534|Compendio delle Regole
+535|Runa
+536|runa
+537|Runa:
+538|Rune
+539|Salva
+540|Salvataggio
+541|Salvato.
+547|secondo
+548|Vendi  %d
+549|Configura la narrazione (scarica %s)
+550|Configura il controllo vocale (scarica %s)
+551|Configura la tua partita
+552|Preparazione di %s
+553|Preparazione di «%s»\n%s%s - metti questi come mostrato:\n%s
+554|Scatto 1
+555|Mostra i suggerimenti vocali
+556|Mostra se questa carta è potenziata (+). I potenziamenti si ottengono nella campagna.
+557|Impresa secondaria
+558|Impresa secondaria (facoltativa)
+559|Impresa secondaria vinta: %s.
+560|Impresa secondaria: %s
+561|Taglio
+562|Rallentato
+563|Istantanea
+564|L'istantanea «%s» è vuota.
+565|Istantanea «%s» scattata (round %d).
+566|Istantanea caricata - round %d
+567|Qualcosa con lo stesso nome è già di intralcio: %s.
+568|lancia
+569|bastone
+570|Inizia
+571|Inizia la partita
+572|Passo %s: %s...
+573|Ricetta della storia
+574|Narratore:
+575|Forza
+576|spada
+577|Tattica
+578|Tattiche
+579|Mettersi al riparo
+580|Spilla Ossidata
+581|Spilla Ossidata: %d di %d.
+582|Spilla Ossidata: %d di %d. La Spilla viene sbloccata con il suo lato + dalla prossima missione!
+583|Spilla Ossidata: appare anche %s (segnalino %s). %s deve sconfiggerlo.
+584|Terros
+585|Terros (terra)
+586|texture e ritratti
+587|Quella cartella non contiene il gioco (nessuna cartella «bundles» trovata al suo interno).
+588|Non è un indirizzo web (deve iniziare con https://).
+589|Quell'opzione non è disponibile
+590|Il download di %s non è riuscito (rete %d, HTTP %d).
+591|Il download di %s non è uno zip valido.
+592|Il download di %s ha smesso di ricevere dati - controlla la connessione e riprova.
+593|Il download di %s è stato annullato.
+594|Il download di %s era danneggiato (checksum non corrispondente).
+595|%s è già in fase di download.
+596|L'indirizzo deve iniziare con https://
+597|Le armature che il gruppo possiede
+598|L'autore conferma di poter condividere le immagini.
+599|L'autore non ha detto se può condividere le immagini.
+600|La campagna è completata - congratulazioni!
+601|L'indirizzo del catalogo deve iniziare con https://
+602|Il pacchetto scaricato non è quello promesso dall'elenco (%s %s invece di %s %s). Non è stato importato.
+603|Il pacchetto scaricato non è quello promesso dall'elenco. Non è stato installato.
+604|il nemico aveva meno di %d punti salute: sconfitto
+605|Non è stato possibile scrivere i file (errore %d).
+606|il primo eroe ferito in questo round ha invece salute %d
+607|Il gioco non è stato trovato nei posti consueti. Scegli la cartella in cui è installato.
+608|Lo strumento di importazione si è fermato senza importare nulla (codice di uscita %d).
+609|Le risorse di gioco importate vengono caricate all'avvio dell'app.\n\nRiavviare ora?
+611|Le lingue che vuoi leggere, la migliore per prima. Una campagna o una missione viene mostrata nella prima lingua per cui ha un testo; avviando una partita di campagna ti viene chiesto in quale lingua giocarla.
+612|L'elenco delle campagne condivise mostrato dall'icona di aggiornamento nella schermata Nuova partita. Per impostazione predefinita quello del repository descent-engine-community su GitHub.
+613|Il mercato vende materiali ma non li compra.
+614|La missione manca nella cartella della campagna.
+615|La missione del capitolo «%s» manca nella nuova versione.
+616|La nuova variabile «%s» parte dal suo valore predefinito.
+617|La nuova versione non ha l'atto %d (il tuo salvataggio è lì).
+618|Non è stato possibile aprire la versione più recente.
+619|Il salvataggio originale non è modificato - puoi sempre tornarci.
+620|il pacchetto
+621|Il gruppo non porta consumabili - preparali da un alchimista con le ricette di pozioni.
+622|Il gruppo non ha consumabili. Preparali da un alchimista con le ricette di pozioni.
+623|Il gruppo deve riprovare questo capitolo.
+624|Il gruppo non possiede ancora armature.
+625|Il gruppo non possiede ancora accessori - si comprano in un negozio di ricette o si trovano.
+626|La fase non può essere terminata adesso.
+627|Le pozioni che il gruppo ha creato - disponibili in ogni missione
+628|L'elenco dei checksum della versione non ha una voce per %s.
+629|Non è stato possibile salvare l'istantanea - vedi il pannello Output.
+630|L'istantanea è stata applicata alla missione modificata, ma:\n-
+631|Il download del motore vocale non aveva una libreria per %s.
+632|il tavolo lo esegue
+633|L'accessorio indossato da questo eroe (uno per eroe; un accessorio può essere indossato da un solo eroe)
+634|Non è stato possibile avviare l'aggiornamento.
+635|L'aggiornamento non contiene %s.
+636|Non è stato possibile salvare la copia aggiornata.
+637|La variabile «%s» non esiste più - il suo valore viene scartato.
+638|Questa app viene fornita senza la grafica del gioco. Se possiedi «Descent: Leggende delle Tenebre», le vere immagini, figure e dati di gioco possono essere copiati dalla tua installazione. Nulla del gioco viene scaricato e nulla lascia questo computer.
+639|questo attacco non può danneggiarlo
+640|Questo pacchetto non è stato importato - è danneggiato o contiene qualcosa di non consentito:\n\n- %s
+641|Questo pacchetto non è stato installato - è danneggiato o contiene qualcosa di non consentito.
+642|Questa versione non ha %s (o non ha l'elenco dei checksum).
+643|Questo salvataggio non può essere spostato alla v%s:
+644|Questo salvataggio è stato spostato dalla versione %s della campagna alla versione %s.
+645|Minaccia
+646|coltelli da lancio
+647|Passaggio del Tempo
+648|Il tempo passa.\n\n
+649|Stanchezza
+650|Troppo breve - tieni premuto %s mentre parli
+651|Verso l'albero
+652|Toxos
+653|Toxos (decadimento)
+654|attivazione %d (ogni %d: %d danni a ogni nemico)
+655|attivazione %d: %d danni a ogni nemico
+656|Accessorio
+657|Accessorio %s: %s
+658|Potenziamento di accessorio:
+659|Accessorio:
+660|Accessori
+661|Umbros
+662|Umbros (ombra)
+663|Teschio Immortale
+664|Teschio Immortale: %s ha sconfitto un(a) %s per la %s volta.
+665|Sconosciuto
+666|Aggiornamento disponibile: %s
+667|Aggiorna alla v%s…
+668|Potenziamento - livello %d
+669|Potenziamento:
+670|Potenziato (+). In una campagna segue i potenziamenti del gruppo.
+671|Utilizzabile in questa missione: %s. Mettilo nella tua area di gioco per usarlo. Non viene aggiunto all'inventario e sparisce alla fine della missione.
+672|Utilizzabili in questa missione: %s. Mettili nella tua area di gioco per usarli. Non vengono aggiunti all'inventario e spariscono alla fine della missione.
+673|Usa gli oggetti di scena originali del gioco sulla mappa
+674|Usa il lato potenziato (+) di questo accessorio.
+675|La variabile «%s» ha cambiato tipo - ha di nuovo il valore predefinito.
+676|La variabile «%s» non esiste più (era %s).
+677|Versione %s
+678|La versione %s è già installata.
+679|La versione %s è disponibile (hai %s).
+680|La versione %s di questo pacchetto è già pubblicata - una versione pubblicata non viene mai sostituita. Usa una versione più alta.
+681|Vittoria!
+682|Vigos
+683|Vigos (vita)
+684|Voce
+685|Voce -
+686|Il controllo vocale è configurato.
+687|La voce non è ancora configurata - i comandi digitati funzionano ancora.
+688|impostazioni vocali (%s)
+689|La configurazione vocale non è disponibile su %s - i comandi digitati funzionano ancora.
+690|La configurazione vocale non è ancora supportata su %s.
+691|voci (%s)
+692|bacchetta
+693|Vagare
+694|squilla
+695|martello da guerra
+696|debole a %s
+697|Debole: %s
+698|Vulnerabilità
+699|danni da vulnerabilità +%d
+700|Vulnerabilità: %s
+701|arma
+702|Arma %d (%s)
+703|danni dell'arma +%d
+704|probabilità delle parti dell'arma +%d %%
+705|Armi
+706|Novità
+707|Quando un eroe ha perso tutti i punti salute, premi Ferisci. La terza ferita fa perdere la partita.
+708|Quale mostro?
+709|Quale?
+710|Chi attacca %s?
+711|Chi usa %s?
+712|Volontà
+713|Vinto: %s.
+714|Ferisci
+715|Ferito
+716|PE: %d  |  Oro: %d
+717|Giallo
+718|Sì
+719|Hai già la versione %s - questa viene installata accanto.
+720|Puoi giocare
+721|Porti %d.
+722|Hai %d monete d'oro e %s.
+723|Hai %d monete d'oro.
+724|Non conosci nessuna ricetta di pozioni. Le ricette si vendono nei negozi di ricette o si trovano come bottino.
+725|Non conosci nessuna ricetta che crei qualcosa di nuovo. Le ricette si vendono nei negozi di ricette.
+726|I tuoi materiali:
+727|I tuoi progressi vengono salvati automaticamente con questo nome, così puoi uscire e riprendere da dove avevi lasciato (Carica partita nel menu principale). Usa un nome diverso per ogni gruppo o partita.
+728|▶ Leggi ad alta voce
+729|☠ Sconfitto
+730|L'app stessa (menu e finestre) viene mostrata nella prima lingua di questo elenco in cui è tradotta - finora inglese, Español, Nederlands, Français, Deutsch e Italiano.
+731|App non ufficiale
+732|%s - %s\n\n%s ottiene un beneficio extra: %s.
+733|Inizia un nuovo atto.
+734|atto
+736|La campagna è completata.
+737|La fine
+738|La storia inizia.
+739|Obiettivo attuale:
+740|Lingua di questa partita
+741|La lingua in cui questa partita viene letta, registrata e narrata. Puoi cambiarla più tardi nelle Opzioni.
+742|La storia, il diario e i termini del gioco vengono mostrati in questa lingua. I menu e i pulsanti dell'app seguono l'elenco qui sotto.
+743|Scarica le voci %s (%s)
+744|Non sono installate voci di narrazione per %s, quindi la storia viene mostrata solo come testo.
+745|Non sono installate voci di narrazione per %s, quindi la storia viene mostrata solo come testo. Scaricale in Opzioni > Voce.
+746|Configura la narrazione - voci %s (scarica circa %d MB)
+747|Voci per:
+748|Non sono installate voci di narrazione per %s, quindi questa partita viene mostrata solo come testo. Scaricale in Opzioni > Voce.
+749| - solo se %d condizione/i
+750|Difficoltà
+752|Avventuriero
+753|Apprendista
+754|I mostri sono di un livello più forti di come li ha impostati l'autore, e la missione può essere più dura per te.
+755|I mostri sono di un livello più deboli di come li ha impostati l'autore, e la missione può essere più facile per te.
+756|I mostri sono di due livelli più forti di come li ha impostati l'autore, e la missione può non avere pietà.
+757|Incubo
+758|Il gioco come l'ha progettato l'autore.
+759|Veterano
+760|Mostri più coriacei e una missione più dura con i numeri più alti. Puoi cambiarlo prima di ogni missione.
+761|%d mostro/i si sono svegliati.
+762|È stata applicata una condizione a uno di loro.
+763|I mostri si svegliano
+764|Qualcosa li ha allertati.
+765|Qualcosa li ha svegliati.
+766|I mostri si svegliano!
+767|Non hanno notato gli eroi: restano dove sono finché qualcosa non li sveglia.
+768|Hanno notato l'attacco.
+769|Ignaro
+770|Ignaro - lui e il suo gruppo saltano la fase dei mostri
+771|Svegliare
+772|%s (facoltativo)
+773|Obiettivo facoltativo
+774|Obiettivo facoltativo completato:\n%s
+775|Facoltativo:
+776|L'app stessa (menu e finestre) viene mostrata nella prima lingua di questo elenco in cui è tradotta - finora %s.
+P1| (%d per %d giocatore)| (%d per %d giocatori)
+P2|+%d successo|+%d successi
+P3|%d condizione persa, %d danni|%d condizioni perse, %d danni
+P4|Portafortuna: %d successo extra viene aggiunto al risultato di %s.|Portafortuna: %d successi extra vengono aggiunti al risultato di %s.
+P5|Nuova impresa secondaria: %s|Nuove imprese secondarie: %s

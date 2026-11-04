@@ -1,0 +1,772 @@
+1|(odporny)
+2|mikrofon [%s%s]
+3|%s zdobywa unikalną recepturę: %s.
+4|(%d nieudane)
+5|(aktywne)
+6|(najpierw pobiera narzędzie importu, %s)
+7|(odporny)
+8|(Tylko kampanie zachowują receptury.)
+9|(PD teraz %d)
+10|- jeszcze nie zaimportowano
+11|= %d obrażeń\nRzut obrony: -%d\n\n%d obrażeń zadanych
+12|Nie pojawił się: %s.
+13|Nie ma już żadnej receptury do zdobycia.
+14|%d obrażeń dla %s
+15|%d obrażeń dla wroga
+16|%d dodatkowych obrażeń (%d %% jego zdrowia)
+17|%d od społeczności do zainstalowania.
+18|%d złota
+19|%d złota (Kompas Umarlaka)
+20|%d godz. %d min
+21|%d min
+22|Pojawiło się potworów: %d.
+23|%d z obecnych zadań już nie istnieje.
+24|%d x %d płytek
+25|%dx %s
+26|%s  -  PD %d,  złoto %d
+27|%s %d (brak wierszy tabeli)
+28|%s (żeton %s)
+29|%s (%s, część %s)
+30|%s (skopiowane przez %s): %s
+31|%s +%d do końca rundy
+32|%s - żeton %s
+33|%s - %s uruchomione!\n\n%s
+34|%s - %s uruchomione!\n\n%s dostaje losowy przedmiot zużywalny: %s\n\nWyposaż go.
+35|%s - %s uruchomione!\n\n%s dostaje losowy ulepszony przedmiot zużywalny: %s\n\nWyposaż go.
+36|%s - %s uruchomione!\n\n%s\n\nSprawdźcie, czy ma zastosowanie, i wykonajcie to na planszy (stan można nałożyć z ekranu potworów).
+37|%s - %s\nCzy %s ma obrażenie?
+38|%s - %s\nIle zmęczenia leży na wszystkich kartach gracza %s?
+39|%s - %s\nKtóry inny wróg otrzymuje te same obrażenia? (Anuluj: żaden)
+40|%s - kupno za %d złota, sprzedaż za %d
+41|%s - PZ %d, Poz. %d, Obr. %d, Atk %d
+42|%s - poziom %d
+43|%s - jeszcze niezaimplementowane.
+44|%s „%s” - wersja %s
+45|%s atakuje: %s (obrażenia %d, %s).
+46|%s atakuje: %s - wybierz broń
+47|%s atakuje: %s!%s\nObrażenia %d - %s - Szybkość %d
+48|%s atakuje: %s.\nKtóra broń?
+49|%s atakuje: %s\nbronią %s (obrażenia %d)\n
+50|%s upuścił coś użytecznego. %s
+51|%s upuścił: %s.
+52|%s zyskuje %s
+53|%s został pokonany.
+54|%s uleczył %d (%d punktów zdrowia).
+55|%s: %s.
+56|%s jest zdezorientowany!\n%s\n%s
+57|%s jest zdezorientowany: %s.
+58|%s jest odporny
+59|%s jest mniej prawdopodobnym celem w tej rundzie
+60|%s traci status: %s.
+61|%s nie należy do drużyny.
+62|%s coś knuje...
+63|%s stracił całe zdrowie. Zranić: %s?
+64|%s wykonuje %s przeciwko: %s.
+65|%s otrzymuje korzyść: %s.
+66|%s otrzymuje %d obrażeń
+67|%s otrzymuje %d obrażeń od cierpienia (zostało %d punktów zdrowia).
+68|%s otrzymuje %d obrażeń od cierpienia i zostaje pokonany! Zdejmij go z planszy.
+69|%s otrzymał %d obrażeń (zostało %d punktów zdrowia).
+70|%s otrzymał %d obrażeń i został pokonany.
+71|%s uruchomione
+72|%s został pokonany podczas przerwania, zanim zdążył: %s.
+73|%s został ranny po raz trzeci.
+74|%s zranił bohatera - jego tura się skończyła.
+75|Kosz alchemika gracza %s daje losowy przedmiot zużywalny:
+76|%s: %s!\nCel %s - Obrażenia %d - %s - Szybkość %d
+77|%s: %s\nStałe części: %s
+78|%s: obrona +%d do końca rundy
+79|%s: wejdź w interakcję z „%s”
+80|%s: łup x%d (+%s)
+81|%s: potrzeba %d, masz %d
+82|%s: wykonaj test: %s - ile sukcesów?
+83|%s: wróg nie ma łupu
+84|%s: wróg nie jest pokonany, brak dodatkowego łupu
+85|%s\n\nNic nie zostało zmienione. Możesz spróbować ponownie lub pobrać aktualizację ze strony wydań.
+86|%s\n\nWybrałeś: %s
+87|(atakuje ponownie)
+88|(zignorowane) %s
+89|(miejsce bez nazwy)
+90|(misja poboczna bez nazwy)
+91|(twoje wydanie)
+92|+%d obrażeń
+93|+%d obrażeń (wyrzucono %d-%d)
+94|+%d obrażeń (runda %d)
+95|Grafika 2D - logo i tło menu głównego
+96|[szkic]
+97|„%s” wersja %s jest już zainstalowana.
+98|\n%.1f MB.
+99|\nMisje: %d, obrazy: %d, %.1f MB.
+100|\nZapisy gry (%d) tej kampanii zostały odłożone na bok (user://campaign_saves/_removed), nie usunięte.
+101|\n%d sukcesów x %d obrażeń broni
+102|\n(+%d obrażeń z zdolności obronnej podczas tej aktywacji)
+103|\n(Wycieńczenie: obrażenia zmniejszone o %d)
+104|\n\n%s dostaje obrażenie „%s”: połóż jego kartę w swoim polu gry.
+105|\n\n%s ma jeszcze %d punktów zdrowia.
+106|\n\n%s został pokonany! Zdejmij go z planszy.
+107|\n\n%s musi odwrócić kartę obrażenia (%s) na poważną stronę.
+108|\n\n%s musi odwrócić kartę obrażenia na poważną stronę.
+109|\n\nRękojeść pamięci: ustaw zdrowie gracza %s na %d.
+110|\n\nAplikacja nie może się tu sama zaktualizować: %s. Pobierz ją ze strony wydań.
+111|\n\nTrwająca misja zostanie zamknięta - najpierw ją zapisz (Opcje > Zapisz) lub wybierz Później.
+112|\n\nTo trzecia rana gracza %s - gra zostanie przegrana!
+113|\n\nKamień Tułacza - każdy bohater może wybrać swoją alternatywną korzyść zamiast odrzucać 1 zmęczenie:
+114|\nAktywacja:
+115|\nOraz trochę surowców rzemieślniczych dla drużyny: %s.
+116|\nPrzy stole:
+117|\nNałożone stany: %s
+118|\nNarażenie: +%d obrażeń
+119|\nOdporny na: %s
+120|\nOdporny! Atak nie zadaje obrażeń.\n\n0 obrażeń zadanych
+121|\nW tworzeniu (szkic)
+122|\nŁup dla drużyny: %s.
+123|\nBrak wolnej płytki pojawienia się dla: %s - połóżcie je obok pozostałych.
+124|\nJeszcze nie zainstalowano - otwórz, aby zainstalować.
+125|\nOdporność: -%d obrażeń
+126|\nPaczka została sprawdzona: zawiera tylko dane gry.
+127|\nPodatność: +%d obrażeń
+128|\nCzęści broni i akcesorium:
+129|ulepszenie pancerza: %s
+130|receptura części: %s
+131|ulepszenie części: %s
+132|receptura: %s
+133|ulepszenie: %s
+134|Kampania
+135|bohater
+136|nowy obszar
+137|receptura eliksiru
+138|Zapis gry o nazwie „%s” już istnieje.
+139|Zapis gry potrzebuje nazwy.
+140|dostawa pancerzy: %s
+141|dostawa pancerzy
+142|Pojedyncza misja
+143|Migawkę można zrobić w fazie graczy, gdy żadne okno nie jest otwarte.
+144|akcesorium
+145|ulepszenie akcesorium
+146|Akt ukończony!
+147|Dodaj język
+148|dodaje %d obrażeń do swojej następnej aktywacji
+149|Cierpienie
+150|Cierpienie
+151|obrażenia od cierpienia +%d w tej rundzie
+152|Zwinność
+153|wszystkie jego statusy zostają usunięte
+154|ulepszenie pancerza
+155|nieznany autor
+156|Nieoficjalny projekt fanów, wolny w użyciu (licencja MIT).\n*Descent: Legendy Mroku* i wszystko z gry należy do ich właścicieli.
+157|Anemos
+158|Anemos (wiatr)
+159|Aktualizacja aplikacji
+160|Zastosowano:
+161|Nałóż stany
+162|Aquos
+163|Aquos (woda)
+164|Pancerz
+165|Ulepszenie pancerza:
+166|Pancerz:
+167|Pancerz…
+168|Przy stole:
+169|Atak
+170|atakuj: %s
+171|Zdolności ataku: %s
+172|atak zyskuje %s
+173|Dostępne teraz: %s
+174|Wróć
+175|Wróć do edytora
+176|Wróć do edytora
+177|Wróć do menu
+178|zaczyna cierpieć
+179|Rozpocznij kampanię
+180|Kości
+181|Kupiono
+182|łuk
+183|Warz
+184|Kosz alchemika
+185|Kup
+186|Kup  %d
+187|Kup  %d złota
+188|Kup recepturę  %d złota
+189|autor:
+190|autor: %s
+191|Kampania
+192|Kampania ukończona
+193|Kampania ukończona! (%s)
+194|Edytor kampanii
+195|Dziennik kampanii
+196|Czy %s może zaatakować drugiego bohatera?
+197|Anuluj
+198|Anuluj pobieranie
+199|Kauteryzacja
+200|Ostrożność
+201|Środek do środka (ścisłe)
+202|Środek do rogu (zalecane)
+203|Rozdział
+204|Rozdziału „%s”, który już ukończyłeś, nie ma w nowej wersji.
+205|Rozdziału „%s”, w którym teraz jesteś, nie ma w akcie %d nowej wersji.
+206|Sprawdź w menu głównym, czy jest nowsza wersja aplikacji
+207|Skrzynia, brama, drzewo i studnia używają modeli z gry po Zasoby gry > Importuj. Wyłączone = rekwizyty dołączone do aplikacji. Działa przy następnym otwarciu mapy.
+208|Wybierz paczkę
+209|Wybierz plik paczki…
+210|Wybierz broń
+211|Wybierz folder, w którym zainstalowana jest gra
+212|Wybierz folder gry…
+213|Wybierz dwie bronie na bohatera (i opcjonalne nasadki)
+214|Wybierz swoją drużynę
+215|Zamknij
+216|Tkanina
+217|Powszechny
+218|Społeczność
+219|Lista społeczności
+220|Stany
+221|Stany (%d)
+222|Potwierdź
+223|Dezorientacja
+224|Przedmioty zużywalne
+225|Przedmioty zużywalne…
+226|Kontynuuj
+227|Kontynuuj tę grę
+228|Konwertowanie modeli... %s (%s)
+229|kopiuje %s
+230|Kopiuje to wydanie tylko do odczytu do nowego szkicu, który możesz zmieniać. Samo wydanie i jego zapisy gry pozostają bez zmian.
+231|Róg do rogu (luźne, Descent 2)
+232|Koszt: %s
+233|Nie udało się zduplikować: %s.
+234|Nie udało się otworzyć tego zapisu gry.
+235|Nie udało się otworzyć kampanii „%s”.
+236|Nie udało się rozpocząć pobierania: %s (błąd %d).
+237|Nie udało się rozpakować: %s (kod wyjścia tar %d).
+238|Nie udało się rozpakować silnika narracji (kod wyjścia tar %d).
+239|Nie udało się zapisać: %s (błąd %d).
+240|Policz jako przegraną
+241|Policz jako wygraną
+242|Autor
+243|Opracowanie
+244|kusza
+245|Obuchowe
+246|Nietypowe składniki
+247|Aktualne zadanie
+248|Obrażenia
+249|obrażenia %d
+250|obrażenia +%d na stałe (teraz %d)
+251|obrażenia -%d
+252|Rodzaj obrażeń
+253|Oszołomienie
+254|Porażka.
+255|Pokonany
+256|obrona %+d do końca rundy (teraz %d)
+257|obrona +%d podczas tego ataku
+258|obrona +%d na stałe (teraz %d)
+259|obrona -%d
+260|obrona -%d w tej rundzie
+261|Zdolności obronne: %s
+262|zdolność obronna wyłączona na następny atak
+263|zdolność obronna wyłączona do końca rundy
+264|Zdolność obronna wyłączona.
+265|Zdolność obronna: %s
+266|Usunąć zapis gry „%s”?
+267|Usuń ten zapis gry
+268|Czy %s zadał obrażenia: %s?
+269|Czy %s zdał test?
+270|Czy słyszałem odwrót? Przesuń się o maksymalnie {speed} płytek, jak najdalej od bohaterów.
+271|Nie uruchomiono:
+272|Nie usłyszano prawidłowej liczby
+273|Nic nie usłyszano - przytrzymaj %s i spróbuj ponownie
+274|Nie zrozumiano
+275|Nie rozpoznano opcji
+276|Gotowe
+277|Gotowe - uruchom aplikację ponownie, aby zobaczyć wszystko.
+278|Gotowe. Zaktualizowana kopia jest na liście.
+279|Zguba
+280|Pobierz dodatkowe głosy - akcenty (%s)
+281|Pobierz więcej głosów - zwykły angielski (%s)
+282|Pobieranie: %s... %d MB
+283|Pobieranie: %s... %d %% (%d / %d MB)
+284|Pobieranie aktualizacji…
+285|podwójne ostrza
+286|każdy wróg otrzymuje %d obrażeń (uruchomienie %d)
+287|Każdy gracz może zabrać do misji %d%s. Wytworzone przedmioty zużywalne są dostępne w każdej misji od nowa - żaden nie jest zużywany.
+288|Edytor
+289|Włącz głos
+290|Wkrótce koniec: ta misja poboczna zniknie, gdy „%s” zostanie wygrane.
+291|Wycieńczenie
+292|Esencje
+293|Narażenie
+294|NIEUDANE
+295|Nie udało się wczytać misji: %s
+296|Nie udało się zapisać - szczegóły w panelu Wyjście.
+297|Osiągnięcia
+298|pierwszy
+299|Stały bohater (%s)
+300|Odwróć kartę swojego bohatera
+301|Płytki podłogi
+302|Skup 2 karty
+303|Wykuj
+304|Zduplikuj do edycji
+305|Zduplikowano %s do twojego szkicu „%s” - otwórz go w edytorze: %s.
+306|Fortunos
+307|Fortunos (szczęście)
+308|Niepokój
+309|wolne
+310|Ogień przyjacielski
+311|Frustracja
+312|zyskuje %s
+313|Gra %04d-%02d-%02d %02d:%02d
+314|Zasoby gry
+315|Znaleziono grę:\n%s
+316|Rozgrywka
+317|rękawica bojowa
+318|Ogólne
+319|Daje pancerz: %s%s - %s
+320|Daje runę: %s
+321|Daje akcesorium: %s%s - %s
+322|Daje broń: %s%s
+323|Daje: %s
+324|rękawice
+325|Złoto
+326|Złoto: %d
+327|Dostałeś od kogoś paczkę? Wybierz plik lub wklej jego adres internetowy. Zobaczysz, co zawiera i kto ją stworzył, zanim cokolwiek zostanie zainstalowane.
+328|Zielony
+329|Strzeż bramy
+330|młot
+331|Stwardniała skóra
+332|Lecz
+333|Lecz 2
+334|Lecz 4
+335|Zdrowy
+336|Posłuchaj narratora
+337|Posłuchaj tego głosu
+338|Usłyszano: %s
+339|Ciężko ranny
+340|Niezgrabne dłonie
+341|Ciężkie serce
+342|Zioła
+343|modele bohaterów
+344|Głosy bohaterów
+345|Bohaterowie
+346|Niepewność
+347|Punkty zdrowia %d / %d
+348|Przytrzymaj %s, aby mówić
+349|Róg Odwagi
+350|Róg Odwagi - %s został ranny.
+351|Najedź na pancerz, aby zobaczyć jego zasady. Pancerz nosi się i rozstrzyga przy stole.
+352|Jak narzędzie linii widoczności decyduje, czy dwa pola się widzą. Środek do rogu: linia od środka pola obserwatora do dowolnego rogu celu.
+353|PZ %d · Poziom %d
+355|Ignos
+356|Ignos (ogień)
+357|odporny na: %s
+358|Odporny na stany: %s
+359|Odporny na:
+360|Odporny: %s
+361|Odporność: %s
+362|Importuj
+363|Import zakończony, ale nie wszystko się udało.
+364|Import zakończony.
+365|Importuj zasoby gry
+366|Dotychczas zaimportowano: %s.
+367|Import z poziomu aplikacji nie jest jeszcze dostępny na tym komputerze - użyj zamiast tego narzędzi zasobów ze strony wydań.
+368|W TRAKCIE TWORZENIA
+369|Urządzenie wejściowe: %s
+370|Zainstaluj
+371|Zainstaluj i uruchom ponownie
+372|Zainstaluj ręcznie
+373|Zainstalować tę paczkę?
+374|Zainstalowano
+375|Zainstalowano „%s” v%s.
+376|Zainstalowano „%s”.
+377|Instalowanie…
+378|Instalowanie… aplikacja zamknie się i uruchomi sama ponownie.
+379|Inteligencja
+380|Przerwij
+381|Przerwanie - gracze działają
+382|Zasoby
+383|Zostaje bez zmian; możesz w nią dalej grać w jej własnej wersji.
+384|Język
+385|Języki
+386|Uderz w najbliższego innego potwora: otrzymuje {damage} obrażeń. (Naciśnij Przerwij, kliknij tego potwora w widoku potworów i zastosuj obrażenia.)
+387|Później
+388|Skóra
+389|Znika po następnym rozdziale!
+390|Poziom %d -
+391|Linia widoczności
+392|Linia widoczności (włączona)
+393|Zasada linii widoczności
+394|Słucham... puść %s, aby wysłać
+395|Wczytaj zapis misji
+396|Wczytaj grę
+397|Szukaj kampanii udostępnionych przez społeczność
+398|Szukanie udostępnionych kampanii…
+399|Łup
+400|Łup dla drużyny:
+401|Amulet Szczęścia
+402|Lumos
+403|Lumos (światło)
+404|Wypad, bez ugryzienia
+405|Gogle magowidzenia
+406|Gogle magowidzenia - %s dostaje dodatkową akcję!
+407|Zrobić kopię „%s” na v%s?
+408|Tworzy zaktualizowaną KOPIĘ tego zapisu gry na nowszej wersji. Oryginał pozostaje bez zmian.
+409|Surowce
+410|maksymalne zdrowie -%d (teraz %d)
+411|walka wręcz
+412|Wiadomość
+413|Metal
+414|Minerały
+415|Misja
+416|Edytor misji
+417|Misje i kampanie stworzone przez innych graczy. Wszystko jest sprawdzane przed instalacją - paczka może zawierać tylko dane gry, nigdy kod - a każda wersja jest instalowana obok pozostałych, więc nic, co stworzyłeś lub zapisałeś, nigdy nie jest nadpisywane.
+418|Przekonwertowane modele: %d%s
+419|Potwór
+420|Akcja potwora
+421|Atak potwora
+422|figurki potworów
+423|Faza potworów
+424|Faza potworów
+425|Taktyka potwora
+426|Pojawiają się potwory
+427|Pasuje więcej niż jeden - podaj numer
+428|Mortos
+429|Mortos (śmierć)
+430|Przesuń kamerę na pola pojawiania się graczy i potworów
+431|Przesuń się o maksymalnie {speed} płytek w losowym kierunku.
+432|Przesuń się o maksymalnie {speed} płytek do najbliższej bramy i jej strzeż.
+433|Przesuń się o maksymalnie {speed} płytek do najbliższego filaru i ukryj się za nim.
+434|Przesuń się o maksymalnie {speed} płytek w stronę najbliższego drzewa.
+435|Przesuń się o maksymalnie {speed} płytek w stronę najbliższego bohatera - ale nie atakuj.
+436|Przeniesiono do v%s
+437|Narracja
+438|Narracja jest skonfigurowana.
+439|Narracja nie jest dostępna na: %s.
+440|Narracja nie jest jeszcze skonfigurowana - historia jest pokazywana tylko jako tekst.
+441|Konfiguracja narracji nie jest jeszcze obsługiwana na: %s.
+442|Nowa gra
+443|Dalej
+444|Nie
+445|Brak: %s.
+446|Brak szablonu bazowego dla: %s - nie pojawił się (popraw misję w Kreatorze).
+447|Brak wolnego żetonu koloru dla: %s - nie pojawił się.
+448|Brak opisu.
+449|brak wroga do zranienia
+450|Brak obrazu mapy - wybierz go dla tego aktu
+451|Nie znasz żadnych receptur: najpierw zaimportuj dane gry (Zasoby gry w menu głównym).
+452|Obecnie brak receptur na sprzedaż.
+453|Jeszcze brak receptur - kupuje się je w sklepie z recepturami.
+454|Jeszcze brak zapisów gry - zacznij jeden przez Nowa gra.
+455|Jeszcze brak - surowce pochodzą z pokonanych potworów, misji i targu.
+456|Nie wszystko się udało. To, co się udało, jest na miejscu - uruchom aplikację ponownie, aby to zobaczyć.
+457|Uwaga:
+458|Nic tu nie ma na sprzedaż.
+459|Jeszcze nic nie zaimportowano - aplikacja pokazuje zastępniki.
+460|Jeszcze nic się nie wydarzyło.
+461|Jeszcze nic tu nie ma. Naciśnij ikonę odświeżania, aby zobaczyć, co udostępniła społeczność, albo wydaj własną kampanię w edytorze kampanii.
+462|Jeszcze nic nie zainstalowano. Użyj ikony odświeżania na ekranie Nowa gra, aby znaleźć udostępnione kampanie, albo zainstaluj paczkę ręcznie poniżej.
+463|Nic nowego na liście społeczności.
+464|Jeszcze nic.
+465|Powiadomienie
+466|Zadanie
+467|Offline - pokazuje ostatnią listę społeczności.
+468|ok
+469|Pyta tylko GitHub, która wersja jest najnowsza. Nic nie jest pobierane ani instalowane bez twojego kliknięcia.
+470|Otwórz kampanie
+471|Opcje
+472|Albo adres internetowy (https://…) pliku paczki:
+473|Pomarańczowy
+474|Nakładki
+475|Część %s: brak
+476|Części (B i C)
+477|wykonaj: %s
+478|Wykonaj test: %s - ile sukcesów?
+479|Wybierz głos dla każdego bohatera. Jego kwestie w historii są czytane tym głosem i nikt inny go nie użyje.
+480|Kłute
+481|Filary
+482|Połóż potwory na mapie tak, jak pokazano.
+483|Połóż figurki graczy w podświetlonym obszarze, a potem potwierdź.
+484|Graj
+485|Zagraj misję
+486|Zagraj jedną misję
+487|Zagraj ten rozdział
+488|Zagraj tę misję poboczną
+489|Faza graczy
+490|Faza graczy
+491|Gracze pojawiają się. Połóżcie swoje żetony, a potem grajcie.
+492|Test
+493|Test:
+494|Preferowane cele: %s
+495|Przygotuj 2 karty
+496|Przygotuj kartę
+497|Rekwizyty
+498|Fioletowy
+499|Naciśnij, aby mówić (przytrzymaj %s)
+500|Misja
+501|Dziennik misji
+502|Wyjdź
+503|Losowy (z nazwy)
+504|zasięg %d
+505|Zasięg %d
+506|zasięg %d, dalekosiężna
+507|Zasięg %d, dalekosiężna
+508|Czytane wcześniej w tym języku
+509|Czytane później w tym języku
+510|Czytaj historię na głos
+511|Przeczytaj ten rozdział
+512|Receptura - poziom %d
+513|Receptura:
+514|Receptury
+515|odzyskuje %d zdrowia
+516|odzyskuje %d zdrowia (teraz %d / %d)
+517|Strona wydań
+518|Usuń
+519|Usunąć „%s” w wersji %s z tego komputera?%s
+520|Usuń pojedynczy stan
+521|Usuń wszystkie stany danego rodzaju
+522|Usuń całe zmęczenie z jednej karty
+523|Usunięto %s v%s.
+524|Odporność: %s
+525|Odporny: %s
+526|Rozpatrz zakażenie i przerażenie. Każdy bohater może odrzucić 1 zmęczenie.
+527|Wymagany restart
+528|Uruchom ponownie teraz
+529|Wznów atak potwora
+530|Odwrót
+531|ujawnia podatność na: %s
+532|Nagroda:
+533|Runda %d - %s
+534|Kompendium zasad
+535|Runa
+536|runa
+537|Runa:
+538|Runy
+539|Zapisz
+540|Zapis gry
+541|Zapisano.
+547|drugi
+548|Sprzedaj  %d
+549|Skonfiguruj narrację (pobiera %s)
+550|Skonfiguruj sterowanie głosem (pobiera %s)
+551|Skonfiguruj swoją grę
+552|Przygotowanie: %s
+553|Przygotowanie „%s”\n%s%s - połóżcie to tak, jak pokazano:\n%s
+554|Przemieszczenie 1
+555|Pokazuj podpowiedzi głosowe
+556|Pokazuje, czy ta karta jest ulepszona (+). Ulepszenia zdobywa się w kampanii.
+557|Misja poboczna
+558|Misja poboczna (opcjonalna)
+559|Misja poboczna wygrana: %s.
+560|Misja poboczna: %s
+561|Sieczne
+562|Spowolnienie
+563|Migawka
+564|Migawka „%s” jest pusta.
+565|Zrobiono migawkę „%s” (runda %d).
+566|Wczytano migawkę - runda %d
+567|Coś o tej samej nazwie już zawadza: %s.
+568|włócznia
+569|kostur
+570|Start
+571|Rozpocznij grę
+572|Krok %s: %s...
+573|Receptura fabularna
+574|Narrator:
+575|Siła
+576|miecz
+577|Taktyka
+578|Taktyki
+579|Skryj się za osłoną
+580|Zaśniedziała brosza
+581|Zaśniedziała brosza: %d z %d.
+582|Zaśniedziała brosza: %d z %d. Brosza zostaje odblokowana stroną + od następnej misji!
+583|Zaśniedziała brosza: pojawia się też %s (żeton %s). %s musi go pokonać.
+584|Terros
+585|Terros (ziemia)
+586|tekstury i portrety
+587|Ten folder nie zawiera gry (nie znaleziono w nim folderu „bundles”).
+588|To nie jest adres internetowy (musi zaczynać się od https://).
+589|Ta opcja jest niedostępna
+590|Pobieranie nie powiodło się: %s (sieć %d, HTTP %d).
+591|Pobrany plik (%s) nie jest prawidłowym zipem.
+592|Pobieranie przestało odbierać dane: %s - sprawdź połączenie i spróbuj ponownie.
+593|Pobieranie zostało anulowane: %s.
+594|Pobrany plik był uszkodzony (%s) - suma kontrolna się nie zgadza.
+595|Już trwa pobieranie: %s.
+596|Adres musi zaczynać się od https://
+597|Pancerze, które posiada drużyna
+598|Autor potwierdza, że może udostępniać obrazy.
+599|Autor nie powiedział, czy może udostępniać obrazy.
+600|Kampania jest ukończona - gratulacje!
+601|Adres katalogu musi zaczynać się od https://
+602|Pobrana paczka nie jest tą, którą obiecała lista (%s %s zamiast %s %s). Nie została zaimportowana.
+603|Pobrana paczka nie jest tą, którą obiecała lista. Nie została zainstalowana.
+604|wróg miał mniej niż %d zdrowia: pokonany
+605|Nie udało się zapisać plików (błąd %d).
+606|pierwszy ranny w tej rundzie bohater ma zamiast tego zdrowie %d
+607|Nie znaleziono gry w zwykłych miejscach. Wybierz folder, w którym jest zainstalowana.
+608|Narzędzie importu zatrzymało się bez zaimportowania czegokolwiek (kod wyjścia %d).
+609|Zaimportowane zasoby gry są ładowane przy uruchomieniu aplikacji.\n\nUruchomić ponownie teraz?
+611|Języki, w których chcesz czytać, najlepszy pierwszy. Kampania lub misja jest pokazywana w pierwszym języku, w którym ma tekst; rozpoczęcie gry w kampanii pyta, w jakim języku w nią grać.
+612|Lista udostępnionych kampanii, którą pokazuje ikona odświeżania na ekranie Nowa gra. Domyślnie ta z repozytorium descent-engine-community na GitHubie.
+613|Targ sprzedaje surowce, ale ich nie skupuje.
+614|Misji brakuje w folderze kampanii.
+615|Misji rozdziału „%s” brakuje w nowej wersji.
+616|Nowa zmienna „%s” zaczyna od wartości domyślnej.
+617|Nowa wersja nie ma aktu %d (twój zapis jest w nim).
+618|Nie udało się otworzyć nowszej wersji.
+619|Oryginalny zapis gry nie został zmieniony - zawsze możesz do niego wrócić.
+620|paczka
+621|Drużyna nie nosi żadnych przedmiotów zużywalnych - uwarz je u alchemika z receptur eliksirów.
+622|Drużyna nie ma przedmiotów zużywalnych. Uwarz je u alchemika z receptur eliksirów.
+623|Drużyna musi spróbować tego rozdziału ponownie.
+624|Drużyna nie posiada jeszcze żadnego pancerza.
+625|Drużyna nie posiada jeszcze akcesoriów - kupuje się je w sklepie z recepturami lub znajduje.
+626|Fazy nie można teraz zakończyć.
+627|Eliksiry, które wytworzyła drużyna - dostępne w każdej misji
+628|Lista sum kontrolnych wydania nie ma wpisu dla: %s.
+629|Nie udało się zapisać migawki - zobacz panel Wyjście.
+630|Migawka została zastosowana do edytowanej misji, ale:\n-
+631|Pobrany silnik głosowy nie miał biblioteki dla: %s.
+632|wykonuje to stół
+633|Akcesorium, które nosi ten bohater (jedno na bohatera; akcesorium może nosić tylko jeden bohater)
+634|Nie udało się uruchomić aktualizacji.
+635|Aktualizacja nie zawiera: %s.
+636|Nie udało się zapisać zaktualizowanej kopii.
+637|Zmienna „%s” już nie istnieje - jej wartość zostaje odrzucona.
+638|Ta aplikacja jest dostarczana bez grafik gry. Jeśli posiadasz „Descent: Legendy Mroku”, prawdziwe obrazy, figurki i dane gry można skopiować z twojej własnej instalacji. Nic z gry nie jest pobierane i nic nie opuszcza tego komputera.
+639|ten atak nie może go zranić
+640|Ta paczka nie została zaimportowana - jest uszkodzona lub zawiera coś niedozwolonego:\n\n- %s
+641|Ta paczka nie została zainstalowana - jest uszkodzona lub zawiera coś niedozwolonego.
+642|To wydanie nie ma: %s (albo listy sum kontrolnych).
+643|Tego zapisu gry nie można przenieść do v%s:
+644|Ten zapis gry został przeniesiony z wersji %s kampanii do wersji %s.
+645|Zagrożenie
+646|noże do rzucania
+647|Upływ czasu
+648|Czas płynie.\n\n
+649|Znużenie
+650|Za krótko - przytrzymaj %s, gdy mówisz
+651|W stronę drzewa
+652|Toxos
+653|Toxos (rozkład)
+654|uruchomienie %d (co %d.: %d obrażeń dla każdego wroga)
+655|uruchomienie %d: %d obrażeń dla każdego wroga
+656|Akcesorium
+657|Akcesorium %s: %s
+658|Ulepszenie akcesorium:
+659|Akcesorium:
+660|Akcesoria
+661|Umbros
+662|Umbros (cień)
+663|Nieśmiertelna Czaszka
+664|Nieśmiertelna Czaszka: %s pokonał(a) wroga (%s) po raz %s.
+665|Nieznane
+666|Dostępna aktualizacja: %s
+667|Zaktualizuj do v%s…
+668|Ulepszenie - poziom %d
+669|Ulepszenie:
+670|Ulepszone (+). W kampanii podąża to za ulepszeniami drużyny.
+671|Do użycia w tej misji: %s. Połóż to w swoim polu gry, aby użyć. Nie jest dodawane do zasobów i znika po zakończeniu misji.
+672|Do użycia w tej misji: %s. Połóż je w swoim polu gry, aby ich użyć. Nie są dodawane do zasobów i znikają po zakończeniu misji.
+673|Używaj oryginalnych rekwizytów z gry na mapie
+674|Użyj ulepszonej (+) strony tego akcesorium.
+675|Zmienna „%s” zmieniła typ - ma znowu wartość domyślną.
+676|Zmienna „%s” już nie istnieje (była %s).
+677|Wersja %s
+678|Wersja %s jest już zainstalowana.
+679|Dostępna jest wersja %s (masz %s).
+680|Wersja %s tej paczki jest już wydana - wydanie nigdy nie jest zastępowane. Użyj wyższej wersji.
+681|Zwycięstwo!
+682|Vigos
+683|Vigos (życie)
+684|Głos
+685|Głos -
+686|Sterowanie głosem jest skonfigurowane.
+687|Głos nie jest jeszcze skonfigurowany - wpisywane polecenia nadal działają.
+688|ustawienia głosu (%s)
+689|Konfiguracja głosu nie jest dostępna na: %s - wpisywane polecenia nadal działają.
+690|Konfiguracja głosu nie jest jeszcze obsługiwana na: %s.
+691|głosy (%s)
+692|różdżka
+693|Błąkaj się
+694|dzwon bojowy
+695|młot bojowy
+696|słaby wobec: %s
+697|Słaby: %s
+698|Podatność
+699|obrażenia z podatności +%d
+700|Podatność: %s
+701|broń
+702|Broń %d (%s)
+703|obrażenia broni +%d
+704|szanse części broni +%d %%
+705|Bronie
+706|Nowości
+707|Gdy bohater straci całe zdrowie, naciśnij Zrań. Trzecia rana oznacza przegraną.
+708|Który potwór?
+709|Który?
+710|Kto atakuje: %s?
+711|Kto używa: %s?
+712|Wola
+713|Wygrano: %s.
+714|Zrań
+715|Ranny
+716|PD: %d  |  Złoto: %d
+717|Żółty
+718|Tak
+719|Masz już wersję %s - ta zostaje zainstalowana obok.
+720|Możesz zagrać
+721|Niesiesz: %d.
+722|Masz %d złota i %s.
+723|Masz %d złota.
+724|Nie znasz żadnej receptury eliksiru. Receptury sprzedaje się w sklepach z recepturami albo znajduje jako łup.
+725|Nie znasz żadnej receptury, która tworzy coś nowego. Receptury sprzedaje się w sklepach z recepturami.
+726|Twoje surowce:
+727|Twoje postępy są zapisywane automatycznie pod tą nazwą, więc możesz wyjść i wrócić tam, gdzie skończyłeś (Wczytaj grę w menu głównym). Używaj innej nazwy dla każdej grupy lub rozgrywki.
+728|▶ Czytaj na głos
+729|☠ Pokonany
+730|Sama aplikacja (menu i okna) jest pokazywana w pierwszym języku z tej listy, na który jest przetłumaczona - na razie angielski, Español, Nederlands, Français, Deutsch, Italiano, Português i Polski.
+731|Aplikacja nieoficjalna
+732|%s - %s\n\n%s zyskuje dodatkową korzyść: %s.
+733|Zaczyna się nowy akt.
+734|akt
+736|Kampania jest ukończona.
+737|Koniec
+738|Historia się zaczyna.
+739|Aktualne zadanie:
+740|Język tej gry
+741|Język, w którym ta gra jest czytana, zapisywana i narrowana. Możesz go zmienić później w Opcjach.
+742|Historia, dziennik i terminy gry są pokazywane w tym języku. Menu i przyciski aplikacji podążają za listą poniżej.
+743|Pobierz głosy: %s (%s)
+744|Nie zainstalowano głosów narracji dla: %s, więc historia jest pokazywana tylko jako tekst.
+745|Nie zainstalowano głosów narracji dla: %s, więc historia jest pokazywana tylko jako tekst. Pobierz je w Opcje > Głos.
+746|Skonfiguruj narrację - głosy: %s (pobiera około %d MB)
+747|Głosy dla:
+748|Nie zainstalowano głosów narracji dla: %s, więc ta gra jest pokazywana tylko jako tekst. Pobierz je w Opcje > Głos.
+749| - tylko jeśli warunków: %d
+750|Poziom trudności
+752|Poszukiwacz przygód
+753|Uczeń
+754|Potwory są o jeden poziom silniejsze, niż ustalił autor, a misja może być dla ciebie trudniejsza.
+755|Potwory są o jeden poziom słabsze, niż ustalił autor, a misja może być dla ciebie łatwiejsza.
+756|Potwory są o dwa poziomy silniejsze, niż ustalił autor, a misja może nie znać litości.
+757|Koszmar
+758|Gra taka, jak zaprojektował ją autor.
+759|Weteran
+760|Twardsze potwory i trudniejsza misja przy wyższych liczbach. Możesz to zmienić przed każdą misją.
+761|Obudziło się potworów: %d.
+762|Na jednego z nich nałożono stan.
+763|Potwory się budzą
+764|Coś je zaalarmowało.
+765|Coś je obudziło.
+766|Potwory się budzą!
+767|Nie zauważyły bohaterów: zostają tam, gdzie są, dopóki coś ich nie obudzi.
+768|Zauważyły atak.
+769|Nieświadomy
+770|Nieświadomy - on i jego grupa pomijają fazę potworów
+771|Obudź
+772|%s (opcjonalne)
+773|Opcjonalne zadanie
+774|Opcjonalne zadanie wykonane:\n%s
+775|Opcjonalne:
+776|Sama aplikacja (menu i okna) jest pokazywana w pierwszym języku z tej listy, na który jest przetłumaczona - na razie %s.
+P1| (%d dla %d gracza)| (%d dla %d graczy)| (%d dla %d graczy)
+P2|+%d sukces|+%d sukcesy|+%d sukcesów
+P3|utracono %d stan, %d obrażeń|utracono %d stany, %d obrażeń|utracono %d stanów, %d obrażeń
+P4|Amulet Szczęścia: %d dodatkowy sukces zostaje dodany do wyniku gracza %s.|Amulet Szczęścia: %d dodatkowe sukcesy zostają dodane do wyniku gracza %s.|Amulet Szczęścia: %d dodatkowych sukcesów zostaje dodanych do wyniku gracza %s.
+P5|Nowa misja poboczna: %s|Nowe misje poboczne: %s|Nowych misji pobocznych: %s

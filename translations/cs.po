@@ -1,0 +1,2332 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ascent\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
+
+msgid "  (immune)"
+msgstr "  (imunní)"
+
+msgid "  mic [%s%s]"
+msgstr "  mikrofon [%s%s]"
+
+msgid " %s gains a unique recipe: %s."
+msgstr " %s získává unikátní recept: %s."
+
+msgid " (%d failed)"
+msgstr " (%d selhalo)"
+
+msgid " (active)"
+msgstr " (aktivní)"
+
+msgid " (downloads the import tool first, %s)"
+msgstr " (nejdřív stáhne importní nástroj, %s)"
+
+msgid " (immune)"
+msgstr " (imunní)"
+
+msgid " (Only campaigns keep recipes.)"
+msgstr " (Recepty si ponechávají jen kampaně.)"
+
+msgid " (XP now %d)"
+msgstr " (XP nyní %d)"
+
+msgid " - not imported yet"
+msgstr " - ještě neimportováno"
+
+msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
+msgstr " = %d zranění\nObranný hod: -%d\n\nZpůsobeno %d zranění"
+
+msgid " Not spawned: %s."
+msgstr " Nevyvoláno: %s."
+
+msgid " There is no recipe left to gain."
+msgstr " Nezbývá žádný recept, který by šel získat."
+
+msgid "%d damage to %s"
+msgstr "%d zranění pro %s"
+
+msgid "%d damage to the enemy"
+msgstr "%d zranění nepříteli"
+
+msgid "%d extra damage (%d%% of its health)"
+msgstr "%d zranění navíc (%d %% jeho zdraví)"
+
+msgid "%d from the community to install."
+msgstr "%d od komunity k instalaci."
+
+msgid "%d gold"
+msgstr "%d zlaťáků"
+
+msgid "%d gold (Dead Man's Compass)"
+msgstr "%d zlaťáků (Kompas mrtvého muže)"
+
+msgid "%d h %d min"
+msgstr "%d h %d min"
+
+msgid "%d min"
+msgstr "%d min"
+
+msgid "%d monster(s) spawned."
+msgstr "Vyvoláno příšer: %d."
+
+msgid "%d of the current objectives no longer exist."
+msgstr "%d z aktuálních cílů už neexistuje."
+
+msgid "%d x %d tiles"
+msgstr "%d x %d dlaždic"
+
+msgid "%dx %s"
+msgstr "%dx %s"
+
+msgid "%s  -  XP %d,  gold %d"
+msgstr "%s  -  XP %d,  zlato %d"
+
+msgid "%s %d (no table rows)"
+msgstr "%s %d (žádné řádky tabulky)"
+
+msgid "%s (%s chip)"
+msgstr "%s (žeton %s)"
+
+msgid "%s (%s, part %s)"
+msgstr "%s (%s, část %s)"
+
+msgid "%s (copied by %s): %s"
+msgstr "%s (zkopíroval %s): %s"
+
+msgid "%s +%d until the end of the round"
+msgstr "%s +%d do konce kola"
+
+msgid "%s - %s chip"
+msgstr "%s - žeton %s"
+
+msgid "%s - %s triggered!\n\n%s"
+msgstr "%s - %s se spustilo!\n\n%s"
+
+msgid "%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it."
+msgstr "%s - %s se spustilo!\n\n%s získává náhodný spotřebovatelný předmět: %s\n\nVybavte ho."
+
+msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it."
+msgstr "%s - %s se spustilo!\n\n%s získává náhodný vylepšený spotřebovatelný předmět: %s\n\nVybavte ho."
+
+msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
+msgstr "%s - %s se spustilo!\n\n%s\n\nZkontrolujte, zda se to použije, a proveďte to na herní desce (stav lze použít z obrazovky příšer)."
+
+msgid "%s - %s\nDoes %s have an injury?"
+msgstr "%s - %s\nMá %s zranění?"
+
+msgid "%s - %s\nHow much fatigue is on all of %s's cards?"
+msgstr "%s - %s\nKolik únavy je na všech kartách hrdiny %s?"
+
+msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
+msgstr "%s - %s\nKterý další nepřítel utrpí stejné zranění? (Zrušit: žádný)"
+
+msgid "%s - buy for %d gold, sell for %d"
+msgstr "%s - koupit za %d zlaťáků, prodat za %d"
+
+msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
+msgstr "%s - ZDR %d, Úr. %d, Obr %d, Útok %d"
+
+msgid "%s - level %d"
+msgstr "%s - úroveň %d"
+
+msgid "%s - not yet implemented."
+msgstr "%s - ještě není implementováno."
+
+msgid "%s \"%s\" - version %s"
+msgstr "%s „%s“ - verze %s"
+
+msgid "%s attacks %s (damage %d, %s)."
+msgstr "%s útočí na %s (zranění %d, %s)."
+
+msgid "%s attacks %s - choose a weapon"
+msgstr "%s útočí na %s - vyberte zbraň"
+
+msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
+msgstr "%s útočí na %s!%s\nZranění %d - %s - Rychlost %d"
+
+msgid "%s attacks %s.\nWhich weapon?"
+msgstr "%s útočí na %s.\nKterou zbraní?"
+
+msgid "%s attacks %s\nwith the %s (damage %d)\n"
+msgstr "%s útočí na %s\nzbraní %s (zranění %d)\n"
+
+msgid "%s dropped something usable. %s"
+msgstr "%s upustil něco použitelného. %s"
+
+msgid "%s dropped: %s."
+msgstr "%s upustil: %s."
+
+msgid "%s gains %s"
+msgstr "%s získává %s"
+
+msgid "%s has been defeated."
+msgstr "%s byl poražen."
+
+msgid "%s healed %d (%d hitpoints)."
+msgstr "%s se vyléčil o %d (zdraví %d)."
+
+msgid "%s is %s."
+msgstr "%s je %s."
+
+msgid "%s is confused!\n%s\n%s"
+msgstr "%s je zmatený!\n%s\n%s"
+
+msgid "%s is confused: %s."
+msgstr "%s je zmatený: %s."
+
+msgid "%s is immune"
+msgstr "%s je imunní"
+
+msgid "%s is less likely to be its target this round"
+msgstr "%s je tohoto kola méně pravděpodobným cílem"
+
+msgid "%s is no longer %s."
+msgstr "%s už není %s."
+
+msgid "%s is not in the party."
+msgstr "%s není ve skupině."
+
+msgid "%s is up to something..."
+msgstr "%s něco chystá..."
+
+msgid "%s lost all hitpoints. Wound %s?"
+msgstr "%s ztratil všechno zdraví. Zranit hrdinu %s?"
+
+msgid "%s performs %s against %s."
+msgstr "%s provádí %s proti %s."
+
+msgid "%s receives a benefit: %s."
+msgstr "%s získává výhodu: %s."
+
+msgid "%s suffers %d damage"
+msgstr "%s utrpí %d zranění"
+
+msgid "%s takes %d affliction damage (%d hitpoints left)."
+msgstr "%s utrpí %d zranění utrpením (zbývá %d zdraví)."
+
+msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr "%s utrpí %d zranění utrpením a je poražen! Odstraňte ho z desky."
+
+msgid "%s took %d damage (%d hitpoints left)."
+msgstr "%s utrpěl %d zranění (zbývá %d zdraví)."
+
+msgid "%s took %d damage and was defeated."
+msgstr "%s utrpěl %d zranění a byl poražen."
+
+msgid "%s triggered"
+msgstr "%s se spustilo"
+
+msgid "%s was defeated during an interrupt before it could %s."
+msgstr "%s byl poražen během přerušení, než mohl %s."
+
+msgid "%s was wounded a third time."
+msgstr "%s byl zraněn potřetí."
+
+msgid "%s wounded a hero - its turn is over."
+msgstr "%s zranil hrdinu - jeho tah končí."
+
+msgid "%s's Brew Basket provides a random consumable:"
+msgstr "Koš na vaření hrdiny %s poskytuje náhodný spotřebovatelný předmět:"
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
+msgstr "%s: %s!\nCíl %s - Zranění %d - %s - Rychlost %d"
+
+msgid "%s: %s\nFixed parts: %s"
+msgstr "%s: %s\nPevné části: %s"
+
+msgid "%s: defense +%d until the end of the round"
+msgstr "%s: obrana +%d do konce kola"
+
+msgid "%s: interact with '%s'"
+msgstr "%s: interagovat s „%s“"
+
+msgid "%s: loot x%d (+%s)"
+msgstr "%s: kořist x%d (+%s)"
+
+msgid "%s: needs %d, you have %d"
+msgstr "%s: potřeba %d, máte %d"
+
+msgid "%s: perform a %s test - how many successes?"
+msgstr "%s: proveďte zkoušku %s - kolik úspěchů?"
+
+msgid "%s: the enemy has no loot"
+msgstr "%s: nepřítel nemá žádnou kořist"
+
+msgid "%s: the enemy is not defeated, no extra loot"
+msgstr "%s: nepřítel není poražen, žádná kořist navíc"
+
+msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
+msgstr "%s\n\nNic se nezměnilo. Můžete to zkusit znovu, nebo si stáhnout aktualizaci ze stránky vydání."
+
+msgid "%s\n\nYou chose: %s"
+msgstr "%s\n\nVybrali jste: %s"
+
+msgid "(attacks again)"
+msgstr "(útočí znovu)"
+
+msgid "(ignored) %s"
+msgstr "(ignorováno) %s"
+
+msgid "(unnamed place)"
+msgstr "(nepojmenované místo)"
+
+msgid "(unnamed side quest)"
+msgstr "(nepojmenovaná vedlejší úloha)"
+
+msgid "(your release)"
+msgstr "(vaše vydání)"
+
+msgid "+%d damage"
+msgstr "+%d zranění"
+
+msgid "+%d damage (rolled %d-%d)"
+msgstr "+%d zranění (hozeno %d-%d)"
+
+msgid "+%d damage (round %d)"
+msgstr "+%d zranění (kolo %d)"
+
+msgid "2D art - logo and main menu background"
+msgstr "2D grafika - logo a pozadí hlavní nabídky"
+
+msgid "[draft]"
+msgstr "[koncept]"
+
+msgid "\"%s\" version %s is already installed."
+msgstr "„%s“ verze %s je už nainstalována."
+
+msgid "\n%.1f MB."
+msgstr "\n%.1f MB."
+
+msgid "\n%d mission(s), %d picture(s), %.1f MB."
+msgstr "\n%d misí, %d obrázků, %.1f MB."
+
+msgid "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted."
+msgstr "\n%d uložených her je odsunuto stranou (user://campaign_saves/_removed), nebyly smazány."
+
+msgid "\n%d successes x %d weapon damage"
+msgstr "\n%d úspěchů x %d zranění zbraně"
+
+msgid "\n(+%d damage from a defense ability this activation)"
+msgstr "\n(+%d zranění z obranné schopnosti při této aktivaci)"
+
+msgid "\n(Enfeebled: damage reduced from %d)"
+msgstr "\n(Oslabení: zranění sníženo z %d)"
+
+msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
+msgstr "\n\n%s získává zranění „%s“: položte jeho kartu do své herní oblasti."
+
+msgid "\n\n%s has %d hitpoints left."
+msgstr "\n\n%s zbývá %d zdraví."
+
+msgid "\n\n%s is defeated! Remove it from the board."
+msgstr "\n\n%s je poražen! Odstraňte ho z desky."
+
+msgid "\n\n%s must flip their injury card (%s) to its major side."
+msgstr "\n\n%s musí obrátit svou kartu zranění (%s) na těžkou stranu."
+
+msgid "\n\n%s must flip their injury card to its major side."
+msgstr "\n\n%s musí obrátit svou kartu zranění na těžkou stranu."
+
+msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
+msgstr "\n\nRukojeť vzpomínek: nastavte zdraví hrdiny %s místo toho na %d."
+
+msgid "\n\nThe app can't update itself here: %s. Download it from the release page."
+msgstr "\n\nAplikace se tady nemůže aktualizovat sama: %s. Stáhněte ji ze stránky vydání."
+
+msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+msgstr "\n\nMise, kterou hrajete, bude zavřena - nejdřív ji uložte (Možnosti > Uložit), nebo zvolte Později."
+
+msgid "\n\nThis is %s's third wound - the game will be lost!"
+msgstr "\n\nToto je třetí zranění hrdiny %s - hra bude prohrána!"
+
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgstr "\n\nKámen poutníka - každý hrdina si může místo odhození 1 únavy vybrat svou alternativní výhodu:"
+
+msgid "\nActivation: "
+msgstr "\nAktivace: "
+
+msgid "\nAlso some crafting materials for the party: %s."
+msgstr "\nTaké nějaké řemeslné materiály pro skupinu: %s."
+
+msgid "\nAt the table: "
+msgstr "\nU stolu: "
+
+msgid "\nConditions applied: %s"
+msgstr "\nUplatněné stavy: %s"
+
+msgid "\nExposed: +%d damage"
+msgstr "\nOdkrytí: +%d zranění"
+
+msgid "\nImmune to: %s"
+msgstr "\nImunní vůči: %s"
+
+msgid "\nImmune! The attack does no damage.\n\n0 damage dealt"
+msgstr "\nImunní! Útok nezpůsobí žádné zranění.\n\nZpůsobeno 0 zranění"
+
+msgid "\nIn development (a draft)"
+msgstr "\nVe vývoji (koncept)"
+
+msgid "\nLoot for the party: %s."
+msgstr "\nKořist pro skupinu: %s."
+
+msgid "\nNo free spawn tile for: %s - place them next to the others."
+msgstr "\nŽádná volná dlaždice pro vyvolání: %s - umístěte je vedle ostatních."
+
+msgid "\nNot installed yet - open it to install."
+msgstr "\nJeště nenainstalováno - otevřete a nainstalujte."
+
+msgid "\nResistance: -%d damage"
+msgstr "\nOdolnost: -%d zranění"
+
+msgid "\nThe package was checked: it only contains game data."
+msgstr "\nBalíček byl zkontrolován: obsahuje pouze herní data."
+
+msgid "\nWeakness: +%d damage"
+msgstr "\nSlabina: +%d zranění"
+
+msgid "\nWeapon parts and trinket: "
+msgstr "\nČásti zbraní a talisman: "
+
+msgid "a %s armor upgrade"
+msgstr "vylepšení brnění %s"
+
+msgid "a %s part recipe"
+msgstr "recept na část %s"
+
+msgid "a %s part upgrade"
+msgstr "vylepšení části %s"
+
+msgid "a %s recipe"
+msgstr "recept %s"
+
+msgid "a %s upgrade"
+msgstr "vylepšení %s"
+
+msgid "A campaign"
+msgstr "Kampaň"
+
+msgid "a hero"
+msgstr "hrdina"
+
+msgid "a new area"
+msgstr "nová oblast"
+
+msgid "a potion recipe"
+msgstr "recept na lektvar"
+
+msgid "A save game called '%s' already exists."
+msgstr "Uložená hra s názvem „%s“ už existuje."
+
+msgid "A save game needs a name."
+msgstr "Uložená hra potřebuje název."
+
+msgid "a shipment of %s armor"
+msgstr "zásilka brnění: %s"
+
+msgid "a shipment of armor"
+msgstr "zásilka brnění"
+
+msgid "A single mission"
+msgstr "Jedna mise"
+
+msgid "A snapshot can be taken in the player phase, with no dialog open."
+msgstr "Snímek lze pořídit ve fázi hráčů, když není otevřený žádný dialog."
+
+msgid "a trinket"
+msgstr "talisman"
+
+msgid "a trinket upgrade"
+msgstr "vylepšení talismanu"
+
+msgid "Act complete!"
+msgstr "Dějství dokončeno!"
+
+msgid "Add language"
+msgstr "Přidat jazyk"
+
+msgid "adds %d damage to its next activation"
+msgstr "přidává %d zranění k jeho další aktivaci"
+
+msgid "Afflicted"
+msgstr "Sužovaný"
+
+msgid "Affliction"
+msgstr "Sužování"
+
+msgid "affliction damage +%d this round"
+msgstr "zranění sužováním +%d v tomto kole"
+
+msgid "Agility"
+msgstr "Hbitost"
+
+msgid "all its statuses are removed"
+msgstr "všechny jeho stavy jsou odstraněny"
+
+msgid "an armor upgrade"
+msgstr "vylepšení brnění"
+
+msgid "an unknown author"
+msgstr "neznámý autor"
+
+msgid "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+msgstr "Neoficiální fanouškovský projekt, volně k použití (licence MIT).\n*Descent: Legends of the Dark* a vše z hry patří jejich vlastníkům."
+
+msgid "Anemos"
+msgstr "Anemos"
+
+msgid "Anemos (wind)"
+msgstr "Anemos (vítr)"
+
+msgid "App update"
+msgstr "Aktualizace aplikace"
+
+msgid "Applied: "
+msgstr "Uplatněno: "
+
+msgid "Apply conditions"
+msgstr "Uplatnit stavy"
+
+msgid "Aquos"
+msgstr "Aquos"
+
+msgid "Aquos (water)"
+msgstr "Aquos (voda)"
+
+msgid "Armor"
+msgstr "Brnění"
+
+msgid "Armor upgrade: "
+msgstr "Vylepšení brnění: "
+
+msgid "Armor: "
+msgstr "Brnění: "
+
+msgid "Armor…"
+msgstr "Brnění…"
+
+msgid "At the table:"
+msgstr "U stolu:"
+
+msgid "Attack"
+msgstr "Útok"
+
+msgid "attack %s"
+msgstr "zaútočit na %s"
+
+msgid "Attack abilities: %s"
+msgstr "Útočné schopnosti: %s"
+
+msgid "attack gains %s"
+msgstr "útok získává %s"
+
+msgid "Available now: %s"
+msgstr "Nyní dostupné: %s"
+
+msgid "Back"
+msgstr "Zpět"
+
+msgid "Back to Editor"
+msgstr "Zpět do editoru"
+
+msgid "Back to editor"
+msgstr "Zpět do editoru"
+
+msgid "Back to Menu"
+msgstr "Zpět do nabídky"
+
+msgid "becomes afflicted"
+msgstr "je sužován"
+
+msgid "Begin Campaign"
+msgstr "Zahájit kampaň"
+
+msgid "Bone"
+msgstr "Kost"
+
+msgid "Bought"
+msgstr "Koupeno"
+
+msgid "bow"
+msgstr "luk"
+
+msgid "Brew"
+msgstr "Vařit"
+
+msgid "Brew Basket"
+msgstr "Koš na vaření"
+
+msgid "Buy"
+msgstr "Koupit"
+
+msgid "Buy  %d"
+msgstr "Koupit  %d"
+
+msgid "Buy  %d gold"
+msgstr "Koupit  %d zlaťáků"
+
+msgid "Buy recipe  %d gold"
+msgstr "Koupit recept  %d zlaťáků"
+
+msgid "by "
+msgstr "od "
+
+msgid "by %s"
+msgstr "od %s"
+
+msgid "Campaign"
+msgstr "Kampaň"
+
+msgid "Campaign complete"
+msgstr "Kampaň dokončena"
+
+msgid "Campaign complete! (%s)"
+msgstr "Kampaň dokončena! (%s)"
+
+msgid "Campaign editor"
+msgstr "Editor kampaní"
+
+msgid "Campaign Log"
+msgstr "Deník kampaně"
+
+msgid "Can %s attack a second hero?"
+msgstr "Může %s zaútočit na druhého hrdinu?"
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "Cancel download"
+msgstr "Zrušit stahování"
+
+msgid "Cauterization"
+msgstr "Vypalování ran"
+
+msgid "Cautious"
+msgstr "Opatrný"
+
+msgid "Centre to centre (strict)"
+msgstr "Střed ke středu (přísné)"
+
+msgid "Centre to corner (recommended)"
+msgstr "Střed k rohu (doporučeno)"
+
+msgid "Chapter"
+msgstr "Kapitola"
+
+msgid "Chapter \"%s\" that you already completed is not in the new version."
+msgstr "Kapitola „%s“, kterou jste už dokončili, v nové verzi není."
+
+msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
+msgstr "Kapitola „%s“, ve které teď jste, není v %d. dějství nové verze."
+
+msgid "Check for a newer version of the app at the main menu"
+msgstr "Kontrolovat v hlavní nabídce novou verzi aplikace"
+
+msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+msgstr "Truhla, brána, strom a studna používají po Herní zdroje > Importovat vlastní modely hry. Vypnuto = rekvizity dodávané s aplikací. Projeví se při příštím otevření mapy."
+
+msgid "Choose a package"
+msgstr "Vyberte balíček"
+
+msgid "Choose a package file…"
+msgstr "Vyberte soubor balíčku…"
+
+msgid "Choose a weapon"
+msgstr "Vyberte zbraň"
+
+msgid "Choose the folder the game is installed in"
+msgstr "Vyberte složku, do které je hra nainstalována"
+
+msgid "Choose the game folder…"
+msgstr "Vyberte složku hry…"
+
+msgid "Choose two weapons per hero (and optional attachments)"
+msgstr "Vyberte dvě zbraně pro každého hrdinu (a volitelné doplňky)"
+
+msgid "Choose your party"
+msgstr "Vyberte svou skupinu"
+
+msgid "Close"
+msgstr "Zavřít"
+
+msgid "Cloth"
+msgstr "Látka"
+
+msgid "Common"
+msgstr "Běžné"
+
+msgid "Community"
+msgstr "Komunita"
+
+msgid "Community list"
+msgstr "Seznam komunity"
+
+msgid "Conditions"
+msgstr "Stavy"
+
+msgid "Conditions (%d)"
+msgstr "Stavy (%d)"
+
+msgid "Confirm"
+msgstr "Potvrdit"
+
+msgid "Confused"
+msgstr "Zmatený"
+
+msgid "Consumables"
+msgstr "Spotřební předměty"
+
+msgid "Consumables…"
+msgstr "Spotřební předměty…"
+
+msgid "Continue"
+msgstr "Pokračovat"
+
+msgid "Continue this game"
+msgstr "Pokračovat v této hře"
+
+msgid "Converting models... %s (%s)"
+msgstr "Převádím modely... %s (%s)"
+
+msgid "copies %s"
+msgstr "kopíruje %s"
+
+msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+msgstr "Zkopíruje toto vydání jen pro čtení do nového konceptu, který můžete měnit. Samotné vydání a jeho uložené hry zůstanou beze změny."
+
+msgid "Corner to corner (loose, Descent 2)"
+msgstr "Roh k rohu (volné, Descent 2)"
+
+msgid "Cost: %s"
+msgstr "Cena: %s"
+
+msgid "Could not fork %s."
+msgstr "Nepodařilo se vytvořit větev %s."
+
+msgid "Could not open that save game."
+msgstr "Tu uloženou hru se nepodařilo otevřít."
+
+msgid "Could not open the campaign '%s'."
+msgstr "Kampaň „%s“ se nepodařilo otevřít."
+
+msgid "Couldn't start the %s download (error %d)."
+msgstr "Nepodařilo se zahájit stahování %s (chyba %d)."
+
+msgid "Couldn't unpack the %s (tar exit code %d)."
+msgstr "Nepodařilo se rozbalit %s (návratový kód tar %d)."
+
+msgid "Couldn't unpack the narration engine (tar exit code %d)."
+msgstr "Nepodařilo se rozbalit vyprávěcí engine (návratový kód tar %d)."
+
+msgid "Couldn't write %s (error %d)."
+msgstr "Nepodařilo se zapsat %s (chyba %d)."
+
+msgid "Count as lost"
+msgstr "Počítat jako prohru"
+
+msgid "Count as won"
+msgstr "Počítat jako výhru"
+
+msgid "Created by"
+msgstr "Vytvořil"
+
+msgid "Credits"
+msgstr "Titulky"
+
+msgid "crossbow"
+msgstr "kuše"
+
+msgid "Crush"
+msgstr "Drtivé"
+
+msgid "Curios"
+msgstr "Kuriozity"
+
+msgid "Current objective"
+msgstr "Aktuální cíl"
+
+msgid "Damage"
+msgstr "Zranění"
+
+msgid "damage %d"
+msgstr "zranění %d"
+
+msgid "damage +%d for good (now %d)"
+msgstr "zranění +%d trvale (nyní %d)"
+
+msgid "damage -%d"
+msgstr "zranění -%d"
+
+msgid "Damage Type"
+msgstr "Typ zranění"
+
+msgid "Dazed"
+msgstr "Omráčený"
+
+msgid "Defeat."
+msgstr "Porážka."
+
+msgid "Defeated"
+msgstr "Poražen"
+
+msgid "defense %+d until the end of the round (now %d)"
+msgstr "obrana %+d do konce kola (nyní %d)"
+
+msgid "defense +%d during this attack"
+msgstr "obrana +%d během tohoto útoku"
+
+msgid "defense +%d for good (now %d)"
+msgstr "obrana +%d trvale (nyní %d)"
+
+msgid "defense -%d"
+msgstr "obrana -%d"
+
+msgid "defense -%d this round"
+msgstr "obrana -%d v tomto kole"
+
+msgid "Defense abilities: %s"
+msgstr "Obranné schopnosti: %s"
+
+msgid "defense ability deactivated for the next attack"
+msgstr "obranná schopnost deaktivována pro další útok"
+
+msgid "defense ability deactivated until the end of the round"
+msgstr "obranná schopnost deaktivována do konce kola"
+
+msgid "Defense ability deactivated."
+msgstr "Obranná schopnost deaktivována."
+
+msgid "Defense ability: %s"
+msgstr "Obranná schopnost: %s"
+
+msgid "Delete the save game '%s'?"
+msgstr "Smazat uloženou hru „%s“?"
+
+msgid "Delete this save game"
+msgstr "Smazat tuto uloženou hru"
+
+msgid "Did %s deal damage to %s?"
+msgstr "Způsobil %s zranění hrdinovi %s?"
+
+msgid "Did %s pass the test?"
+msgstr "Prošel %s zkouškou?"
+
+msgid "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."
+msgstr "Slyšel jsem ústup? Přesuňte se až o {speed} dlaždic co nejdál od hrdinů."
+
+msgid "Did not trigger: "
+msgstr "Nespustilo se: "
+
+msgid "Didn't catch a number in range"
+msgstr "Nezachytil jsem číslo v rozsahu"
+
+msgid "Didn't catch anything - hold %s and try again"
+msgstr "Nic jsem nezachytil - podržte %s a zkuste to znovu"
+
+msgid "Didn't catch that"
+msgstr "Nezachytil jsem to"
+
+msgid "Didn't catch which option"
+msgstr "Nezachytil jsem, kterou možnost"
+
+msgid "Done"
+msgstr "Hotovo"
+
+msgid "Done - restart the app to see everything."
+msgstr "Hotovo - restartujte aplikaci, aby se projevilo vše."
+
+msgid "Done. The updated copy is in the list."
+msgstr "Hotovo. Aktualizovaná kopie je v seznamu."
+
+msgid "Doomed"
+msgstr "Odsouzený"
+
+msgid "Download extra voices - accents (%s)"
+msgstr "Stáhnout další hlasy - akcenty (%s)"
+
+msgid "Download more voices - plain English (%s)"
+msgstr "Stáhnout další hlasy - neutrální angličtina (%s)"
+
+msgid "Downloading %s... %d MB"
+msgstr "Stahuji %s... %d MB"
+
+msgid "Downloading %s... %d%% (%d / %d MB)"
+msgstr "Stahuji %s... %d %% (%d / %d MB)"
+
+msgid "Downloading the update…"
+msgstr "Stahuji aktualizaci…"
+
+msgid "dual blades"
+msgstr "dva meče"
+
+msgid "each enemy suffers %d damage (trigger %d)"
+msgstr "každý nepřítel utrpí %d zranění (spuštění %d)"
+
+msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
+msgstr "Každý hráč si do mise může vzít %d%s. Vyrobené spotřební předměty jsou v každé misi k dispozici znovu - žádný se nespotřebuje."
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Enable voice"
+msgstr "Povolit hlas"
+
+msgid "Ending soon: this side quest is gone once \"%s\" is won."
+msgstr "Brzy skončí: po splnění „%s“ tato vedlejší úloha zmizí."
+
+msgid "Enfeebled"
+msgstr "Oslabený"
+
+msgid "Essences"
+msgstr "Esence"
+
+msgid "Exposed"
+msgstr "Odkrytý"
+
+msgid "FAILED"
+msgstr "SELHÁNÍ"
+
+msgid "Failed to load mission: %s"
+msgstr "Misi se nepodařilo načíst: %s"
+
+msgid "Failed to save - see the Output panel for details."
+msgstr "Uložení selhalo - podrobnosti jsou v panelu Výstup."
+
+msgid "Feats"
+msgstr "Činy"
+
+msgid "first"
+msgstr "první"
+
+msgid "Fixed hero (%s)"
+msgstr "Pevný hrdina (%s)"
+
+msgid "Flip your hero card"
+msgstr "Otočte kartu svého hrdiny"
+
+msgid "Floor tiles"
+msgstr "Dlaždice podlahy"
+
+msgid "Focus 2 cards"
+msgstr "Soustředit 2 karty"
+
+msgid "Forge"
+msgstr "Kovárna"
+
+msgid "Fork to edit"
+msgstr "Odvodit pro úpravy"
+
+msgid "Forked %s into your draft \"%s\" - open it in the %s editor."
+msgstr "%s odvozeno do vašeho konceptu „%s“ - otevřete ho v editoru %s."
+
+msgid "Fortunos"
+msgstr "Fortunos"
+
+msgid "Fortunos (luck)"
+msgstr "Fortunos (štěstí)"
+
+msgid "Frantic"
+msgstr "Zoufalý"
+
+msgid "free"
+msgstr "volné"
+
+msgid "Friendly fire"
+msgstr "Přátelská palba"
+
+msgid "Frustrated"
+msgstr "Frustrovaný"
+
+msgid "gains %s"
+msgstr "získává %s"
+
+msgid "Game %04d-%02d-%02d %02d:%02d"
+msgstr "Hra %04d-%02d-%02d %02d:%02d"
+
+msgid "Game assets"
+msgstr "Herní zdroje"
+
+msgid "Game found:\n%s"
+msgstr "Hra nalezena:\n%s"
+
+msgid "Gameplay"
+msgstr "Hratelnost"
+
+msgid "gauntlet"
+msgstr "rukavice s drápy"
+
+msgid "General"
+msgstr "Obecné"
+
+msgid "Gives the armor: %s%s - %s"
+msgstr "Dává brnění: %s%s - %s"
+
+msgid "Gives the rune: %s"
+msgstr "Dává runu: %s"
+
+msgid "Gives the trinket: %s%s - %s"
+msgstr "Dává talisman: %s%s - %s"
+
+msgid "Gives the weapon: %s%s"
+msgstr "Dává zbraň: %s%s"
+
+msgid "Gives: %s"
+msgstr "Dává: %s"
+
+msgid "gloves"
+msgstr "rukavice"
+
+msgid "Gold"
+msgstr "Zlato"
+
+msgid "Gold: %d"
+msgstr "Zlato: %d"
+
+msgid "Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."
+msgstr "Dostali jste od někoho balíček? Vyberte soubor, nebo vložte jeho webovou adresu. Před instalací uvidíte, co obsahuje a kdo ho vytvořil."
+
+msgid "Green"
+msgstr "Zelená"
+
+msgid "Guard the gate"
+msgstr "Hlídat bránu"
+
+msgid "hammer"
+msgstr "kladivo"
+
+msgid "Hardened Skin"
+msgstr "Ztvrdlá kůže"
+
+msgid "Heal"
+msgstr "Léčení"
+
+msgid "Heal 2"
+msgstr "Léčení 2"
+
+msgid "Heal 4"
+msgstr "Léčení 4"
+
+msgid "Healthy"
+msgstr "Zdráv"
+
+msgid "Hear the story teller"
+msgstr "Poslechnout si vypravěče"
+
+msgid "Hear this voice"
+msgstr "Poslechnout si tento hlas"
+
+msgid "Heard: %s"
+msgstr "Slyšel jsem: %s"
+
+msgid "Heavily wounded"
+msgstr "Těžce zraněn"
+
+msgid "Heavy Hands"
+msgstr "Těžké ruce"
+
+msgid "Heavy Heart"
+msgstr "Těžké srdce"
+
+msgid "Herbs"
+msgstr "Byliny"
+
+msgid "hero models"
+msgstr "modely hrdinů"
+
+msgid "Hero voices"
+msgstr "Hlasy hrdinů"
+
+msgid "Heroes"
+msgstr "Hrdinové"
+
+msgid "Hesitant"
+msgstr "Váhavý"
+
+msgid "Hitpoints %d / %d"
+msgstr "Zdraví %d / %d"
+
+msgid "Hold %s to talk"
+msgstr "Podržte %s a mluvte"
+
+msgid "Horn of Courage"
+msgstr "Roh odvahy"
+
+msgid "Horn of Courage - %s was wounded."
+msgstr "Roh odvahy - %s byl zraněn."
+
+msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
+msgstr "Najetím na brnění zobrazíte jeho pravidla. Brnění se nosí a vyhodnocuje u stolu."
+
+msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+msgstr "Jak nástroj linie výhledu rozhoduje, zda se dvě pole vidí. Střed k rohu: čára od středu pole pozorovatele k libovolnému rohu cíle."
+
+msgid "HP %d · Level %d"
+msgstr "ZDR %d · Úroveň %d"
+
+msgid "Ignos"
+msgstr "Ignos"
+
+msgid "Ignos (fire)"
+msgstr "Ignos (oheň)"
+
+msgid "immune to %s"
+msgstr "imunní vůči %s"
+
+msgid "Immune to conditions: %s"
+msgstr "Imunní vůči stavům: %s"
+
+msgid "Immune to: "
+msgstr "Imunní vůči: "
+
+msgid "Immune: %s"
+msgstr "Imunní: %s"
+
+msgid "Immunity: %s"
+msgstr "Imunita: %s"
+
+msgid "Import"
+msgstr "Importovat"
+
+msgid "Import finished, but not everything worked."
+msgstr "Import skončil, ale ne všechno se povedlo."
+
+msgid "Import finished."
+msgstr "Import skončil."
+
+msgid "Import game assets"
+msgstr "Importovat herní zdroje"
+
+msgid "Imported so far: %s."
+msgstr "Dosud importováno: %s."
+
+msgid "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
+msgstr "Import zevnitř aplikace zatím není na tomto počítači dostupný - použijte místo toho nástroje pro zdroje ze stránky vydání."
+
+msgid "IN DEVELOPMENT"
+msgstr "VE VÝVOJI"
+
+msgid "Input device: %s"
+msgstr "Vstupní zařízení: %s"
+
+msgid "Install"
+msgstr "Nainstalovat"
+
+msgid "Install and restart"
+msgstr "Nainstalovat a restartovat"
+
+msgid "Install by hand"
+msgstr "Nainstalovat ručně"
+
+msgid "Install this package?"
+msgstr "Nainstalovat tento balíček?"
+
+msgid "Installed"
+msgstr "Nainstalováno"
+
+msgid "Installed \"%s\" v%s."
+msgstr "Nainstalováno „%s“ v%s."
+
+msgid "Installed \"%s\"."
+msgstr "Nainstalováno „%s“."
+
+msgid "Installing…"
+msgstr "Instaluji…"
+
+msgid "Installing… the app closes and starts again by itself."
+msgstr "Instaluji… aplikace se zavře a sama se znovu spustí."
+
+msgid "Intelligence"
+msgstr "Inteligence"
+
+msgid "Interrupt"
+msgstr "Přerušit"
+
+msgid "Interrupt - the players act"
+msgstr "Přerušení - hrají hráči"
+
+msgid "Inventory"
+msgstr "Inventář"
+
+msgid "It stays as it is; you can keep playing it on its own version."
+msgstr "Zůstává, jak je; můžete ji dál hrát v její vlastní verzi."
+
+msgid "Language"
+msgstr "Jazyk"
+
+msgid "Languages"
+msgstr "Jazyky"
+
+msgid "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"
+msgstr "Udeřit na nejbližší jinou příšeru: utrpí {damage} zranění. (Stiskněte Přerušit, v zobrazení příšer klikněte na tu příšeru a uplatněte zranění.)"
+
+msgid "Later"
+msgstr "Později"
+
+msgid "Leather"
+msgstr "Kůže"
+
+msgid "Leaves after the next chapter!"
+msgstr "Odchází po další kapitole!"
+
+msgid "Level %d - "
+msgstr "Úroveň %d - "
+
+msgid "Line of Sight"
+msgstr "Linie výhledu"
+
+msgid "Line of Sight (on)"
+msgstr "Linie výhledu (zapnuto)"
+
+msgid "Line of sight rule"
+msgstr "Pravidlo linie výhledu"
+
+msgid "Listening... release %s to send"
+msgstr "Poslouchám... pro odeslání pusťte %s"
+
+msgid "Load a mission save"
+msgstr "Načíst uloženou misi"
+
+msgid "Load game"
+msgstr "Načíst hru"
+
+msgid "Look for campaigns shared by the community"
+msgstr "Hledat kampaně sdílené komunitou"
+
+msgid "Looking for shared campaigns…"
+msgstr "Hledám sdílené kampaně…"
+
+msgid "Loot"
+msgstr "Kořist"
+
+msgid "Loot for the party: "
+msgstr "Kořist pro skupinu: "
+
+msgid "Lucky Charm"
+msgstr "Šťastný talisman"
+
+msgid "Lumos"
+msgstr "Lumos"
+
+msgid "Lumos (light)"
+msgstr "Lumos (světlo)"
+
+msgid "Lunge, no bite"
+msgstr "Výpad bez kousnutí"
+
+msgid "Mage-Sight Goggles"
+msgstr "Brýle mágova pohledu"
+
+msgid "Mage-Sight Goggles - %s gains an additional action!"
+msgstr "Brýle mágova pohledu - %s získává další akci!"
+
+msgid "Make a copy of '%s' on v%s?"
+msgstr "Vytvořit kopii „%s“ na v%s?"
+
+msgid "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+msgstr "Vytvoří aktualizovanou KOPII této uložené hry na novější verzi. Originál zůstane beze změny."
+
+msgid "Materials"
+msgstr "Materiály"
+
+msgid "maximum health -%d (now %d)"
+msgstr "maximální zdraví -%d (nyní %d)"
+
+msgid "melee"
+msgstr "na blízko"
+
+msgid "Message"
+msgstr "Zpráva"
+
+msgid "Metal"
+msgstr "Kov"
+
+msgid "Minerals"
+msgstr "Minerály"
+
+msgid "Mission"
+msgstr "Mise"
+
+msgid "Mission editor"
+msgstr "Editor misí"
+
+msgid "Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."
+msgstr "Mise a kampaně vytvořené jinými hráči. Vše se před instalací kontroluje - balíček může obsahovat jen herní data, nikdy kód - a každá verze se instaluje vedle ostatních, takže se nikdy nepřepíše nic, co jste vytvořili nebo uložili."
+
+msgid "Models converted: %d%s"
+msgstr "Převedeno modelů: %d%s"
+
+msgid "Monster"
+msgstr "Příšera"
+
+msgid "Monster action"
+msgstr "Akce příšery"
+
+msgid "Monster attack"
+msgstr "Útok příšery"
+
+msgid "monster figures"
+msgstr "figurky příšer"
+
+msgid "Monster phase"
+msgstr "Fáze příšer"
+
+msgid "Monster Phase"
+msgstr "Fáze příšer"
+
+msgid "Monster tactic"
+msgstr "Taktika příšery"
+
+msgid "Monsters appear"
+msgstr "Objevují se příšery"
+
+msgid "More than one matches - say a number"
+msgstr "Odpovídá jich víc - řekněte číslo"
+
+msgid "Mortos"
+msgstr "Mortos"
+
+msgid "Mortos (dead)"
+msgstr "Mortos (smrt)"
+
+msgid "Move camera to player and monster spawns"
+msgstr "Přesunout kameru na místa vyvolání hráčů a příšer"
+
+msgid "Move up to {speed} tiles in a random direction."
+msgstr "Přesuňte se až o {speed} dlaždic v náhodném směru."
+
+msgid "Move up to {speed} tiles to the closest gate and guard it."
+msgstr "Přesuňte se až o {speed} dlaždic k nejbližší bráně a hlídejte ji."
+
+msgid "Move up to {speed} tiles to the nearest pillar and hide behind it."
+msgstr "Přesuňte se až o {speed} dlaždic k nejbližšímu sloupu a skryjte se za ním."
+
+msgid "Move up to {speed} tiles towards the closest tree."
+msgstr "Přesuňte se až o {speed} dlaždic k nejbližšímu stromu."
+
+msgid "Move up to {speed} tiles towards the nearest hero - but do not attack."
+msgstr "Přesuňte se až o {speed} dlaždic k nejbližšímu hrdinovi - ale nezaútočte."
+
+msgid "Moved to v%s"
+msgstr "Přesunuto na v%s"
+
+msgid "Narration"
+msgstr "Vyprávění"
+
+msgid "Narration is set up."
+msgstr "Vyprávění je nastaveno."
+
+msgid "Narration isn't available on %s."
+msgstr "Vyprávění není na %s dostupné."
+
+msgid "Narration isn't set up yet - the story is shown as text only."
+msgstr "Vyprávění ještě není nastaveno - příběh se zobrazuje jen jako text."
+
+msgid "Narration setup isn't supported on %s yet."
+msgstr "Nastavení vyprávění na %s zatím není podporováno."
+
+msgid "New game"
+msgstr "Nová hra"
+
+msgid "Next"
+msgstr "Další"
+
+msgid "No"
+msgstr "Ne"
+
+msgid "No %s."
+msgstr "Žádné: %s."
+
+msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
+msgstr "Žádná základní šablona pro: %s - nevyvoláno (opravte misi v Tvůrci)."
+
+msgid "No colour chip left for: %s - not spawned."
+msgstr "Nezbývá žádný barevný žeton pro: %s - nevyvoláno."
+
+msgid "No description."
+msgstr "Bez popisu."
+
+msgid "no enemy to damage"
+msgstr "žádný nepřítel k poškození"
+
+msgid "No map image - choose one for this act"
+msgstr "Žádný obrázek mapy - vyberte jej pro toto dějství"
+
+msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
+msgstr "Nejsou známy žádné recepty: nejdřív importujte herní data (Herní zdroje v hlavní nabídce)."
+
+msgid "No recipes for sale right now."
+msgstr "Právě se neprodávají žádné recepty."
+
+msgid "No recipes yet - they are bought at a recipe shop."
+msgstr "Zatím žádné recepty - kupují se v obchodě s recepty."
+
+msgid "No save games yet - start one with New game."
+msgstr "Zatím žádné uložené hry - začněte jednu Novou hrou."
+
+msgid "None yet - materials come from defeated monsters, missions and the market."
+msgstr "Zatím nic - materiály pocházejí od poražených příšer, z misí a z trhu."
+
+msgid "Not everything worked. What did work is in place - restart the app to see it."
+msgstr "Ne všechno se povedlo. Co se povedlo, je na místě - restartujte aplikaci, abyste to viděli."
+
+msgid "Note:"
+msgstr "Poznámka:"
+
+msgid "Nothing for sale here."
+msgstr "Tady se nic neprodává."
+
+msgid "Nothing has been imported yet - the app shows placeholders."
+msgstr "Zatím nebylo nic importováno - aplikace zobrazuje zástupné obrázky."
+
+msgid "Nothing has happened yet."
+msgstr "Zatím se nic nestalo."
+
+msgid "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
+msgstr "Zatím tu nic není. Stiskněte ikonu obnovení a uvidíte, co komunita sdílela, nebo vydejte vlastní kampaň v Editoru kampaní."
+
+msgid "Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."
+msgstr "Zatím nic nenainstalováno. Použijte ikonu obnovení na obrazovce Nová hra k nalezení sdílených kampaní, nebo níže nainstalujte balíček ručně."
+
+msgid "Nothing new in the community list."
+msgstr "V seznamu komunity není nic nového."
+
+msgid "Nothing yet."
+msgstr "Zatím nic."
+
+msgid "Notice"
+msgstr "Oznámení"
+
+msgid "Objective"
+msgstr "Cíl"
+
+msgid "Offline - showing the last community list. "
+msgstr "Offline - zobrazen poslední seznam komunity. "
+
+msgid "ok"
+msgstr "ok"
+
+msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+msgstr "Pouze se zeptá GitHubu, která verze je nejnovější. Bez vašeho kliknutí se nic nestahuje ani neinstaluje."
+
+msgid "Open campaigns"
+msgstr "Otevřít kampaně"
+
+msgid "Options"
+msgstr "Možnosti"
+
+msgid "Or a web address (https://…) of a package file:"
+msgstr "Nebo webová adresa (https://…) souboru balíčku:"
+
+msgid "Orange"
+msgstr "Oranžová"
+
+msgid "Overlays"
+msgstr "Překryvy"
+
+msgid "Part %s: none"
+msgstr "Část %s: žádná"
+
+msgid "Parts (B and C)"
+msgstr "Části (B a C)"
+
+msgid "perform %s"
+msgstr "provést %s"
+
+msgid "Perform a %s test - how many successes?"
+msgstr "Proveďte zkoušku %s - kolik úspěchů?"
+
+msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
+msgstr "Vyberte hlas pro každého hrdinu. Jeho repliky v příběhu se čtou jím a nikdo jiný ho nepoužije."
+
+msgid "Pierce"
+msgstr "Bodné"
+
+msgid "Pillars"
+msgstr "Sloupy"
+
+msgid "Place the monsters on the map as shown."
+msgstr "Umístěte příšery na mapu podle zobrazení."
+
+msgid "Place your player figures in the highlighted area, then confirm."
+msgstr "Umístěte své figurky hráčů do zvýrazněné oblasti a potvrďte."
+
+msgid "Play"
+msgstr "Hrát"
+
+msgid "Play mission"
+msgstr "Hrát misi"
+
+msgid "Play one mission"
+msgstr "Hrát jednu misi"
+
+msgid "Play this chapter"
+msgstr "Hrát tuto kapitolu"
+
+msgid "Play this side quest"
+msgstr "Hrát tuto vedlejší úlohu"
+
+msgid "Player Phase"
+msgstr "Fáze hráčů"
+
+msgid "Player phase"
+msgstr "Fáze hráčů"
+
+msgid "Playtest"
+msgstr "Testovací hra"
+
+msgid "Playtest:"
+msgstr "Testovací hra:"
+
+msgid "Preferred targets: %s"
+msgstr "Preferované cíle: %s"
+
+msgid "Prepare 2 cards"
+msgstr "Připravit 2 karty"
+
+msgid "Prepare a card"
+msgstr "Připravit kartu"
+
+msgid "Props"
+msgstr "Rekvizity"
+
+msgid "Purple"
+msgstr "Fialová"
+
+msgid "Push to talk (hold %s)"
+msgstr "Mluvit stisknutím (podržte %s)"
+
+msgid "Quest"
+msgstr "Úkol"
+
+msgid "Quest Log"
+msgstr "Deník úkolů"
+
+msgid "Quit"
+msgstr "Ukončit"
+
+msgid "Random (from the name)"
+msgstr "Náhodný (podle jména)"
+
+msgid "range %d"
+msgstr "dosah %d"
+
+msgid "Range %d"
+msgstr "Dosah %d"
+
+msgid "range %d, reach"
+msgstr "dosah %d, kopí"
+
+msgid "Range %d, reach"
+msgstr "Dosah %d, kopí"
+
+msgid "Read in this language earlier"
+msgstr "Dříve čteno v tomto jazyce"
+
+msgid "Read in this language later"
+msgstr "Později čteno v tomto jazyce"
+
+msgid "Read the story aloud"
+msgstr "Přečíst příběh nahlas"
+
+msgid "Read this chapter"
+msgstr "Přečíst tuto kapitolu"
+
+msgid "Recipe - tier %d"
+msgstr "Recept - stupeň %d"
+
+msgid "Recipe: "
+msgstr "Recept: "
+
+msgid "Recipes"
+msgstr "Recepty"
+
+msgid "recovers %d health"
+msgstr "obnovuje %d zdraví"
+
+msgid "recovers %d health (now %d / %d)"
+msgstr "obnovuje %d zdraví (nyní %d / %d)"
+
+msgid "Release page"
+msgstr "Stránka vydání"
+
+msgid "Remove"
+msgstr "Odebrat"
+
+msgid "Remove \"%s\" version %s from this computer?%s"
+msgstr "Odebrat „%s“ verze %s z tohoto počítače?%s"
+
+msgid "Remove a single condition"
+msgstr "Odstranit jeden stav"
+
+msgid "Remove all conditions of a given type"
+msgstr "Odstranit všechny stavy daného typu"
+
+msgid "Remove all fatigue from a single card"
+msgstr "Odstranit veškerou únavu z jedné karty"
+
+msgid "Removed %s v%s."
+msgstr "Odebráno %s v%s."
+
+msgid "Resistance: %s"
+msgstr "Odolnost: %s"
+
+msgid "Resistant: %s"
+msgstr "Odolný: %s"
+
+msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgstr "Vyhodnoťte nákazu a děs. Každý hrdina může odhodit 1 únavu."
+
+msgid "Restart needed"
+msgstr "Je potřeba restart"
+
+msgid "Restart now"
+msgstr "Restartovat nyní"
+
+msgid "Resume monster attack"
+msgstr "Pokračovat v útoku příšery"
+
+msgid "Retreat"
+msgstr "Ústup"
+
+msgid "reveals weakness to %s"
+msgstr "odhaluje slabinu vůči %s"
+
+msgid "Reward: "
+msgstr "Odměna: "
+
+msgid "Round %d - %s"
+msgstr "Kolo %d - %s"
+
+msgid "Rules Reference"
+msgstr "Přehled pravidel"
+
+msgid "Rune"
+msgstr "Runa"
+
+msgid "rune"
+msgstr "runa"
+
+msgid "Rune: "
+msgstr "Runa: "
+
+msgid "Runes"
+msgstr "Runy"
+
+msgid "Save"
+msgstr "Uložit"
+
+msgid "Save game"
+msgstr "Uložená hra"
+
+msgid "Saved."
+msgstr "Uloženo."
+
+msgid "second"
+msgstr "druhý"
+
+msgid "Sell  %d"
+msgstr "Prodat  %d"
+
+msgid "Set up narration (downloads %s)"
+msgstr "Nastavit vyprávění (stáhne %s)"
+
+msgid "Set up voice control (downloads %s)"
+msgstr "Nastavit hlasové ovládání (stáhne %s)"
+
+msgid "Set up your game"
+msgstr "Nastavte svou hru"
+
+msgid "Setting up %s"
+msgstr "Příprava: %s"
+
+msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
+msgstr "Příprava „%s“\n%s%s - umístěte tyto podle zobrazení:\n%s"
+
+msgid "Shift 1"
+msgstr "Posun 1"
+
+msgid "Show voice hints"
+msgstr "Zobrazovat hlasové nápovědy"
+
+msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+msgstr "Ukazuje, zda je tato karta vylepšena (+). Vylepšení se získávají v kampani."
+
+msgid "Side quest"
+msgstr "Vedlejší úloha"
+
+msgid "Side quest (optional)"
+msgstr "Vedlejší úloha (volitelná)"
+
+msgid "Side quest won: %s."
+msgstr "Vedlejší úloha splněna: %s."
+
+msgid "Side quest: %s"
+msgstr "Vedlejší úloha: %s"
+
+msgid "Slash"
+msgstr "Sečné"
+
+msgid "Slowed"
+msgstr "Zpomalený"
+
+msgid "Snapshot"
+msgstr "Snímek"
+
+msgid "Snapshot '%s' is empty."
+msgstr "Snímek „%s“ je prázdný."
+
+msgid "Snapshot '%s' taken (round %d)."
+msgstr "Snímek „%s“ pořízen (kolo %d)."
+
+msgid "Snapshot loaded - round %d"
+msgstr "Snímek načten - kolo %d"
+
+msgid "Something with the same name is already in the way: %s."
+msgstr "V cestě už stojí něco se stejným názvem: %s."
+
+msgid "spear"
+msgstr "kopí"
+
+msgid "staff"
+msgstr "hůl"
+
+msgid "Start"
+msgstr "Začít"
+
+msgid "Start game"
+msgstr "Začít hru"
+
+msgid "Step %s: %s..."
+msgstr "Krok %s: %s..."
+
+msgid "Story recipe"
+msgstr "Recept z příběhu"
+
+msgid "Story teller:"
+msgstr "Vypravěč:"
+
+msgid "Strength"
+msgstr "Síla"
+
+msgid "sword"
+msgstr "meč"
+
+msgid "Tactic"
+msgstr "Taktika"
+
+msgid "Tactics"
+msgstr "Taktiky"
+
+msgid "Take cover"
+msgstr "Hledat úkryt"
+
+msgid "Tarnished Brooch"
+msgstr "Matná brož"
+
+msgid "Tarnished Brooch: %d of %d."
+msgstr "Matná brož: %d z %d."
+
+msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
+msgstr "Matná brož: %d z %d. Brož se od další mise odemyká svou stranou +!"
+
+msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
+msgstr "Matná brož: objevuje se také %s (žeton %s). %s ji musí porazit."
+
+msgid "Terros"
+msgstr "Terros"
+
+msgid "Terros (earth)"
+msgstr "Terros (země)"
+
+msgid "textures and portraits"
+msgstr "textury a portréty"
+
+msgid "That folder doesn't contain the game (no \"bundles\" folder was found in it)."
+msgstr "Ta složka neobsahuje hru (nebyla v ní nalezena složka „bundles“)."
+
+msgid "That is not a web address (it must start with https://)."
+msgstr "To není webová adresa (musí začínat https://)."
+
+msgid "That option isn't available"
+msgstr "Tato možnost není dostupná"
+
+msgid "The %s download failed (network %d, HTTP %d)."
+msgstr "Stahování %s selhalo (síť %d, HTTP %d)."
+
+msgid "The %s download isn't a valid zip."
+msgstr "Stažený soubor %s není platný zip."
+
+msgid "The %s download stopped receiving data - check the connection and try again."
+msgstr "Stahování %s přestalo přijímat data - zkontrolujte připojení a zkuste to znovu."
+
+msgid "The %s download was cancelled."
+msgstr "Stahování %s bylo zrušeno."
+
+msgid "The %s download was corrupt (checksum mismatch)."
+msgstr "Stažený soubor %s byl poškozen (nesouhlasí kontrolní součet)."
+
+msgid "The %s is already being downloaded."
+msgstr "%s se už stahuje."
+
+msgid "The address must start with https://"
+msgstr "Adresa musí začínat https://"
+
+msgid "The armor the party owns"
+msgstr "Brnění, které skupina vlastní"
+
+msgid "The author confirms they may share the pictures."
+msgstr "Autor potvrzuje, že smí obrázky sdílet."
+
+msgid "The author did not say whether they may share the pictures."
+msgstr "Autor neuvedl, zda smí obrázky sdílet."
+
+msgid "The campaign is complete - congratulations!"
+msgstr "Kampaň je dokončena - gratulujeme!"
+
+msgid "The catalog address must start with https://"
+msgstr "Adresa katalogu musí začínat https://"
+
+msgid "The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported."
+msgstr "Stažený balíček není ten, který seznam sliboval (%s %s místo %s %s). Nebyl importován."
+
+msgid "The downloaded package is not the one the list promised. It was not installed."
+msgstr "Stažený balíček není ten, který seznam sliboval. Nebyl nainstalován."
+
+msgid "the enemy had less than %d health: defeated"
+msgstr "nepřítel měl méně než %d zdraví: poražen"
+
+msgid "The files could not be written (error %d)."
+msgstr "Soubory se nepodařilo zapsat (chyba %d)."
+
+msgid "the first hero wounded this round has health %d instead"
+msgstr "první hrdina zraněný v tomto kole má místo toho zdraví %d"
+
+msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
+msgstr "Hra nebyla nalezena na obvyklých místech. Vyberte složku, do které je nainstalována."
+
+msgid "The import tool stopped without importing anything (exit code %d)."
+msgstr "Importní nástroj skončil, aniž by cokoli importoval (návratový kód %d)."
+
+msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
+msgstr "Importované herní zdroje se načtou při spuštění aplikace.\n\nRestartovat nyní?"
+
+msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+msgstr "Jazyky, ve kterých chcete číst, od nejlepšího. Kampaň nebo mise se zobrazí v prvním z nich, ve kterém má text; při zahájení hry kampaně se zeptáme, v jakém jazyce ji hrát."
+
+msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
+msgstr "Seznam sdílených kampaní, který zobrazuje ikona obnovení na obrazovce Nová hra. Ve výchozím nastavení ten z repozitáře descent-engine-community na GitHubu."
+
+msgid "The market sells materials but does not buy them."
+msgstr "Trh materiály prodává, ale nevykupuje."
+
+msgid "The mission is missing from the campaign folder."
+msgstr "Mise ve složce kampaně chybí."
+
+msgid "The mission of chapter \"%s\" is missing from the new version."
+msgstr "Mise kapitoly „%s“ v nové verzi chybí."
+
+msgid "The new variable \"%s\" starts at its default value."
+msgstr "Nová proměnná „%s“ začíná na výchozí hodnotě."
+
+msgid "The new version has no act %d (your save is in it)."
+msgstr "Nová verze nemá %d. dějství (vaše uložená hra je v něm)."
+
+msgid "The newer version could not be opened."
+msgstr "Novější verzi se nepodařilo otevřít."
+
+msgid "The original save game is not changed - you can always go back to it."
+msgstr "Původní uložená hra se nemění - můžete se k ní kdykoli vrátit."
+
+msgid "the package"
+msgstr "balíček"
+
+msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
+msgstr "Skupina nenese žádné spotřební předměty - vařte je u alchymisty podle receptů na lektvary."
+
+msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
+msgstr "Skupina nemá žádné spotřební předměty. Vařte je u alchymisty podle receptů na lektvary."
+
+msgid "The party has to try this chapter again."
+msgstr "Skupina musí tuto kapitolu zkusit znovu."
+
+msgid "The party owns no armor yet."
+msgstr "Skupina zatím nevlastní žádné brnění."
+
+msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
+msgstr "Skupina zatím nevlastní žádné talismany - kupují se v obchodě s recepty, nebo se nacházejí."
+
+msgid "The phase can't be ended right now."
+msgstr "Fázi teď nelze ukončit."
+
+msgid "The potions the party has crafted - available in every mission"
+msgstr "Lektvary, které skupina vyrobila - dostupné v každé misi"
+
+msgid "The release's checksum list has no entry for %s."
+msgstr "V seznamu kontrolních součtů vydání chybí záznam pro %s."
+
+msgid "The snapshot could not be saved - see the Output panel."
+msgstr "Snímek se nepodařilo uložit - viz panel Výstup."
+
+msgid "The snapshot was put on the edited mission, but:\n- "
+msgstr "Snímek byl použit na upravenou misi, ale:\n- "
+
+msgid "The speech engine download had no library for %s."
+msgstr "Stažený řečový engine neměl knihovnu pro %s."
+
+msgid "the table carries it out"
+msgstr "provede se u stolu"
+
+msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+msgstr "Talisman, který tento hrdina nosí (jeden na hrdinu; talisman smí nosit jen jeden hrdina)"
+
+msgid "The update could not be started."
+msgstr "Aktualizaci se nepodařilo spustit."
+
+msgid "The update does not contain %s."
+msgstr "Aktualizace neobsahuje %s."
+
+msgid "The updated copy could not be saved."
+msgstr "Aktualizovanou kopii se nepodařilo uložit."
+
+msgid "The variable \"%s\" no longer exists - its value is dropped."
+msgstr "Proměnná „%s“ už neexistuje - její hodnota se zahazuje."
+
+msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
+msgstr "Tato aplikace se dodává bez grafiky hry. Pokud vlastníte „Descent: Legends of the Dark“, můžete skutečné obrázky, figurky a herní data zkopírovat z vlastní instalace. Nic z hry se nestahuje a nic neopouští tento počítač."
+
+msgid "this attack cannot damage it"
+msgstr "tento útok ho nemůže zranit"
+
+msgid "This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s"
+msgstr "Tento balíček nebyl importován - je poškozený nebo obsahuje něco nepovoleného:\n\n- %s"
+
+msgid "This package was not installed - it is damaged or contains something that is not allowed."
+msgstr "Tento balíček nebyl nainstalován - je poškozený nebo obsahuje něco nepovoleného."
+
+msgid "This release has no %s (or no checksum list)."
+msgstr "Toto vydání nemá %s (nebo nemá seznam kontrolních součtů)."
+
+msgid "This save game cannot be moved to v%s:"
+msgstr "Tuto uloženou hru nelze přesunout na v%s:"
+
+msgid "This save game was moved from version %s of the campaign to version %s."
+msgstr "Tato uložená hra byla přesunuta z verze %s kampaně na verzi %s."
+
+msgid "Threat"
+msgstr "Hrozba"
+
+msgid "throwing knives"
+msgstr "vrhací nože"
+
+msgid "Time passes"
+msgstr "Čas plyne"
+
+msgid "Time passes.\n\n"
+msgstr "Čas plyne.\n\n"
+
+msgid "Tired"
+msgstr "Unavený"
+
+msgid "Too short - hold %s while you speak"
+msgstr "Příliš krátké - podržte %s, když mluvíte"
+
+msgid "Towards the tree"
+msgstr "Ke stromu"
+
+msgid "Toxos"
+msgstr "Toxos"
+
+msgid "Toxos (decay)"
+msgstr "Toxos (rozklad)"
+
+msgid "trigger %d (every %dth: %d damage to every enemy)"
+msgstr "spuštění %d (každé %d.: %d zranění každému nepříteli)"
+
+msgid "trigger %d: %d damage to every enemy"
+msgstr "spuštění %d: %d zranění každému nepříteli"
+
+msgid "Trinket"
+msgstr "Talisman"
+
+msgid "Trinket %s: %s"
+msgstr "Talisman %s: %s"
+
+msgid "Trinket upgrade: "
+msgstr "Vylepšení talismanu: "
+
+msgid "Trinket: "
+msgstr "Talisman: "
+
+msgid "Trinkets"
+msgstr "Talismany"
+
+msgid "Umbros"
+msgstr "Umbros"
+
+msgid "Umbros (shadow)"
+msgstr "Umbros (stín)"
+
+msgid "Undying Skull"
+msgstr "Nesmrtelná lebka"
+
+msgid "Undying Skull: %s defeated a %s for the %s time."
+msgstr "Nesmrtelná lebka: %s porazil %s po %s."
+
+msgid "Unknown"
+msgstr "Neznámé"
+
+msgid "Update available: %s"
+msgstr "K dispozici je aktualizace: %s"
+
+msgid "Update to v%s…"
+msgstr "Aktualizovat na v%s…"
+
+msgid "Upgrade - tier %d"
+msgstr "Vylepšení - stupeň %d"
+
+msgid "Upgrade: "
+msgstr "Vylepšení: "
+
+msgid "Upgraded (+). In a campaign this follows the party's upgrades."
+msgstr "Vylepšeno (+). V kampani to sleduje vylepšení skupiny."
+
+msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
+msgstr "Použitelné v této misi: %s. Položte to do své herní oblasti a použijte. Nepřidává se do inventáře a po skončení mise zmizí."
+
+msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
+msgstr "Použitelné v této misi: %s. Položte je do své herní oblasti a použijte. Nepřidávají se do inventáře a po skončení mise zmizí."
+
+msgid "Use the original game props in the map"
+msgstr "Použít na mapě původní rekvizity hry"
+
+msgid "Use the upgraded (+) side of this trinket."
+msgstr "Použít vylepšenou (+) stranu tohoto talismanu."
+
+msgid "Variable '%s' changed type - it has its default again."
+msgstr "Proměnná „%s“ změnila typ - má opět výchozí hodnotu."
+
+msgid "Variable '%s' no longer exists (it was %s)."
+msgstr "Proměnná „%s“ už neexistuje (byla %s)."
+
+msgid "Version %s"
+msgstr "Verze %s"
+
+msgid "Version %s is already installed."
+msgstr "Verze %s je už nainstalována."
+
+msgid "Version %s is available (you have %s)."
+msgstr "K dispozici je verze %s (máte %s)."
+
+msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
+msgstr "Verze %s tohoto balíčku je už vydána - vydání se nikdy nenahrazuje. Použijte vyšší verzi."
+
+msgid "Victory!"
+msgstr "Vítězství!"
+
+msgid "Vigos"
+msgstr "Vigos"
+
+msgid "Vigos (life)"
+msgstr "Vigos (život)"
+
+msgid "Voice"
+msgstr "Hlas"
+
+msgid "Voice - "
+msgstr "Hlas - "
+
+msgid "Voice control is set up."
+msgstr "Hlasové ovládání je nastaveno."
+
+msgid "Voice isn't set up yet - typed commands still work."
+msgstr "Hlas ještě není nastaven - psané příkazy fungují dál."
+
+msgid "voice settings (%s)"
+msgstr "nastavení hlasu (%s)"
+
+msgid "Voice setup isn't available on %s - typed commands still work."
+msgstr "Nastavení hlasu na %s není dostupné - psané příkazy fungují dál."
+
+msgid "Voice setup isn't supported on %s yet."
+msgstr "Nastavení hlasu na %s zatím není podporováno."
+
+msgid "voices (%s)"
+msgstr "hlasy (%s)"
+
+msgid "wand"
+msgstr "hůlka"
+
+msgid "Wander"
+msgstr "Bloudění"
+
+msgid "war bell"
+msgstr "válečný zvon"
+
+msgid "warhammer"
+msgstr "válečné kladivo"
+
+msgid "weak to %s"
+msgstr "slabý vůči %s"
+
+msgid "Weak: %s"
+msgstr "Slabý: %s"
+
+msgid "Weakness"
+msgstr "Slabina"
+
+msgid "weakness damage +%d"
+msgstr "zranění ze slabiny +%d"
+
+msgid "Weakness: %s"
+msgstr "Slabina: %s"
+
+msgid "weapon"
+msgstr "zbraň"
+
+msgid "Weapon %d (%s)"
+msgstr "Zbraň %d (%s)"
+
+msgid "weapon damage +%d"
+msgstr "zranění zbraně +%d"
+
+msgid "weapon part chances +%d%%"
+msgstr "šance částí zbraně +%d %%"
+
+msgid "Weapons"
+msgstr "Zbraně"
+
+msgid "What's new"
+msgstr "Novinky"
+
+msgid "When a hero has lost all hitpoints, press Wound. The third wound loses the game."
+msgstr "Když hrdina ztratil všechno zdraví, stiskněte Zranit. Třetí zranění hru prohrává."
+
+msgid "Which monster?"
+msgstr "Která příšera?"
+
+msgid "Which one?"
+msgstr "Který?"
+
+msgid "Who attacks the %s?"
+msgstr "Kdo zaútočí na: %s?"
+
+msgid "Who uses the %s?"
+msgstr "Kdo použije: %s?"
+
+msgid "Will"
+msgstr "Vůle"
+
+msgid "Won: %s."
+msgstr "Splněno: %s."
+
+msgid "Wound"
+msgstr "Zranit"
+
+msgid "Wounded"
+msgstr "Zraněn"
+
+msgid "XP: %d  |  Gold: %d"
+msgstr "XP: %d  |  Zlato: %d"
+
+msgid "Yellow"
+msgstr "Žlutá"
+
+msgid "Yes"
+msgstr "Ano"
+
+msgid "You already have version %s - this one is installed next to it."
+msgstr "Verzi %s už máte - tato se nainstaluje vedle ní."
+
+msgid "You can play"
+msgstr "Můžete hrát"
+
+msgid "You carry %d."
+msgstr "Nesete %d."
+
+msgid "You have %d gold and %s."
+msgstr "Máte %d zlaťáků a %s."
+
+msgid "You have %d gold."
+msgstr "Máte %d zlaťáků."
+
+msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
+msgstr "Neznáte žádný recept na lektvar. Recepty se prodávají v obchodech s recepty nebo se nacházejí jako kořist."
+
+msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
+msgstr "Neznáte žádný recept, který vyrobí něco nového. Recepty se prodávají v obchodech s recepty."
+
+msgid "Your materials:"
+msgstr "Vaše materiály:"
+
+msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
+msgstr "Váš postup se pod tímto názvem ukládá automaticky, takže můžete odejít a pokračovat tam, kde jste skončili (Načíst hru v hlavní nabídce). Pro každou skupinu či hru použijte jiný název."
+
+msgid "▶ Read aloud"
+msgstr "▶ Přečíst nahlas"
+
+msgid "☠ Defeated"
+msgstr "☠ Poražen"
+
+msgid "Unofficial App"
+msgstr "Neoficiální aplikace"
+
+msgid "%s - %s\n\n%s gains an extra benefit: %s."
+msgstr "%s - %s\n\n%s získává další výhodu: %s."
+
+msgid "A new act begins."
+msgstr "Začíná nové dějství."
+
+msgid "act"
+msgstr "dějství"
+
+msgid "The campaign is complete."
+msgstr "Kampaň je dokončena."
+
+msgid "The end"
+msgstr "Konec"
+
+msgid "The story begins."
+msgstr "Příběh začíná."
+
+msgid "Current Objective:"
+msgstr "Aktuální cíl:"
+
+msgid "Language of this game"
+msgstr "Jazyk této hry"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "Jazyk, ve kterém se tato hra čte, zaznamenává a vypráví. Později ho můžete změnit v Možnostech."
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "Příběh, deník a vlastní pojmy hry se zobrazují v tomto jazyce. Nabídky a tlačítka aplikace se řídí seznamem níže."
+
+msgid "Download %s voices (%s)"
+msgstr "Stáhnout hlasy: %s (%s)"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "Nejsou nainstalovány žádné hlasy vyprávění pro jazyk %s, takže se příběh zobrazuje jen jako text."
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "Nejsou nainstalovány žádné hlasy vyprávění pro jazyk %s, takže se příběh zobrazuje jen jako text. Stáhněte je v Možnosti > Hlas."
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "Nastavit vyprávění - hlasy: %s (stáhne asi %d MB)"
+
+msgid "Voices for:"
+msgstr "Hlasy pro:"
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "Nejsou nainstalovány žádné hlasy vyprávění pro jazyk %s, takže se tato hra zobrazuje jen jako text. Stáhněte je v Možnosti > Hlas."
+
+msgid " - only if %d condition(s)"
+msgstr " - jen pokud platí %d podmínek"
+
+msgid "Difficulty"
+msgstr "Obtížnost"
+
+msgid "Adventurer"
+msgstr "Dobrodruh"
+
+msgid "Apprentice"
+msgstr "Učeň"
+
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr "Příšery jsou o úroveň silnější, než je nastavil autor, a mise může být pro vás těžší."
+
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr "Příšery jsou o úroveň slabší, než je nastavil autor, a mise může být pro vás lehčí."
+
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr "Příšery jsou o dvě úrovně silnější, než je nastavil autor, a mise možná nebude znát slitování."
+
+msgid "Nightmare"
+msgstr "Noční můra"
+
+msgid "The game as the author designed it."
+msgstr "Hra tak, jak ji autor navrhl."
+
+msgid "Veteran"
+msgstr "Veterán"
+
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
+msgstr "Při vyšších číslech jsou příšery tužší a mise těžší. Můžete to změnit před každou misí."
+
+msgid "%d monster(s) woke up."
+msgstr "Probudilo se příšer: %d."
+
+msgid "A condition was put on one of them."
+msgstr "Na jednu z nich byl uplatněn stav."
+
+msgid "Monsters wake"
+msgstr "Příšery se probouzejí"
+
+msgid "Something has alerted them."
+msgstr "Něco je upozornilo."
+
+msgid "Something has woken them."
+msgstr "Něco je probudilo."
+
+msgid "The monsters wake up!"
+msgstr "Příšery se probouzejí!"
+
+msgid "They have not noticed the heroes: they stay where they are until something wakes them."
+msgstr "Hrdinů si nevšimly: zůstávají, kde jsou, dokud je něco neprobudí."
+
+msgid "They noticed the attack."
+msgstr "Všimly si útoku."
+
+msgid "Unaware"
+msgstr "Nic netuší"
+
+msgid "Unaware - it and its group are skipped in the monster phase"
+msgstr "Nic netuší - ono i jeho skupina přeskakují fázi příšer"
+
+msgid "Wake up"
+msgstr "Probudit"
+
+msgid "%s (optional)"
+msgstr "%s (volitelné)"
+
+msgid "Optional objective"
+msgstr "Volitelný cíl"
+
+msgid "Optional objective completed:\n%s"
+msgstr "Volitelný cíl splněn:\n%s"
+
+msgid "Optional:"
+msgstr "Volitelné:"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "Samotná aplikace (nabídky a dialogy) se zobrazuje v prvním jazyce z tohoto seznamu, do kterého je přeložena - zatím %s."
+
+msgid " (%d for %d player)"
+msgid_plural " (%d for %d players)"
+msgstr[0] " (%d pro %d hráče)"
+msgstr[1] " (%d pro %d hráče)"
+msgstr[2] " (%d pro %d hráčů)"
+
+msgid "+%d success"
+msgid_plural "+%d successes"
+msgstr[0] "+%d úspěch"
+msgstr[1] "+%d úspěchy"
+msgstr[2] "+%d úspěchů"
+
+msgid "lost %d status, %d damage"
+msgid_plural "lost %d statuses, %d damage"
+msgstr[0] "ztracen %d stav, %d zranění"
+msgstr[1] "ztraceny %d stavy, %d zranění"
+msgstr[2] "ztraceno %d stavů, %d zranění"
+
+msgid "Lucky Charm: %d extra success is added to %s's result."
+msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
+msgstr[0] "Šťastný talisman: %d úspěch navíc se přičítá k výsledku hrdiny %s."
+msgstr[1] "Šťastný talisman: %d úspěchy navíc se přičítají k výsledku hrdiny %s."
+msgstr[2] "Šťastný talisman: %d úspěchů navíc se přičítá k výsledku hrdiny %s."
+
+msgid "New side quest: %s"
+msgid_plural "New side quests: %s"
+msgstr[0] "Nová vedlejší úloha: %s"
+msgstr[1] "Nové vedlejší úlohy: %s"
+msgstr[2] "Nových vedlejších úloh: %s"

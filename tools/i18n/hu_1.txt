@@ -1,0 +1,772 @@
+1|(immunis)
+2|mikrofon [%s%s]
+3|%s egyedi receptet kap: %s.
+4|(%d sikertelen)
+5|(aktív)
+6|(előbb letölti az importáló eszközt, %s)
+7|(immunis)
+8|(Csak a kampányok őrzik meg a recepteket.)
+9|(TP most %d)
+10|- még nincs importálva
+11|= %d sebzés\nVédekezési dobás: -%d\n\n%d sebzés okozva
+12|Nem jelent meg: %s.
+13|Nincs több megszerezhető recept.
+14|%d sebzés ennek: %s
+15|%d sebzés az ellenségnek
+16|%d extra sebzés (az életereje %d %%-a)
+17|%d a közösségtől telepítésre vár.
+18|%d arany
+19|%d arany (Holt ember iránytűje)
+20|%d ó %d p
+21|%d p
+22|%d szörny jelent meg.
+23|Az aktuális célok közül %d már nem létezik.
+24|%d x %d mező
+25|%dx %s
+26|%s  -  TP %d,  arany %d
+27|%s %d (nincsenek táblázatsorok)
+28|%s (%s jelző)
+29|%s (%s, %s. alkatrész)
+30|%s (másolta: %s): %s
+31|%s +%d a kör végéig
+32|%s - %s jelző
+33|%s - %s aktiválva!\n\n%s
+34|%s - %s aktiválva!\n\n%s véletlen fogyóeszközt kap: %s\n\nVegye fel.
+35|%s - %s aktiválva!\n\n%s véletlen fejlesztett fogyóeszközt kap: %s\n\nVegye fel.
+36|%s - %s aktiválva!\n\n%s\n\nEllenőrizzétek, hogy érvényes-e, és hajtsátok végre a táblán (az állapotot a szörnyképernyőről lehet alkalmazni).
+37|%s - %s\nVan sérülése ennek a hősnek: %s?
+38|%s - %s\nMennyi fáradtság van %s összes kártyáján?
+39|%s - %s\nMelyik másik ellenség szenvedi el ugyanezt a sebzést? (Mégse: egyik sem)
+40|%s - vétel %d aranyért, eladás %d aranyért
+41|%s - ÉE %d, Szint %d, Véd. %d, Tám. %d
+42|%s - %d. szint
+43|%s - még nincs megvalósítva.
+44|%s „%s” - %s verzió
+45|%s támad: %s (sebzés %d, %s).
+46|%s támad: %s - válassz fegyvert
+47|%s támad: %s!%s\nSebzés %d - %s - Sebesség %d
+48|%s támad: %s.\nMelyik fegyverrel?
+49|%s támad: %s\nezzel: %s (sebzés %d)\n
+50|%s elejtett valami használhatót. %s
+51|%s elejtette: %s.
+52|%s megkapja: %s
+53|%s legyőzve.
+54|%s meggyógyított %d életerőt (%d életerő).
+55|%s: %s.
+56|%s zavarodott!\n%s\n%s
+57|%s zavarodott: %s.
+58|%s immunis
+59|%s kevésbé valószínű célpont ebben a körben
+60|%s állapota megszűnt: %s.
+61|%s nincs a csapatban.
+62|%s tervez valamit...
+63|%s elvesztette az összes életerejét. Megsebesítsük ezt a hőst: %s?
+64|%s végrehajtja ezt: %s, ellene: %s.
+65|%s előnyt kap: %s.
+66|%s sebzést szenved: %d
+67|%s gyötrelemsebzést szenved: %d (%d életerő maradt).
+68|%s gyötrelemsebzést szenved: %d, és legyőzik! Vedd le a tábláról.
+69|%s sebzést szenvedett: %d (%d életerő maradt).
+70|%s sebzést szenvedett: %d, és legyőzték.
+71|%s aktiválva
+72|%s megszakítás közben vereséget szenvedett, mielőtt megtehette volna: %s.
+73|%s harmadszor sebesült meg.
+74|%s megsebesített egy hőst - a köre véget ért.
+75|%s Gyógyfüves kaskája véletlen fogyóeszközt ad:
+76|%s: %s!\nCél: %s - Sebzés %d - %s - Sebesség %d
+77|%s: %s\nRögzített alkatrészek: %s
+78|%s: védelem +%d a kör végéig
+79|%s: interakció ezzel: „%s”
+80|%s: zsákmány x%d (+%s)
+81|%s: kell %d, van %d
+82|%s: hajts végre %s próbát - hány siker?
+83|%s: az ellenségnek nincs zsákmánya
+84|%s: az ellenség nincs legyőzve, nincs extra zsákmány
+85|%s\n\nSemmi sem változott. Próbáld újra, vagy töltsd le a frissítést a kiadások oldaláról.
+86|%s\n\nEzt választottad: %s
+87|(újra támad)
+88|(figyelmen kívül hagyva) %s
+89|(névtelen hely)
+90|(névtelen mellékküldetés)
+91|(a te kiadásod)
+92|+%d sebzés
+93|+%d sebzés (dobás: %d-%d)
+94|+%d sebzés (%d. kör)
+95|2D grafika - logó és a főmenü háttere
+96|[vázlat]
+97|„%s” %s verziója már telepítve van.
+98|\n%.1f MB.
+99|\n%d küldetés, %d kép, %.1f MB.
+100|\n%d mentés félre lett téve (user://campaign_saves/_removed), nem törölve.
+101|\n%d siker x %d fegyversebzés
+102|\n(+%d sebzés egy védelmi képességből ennél az aktiválásnál)
+103|\n(Legyengült: a sebzés %d-val csökkent)
+104|\n\n%s megkapja a „%s” sérülést: tedd a kártyáját a játékterületedre.
+105|\n\n%s életereje még %d.
+106|\n\n%s legyőzve! Vedd le a tábláról.
+107|\n\n%s-nek meg kell fordítania a sérülés kártyáját (%s) a súlyos oldalára.
+108|\n\n%s-nek meg kell fordítania a sérülés kártyáját a súlyos oldalára.
+109|\n\nAz emlékezés markolata: állítsd %s életerejét %d-ra.
+110|\n\nAz alkalmazás itt nem tudja magát frissíteni: %s. Töltsd le a kiadások oldaláról.
+111|\n\nA folyamatban lévő küldetés bezáródik - előbb mentsd el (Beállítások > Mentés), vagy válaszd a Később lehetőséget.
+112|\n\nEz %s harmadik sebesülése - a játék elveszett!
+113|\n\nA vándor köve - minden hős választhatja az alternatív előnyét 1 fáradtság eldobása helyett:
+114|\nAktiválás:
+115|\nValamint néhány kézműves anyag a csapatnak: %s.
+116|\nAz asztalnál:
+117|\nAlkalmazott állapotok: %s
+118|\nLeleplezett: +%d sebzés
+119|\nImmunis erre: %s
+120|\nImmunis! A támadás nem okoz sebzést.\n\n0 sebzés okozva
+121|\nFejlesztés alatt (vázlat)
+122|\nZsákmány a csapatnak: %s.
+123|\nNincs szabad megjelenési mező ehhez: %s - tedd őket a többiek mellé.
+124|\nMég nincs telepítve - nyisd meg a telepítéshez.
+125|\nEllenállás: -%d sebzés
+126|\nA csomagot ellenőriztük: csak játékadatokat tartalmaz.
+127|\nGyengeség: +%d sebzés
+128|\nFegyveralkatrészek és holmi:
+129|%s páncélfejlesztés
+130|%s alkatrész-recept
+131|%s alkatrész-fejlesztés
+132|%s recept
+133|%s fejlesztés
+134|Egy kampány
+135|egy hős
+136|egy új terület
+137|egy főzetrecept
+138|Már létezik „%s” nevű mentés.
+139|A mentésnek nevet kell adni.
+140|%s páncélszállítmány
+141|páncélszállítmány
+142|Egyetlen küldetés
+143|Pillanatfelvétel a játékosok fázisában készíthető, nyitott párbeszédablak nélkül.
+144|egy holmi
+145|egy holmifejlesztés
+146|A felvonás befejeződött!
+147|Nyelv hozzáadása
+148|%d sebzést ad a következő aktiválásához
+149|Gyötört
+150|Gyötrelem
+151|gyötrelemsebzés +%d ebben a körben
+152|Ügyesség
+153|minden állapota megszűnik
+154|egy páncélfejlesztés
+155|ismeretlen szerző
+156|Nem hivatalos rajongói projekt, szabadon használható (MIT licenc).\n*Descent: A sötétség legendái* és a játék minden eleme a tulajdonosaiké.
+157|Anemos
+158|Anemos (szél)
+159|Alkalmazásfrissítés
+160|Alkalmazva:
+161|Állapotok alkalmazása
+162|Aquos
+163|Aquos (víz)
+164|Páncél
+165|Páncélfejlesztés:
+166|Páncél:
+167|Páncél…
+168|Az asztalnál:
+169|Támadás
+170|támad: %s
+171|Támadási képességek: %s
+172|a támadás megkapja: %s
+173|Most elérhető: %s
+174|Vissza
+175|Vissza a szerkesztőhöz
+176|Vissza a szerkesztőhöz
+177|Vissza a menübe
+178|gyötörtté válik
+179|Kampány indítása
+180|Csont
+181|Megvéve
+182|íj
+183|Főzés
+184|Gyógyfüves kaska
+185|Vásárlás
+186|Vásárlás  %d
+187|Vásárlás  %d arany
+188|Recept vásárlása  %d arany
+189|szerző:
+190|szerző: %s
+191|Kampány
+192|A kampány befejeződött
+193|A kampány befejeződött! (%s)
+194|Kampányszerkesztő
+195|Kampánynapló
+196|Támadhat %s egy második hőst?
+197|Mégse
+198|Letöltés megszakítása
+199|Sebkiégetés
+200|Óvatos
+201|Középpont-középpont (szigorú)
+202|Középpont-sarok (ajánlott)
+203|Fejezet
+204|A „%s” fejezet, amelyet már befejeztél, nincs az új verzióban.
+205|A „%s” fejezet, ahol most vagy, nincs az új verzió %d. felvonásában.
+206|Újabb alkalmazásverzió keresése a főmenüben
+207|A láda, a kapu, a fa és a kút a játék saját modelljeit használja a Játékerőforrások > Importálás után. Ki = az alkalmazással érkező kellékek. A térkép következő megnyitásakor lép életbe.
+208|Válassz csomagot
+209|Válassz csomagfájlt…
+210|Válassz fegyvert
+211|Válaszd ki a mappát, ahová a játék telepítve van
+212|Játékmappa kiválasztása…
+213|Válassz két fegyvert hősönként (és opcionális tartozékokat)
+214|Válaszd ki a csapatod
+215|Bezárás
+216|Kelme
+217|Általános
+218|Közösség
+219|Közösségi lista
+220|Állapotok
+221|Állapotok (%d)
+222|Jóváhagy
+223|Zavarodott
+224|Fogyóeszközök
+225|Fogyóeszközök…
+226|Folytatás
+227|A játék folytatása
+228|Modellek átalakítása... %s (%s)
+229|másolja: %s
+230|Ezt az írásvédett kiadást egy új vázlatba másolja, amelyet módosíthatsz. Maga a kiadás és a mentései változatlanok maradnak.
+231|Sarok-sarok (laza, Descent 2)
+232|Költség: %s
+233|Nem sikerült megkettőzni: %s.
+234|Nem sikerült megnyitni ezt a mentést.
+235|Nem sikerült megnyitni a(z) „%s” kampányt.
+236|Nem sikerült elindítani a letöltést: %s (hiba: %d).
+237|Nem sikerült kicsomagolni: %s (tar kilépési kód: %d).
+238|Nem sikerült kicsomagolni a narrációs motort (tar kilépési kód: %d).
+239|Nem sikerült írni: %s (hiba: %d).
+240|Vereségként számít
+241|Győzelemként számít
+242|Készítette
+243|Készítők
+244|számszeríj
+245|Zúzás
+246|Kuriózum
+247|Aktuális cél
+248|Sebzés
+249|sebzés %d
+250|sebzés +%d tartósan (most %d)
+251|sebzés -%d
+252|Sebzés típusa
+253|Kábult
+254|Vereség.
+255|Legyőzve
+256|védelem %+d a kör végéig (most %d)
+257|védelem +%d e támadás alatt
+258|védelem +%d tartósan (most %d)
+259|védelem -%d
+260|védelem -%d ebben a körben
+261|Védelmi képességek: %s
+262|védelmi képesség kikapcsolva a következő támadásra
+263|védelmi képesség kikapcsolva a kör végéig
+264|Védelmi képesség kikapcsolva.
+265|Védelmi képesség: %s
+266|Törlöd a(z) „%s” mentést?
+267|Mentés törlése
+268|Okozott %s sebzést ennek: %s?
+269|Átment %s a próbán?
+270|Visszavonulást hallottam? Mozogj legfeljebb {speed} mezőt, a lehető legmesszebb a hősöktől.
+271|Nem aktiválódott:
+272|Nem hallottam érvényes számot
+273|Nem hallottam semmit - tartsd nyomva: %s, és próbáld újra
+274|Nem értettem
+275|Az opciót nem ismertem fel
+276|Kész
+277|Kész - indítsd újra az alkalmazást, hogy mindent lássál.
+278|Kész. A frissített másolat a listában van.
+279|Kárhozott
+280|További hangok letöltése - akcentusok (%s)
+281|További hangok letöltése - hétköznapi angol (%s)
+282|Letöltés: %s... %d MB
+283|Letöltés: %s... %d %% (%d / %d MB)
+284|A frissítés letöltése…
+285|páros pengék
+286|minden ellenség %d sebzést szenved (%d. aktiválás)
+287|Minden játékos %d db-ot vihet a küldetésbe%s. A kézműves fogyóeszközök minden küldetésben újra elérhetők - egy sem fogy el.
+288|Szerkesztő
+289|Hang bekapcsolása
+290|Hamarosan vége: ez a mellékküldetés eltűnik, ha a(z) „%s” megvan nyerve.
+291|Legyengült
+292|Esszenciák
+293|Leleplezett
+294|SIKERTELEN
+295|A küldetés betöltése sikertelen: %s
+296|A mentés sikertelen - a részletek a Kimenet panelen.
+297|Teljesítmények
+298|első
+299|Rögzített hős (%s)
+300|Fordítsd meg a hősöd kártyáját
+301|Padlólapok
+302|2 kártya fókuszálása
+303|Kovácsolás
+304|Megkettőzés szerkesztéshez
+305|%s megkettőzve a(z) „%s” vázlatodba - nyisd meg a(z) %s szerkesztőben.
+306|Fortunos
+307|Fortunos (szerencse)
+308|Eszeveszett
+309|szabad
+310|Baráti tűz
+311|Csalódott
+312|megkapja: %s
+313|Játék %04d-%02d-%02d %02d:%02d
+314|Játékerőforrások
+315|Játék megtalálva:\n%s
+316|Játékmenet
+317|páncélkesztyű
+318|Általános
+319|Ezt a páncélt adja: %s%s - %s
+320|Ezt a rúnát adja: %s
+321|Ezt a holmit adja: %s%s - %s
+322|Ezt a fegyvert adja: %s%s
+323|Ezt adja: %s
+324|kesztyű
+325|Arany
+326|Arany: %d
+327|Kaptál valakitől csomagot? Válaszd ki a fájlt, vagy illeszd be a webcímét. Látod, mi van benne és ki készítette, mielőtt bármi telepítve lenne.
+328|Zöld
+329|A kapu őrzése
+330|kalapács
+331|Bőrkeményedés
+332|Gyógyítás
+333|Gyógyítás 2
+334|Gyógyítás 4
+335|Egészséges
+336|A mesélő meghallgatása
+337|E hang meghallgatása
+338|Hallott: %s
+339|Súlyosan sebesült
+340|Esetlen
+341|Búskomor
+342|Gyógynövény
+343|hősmodellek
+344|Hősök hangjai
+345|Hősök
+346|Tétova
+347|Életerő %d / %d
+348|Tartsd nyomva: %s a beszédhez
+349|A bátorság kürtje
+350|A bátorság kürtje - %s megsebesült.
+351|Vidd az egeret egy páncél fölé a szabályaiért. A páncélt viselik, és az asztalnál dől el a hatása.
+352|Hogyan dönti el a látóvonal-eszköz, hogy két mező látja-e egymást. Középpont-sarok: egy vonal a megfigyelő mezejének közepéről a cél bármelyik sarkába.
+353|ÉE %d · %d. szint
+355|Ignos
+356|Ignos (tűz)
+357|immunis erre: %s
+358|Immunis az állapotokra: %s
+359|Immunis erre:
+360|Immunis: %s
+361|Immunitás: %s
+362|Importálás
+363|Az importálás befejeződött, de nem minden sikerült.
+364|Az importálás befejeződött.
+365|Játékerőforrások importálása
+366|Eddig importálva: %s.
+367|Az alkalmazáson belüli importálás még nem érhető el ezen a számítógépen - használd inkább az erőforrás-eszközöket a kiadások oldaláról.
+368|FEJLESZTÉS ALATT
+369|Beviteli eszköz: %s
+370|Telepítés
+371|Telepítés és újraindítás
+372|Telepítés kézzel
+373|Telepíted ezt a csomagot?
+374|Telepítve
+375|„%s” v%s telepítve.
+376|„%s” telepítve.
+377|Telepítés…
+378|Telepítés… az alkalmazás bezárul, és magától újraindul.
+379|Intelligencia
+380|Megszakítás
+381|Megszakítás - a játékosok lépnek
+382|Készlet
+383|Úgy marad, ahogy van; játszhatsz vele tovább a saját verzióján.
+384|Nyelv
+385|Nyelvek
+386|Üss a legközelebbi másik szörnyre: {damage} sebzést szenved. (Nyomd meg a Megszakítást, kattints arra a szörnyre a szörnynézetben, és alkalmazd a sebzést.)
+387|Később
+388|Bőr
+389|A következő fejezet után eltűnik!
+390|%d. szint -
+391|Látóvonal
+392|Látóvonal (be)
+393|Látóvonal-szabály
+394|Hallgatom... engedd el: %s a küldéshez
+395|Küldetésmentés betöltése
+396|Játék betöltése
+397|A közösség által megosztott kampányok keresése
+398|Megosztott kampányok keresése…
+399|Zsákmány
+400|Zsákmány a csapatnak:
+401|Szerencsehozó amulett
+402|Lumos
+403|Lumos (fény)
+404|Kitörés, harapás nélkül
+405|Varázslátó szemüveg
+406|Varázslátó szemüveg - %s egy további akciót kap!
+407|Másolat készítése erről: „%s” a v%s verzión?
+408|Frissített MÁSOLATOT készít ebből a mentésből az újabb verzión. Az eredeti változatlan marad.
+409|Anyagok
+410|maximális életerő -%d (most %d)
+411|közelharc
+412|Üzenet
+413|Fém
+414|Ásvány
+415|Küldetés
+416|Küldetésszerkesztő
+417|Más játékosok által készített küldetések és kampányok. Minden telepítés előtt ellenőrzésre kerül - egy csomag csak játékadatokat tartalmazhat, soha kódot - és minden verzió a többi mellé települ, így semmi, amit készítettél vagy mentettél, nem íródik felül.
+418|Átalakított modellek: %d%s
+419|Szörny
+420|Szörny akciója
+421|Szörny támadása
+422|szörnyfigurák
+423|Szörnyek fázisa
+424|Szörnyek fázisa
+425|Szörny taktikája
+426|Szörnyek jelennek meg
+427|Több is egyezik - mondj egy számot
+428|Mortos
+429|Mortos (halál)
+430|Kamera mozgatása a játékosok és a szörnyek megjelenési helyére
+431|Mozogj legfeljebb {speed} mezőt véletlen irányba.
+432|Mozogj legfeljebb {speed} mezőt a legközelebbi kapuhoz, és őrizd.
+433|Mozogj legfeljebb {speed} mezőt a legközelebbi oszlophoz, és bújj mögé.
+434|Mozogj legfeljebb {speed} mezőt a legközelebbi fa felé.
+435|Mozogj legfeljebb {speed} mezőt a legközelebbi hős felé - de ne támadj.
+436|Átállítva: v%s
+437|Narráció
+438|A narráció be van állítva.
+439|A narráció nem érhető el ezen: %s.
+440|A narráció még nincs beállítva - a történet csak szövegként jelenik meg.
+441|A narráció beállítása még nem támogatott ezen: %s.
+442|Új játék
+443|Következő
+444|Nem
+445|Nincs: %s.
+446|Nincs alapsablon ehhez: %s - nem jelent meg (javítsd a küldetést a Készítőben).
+447|Nincs több színjelző ehhez: %s - nem jelent meg.
+448|Nincs leírás.
+449|nincs ellenség, amelyet sebezni lehetne
+450|Nincs térképkép - válassz egyet ehhez a felvonáshoz
+451|Nincs ismert recept: előbb importáld a játékadatokat (Játékerőforrások a főmenüben).
+452|Jelenleg nincs eladó recept.
+453|Még nincsenek receptek - receptboltban lehet venni őket.
+454|Még nincsenek mentések - kezdj egyet az Új játékkal.
+455|Még nincs - az anyagok legyőzött szörnyektől, küldetésekből és a piacról jönnek.
+456|Nem minden sikerült. Ami sikerült, a helyén van - indítsd újra az alkalmazást, hogy lásd.
+457|Megjegyzés:
+458|Itt nincs mit venni.
+459|Még semmi sincs importálva - az alkalmazás helyőrzőket mutat.
+460|Még nem történt semmi.
+461|Itt még nincs semmi. Nyomd meg a frissítés ikont, hogy lásd, mit osztott meg a közösség, vagy adj ki saját kampányt a kampányszerkesztőben.
+462|Még nincs semmi telepítve. Használd a frissítés ikont az Új játék képernyőn megosztott kampányok kereséséhez, vagy telepíts kézzel csomagot lent.
+463|Nincs semmi új a közösségi listában.
+464|Még semmi.
+465|Értesítés
+466|Cél
+467|Offline - az utolsó közösségi listát mutatja.
+468|ok
+469|Csak a GitHubtól kérdezi, melyik a legújabb verzió. A kattintásod nélkül semmi sem töltődik le vagy települ.
+470|Kampányok megnyitása
+471|Beállítások
+472|Vagy egy csomagfájl webcíme (https://…):
+473|Narancs
+474|Rávetítések
+475|%s alkatrész: nincs
+476|Alkatrészek (B és C)
+477|végrehajtás: %s
+478|Hajts végre %s próbát - hány siker?
+479|Válassz hangot minden hősnek. A története során elhangzó sorai ezzel olvasódnak fel, és senki más nem használja.
+480|Szúrás
+481|Oszlopok
+482|Tedd a szörnyeket a térképre a mutatott módon.
+483|Tedd a játékosfigurákat a kiemelt területre, majd erősítsd meg.
+484|Játék
+485|Küldetés játszása
+486|Egy küldetés játszása
+487|E fejezet játszása
+488|E mellékküldetés játszása
+489|Játékosok fázisa
+490|Játékosok fázisa
+491|A játékosok megjelennek. Tegyétek le a jelzőiteket, aztán játsszatok.
+492|Próba
+493|Próba:
+494|Előnyben részesített célpontok: %s
+495|2 kártya előkészítése
+496|Egy kártya előkészítése
+497|Kellékek
+498|Lila
+499|Nyomd meg a beszédhez (tartsd nyomva: %s)
+500|Küldetés
+501|Küldetésnapló
+502|Kilépés
+503|Véletlen (a névből)
+504|hatótávolság %d
+505|Hatótávolság %d
+506|hatótávolság %d, elérés
+507|Hatótávolság %d, elérés
+508|Korábban olvasva ezen a nyelven
+509|Később olvasva ezen a nyelven
+510|A történet felolvasása
+511|E fejezet elolvasása
+512|Recept - %d. fokozat
+513|Recept:
+514|Receptek
+515|visszanyer %d életerőt
+516|visszanyer %d életerőt (most %d / %d)
+517|Kiadások oldala
+518|Eltávolítás
+519|Eltávolítod a(z) „%s” %s verzióját erről a számítógépről?%s
+520|Egyetlen állapot eltávolítása
+521|Egy adott típusú összes állapot eltávolítása
+522|Az összes fáradtság eltávolítása egyetlen kártyáról
+523|%s v%s eltávolítva.
+524|Ellenállás: %s
+525|Ellenálló: %s
+526|Old meg a fertőzést és a rémületet. Minden hős eldobhat 1 fáradtságot.
+527|Újraindítás szükséges
+528|Újraindítás most
+529|A szörny támadásának folytatása
+530|Visszavonulás
+531|felfedi a gyengeséget ellene: %s
+532|Jutalom:
+533|%d. kör - %s
+534|Szabályjegyzék
+535|Rúna
+536|rúna
+537|Rúna:
+538|Rúnák
+539|Mentés
+540|Mentés
+541|Mentve.
+547|második
+548|Eladás  %d
+549|Narráció beállítása (letölt: %s)
+550|Hangvezérlés beállítása (letölt: %s)
+551|Állítsd be a játékod
+552|Felállítás: %s
+553|Felállítás: „%s”\n%s%s - tedd ezeket a mutatott módon:\n%s
+554|Elmozdulás 1
+555|Hangtippek megjelenítése
+556|Megmutatja, hogy ez a kártya fejlesztett-e (+). A fejlesztéseket a kampányban lehet szerezni.
+557|Mellékküldetés
+558|Mellékküldetés (opcionális)
+559|Mellékküldetés megnyerve: %s.
+560|Mellékküldetés: %s
+561|Hasítás
+562|Lelassult
+563|Pillanatfelvétel
+564|A(z) „%s” pillanatfelvétel üres.
+565|A(z) „%s” pillanatfelvétel elkészült (%d. kör).
+566|Pillanatfelvétel betöltve - %d. kör
+567|Valami ugyanezzel a névvel már útban van: %s.
+568|lándzsa
+569|bot
+570|Indítás
+571|Játék indítása
+572|%s. lépés: %s...
+573|Történetrecept
+574|Mesélő:
+575|Erő
+576|kard
+577|Taktika
+578|Taktikák
+579|Fedezékbe vonulás
+580|Elhomályosult bross
+581|Elhomályosult bross: %d / %d.
+582|Elhomályosult bross: %d / %d. A bross a következő küldetéstől a + oldalával oldódik fel!
+583|Elhomályosult bross: %s (%s jelző) is megjelenik. %s-nek le kell győznie.
+584|Terros
+585|Terros (föld)
+586|textúrák és portrék
+587|Ez a mappa nem tartalmazza a játékot (nem található benne „bundles” mappa).
+588|Ez nem webcím (https://-sel kell kezdődnie).
+589|Ez az opció nem érhető el
+590|A letöltés sikertelen: %s (hálózat %d, HTTP %d).
+591|A letöltött fájl (%s) nem érvényes zip.
+592|A letöltés nem kap több adatot: %s - ellenőrizd a kapcsolatot, és próbáld újra.
+593|A letöltés megszakítva: %s.
+594|A letöltött fájl sérült (%s) - az ellenőrzőösszeg nem egyezik.
+595|Már letöltés alatt: %s.
+596|A címnek https://-sel kell kezdődnie
+597|A csapat tulajdonában lévő páncélok
+598|A szerző megerősíti, hogy megoszthatja a képeket.
+599|A szerző nem mondta meg, megoszthatja-e a képeket.
+600|A kampány befejeződött - gratulálunk!
+601|A katalógus címének https://-sel kell kezdődnie
+602|A letöltött csomag nem az, amit a lista ígért (%s %s ennek helyett: %s %s). Nem lett importálva.
+603|A letöltött csomag nem az, amit a lista ígért. Nem lett telepítve.
+604|az ellenségnek kevesebb mint %d életereje volt: legyőzve
+605|A fájlokat nem sikerült megírni (hiba: %d).
+606|az ebben a körben megsebesült első hős életereje helyette %d
+607|A játék nem található a szokásos helyeken. Válaszd ki a mappát, ahová telepítve van.
+608|Az importáló eszköz leállt anélkül, hogy bármit importált volna (kilépési kód: %d).
+609|Az importált játékerőforrások az alkalmazás indításakor töltődnek be.\n\nÚjraindítod most?
+611|Azok a nyelvek, amelyeken olvasni szeretnél, a legjobb az első. A kampány vagy küldetés az első olyan nyelven jelenik meg, amelyen van szövege; egy kampányjáték indításakor megkérdezi, melyik nyelven játszd.
+612|A megosztott kampányok listája, amelyet az Új játék képernyő frissítés ikonja mutat. Alapértelmezés szerint a GitHubon lévő descent-engine-community tárolóé.
+613|A piac anyagokat árul, de nem vásárol.
+614|A küldetés hiányzik a kampány mappájából.
+615|A(z) „%s” fejezet küldetése hiányzik az új verzióból.
+616|Az új „%s” változó az alapértelmezett értékével indul.
+617|Az új verzióban nincs %d. felvonás (a mentésed abban van).
+618|Az újabb verziót nem sikerült megnyitni.
+619|Az eredeti mentés nem változott - bármikor visszatérhetsz hozzá.
+620|a csomag
+621|A csapat nem visz fogyóeszközt - főzz alkimistánál főzetreceptekből.
+622|A csapatnak nincs fogyóeszköze. Főzz alkimistánál főzetreceptekből.
+623|A csapatnak újra meg kell próbálnia ezt a fejezetet.
+624|A csapatnak még nincs páncélja.
+625|A csapatnak még nincs holmija - receptboltban lehet venni, vagy megtalálni.
+626|A fázist most nem lehet befejezni.
+627|A csapat által elkészített főzetek - minden küldetésben elérhetők
+628|A kiadás ellenőrzőösszeg-listájában nincs bejegyzés ehhez: %s.
+629|A pillanatfelvételt nem sikerült elmenteni - lásd a Kimenet panelt.
+630|A pillanatfelvétel a szerkesztett küldetésre lett alkalmazva, de:\n-
+631|A letöltött hangmotorban nem volt könyvtár ehhez: %s.
+632|az asztal hajtja végre
+633|A holmi, amelyet ez a hős visel (hősönként egy; egy holmit csak egy hős viselhet)
+634|A frissítést nem sikerült elindítani.
+635|A frissítés nem tartalmazza ezt: %s.
+636|A frissített másolatot nem sikerült elmenteni.
+637|A(z) „%s” változó már nem létezik - az értéke eldobásra kerül.
+638|Ez az alkalmazás a játék grafikája nélkül érkezik. Ha megvan a „Descent: A sötétség legendái”, a valódi képek, figurák és játékadatok átmásolhatók a saját telepítésedből. A játékból semmi sem töltődik le, és semmi sem hagyja el ezt a számítógépet.
+639|ez a támadás nem sebezheti meg
+640|Ez a csomag nem lett importálva - sérült, vagy valami meg nem engedettet tartalmaz:\n\n- %s
+641|Ez a csomag nem lett telepítve - sérült, vagy valami meg nem engedettet tartalmaz.
+642|Ennek a kiadásnak nincs ilyen: %s (vagy ellenőrzőösszeg-listája).
+643|Ez a mentés nem vihető át a v%s verzióra:
+644|Ez a mentés a kampány %s verziójáról a %s verzióra lett átvive.
+645|Fenyegetés
+646|dobókések
+647|Múlik az idő
+648|Telik az idő.\n\n
+649|Fáradt
+650|Túl rövid - tartsd nyomva: %s, amíg beszélsz
+651|A fa felé
+652|Toxos
+653|Toxos (rothadás)
+654|%d. aktiválás (minden %d.: %d sebzés minden ellenségnek)
+655|%d. aktiválás: %d sebzés minden ellenségnek
+656|Holmi
+657|Holmi %s: %s
+658|Holmifejlesztés:
+659|Holmi:
+660|Holmik
+661|Umbros
+662|Umbros (árnyék)
+663|A halhatatlanság koponyája
+664|A halhatatlanság koponyája: %s legyőzött egy ellenséget (%s) a(z) %s. alkalommal.
+665|Ismeretlen
+666|Frissítés érhető el: %s
+667|Frissítés a v%s verzióra…
+668|Fejlesztés - %d. fokozat
+669|Fejlesztés:
+670|Fejlesztett (+). Kampányban ez a csapat fejlesztéseit követi.
+671|Használható ebben a küldetésben: %s. Tedd a játékterületedre a használatához. Nem kerül a készletbe, és a küldetés végén eltűnik.
+672|Használhatók ebben a küldetésben: %s. Tedd őket a játékterületedre a használatukhoz. Nem kerülnek a készletbe, és a küldetés végén eltűnnek.
+673|A játék eredeti kellékeinek használata a térképen
+674|E holmi fejlesztett (+) oldalának használata.
+675|A(z) „%s” változó típust váltott - újra az alapértelmezett értéke van.
+676|A(z) „%s” változó már nem létezik (ez volt: %s).
+677|%s verzió
+678|A(z) %s verzió már telepítve van.
+679|A(z) %s verzió elérhető (neked ez van: %s).
+680|E csomag %s verziója már ki van adva - a kiadott verzió soha nem íródik felül. Használj magasabb verziót.
+681|Győzelem!
+682|Vigos
+683|Vigos (élet)
+684|Hang
+685|Hang -
+686|A hangvezérlés be van állítva.
+687|A hang még nincs beállítva - a begépelt parancsok továbbra is működnek.
+688|hangbeállítások (%s)
+689|A hangbeállítás nem érhető el ezen: %s - a begépelt parancsok továbbra is működnek.
+690|A hangbeállítás még nem támogatott ezen: %s.
+691|hangok (%s)
+692|pálca
+693|Kóborlás
+694|harci harang
+695|harci kalapács
+696|gyenge ellene: %s
+697|Gyenge: %s
+698|Gyengeség
+699|gyengeségi sebzés +%d
+700|Gyengeség: %s
+701|fegyver
+702|%d. fegyver (%s)
+703|fegyversebzés +%d
+704|a fegyveralkatrészek esélye +%d %%
+705|Fegyverek
+706|Újdonságok
+707|Ha egy hős elvesztette az összes életerejét, nyomd meg a Megsebesítést. A harmadik sebesülés elveszti a játékot.
+708|Melyik szörny?
+709|Melyik?
+710|Ki támadja: %s?
+711|Ki használja: %s?
+712|Akaraterő
+713|Megnyerve: %s.
+714|Megsebesítés
+715|Sebesült
+716|TP: %d  |  Arany: %d
+717|Sárga
+718|Igen
+719|Már megvan a(z) %s verzió - ez mellé települ.
+720|Játszhatsz
+721|Viszel: %d.
+722|Van %d aranyad és %s.
+723|Van %d aranyad.
+724|Nem ismersz egyetlen főzetreceptet sem. A recepteket receptboltokban árulják, vagy zsákmányként találhatók.
+725|Nem ismersz olyan receptet, amely valami újat készít. A recepteket receptboltokban árulják.
+726|Az anyagaid:
+727|Az előrehaladásod ezen a néven automatikusan mentődik, így abbahagyhatod és ott folytathatod, ahol abbahagytad (Játék betöltése a főmenüben). Használj különböző nevet minden csoportnak vagy végigjátszásnak.
+728|▶ Felolvasás
+729|☠ Legyőzve
+730|Maga az alkalmazás (menük és párbeszédablakok) e lista első olyan nyelvén jelenik meg, amelyre le van fordítva - egyelőre English, Español, Nederlands, Français, Deutsch, Italiano, Português, Polski, Русский és Magyar.
+731|Nem hivatalos alkalmazás
+732|%s - %s\n\n%s extra előnyt kap: %s.
+733|Új felvonás kezdődik.
+734|felvonás
+736|A kampány befejeződött.
+737|A vége
+738|A történet kezdődik.
+739|Aktuális cél:
+740|E játék nyelve
+741|A nyelv, amelyen ez a játék olvasható, naplózódik és narrálódik. Később megváltoztathatod a Beállításokban.
+742|A történet, a napló és a játék kifejezései ezen a nyelven jelennek meg. Az alkalmazás menüi és gombjai az alábbi listát követik.
+743|%s hangok letöltése (%s)
+744|Nincs telepítve narrációs hang ehhez: %s, ezért a történet csak szövegként jelenik meg.
+745|Nincs telepítve narrációs hang ehhez: %s, ezért a történet csak szövegként jelenik meg. Töltsd le őket: Beállítások > Hang.
+746|Narráció beállítása - %s hangok (kb. %d MB letöltés)
+747|Hangok ehhez:
+748|Nincs telepítve narrációs hang ehhez: %s, ezért ez a játék csak szövegként jelenik meg. Töltsd le őket: Beállítások > Hang.
+749| - csak ha %d feltétel teljesül
+750|Nehézség
+752|Kalandor
+753|Tanonc
+754|A szörnyek eggyel erősebbek, mint amit a szerző beállított, és a küldetés nehezebb lehet számodra.
+755|A szörnyek eggyel gyengébbek, mint amit a szerző beállított, és a küldetés könnyebb lehet számodra.
+756|A szörnyek kettővel erősebbek, mint amit a szerző beállított, és a küldetés kegyetlen lehet.
+757|Rémálom
+758|A játék úgy, ahogy a szerző tervezte.
+759|Veterán
+760|Keményebb szörnyek és nehezebb küldetés a magasabb számoknál. Minden küldetés előtt megváltoztathatod.
+761|%d szörny felébredt.
+762|Az egyikükre állapotot alkalmaztak.
+763|A szörnyek felébrednek
+764|Valami riasztotta őket.
+765|Valami felébresztette őket.
+766|A szörnyek felébrednek!
+767|Nem vették észre a hősöket: ott maradnak, ahol vannak, amíg valami fel nem ébreszti őket.
+768|Észrevették a támadást.
+769|Nem sejt semmit
+770|Nem sejt semmit - ő és a csoportja kihagyja a szörnyek fázisát
+771|Felébresztés
+772|%s (opcionális)
+773|Opcionális cél
+774|Opcionális cél teljesítve:\n%s
+775|Opcionális:
+776|Maga az alkalmazás (menük és párbeszédablakok) e lista első olyan nyelvén jelenik meg, amelyre le van fordítva - egyelőre %s.
+P1| (%d, %d játékos esetén)| (%d, %d játékos esetén)
+P2|+%d siker|+%d siker
+P3|%d állapot elveszett, %d sebzés|%d állapot elveszett, %d sebzés
+P4|Szerencsehozó amulett: %d extra siker hozzáadódik %s eredményéhez.|Szerencsehozó amulett: %d extra siker hozzáadódik %s eredményéhez.
+P5|Új mellékküldetés: %s|Új mellékküldetések: %s

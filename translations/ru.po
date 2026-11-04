@@ -1,0 +1,2332 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ascent\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "  (immune)"
+msgstr "  (иммунитет)"
+
+msgid "  mic [%s%s]"
+msgstr "  микрофон [%s%s]"
+
+msgid " %s gains a unique recipe: %s."
+msgstr " %s получает уникальный рецепт: %s."
+
+msgid " (%d failed)"
+msgstr " (не удалось: %d)"
+
+msgid " (active)"
+msgstr " (активно)"
+
+msgid " (downloads the import tool first, %s)"
+msgstr " (сначала скачивает инструмент импорта, %s)"
+
+msgid " (immune)"
+msgstr " (иммунитет)"
+
+msgid " (Only campaigns keep recipes.)"
+msgstr " (Рецепты сохраняются только в кампаниях.)"
+
+msgid " (XP now %d)"
+msgstr " (ОО теперь %d)"
+
+msgid " - not imported yet"
+msgstr " - ещё не импортировано"
+
+msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
+msgstr " = урон %d\nБросок защиты: -%d\n\nНанесено урона: %d"
+
+msgid " Not spawned: %s."
+msgstr " Не появился: %s."
+
+msgid " There is no recipe left to gain."
+msgstr " Больше нет рецептов, которые можно получить."
+
+msgid "%d damage to %s"
+msgstr "Урон %d для: %s"
+
+msgid "%d damage to the enemy"
+msgstr "Урон %d врагу"
+
+msgid "%d extra damage (%d%% of its health)"
+msgstr "Дополнительный урон %d (%d %% его здоровья)"
+
+msgid "%d from the community to install."
+msgstr "%d от сообщества, доступно для установки."
+
+msgid "%d gold"
+msgstr "Золото: %d"
+
+msgid "%d gold (Dead Man's Compass)"
+msgstr "Золото: %d (Компас мертвеца)"
+
+msgid "%d h %d min"
+msgstr "%d ч %d мин"
+
+msgid "%d min"
+msgstr "%d мин"
+
+msgid "%d monster(s) spawned."
+msgstr "Появилось монстров: %d."
+
+msgid "%d of the current objectives no longer exist."
+msgstr "Текущих задач, которых больше нет: %d."
+
+msgid "%d x %d tiles"
+msgstr "%d x %d плиток"
+
+msgid "%dx %s"
+msgstr "%dx %s"
+
+msgid "%s  -  XP %d,  gold %d"
+msgstr "%s  -  ОО %d,  золото %d"
+
+msgid "%s %d (no table rows)"
+msgstr "%s %d (нет строк таблицы)"
+
+msgid "%s (%s chip)"
+msgstr "%s (жетон: %s)"
+
+msgid "%s (%s, part %s)"
+msgstr "%s (%s, часть %s)"
+
+msgid "%s (copied by %s): %s"
+msgstr "%s (скопировано: %s): %s"
+
+msgid "%s +%d until the end of the round"
+msgstr "%s +%d до конца раунда"
+
+msgid "%s - %s chip"
+msgstr "%s - жетон: %s"
+
+msgid "%s - %s triggered!\n\n%s"
+msgstr "%s - сработало: %s!\n\n%s"
+
+msgid "%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it."
+msgstr "%s - сработало: %s!\n\n%s получает случайный расходный предмет: %s\n\nЭкипируйте его."
+
+msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it."
+msgstr "%s - сработало: %s!\n\n%s получает случайный улучшенный расходный предмет: %s\n\nЭкипируйте его."
+
+msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
+msgstr "%s - сработало: %s!\n\n%s\n\nПроверьте, применимо ли это, и выполните на поле (состояние можно наложить с экрана монстров)."
+
+msgid "%s - %s\nDoes %s have an injury?"
+msgstr "%s - %s\nЕсть ли у героя %s травма?"
+
+msgid "%s - %s\nHow much fatigue is on all of %s's cards?"
+msgstr "%s - %s\nСколько истощения лежит на всех картах героя %s?"
+
+msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
+msgstr "%s - %s\nКакой другой враг получает тот же урон? (Отмена: никакой)"
+
+msgid "%s - buy for %d gold, sell for %d"
+msgstr "%s - покупка за %d золота, продажа за %d"
+
+msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
+msgstr "%s - ОЗ %d, Ур. %d, Защ. %d, Атк. %d"
+
+msgid "%s - level %d"
+msgstr "%s - уровень %d"
+
+msgid "%s - not yet implemented."
+msgstr "%s - ещё не реализовано."
+
+msgid "%s \"%s\" - version %s"
+msgstr "%s «%s» - версия %s"
+
+msgid "%s attacks %s (damage %d, %s)."
+msgstr "%s атакует: %s (урон %d, %s)."
+
+msgid "%s attacks %s - choose a weapon"
+msgstr "%s атакует: %s - выберите оружие"
+
+msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
+msgstr "%s атакует: %s!%s\nУрон %d - %s - Скорость %d"
+
+msgid "%s attacks %s.\nWhich weapon?"
+msgstr "%s атакует: %s.\nКакое оружие?"
+
+msgid "%s attacks %s\nwith the %s (damage %d)\n"
+msgstr "%s атакует: %s\nоружием: %s (урон %d)\n"
+
+msgid "%s dropped something usable. %s"
+msgstr "%s обронил что-то полезное. %s"
+
+msgid "%s dropped: %s."
+msgstr "%s обронил: %s."
+
+msgid "%s gains %s"
+msgstr "%s получает %s"
+
+msgid "%s has been defeated."
+msgstr "%s побеждён."
+
+msgid "%s healed %d (%d hitpoints)."
+msgstr "%s исцелил %d (очков здоровья: %d)."
+
+msgid "%s is %s."
+msgstr "%s: %s."
+
+msgid "%s is confused!\n%s\n%s"
+msgstr "%s ошеломлён!\n%s\n%s"
+
+msgid "%s is confused: %s."
+msgstr "%s ошеломлён: %s."
+
+msgid "%s is immune"
+msgstr "%s обладает иммунитетом"
+
+msgid "%s is less likely to be its target this round"
+msgstr "%s с меньшей вероятностью станет его целью в этом раунде"
+
+msgid "%s is no longer %s."
+msgstr "%s больше не имеет состояния: %s."
+
+msgid "%s is not in the party."
+msgstr "%s не входит в отряд."
+
+msgid "%s is up to something..."
+msgstr "%s что-то замышляет..."
+
+msgid "%s lost all hitpoints. Wound %s?"
+msgstr "%s потерял всё здоровье. Ранить героя %s?"
+
+msgid "%s performs %s against %s."
+msgstr "%s выполняет «%s» против: %s."
+
+msgid "%s receives a benefit: %s."
+msgstr "%s получает преимущество: %s."
+
+msgid "%s suffers %d damage"
+msgstr "%s получает урон: %d"
+
+msgid "%s takes %d affliction damage (%d hitpoints left)."
+msgstr "%s получает урон от сокрушения: %d (осталось очков здоровья: %d)."
+
+msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr "%s получает урон от сокрушения: %d и побеждён! Уберите его с поля."
+
+msgid "%s took %d damage (%d hitpoints left)."
+msgstr "%s получил урон: %d (осталось очков здоровья: %d)."
+
+msgid "%s took %d damage and was defeated."
+msgstr "%s получил урон: %d и был побеждён."
+
+msgid "%s triggered"
+msgstr "%s сработало"
+
+msgid "%s was defeated during an interrupt before it could %s."
+msgstr "%s был побеждён во время прерывания, не успев: %s."
+
+msgid "%s was wounded a third time."
+msgstr "%s ранен в третий раз."
+
+msgid "%s wounded a hero - its turn is over."
+msgstr "%s ранил героя - его ход окончен."
+
+msgid "%s's Brew Basket provides a random consumable:"
+msgstr "Сумка с ингредиентами героя %s даёт случайный расходный предмет:"
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
+msgstr "%s: %s!\nЦель %s - Урон %d - %s - Скорость %d"
+
+msgid "%s: %s\nFixed parts: %s"
+msgstr "%s: %s\nПостоянные части: %s"
+
+msgid "%s: defense +%d until the end of the round"
+msgstr "%s: защита +%d до конца раунда"
+
+msgid "%s: interact with '%s'"
+msgstr "%s: взаимодействовать с «%s»"
+
+msgid "%s: loot x%d (+%s)"
+msgstr "%s: добыча x%d (+%s)"
+
+msgid "%s: needs %d, you have %d"
+msgstr "%s: нужно %d, у вас %d"
+
+msgid "%s: perform a %s test - how many successes?"
+msgstr "%s: сделайте проверку (%s) - сколько успехов?"
+
+msgid "%s: the enemy has no loot"
+msgstr "%s: у врага нет добычи"
+
+msgid "%s: the enemy is not defeated, no extra loot"
+msgstr "%s: враг не побеждён, дополнительной добычи нет"
+
+msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
+msgstr "%s\n\nНичего не изменилось. Можно попробовать ещё раз или скачать обновление со страницы релизов."
+
+msgid "%s\n\nYou chose: %s"
+msgstr "%s\n\nВы выбрали: %s"
+
+msgid "(attacks again)"
+msgstr "(атакует снова)"
+
+msgid "(ignored) %s"
+msgstr "(игнорируется) %s"
+
+msgid "(unnamed place)"
+msgstr "(место без названия)"
+
+msgid "(unnamed side quest)"
+msgstr "(побочный сценарий без названия)"
+
+msgid "(your release)"
+msgstr "(ваш релиз)"
+
+msgid "+%d damage"
+msgstr "+%d урона"
+
+msgid "+%d damage (rolled %d-%d)"
+msgstr "+%d урона (выпало %d-%d)"
+
+msgid "+%d damage (round %d)"
+msgstr "+%d урона (раунд %d)"
+
+msgid "2D art - logo and main menu background"
+msgstr "2D-графика - логотип и фон главного меню"
+
+msgid "[draft]"
+msgstr "[черновик]"
+
+msgid "\"%s\" version %s is already installed."
+msgstr "«%s» версии %s уже установлен."
+
+msgid "\n%.1f MB."
+msgstr "\n%.1f МБ."
+
+msgid "\n%d mission(s), %d picture(s), %.1f MB."
+msgstr "\nМиссий: %d, изображений: %d, %.1f МБ."
+
+msgid "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted."
+msgstr "\nСохранений этой кампании (%d) отложено в сторону (user://campaign_saves/_removed), не удалено."
+
+msgid "\n%d successes x %d weapon damage"
+msgstr "\n%d успехов x %d урона оружия"
+
+msgid "\n(+%d damage from a defense ability this activation)"
+msgstr "\n(+%d урона от защитной способности при этой активации)"
+
+msgid "\n(Enfeebled: damage reduced from %d)"
+msgstr "\n(Ослаблен: урон уменьшен на %d)"
+
+msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
+msgstr "\n\n%s получает травму «%s»: положите её карту в свою игровую зону."
+
+msgid "\n\n%s has %d hitpoints left."
+msgstr "\n\nУ героя %s осталось очков здоровья: %d."
+
+msgid "\n\n%s is defeated! Remove it from the board."
+msgstr "\n\n%s побеждён! Уберите его с поля."
+
+msgid "\n\n%s must flip their injury card (%s) to its major side."
+msgstr "\n\n%s должен перевернуть карту травмы (%s) на тяжёлую сторону."
+
+msgid "\n\n%s must flip their injury card to its major side."
+msgstr "\n\n%s должен перевернуть карту травмы на тяжёлую сторону."
+
+msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
+msgstr "\n\nЭфес поминовения: вместо этого установите здоровье героя %s равным %d."
+
+msgid "\n\nThe app can't update itself here: %s. Download it from the release page."
+msgstr "\n\nПриложение не может обновиться здесь само: %s. Скачайте его со страницы релизов."
+
+msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+msgstr "\n\nТекущая миссия будет закрыта - сначала сохраните её (Настройки > Сохранить) или выберите «Позже»."
+
+msgid "\n\nThis is %s's third wound - the game will be lost!"
+msgstr "\n\nЭто третье ранение героя %s - игра будет проиграна!"
+
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgstr "\n\nКамень странника - каждый герой может выбрать альтернативную выгоду вместо сброса 1 истощения:"
+
+msgid "\nActivation: "
+msgstr "\nАктивация: "
+
+msgid "\nAlso some crafting materials for the party: %s."
+msgstr "\nА также немного материалов для ремесла отряду: %s."
+
+msgid "\nAt the table: "
+msgstr "\nЗа столом: "
+
+msgid "\nConditions applied: %s"
+msgstr "\nНаложенные состояния: %s"
+
+msgid "\nExposed: +%d damage"
+msgstr "\nОтвлечён: +%d урона"
+
+msgid "\nImmune to: %s"
+msgstr "\nИммунитет к: %s"
+
+msgid "\nImmune! The attack does no damage.\n\n0 damage dealt"
+msgstr "\nИммунитет! Атака не наносит урона.\n\nНанесено урона: 0"
+
+msgid "\nIn development (a draft)"
+msgstr "\nВ разработке (черновик)"
+
+msgid "\nLoot for the party: %s."
+msgstr "\nДобыча отряду: %s."
+
+msgid "\nNo free spawn tile for: %s - place them next to the others."
+msgstr "\nНет свободной плитки появления для: %s - поставьте их рядом с остальными."
+
+msgid "\nNot installed yet - open it to install."
+msgstr "\nЕщё не установлено - откройте, чтобы установить."
+
+msgid "\nResistance: -%d damage"
+msgstr "\nУстойчивость: -%d урона"
+
+msgid "\nThe package was checked: it only contains game data."
+msgstr "\nПакет проверен: в нём только данные игры."
+
+msgid "\nWeakness: +%d damage"
+msgstr "\nУязвимость: +%d урона"
+
+msgid "\nWeapon parts and trinket: "
+msgstr "\nЧасти оружия и аксессуар: "
+
+msgid "a %s armor upgrade"
+msgstr "улучшение брони: %s"
+
+msgid "a %s part recipe"
+msgstr "рецепт части: %s"
+
+msgid "a %s part upgrade"
+msgstr "улучшение части: %s"
+
+msgid "a %s recipe"
+msgstr "рецепт: %s"
+
+msgid "a %s upgrade"
+msgstr "улучшение: %s"
+
+msgid "A campaign"
+msgstr "Кампания"
+
+msgid "a hero"
+msgstr "герой"
+
+msgid "a new area"
+msgstr "новая область"
+
+msgid "a potion recipe"
+msgstr "рецепт зелья"
+
+msgid "A save game called '%s' already exists."
+msgstr "Сохранение с именем «%s» уже существует."
+
+msgid "A save game needs a name."
+msgstr "У сохранения должно быть имя."
+
+msgid "a shipment of %s armor"
+msgstr "партия брони: %s"
+
+msgid "a shipment of armor"
+msgstr "партия брони"
+
+msgid "A single mission"
+msgstr "Одна миссия"
+
+msgid "A snapshot can be taken in the player phase, with no dialog open."
+msgstr "Снимок можно сделать в фазе игроков, когда не открыто ни одно окно."
+
+msgid "a trinket"
+msgstr "аксессуар"
+
+msgid "a trinket upgrade"
+msgstr "улучшение аксессуара"
+
+msgid "Act complete!"
+msgstr "Акт пройден!"
+
+msgid "Add language"
+msgstr "Добавить язык"
+
+msgid "adds %d damage to its next activation"
+msgstr "добавляет %d урона к его следующей активации"
+
+msgid "Afflicted"
+msgstr "Сокрушён"
+
+msgid "Affliction"
+msgstr "Сокрушение"
+
+msgid "affliction damage +%d this round"
+msgstr "урон от сокрушения +%d в этом раунде"
+
+msgid "Agility"
+msgstr "Ловкость"
+
+msgid "all its statuses are removed"
+msgstr "все его статусы снимаются"
+
+msgid "an armor upgrade"
+msgstr "улучшение брони"
+
+msgid "an unknown author"
+msgstr "неизвестный автор"
+
+msgid "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+msgstr "Неофициальный фанатский проект, свободный в использовании (лицензия MIT).\n*Descent: Сказания тьмы* и всё, что связано с игрой, принадлежит их владельцам."
+
+msgid "Anemos"
+msgstr "Анемос"
+
+msgid "Anemos (wind)"
+msgstr "Анемос (ветер)"
+
+msgid "App update"
+msgstr "Обновление приложения"
+
+msgid "Applied: "
+msgstr "Применено: "
+
+msgid "Apply conditions"
+msgstr "Наложить состояния"
+
+msgid "Aquos"
+msgstr "Аквос"
+
+msgid "Aquos (water)"
+msgstr "Аквос (вода)"
+
+msgid "Armor"
+msgstr "Броня"
+
+msgid "Armor upgrade: "
+msgstr "Улучшение брони: "
+
+msgid "Armor: "
+msgstr "Броня: "
+
+msgid "Armor…"
+msgstr "Броня…"
+
+msgid "At the table:"
+msgstr "За столом:"
+
+msgid "Attack"
+msgstr "Атака"
+
+msgid "attack %s"
+msgstr "атаковать: %s"
+
+msgid "Attack abilities: %s"
+msgstr "Способности атаки: %s"
+
+msgid "attack gains %s"
+msgstr "атака получает %s"
+
+msgid "Available now: %s"
+msgstr "Доступно сейчас: %s"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Back to Editor"
+msgstr "Назад в редактор"
+
+msgid "Back to editor"
+msgstr "Назад в редактор"
+
+msgid "Back to Menu"
+msgstr "Назад в меню"
+
+msgid "becomes afflicted"
+msgstr "становится сокрушённым"
+
+msgid "Begin Campaign"
+msgstr "Начать кампанию"
+
+msgid "Bone"
+msgstr "Кость"
+
+msgid "Bought"
+msgstr "Куплено"
+
+msgid "bow"
+msgstr "лук"
+
+msgid "Brew"
+msgstr "Варить"
+
+msgid "Brew Basket"
+msgstr "Сумка с ингредиентами"
+
+msgid "Buy"
+msgstr "Купить"
+
+msgid "Buy  %d"
+msgstr "Купить  %d"
+
+msgid "Buy  %d gold"
+msgstr "Купить  %d золота"
+
+msgid "Buy recipe  %d gold"
+msgstr "Купить рецепт  %d золота"
+
+msgid "by "
+msgstr "автор: "
+
+msgid "by %s"
+msgstr "автор: %s"
+
+msgid "Campaign"
+msgstr "Кампания"
+
+msgid "Campaign complete"
+msgstr "Кампания пройдена"
+
+msgid "Campaign complete! (%s)"
+msgstr "Кампания пройдена! (%s)"
+
+msgid "Campaign editor"
+msgstr "Редактор кампаний"
+
+msgid "Campaign Log"
+msgstr "Журнал кампании"
+
+msgid "Can %s attack a second hero?"
+msgstr "Может ли %s атаковать второго героя?"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Cancel download"
+msgstr "Отменить загрузку"
+
+msgid "Cauterization"
+msgstr "Прижигание"
+
+msgid "Cautious"
+msgstr "Напряжённый"
+
+msgid "Centre to centre (strict)"
+msgstr "Центр к центру (строго)"
+
+msgid "Centre to corner (recommended)"
+msgstr "Центр к углу (рекомендуется)"
+
+msgid "Chapter"
+msgstr "Глава"
+
+msgid "Chapter \"%s\" that you already completed is not in the new version."
+msgstr "Глава «%s», которую вы уже прошли, отсутствует в новой версии."
+
+msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
+msgstr "Глава «%s», где вы сейчас, отсутствует в акте %d новой версии."
+
+msgid "Check for a newer version of the app at the main menu"
+msgstr "Проверять наличие новой версии приложения в главном меню"
+
+msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+msgstr "Сундук, ворота, дерево и колодец используют модели игры после Ресурсы игры > Импорт. Выключено = реквизит, поставляемый с приложением. Вступает в силу при следующем открытии карты."
+
+msgid "Choose a package"
+msgstr "Выберите пакет"
+
+msgid "Choose a package file…"
+msgstr "Выберите файл пакета…"
+
+msgid "Choose a weapon"
+msgstr "Выберите оружие"
+
+msgid "Choose the folder the game is installed in"
+msgstr "Выберите папку, в которую установлена игра"
+
+msgid "Choose the game folder…"
+msgstr "Выбрать папку игры…"
+
+msgid "Choose two weapons per hero (and optional attachments)"
+msgstr "Выберите два оружия на героя (и необязательные насадки)"
+
+msgid "Choose your party"
+msgstr "Выберите свой отряд"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Cloth"
+msgstr "Ткань"
+
+msgid "Common"
+msgstr "Обычный"
+
+msgid "Community"
+msgstr "Сообщество"
+
+msgid "Community list"
+msgstr "Список сообщества"
+
+msgid "Conditions"
+msgstr "Состояния"
+
+msgid "Conditions (%d)"
+msgstr "Состояния (%d)"
+
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Confused"
+msgstr "Ошеломлён"
+
+msgid "Consumables"
+msgstr "Расходные предметы"
+
+msgid "Consumables…"
+msgstr "Расходные предметы…"
+
+msgid "Continue"
+msgstr "Далее"
+
+msgid "Continue this game"
+msgstr "Продолжить эту игру"
+
+msgid "Converting models... %s (%s)"
+msgstr "Конвертация моделей... %s (%s)"
+
+msgid "copies %s"
+msgstr "копирует %s"
+
+msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+msgstr "Копирует этот релиз, доступный только для чтения, в новый черновик, который можно менять. Сам релиз и его сохранения остаются как есть."
+
+msgid "Corner to corner (loose, Descent 2)"
+msgstr "Угол к углу (мягко, Descent 2)"
+
+msgid "Cost: %s"
+msgstr "Стоимость: %s"
+
+msgid "Could not fork %s."
+msgstr "Не удалось продублировать: %s."
+
+msgid "Could not open that save game."
+msgstr "Не удалось открыть это сохранение."
+
+msgid "Could not open the campaign '%s'."
+msgstr "Не удалось открыть кампанию «%s»."
+
+msgid "Couldn't start the %s download (error %d)."
+msgstr "Не удалось начать загрузку: %s (ошибка %d)."
+
+msgid "Couldn't unpack the %s (tar exit code %d)."
+msgstr "Не удалось распаковать: %s (код выхода tar %d)."
+
+msgid "Couldn't unpack the narration engine (tar exit code %d)."
+msgstr "Не удалось распаковать движок озвучки (код выхода tar %d)."
+
+msgid "Couldn't write %s (error %d)."
+msgstr "Не удалось записать: %s (ошибка %d)."
+
+msgid "Count as lost"
+msgstr "Засчитать как поражение"
+
+msgid "Count as won"
+msgstr "Засчитать как победу"
+
+msgid "Created by"
+msgstr "Автор"
+
+msgid "Credits"
+msgstr "Создатели игры"
+
+msgid "crossbow"
+msgstr "арбалет"
+
+msgid "Crush"
+msgstr "Ударный"
+
+msgid "Curios"
+msgstr "Безделушки"
+
+msgid "Current objective"
+msgstr "Текущая задача"
+
+msgid "Damage"
+msgstr "Урон"
+
+msgid "damage %d"
+msgstr "урон %d"
+
+msgid "damage +%d for good (now %d)"
+msgstr "урон +%d навсегда (теперь %d)"
+
+msgid "damage -%d"
+msgstr "урон -%d"
+
+msgid "Damage Type"
+msgstr "Тип урона"
+
+msgid "Dazed"
+msgstr "Ослеплён"
+
+msgid "Defeat."
+msgstr "Поражение."
+
+msgid "Defeated"
+msgstr "Побеждён"
+
+msgid "defense %+d until the end of the round (now %d)"
+msgstr "защита %+d до конца раунда (теперь %d)"
+
+msgid "defense +%d during this attack"
+msgstr "защита +%d во время этой атаки"
+
+msgid "defense +%d for good (now %d)"
+msgstr "защита +%d навсегда (теперь %d)"
+
+msgid "defense -%d"
+msgstr "защита -%d"
+
+msgid "defense -%d this round"
+msgstr "защита -%d в этом раунде"
+
+msgid "Defense abilities: %s"
+msgstr "Защитные способности: %s"
+
+msgid "defense ability deactivated for the next attack"
+msgstr "защитная способность отключена на следующую атаку"
+
+msgid "defense ability deactivated until the end of the round"
+msgstr "защитная способность отключена до конца раунда"
+
+msgid "Defense ability deactivated."
+msgstr "Защитная способность отключена."
+
+msgid "Defense ability: %s"
+msgstr "Защитная способность: %s"
+
+msgid "Delete the save game '%s'?"
+msgstr "Удалить сохранение «%s»?"
+
+msgid "Delete this save game"
+msgstr "Удалить это сохранение"
+
+msgid "Did %s deal damage to %s?"
+msgstr "Нанёс ли %s урон: %s?"
+
+msgid "Did %s pass the test?"
+msgstr "Прошёл ли %s проверку?"
+
+msgid "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."
+msgstr "Я услышал «отступление»? Переместитесь не более чем на {speed} плиток, как можно дальше от героев."
+
+msgid "Did not trigger: "
+msgstr "Не сработало: "
+
+msgid "Didn't catch a number in range"
+msgstr "Допустимое число не расслышано"
+
+msgid "Didn't catch anything - hold %s and try again"
+msgstr "Ничего не расслышано - удерживайте %s и попробуйте ещё раз"
+
+msgid "Didn't catch that"
+msgstr "Не расслышано"
+
+msgid "Didn't catch which option"
+msgstr "Вариант не распознан"
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Done - restart the app to see everything."
+msgstr "Готово - перезапустите приложение, чтобы увидеть всё."
+
+msgid "Done. The updated copy is in the list."
+msgstr "Готово. Обновлённая копия в списке."
+
+msgid "Doomed"
+msgstr "Обречён"
+
+msgid "Download extra voices - accents (%s)"
+msgstr "Скачать дополнительные голоса - акценты (%s)"
+
+msgid "Download more voices - plain English (%s)"
+msgstr "Скачать ещё голоса - обычный английский (%s)"
+
+msgid "Downloading %s... %d MB"
+msgstr "Загрузка: %s... %d МБ"
+
+msgid "Downloading %s... %d%% (%d / %d MB)"
+msgstr "Загрузка: %s... %d %% (%d / %d МБ)"
+
+msgid "Downloading the update…"
+msgstr "Загрузка обновления…"
+
+msgid "dual blades"
+msgstr "парные клинки"
+
+msgid "each enemy suffers %d damage (trigger %d)"
+msgstr "каждый враг получает урон %d (активация %d)"
+
+msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
+msgstr "Каждый игрок может взять в миссию: %d%s. Созданные расходные предметы снова доступны в каждой миссии - ни один не расходуется."
+
+msgid "Editor"
+msgstr "Редактор"
+
+msgid "Enable voice"
+msgstr "Включить голос"
+
+msgid "Ending soon: this side quest is gone once \"%s\" is won."
+msgstr "Скоро исчезнет: этот побочный сценарий пропадёт, когда будет пройден «%s»."
+
+msgid "Enfeebled"
+msgstr "Ослаблен"
+
+msgid "Essences"
+msgstr "Эссенции"
+
+msgid "Exposed"
+msgstr "Отвлечён"
+
+msgid "FAILED"
+msgstr "НЕ УДАЛОСЬ"
+
+msgid "Failed to load mission: %s"
+msgstr "Не удалось загрузить миссию: %s"
+
+msgid "Failed to save - see the Output panel for details."
+msgstr "Не удалось сохранить - подробности на панели «Вывод»."
+
+msgid "Feats"
+msgstr "Достижения"
+
+msgid "first"
+msgstr "первый"
+
+msgid "Fixed hero (%s)"
+msgstr "Закреплённый герой (%s)"
+
+msgid "Flip your hero card"
+msgstr "Переверните карту своего героя"
+
+msgid "Floor tiles"
+msgstr "Плитки пола"
+
+msgid "Focus 2 cards"
+msgstr "Сосредоточить 2 карты"
+
+msgid "Forge"
+msgstr "Ковать"
+
+msgid "Fork to edit"
+msgstr "Продублировать для правки"
+
+msgid "Forked %s into your draft \"%s\" - open it in the %s editor."
+msgstr "%s продублирован в ваш черновик «%s» - откройте его в редакторе: %s."
+
+msgid "Fortunos"
+msgstr "Фортунос"
+
+msgid "Fortunos (luck)"
+msgstr "Фортунос (удача)"
+
+msgid "Frantic"
+msgstr "Неистовый"
+
+msgid "free"
+msgstr "свободно"
+
+msgid "Friendly fire"
+msgstr "Дружественный огонь"
+
+msgid "Frustrated"
+msgstr "Раздражённый"
+
+msgid "gains %s"
+msgstr "получает %s"
+
+msgid "Game %04d-%02d-%02d %02d:%02d"
+msgstr "Игра %04d-%02d-%02d %02d:%02d"
+
+msgid "Game assets"
+msgstr "Ресурсы игры"
+
+msgid "Game found:\n%s"
+msgstr "Игра найдена:\n%s"
+
+msgid "Gameplay"
+msgstr "Игровой процесс"
+
+msgid "gauntlet"
+msgstr "латная перчатка"
+
+msgid "General"
+msgstr "Общие"
+
+msgid "Gives the armor: %s%s - %s"
+msgstr "Даёт броню: %s%s - %s"
+
+msgid "Gives the rune: %s"
+msgstr "Даёт руну: %s"
+
+msgid "Gives the trinket: %s%s - %s"
+msgstr "Даёт аксессуар: %s%s - %s"
+
+msgid "Gives the weapon: %s%s"
+msgstr "Даёт оружие: %s%s"
+
+msgid "Gives: %s"
+msgstr "Даёт: %s"
+
+msgid "gloves"
+msgstr "перчатки"
+
+msgid "Gold"
+msgstr "Золото"
+
+msgid "Gold: %d"
+msgstr "Золото: %d"
+
+msgid "Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."
+msgstr "Получили от кого-то пакет? Выберите файл или вставьте его веб-адрес. Вы увидите, что в нём и кто его создал, прежде чем что-либо будет установлено."
+
+msgid "Green"
+msgstr "Зелёный"
+
+msgid "Guard the gate"
+msgstr "Охранять ворота"
+
+msgid "hammer"
+msgstr "молот"
+
+msgid "Hardened Skin"
+msgstr "Затвердевшая кожа"
+
+msgid "Heal"
+msgstr "Лечение"
+
+msgid "Heal 2"
+msgstr "Лечение 2"
+
+msgid "Heal 4"
+msgstr "Лечение 4"
+
+msgid "Healthy"
+msgstr "Здоров"
+
+msgid "Hear the story teller"
+msgstr "Послушать рассказчика"
+
+msgid "Hear this voice"
+msgstr "Послушать этот голос"
+
+msgid "Heard: %s"
+msgstr "Расслышано: %s"
+
+msgid "Heavily wounded"
+msgstr "Тяжело ранен"
+
+msgid "Heavy Hands"
+msgstr "Тяжесть в ладонях"
+
+msgid "Heavy Heart"
+msgstr "Тяжесть в сердце"
+
+msgid "Herbs"
+msgstr "Травы"
+
+msgid "hero models"
+msgstr "модели героев"
+
+msgid "Hero voices"
+msgstr "Голоса героев"
+
+msgid "Heroes"
+msgstr "Герои"
+
+msgid "Hesitant"
+msgstr "Нерешительный"
+
+msgid "Hitpoints %d / %d"
+msgstr "Очки здоровья %d / %d"
+
+msgid "Hold %s to talk"
+msgstr "Удерживайте %s, чтобы говорить"
+
+msgid "Horn of Courage"
+msgstr "Рог храбрости"
+
+msgid "Horn of Courage - %s was wounded."
+msgstr "Рог храбрости - %s ранен."
+
+msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
+msgstr "Наведите курсор на броню, чтобы увидеть её правила. Броню носят и разрешают за столом."
+
+msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+msgstr "Как инструмент линии видимости решает, видят ли друг друга две клетки. Центр к углу: линия от середины клетки наблюдателя до любого угла цели."
+
+msgid "HP %d · Level %d"
+msgstr "ОЗ %d · Уровень %d"
+
+msgid "Ignos"
+msgstr "Игнос"
+
+msgid "Ignos (fire)"
+msgstr "Игнос (огонь)"
+
+msgid "immune to %s"
+msgstr "иммунитет к: %s"
+
+msgid "Immune to conditions: %s"
+msgstr "Иммунитет к состояниям: %s"
+
+msgid "Immune to: "
+msgstr "Иммунитет к: "
+
+msgid "Immune: %s"
+msgstr "Иммунитет: %s"
+
+msgid "Immunity: %s"
+msgstr "Иммунитет: %s"
+
+msgid "Import"
+msgstr "Импорт"
+
+msgid "Import finished, but not everything worked."
+msgstr "Импорт завершён, но не всё получилось."
+
+msgid "Import finished."
+msgstr "Импорт завершён."
+
+msgid "Import game assets"
+msgstr "Импортировать ресурсы игры"
+
+msgid "Imported so far: %s."
+msgstr "Импортировано: %s."
+
+msgid "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
+msgstr "Импорт из самого приложения пока недоступен на этом компьютере - используйте вместо него инструменты ресурсов со страницы релизов."
+
+msgid "IN DEVELOPMENT"
+msgstr "В РАЗРАБОТКЕ"
+
+msgid "Input device: %s"
+msgstr "Устройство ввода: %s"
+
+msgid "Install"
+msgstr "Установить"
+
+msgid "Install and restart"
+msgstr "Установить и перезапустить"
+
+msgid "Install by hand"
+msgstr "Установить вручную"
+
+msgid "Install this package?"
+msgstr "Установить этот пакет?"
+
+msgid "Installed"
+msgstr "Установлено"
+
+msgid "Installed \"%s\" v%s."
+msgstr "«%s» v%s установлен."
+
+msgid "Installed \"%s\"."
+msgstr "«%s» установлен."
+
+msgid "Installing…"
+msgstr "Установка…"
+
+msgid "Installing… the app closes and starts again by itself."
+msgstr "Установка… приложение закроется и запустится снова само."
+
+msgid "Intelligence"
+msgstr "Интеллект"
+
+msgid "Interrupt"
+msgstr "Прервать"
+
+msgid "Interrupt - the players act"
+msgstr "Прерывание - действуют игроки"
+
+msgid "Inventory"
+msgstr "Инвентарь"
+
+msgid "It stays as it is; you can keep playing it on its own version."
+msgstr "Оно остаётся как есть; вы можете продолжать играть в него на его собственной версии."
+
+msgid "Language"
+msgstr "Язык"
+
+msgid "Languages"
+msgstr "Языки"
+
+msgid "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"
+msgstr "Ударьте ближайшего другого монстра: он получает урон {damage}. (Нажмите «Прервать», щёлкните этого монстра в обзоре монстров и примените урон.)"
+
+msgid "Later"
+msgstr "Позже"
+
+msgid "Leather"
+msgstr "Кожа"
+
+msgid "Leaves after the next chapter!"
+msgstr "Уйдёт после следующей главы!"
+
+msgid "Level %d - "
+msgstr "Уровень %d - "
+
+msgid "Line of Sight"
+msgstr "Линия видимости"
+
+msgid "Line of Sight (on)"
+msgstr "Линия видимости (вкл.)"
+
+msgid "Line of sight rule"
+msgstr "Правило линии видимости"
+
+msgid "Listening... release %s to send"
+msgstr "Слушаю... отпустите %s, чтобы отправить"
+
+msgid "Load a mission save"
+msgstr "Загрузить сохранение миссии"
+
+msgid "Load game"
+msgstr "Загрузить игру"
+
+msgid "Look for campaigns shared by the community"
+msgstr "Найти кампании, которыми поделилось сообщество"
+
+msgid "Looking for shared campaigns…"
+msgstr "Поиск общих кампаний…"
+
+msgid "Loot"
+msgstr "Добыча"
+
+msgid "Loot for the party: "
+msgstr "Добыча отряду: "
+
+msgid "Lucky Charm"
+msgstr "Амулет удачи"
+
+msgid "Lumos"
+msgstr "Люмос"
+
+msgid "Lumos (light)"
+msgstr "Люмос (свет)"
+
+msgid "Lunge, no bite"
+msgstr "Бросок без укуса"
+
+msgid "Mage-Sight Goggles"
+msgstr "Очки магического видения"
+
+msgid "Mage-Sight Goggles - %s gains an additional action!"
+msgstr "Очки магического видения - %s получает дополнительное действие!"
+
+msgid "Make a copy of '%s' on v%s?"
+msgstr "Сделать копию «%s» на v%s?"
+
+msgid "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+msgstr "Создаёт обновлённую КОПИЮ этого сохранения на более новой версии. Оригинал остаётся как есть."
+
+msgid "Materials"
+msgstr "Материалы"
+
+msgid "maximum health -%d (now %d)"
+msgstr "максимальное здоровье -%d (теперь %d)"
+
+msgid "melee"
+msgstr "ближний бой"
+
+msgid "Message"
+msgstr "Сообщение"
+
+msgid "Metal"
+msgstr "Металл"
+
+msgid "Minerals"
+msgstr "Минералы"
+
+msgid "Mission"
+msgstr "Миссия"
+
+msgid "Mission editor"
+msgstr "Редактор миссий"
+
+msgid "Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."
+msgstr "Миссии и кампании, созданные другими игроками. Всё проверяется перед установкой - пакет может содержать только данные игры, никогда код - и каждая версия устанавливается рядом с остальными, поэтому ничто из созданного или сохранённого вами никогда не перезаписывается."
+
+msgid "Models converted: %d%s"
+msgstr "Моделей преобразовано: %d%s"
+
+msgid "Monster"
+msgstr "Монстр"
+
+msgid "Monster action"
+msgstr "Действие монстра"
+
+msgid "Monster attack"
+msgstr "Атака монстра"
+
+msgid "monster figures"
+msgstr "фигурки монстров"
+
+msgid "Monster phase"
+msgstr "Фаза монстров"
+
+msgid "Monster Phase"
+msgstr "Фаза монстров"
+
+msgid "Monster tactic"
+msgstr "Тактика монстра"
+
+msgid "Monsters appear"
+msgstr "Появляются монстры"
+
+msgid "More than one matches - say a number"
+msgstr "Подходит больше одного - назовите номер"
+
+msgid "Mortos"
+msgstr "Мортос"
+
+msgid "Mortos (dead)"
+msgstr "Мортос (смерть)"
+
+msgid "Move camera to player and monster spawns"
+msgstr "Переместить камеру к зонам появления игроков и монстров"
+
+msgid "Move up to {speed} tiles in a random direction."
+msgstr "Переместитесь не более чем на {speed} плиток в случайном направлении."
+
+msgid "Move up to {speed} tiles to the closest gate and guard it."
+msgstr "Переместитесь не более чем на {speed} плиток к ближайшим воротам и охраняйте их."
+
+msgid "Move up to {speed} tiles to the nearest pillar and hide behind it."
+msgstr "Переместитесь не более чем на {speed} плиток к ближайшей колонне и спрячьтесь за ней."
+
+msgid "Move up to {speed} tiles towards the closest tree."
+msgstr "Переместитесь не более чем на {speed} плиток к ближайшему дереву."
+
+msgid "Move up to {speed} tiles towards the nearest hero - but do not attack."
+msgstr "Переместитесь не более чем на {speed} плиток к ближайшему герою - но не атакуйте."
+
+msgid "Moved to v%s"
+msgstr "Переведено на v%s"
+
+msgid "Narration"
+msgstr "Озвучка"
+
+msgid "Narration is set up."
+msgstr "Озвучка настроена."
+
+msgid "Narration isn't available on %s."
+msgstr "Озвучка недоступна в системе: %s."
+
+msgid "Narration isn't set up yet - the story is shown as text only."
+msgstr "Озвучка ещё не настроена - история показывается только текстом."
+
+msgid "Narration setup isn't supported on %s yet."
+msgstr "Настройка озвучки пока не поддерживается в системе: %s."
+
+msgid "New game"
+msgstr "Новая игра"
+
+msgid "Next"
+msgstr "Далее"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "No %s."
+msgstr "Нет: %s."
+
+msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
+msgstr "Нет базового шаблона для: %s - не появился (исправьте миссию в Создателе)."
+
+msgid "No colour chip left for: %s - not spawned."
+msgstr "Не осталось цветного жетона для: %s - не появился."
+
+msgid "No description."
+msgstr "Нет описания."
+
+msgid "no enemy to damage"
+msgstr "нет врага для нанесения урона"
+
+msgid "No map image - choose one for this act"
+msgstr "Нет изображения карты - выберите его для этого акта"
+
+msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
+msgstr "Рецепты не известны: сначала импортируйте данные игры (Ресурсы игры в главном меню)."
+
+msgid "No recipes for sale right now."
+msgstr "Сейчас нет рецептов на продажу."
+
+msgid "No recipes yet - they are bought at a recipe shop."
+msgstr "Рецептов пока нет - их покупают в лавке рецептов."
+
+msgid "No save games yet - start one with New game."
+msgstr "Сохранений пока нет - начните одно через «Новая игра»."
+
+msgid "None yet - materials come from defeated monsters, missions and the market."
+msgstr "Пока нет - материалы выпадают из побеждённых монстров, миссий и рынка."
+
+msgid "Not everything worked. What did work is in place - restart the app to see it."
+msgstr "Не всё получилось. То, что получилось, на месте - перезапустите приложение, чтобы увидеть."
+
+msgid "Note:"
+msgstr "Заметка:"
+
+msgid "Nothing for sale here."
+msgstr "Здесь нечего продавать."
+
+msgid "Nothing has been imported yet - the app shows placeholders."
+msgstr "Ничего ещё не импортировано - приложение показывает заглушки."
+
+msgid "Nothing has happened yet."
+msgstr "Пока ничего не произошло."
+
+msgid "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
+msgstr "Пока здесь ничего нет. Нажмите значок обновления, чтобы увидеть, чем поделилось сообщество, или выпустите собственную кампанию в редакторе кампаний."
+
+msgid "Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."
+msgstr "Пока ничего не установлено. Используйте значок обновления на экране «Новая игра», чтобы найти общие кампании, или установите пакет вручную ниже."
+
+msgid "Nothing new in the community list."
+msgstr "В списке сообщества ничего нового."
+
+msgid "Nothing yet."
+msgstr "Пока ничего."
+
+msgid "Notice"
+msgstr "Уведомление"
+
+msgid "Objective"
+msgstr "Задача"
+
+msgid "Offline - showing the last community list. "
+msgstr "Не в сети - показан последний список сообщества. "
+
+msgid "ok"
+msgstr "ок"
+
+msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+msgstr "Только спрашивает у GitHub, какая версия последняя. Ничего не скачивается и не устанавливается без вашего щелчка."
+
+msgid "Open campaigns"
+msgstr "Открыть кампании"
+
+msgid "Options"
+msgstr "Настройки"
+
+msgid "Or a web address (https://…) of a package file:"
+msgstr "Или веб-адрес (https://…) файла пакета:"
+
+msgid "Orange"
+msgstr "Оранжевый"
+
+msgid "Overlays"
+msgstr "Наложения"
+
+msgid "Part %s: none"
+msgstr "Часть %s: нет"
+
+msgid "Parts (B and C)"
+msgstr "Части (B и C)"
+
+msgid "perform %s"
+msgstr "выполнить: %s"
+
+msgid "Perform a %s test - how many successes?"
+msgstr "Сделайте проверку (%s) - сколько успехов?"
+
+msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
+msgstr "Выберите голос для каждого героя. Его реплики в истории читаются этим голосом, и больше никто его не использует."
+
+msgid "Pierce"
+msgstr "Колющий"
+
+msgid "Pillars"
+msgstr "Колонны"
+
+msgid "Place the monsters on the map as shown."
+msgstr "Поставьте монстров на карту, как показано."
+
+msgid "Place your player figures in the highlighted area, then confirm."
+msgstr "Поставьте фигурки игроков в подсвеченную область, затем подтвердите."
+
+msgid "Play"
+msgstr "Играть"
+
+msgid "Play mission"
+msgstr "Играть миссию"
+
+msgid "Play one mission"
+msgstr "Сыграть одну миссию"
+
+msgid "Play this chapter"
+msgstr "Играть эту главу"
+
+msgid "Play this side quest"
+msgstr "Играть этот побочный сценарий"
+
+msgid "Player Phase"
+msgstr "Фаза игроков"
+
+msgid "Player phase"
+msgstr "Фаза игроков"
+
+msgid "Playtest"
+msgstr "Тест"
+
+msgid "Playtest:"
+msgstr "Тест:"
+
+msgid "Preferred targets: %s"
+msgstr "Предпочтительные цели: %s"
+
+msgid "Prepare 2 cards"
+msgstr "Подготовить 2 карты"
+
+msgid "Prepare a card"
+msgstr "Подготовить карту"
+
+msgid "Props"
+msgstr "Реквизит"
+
+msgid "Purple"
+msgstr "Фиолетовый"
+
+msgid "Push to talk (hold %s)"
+msgstr "Нажмите, чтобы говорить (удерживайте %s)"
+
+msgid "Quest"
+msgstr "Сценарий"
+
+msgid "Quest Log"
+msgstr "Журнал сценария"
+
+msgid "Quit"
+msgstr "Выход"
+
+msgid "Random (from the name)"
+msgstr "Случайный (по имени)"
+
+msgid "range %d"
+msgstr "дальность %d"
+
+msgid "Range %d"
+msgstr "Дальность %d"
+
+msgid "range %d, reach"
+msgstr "дальность %d, выпад"
+
+msgid "Range %d, reach"
+msgstr "Дальность %d, выпад"
+
+msgid "Read in this language earlier"
+msgstr "Прочитано ранее на этом языке"
+
+msgid "Read in this language later"
+msgstr "Прочитано позже на этом языке"
+
+msgid "Read the story aloud"
+msgstr "Читать историю вслух"
+
+msgid "Read this chapter"
+msgstr "Прочитать эту главу"
+
+msgid "Recipe - tier %d"
+msgstr "Рецепт - ранг %d"
+
+msgid "Recipe: "
+msgstr "Рецепт: "
+
+msgid "Recipes"
+msgstr "Рецепты"
+
+msgid "recovers %d health"
+msgstr "восстанавливает здоровье: %d"
+
+msgid "recovers %d health (now %d / %d)"
+msgstr "восстанавливает здоровье: %d (теперь %d / %d)"
+
+msgid "Release page"
+msgstr "Страница релизов"
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "Remove \"%s\" version %s from this computer?%s"
+msgstr "Удалить «%s» версии %s с этого компьютера?%s"
+
+msgid "Remove a single condition"
+msgstr "Снять одно состояние"
+
+msgid "Remove all conditions of a given type"
+msgstr "Снять все состояния заданного типа"
+
+msgid "Remove all fatigue from a single card"
+msgstr "Снять всё истощение с одной карты"
+
+msgid "Removed %s v%s."
+msgstr "%s v%s удалён."
+
+msgid "Resistance: %s"
+msgstr "Устойчивость: %s"
+
+msgid "Resistant: %s"
+msgstr "Устойчив: %s"
+
+msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgstr "Разрешите отравление и испуг. Каждый герой может сбросить 1 истощение."
+
+msgid "Restart needed"
+msgstr "Нужен перезапуск"
+
+msgid "Restart now"
+msgstr "Перезапустить сейчас"
+
+msgid "Resume monster attack"
+msgstr "Продолжить атаку монстра"
+
+msgid "Retreat"
+msgstr "Отступление"
+
+msgid "reveals weakness to %s"
+msgstr "открывает уязвимость к: %s"
+
+msgid "Reward: "
+msgstr "Награда: "
+
+msgid "Round %d - %s"
+msgstr "Раунд %d - %s"
+
+msgid "Rules Reference"
+msgstr "Справочник"
+
+msgid "Rune"
+msgstr "Руна"
+
+msgid "rune"
+msgstr "руна"
+
+msgid "Rune: "
+msgstr "Руна: "
+
+msgid "Runes"
+msgstr "Руны"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Save game"
+msgstr "Сохранение"
+
+msgid "Saved."
+msgstr "Сохранено."
+
+msgid "second"
+msgstr "второй"
+
+msgid "Sell  %d"
+msgstr "Продать  %d"
+
+msgid "Set up narration (downloads %s)"
+msgstr "Настроить озвучку (скачивает %s)"
+
+msgid "Set up voice control (downloads %s)"
+msgstr "Настроить голосовое управление (скачивает %s)"
+
+msgid "Set up your game"
+msgstr "Настройте свою игру"
+
+msgid "Setting up %s"
+msgstr "Подготовка: %s"
+
+msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
+msgstr "Подготовка «%s»\n%s%s - поставьте это, как показано:\n%s"
+
+msgid "Shift 1"
+msgstr "Шаг 1"
+
+msgid "Show voice hints"
+msgstr "Показывать голосовые подсказки"
+
+msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+msgstr "Показывает, улучшена ли эта карта (+). Улучшения зарабатываются в кампании."
+
+msgid "Side quest"
+msgstr "Побочный сценарий"
+
+msgid "Side quest (optional)"
+msgstr "Побочный сценарий (необязательный)"
+
+msgid "Side quest won: %s."
+msgstr "Побочный сценарий пройден: %s."
+
+msgid "Side quest: %s"
+msgstr "Побочный сценарий: %s"
+
+msgid "Slash"
+msgstr "Рубящий"
+
+msgid "Slowed"
+msgstr "Замедлен"
+
+msgid "Snapshot"
+msgstr "Снимок"
+
+msgid "Snapshot '%s' is empty."
+msgstr "Снимок «%s» пуст."
+
+msgid "Snapshot '%s' taken (round %d)."
+msgstr "Снимок «%s» сделан (раунд %d)."
+
+msgid "Snapshot loaded - round %d"
+msgstr "Снимок загружен - раунд %d"
+
+msgid "Something with the same name is already in the way: %s."
+msgstr "Что-то с тем же названием уже мешает: %s."
+
+msgid "spear"
+msgstr "копьё"
+
+msgid "staff"
+msgstr "посох"
+
+msgid "Start"
+msgstr "Старт"
+
+msgid "Start game"
+msgstr "Начать игру"
+
+msgid "Step %s: %s..."
+msgstr "Шаг %s: %s..."
+
+msgid "Story recipe"
+msgstr "Рецепт истории"
+
+msgid "Story teller:"
+msgstr "Рассказчик:"
+
+msgid "Strength"
+msgstr "Сила"
+
+msgid "sword"
+msgstr "меч"
+
+msgid "Tactic"
+msgstr "Тактика"
+
+msgid "Tactics"
+msgstr "Планы врагов"
+
+msgid "Take cover"
+msgstr "Укрыться"
+
+msgid "Tarnished Brooch"
+msgstr "Потускневшая брошь"
+
+msgid "Tarnished Brooch: %d of %d."
+msgstr "Потускневшая брошь: %d из %d."
+
+msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
+msgstr "Потускневшая брошь: %d из %d. Брошь открывается стороной + со следующей миссии!"
+
+msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
+msgstr "Потускневшая брошь: %s (жетон: %s) тоже появляется. %s должен победить его."
+
+msgid "Terros"
+msgstr "Террос"
+
+msgid "Terros (earth)"
+msgstr "Террос (земля)"
+
+msgid "textures and portraits"
+msgstr "текстуры и портреты"
+
+msgid "That folder doesn't contain the game (no \"bundles\" folder was found in it)."
+msgstr "В этой папке нет игры (папка «bundles» в ней не найдена)."
+
+msgid "That is not a web address (it must start with https://)."
+msgstr "Это не веб-адрес (он должен начинаться с https://)."
+
+msgid "That option isn't available"
+msgstr "Этот вариант недоступен"
+
+msgid "The %s download failed (network %d, HTTP %d)."
+msgstr "Не удалось загрузить: %s (сеть %d, HTTP %d)."
+
+msgid "The %s download isn't a valid zip."
+msgstr "Загруженный файл (%s) не является корректным zip."
+
+msgid "The %s download stopped receiving data - check the connection and try again."
+msgstr "Загрузка перестала получать данные: %s - проверьте соединение и попробуйте ещё раз."
+
+msgid "The %s download was cancelled."
+msgstr "Загрузка отменена: %s."
+
+msgid "The %s download was corrupt (checksum mismatch)."
+msgstr "Загруженный файл повреждён (%s) - контрольная сумма не совпала."
+
+msgid "The %s is already being downloaded."
+msgstr "Уже загружается: %s."
+
+msgid "The address must start with https://"
+msgstr "Адрес должен начинаться с https://"
+
+msgid "The armor the party owns"
+msgstr "Броня, которой владеет отряд"
+
+msgid "The author confirms they may share the pictures."
+msgstr "Автор подтверждает, что вправе делиться изображениями."
+
+msgid "The author did not say whether they may share the pictures."
+msgstr "Автор не сказал, вправе ли он делиться изображениями."
+
+msgid "The campaign is complete - congratulations!"
+msgstr "Кампания пройдена - поздравляем!"
+
+msgid "The catalog address must start with https://"
+msgstr "Адрес каталога должен начинаться с https://"
+
+msgid "The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported."
+msgstr "Загруженный пакет не тот, что обещал список (%s %s вместо %s %s). Он не был импортирован."
+
+msgid "The downloaded package is not the one the list promised. It was not installed."
+msgstr "Загруженный пакет не тот, что обещал список. Он не был установлен."
+
+msgid "the enemy had less than %d health: defeated"
+msgstr "у врага было меньше %d здоровья: побеждён"
+
+msgid "The files could not be written (error %d)."
+msgstr "Не удалось записать файлы (ошибка %d)."
+
+msgid "the first hero wounded this round has health %d instead"
+msgstr "у первого героя, раненного в этом раунде, вместо этого здоровье %d"
+
+msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
+msgstr "Игра не найдена в обычных местах. Выберите папку, в которую она установлена."
+
+msgid "The import tool stopped without importing anything (exit code %d)."
+msgstr "Инструмент импорта остановился, ничего не импортировав (код выхода %d)."
+
+msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
+msgstr "Импортированные ресурсы игры загружаются при запуске приложения.\n\nПерезапустить сейчас?"
+
+msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+msgstr "Языки, на которых вы хотите читать, лучший первым. Кампания или миссия показывается на первом языке, на котором у неё есть текст; при начале игры в кампании спрашивается, на каком языке в неё играть."
+
+msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
+msgstr "Список общих кампаний, который показывает значок обновления на экране «Новая игра». По умолчанию - из репозитория descent-engine-community на GitHub."
+
+msgid "The market sells materials but does not buy them."
+msgstr "Рынок продаёт материалы, но не покупает их."
+
+msgid "The mission is missing from the campaign folder."
+msgstr "Миссии нет в папке кампании."
+
+msgid "The mission of chapter \"%s\" is missing from the new version."
+msgstr "Миссии главы «%s» нет в новой версии."
+
+msgid "The new variable \"%s\" starts at its default value."
+msgstr "Новая переменная «%s» начинается со значения по умолчанию."
+
+msgid "The new version has no act %d (your save is in it)."
+msgstr "В новой версии нет акта %d (ваше сохранение в нём)."
+
+msgid "The newer version could not be opened."
+msgstr "Не удалось открыть более новую версию."
+
+msgid "The original save game is not changed - you can always go back to it."
+msgstr "Исходное сохранение не изменено - вы всегда можете вернуться к нему."
+
+msgid "the package"
+msgstr "пакет"
+
+msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
+msgstr "Отряд не несёт расходных предметов - варите их у алхимика по рецептам зелий."
+
+msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
+msgstr "У отряда нет расходных предметов. Варите их у алхимика по рецептам зелий."
+
+msgid "The party has to try this chapter again."
+msgstr "Отряду нужно попробовать эту главу ещё раз."
+
+msgid "The party owns no armor yet."
+msgstr "У отряда пока нет брони."
+
+msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
+msgstr "У отряда пока нет аксессуаров - их покупают в лавке рецептов или находят."
+
+msgid "The phase can't be ended right now."
+msgstr "Фазу сейчас нельзя завершить."
+
+msgid "The potions the party has crafted - available in every mission"
+msgstr "Зелья, которые создал отряд - доступны в каждой миссии"
+
+msgid "The release's checksum list has no entry for %s."
+msgstr "В списке контрольных сумм релиза нет записи для: %s."
+
+msgid "The snapshot could not be saved - see the Output panel."
+msgstr "Не удалось сохранить снимок - см. панель «Вывод»."
+
+msgid "The snapshot was put on the edited mission, but:\n- "
+msgstr "Снимок был применён к изменённой миссии, но:\n- "
+
+msgid "The speech engine download had no library for %s."
+msgstr "В загруженном голосовом движке нет библиотеки для: %s."
+
+msgid "the table carries it out"
+msgstr "выполняет стол"
+
+msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+msgstr "Аксессуар, который носит этот герой (по одному на героя; аксессуар может носить только один герой)"
+
+msgid "The update could not be started."
+msgstr "Не удалось запустить обновление."
+
+msgid "The update does not contain %s."
+msgstr "Обновление не содержит: %s."
+
+msgid "The updated copy could not be saved."
+msgstr "Не удалось сохранить обновлённую копию."
+
+msgid "The variable \"%s\" no longer exists - its value is dropped."
+msgstr "Переменной «%s» больше нет - её значение отбрасывается."
+
+msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
+msgstr "Это приложение поставляется без графики игры. Если у вас есть «Descent: Сказания тьмы», настоящие изображения, фигурки и данные игры можно скопировать из вашей собственной установки. Ничто из игры не скачивается и ничто не покидает этот компьютер."
+
+msgid "this attack cannot damage it"
+msgstr "эта атака не может нанести ему урон"
+
+msgid "This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s"
+msgstr "Этот пакет не был импортирован - он повреждён или содержит что-то недопустимое:\n\n- %s"
+
+msgid "This package was not installed - it is damaged or contains something that is not allowed."
+msgstr "Этот пакет не был установлен - он повреждён или содержит что-то недопустимое."
+
+msgid "This release has no %s (or no checksum list)."
+msgstr "В этом релизе нет: %s (или нет списка контрольных сумм)."
+
+msgid "This save game cannot be moved to v%s:"
+msgstr "Это сохранение нельзя перенести на v%s:"
+
+msgid "This save game was moved from version %s of the campaign to version %s."
+msgstr "Это сохранение перенесено с версии %s кампании на версию %s."
+
+msgid "Threat"
+msgstr "Угроза"
+
+msgid "throwing knives"
+msgstr "метательные ножи"
+
+msgid "Time passes"
+msgstr "Течение времени"
+
+msgid "Time passes.\n\n"
+msgstr "Время идёт.\n\n"
+
+msgid "Tired"
+msgstr "Усталый"
+
+msgid "Too short - hold %s while you speak"
+msgstr "Слишком коротко - удерживайте %s, пока говорите"
+
+msgid "Towards the tree"
+msgstr "К дереву"
+
+msgid "Toxos"
+msgstr "Токсос"
+
+msgid "Toxos (decay)"
+msgstr "Токсос (распад)"
+
+msgid "trigger %d (every %dth: %d damage to every enemy)"
+msgstr "активация %d (каждая %d-я: урон %d каждому врагу)"
+
+msgid "trigger %d: %d damage to every enemy"
+msgstr "активация %d: урон %d каждому врагу"
+
+msgid "Trinket"
+msgstr "Аксессуар"
+
+msgid "Trinket %s: %s"
+msgstr "Аксессуар %s: %s"
+
+msgid "Trinket upgrade: "
+msgstr "Улучшение аксессуара: "
+
+msgid "Trinket: "
+msgstr "Аксессуар: "
+
+msgid "Trinkets"
+msgstr "Аксессуары"
+
+msgid "Umbros"
+msgstr "Умброс"
+
+msgid "Umbros (shadow)"
+msgstr "Умброс (тень)"
+
+msgid "Undying Skull"
+msgstr "Бессмертный череп"
+
+msgid "Undying Skull: %s defeated a %s for the %s time."
+msgstr "Бессмертный череп: %s победил врага (%s) в %s-й раз."
+
+msgid "Unknown"
+msgstr "Неизвестно"
+
+msgid "Update available: %s"
+msgstr "Доступно обновление: %s"
+
+msgid "Update to v%s…"
+msgstr "Обновить до v%s…"
+
+msgid "Upgrade - tier %d"
+msgstr "Улучшение - ранг %d"
+
+msgid "Upgrade: "
+msgstr "Улучшение: "
+
+msgid "Upgraded (+). In a campaign this follows the party's upgrades."
+msgstr "Улучшено (+). В кампании это следует за улучшениями отряда."
+
+msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
+msgstr "Можно использовать в этой миссии: %s. Положите это в свою игровую зону, чтобы использовать. Это не добавляется в инвентарь и исчезает по окончании миссии."
+
+msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
+msgstr "Можно использовать в этой миссии: %s. Положите их в свою игровую зону, чтобы использовать. Они не добавляются в инвентарь и исчезают по окончании миссии."
+
+msgid "Use the original game props in the map"
+msgstr "Использовать оригинальный реквизит игры на карте"
+
+msgid "Use the upgraded (+) side of this trinket."
+msgstr "Использовать улучшенную (+) сторону этого аксессуара."
+
+msgid "Variable '%s' changed type - it has its default again."
+msgstr "Переменная «%s» сменила тип - у неё снова значение по умолчанию."
+
+msgid "Variable '%s' no longer exists (it was %s)."
+msgstr "Переменной «%s» больше нет (она была: %s)."
+
+msgid "Version %s"
+msgstr "Версия %s"
+
+msgid "Version %s is already installed."
+msgstr "Версия %s уже установлена."
+
+msgid "Version %s is available (you have %s)."
+msgstr "Доступна версия %s (у вас %s)."
+
+msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
+msgstr "Версия %s этого пакета уже выпущена - выпущенная версия никогда не заменяется. Используйте более высокую версию."
+
+msgid "Victory!"
+msgstr "Победа!"
+
+msgid "Vigos"
+msgstr "Вигос"
+
+msgid "Vigos (life)"
+msgstr "Вигос (жизнь)"
+
+msgid "Voice"
+msgstr "Голос"
+
+msgid "Voice - "
+msgstr "Голос - "
+
+msgid "Voice control is set up."
+msgstr "Голосовое управление настроено."
+
+msgid "Voice isn't set up yet - typed commands still work."
+msgstr "Голос ещё не настроен - вводимые команды по-прежнему работают."
+
+msgid "voice settings (%s)"
+msgstr "настройки голоса (%s)"
+
+msgid "Voice setup isn't available on %s - typed commands still work."
+msgstr "Настройка голоса недоступна в системе: %s - вводимые команды по-прежнему работают."
+
+msgid "Voice setup isn't supported on %s yet."
+msgstr "Настройка голоса пока не поддерживается в системе: %s."
+
+msgid "voices (%s)"
+msgstr "голоса (%s)"
+
+msgid "wand"
+msgstr "жезл"
+
+msgid "Wander"
+msgstr "Блуждать"
+
+msgid "war bell"
+msgstr "боевой колокол"
+
+msgid "warhammer"
+msgstr "боевой молот"
+
+msgid "weak to %s"
+msgstr "уязвим к: %s"
+
+msgid "Weak: %s"
+msgstr "Уязвим: %s"
+
+msgid "Weakness"
+msgstr "Уязвимость"
+
+msgid "weakness damage +%d"
+msgstr "урон от уязвимости +%d"
+
+msgid "Weakness: %s"
+msgstr "Уязвимость: %s"
+
+msgid "weapon"
+msgstr "оружие"
+
+msgid "Weapon %d (%s)"
+msgstr "Оружие %d (%s)"
+
+msgid "weapon damage +%d"
+msgstr "урон оружия +%d"
+
+msgid "weapon part chances +%d%%"
+msgstr "шансы частей оружия +%d %%"
+
+msgid "Weapons"
+msgstr "Оружие"
+
+msgid "What's new"
+msgstr "Что нового"
+
+msgid "When a hero has lost all hitpoints, press Wound. The third wound loses the game."
+msgstr "Когда у героя не осталось здоровья, нажмите «Ранить». Третье ранение означает проигрыш."
+
+msgid "Which monster?"
+msgstr "Какой монстр?"
+
+msgid "Which one?"
+msgstr "Какой?"
+
+msgid "Who attacks the %s?"
+msgstr "Кто атакует: %s?"
+
+msgid "Who uses the %s?"
+msgstr "Кто использует: %s?"
+
+msgid "Will"
+msgstr "Воля"
+
+msgid "Won: %s."
+msgstr "Выиграно: %s."
+
+msgid "Wound"
+msgstr "Ранить"
+
+msgid "Wounded"
+msgstr "Ранен"
+
+msgid "XP: %d  |  Gold: %d"
+msgstr "ОО: %d  |  Золото: %d"
+
+msgid "Yellow"
+msgstr "Жёлтый"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "You already have version %s - this one is installed next to it."
+msgstr "У вас уже есть версия %s - эта устанавливается рядом."
+
+msgid "You can play"
+msgstr "Можно играть"
+
+msgid "You carry %d."
+msgstr "Вы несёте: %d."
+
+msgid "You have %d gold and %s."
+msgstr "У вас золота: %d и %s."
+
+msgid "You have %d gold."
+msgstr "У вас золота: %d."
+
+msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
+msgstr "Вы не знаете ни одного рецепта зелья. Рецепты продаются в лавках рецептов или находятся как добыча."
+
+msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
+msgstr "Вы не знаете ни одного рецепта, который создаёт что-то новое. Рецепты продаются в лавках рецептов."
+
+msgid "Your materials:"
+msgstr "Ваши материалы:"
+
+msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
+msgstr "Ваш прогресс сохраняется автоматически под этим именем, так что вы можете уйти и продолжить с того места, где остановились (Загрузить игру в главном меню). Используйте разное имя для каждой группы или прохождения."
+
+msgid "▶ Read aloud"
+msgstr "▶ Читать вслух"
+
+msgid "☠ Defeated"
+msgstr "☠ Побеждён"
+
+msgid "Unofficial App"
+msgstr "Неофициальное приложение"
+
+msgid "%s - %s\n\n%s gains an extra benefit: %s."
+msgstr "%s - %s\n\n%s получает дополнительную выгоду: %s."
+
+msgid "A new act begins."
+msgstr "Начинается новый акт."
+
+msgid "act"
+msgstr "акт"
+
+msgid "The campaign is complete."
+msgstr "Кампания пройдена."
+
+msgid "The end"
+msgstr "Конец"
+
+msgid "The story begins."
+msgstr "История начинается."
+
+msgid "Current Objective:"
+msgstr "Текущая задача:"
+
+msgid "Language of this game"
+msgstr "Язык этой игры"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "Язык, на котором эта игра читается, записывается в журнал и озвучивается. Его можно изменить позже в Настройках."
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "История, журнал и термины игры показываются на этом языке. Меню и кнопки приложения следуют списку ниже."
+
+msgid "Download %s voices (%s)"
+msgstr "Скачать голоса: %s (%s)"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "Голоса озвучки для языка «%s» не установлены, поэтому история показывается только текстом."
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "Голоса озвучки для языка «%s» не установлены, поэтому история показывается только текстом. Скачайте их в Настройки > Голос."
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "Настроить озвучку - голоса: %s (скачивает около %d МБ)"
+
+msgid "Voices for:"
+msgstr "Голоса для:"
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "Голоса озвучки для языка «%s» не установлены, поэтому эта игра показывается только текстом. Скачайте их в Настройки > Голос."
+
+msgid " - only if %d condition(s)"
+msgstr " - только если условий: %d"
+
+msgid "Difficulty"
+msgstr "Сложность"
+
+msgid "Adventurer"
+msgstr "Искатель приключений"
+
+msgid "Apprentice"
+msgstr "Ученик"
+
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr "Монстры на один уровень сильнее, чем задал автор, и миссия может оказаться для вас тяжелее."
+
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr "Монстры на один уровень слабее, чем задал автор, и миссия может оказаться для вас легче."
+
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr "Монстры на два уровня сильнее, чем задал автор, и миссия может не знать пощады."
+
+msgid "Nightmare"
+msgstr "Кошмар"
+
+msgid "The game as the author designed it."
+msgstr "Игра такой, какой её задумал автор."
+
+msgid "Veteran"
+msgstr "Ветеран"
+
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
+msgstr "Более крепкие монстры и более тяжёлая миссия на высоких значениях. Это можно изменить перед каждой миссией."
+
+msgid "%d monster(s) woke up."
+msgstr "Проснулось монстров: %d."
+
+msgid "A condition was put on one of them."
+msgstr "На одного из них наложено состояние."
+
+msgid "Monsters wake"
+msgstr "Монстры просыпаются"
+
+msgid "Something has alerted them."
+msgstr "Что-то их встревожило."
+
+msgid "Something has woken them."
+msgstr "Что-то их разбудило."
+
+msgid "The monsters wake up!"
+msgstr "Монстры просыпаются!"
+
+msgid "They have not noticed the heroes: they stay where they are until something wakes them."
+msgstr "Они не заметили героев: остаются на месте, пока что-то их не разбудит."
+
+msgid "They noticed the attack."
+msgstr "Они заметили атаку."
+
+msgid "Unaware"
+msgstr "Не замечает"
+
+msgid "Unaware - it and its group are skipped in the monster phase"
+msgstr "Не замечает - он и его группа пропускают фазу монстров"
+
+msgid "Wake up"
+msgstr "Разбудить"
+
+msgid "%s (optional)"
+msgstr "%s (необязательно)"
+
+msgid "Optional objective"
+msgstr "Необязательная задача"
+
+msgid "Optional objective completed:\n%s"
+msgstr "Необязательная задача выполнена:\n%s"
+
+msgid "Optional:"
+msgstr "Необязательно:"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "Само приложение (меню и окна) показывается на первом языке из этого списка, на который оно переведено - пока %s."
+
+msgid " (%d for %d player)"
+msgid_plural " (%d for %d players)"
+msgstr[0] " (%d для %d игрока)"
+msgstr[1] " (%d для %d игроков)"
+msgstr[2] " (%d для %d игроков)"
+
+msgid "+%d success"
+msgid_plural "+%d successes"
+msgstr[0] "+%d успех"
+msgstr[1] "+%d успеха"
+msgstr[2] "+%d успехов"
+
+msgid "lost %d status, %d damage"
+msgid_plural "lost %d statuses, %d damage"
+msgstr[0] "потеряно состояний: %d, урон %d"
+msgstr[1] "потеряно состояний: %d, урон %d"
+msgstr[2] "потеряно состояний: %d, урон %d"
+
+msgid "Lucky Charm: %d extra success is added to %s's result."
+msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
+msgstr[0] "Амулет удачи: %d дополнительный успех добавлен к результату игрока %s."
+msgstr[1] "Амулет удачи: %d дополнительных успеха добавлено к результату игрока %s."
+msgstr[2] "Амулет удачи: %d дополнительных успехов добавлено к результату игрока %s."
+
+msgid "New side quest: %s"
+msgid_plural "New side quests: %s"
+msgstr[0] "Новый побочный сценарий: %s"
+msgstr[1] "Новых побочных сценария: %s"
+msgstr[2] "Новых побочных сценариев: %s"

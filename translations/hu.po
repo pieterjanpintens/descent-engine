@@ -1,0 +1,2327 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ascent\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "  (immune)"
+msgstr "  (immunis)"
+
+msgid "  mic [%s%s]"
+msgstr "  mikrofon [%s%s]"
+
+msgid " %s gains a unique recipe: %s."
+msgstr " %s egyedi receptet kap: %s."
+
+msgid " (%d failed)"
+msgstr " (%d sikertelen)"
+
+msgid " (active)"
+msgstr " (aktív)"
+
+msgid " (downloads the import tool first, %s)"
+msgstr " (előbb letölti az importáló eszközt, %s)"
+
+msgid " (immune)"
+msgstr " (immunis)"
+
+msgid " (Only campaigns keep recipes.)"
+msgstr " (Csak a kampányok őrzik meg a recepteket.)"
+
+msgid " (XP now %d)"
+msgstr " (TP most %d)"
+
+msgid " - not imported yet"
+msgstr " - még nincs importálva"
+
+msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
+msgstr " = %d sebzés\nVédekezési dobás: -%d\n\n%d sebzés okozva"
+
+msgid " Not spawned: %s."
+msgstr " Nem jelent meg: %s."
+
+msgid " There is no recipe left to gain."
+msgstr " Nincs több megszerezhető recept."
+
+msgid "%d damage to %s"
+msgstr "%d sebzés ennek: %s"
+
+msgid "%d damage to the enemy"
+msgstr "%d sebzés az ellenségnek"
+
+msgid "%d extra damage (%d%% of its health)"
+msgstr "%d extra sebzés (az életereje %d %%-a)"
+
+msgid "%d from the community to install."
+msgstr "%d a közösségtől telepítésre vár."
+
+msgid "%d gold"
+msgstr "%d arany"
+
+msgid "%d gold (Dead Man's Compass)"
+msgstr "%d arany (Holt ember iránytűje)"
+
+msgid "%d h %d min"
+msgstr "%d ó %d p"
+
+msgid "%d min"
+msgstr "%d p"
+
+msgid "%d monster(s) spawned."
+msgstr "%d szörny jelent meg."
+
+msgid "%d of the current objectives no longer exist."
+msgstr "Az aktuális célok közül %d már nem létezik."
+
+msgid "%d x %d tiles"
+msgstr "%d x %d mező"
+
+msgid "%dx %s"
+msgstr "%dx %s"
+
+msgid "%s  -  XP %d,  gold %d"
+msgstr "%s  -  TP %d,  arany %d"
+
+msgid "%s %d (no table rows)"
+msgstr "%s %d (nincsenek táblázatsorok)"
+
+msgid "%s (%s chip)"
+msgstr "%s (%s jelző)"
+
+msgid "%s (%s, part %s)"
+msgstr "%s (%s, %s. alkatrész)"
+
+msgid "%s (copied by %s): %s"
+msgstr "%s (másolta: %s): %s"
+
+msgid "%s +%d until the end of the round"
+msgstr "%s +%d a kör végéig"
+
+msgid "%s - %s chip"
+msgstr "%s - %s jelző"
+
+msgid "%s - %s triggered!\n\n%s"
+msgstr "%s - %s aktiválva!\n\n%s"
+
+msgid "%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it."
+msgstr "%s - %s aktiválva!\n\n%s véletlen fogyóeszközt kap: %s\n\nVegye fel."
+
+msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it."
+msgstr "%s - %s aktiválva!\n\n%s véletlen fejlesztett fogyóeszközt kap: %s\n\nVegye fel."
+
+msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
+msgstr "%s - %s aktiválva!\n\n%s\n\nEllenőrizzétek, hogy érvényes-e, és hajtsátok végre a táblán (az állapotot a szörnyképernyőről lehet alkalmazni)."
+
+msgid "%s - %s\nDoes %s have an injury?"
+msgstr "%s - %s\nVan sérülése ennek a hősnek: %s?"
+
+msgid "%s - %s\nHow much fatigue is on all of %s's cards?"
+msgstr "%s - %s\nMennyi fáradtság van %s összes kártyáján?"
+
+msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
+msgstr "%s - %s\nMelyik másik ellenség szenvedi el ugyanezt a sebzést? (Mégse: egyik sem)"
+
+msgid "%s - buy for %d gold, sell for %d"
+msgstr "%s - vétel %d aranyért, eladás %d aranyért"
+
+msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
+msgstr "%s - ÉE %d, Szint %d, Véd. %d, Tám. %d"
+
+msgid "%s - level %d"
+msgstr "%s - %d. szint"
+
+msgid "%s - not yet implemented."
+msgstr "%s - még nincs megvalósítva."
+
+msgid "%s \"%s\" - version %s"
+msgstr "%s „%s” - %s verzió"
+
+msgid "%s attacks %s (damage %d, %s)."
+msgstr "%s támad: %s (sebzés %d, %s)."
+
+msgid "%s attacks %s - choose a weapon"
+msgstr "%s támad: %s - válassz fegyvert"
+
+msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
+msgstr "%s támad: %s!%s\nSebzés %d - %s - Sebesség %d"
+
+msgid "%s attacks %s.\nWhich weapon?"
+msgstr "%s támad: %s.\nMelyik fegyverrel?"
+
+msgid "%s attacks %s\nwith the %s (damage %d)\n"
+msgstr "%s támad: %s\nezzel: %s (sebzés %d)\n"
+
+msgid "%s dropped something usable. %s"
+msgstr "%s elejtett valami használhatót. %s"
+
+msgid "%s dropped: %s."
+msgstr "%s elejtette: %s."
+
+msgid "%s gains %s"
+msgstr "%s megkapja: %s"
+
+msgid "%s has been defeated."
+msgstr "%s legyőzve."
+
+msgid "%s healed %d (%d hitpoints)."
+msgstr "%s meggyógyított %d életerőt (%d életerő)."
+
+msgid "%s is %s."
+msgstr "%s: %s."
+
+msgid "%s is confused!\n%s\n%s"
+msgstr "%s zavarodott!\n%s\n%s"
+
+msgid "%s is confused: %s."
+msgstr "%s zavarodott: %s."
+
+msgid "%s is immune"
+msgstr "%s immunis"
+
+msgid "%s is less likely to be its target this round"
+msgstr "%s kevésbé valószínű célpont ebben a körben"
+
+msgid "%s is no longer %s."
+msgstr "%s állapota megszűnt: %s."
+
+msgid "%s is not in the party."
+msgstr "%s nincs a csapatban."
+
+msgid "%s is up to something..."
+msgstr "%s tervez valamit..."
+
+msgid "%s lost all hitpoints. Wound %s?"
+msgstr "%s elvesztette az összes életerejét. Megsebesítsük ezt a hőst: %s?"
+
+msgid "%s performs %s against %s."
+msgstr "%s végrehajtja ezt: %s, ellene: %s."
+
+msgid "%s receives a benefit: %s."
+msgstr "%s előnyt kap: %s."
+
+msgid "%s suffers %d damage"
+msgstr "%s sebzést szenved: %d"
+
+msgid "%s takes %d affliction damage (%d hitpoints left)."
+msgstr "%s gyötrelemsebzést szenved: %d (%d életerő maradt)."
+
+msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr "%s gyötrelemsebzést szenved: %d, és legyőzik! Vedd le a tábláról."
+
+msgid "%s took %d damage (%d hitpoints left)."
+msgstr "%s sebzést szenvedett: %d (%d életerő maradt)."
+
+msgid "%s took %d damage and was defeated."
+msgstr "%s sebzést szenvedett: %d, és legyőzték."
+
+msgid "%s triggered"
+msgstr "%s aktiválva"
+
+msgid "%s was defeated during an interrupt before it could %s."
+msgstr "%s megszakítás közben vereséget szenvedett, mielőtt megtehette volna: %s."
+
+msgid "%s was wounded a third time."
+msgstr "%s harmadszor sebesült meg."
+
+msgid "%s wounded a hero - its turn is over."
+msgstr "%s megsebesített egy hőst - a köre véget ért."
+
+msgid "%s's Brew Basket provides a random consumable:"
+msgstr "%s Gyógyfüves kaskája véletlen fogyóeszközt ad:"
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
+msgstr "%s: %s!\nCél: %s - Sebzés %d - %s - Sebesség %d"
+
+msgid "%s: %s\nFixed parts: %s"
+msgstr "%s: %s\nRögzített alkatrészek: %s"
+
+msgid "%s: defense +%d until the end of the round"
+msgstr "%s: védelem +%d a kör végéig"
+
+msgid "%s: interact with '%s'"
+msgstr "%s: interakció ezzel: „%s”"
+
+msgid "%s: loot x%d (+%s)"
+msgstr "%s: zsákmány x%d (+%s)"
+
+msgid "%s: needs %d, you have %d"
+msgstr "%s: kell %d, van %d"
+
+msgid "%s: perform a %s test - how many successes?"
+msgstr "%s: hajts végre %s próbát - hány siker?"
+
+msgid "%s: the enemy has no loot"
+msgstr "%s: az ellenségnek nincs zsákmánya"
+
+msgid "%s: the enemy is not defeated, no extra loot"
+msgstr "%s: az ellenség nincs legyőzve, nincs extra zsákmány"
+
+msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
+msgstr "%s\n\nSemmi sem változott. Próbáld újra, vagy töltsd le a frissítést a kiadások oldaláról."
+
+msgid "%s\n\nYou chose: %s"
+msgstr "%s\n\nEzt választottad: %s"
+
+msgid "(attacks again)"
+msgstr "(újra támad)"
+
+msgid "(ignored) %s"
+msgstr "(figyelmen kívül hagyva) %s"
+
+msgid "(unnamed place)"
+msgstr "(névtelen hely)"
+
+msgid "(unnamed side quest)"
+msgstr "(névtelen mellékküldetés)"
+
+msgid "(your release)"
+msgstr "(a te kiadásod)"
+
+msgid "+%d damage"
+msgstr "+%d sebzés"
+
+msgid "+%d damage (rolled %d-%d)"
+msgstr "+%d sebzés (dobás: %d-%d)"
+
+msgid "+%d damage (round %d)"
+msgstr "+%d sebzés (%d. kör)"
+
+msgid "2D art - logo and main menu background"
+msgstr "2D grafika - logó és a főmenü háttere"
+
+msgid "[draft]"
+msgstr "[vázlat]"
+
+msgid "\"%s\" version %s is already installed."
+msgstr "„%s” %s verziója már telepítve van."
+
+msgid "\n%.1f MB."
+msgstr "\n%.1f MB."
+
+msgid "\n%d mission(s), %d picture(s), %.1f MB."
+msgstr "\n%d küldetés, %d kép, %.1f MB."
+
+msgid "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted."
+msgstr "\n%d mentés félre lett téve (user://campaign_saves/_removed), nem törölve."
+
+msgid "\n%d successes x %d weapon damage"
+msgstr "\n%d siker x %d fegyversebzés"
+
+msgid "\n(+%d damage from a defense ability this activation)"
+msgstr "\n(+%d sebzés egy védelmi képességből ennél az aktiválásnál)"
+
+msgid "\n(Enfeebled: damage reduced from %d)"
+msgstr "\n(Legyengült: a sebzés %d-val csökkent)"
+
+msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
+msgstr "\n\n%s megkapja a „%s” sérülést: tedd a kártyáját a játékterületedre."
+
+msgid "\n\n%s has %d hitpoints left."
+msgstr "\n\n%s életereje még %d."
+
+msgid "\n\n%s is defeated! Remove it from the board."
+msgstr "\n\n%s legyőzve! Vedd le a tábláról."
+
+msgid "\n\n%s must flip their injury card (%s) to its major side."
+msgstr "\n\n%s-nek meg kell fordítania a sérülés kártyáját (%s) a súlyos oldalára."
+
+msgid "\n\n%s must flip their injury card to its major side."
+msgstr "\n\n%s-nek meg kell fordítania a sérülés kártyáját a súlyos oldalára."
+
+msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
+msgstr "\n\nAz emlékezés markolata: állítsd %s életerejét %d-ra."
+
+msgid "\n\nThe app can't update itself here: %s. Download it from the release page."
+msgstr "\n\nAz alkalmazás itt nem tudja magát frissíteni: %s. Töltsd le a kiadások oldaláról."
+
+msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+msgstr "\n\nA folyamatban lévő küldetés bezáródik - előbb mentsd el (Beállítások > Mentés), vagy válaszd a Később lehetőséget."
+
+msgid "\n\nThis is %s's third wound - the game will be lost!"
+msgstr "\n\nEz %s harmadik sebesülése - a játék elveszett!"
+
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgstr "\n\nA vándor köve - minden hős választhatja az alternatív előnyét 1 fáradtság eldobása helyett:"
+
+msgid "\nActivation: "
+msgstr "\nAktiválás: "
+
+msgid "\nAlso some crafting materials for the party: %s."
+msgstr "\nValamint néhány kézműves anyag a csapatnak: %s."
+
+msgid "\nAt the table: "
+msgstr "\nAz asztalnál: "
+
+msgid "\nConditions applied: %s"
+msgstr "\nAlkalmazott állapotok: %s"
+
+msgid "\nExposed: +%d damage"
+msgstr "\nLeleplezett: +%d sebzés"
+
+msgid "\nImmune to: %s"
+msgstr "\nImmunis erre: %s"
+
+msgid "\nImmune! The attack does no damage.\n\n0 damage dealt"
+msgstr "\nImmunis! A támadás nem okoz sebzést.\n\n0 sebzés okozva"
+
+msgid "\nIn development (a draft)"
+msgstr "\nFejlesztés alatt (vázlat)"
+
+msgid "\nLoot for the party: %s."
+msgstr "\nZsákmány a csapatnak: %s."
+
+msgid "\nNo free spawn tile for: %s - place them next to the others."
+msgstr "\nNincs szabad megjelenési mező ehhez: %s - tedd őket a többiek mellé."
+
+msgid "\nNot installed yet - open it to install."
+msgstr "\nMég nincs telepítve - nyisd meg a telepítéshez."
+
+msgid "\nResistance: -%d damage"
+msgstr "\nEllenállás: -%d sebzés"
+
+msgid "\nThe package was checked: it only contains game data."
+msgstr "\nA csomagot ellenőriztük: csak játékadatokat tartalmaz."
+
+msgid "\nWeakness: +%d damage"
+msgstr "\nGyengeség: +%d sebzés"
+
+msgid "\nWeapon parts and trinket: "
+msgstr "\nFegyveralkatrészek és holmi: "
+
+msgid "a %s armor upgrade"
+msgstr "%s páncélfejlesztés"
+
+msgid "a %s part recipe"
+msgstr "%s alkatrész-recept"
+
+msgid "a %s part upgrade"
+msgstr "%s alkatrész-fejlesztés"
+
+msgid "a %s recipe"
+msgstr "%s recept"
+
+msgid "a %s upgrade"
+msgstr "%s fejlesztés"
+
+msgid "A campaign"
+msgstr "Egy kampány"
+
+msgid "a hero"
+msgstr "egy hős"
+
+msgid "a new area"
+msgstr "egy új terület"
+
+msgid "a potion recipe"
+msgstr "egy főzetrecept"
+
+msgid "A save game called '%s' already exists."
+msgstr "Már létezik „%s” nevű mentés."
+
+msgid "A save game needs a name."
+msgstr "A mentésnek nevet kell adni."
+
+msgid "a shipment of %s armor"
+msgstr "%s páncélszállítmány"
+
+msgid "a shipment of armor"
+msgstr "páncélszállítmány"
+
+msgid "A single mission"
+msgstr "Egyetlen küldetés"
+
+msgid "A snapshot can be taken in the player phase, with no dialog open."
+msgstr "Pillanatfelvétel a játékosok fázisában készíthető, nyitott párbeszédablak nélkül."
+
+msgid "a trinket"
+msgstr "egy holmi"
+
+msgid "a trinket upgrade"
+msgstr "egy holmifejlesztés"
+
+msgid "Act complete!"
+msgstr "A felvonás befejeződött!"
+
+msgid "Add language"
+msgstr "Nyelv hozzáadása"
+
+msgid "adds %d damage to its next activation"
+msgstr "%d sebzést ad a következő aktiválásához"
+
+msgid "Afflicted"
+msgstr "Gyötört"
+
+msgid "Affliction"
+msgstr "Gyötrelem"
+
+msgid "affliction damage +%d this round"
+msgstr "gyötrelemsebzés +%d ebben a körben"
+
+msgid "Agility"
+msgstr "Ügyesség"
+
+msgid "all its statuses are removed"
+msgstr "minden állapota megszűnik"
+
+msgid "an armor upgrade"
+msgstr "egy páncélfejlesztés"
+
+msgid "an unknown author"
+msgstr "ismeretlen szerző"
+
+msgid "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+msgstr "Nem hivatalos rajongói projekt, szabadon használható (MIT licenc).\n*Descent: A sötétség legendái* és a játék minden eleme a tulajdonosaiké."
+
+msgid "Anemos"
+msgstr "Anemos"
+
+msgid "Anemos (wind)"
+msgstr "Anemos (szél)"
+
+msgid "App update"
+msgstr "Alkalmazásfrissítés"
+
+msgid "Applied: "
+msgstr "Alkalmazva: "
+
+msgid "Apply conditions"
+msgstr "Állapotok alkalmazása"
+
+msgid "Aquos"
+msgstr "Aquos"
+
+msgid "Aquos (water)"
+msgstr "Aquos (víz)"
+
+msgid "Armor"
+msgstr "Páncél"
+
+msgid "Armor upgrade: "
+msgstr "Páncélfejlesztés: "
+
+msgid "Armor: "
+msgstr "Páncél: "
+
+msgid "Armor…"
+msgstr "Páncél…"
+
+msgid "At the table:"
+msgstr "Az asztalnál:"
+
+msgid "Attack"
+msgstr "Támadás"
+
+msgid "attack %s"
+msgstr "támad: %s"
+
+msgid "Attack abilities: %s"
+msgstr "Támadási képességek: %s"
+
+msgid "attack gains %s"
+msgstr "a támadás megkapja: %s"
+
+msgid "Available now: %s"
+msgstr "Most elérhető: %s"
+
+msgid "Back"
+msgstr "Vissza"
+
+msgid "Back to Editor"
+msgstr "Vissza a szerkesztőhöz"
+
+msgid "Back to editor"
+msgstr "Vissza a szerkesztőhöz"
+
+msgid "Back to Menu"
+msgstr "Vissza a menübe"
+
+msgid "becomes afflicted"
+msgstr "gyötörtté válik"
+
+msgid "Begin Campaign"
+msgstr "Kampány indítása"
+
+msgid "Bone"
+msgstr "Csont"
+
+msgid "Bought"
+msgstr "Megvéve"
+
+msgid "bow"
+msgstr "íj"
+
+msgid "Brew"
+msgstr "Főzés"
+
+msgid "Brew Basket"
+msgstr "Gyógyfüves kaska"
+
+msgid "Buy"
+msgstr "Vásárlás"
+
+msgid "Buy  %d"
+msgstr "Vásárlás  %d"
+
+msgid "Buy  %d gold"
+msgstr "Vásárlás  %d arany"
+
+msgid "Buy recipe  %d gold"
+msgstr "Recept vásárlása  %d arany"
+
+msgid "by "
+msgstr "szerző: "
+
+msgid "by %s"
+msgstr "szerző: %s"
+
+msgid "Campaign"
+msgstr "Kampány"
+
+msgid "Campaign complete"
+msgstr "A kampány befejeződött"
+
+msgid "Campaign complete! (%s)"
+msgstr "A kampány befejeződött! (%s)"
+
+msgid "Campaign editor"
+msgstr "Kampányszerkesztő"
+
+msgid "Campaign Log"
+msgstr "Kampánynapló"
+
+msgid "Can %s attack a second hero?"
+msgstr "Támadhat %s egy második hőst?"
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "Cancel download"
+msgstr "Letöltés megszakítása"
+
+msgid "Cauterization"
+msgstr "Sebkiégetés"
+
+msgid "Cautious"
+msgstr "Óvatos"
+
+msgid "Centre to centre (strict)"
+msgstr "Középpont-középpont (szigorú)"
+
+msgid "Centre to corner (recommended)"
+msgstr "Középpont-sarok (ajánlott)"
+
+msgid "Chapter"
+msgstr "Fejezet"
+
+msgid "Chapter \"%s\" that you already completed is not in the new version."
+msgstr "A „%s” fejezet, amelyet már befejeztél, nincs az új verzióban."
+
+msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
+msgstr "A „%s” fejezet, ahol most vagy, nincs az új verzió %d. felvonásában."
+
+msgid "Check for a newer version of the app at the main menu"
+msgstr "Újabb alkalmazásverzió keresése a főmenüben"
+
+msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+msgstr "A láda, a kapu, a fa és a kút a játék saját modelljeit használja a Játékerőforrások > Importálás után. Ki = az alkalmazással érkező kellékek. A térkép következő megnyitásakor lép életbe."
+
+msgid "Choose a package"
+msgstr "Válassz csomagot"
+
+msgid "Choose a package file…"
+msgstr "Válassz csomagfájlt…"
+
+msgid "Choose a weapon"
+msgstr "Válassz fegyvert"
+
+msgid "Choose the folder the game is installed in"
+msgstr "Válaszd ki a mappát, ahová a játék telepítve van"
+
+msgid "Choose the game folder…"
+msgstr "Játékmappa kiválasztása…"
+
+msgid "Choose two weapons per hero (and optional attachments)"
+msgstr "Válassz két fegyvert hősönként (és opcionális tartozékokat)"
+
+msgid "Choose your party"
+msgstr "Válaszd ki a csapatod"
+
+msgid "Close"
+msgstr "Bezárás"
+
+msgid "Cloth"
+msgstr "Kelme"
+
+msgid "Common"
+msgstr "Általános"
+
+msgid "Community"
+msgstr "Közösség"
+
+msgid "Community list"
+msgstr "Közösségi lista"
+
+msgid "Conditions"
+msgstr "Állapotok"
+
+msgid "Conditions (%d)"
+msgstr "Állapotok (%d)"
+
+msgid "Confirm"
+msgstr "Jóváhagy"
+
+msgid "Confused"
+msgstr "Zavarodott"
+
+msgid "Consumables"
+msgstr "Fogyóeszközök"
+
+msgid "Consumables…"
+msgstr "Fogyóeszközök…"
+
+msgid "Continue"
+msgstr "Folytatás"
+
+msgid "Continue this game"
+msgstr "A játék folytatása"
+
+msgid "Converting models... %s (%s)"
+msgstr "Modellek átalakítása... %s (%s)"
+
+msgid "copies %s"
+msgstr "másolja: %s"
+
+msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+msgstr "Ezt az írásvédett kiadást egy új vázlatba másolja, amelyet módosíthatsz. Maga a kiadás és a mentései változatlanok maradnak."
+
+msgid "Corner to corner (loose, Descent 2)"
+msgstr "Sarok-sarok (laza, Descent 2)"
+
+msgid "Cost: %s"
+msgstr "Költség: %s"
+
+msgid "Could not fork %s."
+msgstr "Nem sikerült megkettőzni: %s."
+
+msgid "Could not open that save game."
+msgstr "Nem sikerült megnyitni ezt a mentést."
+
+msgid "Could not open the campaign '%s'."
+msgstr "Nem sikerült megnyitni a(z) „%s” kampányt."
+
+msgid "Couldn't start the %s download (error %d)."
+msgstr "Nem sikerült elindítani a letöltést: %s (hiba: %d)."
+
+msgid "Couldn't unpack the %s (tar exit code %d)."
+msgstr "Nem sikerült kicsomagolni: %s (tar kilépési kód: %d)."
+
+msgid "Couldn't unpack the narration engine (tar exit code %d)."
+msgstr "Nem sikerült kicsomagolni a narrációs motort (tar kilépési kód: %d)."
+
+msgid "Couldn't write %s (error %d)."
+msgstr "Nem sikerült írni: %s (hiba: %d)."
+
+msgid "Count as lost"
+msgstr "Vereségként számít"
+
+msgid "Count as won"
+msgstr "Győzelemként számít"
+
+msgid "Created by"
+msgstr "Készítette"
+
+msgid "Credits"
+msgstr "Készítők"
+
+msgid "crossbow"
+msgstr "számszeríj"
+
+msgid "Crush"
+msgstr "Zúzás"
+
+msgid "Curios"
+msgstr "Kuriózum"
+
+msgid "Current objective"
+msgstr "Aktuális cél"
+
+msgid "Damage"
+msgstr "Sebzés"
+
+msgid "damage %d"
+msgstr "sebzés %d"
+
+msgid "damage +%d for good (now %d)"
+msgstr "sebzés +%d tartósan (most %d)"
+
+msgid "damage -%d"
+msgstr "sebzés -%d"
+
+msgid "Damage Type"
+msgstr "Sebzés típusa"
+
+msgid "Dazed"
+msgstr "Kábult"
+
+msgid "Defeat."
+msgstr "Vereség."
+
+msgid "Defeated"
+msgstr "Legyőzve"
+
+msgid "defense %+d until the end of the round (now %d)"
+msgstr "védelem %+d a kör végéig (most %d)"
+
+msgid "defense +%d during this attack"
+msgstr "védelem +%d e támadás alatt"
+
+msgid "defense +%d for good (now %d)"
+msgstr "védelem +%d tartósan (most %d)"
+
+msgid "defense -%d"
+msgstr "védelem -%d"
+
+msgid "defense -%d this round"
+msgstr "védelem -%d ebben a körben"
+
+msgid "Defense abilities: %s"
+msgstr "Védelmi képességek: %s"
+
+msgid "defense ability deactivated for the next attack"
+msgstr "védelmi képesség kikapcsolva a következő támadásra"
+
+msgid "defense ability deactivated until the end of the round"
+msgstr "védelmi képesség kikapcsolva a kör végéig"
+
+msgid "Defense ability deactivated."
+msgstr "Védelmi képesség kikapcsolva."
+
+msgid "Defense ability: %s"
+msgstr "Védelmi képesség: %s"
+
+msgid "Delete the save game '%s'?"
+msgstr "Törlöd a(z) „%s” mentést?"
+
+msgid "Delete this save game"
+msgstr "Mentés törlése"
+
+msgid "Did %s deal damage to %s?"
+msgstr "Okozott %s sebzést ennek: %s?"
+
+msgid "Did %s pass the test?"
+msgstr "Átment %s a próbán?"
+
+msgid "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."
+msgstr "Visszavonulást hallottam? Mozogj legfeljebb {speed} mezőt, a lehető legmesszebb a hősöktől."
+
+msgid "Did not trigger: "
+msgstr "Nem aktiválódott: "
+
+msgid "Didn't catch a number in range"
+msgstr "Nem hallottam érvényes számot"
+
+msgid "Didn't catch anything - hold %s and try again"
+msgstr "Nem hallottam semmit - tartsd nyomva: %s, és próbáld újra"
+
+msgid "Didn't catch that"
+msgstr "Nem értettem"
+
+msgid "Didn't catch which option"
+msgstr "Az opciót nem ismertem fel"
+
+msgid "Done"
+msgstr "Kész"
+
+msgid "Done - restart the app to see everything."
+msgstr "Kész - indítsd újra az alkalmazást, hogy mindent lássál."
+
+msgid "Done. The updated copy is in the list."
+msgstr "Kész. A frissített másolat a listában van."
+
+msgid "Doomed"
+msgstr "Kárhozott"
+
+msgid "Download extra voices - accents (%s)"
+msgstr "További hangok letöltése - akcentusok (%s)"
+
+msgid "Download more voices - plain English (%s)"
+msgstr "További hangok letöltése - hétköznapi angol (%s)"
+
+msgid "Downloading %s... %d MB"
+msgstr "Letöltés: %s... %d MB"
+
+msgid "Downloading %s... %d%% (%d / %d MB)"
+msgstr "Letöltés: %s... %d %% (%d / %d MB)"
+
+msgid "Downloading the update…"
+msgstr "A frissítés letöltése…"
+
+msgid "dual blades"
+msgstr "páros pengék"
+
+msgid "each enemy suffers %d damage (trigger %d)"
+msgstr "minden ellenség %d sebzést szenved (%d. aktiválás)"
+
+msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
+msgstr "Minden játékos %d db-ot vihet a küldetésbe%s. A kézműves fogyóeszközök minden küldetésben újra elérhetők - egy sem fogy el."
+
+msgid "Editor"
+msgstr "Szerkesztő"
+
+msgid "Enable voice"
+msgstr "Hang bekapcsolása"
+
+msgid "Ending soon: this side quest is gone once \"%s\" is won."
+msgstr "Hamarosan vége: ez a mellékküldetés eltűnik, ha a(z) „%s” megvan nyerve."
+
+msgid "Enfeebled"
+msgstr "Legyengült"
+
+msgid "Essences"
+msgstr "Esszenciák"
+
+msgid "Exposed"
+msgstr "Leleplezett"
+
+msgid "FAILED"
+msgstr "SIKERTELEN"
+
+msgid "Failed to load mission: %s"
+msgstr "A küldetés betöltése sikertelen: %s"
+
+msgid "Failed to save - see the Output panel for details."
+msgstr "A mentés sikertelen - a részletek a Kimenet panelen."
+
+msgid "Feats"
+msgstr "Teljesítmények"
+
+msgid "first"
+msgstr "első"
+
+msgid "Fixed hero (%s)"
+msgstr "Rögzített hős (%s)"
+
+msgid "Flip your hero card"
+msgstr "Fordítsd meg a hősöd kártyáját"
+
+msgid "Floor tiles"
+msgstr "Padlólapok"
+
+msgid "Focus 2 cards"
+msgstr "2 kártya fókuszálása"
+
+msgid "Forge"
+msgstr "Kovácsolás"
+
+msgid "Fork to edit"
+msgstr "Megkettőzés szerkesztéshez"
+
+msgid "Forked %s into your draft \"%s\" - open it in the %s editor."
+msgstr "%s megkettőzve a(z) „%s” vázlatodba - nyisd meg a(z) %s szerkesztőben."
+
+msgid "Fortunos"
+msgstr "Fortunos"
+
+msgid "Fortunos (luck)"
+msgstr "Fortunos (szerencse)"
+
+msgid "Frantic"
+msgstr "Eszeveszett"
+
+msgid "free"
+msgstr "szabad"
+
+msgid "Friendly fire"
+msgstr "Baráti tűz"
+
+msgid "Frustrated"
+msgstr "Csalódott"
+
+msgid "gains %s"
+msgstr "megkapja: %s"
+
+msgid "Game %04d-%02d-%02d %02d:%02d"
+msgstr "Játék %04d-%02d-%02d %02d:%02d"
+
+msgid "Game assets"
+msgstr "Játékerőforrások"
+
+msgid "Game found:\n%s"
+msgstr "Játék megtalálva:\n%s"
+
+msgid "Gameplay"
+msgstr "Játékmenet"
+
+msgid "gauntlet"
+msgstr "páncélkesztyű"
+
+msgid "General"
+msgstr "Általános"
+
+msgid "Gives the armor: %s%s - %s"
+msgstr "Ezt a páncélt adja: %s%s - %s"
+
+msgid "Gives the rune: %s"
+msgstr "Ezt a rúnát adja: %s"
+
+msgid "Gives the trinket: %s%s - %s"
+msgstr "Ezt a holmit adja: %s%s - %s"
+
+msgid "Gives the weapon: %s%s"
+msgstr "Ezt a fegyvert adja: %s%s"
+
+msgid "Gives: %s"
+msgstr "Ezt adja: %s"
+
+msgid "gloves"
+msgstr "kesztyű"
+
+msgid "Gold"
+msgstr "Arany"
+
+msgid "Gold: %d"
+msgstr "Arany: %d"
+
+msgid "Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."
+msgstr "Kaptál valakitől csomagot? Válaszd ki a fájlt, vagy illeszd be a webcímét. Látod, mi van benne és ki készítette, mielőtt bármi telepítve lenne."
+
+msgid "Green"
+msgstr "Zöld"
+
+msgid "Guard the gate"
+msgstr "A kapu őrzése"
+
+msgid "hammer"
+msgstr "kalapács"
+
+msgid "Hardened Skin"
+msgstr "Bőrkeményedés"
+
+msgid "Heal"
+msgstr "Gyógyítás"
+
+msgid "Heal 2"
+msgstr "Gyógyítás 2"
+
+msgid "Heal 4"
+msgstr "Gyógyítás 4"
+
+msgid "Healthy"
+msgstr "Egészséges"
+
+msgid "Hear the story teller"
+msgstr "A mesélő meghallgatása"
+
+msgid "Hear this voice"
+msgstr "E hang meghallgatása"
+
+msgid "Heard: %s"
+msgstr "Hallott: %s"
+
+msgid "Heavily wounded"
+msgstr "Súlyosan sebesült"
+
+msgid "Heavy Hands"
+msgstr "Esetlen"
+
+msgid "Heavy Heart"
+msgstr "Búskomor"
+
+msgid "Herbs"
+msgstr "Gyógynövény"
+
+msgid "hero models"
+msgstr "hősmodellek"
+
+msgid "Hero voices"
+msgstr "Hősök hangjai"
+
+msgid "Heroes"
+msgstr "Hősök"
+
+msgid "Hesitant"
+msgstr "Tétova"
+
+msgid "Hitpoints %d / %d"
+msgstr "Életerő %d / %d"
+
+msgid "Hold %s to talk"
+msgstr "Tartsd nyomva: %s a beszédhez"
+
+msgid "Horn of Courage"
+msgstr "A bátorság kürtje"
+
+msgid "Horn of Courage - %s was wounded."
+msgstr "A bátorság kürtje - %s megsebesült."
+
+msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
+msgstr "Vidd az egeret egy páncél fölé a szabályaiért. A páncélt viselik, és az asztalnál dől el a hatása."
+
+msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+msgstr "Hogyan dönti el a látóvonal-eszköz, hogy két mező látja-e egymást. Középpont-sarok: egy vonal a megfigyelő mezejének közepéről a cél bármelyik sarkába."
+
+msgid "HP %d · Level %d"
+msgstr "ÉE %d · %d. szint"
+
+msgid "Ignos"
+msgstr "Ignos"
+
+msgid "Ignos (fire)"
+msgstr "Ignos (tűz)"
+
+msgid "immune to %s"
+msgstr "immunis erre: %s"
+
+msgid "Immune to conditions: %s"
+msgstr "Immunis az állapotokra: %s"
+
+msgid "Immune to: "
+msgstr "Immunis erre: "
+
+msgid "Immune: %s"
+msgstr "Immunis: %s"
+
+msgid "Immunity: %s"
+msgstr "Immunitás: %s"
+
+msgid "Import"
+msgstr "Importálás"
+
+msgid "Import finished, but not everything worked."
+msgstr "Az importálás befejeződött, de nem minden sikerült."
+
+msgid "Import finished."
+msgstr "Az importálás befejeződött."
+
+msgid "Import game assets"
+msgstr "Játékerőforrások importálása"
+
+msgid "Imported so far: %s."
+msgstr "Eddig importálva: %s."
+
+msgid "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
+msgstr "Az alkalmazáson belüli importálás még nem érhető el ezen a számítógépen - használd inkább az erőforrás-eszközöket a kiadások oldaláról."
+
+msgid "IN DEVELOPMENT"
+msgstr "FEJLESZTÉS ALATT"
+
+msgid "Input device: %s"
+msgstr "Beviteli eszköz: %s"
+
+msgid "Install"
+msgstr "Telepítés"
+
+msgid "Install and restart"
+msgstr "Telepítés és újraindítás"
+
+msgid "Install by hand"
+msgstr "Telepítés kézzel"
+
+msgid "Install this package?"
+msgstr "Telepíted ezt a csomagot?"
+
+msgid "Installed"
+msgstr "Telepítve"
+
+msgid "Installed \"%s\" v%s."
+msgstr "„%s” v%s telepítve."
+
+msgid "Installed \"%s\"."
+msgstr "„%s” telepítve."
+
+msgid "Installing…"
+msgstr "Telepítés…"
+
+msgid "Installing… the app closes and starts again by itself."
+msgstr "Telepítés… az alkalmazás bezárul, és magától újraindul."
+
+msgid "Intelligence"
+msgstr "Intelligencia"
+
+msgid "Interrupt"
+msgstr "Megszakítás"
+
+msgid "Interrupt - the players act"
+msgstr "Megszakítás - a játékosok lépnek"
+
+msgid "Inventory"
+msgstr "Készlet"
+
+msgid "It stays as it is; you can keep playing it on its own version."
+msgstr "Úgy marad, ahogy van; játszhatsz vele tovább a saját verzióján."
+
+msgid "Language"
+msgstr "Nyelv"
+
+msgid "Languages"
+msgstr "Nyelvek"
+
+msgid "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"
+msgstr "Üss a legközelebbi másik szörnyre: {damage} sebzést szenved. (Nyomd meg a Megszakítást, kattints arra a szörnyre a szörnynézetben, és alkalmazd a sebzést.)"
+
+msgid "Later"
+msgstr "Később"
+
+msgid "Leather"
+msgstr "Bőr"
+
+msgid "Leaves after the next chapter!"
+msgstr "A következő fejezet után eltűnik!"
+
+msgid "Level %d - "
+msgstr "%d. szint - "
+
+msgid "Line of Sight"
+msgstr "Látóvonal"
+
+msgid "Line of Sight (on)"
+msgstr "Látóvonal (be)"
+
+msgid "Line of sight rule"
+msgstr "Látóvonal-szabály"
+
+msgid "Listening... release %s to send"
+msgstr "Hallgatom... engedd el: %s a küldéshez"
+
+msgid "Load a mission save"
+msgstr "Küldetésmentés betöltése"
+
+msgid "Load game"
+msgstr "Játék betöltése"
+
+msgid "Look for campaigns shared by the community"
+msgstr "A közösség által megosztott kampányok keresése"
+
+msgid "Looking for shared campaigns…"
+msgstr "Megosztott kampányok keresése…"
+
+msgid "Loot"
+msgstr "Zsákmány"
+
+msgid "Loot for the party: "
+msgstr "Zsákmány a csapatnak: "
+
+msgid "Lucky Charm"
+msgstr "Szerencsehozó amulett"
+
+msgid "Lumos"
+msgstr "Lumos"
+
+msgid "Lumos (light)"
+msgstr "Lumos (fény)"
+
+msgid "Lunge, no bite"
+msgstr "Kitörés, harapás nélkül"
+
+msgid "Mage-Sight Goggles"
+msgstr "Varázslátó szemüveg"
+
+msgid "Mage-Sight Goggles - %s gains an additional action!"
+msgstr "Varázslátó szemüveg - %s egy további akciót kap!"
+
+msgid "Make a copy of '%s' on v%s?"
+msgstr "Másolat készítése erről: „%s” a v%s verzión?"
+
+msgid "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+msgstr "Frissített MÁSOLATOT készít ebből a mentésből az újabb verzión. Az eredeti változatlan marad."
+
+msgid "Materials"
+msgstr "Anyagok"
+
+msgid "maximum health -%d (now %d)"
+msgstr "maximális életerő -%d (most %d)"
+
+msgid "melee"
+msgstr "közelharc"
+
+msgid "Message"
+msgstr "Üzenet"
+
+msgid "Metal"
+msgstr "Fém"
+
+msgid "Minerals"
+msgstr "Ásvány"
+
+msgid "Mission"
+msgstr "Küldetés"
+
+msgid "Mission editor"
+msgstr "Küldetésszerkesztő"
+
+msgid "Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."
+msgstr "Más játékosok által készített küldetések és kampányok. Minden telepítés előtt ellenőrzésre kerül - egy csomag csak játékadatokat tartalmazhat, soha kódot - és minden verzió a többi mellé települ, így semmi, amit készítettél vagy mentettél, nem íródik felül."
+
+msgid "Models converted: %d%s"
+msgstr "Átalakított modellek: %d%s"
+
+msgid "Monster"
+msgstr "Szörny"
+
+msgid "Monster action"
+msgstr "Szörny akciója"
+
+msgid "Monster attack"
+msgstr "Szörny támadása"
+
+msgid "monster figures"
+msgstr "szörnyfigurák"
+
+msgid "Monster phase"
+msgstr "Szörnyek fázisa"
+
+msgid "Monster Phase"
+msgstr "Szörnyek fázisa"
+
+msgid "Monster tactic"
+msgstr "Szörny taktikája"
+
+msgid "Monsters appear"
+msgstr "Szörnyek jelennek meg"
+
+msgid "More than one matches - say a number"
+msgstr "Több is egyezik - mondj egy számot"
+
+msgid "Mortos"
+msgstr "Mortos"
+
+msgid "Mortos (dead)"
+msgstr "Mortos (halál)"
+
+msgid "Move camera to player and monster spawns"
+msgstr "Kamera mozgatása a játékosok és a szörnyek megjelenési helyére"
+
+msgid "Move up to {speed} tiles in a random direction."
+msgstr "Mozogj legfeljebb {speed} mezőt véletlen irányba."
+
+msgid "Move up to {speed} tiles to the closest gate and guard it."
+msgstr "Mozogj legfeljebb {speed} mezőt a legközelebbi kapuhoz, és őrizd."
+
+msgid "Move up to {speed} tiles to the nearest pillar and hide behind it."
+msgstr "Mozogj legfeljebb {speed} mezőt a legközelebbi oszlophoz, és bújj mögé."
+
+msgid "Move up to {speed} tiles towards the closest tree."
+msgstr "Mozogj legfeljebb {speed} mezőt a legközelebbi fa felé."
+
+msgid "Move up to {speed} tiles towards the nearest hero - but do not attack."
+msgstr "Mozogj legfeljebb {speed} mezőt a legközelebbi hős felé - de ne támadj."
+
+msgid "Moved to v%s"
+msgstr "Átállítva: v%s"
+
+msgid "Narration"
+msgstr "Narráció"
+
+msgid "Narration is set up."
+msgstr "A narráció be van állítva."
+
+msgid "Narration isn't available on %s."
+msgstr "A narráció nem érhető el ezen: %s."
+
+msgid "Narration isn't set up yet - the story is shown as text only."
+msgstr "A narráció még nincs beállítva - a történet csak szövegként jelenik meg."
+
+msgid "Narration setup isn't supported on %s yet."
+msgstr "A narráció beállítása még nem támogatott ezen: %s."
+
+msgid "New game"
+msgstr "Új játék"
+
+msgid "Next"
+msgstr "Következő"
+
+msgid "No"
+msgstr "Nem"
+
+msgid "No %s."
+msgstr "Nincs: %s."
+
+msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
+msgstr "Nincs alapsablon ehhez: %s - nem jelent meg (javítsd a küldetést a Készítőben)."
+
+msgid "No colour chip left for: %s - not spawned."
+msgstr "Nincs több színjelző ehhez: %s - nem jelent meg."
+
+msgid "No description."
+msgstr "Nincs leírás."
+
+msgid "no enemy to damage"
+msgstr "nincs ellenség, amelyet sebezni lehetne"
+
+msgid "No map image - choose one for this act"
+msgstr "Nincs térképkép - válassz egyet ehhez a felvonáshoz"
+
+msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
+msgstr "Nincs ismert recept: előbb importáld a játékadatokat (Játékerőforrások a főmenüben)."
+
+msgid "No recipes for sale right now."
+msgstr "Jelenleg nincs eladó recept."
+
+msgid "No recipes yet - they are bought at a recipe shop."
+msgstr "Még nincsenek receptek - receptboltban lehet venni őket."
+
+msgid "No save games yet - start one with New game."
+msgstr "Még nincsenek mentések - kezdj egyet az Új játékkal."
+
+msgid "None yet - materials come from defeated monsters, missions and the market."
+msgstr "Még nincs - az anyagok legyőzött szörnyektől, küldetésekből és a piacról jönnek."
+
+msgid "Not everything worked. What did work is in place - restart the app to see it."
+msgstr "Nem minden sikerült. Ami sikerült, a helyén van - indítsd újra az alkalmazást, hogy lásd."
+
+msgid "Note:"
+msgstr "Megjegyzés:"
+
+msgid "Nothing for sale here."
+msgstr "Itt nincs mit venni."
+
+msgid "Nothing has been imported yet - the app shows placeholders."
+msgstr "Még semmi sincs importálva - az alkalmazás helyőrzőket mutat."
+
+msgid "Nothing has happened yet."
+msgstr "Még nem történt semmi."
+
+msgid "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
+msgstr "Itt még nincs semmi. Nyomd meg a frissítés ikont, hogy lásd, mit osztott meg a közösség, vagy adj ki saját kampányt a kampányszerkesztőben."
+
+msgid "Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."
+msgstr "Még nincs semmi telepítve. Használd a frissítés ikont az Új játék képernyőn megosztott kampányok kereséséhez, vagy telepíts kézzel csomagot lent."
+
+msgid "Nothing new in the community list."
+msgstr "Nincs semmi új a közösségi listában."
+
+msgid "Nothing yet."
+msgstr "Még semmi."
+
+msgid "Notice"
+msgstr "Értesítés"
+
+msgid "Objective"
+msgstr "Cél"
+
+msgid "Offline - showing the last community list. "
+msgstr "Offline - az utolsó közösségi listát mutatja. "
+
+msgid "ok"
+msgstr "ok"
+
+msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+msgstr "Csak a GitHubtól kérdezi, melyik a legújabb verzió. A kattintásod nélkül semmi sem töltődik le vagy települ."
+
+msgid "Open campaigns"
+msgstr "Kampányok megnyitása"
+
+msgid "Options"
+msgstr "Beállítások"
+
+msgid "Or a web address (https://…) of a package file:"
+msgstr "Vagy egy csomagfájl webcíme (https://…):"
+
+msgid "Orange"
+msgstr "Narancs"
+
+msgid "Overlays"
+msgstr "Rávetítések"
+
+msgid "Part %s: none"
+msgstr "%s alkatrész: nincs"
+
+msgid "Parts (B and C)"
+msgstr "Alkatrészek (B és C)"
+
+msgid "perform %s"
+msgstr "végrehajtás: %s"
+
+msgid "Perform a %s test - how many successes?"
+msgstr "Hajts végre %s próbát - hány siker?"
+
+msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
+msgstr "Válassz hangot minden hősnek. A története során elhangzó sorai ezzel olvasódnak fel, és senki más nem használja."
+
+msgid "Pierce"
+msgstr "Szúrás"
+
+msgid "Pillars"
+msgstr "Oszlopok"
+
+msgid "Place the monsters on the map as shown."
+msgstr "Tedd a szörnyeket a térképre a mutatott módon."
+
+msgid "Place your player figures in the highlighted area, then confirm."
+msgstr "Tedd a játékosfigurákat a kiemelt területre, majd erősítsd meg."
+
+msgid "Play"
+msgstr "Játék"
+
+msgid "Play mission"
+msgstr "Küldetés játszása"
+
+msgid "Play one mission"
+msgstr "Egy küldetés játszása"
+
+msgid "Play this chapter"
+msgstr "E fejezet játszása"
+
+msgid "Play this side quest"
+msgstr "E mellékküldetés játszása"
+
+msgid "Player Phase"
+msgstr "Játékosok fázisa"
+
+msgid "Player phase"
+msgstr "Játékosok fázisa"
+
+msgid "Playtest"
+msgstr "Próba"
+
+msgid "Playtest:"
+msgstr "Próba:"
+
+msgid "Preferred targets: %s"
+msgstr "Előnyben részesített célpontok: %s"
+
+msgid "Prepare 2 cards"
+msgstr "2 kártya előkészítése"
+
+msgid "Prepare a card"
+msgstr "Egy kártya előkészítése"
+
+msgid "Props"
+msgstr "Kellékek"
+
+msgid "Purple"
+msgstr "Lila"
+
+msgid "Push to talk (hold %s)"
+msgstr "Nyomd meg a beszédhez (tartsd nyomva: %s)"
+
+msgid "Quest"
+msgstr "Küldetés"
+
+msgid "Quest Log"
+msgstr "Küldetésnapló"
+
+msgid "Quit"
+msgstr "Kilépés"
+
+msgid "Random (from the name)"
+msgstr "Véletlen (a névből)"
+
+msgid "range %d"
+msgstr "hatótávolság %d"
+
+msgid "Range %d"
+msgstr "Hatótávolság %d"
+
+msgid "range %d, reach"
+msgstr "hatótávolság %d, elérés"
+
+msgid "Range %d, reach"
+msgstr "Hatótávolság %d, elérés"
+
+msgid "Read in this language earlier"
+msgstr "Korábban olvasva ezen a nyelven"
+
+msgid "Read in this language later"
+msgstr "Később olvasva ezen a nyelven"
+
+msgid "Read the story aloud"
+msgstr "A történet felolvasása"
+
+msgid "Read this chapter"
+msgstr "E fejezet elolvasása"
+
+msgid "Recipe - tier %d"
+msgstr "Recept - %d. fokozat"
+
+msgid "Recipe: "
+msgstr "Recept: "
+
+msgid "Recipes"
+msgstr "Receptek"
+
+msgid "recovers %d health"
+msgstr "visszanyer %d életerőt"
+
+msgid "recovers %d health (now %d / %d)"
+msgstr "visszanyer %d életerőt (most %d / %d)"
+
+msgid "Release page"
+msgstr "Kiadások oldala"
+
+msgid "Remove"
+msgstr "Eltávolítás"
+
+msgid "Remove \"%s\" version %s from this computer?%s"
+msgstr "Eltávolítod a(z) „%s” %s verzióját erről a számítógépről?%s"
+
+msgid "Remove a single condition"
+msgstr "Egyetlen állapot eltávolítása"
+
+msgid "Remove all conditions of a given type"
+msgstr "Egy adott típusú összes állapot eltávolítása"
+
+msgid "Remove all fatigue from a single card"
+msgstr "Az összes fáradtság eltávolítása egyetlen kártyáról"
+
+msgid "Removed %s v%s."
+msgstr "%s v%s eltávolítva."
+
+msgid "Resistance: %s"
+msgstr "Ellenállás: %s"
+
+msgid "Resistant: %s"
+msgstr "Ellenálló: %s"
+
+msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgstr "Old meg a fertőzést és a rémületet. Minden hős eldobhat 1 fáradtságot."
+
+msgid "Restart needed"
+msgstr "Újraindítás szükséges"
+
+msgid "Restart now"
+msgstr "Újraindítás most"
+
+msgid "Resume monster attack"
+msgstr "A szörny támadásának folytatása"
+
+msgid "Retreat"
+msgstr "Visszavonulás"
+
+msgid "reveals weakness to %s"
+msgstr "felfedi a gyengeséget ellene: %s"
+
+msgid "Reward: "
+msgstr "Jutalom: "
+
+msgid "Round %d - %s"
+msgstr "%d. kör - %s"
+
+msgid "Rules Reference"
+msgstr "Szabályjegyzék"
+
+msgid "Rune"
+msgstr "Rúna"
+
+msgid "rune"
+msgstr "rúna"
+
+msgid "Rune: "
+msgstr "Rúna: "
+
+msgid "Runes"
+msgstr "Rúnák"
+
+msgid "Save"
+msgstr "Mentés"
+
+msgid "Save game"
+msgstr "Mentés"
+
+msgid "Saved."
+msgstr "Mentve."
+
+msgid "second"
+msgstr "második"
+
+msgid "Sell  %d"
+msgstr "Eladás  %d"
+
+msgid "Set up narration (downloads %s)"
+msgstr "Narráció beállítása (letölt: %s)"
+
+msgid "Set up voice control (downloads %s)"
+msgstr "Hangvezérlés beállítása (letölt: %s)"
+
+msgid "Set up your game"
+msgstr "Állítsd be a játékod"
+
+msgid "Setting up %s"
+msgstr "Felállítás: %s"
+
+msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
+msgstr "Felállítás: „%s”\n%s%s - tedd ezeket a mutatott módon:\n%s"
+
+msgid "Shift 1"
+msgstr "Elmozdulás 1"
+
+msgid "Show voice hints"
+msgstr "Hangtippek megjelenítése"
+
+msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+msgstr "Megmutatja, hogy ez a kártya fejlesztett-e (+). A fejlesztéseket a kampányban lehet szerezni."
+
+msgid "Side quest"
+msgstr "Mellékküldetés"
+
+msgid "Side quest (optional)"
+msgstr "Mellékküldetés (opcionális)"
+
+msgid "Side quest won: %s."
+msgstr "Mellékküldetés megnyerve: %s."
+
+msgid "Side quest: %s"
+msgstr "Mellékküldetés: %s"
+
+msgid "Slash"
+msgstr "Hasítás"
+
+msgid "Slowed"
+msgstr "Lelassult"
+
+msgid "Snapshot"
+msgstr "Pillanatfelvétel"
+
+msgid "Snapshot '%s' is empty."
+msgstr "A(z) „%s” pillanatfelvétel üres."
+
+msgid "Snapshot '%s' taken (round %d)."
+msgstr "A(z) „%s” pillanatfelvétel elkészült (%d. kör)."
+
+msgid "Snapshot loaded - round %d"
+msgstr "Pillanatfelvétel betöltve - %d. kör"
+
+msgid "Something with the same name is already in the way: %s."
+msgstr "Valami ugyanezzel a névvel már útban van: %s."
+
+msgid "spear"
+msgstr "lándzsa"
+
+msgid "staff"
+msgstr "bot"
+
+msgid "Start"
+msgstr "Indítás"
+
+msgid "Start game"
+msgstr "Játék indítása"
+
+msgid "Step %s: %s..."
+msgstr "%s. lépés: %s..."
+
+msgid "Story recipe"
+msgstr "Történetrecept"
+
+msgid "Story teller:"
+msgstr "Mesélő:"
+
+msgid "Strength"
+msgstr "Erő"
+
+msgid "sword"
+msgstr "kard"
+
+msgid "Tactic"
+msgstr "Taktika"
+
+msgid "Tactics"
+msgstr "Taktikák"
+
+msgid "Take cover"
+msgstr "Fedezékbe vonulás"
+
+msgid "Tarnished Brooch"
+msgstr "Elhomályosult bross"
+
+msgid "Tarnished Brooch: %d of %d."
+msgstr "Elhomályosult bross: %d / %d."
+
+msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
+msgstr "Elhomályosult bross: %d / %d. A bross a következő küldetéstől a + oldalával oldódik fel!"
+
+msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
+msgstr "Elhomályosult bross: %s (%s jelző) is megjelenik. %s-nek le kell győznie."
+
+msgid "Terros"
+msgstr "Terros"
+
+msgid "Terros (earth)"
+msgstr "Terros (föld)"
+
+msgid "textures and portraits"
+msgstr "textúrák és portrék"
+
+msgid "That folder doesn't contain the game (no \"bundles\" folder was found in it)."
+msgstr "Ez a mappa nem tartalmazza a játékot (nem található benne „bundles” mappa)."
+
+msgid "That is not a web address (it must start with https://)."
+msgstr "Ez nem webcím (https://-sel kell kezdődnie)."
+
+msgid "That option isn't available"
+msgstr "Ez az opció nem érhető el"
+
+msgid "The %s download failed (network %d, HTTP %d)."
+msgstr "A letöltés sikertelen: %s (hálózat %d, HTTP %d)."
+
+msgid "The %s download isn't a valid zip."
+msgstr "A letöltött fájl (%s) nem érvényes zip."
+
+msgid "The %s download stopped receiving data - check the connection and try again."
+msgstr "A letöltés nem kap több adatot: %s - ellenőrizd a kapcsolatot, és próbáld újra."
+
+msgid "The %s download was cancelled."
+msgstr "A letöltés megszakítva: %s."
+
+msgid "The %s download was corrupt (checksum mismatch)."
+msgstr "A letöltött fájl sérült (%s) - az ellenőrzőösszeg nem egyezik."
+
+msgid "The %s is already being downloaded."
+msgstr "Már letöltés alatt: %s."
+
+msgid "The address must start with https://"
+msgstr "A címnek https://-sel kell kezdődnie"
+
+msgid "The armor the party owns"
+msgstr "A csapat tulajdonában lévő páncélok"
+
+msgid "The author confirms they may share the pictures."
+msgstr "A szerző megerősíti, hogy megoszthatja a képeket."
+
+msgid "The author did not say whether they may share the pictures."
+msgstr "A szerző nem mondta meg, megoszthatja-e a képeket."
+
+msgid "The campaign is complete - congratulations!"
+msgstr "A kampány befejeződött - gratulálunk!"
+
+msgid "The catalog address must start with https://"
+msgstr "A katalógus címének https://-sel kell kezdődnie"
+
+msgid "The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported."
+msgstr "A letöltött csomag nem az, amit a lista ígért (%s %s ennek helyett: %s %s). Nem lett importálva."
+
+msgid "The downloaded package is not the one the list promised. It was not installed."
+msgstr "A letöltött csomag nem az, amit a lista ígért. Nem lett telepítve."
+
+msgid "the enemy had less than %d health: defeated"
+msgstr "az ellenségnek kevesebb mint %d életereje volt: legyőzve"
+
+msgid "The files could not be written (error %d)."
+msgstr "A fájlokat nem sikerült megírni (hiba: %d)."
+
+msgid "the first hero wounded this round has health %d instead"
+msgstr "az ebben a körben megsebesült első hős életereje helyette %d"
+
+msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
+msgstr "A játék nem található a szokásos helyeken. Válaszd ki a mappát, ahová telepítve van."
+
+msgid "The import tool stopped without importing anything (exit code %d)."
+msgstr "Az importáló eszköz leállt anélkül, hogy bármit importált volna (kilépési kód: %d)."
+
+msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
+msgstr "Az importált játékerőforrások az alkalmazás indításakor töltődnek be.\n\nÚjraindítod most?"
+
+msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+msgstr "Azok a nyelvek, amelyeken olvasni szeretnél, a legjobb az első. A kampány vagy küldetés az első olyan nyelven jelenik meg, amelyen van szövege; egy kampányjáték indításakor megkérdezi, melyik nyelven játszd."
+
+msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
+msgstr "A megosztott kampányok listája, amelyet az Új játék képernyő frissítés ikonja mutat. Alapértelmezés szerint a GitHubon lévő descent-engine-community tárolóé."
+
+msgid "The market sells materials but does not buy them."
+msgstr "A piac anyagokat árul, de nem vásárol."
+
+msgid "The mission is missing from the campaign folder."
+msgstr "A küldetés hiányzik a kampány mappájából."
+
+msgid "The mission of chapter \"%s\" is missing from the new version."
+msgstr "A(z) „%s” fejezet küldetése hiányzik az új verzióból."
+
+msgid "The new variable \"%s\" starts at its default value."
+msgstr "Az új „%s” változó az alapértelmezett értékével indul."
+
+msgid "The new version has no act %d (your save is in it)."
+msgstr "Az új verzióban nincs %d. felvonás (a mentésed abban van)."
+
+msgid "The newer version could not be opened."
+msgstr "Az újabb verziót nem sikerült megnyitni."
+
+msgid "The original save game is not changed - you can always go back to it."
+msgstr "Az eredeti mentés nem változott - bármikor visszatérhetsz hozzá."
+
+msgid "the package"
+msgstr "a csomag"
+
+msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
+msgstr "A csapat nem visz fogyóeszközt - főzz alkimistánál főzetreceptekből."
+
+msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
+msgstr "A csapatnak nincs fogyóeszköze. Főzz alkimistánál főzetreceptekből."
+
+msgid "The party has to try this chapter again."
+msgstr "A csapatnak újra meg kell próbálnia ezt a fejezetet."
+
+msgid "The party owns no armor yet."
+msgstr "A csapatnak még nincs páncélja."
+
+msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
+msgstr "A csapatnak még nincs holmija - receptboltban lehet venni, vagy megtalálni."
+
+msgid "The phase can't be ended right now."
+msgstr "A fázist most nem lehet befejezni."
+
+msgid "The potions the party has crafted - available in every mission"
+msgstr "A csapat által elkészített főzetek - minden küldetésben elérhetők"
+
+msgid "The release's checksum list has no entry for %s."
+msgstr "A kiadás ellenőrzőösszeg-listájában nincs bejegyzés ehhez: %s."
+
+msgid "The snapshot could not be saved - see the Output panel."
+msgstr "A pillanatfelvételt nem sikerült elmenteni - lásd a Kimenet panelt."
+
+msgid "The snapshot was put on the edited mission, but:\n- "
+msgstr "A pillanatfelvétel a szerkesztett küldetésre lett alkalmazva, de:\n- "
+
+msgid "The speech engine download had no library for %s."
+msgstr "A letöltött hangmotorban nem volt könyvtár ehhez: %s."
+
+msgid "the table carries it out"
+msgstr "az asztal hajtja végre"
+
+msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+msgstr "A holmi, amelyet ez a hős visel (hősönként egy; egy holmit csak egy hős viselhet)"
+
+msgid "The update could not be started."
+msgstr "A frissítést nem sikerült elindítani."
+
+msgid "The update does not contain %s."
+msgstr "A frissítés nem tartalmazza ezt: %s."
+
+msgid "The updated copy could not be saved."
+msgstr "A frissített másolatot nem sikerült elmenteni."
+
+msgid "The variable \"%s\" no longer exists - its value is dropped."
+msgstr "A(z) „%s” változó már nem létezik - az értéke eldobásra kerül."
+
+msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
+msgstr "Ez az alkalmazás a játék grafikája nélkül érkezik. Ha megvan a „Descent: A sötétség legendái”, a valódi képek, figurák és játékadatok átmásolhatók a saját telepítésedből. A játékból semmi sem töltődik le, és semmi sem hagyja el ezt a számítógépet."
+
+msgid "this attack cannot damage it"
+msgstr "ez a támadás nem sebezheti meg"
+
+msgid "This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s"
+msgstr "Ez a csomag nem lett importálva - sérült, vagy valami meg nem engedettet tartalmaz:\n\n- %s"
+
+msgid "This package was not installed - it is damaged or contains something that is not allowed."
+msgstr "Ez a csomag nem lett telepítve - sérült, vagy valami meg nem engedettet tartalmaz."
+
+msgid "This release has no %s (or no checksum list)."
+msgstr "Ennek a kiadásnak nincs ilyen: %s (vagy ellenőrzőösszeg-listája)."
+
+msgid "This save game cannot be moved to v%s:"
+msgstr "Ez a mentés nem vihető át a v%s verzióra:"
+
+msgid "This save game was moved from version %s of the campaign to version %s."
+msgstr "Ez a mentés a kampány %s verziójáról a %s verzióra lett átvive."
+
+msgid "Threat"
+msgstr "Fenyegetés"
+
+msgid "throwing knives"
+msgstr "dobókések"
+
+msgid "Time passes"
+msgstr "Múlik az idő"
+
+msgid "Time passes.\n\n"
+msgstr "Telik az idő.\n\n"
+
+msgid "Tired"
+msgstr "Fáradt"
+
+msgid "Too short - hold %s while you speak"
+msgstr "Túl rövid - tartsd nyomva: %s, amíg beszélsz"
+
+msgid "Towards the tree"
+msgstr "A fa felé"
+
+msgid "Toxos"
+msgstr "Toxos"
+
+msgid "Toxos (decay)"
+msgstr "Toxos (rothadás)"
+
+msgid "trigger %d (every %dth: %d damage to every enemy)"
+msgstr "%d. aktiválás (minden %d.: %d sebzés minden ellenségnek)"
+
+msgid "trigger %d: %d damage to every enemy"
+msgstr "%d. aktiválás: %d sebzés minden ellenségnek"
+
+msgid "Trinket"
+msgstr "Holmi"
+
+msgid "Trinket %s: %s"
+msgstr "Holmi %s: %s"
+
+msgid "Trinket upgrade: "
+msgstr "Holmifejlesztés: "
+
+msgid "Trinket: "
+msgstr "Holmi: "
+
+msgid "Trinkets"
+msgstr "Holmik"
+
+msgid "Umbros"
+msgstr "Umbros"
+
+msgid "Umbros (shadow)"
+msgstr "Umbros (árnyék)"
+
+msgid "Undying Skull"
+msgstr "A halhatatlanság koponyája"
+
+msgid "Undying Skull: %s defeated a %s for the %s time."
+msgstr "A halhatatlanság koponyája: %s legyőzött egy ellenséget (%s) a(z) %s. alkalommal."
+
+msgid "Unknown"
+msgstr "Ismeretlen"
+
+msgid "Update available: %s"
+msgstr "Frissítés érhető el: %s"
+
+msgid "Update to v%s…"
+msgstr "Frissítés a v%s verzióra…"
+
+msgid "Upgrade - tier %d"
+msgstr "Fejlesztés - %d. fokozat"
+
+msgid "Upgrade: "
+msgstr "Fejlesztés: "
+
+msgid "Upgraded (+). In a campaign this follows the party's upgrades."
+msgstr "Fejlesztett (+). Kampányban ez a csapat fejlesztéseit követi."
+
+msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
+msgstr "Használható ebben a küldetésben: %s. Tedd a játékterületedre a használatához. Nem kerül a készletbe, és a küldetés végén eltűnik."
+
+msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
+msgstr "Használhatók ebben a küldetésben: %s. Tedd őket a játékterületedre a használatukhoz. Nem kerülnek a készletbe, és a küldetés végén eltűnnek."
+
+msgid "Use the original game props in the map"
+msgstr "A játék eredeti kellékeinek használata a térképen"
+
+msgid "Use the upgraded (+) side of this trinket."
+msgstr "E holmi fejlesztett (+) oldalának használata."
+
+msgid "Variable '%s' changed type - it has its default again."
+msgstr "A(z) „%s” változó típust váltott - újra az alapértelmezett értéke van."
+
+msgid "Variable '%s' no longer exists (it was %s)."
+msgstr "A(z) „%s” változó már nem létezik (ez volt: %s)."
+
+msgid "Version %s"
+msgstr "%s verzió"
+
+msgid "Version %s is already installed."
+msgstr "A(z) %s verzió már telepítve van."
+
+msgid "Version %s is available (you have %s)."
+msgstr "A(z) %s verzió elérhető (neked ez van: %s)."
+
+msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
+msgstr "E csomag %s verziója már ki van adva - a kiadott verzió soha nem íródik felül. Használj magasabb verziót."
+
+msgid "Victory!"
+msgstr "Győzelem!"
+
+msgid "Vigos"
+msgstr "Vigos"
+
+msgid "Vigos (life)"
+msgstr "Vigos (élet)"
+
+msgid "Voice"
+msgstr "Hang"
+
+msgid "Voice - "
+msgstr "Hang - "
+
+msgid "Voice control is set up."
+msgstr "A hangvezérlés be van állítva."
+
+msgid "Voice isn't set up yet - typed commands still work."
+msgstr "A hang még nincs beállítva - a begépelt parancsok továbbra is működnek."
+
+msgid "voice settings (%s)"
+msgstr "hangbeállítások (%s)"
+
+msgid "Voice setup isn't available on %s - typed commands still work."
+msgstr "A hangbeállítás nem érhető el ezen: %s - a begépelt parancsok továbbra is működnek."
+
+msgid "Voice setup isn't supported on %s yet."
+msgstr "A hangbeállítás még nem támogatott ezen: %s."
+
+msgid "voices (%s)"
+msgstr "hangok (%s)"
+
+msgid "wand"
+msgstr "pálca"
+
+msgid "Wander"
+msgstr "Kóborlás"
+
+msgid "war bell"
+msgstr "harci harang"
+
+msgid "warhammer"
+msgstr "harci kalapács"
+
+msgid "weak to %s"
+msgstr "gyenge ellene: %s"
+
+msgid "Weak: %s"
+msgstr "Gyenge: %s"
+
+msgid "Weakness"
+msgstr "Gyengeség"
+
+msgid "weakness damage +%d"
+msgstr "gyengeségi sebzés +%d"
+
+msgid "Weakness: %s"
+msgstr "Gyengeség: %s"
+
+msgid "weapon"
+msgstr "fegyver"
+
+msgid "Weapon %d (%s)"
+msgstr "%d. fegyver (%s)"
+
+msgid "weapon damage +%d"
+msgstr "fegyversebzés +%d"
+
+msgid "weapon part chances +%d%%"
+msgstr "a fegyveralkatrészek esélye +%d %%"
+
+msgid "Weapons"
+msgstr "Fegyverek"
+
+msgid "What's new"
+msgstr "Újdonságok"
+
+msgid "When a hero has lost all hitpoints, press Wound. The third wound loses the game."
+msgstr "Ha egy hős elvesztette az összes életerejét, nyomd meg a Megsebesítést. A harmadik sebesülés elveszti a játékot."
+
+msgid "Which monster?"
+msgstr "Melyik szörny?"
+
+msgid "Which one?"
+msgstr "Melyik?"
+
+msgid "Who attacks the %s?"
+msgstr "Ki támadja: %s?"
+
+msgid "Who uses the %s?"
+msgstr "Ki használja: %s?"
+
+msgid "Will"
+msgstr "Akaraterő"
+
+msgid "Won: %s."
+msgstr "Megnyerve: %s."
+
+msgid "Wound"
+msgstr "Megsebesítés"
+
+msgid "Wounded"
+msgstr "Sebesült"
+
+msgid "XP: %d  |  Gold: %d"
+msgstr "TP: %d  |  Arany: %d"
+
+msgid "Yellow"
+msgstr "Sárga"
+
+msgid "Yes"
+msgstr "Igen"
+
+msgid "You already have version %s - this one is installed next to it."
+msgstr "Már megvan a(z) %s verzió - ez mellé települ."
+
+msgid "You can play"
+msgstr "Játszhatsz"
+
+msgid "You carry %d."
+msgstr "Viszel: %d."
+
+msgid "You have %d gold and %s."
+msgstr "Van %d aranyad és %s."
+
+msgid "You have %d gold."
+msgstr "Van %d aranyad."
+
+msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
+msgstr "Nem ismersz egyetlen főzetreceptet sem. A recepteket receptboltokban árulják, vagy zsákmányként találhatók."
+
+msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
+msgstr "Nem ismersz olyan receptet, amely valami újat készít. A recepteket receptboltokban árulják."
+
+msgid "Your materials:"
+msgstr "Az anyagaid:"
+
+msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
+msgstr "Az előrehaladásod ezen a néven automatikusan mentődik, így abbahagyhatod és ott folytathatod, ahol abbahagytad (Játék betöltése a főmenüben). Használj különböző nevet minden csoportnak vagy végigjátszásnak."
+
+msgid "▶ Read aloud"
+msgstr "▶ Felolvasás"
+
+msgid "☠ Defeated"
+msgstr "☠ Legyőzve"
+
+msgid "Unofficial App"
+msgstr "Nem hivatalos alkalmazás"
+
+msgid "%s - %s\n\n%s gains an extra benefit: %s."
+msgstr "%s - %s\n\n%s extra előnyt kap: %s."
+
+msgid "A new act begins."
+msgstr "Új felvonás kezdődik."
+
+msgid "act"
+msgstr "felvonás"
+
+msgid "The campaign is complete."
+msgstr "A kampány befejeződött."
+
+msgid "The end"
+msgstr "A vége"
+
+msgid "The story begins."
+msgstr "A történet kezdődik."
+
+msgid "Current Objective:"
+msgstr "Aktuális cél:"
+
+msgid "Language of this game"
+msgstr "E játék nyelve"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "A nyelv, amelyen ez a játék olvasható, naplózódik és narrálódik. Később megváltoztathatod a Beállításokban."
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "A történet, a napló és a játék kifejezései ezen a nyelven jelennek meg. Az alkalmazás menüi és gombjai az alábbi listát követik."
+
+msgid "Download %s voices (%s)"
+msgstr "%s hangok letöltése (%s)"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "Nincs telepítve narrációs hang ehhez: %s, ezért a történet csak szövegként jelenik meg."
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "Nincs telepítve narrációs hang ehhez: %s, ezért a történet csak szövegként jelenik meg. Töltsd le őket: Beállítások > Hang."
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "Narráció beállítása - %s hangok (kb. %d MB letöltés)"
+
+msgid "Voices for:"
+msgstr "Hangok ehhez:"
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "Nincs telepítve narrációs hang ehhez: %s, ezért ez a játék csak szövegként jelenik meg. Töltsd le őket: Beállítások > Hang."
+
+msgid " - only if %d condition(s)"
+msgstr " - csak ha %d feltétel teljesül"
+
+msgid "Difficulty"
+msgstr "Nehézség"
+
+msgid "Adventurer"
+msgstr "Kalandor"
+
+msgid "Apprentice"
+msgstr "Tanonc"
+
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr "A szörnyek eggyel erősebbek, mint amit a szerző beállított, és a küldetés nehezebb lehet számodra."
+
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr "A szörnyek eggyel gyengébbek, mint amit a szerző beállított, és a küldetés könnyebb lehet számodra."
+
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr "A szörnyek kettővel erősebbek, mint amit a szerző beállított, és a küldetés kegyetlen lehet."
+
+msgid "Nightmare"
+msgstr "Rémálom"
+
+msgid "The game as the author designed it."
+msgstr "A játék úgy, ahogy a szerző tervezte."
+
+msgid "Veteran"
+msgstr "Veterán"
+
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
+msgstr "Keményebb szörnyek és nehezebb küldetés a magasabb számoknál. Minden küldetés előtt megváltoztathatod."
+
+msgid "%d monster(s) woke up."
+msgstr "%d szörny felébredt."
+
+msgid "A condition was put on one of them."
+msgstr "Az egyikükre állapotot alkalmaztak."
+
+msgid "Monsters wake"
+msgstr "A szörnyek felébrednek"
+
+msgid "Something has alerted them."
+msgstr "Valami riasztotta őket."
+
+msgid "Something has woken them."
+msgstr "Valami felébresztette őket."
+
+msgid "The monsters wake up!"
+msgstr "A szörnyek felébrednek!"
+
+msgid "They have not noticed the heroes: they stay where they are until something wakes them."
+msgstr "Nem vették észre a hősöket: ott maradnak, ahol vannak, amíg valami fel nem ébreszti őket."
+
+msgid "They noticed the attack."
+msgstr "Észrevették a támadást."
+
+msgid "Unaware"
+msgstr "Nem sejt semmit"
+
+msgid "Unaware - it and its group are skipped in the monster phase"
+msgstr "Nem sejt semmit - ő és a csoportja kihagyja a szörnyek fázisát"
+
+msgid "Wake up"
+msgstr "Felébresztés"
+
+msgid "%s (optional)"
+msgstr "%s (opcionális)"
+
+msgid "Optional objective"
+msgstr "Opcionális cél"
+
+msgid "Optional objective completed:\n%s"
+msgstr "Opcionális cél teljesítve:\n%s"
+
+msgid "Optional:"
+msgstr "Opcionális:"
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "Maga az alkalmazás (menük és párbeszédablakok) e lista első olyan nyelvén jelenik meg, amelyre le van fordítva - egyelőre %s."
+
+msgid " (%d for %d player)"
+msgid_plural " (%d for %d players)"
+msgstr[0] " (%d, %d játékos esetén)"
+msgstr[1] " (%d, %d játékos esetén)"
+
+msgid "+%d success"
+msgid_plural "+%d successes"
+msgstr[0] "+%d siker"
+msgstr[1] "+%d siker"
+
+msgid "lost %d status, %d damage"
+msgid_plural "lost %d statuses, %d damage"
+msgstr[0] "%d állapot elveszett, %d sebzés"
+msgstr[1] "%d állapot elveszett, %d sebzés"
+
+msgid "Lucky Charm: %d extra success is added to %s's result."
+msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
+msgstr[0] "Szerencsehozó amulett: %d extra siker hozzáadódik %s eredményéhez."
+msgstr[1] "Szerencsehozó amulett: %d extra siker hozzáadódik %s eredményéhez."
+
+msgid "New side quest: %s"
+msgid_plural "New side quests: %s"
+msgstr[0] "Új mellékküldetés: %s"
+msgstr[1] "Új mellékküldetések: %s"
