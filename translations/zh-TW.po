@@ -1,0 +1,2322 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ascent\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=(0);\n"
+
+msgid "  (immune)"
+msgstr "  (免疫)"
+
+msgid "  mic [%s%s]"
+msgstr "  麥克風 [%s%s]"
+
+msgid " %s gains a unique recipe: %s."
+msgstr " %s 獲得了一個獨特的製作指南：%s。"
+
+msgid " (%d failed)"
+msgstr " (%d 個失敗)"
+
+msgid " (active)"
+msgstr " (啟動)"
+
+msgid " (downloads the import tool first, %s)"
+msgstr " (先下載匯入工具，%s)"
+
+msgid " (immune)"
+msgstr " (免疫)"
+
+msgid " (Only campaigns keep recipes.)"
+msgstr " (只有戰役會保留製作指南。)"
+
+msgid " (XP now %d)"
+msgstr " (XP 現在為 %d)"
+
+msgid " - not imported yet"
+msgstr " - 尚未匯入"
+
+msgid " = %d damage\nDefense roll: -%d\n\n%d damage dealt"
+msgstr " = %d 點傷害\n防禦檢定：-%d\n\n造成 %d 點傷害"
+
+msgid " Not spawned: %s."
+msgstr " 未出現：%s。"
+
+msgid " There is no recipe left to gain."
+msgstr " 已經沒有可獲得的製作指南了。"
+
+msgid "%d damage to %s"
+msgstr "對 %s 造成 %d 點傷害"
+
+msgid "%d damage to the enemy"
+msgstr "對敵人造成 %d 點傷害"
+
+msgid "%d extra damage (%d%% of its health)"
+msgstr "額外 %d 點傷害（其生命的 %d %%）"
+
+msgid "%d from the community to install."
+msgstr "社群有 %d 個可安裝。"
+
+msgid "%d gold"
+msgstr "%d 金幣"
+
+msgid "%d gold (Dead Man's Compass)"
+msgstr "%d 金幣（亡者的羅盤）"
+
+msgid "%d h %d min"
+msgstr "%d 小時 %d 分鐘"
+
+msgid "%d min"
+msgstr "%d 分鐘"
+
+msgid "%d monster(s) spawned."
+msgstr "已出現 %d 隻怪物。"
+
+msgid "%d of the current objectives no longer exist."
+msgstr "目前目標中有 %d 個已不存在。"
+
+msgid "%d x %d tiles"
+msgstr "%d x %d 塊板塊"
+
+msgid "%dx %s"
+msgstr "%dx %s"
+
+msgid "%s  -  XP %d,  gold %d"
+msgstr "%s  -  XP %d，金幣 %d"
+
+msgid "%s %d (no table rows)"
+msgstr "%s %d（沒有表格列）"
+
+msgid "%s (%s chip)"
+msgstr "%s（%s 指示物）"
+
+msgid "%s (%s, part %s)"
+msgstr "%s（%s，部件 %s）"
+
+msgid "%s (copied by %s): %s"
+msgstr "%s（由 %s 複製）：%s"
+
+msgid "%s +%d until the end of the round"
+msgstr "%s +%d（直到本輪結束）"
+
+msgid "%s - %s chip"
+msgstr "%s - %s 指示物"
+
+msgid "%s - %s triggered!\n\n%s"
+msgstr "%s - %s 已觸發！\n\n%s"
+
+msgid "%s - %s triggered!\n\n%s gains a random consumable: %s\n\nEquip it."
+msgstr "%s - %s 已觸發！\n\n%s 獲得一個隨機道具：%s\n\n請裝備它。"
+
+msgid "%s - %s triggered!\n\n%s gains a random upgraded consumable: %s\n\nEquip it."
+msgstr "%s - %s 已觸發！\n\n%s 獲得一個隨機升級道具：%s\n\n請裝備它。"
+
+msgid "%s - %s triggered!\n\n%s\n\nCheck whether it applies and carry it out on the board (a condition can be applied from the monster screen)."
+msgstr "%s - %s 已觸發！\n\n%s\n\n請確認是否適用，並在桌面上執行（狀態可以在怪物畫面中施加）。"
+
+msgid "%s - %s\nDoes %s have an injury?"
+msgstr "%s - %s\n%s 有傷勢嗎？"
+
+msgid "%s - %s\nHow much fatigue is on all of %s's cards?"
+msgstr "%s - %s\n%s 的所有卡牌上共有多少疲勞？"
+
+msgid "%s - %s\nWhich other enemy suffers the same damage? (Cancel: none)"
+msgstr "%s - %s\n還有哪個敵人受到同樣的傷害？（取消：沒有）"
+
+msgid "%s - buy for %d gold, sell for %d"
+msgstr "%s - 以 %d 金幣購入，以 %d 金幣出售"
+
+msgid "%s - HP %d, Lv %d, Def %d, Atk %d"
+msgstr "%s - 生命 %d，等級 %d，防禦 %d，攻擊 %d"
+
+msgid "%s - level %d"
+msgstr "%s - 等級 %d"
+
+msgid "%s - not yet implemented."
+msgstr "%s - 尚未實作。"
+
+msgid "%s \"%s\" - version %s"
+msgstr "%s「%s」- 版本 %s"
+
+msgid "%s attacks %s (damage %d, %s)."
+msgstr "%s 攻擊 %s（傷害 %d，%s）。"
+
+msgid "%s attacks %s - choose a weapon"
+msgstr "%s 攻擊 %s - 請選擇武器"
+
+msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
+msgstr "%s 攻擊 %s！%s\n傷害 %d - %s - 速度 %d"
+
+msgid "%s attacks %s.\nWhich weapon?"
+msgstr "%s 攻擊 %s。\n使用哪件武器？"
+
+msgid "%s attacks %s\nwith the %s (damage %d)\n"
+msgstr "%s 攻擊 %s\n使用 %s（傷害 %d）\n"
+
+msgid "%s dropped something usable. %s"
+msgstr "%s 掉落了一件可用的東西。%s"
+
+msgid "%s dropped: %s."
+msgstr "%s 掉落了：%s。"
+
+msgid "%s gains %s"
+msgstr "%s 獲得 %s"
+
+msgid "%s has been defeated."
+msgstr "%s 已被擊敗。"
+
+msgid "%s healed %d (%d hitpoints)."
+msgstr "%s 治療了 %d（生命 %d）。"
+
+msgid "%s is %s."
+msgstr "%s：%s。"
+
+msgid "%s is confused!\n%s\n%s"
+msgstr "%s 陷入困惑！\n%s\n%s"
+
+msgid "%s is confused: %s."
+msgstr "%s 陷入困惑：%s。"
+
+msgid "%s is immune"
+msgstr "%s 免疫"
+
+msgid "%s is less likely to be its target this round"
+msgstr "%s 本輪不太可能成為其目標"
+
+msgid "%s is no longer %s."
+msgstr "%s 不再處於：%s。"
+
+msgid "%s is not in the party."
+msgstr "%s 不在團隊中。"
+
+msgid "%s is up to something..."
+msgstr "%s 正在盤算著什麼……"
+
+msgid "%s lost all hitpoints. Wound %s?"
+msgstr "%s 失去了所有生命。是否讓 %s 受傷？"
+
+msgid "%s performs %s against %s."
+msgstr "%s 對 %s 執行 %s。"
+
+msgid "%s receives a benefit: %s."
+msgstr "%s 獲得一項好處：%s。"
+
+msgid "%s suffers %d damage"
+msgstr "%s 受到 %d 點傷害"
+
+msgid "%s takes %d affliction damage (%d hitpoints left)."
+msgstr "%s 受到 %d 點創傷傷害（剩餘生命 %d）。"
+
+msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr "%s 受到 %d 點創傷傷害並被擊敗！請將其從桌面上移除。"
+
+msgid "%s took %d damage (%d hitpoints left)."
+msgstr "%s 受到了 %d 點傷害（剩餘生命 %d）。"
+
+msgid "%s took %d damage and was defeated."
+msgstr "%s 受到了 %d 點傷害並被擊敗。"
+
+msgid "%s triggered"
+msgstr "%s 已觸發"
+
+msgid "%s was defeated during an interrupt before it could %s."
+msgstr "%s 在打斷期間被擊敗，未能 %s。"
+
+msgid "%s was wounded a third time."
+msgstr "%s 第三次受傷。"
+
+msgid "%s wounded a hero - its turn is over."
+msgstr "%s 使一名英雄受傷——其回合結束。"
+
+msgid "%s's Brew Basket provides a random consumable:"
+msgstr "%s 的釀造竹籃提供一個隨機道具："
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
+msgstr "%s：%s！\n目標 %s - 傷害 %d - %s - 速度 %d"
+
+msgid "%s: %s\nFixed parts: %s"
+msgstr "%s：%s\n固定部件：%s"
+
+msgid "%s: defense +%d until the end of the round"
+msgstr "%s：防禦 +%d（直到本輪結束）"
+
+msgid "%s: interact with '%s'"
+msgstr "%s：與「%s」互動"
+
+msgid "%s: loot x%d (+%s)"
+msgstr "%s：戰利品 x%d（+%s）"
+
+msgid "%s: needs %d, you have %d"
+msgstr "%s：需要 %d，你有 %d"
+
+msgid "%s: perform a %s test - how many successes?"
+msgstr "%s：進行一次 %s 檢定——有幾個成功？"
+
+msgid "%s: the enemy has no loot"
+msgstr "%s：該敵人沒有戰利品"
+
+msgid "%s: the enemy is not defeated, no extra loot"
+msgstr "%s：該敵人未被擊敗，沒有額外戰利品"
+
+msgid "%s\n\nNothing was changed. You can try again, or download the update from the release page."
+msgstr "%s\n\n什麼都沒有改變。你可以重試，或從發布頁下載更新。"
+
+msgid "%s\n\nYou chose: %s"
+msgstr "%s\n\n你選擇了：%s"
+
+msgid "(attacks again)"
+msgstr "(再次攻擊)"
+
+msgid "(ignored) %s"
+msgstr "(已忽略)%s"
+
+msgid "(unnamed place)"
+msgstr "(未命名地點)"
+
+msgid "(unnamed side quest)"
+msgstr "(未命名支線任務)"
+
+msgid "(your release)"
+msgstr "(你的發布版)"
+
+msgid "+%d damage"
+msgstr "+%d 點傷害"
+
+msgid "+%d damage (rolled %d-%d)"
+msgstr "+%d 點傷害（擲出 %d-%d）"
+
+msgid "+%d damage (round %d)"
+msgstr "+%d 點傷害（第 %d 輪）"
+
+msgid "2D art - logo and main menu background"
+msgstr "2D 美術——標誌與主選單背景"
+
+msgid "[draft]"
+msgstr "[草稿]"
+
+msgid "\"%s\" version %s is already installed."
+msgstr "「%s」版本 %s 已安裝。"
+
+msgid "\n%.1f MB."
+msgstr "\n%.1f MB。"
+
+msgid "\n%d mission(s), %d picture(s), %.1f MB."
+msgstr "\n%d 個任務，%d 張圖片，%.1f MB。"
+
+msgid "\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted."
+msgstr "\n其中 %d 個存檔已被移到一旁（user://campaign_saves/_removed），並未刪除。"
+
+msgid "\n%d successes x %d weapon damage"
+msgstr "\n%d 個成功 x %d 點武器傷害"
+
+msgid "\n(+%d damage from a defense ability this activation)"
+msgstr "\n（本次啟動中防禦能力額外 +%d 點傷害）"
+
+msgid "\n(Enfeebled: damage reduced from %d)"
+msgstr "\n（弱化：傷害減少 %d）"
+
+msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
+msgstr "\n\n%s 獲得了傷勢「%s」：請將其卡牌放入你的遊戲區域。"
+
+msgid "\n\n%s has %d hitpoints left."
+msgstr "\n\n%s 還剩 %d 點生命。"
+
+msgid "\n\n%s is defeated! Remove it from the board."
+msgstr "\n\n%s 被擊敗了！請將其從桌面上移除。"
+
+msgid "\n\n%s must flip their injury card (%s) to its major side."
+msgstr "\n\n%s 必須將其傷勢卡牌（%s）翻到重傷面。"
+
+msgid "\n\n%s must flip their injury card to its major side."
+msgstr "\n\n%s 必須將其傷勢卡牌翻到重傷面。"
+
+msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
+msgstr "\n\n追思劍柄：改為將 %s 的生命設為 %d。"
+
+msgid "\n\nThe app can't update itself here: %s. Download it from the release page."
+msgstr "\n\n應用程式無法在此自行更新：%s。請從發布頁下載。"
+
+msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
+msgstr "\n\n你正在進行的任務將被關閉——請先儲存（選項 > 儲存），或選擇稍後。"
+
+msgid "\n\nThis is %s's third wound - the game will be lost!"
+msgstr "\n\n這是 %s 的第三次受傷——遊戲將失敗！"
+
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgstr "\n\n漂流者之石——每名英雄可以選擇其備選好處，而不是棄掉 1 點疲勞："
+
+msgid "\nActivation: "
+msgstr "\n啟動： "
+
+msgid "\nAlso some crafting materials for the party: %s."
+msgstr "\n另外還有一些給團隊的製作材料：%s。"
+
+msgid "\nAt the table: "
+msgstr "\n桌面上： "
+
+msgid "\nConditions applied: %s"
+msgstr "\n已施加的狀態：%s"
+
+msgid "\nExposed: +%d damage"
+msgstr "\n卸甲：+%d 點傷害"
+
+msgid "\nImmune to: %s"
+msgstr "\n免疫：%s"
+
+msgid "\nImmune! The attack does no damage.\n\n0 damage dealt"
+msgstr "\n免疫！這次攻擊不造成傷害。\n\n造成 0 點傷害"
+
+msgid "\nIn development (a draft)"
+msgstr "\n開發中（草稿）"
+
+msgid "\nLoot for the party: %s."
+msgstr "\n團隊的戰利品：%s。"
+
+msgid "\nNo free spawn tile for: %s - place them next to the others."
+msgstr "\n沒有空閒的出現板塊：%s——請把它們放在其他的旁邊。"
+
+msgid "\nNot installed yet - open it to install."
+msgstr "\n尚未安裝——開啟即可安裝。"
+
+msgid "\nResistance: -%d damage"
+msgstr "\n抗性：-%d 點傷害"
+
+msgid "\nThe package was checked: it only contains game data."
+msgstr "\n該套件已經過檢查：只包含遊戲資料。"
+
+msgid "\nWeakness: +%d damage"
+msgstr "\n弱點：+%d 點傷害"
+
+msgid "\nWeapon parts and trinket: "
+msgstr "\n武器部件與飾品： "
+
+msgid "a %s armor upgrade"
+msgstr "%s 防具升級"
+
+msgid "a %s part recipe"
+msgstr "%s 部件製作指南"
+
+msgid "a %s part upgrade"
+msgstr "%s 部件升級"
+
+msgid "a %s recipe"
+msgstr "%s 製作指南"
+
+msgid "a %s upgrade"
+msgstr "%s 升級"
+
+msgid "A campaign"
+msgstr "一個戰役"
+
+msgid "a hero"
+msgstr "一名英雄"
+
+msgid "a new area"
+msgstr "一個新區域"
+
+msgid "a potion recipe"
+msgstr "一個藥水製作指南"
+
+msgid "A save game called '%s' already exists."
+msgstr "已存在名為「%s」的存檔。"
+
+msgid "A save game needs a name."
+msgstr "存檔需要一個名稱。"
+
+msgid "a shipment of %s armor"
+msgstr "一批 %s 防具"
+
+msgid "a shipment of armor"
+msgstr "一批防具"
+
+msgid "A single mission"
+msgstr "單一任務"
+
+msgid "A snapshot can be taken in the player phase, with no dialog open."
+msgstr "快照可以在玩家階段、沒有開啟任何對話框時拍攝。"
+
+msgid "a trinket"
+msgstr "一件飾品"
+
+msgid "a trinket upgrade"
+msgstr "一件飾品升級"
+
+msgid "Act complete!"
+msgstr "章節完成！"
+
+msgid "Add language"
+msgstr "新增語言"
+
+msgid "adds %d damage to its next activation"
+msgstr "在其下一次啟動中增加 %d 點傷害"
+
+msgid "Afflicted"
+msgstr "創傷"
+
+msgid "Affliction"
+msgstr "創傷"
+
+msgid "affliction damage +%d this round"
+msgstr "本輪創傷傷害 +%d"
+
+msgid "Agility"
+msgstr "敏捷"
+
+msgid "all its statuses are removed"
+msgstr "它的所有異狀都被移除"
+
+msgid "an armor upgrade"
+msgstr "一項防具升級"
+
+msgid "an unknown author"
+msgstr "未知作者"
+
+msgid "An unofficial fan project, free to use (MIT license).\n*Descent: Legends of the Dark* and everything of the game belong to their owners."
+msgstr "非官方粉絲專案，可自由使用（MIT 授權）。\n*Descent：暗黑世界傳說* 及遊戲的一切歸其所有者所有。"
+
+msgid "Anemos"
+msgstr "風系元素"
+
+msgid "Anemos (wind)"
+msgstr "風系元素"
+
+msgid "App update"
+msgstr "應用程式更新"
+
+msgid "Applied: "
+msgstr "已施加： "
+
+msgid "Apply conditions"
+msgstr "施加狀態"
+
+msgid "Aquos"
+msgstr "水系元素"
+
+msgid "Aquos (water)"
+msgstr "水系元素"
+
+msgid "Armor"
+msgstr "防具"
+
+msgid "Armor upgrade: "
+msgstr "防具升級： "
+
+msgid "Armor: "
+msgstr "防具： "
+
+msgid "Armor…"
+msgstr "防具……"
+
+msgid "At the table:"
+msgstr "桌面上："
+
+msgid "Attack"
+msgstr "攻擊"
+
+msgid "attack %s"
+msgstr "攻擊 %s"
+
+msgid "Attack abilities: %s"
+msgstr "攻擊能力：%s"
+
+msgid "attack gains %s"
+msgstr "攻擊獲得 %s"
+
+msgid "Available now: %s"
+msgstr "現在可用：%s"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Back to Editor"
+msgstr "返回編輯器"
+
+msgid "Back to editor"
+msgstr "返回編輯器"
+
+msgid "Back to Menu"
+msgstr "返回選單"
+
+msgid "becomes afflicted"
+msgstr "陷入創傷"
+
+msgid "Begin Campaign"
+msgstr "開始戰役"
+
+msgid "Bone"
+msgstr "骨頭"
+
+msgid "Bought"
+msgstr "已購入"
+
+msgid "bow"
+msgstr "弓"
+
+msgid "Brew"
+msgstr "釀造"
+
+msgid "Brew Basket"
+msgstr "釀造竹籃"
+
+msgid "Buy"
+msgstr "購入"
+
+msgid "Buy  %d"
+msgstr "購入  %d"
+
+msgid "Buy  %d gold"
+msgstr "購入  %d 金幣"
+
+msgid "Buy recipe  %d gold"
+msgstr "購入製作指南  %d 金幣"
+
+msgid "by "
+msgstr "作者： "
+
+msgid "by %s"
+msgstr "作者：%s"
+
+msgid "Campaign"
+msgstr "戰役"
+
+msgid "Campaign complete"
+msgstr "戰役完成"
+
+msgid "Campaign complete! (%s)"
+msgstr "戰役完成！（%s）"
+
+msgid "Campaign editor"
+msgstr "戰役編輯器"
+
+msgid "Campaign Log"
+msgstr "戰役日誌"
+
+msgid "Can %s attack a second hero?"
+msgstr "%s 可以攻擊第二名英雄嗎？"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Cancel download"
+msgstr "取消下載"
+
+msgid "Cauterization"
+msgstr "燒灼療法"
+
+msgid "Cautious"
+msgstr "小心翼翼"
+
+msgid "Centre to centre (strict)"
+msgstr "中心到中心（嚴格）"
+
+msgid "Centre to corner (recommended)"
+msgstr "中心到角（建議）"
+
+msgid "Chapter"
+msgstr "章節"
+
+msgid "Chapter \"%s\" that you already completed is not in the new version."
+msgstr "你已完成的章節「%s」不在新版本中。"
+
+msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
+msgstr "你目前所在的章節「%s」不在新版本的第 %d 幕中。"
+
+msgid "Check for a newer version of the app at the main menu"
+msgstr "在主選單中檢查應用程式的新版本"
+
+msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
+msgstr "箱子、大門、樹和水井在 遊戲資源 > 匯入 之後使用遊戲內建的模型。關閉 = 應用程式內建的道具。下次開啟地圖時生效。"
+
+msgid "Choose a package"
+msgstr "選擇一個套件"
+
+msgid "Choose a package file…"
+msgstr "選擇一個套件檔案……"
+
+msgid "Choose a weapon"
+msgstr "選擇一件武器"
+
+msgid "Choose the folder the game is installed in"
+msgstr "選擇遊戲的安裝資料夾"
+
+msgid "Choose the game folder…"
+msgstr "選擇遊戲資料夾……"
+
+msgid "Choose two weapons per hero (and optional attachments)"
+msgstr "為每名英雄選擇兩件武器（以及可選的配件）"
+
+msgid "Choose your party"
+msgstr "選擇你的團隊"
+
+msgid "Close"
+msgstr "關閉"
+
+msgid "Cloth"
+msgstr "布料"
+
+msgid "Common"
+msgstr "普通"
+
+msgid "Community"
+msgstr "社群"
+
+msgid "Community list"
+msgstr "社群清單"
+
+msgid "Conditions"
+msgstr "狀態"
+
+msgid "Conditions (%d)"
+msgstr "狀態（%d）"
+
+msgid "Confirm"
+msgstr "確認"
+
+msgid "Confused"
+msgstr "困惑"
+
+msgid "Consumables"
+msgstr "道具"
+
+msgid "Consumables…"
+msgstr "道具……"
+
+msgid "Continue"
+msgstr "繼續"
+
+msgid "Continue this game"
+msgstr "繼續這場遊戲"
+
+msgid "Converting models... %s (%s)"
+msgstr "正在轉換模型…… %s（%s）"
+
+msgid "copies %s"
+msgstr "複製 %s"
+
+msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
+msgstr "將這個唯讀發布版複製為一個你可以修改的新草稿。發布版本身及其存檔保持不變。"
+
+msgid "Corner to corner (loose, Descent 2)"
+msgstr "角到角（寬鬆，Descent 2）"
+
+msgid "Cost: %s"
+msgstr "費用：%s"
+
+msgid "Could not fork %s."
+msgstr "無法複製 %s。"
+
+msgid "Could not open that save game."
+msgstr "無法開啟這個存檔。"
+
+msgid "Could not open the campaign '%s'."
+msgstr "無法開啟戰役「%s」。"
+
+msgid "Couldn't start the %s download (error %d)."
+msgstr "無法開始下載 %s（錯誤 %d）。"
+
+msgid "Couldn't unpack the %s (tar exit code %d)."
+msgstr "無法解壓縮 %s（tar 結束代碼 %d）。"
+
+msgid "Couldn't unpack the narration engine (tar exit code %d)."
+msgstr "無法解壓縮旁白引擎（tar 結束代碼 %d）。"
+
+msgid "Couldn't write %s (error %d)."
+msgstr "無法寫入 %s（錯誤 %d）。"
+
+msgid "Count as lost"
+msgstr "算作失敗"
+
+msgid "Count as won"
+msgstr "算作勝利"
+
+msgid "Created by"
+msgstr "創作者"
+
+msgid "Credits"
+msgstr "製作人員"
+
+msgid "crossbow"
+msgstr "弩弓"
+
+msgid "Crush"
+msgstr "打擊"
+
+msgid "Curios"
+msgstr "奇物"
+
+msgid "Current objective"
+msgstr "目前目標"
+
+msgid "Damage"
+msgstr "傷害"
+
+msgid "damage %d"
+msgstr "傷害 %d"
+
+msgid "damage +%d for good (now %d)"
+msgstr "傷害 +%d，永久（現在為 %d）"
+
+msgid "damage -%d"
+msgstr "傷害 -%d"
+
+msgid "Damage Type"
+msgstr "傷害類型"
+
+msgid "Dazed"
+msgstr "暈眩"
+
+msgid "Defeat."
+msgstr "失敗。"
+
+msgid "Defeated"
+msgstr "已被擊敗"
+
+msgid "defense %+d until the end of the round (now %d)"
+msgstr "防禦 %+d（直到本輪結束，現在為 %d）"
+
+msgid "defense +%d during this attack"
+msgstr "本次攻擊中防禦 +%d"
+
+msgid "defense +%d for good (now %d)"
+msgstr "防禦 +%d，永久（現在為 %d）"
+
+msgid "defense -%d"
+msgstr "防禦 -%d"
+
+msgid "defense -%d this round"
+msgstr "本輪防禦 -%d"
+
+msgid "Defense abilities: %s"
+msgstr "防禦能力：%s"
+
+msgid "defense ability deactivated for the next attack"
+msgstr "防禦能力在下一次攻擊中失效"
+
+msgid "defense ability deactivated until the end of the round"
+msgstr "防禦能力直到本輪結束失效"
+
+msgid "Defense ability deactivated."
+msgstr "防禦能力已失效。"
+
+msgid "Defense ability: %s"
+msgstr "防禦能力：%s"
+
+msgid "Delete the save game '%s'?"
+msgstr "刪除存檔「%s」嗎？"
+
+msgid "Delete this save game"
+msgstr "刪除這個存檔"
+
+msgid "Did %s deal damage to %s?"
+msgstr "%s 對 %s 造成傷害了嗎？"
+
+msgid "Did %s pass the test?"
+msgstr "%s 通過檢定了嗎？"
+
+msgid "Did I hear retreat? Move up to {speed} tiles, as far away from the heroes as you can."
+msgstr "我聽到的是撤退嗎？最多移動 {speed} 塊板塊，盡可能遠離英雄。"
+
+msgid "Did not trigger: "
+msgstr "未觸發： "
+
+msgid "Didn't catch a number in range"
+msgstr "沒有聽到有效的數字"
+
+msgid "Didn't catch anything - hold %s and try again"
+msgstr "什麼都沒聽到——按住 %s 再試一次"
+
+msgid "Didn't catch that"
+msgstr "沒聽清楚"
+
+msgid "Didn't catch which option"
+msgstr "沒聽清楚是哪個選項"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Done - restart the app to see everything."
+msgstr "完成——重新啟動應用程式以查看全部內容。"
+
+msgid "Done. The updated copy is in the list."
+msgstr "完成。更新後的副本已在清單中。"
+
+msgid "Doomed"
+msgstr "命定"
+
+msgid "Download extra voices - accents (%s)"
+msgstr "下載額外語音——口音（%s）"
+
+msgid "Download more voices - plain English (%s)"
+msgstr "下載更多語音——標準英語（%s）"
+
+msgid "Downloading %s... %d MB"
+msgstr "正在下載 %s…… %d MB"
+
+msgid "Downloading %s... %d%% (%d / %d MB)"
+msgstr "正在下載 %s…… %d %%（%d / %d MB）"
+
+msgid "Downloading the update…"
+msgstr "正在下載更新……"
+
+msgid "dual blades"
+msgstr "雙刃"
+
+msgid "each enemy suffers %d damage (trigger %d)"
+msgstr "每個敵人受到 %d 點傷害（觸發 %d）"
+
+msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
+msgstr "每名玩家可以帶 %d 件進入任務%s。製作好的道具在每個任務中都可再次使用——不會被用掉。"
+
+msgid "Editor"
+msgstr "編輯器"
+
+msgid "Enable voice"
+msgstr "啟用語音"
+
+msgid "Ending soon: this side quest is gone once \"%s\" is won."
+msgstr "即將結束：贏得「%s」後，這個支線任務就會消失。"
+
+msgid "Enfeebled"
+msgstr "弱化"
+
+msgid "Essences"
+msgstr "魔素"
+
+msgid "Exposed"
+msgstr "卸甲"
+
+msgid "FAILED"
+msgstr "失敗"
+
+msgid "Failed to load mission: %s"
+msgstr "無法載入任務：%s"
+
+msgid "Failed to save - see the Output panel for details."
+msgstr "儲存失敗——詳情見輸出面板。"
+
+msgid "Feats"
+msgstr "成就"
+
+msgid "first"
+msgstr "第一"
+
+msgid "Fixed hero (%s)"
+msgstr "固定英雄（%s）"
+
+msgid "Flip your hero card"
+msgstr "翻轉你的英雄卡牌"
+
+msgid "Floor tiles"
+msgstr "地板板塊"
+
+msgid "Focus 2 cards"
+msgstr "專注 2 張卡牌"
+
+msgid "Forge"
+msgstr "鍛造"
+
+msgid "Fork to edit"
+msgstr "複製以便編輯"
+
+msgid "Forked %s into your draft \"%s\" - open it in the %s editor."
+msgstr "已將 %s 複製到你的草稿「%s」——請在 %s 編輯器中開啟。"
+
+msgid "Fortunos"
+msgstr "命系元素"
+
+msgid "Fortunos (luck)"
+msgstr "命系元素"
+
+msgid "Frantic"
+msgstr "喪失理智"
+
+msgid "free"
+msgstr "空閒"
+
+msgid "Friendly fire"
+msgstr "友軍誤傷"
+
+msgid "Frustrated"
+msgstr "灰心喪志"
+
+msgid "gains %s"
+msgstr "獲得 %s"
+
+msgid "Game %04d-%02d-%02d %02d:%02d"
+msgstr "遊戲 %04d-%02d-%02d %02d:%02d"
+
+msgid "Game assets"
+msgstr "遊戲資源"
+
+msgid "Game found:\n%s"
+msgstr "已找到遊戲：\n%s"
+
+msgid "Gameplay"
+msgstr "遊戲玩法"
+
+msgid "gauntlet"
+msgstr "護手"
+
+msgid "General"
+msgstr "一般"
+
+msgid "Gives the armor: %s%s - %s"
+msgstr "給予防具：%s%s - %s"
+
+msgid "Gives the rune: %s"
+msgstr "給予符文：%s"
+
+msgid "Gives the trinket: %s%s - %s"
+msgstr "給予飾品：%s%s - %s"
+
+msgid "Gives the weapon: %s%s"
+msgstr "給予武器：%s%s"
+
+msgid "Gives: %s"
+msgstr "給予：%s"
+
+msgid "gloves"
+msgstr "手套"
+
+msgid "Gold"
+msgstr "金幣"
+
+msgid "Gold: %d"
+msgstr "金幣：%d"
+
+msgid "Got a package from someone? Choose the file, or paste the web address of it. You see what is in it, and who made it, before anything is installed."
+msgstr "有人給了你一個套件嗎？選擇檔案，或貼上它的網址。在安裝任何東西之前，你可以看到裡面有什麼、是誰做的。"
+
+msgid "Green"
+msgstr "綠色"
+
+msgid "Guard the gate"
+msgstr "守衛大門"
+
+msgid "hammer"
+msgstr "鎚"
+
+msgid "Hardened Skin"
+msgstr "表皮硬化"
+
+msgid "Heal"
+msgstr "治療"
+
+msgid "Heal 2"
+msgstr "治療 2"
+
+msgid "Heal 4"
+msgstr "治療 4"
+
+msgid "Healthy"
+msgstr "健康"
+
+msgid "Hear the story teller"
+msgstr "聽故事講述者"
+
+msgid "Hear this voice"
+msgstr "聽這個聲音"
+
+msgid "Heard: %s"
+msgstr "聽到：%s"
+
+msgid "Heavily wounded"
+msgstr "重傷"
+
+msgid "Heavy Hands"
+msgstr "笨重雙手"
+
+msgid "Heavy Heart"
+msgstr "哀傷之心"
+
+msgid "Herbs"
+msgstr "草藥"
+
+msgid "hero models"
+msgstr "英雄模型"
+
+msgid "Hero voices"
+msgstr "英雄語音"
+
+msgid "Heroes"
+msgstr "英雄"
+
+msgid "Hesitant"
+msgstr "猶豫不決"
+
+msgid "Hitpoints %d / %d"
+msgstr "生命 %d / %d"
+
+msgid "Hold %s to talk"
+msgstr "按住 %s 說話"
+
+msgid "Horn of Courage"
+msgstr "勇氣號角"
+
+msgid "Horn of Courage - %s was wounded."
+msgstr "勇氣號角——%s 受傷了。"
+
+msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
+msgstr "將滑鼠游標停在防具上查看其規則。防具在桌面上穿戴與結算。"
+
+msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
+msgstr "視線工具如何判斷兩個格子能否互相看見。中心到角：從觀察者格子中心到目標任一個角的一條線。"
+
+msgid "HP %d · Level %d"
+msgstr "生命 %d · 等級 %d"
+
+msgid "Ignos"
+msgstr "火系元素"
+
+msgid "Ignos (fire)"
+msgstr "火系元素"
+
+msgid "immune to %s"
+msgstr "免疫 %s"
+
+msgid "Immune to conditions: %s"
+msgstr "免疫狀態：%s"
+
+msgid "Immune to: "
+msgstr "免疫： "
+
+msgid "Immune: %s"
+msgstr "免疫：%s"
+
+msgid "Immunity: %s"
+msgstr "免疫：%s"
+
+msgid "Import"
+msgstr "匯入"
+
+msgid "Import finished, but not everything worked."
+msgstr "匯入完成，但並非一切都成功。"
+
+msgid "Import finished."
+msgstr "匯入完成。"
+
+msgid "Import game assets"
+msgstr "匯入遊戲資源"
+
+msgid "Imported so far: %s."
+msgstr "目前已匯入：%s。"
+
+msgid "Importing from inside the app isn't available on this computer yet - use the asset tools from the release page instead."
+msgstr "在這台電腦上還無法在應用程式內匯入——請改用發布頁上的資源工具。"
+
+msgid "IN DEVELOPMENT"
+msgstr "開發中"
+
+msgid "Input device: %s"
+msgstr "輸入裝置：%s"
+
+msgid "Install"
+msgstr "安裝"
+
+msgid "Install and restart"
+msgstr "安裝並重新啟動"
+
+msgid "Install by hand"
+msgstr "手動安裝"
+
+msgid "Install this package?"
+msgstr "安裝這個套件嗎？"
+
+msgid "Installed"
+msgstr "已安裝"
+
+msgid "Installed \"%s\" v%s."
+msgstr "已安裝「%s」v%s。"
+
+msgid "Installed \"%s\"."
+msgstr "已安裝「%s」。"
+
+msgid "Installing…"
+msgstr "正在安裝……"
+
+msgid "Installing… the app closes and starts again by itself."
+msgstr "正在安裝……應用程式會關閉並自行重新啟動。"
+
+msgid "Intelligence"
+msgstr "智力"
+
+msgid "Interrupt"
+msgstr "打斷"
+
+msgid "Interrupt - the players act"
+msgstr "打斷——玩家行動"
+
+msgid "Inventory"
+msgstr "庫存"
+
+msgid "It stays as it is; you can keep playing it on its own version."
+msgstr "它保持原樣；你可以繼續用它自己的版本玩。"
+
+msgid "Language"
+msgstr "語言"
+
+msgid "Languages"
+msgstr "語言"
+
+msgid "Lash out at the nearest other monster: it takes {damage} damage. (Press Interrupt, click that monster in the monster view and apply the damage.)"
+msgstr "猛擊最近的另一隻怪物：它受到 {damage} 點傷害。（按下打斷，在怪物檢視中點擊那隻怪物並施加傷害。）"
+
+msgid "Later"
+msgstr "稍後"
+
+msgid "Leather"
+msgstr "皮革"
+
+msgid "Leaves after the next chapter!"
+msgstr "在下一章之後離開！"
+
+msgid "Level %d - "
+msgstr "等級 %d - "
+
+msgid "Line of Sight"
+msgstr "視線"
+
+msgid "Line of Sight (on)"
+msgstr "視線（開）"
+
+msgid "Line of sight rule"
+msgstr "視線規則"
+
+msgid "Listening... release %s to send"
+msgstr "正在聆聽……放開 %s 傳送"
+
+msgid "Load a mission save"
+msgstr "讀取任務存檔"
+
+msgid "Load game"
+msgstr "讀取遊戲"
+
+msgid "Look for campaigns shared by the community"
+msgstr "尋找社群分享的戰役"
+
+msgid "Looking for shared campaigns…"
+msgstr "正在尋找分享的戰役……"
+
+msgid "Loot"
+msgstr "戰利品"
+
+msgid "Loot for the party: "
+msgstr "團隊的戰利品： "
+
+msgid "Lucky Charm"
+msgstr "幸運護符"
+
+msgid "Lumos"
+msgstr "光系元素"
+
+msgid "Lumos (light)"
+msgstr "光系元素"
+
+msgid "Lunge, no bite"
+msgstr "猛撲，不咬"
+
+msgid "Mage-Sight Goggles"
+msgstr "魔力透鏡"
+
+msgid "Mage-Sight Goggles - %s gains an additional action!"
+msgstr "魔力透鏡——%s 獲得一個額外行動！"
+
+msgid "Make a copy of '%s' on v%s?"
+msgstr "在 v%s 上製作「%s」的副本嗎？"
+
+msgid "Makes an updated COPY of this save game on the newer version. The original stays as it is."
+msgstr "在更新的版本上製作這個存檔的更新副本。原存檔保持不變。"
+
+msgid "Materials"
+msgstr "材料"
+
+msgid "maximum health -%d (now %d)"
+msgstr "最大生命 -%d（現在為 %d）"
+
+msgid "melee"
+msgstr "近戰"
+
+msgid "Message"
+msgstr "訊息"
+
+msgid "Metal"
+msgstr "金屬元素"
+
+msgid "Minerals"
+msgstr "礦物元素"
+
+msgid "Mission"
+msgstr "任務"
+
+msgid "Mission editor"
+msgstr "任務編輯器"
+
+msgid "Missions and campaigns made by other players. Everything is checked before it is installed - a package can only contain game data, never code - and every version is installed next to the others, so nothing you made or saved is ever overwritten."
+msgstr "其他玩家製作的任務與戰役。一切在安裝前都會被檢查——一個套件只能包含遊戲資料，絕不能包含程式碼——而且每個版本都安裝在其他版本旁邊，因此你製作或儲存的東西絕不會被覆寫。"
+
+msgid "Models converted: %d%s"
+msgstr "已轉換的模型：%d%s"
+
+msgid "Monster"
+msgstr "怪物"
+
+msgid "Monster action"
+msgstr "怪物行動"
+
+msgid "Monster attack"
+msgstr "怪物攻擊"
+
+msgid "monster figures"
+msgstr "怪物模型"
+
+msgid "Monster phase"
+msgstr "怪物階段"
+
+msgid "Monster Phase"
+msgstr "怪物階段"
+
+msgid "Monster tactic"
+msgstr "怪物戰術"
+
+msgid "Monsters appear"
+msgstr "怪物出現"
+
+msgid "More than one matches - say a number"
+msgstr "符合的不只一個——請說一個數字"
+
+msgid "Mortos"
+msgstr "死系元素"
+
+msgid "Mortos (dead)"
+msgstr "死系元素"
+
+msgid "Move camera to player and monster spawns"
+msgstr "將鏡頭移到玩家與怪物的出現位置"
+
+msgid "Move up to {speed} tiles in a random direction."
+msgstr "朝隨機方向最多移動 {speed} 塊板塊。"
+
+msgid "Move up to {speed} tiles to the closest gate and guard it."
+msgstr "朝最近的大門最多移動 {speed} 塊板塊並守衛它。"
+
+msgid "Move up to {speed} tiles to the nearest pillar and hide behind it."
+msgstr "朝最近的柱子最多移動 {speed} 塊板塊並躲在它後面。"
+
+msgid "Move up to {speed} tiles towards the closest tree."
+msgstr "朝最近的樹最多移動 {speed} 塊板塊。"
+
+msgid "Move up to {speed} tiles towards the nearest hero - but do not attack."
+msgstr "朝最近的英雄最多移動 {speed} 塊板塊——但不要攻擊。"
+
+msgid "Moved to v%s"
+msgstr "已遷移到 v%s"
+
+msgid "Narration"
+msgstr "旁白"
+
+msgid "Narration is set up."
+msgstr "旁白已設定好。"
+
+msgid "Narration isn't available on %s."
+msgstr "%s 上無法使用旁白。"
+
+msgid "Narration isn't set up yet - the story is shown as text only."
+msgstr "旁白尚未設定——故事只以文字顯示。"
+
+msgid "Narration setup isn't supported on %s yet."
+msgstr "%s 上尚不支援設定旁白。"
+
+msgid "New game"
+msgstr "新遊戲"
+
+msgid "Next"
+msgstr "下一步"
+
+msgid "No"
+msgstr "否"
+
+msgid "No %s."
+msgstr "沒有 %s。"
+
+msgid "No base template for: %s - not spawned (fix the mission in the Creator)."
+msgstr "沒有 %s 的基礎範本——未出現（請在創作器中修正任務）。"
+
+msgid "No colour chip left for: %s - not spawned."
+msgstr "%s 沒有剩餘的顏色籌碼——未出現。"
+
+msgid "No description."
+msgstr "沒有描述。"
+
+msgid "no enemy to damage"
+msgstr "沒有可造成傷害的敵人"
+
+msgid "No map image - choose one for this act"
+msgstr "沒有地圖圖片——請為這一幕選擇一張"
+
+msgid "No recipes are known: import the game's data first (Game assets in the main menu)."
+msgstr "不知道任何製作指南：請先匯入遊戲資料（主選單中的遊戲資源）。"
+
+msgid "No recipes for sale right now."
+msgstr "目前沒有出售的製作指南。"
+
+msgid "No recipes yet - they are bought at a recipe shop."
+msgstr "還沒有製作指南——要在製作指南商店購入。"
+
+msgid "No save games yet - start one with New game."
+msgstr "還沒有存檔——用「新遊戲」開始一個。"
+
+msgid "None yet - materials come from defeated monsters, missions and the market."
+msgstr "暫時沒有——材料來自被擊敗的怪物、任務與市場。"
+
+msgid "Not everything worked. What did work is in place - restart the app to see it."
+msgstr "並非一切都成功。成功的部分已就位——重新啟動應用程式以查看。"
+
+msgid "Note:"
+msgstr "注意："
+
+msgid "Nothing for sale here."
+msgstr "這裡沒有可出售的東西。"
+
+msgid "Nothing has been imported yet - the app shows placeholders."
+msgstr "還沒有匯入任何東西——應用程式顯示的是預留圖。"
+
+msgid "Nothing has happened yet."
+msgstr "還什麼都沒發生。"
+
+msgid "Nothing here yet. Press the refresh icon to see what the community has shared, or release a campaign of your own in the Campaign Editor."
+msgstr "這裡還什麼都沒有。點擊重新整理圖示查看社群分享了什麼，或在戰役編輯器中發布你自己的戰役。"
+
+msgid "Nothing installed yet. Use the refresh icon on the New game screen to find shared campaigns, or install a package by hand below."
+msgstr "還沒有安裝任何東西。使用「新遊戲」畫面上的重新整理圖示尋找分享的戰役，或在下方手動安裝一個套件。"
+
+msgid "Nothing new in the community list."
+msgstr "社群清單中沒有新內容。"
+
+msgid "Nothing yet."
+msgstr "暫時沒有。"
+
+msgid "Notice"
+msgstr "通知"
+
+msgid "Objective"
+msgstr "目標"
+
+msgid "Offline - showing the last community list. "
+msgstr "離線——顯示的是上一次的社群清單。 "
+
+msgid "ok"
+msgstr "確定"
+
+msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
+msgstr "只會詢問 GitHub 哪個是最新版本。沒有你的點擊，不會下載或安裝任何東西。"
+
+msgid "Open campaigns"
+msgstr "開啟戰役"
+
+msgid "Options"
+msgstr "選項"
+
+msgid "Or a web address (https://…) of a package file:"
+msgstr "或一個套件檔案的網址（https://……）："
+
+msgid "Orange"
+msgstr "橘色"
+
+msgid "Overlays"
+msgstr "疊加層"
+
+msgid "Part %s: none"
+msgstr "部件 %s：無"
+
+msgid "Parts (B and C)"
+msgstr "部件（B 與 C）"
+
+msgid "perform %s"
+msgstr "執行 %s"
+
+msgid "Perform a %s test - how many successes?"
+msgstr "進行一次 %s 檢定——有幾個成功？"
+
+msgid "Pick a voice for each hero. Their lines in the story are read in it, and nobody else will use it."
+msgstr "為每名英雄選擇一個聲音。他在故事中的台詞會用它朗讀，其他人不會使用它。"
+
+msgid "Pierce"
+msgstr "穿刺"
+
+msgid "Pillars"
+msgstr "柱子"
+
+msgid "Place the monsters on the map as shown."
+msgstr "依所示將怪物放到地圖上。"
+
+msgid "Place your player figures in the highlighted area, then confirm."
+msgstr "將你的玩家模型放到高亮區域內，然後確認。"
+
+msgid "Play"
+msgstr "遊玩"
+
+msgid "Play mission"
+msgstr "遊玩任務"
+
+msgid "Play one mission"
+msgstr "遊玩單一任務"
+
+msgid "Play this chapter"
+msgstr "遊玩這一章"
+
+msgid "Play this side quest"
+msgstr "遊玩這個支線任務"
+
+msgid "Player Phase"
+msgstr "玩家階段"
+
+msgid "Player phase"
+msgstr "玩家階段"
+
+msgid "Playtest"
+msgstr "檢定"
+
+msgid "Playtest:"
+msgstr "檢定："
+
+msgid "Preferred targets: %s"
+msgstr "優先目標：%s"
+
+msgid "Prepare 2 cards"
+msgstr "備戰 2 張卡牌"
+
+msgid "Prepare a card"
+msgstr "備戰一張卡牌"
+
+msgid "Props"
+msgstr "道具"
+
+msgid "Purple"
+msgstr "紫色"
+
+msgid "Push to talk (hold %s)"
+msgstr "按下說話（按住 %s）"
+
+msgid "Quest"
+msgstr "任務"
+
+msgid "Quest Log"
+msgstr "任務日誌"
+
+msgid "Quit"
+msgstr "退出"
+
+msgid "Random (from the name)"
+msgstr "隨機（根據名稱）"
+
+msgid "range %d"
+msgstr "攻擊範圍 %d"
+
+msgid "Range %d"
+msgstr "攻擊範圍 %d"
+
+msgid "range %d, reach"
+msgstr "攻擊範圍 %d，延伸"
+
+msgid "Range %d, reach"
+msgstr "攻擊範圍 %d，延伸"
+
+msgid "Read in this language earlier"
+msgstr "先前已用這種語言閱讀"
+
+msgid "Read in this language later"
+msgstr "之後用這種語言閱讀"
+
+msgid "Read the story aloud"
+msgstr "朗讀故事"
+
+msgid "Read this chapter"
+msgstr "閱讀這一章"
+
+msgid "Recipe - tier %d"
+msgstr "製作指南——%d 階"
+
+msgid "Recipe: "
+msgstr "製作指南： "
+
+msgid "Recipes"
+msgstr "製作指南"
+
+msgid "recovers %d health"
+msgstr "恢復 %d 點生命"
+
+msgid "recovers %d health (now %d / %d)"
+msgstr "恢復 %d 點生命（現在為 %d / %d）"
+
+msgid "Release page"
+msgstr "發布頁"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Remove \"%s\" version %s from this computer?%s"
+msgstr "從這台電腦上移除「%s」版本 %s 嗎？%s"
+
+msgid "Remove a single condition"
+msgstr "移除單一狀態"
+
+msgid "Remove all conditions of a given type"
+msgstr "移除給定類型的所有狀態"
+
+msgid "Remove all fatigue from a single card"
+msgstr "移除一張卡牌上的所有疲勞"
+
+msgid "Removed %s v%s."
+msgstr "已移除 %s v%s。"
+
+msgid "Resistance: %s"
+msgstr "抗性：%s"
+
+msgid "Resistant: %s"
+msgstr "抗性：%s"
+
+msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgstr "結算感染與震懾。每名英雄可以棄掉 1 點疲勞。"
+
+msgid "Restart needed"
+msgstr "需要重新啟動"
+
+msgid "Restart now"
+msgstr "立即重新啟動"
+
+msgid "Resume monster attack"
+msgstr "繼續怪物攻擊"
+
+msgid "Retreat"
+msgstr "撤退"
+
+msgid "reveals weakness to %s"
+msgstr "揭示對 %s 的弱點"
+
+msgid "Reward: "
+msgstr "獎勵： "
+
+msgid "Round %d - %s"
+msgstr "第 %d 輪 - %s"
+
+msgid "Rules Reference"
+msgstr "規則詳解"
+
+msgid "Rune"
+msgstr "符文"
+
+msgid "rune"
+msgstr "符文"
+
+msgid "Rune: "
+msgstr "符文： "
+
+msgid "Runes"
+msgstr "符文"
+
+msgid "Save"
+msgstr "儲存"
+
+msgid "Save game"
+msgstr "存檔"
+
+msgid "Saved."
+msgstr "已儲存。"
+
+msgid "second"
+msgstr "第二"
+
+msgid "Sell  %d"
+msgstr "出售  %d"
+
+msgid "Set up narration (downloads %s)"
+msgstr "設定旁白（下載 %s）"
+
+msgid "Set up voice control (downloads %s)"
+msgstr "設定語音控制（下載 %s）"
+
+msgid "Set up your game"
+msgstr "設定你的遊戲"
+
+msgid "Setting up %s"
+msgstr "正在佈置 %s"
+
+msgid "Setting up '%s'\n%s%s - place these as shown:\n%s"
+msgstr "正在佈置「%s」\n%s%s——請依所示放置這些：\n%s"
+
+msgid "Shift 1"
+msgstr "瞬步 1"
+
+msgid "Show voice hints"
+msgstr "顯示語音提示"
+
+msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
+msgstr "顯示這張卡牌是否已升級（+）。升級在戰役中獲得。"
+
+msgid "Side quest"
+msgstr "支線任務"
+
+msgid "Side quest (optional)"
+msgstr "支線任務（可選）"
+
+msgid "Side quest won: %s."
+msgstr "已贏得支線任務：%s。"
+
+msgid "Side quest: %s"
+msgstr "支線任務：%s"
+
+msgid "Slash"
+msgstr "揮砍"
+
+msgid "Slowed"
+msgstr "緩慢"
+
+msgid "Snapshot"
+msgstr "快照"
+
+msgid "Snapshot '%s' is empty."
+msgstr "快照「%s」是空的。"
+
+msgid "Snapshot '%s' taken (round %d)."
+msgstr "已拍攝快照「%s」（第 %d 輪）。"
+
+msgid "Snapshot loaded - round %d"
+msgstr "快照已載入——第 %d 輪"
+
+msgid "Something with the same name is already in the way: %s."
+msgstr "有同名的東西已經擋在那裡：%s。"
+
+msgid "spear"
+msgstr "長矛"
+
+msgid "staff"
+msgstr "法杖"
+
+msgid "Start"
+msgstr "開始"
+
+msgid "Start game"
+msgstr "開始遊戲"
+
+msgid "Step %s: %s..."
+msgstr "步驟 %s：%s……"
+
+msgid "Story recipe"
+msgstr "故事製作指南"
+
+msgid "Story teller:"
+msgstr "故事講述者："
+
+msgid "Strength"
+msgstr "力量"
+
+msgid "sword"
+msgstr "劍"
+
+msgid "Tactic"
+msgstr "戰術"
+
+msgid "Tactics"
+msgstr "戰術"
+
+msgid "Take cover"
+msgstr "尋找掩護"
+
+msgid "Tarnished Brooch"
+msgstr "褪色胸針"
+
+msgid "Tarnished Brooch: %d of %d."
+msgstr "褪色胸針：%d / %d。"
+
+msgid "Tarnished Brooch: %d of %d. The Brooch is unlocked as its + side from the next mission on!"
+msgstr "褪色胸針：%d / %d。從下一個任務起，胸針將以其 + 面解鎖！"
+
+msgid "Tarnished Brooch: %s (%s chip) appears too. %s must defeat it."
+msgstr "褪色胸針：%s（%s 指示物）也會出現。%s 必須擊敗它。"
+
+msgid "Terros"
+msgstr "地系元素"
+
+msgid "Terros (earth)"
+msgstr "地系元素"
+
+msgid "textures and portraits"
+msgstr "紋理與肖像"
+
+msgid "That folder doesn't contain the game (no \"bundles\" folder was found in it)."
+msgstr "該資料夾中沒有遊戲（裡面沒有找到「bundles」資料夾）。"
+
+msgid "That is not a web address (it must start with https://)."
+msgstr "這不是網址（必須以 https:// 開頭）。"
+
+msgid "That option isn't available"
+msgstr "該選項不可用"
+
+msgid "The %s download failed (network %d, HTTP %d)."
+msgstr "%s 下載失敗（網路 %d，HTTP %d）。"
+
+msgid "The %s download isn't a valid zip."
+msgstr "%s 下載的內容不是有效的 zip。"
+
+msgid "The %s download stopped receiving data - check the connection and try again."
+msgstr "%s 下載停止接收資料——請檢查連線後重試。"
+
+msgid "The %s download was cancelled."
+msgstr "%s 下載已取消。"
+
+msgid "The %s download was corrupt (checksum mismatch)."
+msgstr "%s 下載已損壞（校驗碼不符）。"
+
+msgid "The %s is already being downloaded."
+msgstr "%s 已在下載中。"
+
+msgid "The address must start with https://"
+msgstr "位址必須以 https:// 開頭"
+
+msgid "The armor the party owns"
+msgstr "團隊擁有的防具"
+
+msgid "The author confirms they may share the pictures."
+msgstr "作者確認他們有權分享這些圖片。"
+
+msgid "The author did not say whether they may share the pictures."
+msgstr "作者沒有說明他們是否有權分享這些圖片。"
+
+msgid "The campaign is complete - congratulations!"
+msgstr "戰役完成——恭喜！"
+
+msgid "The catalog address must start with https://"
+msgstr "目錄位址必須以 https:// 開頭"
+
+msgid "The downloaded package is not the one the list promised (%s %s instead of %s %s). It was not imported."
+msgstr "下載的套件不是清單所承諾的那個（%s %s，而不是 %s %s）。未匯入。"
+
+msgid "The downloaded package is not the one the list promised. It was not installed."
+msgstr "下載的套件不是清單所承諾的那個。未安裝。"
+
+msgid "the enemy had less than %d health: defeated"
+msgstr "敵人的生命少於 %d：被擊敗"
+
+msgid "The files could not be written (error %d)."
+msgstr "無法寫入這些檔案（錯誤 %d）。"
+
+msgid "the first hero wounded this round has health %d instead"
+msgstr "本輪第一名受傷的英雄改為生命 %d"
+
+msgid "The game wasn't found in the usual places. Choose the folder it is installed in."
+msgstr "在常見位置沒有找到遊戲。請選擇它的安裝資料夾。"
+
+msgid "The import tool stopped without importing anything (exit code %d)."
+msgstr "匯入工具在沒有匯入任何東西的情況下停止了（結束代碼 %d）。"
+
+msgid "The imported game assets are loaded when the app starts.\n\nRestart now?"
+msgstr "匯入的遊戲資源會在應用程式啟動時載入。\n\n現在重新啟動嗎？"
+
+msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
+msgstr "你想閱讀的語言，最好的排在最前。戰役或任務會以它有文字的第一種語言顯示；開始戰役遊戲時會詢問用哪種語言遊玩。"
+
+msgid "The list of shared campaigns that the refresh icon on the New game screen shows. By default the one in the descent-engine-community repository on GitHub."
+msgstr "「新遊戲」畫面上的重新整理圖示所顯示的分享戰役清單。預設是 GitHub 上 descent-engine-community 儲存庫中的那個。"
+
+msgid "The market sells materials but does not buy them."
+msgstr "市場出售材料，但不收購材料。"
+
+msgid "The mission is missing from the campaign folder."
+msgstr "戰役資料夾中缺少該任務。"
+
+msgid "The mission of chapter \"%s\" is missing from the new version."
+msgstr "章節「%s」的任務在新版本中缺失。"
+
+msgid "The new variable \"%s\" starts at its default value."
+msgstr "新變數「%s」從其預設值開始。"
+
+msgid "The new version has no act %d (your save is in it)."
+msgstr "新版本沒有第 %d 幕（你的存檔在其中）。"
+
+msgid "The newer version could not be opened."
+msgstr "無法開啟更新的版本。"
+
+msgid "The original save game is not changed - you can always go back to it."
+msgstr "原存檔沒有改變——你隨時可以回到它。"
+
+msgid "the package"
+msgstr "該套件"
+
+msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
+msgstr "團隊沒有攜帶道具——請在煉金術士處用藥水製作指南釀造。"
+
+msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
+msgstr "團隊沒有道具。請在煉金術士處用藥水製作指南釀造。"
+
+msgid "The party has to try this chapter again."
+msgstr "團隊必須再次嘗試這一章。"
+
+msgid "The party owns no armor yet."
+msgstr "團隊還沒有防具。"
+
+msgid "The party owns no trinkets yet - they are bought in a recipe shop or found."
+msgstr "團隊還沒有飾品——它們要在製作指南商店購入或找到。"
+
+msgid "The phase can't be ended right now."
+msgstr "現在無法結束這個階段。"
+
+msgid "The potions the party has crafted - available in every mission"
+msgstr "團隊製作的藥水——每個任務都可使用"
+
+msgid "The release's checksum list has no entry for %s."
+msgstr "發布版的校驗碼清單中沒有 %s 的項目。"
+
+msgid "The snapshot could not be saved - see the Output panel."
+msgstr "無法儲存快照——請查看輸出面板。"
+
+msgid "The snapshot was put on the edited mission, but:\n- "
+msgstr "快照已套用到編輯過的任務，但是：\n- "
+
+msgid "The speech engine download had no library for %s."
+msgstr "下載的語音引擎沒有適用於 %s 的程式庫。"
+
+msgid "the table carries it out"
+msgstr "由桌面執行"
+
+msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
+msgstr "這名英雄佩戴的飾品（每名英雄一件；一件飾品只能由一名英雄佩戴）"
+
+msgid "The update could not be started."
+msgstr "無法啟動更新。"
+
+msgid "The update does not contain %s."
+msgstr "更新中不包含 %s。"
+
+msgid "The updated copy could not be saved."
+msgstr "無法儲存更新後的副本。"
+
+msgid "The variable \"%s\" no longer exists - its value is dropped."
+msgstr "變數「%s」已不存在——其值被捨棄。"
+
+msgid "This app ships without the game's art. If you own \"Descent: Legends of the Dark\", the real pictures, figures and game data can be copied from your own install. Nothing of the game is downloaded and nothing leaves this computer."
+msgstr "這個應用程式不含遊戲的美術資源。如果你擁有《Descent：暗黑世界傳說》，可以從你自己的安裝中複製真實的圖片、模型與遊戲資料。遊戲的任何內容都不會被下載，任何內容也不會離開這台電腦。"
+
+msgid "this attack cannot damage it"
+msgstr "這次攻擊無法傷害它"
+
+msgid "This package was not imported - it is damaged or contains something that is not allowed:\n\n- %s"
+msgstr "這個套件未匯入——它已損壞或包含不允許的內容：\n\n- %s"
+
+msgid "This package was not installed - it is damaged or contains something that is not allowed."
+msgstr "這個套件未安裝——它已損壞或包含不允許的內容。"
+
+msgid "This release has no %s (or no checksum list)."
+msgstr "這個發布版沒有 %s（或沒有校驗碼清單）。"
+
+msgid "This save game cannot be moved to v%s:"
+msgstr "這個存檔無法遷移到 v%s："
+
+msgid "This save game was moved from version %s of the campaign to version %s."
+msgstr "這個存檔已從戰役版本 %s 遷移到版本 %s。"
+
+msgid "Threat"
+msgstr "威脅"
+
+msgid "throwing knives"
+msgstr "苦無"
+
+msgid "Time passes"
+msgstr "時間流逝"
+
+msgid "Time passes.\n\n"
+msgstr "時間流逝。\n\n"
+
+msgid "Tired"
+msgstr "疲憊不堪"
+
+msgid "Too short - hold %s while you speak"
+msgstr "太短了——說話時請按住 %s"
+
+msgid "Towards the tree"
+msgstr "朝樹走去"
+
+msgid "Toxos"
+msgstr "腐系元素"
+
+msgid "Toxos (decay)"
+msgstr "腐系元素"
+
+msgid "trigger %d (every %dth: %d damage to every enemy)"
+msgstr "觸發 %d（每第 %d 次：對每個敵人造成 %d 點傷害）"
+
+msgid "trigger %d: %d damage to every enemy"
+msgstr "觸發 %d：對每個敵人造成 %d 點傷害"
+
+msgid "Trinket"
+msgstr "飾品"
+
+msgid "Trinket %s: %s"
+msgstr "飾品 %s：%s"
+
+msgid "Trinket upgrade: "
+msgstr "飾品升級： "
+
+msgid "Trinket: "
+msgstr "飾品： "
+
+msgid "Trinkets"
+msgstr "飾品"
+
+msgid "Umbros"
+msgstr "暗系元素"
+
+msgid "Umbros (shadow)"
+msgstr "暗系元素"
+
+msgid "Undying Skull"
+msgstr "不死頭骨"
+
+msgid "Undying Skull: %s defeated a %s for the %s time."
+msgstr "不死頭骨：%s 第 %s 次擊敗了一個 %s。"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Update available: %s"
+msgstr "有可用更新：%s"
+
+msgid "Update to v%s…"
+msgstr "更新到 v%s……"
+
+msgid "Upgrade - tier %d"
+msgstr "升級——%d 階"
+
+msgid "Upgrade: "
+msgstr "升級： "
+
+msgid "Upgraded (+). In a campaign this follows the party's upgrades."
+msgstr "已升級（+）。在戰役中，這會跟隨團隊的升級。"
+
+msgid "Usable in this mission: %s. Put it in your play area to use it. It is not added to the inventory and is gone when the mission ends."
+msgstr "本任務中可用：%s。把它放到你的遊戲區域即可使用。它不會加入庫存，任務結束後就消失。"
+
+msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
+msgstr "本任務中可用：%s。把它們放到你的遊戲區域即可使用。它們不會加入庫存，任務結束後就消失。"
+
+msgid "Use the original game props in the map"
+msgstr "在地圖中使用遊戲的原版道具"
+
+msgid "Use the upgraded (+) side of this trinket."
+msgstr "使用這件飾品的升級（+）面。"
+
+msgid "Variable '%s' changed type - it has its default again."
+msgstr "變數「%s」改變了類型——它又回到了預設值。"
+
+msgid "Variable '%s' no longer exists (it was %s)."
+msgstr "變數「%s」已不存在（它曾是 %s）。"
+
+msgid "Version %s"
+msgstr "版本 %s"
+
+msgid "Version %s is already installed."
+msgstr "版本 %s 已安裝。"
+
+msgid "Version %s is available (you have %s)."
+msgstr "有版本 %s 可用（你的是 %s）。"
+
+msgid "Version %s of this package is already released - a release is never replaced. Use a higher version."
+msgstr "這個套件的版本 %s 已經發布——已發布的版本絕不會被取代。請使用更高的版本。"
+
+msgid "Victory!"
+msgstr "勝利！"
+
+msgid "Vigos"
+msgstr "生系元素"
+
+msgid "Vigos (life)"
+msgstr "生系元素"
+
+msgid "Voice"
+msgstr "語音"
+
+msgid "Voice - "
+msgstr "語音 - "
+
+msgid "Voice control is set up."
+msgstr "語音控制已設定好。"
+
+msgid "Voice isn't set up yet - typed commands still work."
+msgstr "語音尚未設定——輸入的指令仍然可用。"
+
+msgid "voice settings (%s)"
+msgstr "語音設定（%s）"
+
+msgid "Voice setup isn't available on %s - typed commands still work."
+msgstr "%s 上無法設定語音——輸入的指令仍然可用。"
+
+msgid "Voice setup isn't supported on %s yet."
+msgstr "%s 上尚不支援設定語音。"
+
+msgid "voices (%s)"
+msgstr "語音（%s）"
+
+msgid "wand"
+msgstr "魔杖"
+
+msgid "Wander"
+msgstr "遊蕩"
+
+msgid "war bell"
+msgstr "戰鐘"
+
+msgid "warhammer"
+msgstr "戰鎚"
+
+msgid "weak to %s"
+msgstr "對 %s 弱"
+
+msgid "Weak: %s"
+msgstr "弱：%s"
+
+msgid "Weakness"
+msgstr "弱點"
+
+msgid "weakness damage +%d"
+msgstr "弱點傷害 +%d"
+
+msgid "Weakness: %s"
+msgstr "弱點：%s"
+
+msgid "weapon"
+msgstr "武器"
+
+msgid "Weapon %d (%s)"
+msgstr "武器 %d（%s）"
+
+msgid "weapon damage +%d"
+msgstr "武器傷害 +%d"
+
+msgid "weapon part chances +%d%%"
+msgstr "武器部件機率 +%d %%"
+
+msgid "Weapons"
+msgstr "武器"
+
+msgid "What's new"
+msgstr "最新消息"
+
+msgid "When a hero has lost all hitpoints, press Wound. The third wound loses the game."
+msgstr "當一名英雄失去所有生命時，按下「受傷」。第三次受傷會輸掉遊戲。"
+
+msgid "Which monster?"
+msgstr "哪隻怪物？"
+
+msgid "Which one?"
+msgstr "哪一個？"
+
+msgid "Who attacks the %s?"
+msgstr "誰來攻擊 %s？"
+
+msgid "Who uses the %s?"
+msgstr "誰來使用 %s？"
+
+msgid "Will"
+msgstr "意志"
+
+msgid "Won: %s."
+msgstr "已贏得：%s。"
+
+msgid "Wound"
+msgstr "受傷"
+
+msgid "Wounded"
+msgstr "受傷"
+
+msgid "XP: %d  |  Gold: %d"
+msgstr "XP：%d  |  金幣：%d"
+
+msgid "Yellow"
+msgstr "黃色"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "You already have version %s - this one is installed next to it."
+msgstr "你已經有版本 %s——這個會裝在它旁邊。"
+
+msgid "You can play"
+msgstr "你可以玩"
+
+msgid "You carry %d."
+msgstr "你攜帶了 %d。"
+
+msgid "You have %d gold and %s."
+msgstr "你有 %d 金幣和 %s。"
+
+msgid "You have %d gold."
+msgstr "你有 %d 金幣。"
+
+msgid "You know no potion recipe. Recipes are sold in the recipe shops or found as loot."
+msgstr "你不知道任何藥水製作指南。製作指南在製作指南商店出售，或作為戰利品找到。"
+
+msgid "You know no recipe that makes something new. Recipes are sold in the recipe shops."
+msgstr "你不知道任何能製作新東西的製作指南。製作指南在製作指南商店出售。"
+
+msgid "Your materials:"
+msgstr "你的材料："
+
+msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
+msgstr "你的進度會以這個名稱自動儲存，因此你可以離開並從停下的地方繼續（主選單中的讀取遊戲）。為每個小組或每次遊玩使用不同的名稱。"
+
+msgid "▶ Read aloud"
+msgstr "▶ 朗讀"
+
+msgid "☠ Defeated"
+msgstr "☠ 已被擊敗"
+
+msgid "Unofficial App"
+msgstr "非官方應用程式"
+
+msgid "%s - %s\n\n%s gains an extra benefit: %s."
+msgstr "%s - %s\n\n%s 獲得一項額外好處：%s。"
+
+msgid "A new act begins."
+msgstr "新的一幕開始了。"
+
+msgid "act"
+msgstr "幕"
+
+msgid "The campaign is complete."
+msgstr "戰役完成。"
+
+msgid "The end"
+msgstr "結局"
+
+msgid "The story begins."
+msgstr "故事開始了。"
+
+msgid "Current Objective:"
+msgstr "目前目標："
+
+msgid "Language of this game"
+msgstr "這場遊戲的語言"
+
+msgid "The language this game is read, logged and narrated in. You can change it later in Options."
+msgstr "這場遊戲閱讀、記錄和朗讀所用的語言。你以後可以在選項中更改。"
+
+msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
+msgstr "故事、日誌和遊戲的術語以這種語言顯示。應用程式的選單與按鈕跟隨下面的清單。"
+
+msgid "Download %s voices (%s)"
+msgstr "下載 %s 語音（%s）"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only."
+msgstr "沒有安裝 %s 的旁白語音，所以故事只以文字顯示。"
+
+msgid "No narration voices for %s are installed, so the story is shown as text only. Download them in Options > Voice."
+msgstr "沒有安裝 %s 的旁白語音，所以故事只以文字顯示。請在 選項 > 語音 中下載。"
+
+msgid "Set up narration - %s voices (downloads about %d MB)"
+msgstr "設定旁白——%s 語音（約下載 %d MB）"
+
+msgid "Voices for:"
+msgstr "語音適用於："
+
+msgid "No narration voices for %s are installed, so this game is shown as text only. Download them in Options > Voice."
+msgstr "沒有安裝 %s 的旁白語音，所以這場遊戲只以文字顯示。請在 選項 > 語音 中下載。"
+
+msgid " - only if %d condition(s)"
+msgstr " - 僅當 %d 個條件成立"
+
+msgid "Difficulty"
+msgstr "難度"
+
+msgid "Adventurer"
+msgstr "冒險者"
+
+msgid "Apprentice"
+msgstr "學徒"
+
+msgid "Monsters are one level stronger than the author set them, and the mission may be harder on you."
+msgstr "怪物比作者設定的高一級，任務對你來說可能更難。"
+
+msgid "Monsters are one level weaker than the author set them, and the mission may go easier on you."
+msgstr "怪物比作者設定的低一級，任務對你來說可能更容易。"
+
+msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
+msgstr "怪物比作者設定的高兩級，任務可能毫不留情。"
+
+msgid "Nightmare"
+msgstr "夢魘"
+
+msgid "The game as the author designed it."
+msgstr "作者設計的原樣遊戲。"
+
+msgid "Veteran"
+msgstr "老兵"
+
+msgid "Tougher monsters and a harder mission at the higher numbers. You can change it before each mission."
+msgstr "數字越高，怪物越強，任務越難。你可以在每個任務之前更改。"
+
+msgid "%d monster(s) woke up."
+msgstr "%d 隻怪物醒了。"
+
+msgid "A condition was put on one of them."
+msgstr "其中一隻被施加了狀態。"
+
+msgid "Monsters wake"
+msgstr "怪物甦醒"
+
+msgid "Something has alerted them."
+msgstr "有什麼驚動了牠們。"
+
+msgid "Something has woken them."
+msgstr "有什麼喚醒了牠們。"
+
+msgid "The monsters wake up!"
+msgstr "怪物醒來了！"
+
+msgid "They have not noticed the heroes: they stay where they are until something wakes them."
+msgstr "牠們沒有注意到英雄：在有東西喚醒牠們之前，牠們留在原地。"
+
+msgid "They noticed the attack."
+msgstr "牠們注意到了攻擊。"
+
+msgid "Unaware"
+msgstr "毫無察覺"
+
+msgid "Unaware - it and its group are skipped in the monster phase"
+msgstr "毫無察覺——它和它的小組會跳過怪物階段"
+
+msgid "Wake up"
+msgstr "喚醒"
+
+msgid "%s (optional)"
+msgstr "%s（可選）"
+
+msgid "Optional objective"
+msgstr "可選目標"
+
+msgid "Optional objective completed:\n%s"
+msgstr "可選目標已完成：\n%s"
+
+msgid "Optional:"
+msgstr "可選："
+
+msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
+msgstr "應用程式本身（選單和對話框）以此清單中它已翻譯的第一種語言顯示——目前有 %s。"
+
+msgid " (%d for %d player)"
+msgid_plural " (%d for %d players)"
+msgstr[0] "（%d，%d 名玩家時）"
+
+msgid "+%d success"
+msgid_plural "+%d successes"
+msgstr[0] "+%d 個成功"
+
+msgid "lost %d status, %d damage"
+msgid_plural "lost %d statuses, %d damage"
+msgstr[0] "失去 %d 個狀態，%d 點傷害"
+
+msgid "Lucky Charm: %d extra success is added to %s's result."
+msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
+msgstr[0] "幸運護符：%d 個額外成功被加到 %s 的結果上。"
+
+msgid "New side quest: %s"
+msgid_plural "New side quests: %s"
+msgstr[0] "新的支線任務：%s"

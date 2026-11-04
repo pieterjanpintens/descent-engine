@@ -1,0 +1,770 @@
+1|(imunní)
+2|mikrofon [%s%s]
+3|%s získává unikátní recept: %s.
+4|(%d selhalo)
+5|(aktivní)
+6|(nejdřív stáhne importní nástroj, %s)
+7|(imunní)
+8|(Recepty si ponechávají jen kampaně.)
+9|(XP nyní %d)
+10|- ještě neimportováno
+11|= %d zranění\nObranný hod: -%d\n\nZpůsobeno %d zranění
+12|Nevyvoláno: %s.
+13|Nezbývá žádný recept, který by šel získat.
+14|%d zranění pro %s
+15|%d zranění nepříteli
+16|%d zranění navíc (%d %% jeho zdraví)
+17|%d od komunity k instalaci.
+18|%d zlaťáků
+19|%d zlaťáků (Kompas mrtvého muže)
+20|%d h %d min
+21|%d min
+22|Vyvoláno příšer: %d.
+23|%d z aktuálních cílů už neexistuje.
+24|%d x %d dlaždic
+25|%dx %s
+26|%s  -  XP %d,  zlato %d
+27|%s %d (žádné řádky tabulky)
+28|%s (žeton %s)
+29|%s (%s, část %s)
+30|%s (zkopíroval %s): %s
+31|%s +%d do konce kola
+32|%s - žeton %s
+33|%s - %s se spustilo!\n\n%s
+34|%s - %s se spustilo!\n\n%s získává náhodný spotřebovatelný předmět: %s\n\nVybavte ho.
+35|%s - %s se spustilo!\n\n%s získává náhodný vylepšený spotřebovatelný předmět: %s\n\nVybavte ho.
+36|%s - %s se spustilo!\n\n%s\n\nZkontrolujte, zda se to použije, a proveďte to na herní desce (stav lze použít z obrazovky příšer).
+37|%s - %s\nMá %s zranění?
+38|%s - %s\nKolik únavy je na všech kartách hrdiny %s?
+39|%s - %s\nKterý další nepřítel utrpí stejné zranění? (Zrušit: žádný)
+40|%s - koupit za %d zlaťáků, prodat za %d
+41|%s - ZDR %d, Úr. %d, Obr %d, Útok %d
+42|%s - úroveň %d
+43|%s - ještě není implementováno.
+44|%s „%s“ - verze %s
+45|%s útočí na %s (zranění %d, %s).
+46|%s útočí na %s - vyberte zbraň
+47|%s útočí na %s!%s\nZranění %d - %s - Rychlost %d
+48|%s útočí na %s.\nKterou zbraní?
+49|%s útočí na %s\nzbraní %s (zranění %d)\n
+50|%s upustil něco použitelného. %s
+51|%s upustil: %s.
+52|%s získává %s
+53|%s byl poražen.
+54|%s se vyléčil o %d (zdraví %d).
+55|%s je %s.
+56|%s je zmatený!\n%s\n%s
+57|%s je zmatený: %s.
+58|%s je imunní
+59|%s je tohoto kola méně pravděpodobným cílem
+60|%s už není %s.
+61|%s není ve skupině.
+62|%s něco chystá...
+63|%s ztratil všechno zdraví. Zranit hrdinu %s?
+64|%s provádí %s proti %s.
+65|%s získává výhodu: %s.
+66|%s utrpí %d zranění
+67|%s utrpí %d zranění utrpením (zbývá %d zdraví).
+68|%s utrpí %d zranění utrpením a je poražen! Odstraňte ho z desky.
+69|%s utrpěl %d zranění (zbývá %d zdraví).
+70|%s utrpěl %d zranění a byl poražen.
+71|%s se spustilo
+72|%s byl poražen během přerušení, než mohl %s.
+73|%s byl zraněn potřetí.
+74|%s zranil hrdinu - jeho tah končí.
+75|Koš na vaření hrdiny %s poskytuje náhodný spotřebovatelný předmět:
+76|%s: %s!\nCíl %s - Zranění %d - %s - Rychlost %d
+77|%s: %s\nPevné části: %s
+78|%s: obrana +%d do konce kola
+79|%s: interagovat s „%s“
+80|%s: kořist x%d (+%s)
+81|%s: potřeba %d, máte %d
+82|%s: proveďte zkoušku %s - kolik úspěchů?
+83|%s: nepřítel nemá žádnou kořist
+84|%s: nepřítel není poražen, žádná kořist navíc
+85|%s\n\nNic se nezměnilo. Můžete to zkusit znovu, nebo si stáhnout aktualizaci ze stránky vydání.
+86|%s\n\nVybrali jste: %s
+87|(útočí znovu)
+88|(ignorováno) %s
+89|(nepojmenované místo)
+90|(nepojmenovaná vedlejší úloha)
+91|(vaše vydání)
+92|+%d zranění
+93|+%d zranění (hozeno %d-%d)
+94|+%d zranění (kolo %d)
+95|2D grafika - logo a pozadí hlavní nabídky
+96|[koncept]
+97|„%s“ verze %s je už nainstalována.
+98|\n%.1f MB.
+99|\n%d misí, %d obrázků, %.1f MB.
+100|\n%d uložených her je odsunuto stranou (user://campaign_saves/_removed), nebyly smazány.
+101|\n%d úspěchů x %d zranění zbraně
+102|\n(+%d zranění z obranné schopnosti při této aktivaci)
+103|\n(Oslabení: zranění sníženo z %d)
+104|\n\n%s získává zranění „%s“: položte jeho kartu do své herní oblasti.
+105|\n\n%s zbývá %d zdraví.
+106|\n\n%s je poražen! Odstraňte ho z desky.
+107|\n\n%s musí obrátit svou kartu zranění (%s) na těžkou stranu.
+108|\n\n%s musí obrátit svou kartu zranění na těžkou stranu.
+109|\n\nRukojeť vzpomínek: nastavte zdraví hrdiny %s místo toho na %d.
+110|\n\nAplikace se tady nemůže aktualizovat sama: %s. Stáhněte ji ze stránky vydání.
+111|\n\nMise, kterou hrajete, bude zavřena - nejdřív ji uložte (Možnosti > Uložit), nebo zvolte Později.
+112|\n\nToto je třetí zranění hrdiny %s - hra bude prohrána!
+113|\n\nKámen poutníka - každý hrdina si může místo odhození 1 únavy vybrat svou alternativní výhodu:
+114|\nAktivace:
+115|\nTaké nějaké řemeslné materiály pro skupinu: %s.
+116|\nU stolu:
+117|\nUplatněné stavy: %s
+118|\nOdkrytí: +%d zranění
+119|\nImunní vůči: %s
+120|\nImunní! Útok nezpůsobí žádné zranění.\n\nZpůsobeno 0 zranění
+121|\nVe vývoji (koncept)
+122|\nKořist pro skupinu: %s.
+123|\nŽádná volná dlaždice pro vyvolání: %s - umístěte je vedle ostatních.
+124|\nJeště nenainstalováno - otevřete a nainstalujte.
+125|\nOdolnost: -%d zranění
+126|\nBalíček byl zkontrolován: obsahuje pouze herní data.
+127|\nSlabina: +%d zranění
+128|\nČásti zbraní a talisman:
+129|vylepšení brnění %s
+130|recept na část %s
+131|vylepšení části %s
+132|recept %s
+133|vylepšení %s
+134|Kampaň
+135|hrdina
+136|nová oblast
+137|recept na lektvar
+138|Uložená hra s názvem „%s“ už existuje.
+139|Uložená hra potřebuje název.
+140|zásilka brnění: %s
+141|zásilka brnění
+142|Jedna mise
+143|Snímek lze pořídit ve fázi hráčů, když není otevřený žádný dialog.
+144|talisman
+145|vylepšení talismanu
+146|Dějství dokončeno!
+147|Přidat jazyk
+148|přidává %d zranění k jeho další aktivaci
+149|Sužovaný
+150|Sužování
+151|zranění sužováním +%d v tomto kole
+152|Hbitost
+153|všechny jeho stavy jsou odstraněny
+154|vylepšení brnění
+155|neznámý autor
+156|Neoficiální fanouškovský projekt, volně k použití (licence MIT).\n*Descent: Legends of the Dark* a vše z hry patří jejich vlastníkům.
+157|Anemos
+158|Anemos (vítr)
+159|Aktualizace aplikace
+160|Uplatněno:
+161|Uplatnit stavy
+162|Aquos
+163|Aquos (voda)
+164|Brnění
+165|Vylepšení brnění:
+166|Brnění:
+167|Brnění…
+168|U stolu:
+169|Útok
+170|zaútočit na %s
+171|Útočné schopnosti: %s
+172|útok získává %s
+173|Nyní dostupné: %s
+174|Zpět
+175|Zpět do editoru
+176|Zpět do editoru
+177|Zpět do nabídky
+178|je sužován
+179|Zahájit kampaň
+180|Kost
+181|Koupeno
+182|luk
+183|Vařit
+184|Koš na vaření
+185|Koupit
+186|Koupit  %d
+187|Koupit  %d zlaťáků
+188|Koupit recept  %d zlaťáků
+189|od
+190|od %s
+191|Kampaň
+192|Kampaň dokončena
+193|Kampaň dokončena! (%s)
+194|Editor kampaní
+195|Deník kampaně
+196|Může %s zaútočit na druhého hrdinu?
+197|Zrušit
+198|Zrušit stahování
+199|Vypalování ran
+200|Opatrný
+201|Střed ke středu (přísné)
+202|Střed k rohu (doporučeno)
+203|Kapitola
+204|Kapitola „%s“, kterou jste už dokončili, v nové verzi není.
+205|Kapitola „%s“, ve které teď jste, není v %d. dějství nové verze.
+206|Kontrolovat v hlavní nabídce novou verzi aplikace
+207|Truhla, brána, strom a studna používají po Herní zdroje > Importovat vlastní modely hry. Vypnuto = rekvizity dodávané s aplikací. Projeví se při příštím otevření mapy.
+208|Vyberte balíček
+209|Vyberte soubor balíčku…
+210|Vyberte zbraň
+211|Vyberte složku, do které je hra nainstalována
+212|Vyberte složku hry…
+213|Vyberte dvě zbraně pro každého hrdinu (a volitelné doplňky)
+214|Vyberte svou skupinu
+215|Zavřít
+216|Látka
+217|Běžné
+218|Komunita
+219|Seznam komunity
+220|Stavy
+221|Stavy (%d)
+222|Potvrdit
+223|Zmatený
+224|Spotřební předměty
+225|Spotřební předměty…
+226|Pokračovat
+227|Pokračovat v této hře
+228|Převádím modely... %s (%s)
+229|kopíruje %s
+230|Zkopíruje toto vydání jen pro čtení do nového konceptu, který můžete měnit. Samotné vydání a jeho uložené hry zůstanou beze změny.
+231|Roh k rohu (volné, Descent 2)
+232|Cena: %s
+233|Nepodařilo se vytvořit větev %s.
+234|Tu uloženou hru se nepodařilo otevřít.
+235|Kampaň „%s“ se nepodařilo otevřít.
+236|Nepodařilo se zahájit stahování %s (chyba %d).
+237|Nepodařilo se rozbalit %s (návratový kód tar %d).
+238|Nepodařilo se rozbalit vyprávěcí engine (návratový kód tar %d).
+239|Nepodařilo se zapsat %s (chyba %d).
+240|Počítat jako prohru
+241|Počítat jako výhru
+242|Vytvořil
+243|Titulky
+244|kuše
+245|Drtivé
+246|Kuriozity
+247|Aktuální cíl
+248|Zranění
+249|zranění %d
+250|zranění +%d trvale (nyní %d)
+251|zranění -%d
+252|Typ zranění
+253|Omráčený
+254|Porážka.
+255|Poražen
+256|obrana %+d do konce kola (nyní %d)
+257|obrana +%d během tohoto útoku
+258|obrana +%d trvale (nyní %d)
+259|obrana -%d
+260|obrana -%d v tomto kole
+261|Obranné schopnosti: %s
+262|obranná schopnost deaktivována pro další útok
+263|obranná schopnost deaktivována do konce kola
+264|Obranná schopnost deaktivována.
+265|Obranná schopnost: %s
+266|Smazat uloženou hru „%s“?
+267|Smazat tuto uloženou hru
+268|Způsobil %s zranění hrdinovi %s?
+269|Prošel %s zkouškou?
+270|Slyšel jsem ústup? Přesuňte se až o {speed} dlaždic co nejdál od hrdinů.
+271|Nespustilo se:
+272|Nezachytil jsem číslo v rozsahu
+273|Nic jsem nezachytil - podržte %s a zkuste to znovu
+274|Nezachytil jsem to
+275|Nezachytil jsem, kterou možnost
+276|Hotovo
+277|Hotovo - restartujte aplikaci, aby se projevilo vše.
+278|Hotovo. Aktualizovaná kopie je v seznamu.
+279|Odsouzený
+280|Stáhnout další hlasy - akcenty (%s)
+281|Stáhnout další hlasy - neutrální angličtina (%s)
+282|Stahuji %s... %d MB
+283|Stahuji %s... %d %% (%d / %d MB)
+284|Stahuji aktualizaci…
+285|dva meče
+286|každý nepřítel utrpí %d zranění (spuštění %d)
+287|Každý hráč si do mise může vzít %d%s. Vyrobené spotřební předměty jsou v každé misi k dispozici znovu - žádný se nespotřebuje.
+288|Editor
+289|Povolit hlas
+290|Brzy skončí: po splnění „%s“ tato vedlejší úloha zmizí.
+291|Oslabený
+292|Esence
+293|Odkrytý
+294|SELHÁNÍ
+295|Misi se nepodařilo načíst: %s
+296|Uložení selhalo - podrobnosti jsou v panelu Výstup.
+297|Činy
+298|první
+299|Pevný hrdina (%s)
+300|Otočte kartu svého hrdiny
+301|Dlaždice podlahy
+302|Soustředit 2 karty
+303|Kovárna
+304|Odvodit pro úpravy
+305|%s odvozeno do vašeho konceptu „%s“ - otevřete ho v editoru %s.
+306|Fortunos
+307|Fortunos (štěstí)
+308|Zoufalý
+309|volné
+310|Přátelská palba
+311|Frustrovaný
+312|získává %s
+313|Hra %04d-%02d-%02d %02d:%02d
+314|Herní zdroje
+315|Hra nalezena:\n%s
+316|Hratelnost
+317|rukavice s drápy
+318|Obecné
+319|Dává brnění: %s%s - %s
+320|Dává runu: %s
+321|Dává talisman: %s%s - %s
+322|Dává zbraň: %s%s
+323|Dává: %s
+324|rukavice
+325|Zlato
+326|Zlato: %d
+327|Dostali jste od někoho balíček? Vyberte soubor, nebo vložte jeho webovou adresu. Před instalací uvidíte, co obsahuje a kdo ho vytvořil.
+328|Zelená
+329|Hlídat bránu
+330|kladivo
+331|Ztvrdlá kůže
+332|Léčení
+333|Léčení 2
+334|Léčení 4
+335|Zdráv
+336|Poslechnout si vypravěče
+337|Poslechnout si tento hlas
+338|Slyšel jsem: %s
+339|Těžce zraněn
+340|Těžké ruce
+341|Těžké srdce
+342|Byliny
+343|modely hrdinů
+344|Hlasy hrdinů
+345|Hrdinové
+346|Váhavý
+347|Zdraví %d / %d
+348|Podržte %s a mluvte
+349|Roh odvahy
+350|Roh odvahy - %s byl zraněn.
+351|Najetím na brnění zobrazíte jeho pravidla. Brnění se nosí a vyhodnocuje u stolu.
+352|Jak nástroj linie výhledu rozhoduje, zda se dvě pole vidí. Střed k rohu: čára od středu pole pozorovatele k libovolnému rohu cíle.
+353|ZDR %d · Úroveň %d
+355|Ignos
+356|Ignos (oheň)
+357|imunní vůči %s
+358|Imunní vůči stavům: %s
+359|Imunní vůči:
+360|Imunní: %s
+361|Imunita: %s
+362|Importovat
+363|Import skončil, ale ne všechno se povedlo.
+364|Import skončil.
+365|Importovat herní zdroje
+366|Dosud importováno: %s.
+367|Import zevnitř aplikace zatím není na tomto počítači dostupný - použijte místo toho nástroje pro zdroje ze stránky vydání.
+368|VE VÝVOJI
+369|Vstupní zařízení: %s
+370|Nainstalovat
+371|Nainstalovat a restartovat
+372|Nainstalovat ručně
+373|Nainstalovat tento balíček?
+374|Nainstalováno
+375|Nainstalováno „%s“ v%s.
+376|Nainstalováno „%s“.
+377|Instaluji…
+378|Instaluji… aplikace se zavře a sama se znovu spustí.
+379|Inteligence
+380|Přerušit
+381|Přerušení - hrají hráči
+382|Inventář
+383|Zůstává, jak je; můžete ji dál hrát v její vlastní verzi.
+384|Jazyk
+385|Jazyky
+386|Udeřit na nejbližší jinou příšeru: utrpí {damage} zranění. (Stiskněte Přerušit, v zobrazení příšer klikněte na tu příšeru a uplatněte zranění.)
+387|Později
+388|Kůže
+389|Odchází po další kapitole!
+390|Úroveň %d -
+391|Linie výhledu
+392|Linie výhledu (zapnuto)
+393|Pravidlo linie výhledu
+394|Poslouchám... pro odeslání pusťte %s
+395|Načíst uloženou misi
+396|Načíst hru
+397|Hledat kampaně sdílené komunitou
+398|Hledám sdílené kampaně…
+399|Kořist
+400|Kořist pro skupinu:
+401|Šťastný talisman
+402|Lumos
+403|Lumos (světlo)
+404|Výpad bez kousnutí
+405|Brýle mágova pohledu
+406|Brýle mágova pohledu - %s získává další akci!
+407|Vytvořit kopii „%s“ na v%s?
+408|Vytvoří aktualizovanou KOPII této uložené hry na novější verzi. Originál zůstane beze změny.
+409|Materiály
+410|maximální zdraví -%d (nyní %d)
+411|na blízko
+412|Zpráva
+413|Kov
+414|Minerály
+415|Mise
+416|Editor misí
+417|Mise a kampaně vytvořené jinými hráči. Vše se před instalací kontroluje - balíček může obsahovat jen herní data, nikdy kód - a každá verze se instaluje vedle ostatních, takže se nikdy nepřepíše nic, co jste vytvořili nebo uložili.
+418|Převedeno modelů: %d%s
+419|Příšera
+420|Akce příšery
+421|Útok příšery
+422|figurky příšer
+423|Fáze příšer
+424|Fáze příšer
+425|Taktika příšery
+426|Objevují se příšery
+427|Odpovídá jich víc - řekněte číslo
+428|Mortos
+429|Mortos (smrt)
+430|Přesunout kameru na místa vyvolání hráčů a příšer
+431|Přesuňte se až o {speed} dlaždic v náhodném směru.
+432|Přesuňte se až o {speed} dlaždic k nejbližší bráně a hlídejte ji.
+433|Přesuňte se až o {speed} dlaždic k nejbližšímu sloupu a skryjte se za ním.
+434|Přesuňte se až o {speed} dlaždic k nejbližšímu stromu.
+435|Přesuňte se až o {speed} dlaždic k nejbližšímu hrdinovi - ale nezaútočte.
+436|Přesunuto na v%s
+437|Vyprávění
+438|Vyprávění je nastaveno.
+439|Vyprávění není na %s dostupné.
+440|Vyprávění ještě není nastaveno - příběh se zobrazuje jen jako text.
+441|Nastavení vyprávění na %s zatím není podporováno.
+442|Nová hra
+443|Další
+444|Ne
+445|Žádné: %s.
+446|Žádná základní šablona pro: %s - nevyvoláno (opravte misi v Tvůrci).
+447|Nezbývá žádný barevný žeton pro: %s - nevyvoláno.
+448|Bez popisu.
+449|žádný nepřítel k poškození
+450|Žádný obrázek mapy - vyberte jej pro toto dějství
+451|Nejsou známy žádné recepty: nejdřív importujte herní data (Herní zdroje v hlavní nabídce).
+452|Právě se neprodávají žádné recepty.
+453|Zatím žádné recepty - kupují se v obchodě s recepty.
+454|Zatím žádné uložené hry - začněte jednu Novou hrou.
+455|Zatím nic - materiály pocházejí od poražených příšer, z misí a z trhu.
+456|Ne všechno se povedlo. Co se povedlo, je na místě - restartujte aplikaci, abyste to viděli.
+457|Poznámka:
+458|Tady se nic neprodává.
+459|Zatím nebylo nic importováno - aplikace zobrazuje zástupné obrázky.
+460|Zatím se nic nestalo.
+461|Zatím tu nic není. Stiskněte ikonu obnovení a uvidíte, co komunita sdílela, nebo vydejte vlastní kampaň v Editoru kampaní.
+462|Zatím nic nenainstalováno. Použijte ikonu obnovení na obrazovce Nová hra k nalezení sdílených kampaní, nebo níže nainstalujte balíček ručně.
+463|V seznamu komunity není nic nového.
+464|Zatím nic.
+465|Oznámení
+466|Cíl
+467|Offline - zobrazen poslední seznam komunity.
+468|ok
+469|Pouze se zeptá GitHubu, která verze je nejnovější. Bez vašeho kliknutí se nic nestahuje ani neinstaluje.
+470|Otevřít kampaně
+471|Možnosti
+472|Nebo webová adresa (https://…) souboru balíčku:
+473|Oranžová
+474|Překryvy
+475|Část %s: žádná
+476|Části (B a C)
+477|provést %s
+478|Proveďte zkoušku %s - kolik úspěchů?
+479|Vyberte hlas pro každého hrdinu. Jeho repliky v příběhu se čtou jím a nikdo jiný ho nepoužije.
+480|Bodné
+481|Sloupy
+482|Umístěte příšery na mapu podle zobrazení.
+483|Umístěte své figurky hráčů do zvýrazněné oblasti a potvrďte.
+484|Hrát
+485|Hrát misi
+486|Hrát jednu misi
+487|Hrát tuto kapitolu
+488|Hrát tuto vedlejší úlohu
+489|Fáze hráčů
+490|Fáze hráčů
+492|Testovací hra
+493|Testovací hra:
+494|Preferované cíle: %s
+495|Připravit 2 karty
+496|Připravit kartu
+497|Rekvizity
+498|Fialová
+499|Mluvit stisknutím (podržte %s)
+500|Úkol
+501|Deník úkolů
+502|Ukončit
+503|Náhodný (podle jména)
+504|dosah %d
+505|Dosah %d
+506|dosah %d, kopí
+507|Dosah %d, kopí
+508|Dříve čteno v tomto jazyce
+509|Později čteno v tomto jazyce
+510|Přečíst příběh nahlas
+511|Přečíst tuto kapitolu
+512|Recept - stupeň %d
+513|Recept:
+514|Recepty
+515|obnovuje %d zdraví
+516|obnovuje %d zdraví (nyní %d / %d)
+517|Stránka vydání
+518|Odebrat
+519|Odebrat „%s“ verze %s z tohoto počítače?%s
+520|Odstranit jeden stav
+521|Odstranit všechny stavy daného typu
+522|Odstranit veškerou únavu z jedné karty
+523|Odebráno %s v%s.
+524|Odolnost: %s
+525|Odolný: %s
+526|Vyhodnoťte nákazu a děs. Každý hrdina může odhodit 1 únavu.
+527|Je potřeba restart
+528|Restartovat nyní
+529|Pokračovat v útoku příšery
+530|Ústup
+531|odhaluje slabinu vůči %s
+532|Odměna:
+533|Kolo %d - %s
+534|Přehled pravidel
+535|Runa
+536|runa
+537|Runa:
+538|Runy
+539|Uložit
+540|Uložená hra
+541|Uloženo.
+547|druhý
+548|Prodat  %d
+549|Nastavit vyprávění (stáhne %s)
+550|Nastavit hlasové ovládání (stáhne %s)
+551|Nastavte svou hru
+552|Příprava: %s
+553|Příprava „%s“\n%s%s - umístěte tyto podle zobrazení:\n%s
+554|Posun 1
+555|Zobrazovat hlasové nápovědy
+556|Ukazuje, zda je tato karta vylepšena (+). Vylepšení se získávají v kampani.
+557|Vedlejší úloha
+558|Vedlejší úloha (volitelná)
+559|Vedlejší úloha splněna: %s.
+560|Vedlejší úloha: %s
+561|Sečné
+562|Zpomalený
+563|Snímek
+564|Snímek „%s“ je prázdný.
+565|Snímek „%s“ pořízen (kolo %d).
+566|Snímek načten - kolo %d
+567|V cestě už stojí něco se stejným názvem: %s.
+568|kopí
+569|hůl
+570|Začít
+571|Začít hru
+572|Krok %s: %s...
+573|Recept z příběhu
+574|Vypravěč:
+575|Síla
+576|meč
+577|Taktika
+578|Taktiky
+579|Hledat úkryt
+580|Matná brož
+581|Matná brož: %d z %d.
+582|Matná brož: %d z %d. Brož se od další mise odemyká svou stranou +!
+583|Matná brož: objevuje se také %s (žeton %s). %s ji musí porazit.
+584|Terros
+585|Terros (země)
+586|textury a portréty
+587|Ta složka neobsahuje hru (nebyla v ní nalezena složka „bundles“).
+588|To není webová adresa (musí začínat https://).
+589|Tato možnost není dostupná
+590|Stahování %s selhalo (síť %d, HTTP %d).
+591|Stažený soubor %s není platný zip.
+592|Stahování %s přestalo přijímat data - zkontrolujte připojení a zkuste to znovu.
+593|Stahování %s bylo zrušeno.
+594|Stažený soubor %s byl poškozen (nesouhlasí kontrolní součet).
+595|%s se už stahuje.
+596|Adresa musí začínat https://
+597|Brnění, které skupina vlastní
+598|Autor potvrzuje, že smí obrázky sdílet.
+599|Autor neuvedl, zda smí obrázky sdílet.
+600|Kampaň je dokončena - gratulujeme!
+601|Adresa katalogu musí začínat https://
+602|Stažený balíček není ten, který seznam sliboval (%s %s místo %s %s). Nebyl importován.
+603|Stažený balíček není ten, který seznam sliboval. Nebyl nainstalován.
+604|nepřítel měl méně než %d zdraví: poražen
+605|Soubory se nepodařilo zapsat (chyba %d).
+606|první hrdina zraněný v tomto kole má místo toho zdraví %d
+607|Hra nebyla nalezena na obvyklých místech. Vyberte složku, do které je nainstalována.
+608|Importní nástroj skončil, aniž by cokoli importoval (návratový kód %d).
+609|Importované herní zdroje se načtou při spuštění aplikace.\n\nRestartovat nyní?
+611|Jazyky, ve kterých chcete číst, od nejlepšího. Kampaň nebo mise se zobrazí v prvním z nich, ve kterém má text; při zahájení hry kampaně se zeptáme, v jakém jazyce ji hrát.
+612|Seznam sdílených kampaní, který zobrazuje ikona obnovení na obrazovce Nová hra. Ve výchozím nastavení ten z repozitáře descent-engine-community na GitHubu.
+613|Trh materiály prodává, ale nevykupuje.
+614|Mise ve složce kampaně chybí.
+615|Mise kapitoly „%s“ v nové verzi chybí.
+616|Nová proměnná „%s“ začíná na výchozí hodnotě.
+617|Nová verze nemá %d. dějství (vaše uložená hra je v něm).
+618|Novější verzi se nepodařilo otevřít.
+619|Původní uložená hra se nemění - můžete se k ní kdykoli vrátit.
+620|balíček
+621|Skupina nenese žádné spotřební předměty - vařte je u alchymisty podle receptů na lektvary.
+622|Skupina nemá žádné spotřební předměty. Vařte je u alchymisty podle receptů na lektvary.
+623|Skupina musí tuto kapitolu zkusit znovu.
+624|Skupina zatím nevlastní žádné brnění.
+625|Skupina zatím nevlastní žádné talismany - kupují se v obchodě s recepty, nebo se nacházejí.
+626|Fázi teď nelze ukončit.
+627|Lektvary, které skupina vyrobila - dostupné v každé misi
+628|V seznamu kontrolních součtů vydání chybí záznam pro %s.
+629|Snímek se nepodařilo uložit - viz panel Výstup.
+630|Snímek byl použit na upravenou misi, ale:\n-
+631|Stažený řečový engine neměl knihovnu pro %s.
+632|provede se u stolu
+633|Talisman, který tento hrdina nosí (jeden na hrdinu; talisman smí nosit jen jeden hrdina)
+634|Aktualizaci se nepodařilo spustit.
+635|Aktualizace neobsahuje %s.
+636|Aktualizovanou kopii se nepodařilo uložit.
+637|Proměnná „%s“ už neexistuje - její hodnota se zahazuje.
+638|Tato aplikace se dodává bez grafiky hry. Pokud vlastníte „Descent: Legends of the Dark“, můžete skutečné obrázky, figurky a herní data zkopírovat z vlastní instalace. Nic z hry se nestahuje a nic neopouští tento počítač.
+639|tento útok ho nemůže zranit
+640|Tento balíček nebyl importován - je poškozený nebo obsahuje něco nepovoleného:\n\n- %s
+641|Tento balíček nebyl nainstalován - je poškozený nebo obsahuje něco nepovoleného.
+642|Toto vydání nemá %s (nebo nemá seznam kontrolních součtů).
+643|Tuto uloženou hru nelze přesunout na v%s:
+644|Tato uložená hra byla přesunuta z verze %s kampaně na verzi %s.
+645|Hrozba
+646|vrhací nože
+647|Čas plyne
+648|Čas plyne.\n\n
+649|Unavený
+650|Příliš krátké - podržte %s, když mluvíte
+651|Ke stromu
+652|Toxos
+653|Toxos (rozklad)
+654|spuštění %d (každé %d.: %d zranění každému nepříteli)
+655|spuštění %d: %d zranění každému nepříteli
+656|Talisman
+657|Talisman %s: %s
+658|Vylepšení talismanu:
+659|Talisman:
+660|Talismany
+661|Umbros
+662|Umbros (stín)
+663|Nesmrtelná lebka
+664|Nesmrtelná lebka: %s porazil %s po %s.
+665|Neznámé
+666|K dispozici je aktualizace: %s
+667|Aktualizovat na v%s…
+668|Vylepšení - stupeň %d
+669|Vylepšení:
+670|Vylepšeno (+). V kampani to sleduje vylepšení skupiny.
+671|Použitelné v této misi: %s. Položte to do své herní oblasti a použijte. Nepřidává se do inventáře a po skončení mise zmizí.
+672|Použitelné v této misi: %s. Položte je do své herní oblasti a použijte. Nepřidávají se do inventáře a po skončení mise zmizí.
+673|Použít na mapě původní rekvizity hry
+674|Použít vylepšenou (+) stranu tohoto talismanu.
+675|Proměnná „%s“ změnila typ - má opět výchozí hodnotu.
+676|Proměnná „%s“ už neexistuje (byla %s).
+677|Verze %s
+678|Verze %s je už nainstalována.
+679|K dispozici je verze %s (máte %s).
+680|Verze %s tohoto balíčku je už vydána - vydání se nikdy nenahrazuje. Použijte vyšší verzi.
+681|Vítězství!
+682|Vigos
+683|Vigos (život)
+684|Hlas
+685|Hlas -
+686|Hlasové ovládání je nastaveno.
+687|Hlas ještě není nastaven - psané příkazy fungují dál.
+688|nastavení hlasu (%s)
+689|Nastavení hlasu na %s není dostupné - psané příkazy fungují dál.
+690|Nastavení hlasu na %s zatím není podporováno.
+691|hlasy (%s)
+692|hůlka
+693|Bloudění
+694|válečný zvon
+695|válečné kladivo
+696|slabý vůči %s
+697|Slabý: %s
+698|Slabina
+699|zranění ze slabiny +%d
+700|Slabina: %s
+701|zbraň
+702|Zbraň %d (%s)
+703|zranění zbraně +%d
+704|šance částí zbraně +%d %%
+705|Zbraně
+706|Novinky
+707|Když hrdina ztratil všechno zdraví, stiskněte Zranit. Třetí zranění hru prohrává.
+708|Která příšera?
+709|Který?
+710|Kdo zaútočí na: %s?
+711|Kdo použije: %s?
+712|Vůle
+713|Splněno: %s.
+714|Zranit
+715|Zraněn
+716|XP: %d  |  Zlato: %d
+717|Žlutá
+718|Ano
+719|Verzi %s už máte - tato se nainstaluje vedle ní.
+720|Můžete hrát
+721|Nesete %d.
+722|Máte %d zlaťáků a %s.
+723|Máte %d zlaťáků.
+724|Neznáte žádný recept na lektvar. Recepty se prodávají v obchodech s recepty nebo se nacházejí jako kořist.
+725|Neznáte žádný recept, který vyrobí něco nového. Recepty se prodávají v obchodech s recepty.
+726|Vaše materiály:
+727|Váš postup se pod tímto názvem ukládá automaticky, takže můžete odejít a pokračovat tam, kde jste skončili (Načíst hru v hlavní nabídce). Pro každou skupinu či hru použijte jiný název.
+728|▶ Přečíst nahlas
+729|☠ Poražen
+731|Neoficiální aplikace
+732|%s - %s\n\n%s získává další výhodu: %s.
+733|Začíná nové dějství.
+734|dějství
+736|Kampaň je dokončena.
+737|Konec
+738|Příběh začíná.
+739|Aktuální cíl:
+740|Jazyk této hry
+741|Jazyk, ve kterém se tato hra čte, zaznamenává a vypráví. Později ho můžete změnit v Možnostech.
+742|Příběh, deník a vlastní pojmy hry se zobrazují v tomto jazyce. Nabídky a tlačítka aplikace se řídí seznamem níže.
+743|Stáhnout hlasy: %s (%s)
+744|Nejsou nainstalovány žádné hlasy vyprávění pro jazyk %s, takže se příběh zobrazuje jen jako text.
+745|Nejsou nainstalovány žádné hlasy vyprávění pro jazyk %s, takže se příběh zobrazuje jen jako text. Stáhněte je v Možnosti > Hlas.
+746|Nastavit vyprávění - hlasy: %s (stáhne asi %d MB)
+747|Hlasy pro:
+748|Nejsou nainstalovány žádné hlasy vyprávění pro jazyk %s, takže se tato hra zobrazuje jen jako text. Stáhněte je v Možnosti > Hlas.
+749| - jen pokud platí %d podmínek
+750|Obtížnost
+752|Dobrodruh
+753|Učeň
+754|Příšery jsou o úroveň silnější, než je nastavil autor, a mise může být pro vás těžší.
+755|Příšery jsou o úroveň slabší, než je nastavil autor, a mise může být pro vás lehčí.
+756|Příšery jsou o dvě úrovně silnější, než je nastavil autor, a mise možná nebude znát slitování.
+757|Noční můra
+758|Hra tak, jak ji autor navrhl.
+759|Veterán
+760|Při vyšších číslech jsou příšery tužší a mise těžší. Můžete to změnit před každou misí.
+761|Probudilo se příšer: %d.
+762|Na jednu z nich byl uplatněn stav.
+763|Příšery se probouzejí
+764|Něco je upozornilo.
+765|Něco je probudilo.
+766|Příšery se probouzejí!
+767|Hrdinů si nevšimly: zůstávají, kde jsou, dokud je něco neprobudí.
+768|Všimly si útoku.
+769|Nic netuší
+770|Nic netuší - ono i jeho skupina přeskakují fázi příšer
+771|Probudit
+772|%s (volitelné)
+773|Volitelný cíl
+774|Volitelný cíl splněn:\n%s
+775|Volitelné:
+776|Samotná aplikace (nabídky a dialogy) se zobrazuje v prvním jazyce z tohoto seznamu, do kterého je přeložena - zatím %s.
+P1| (%d pro %d hráče)| (%d pro %d hráče)| (%d pro %d hráčů)
+P2|+%d úspěch|+%d úspěchy|+%d úspěchů
+P3|ztracen %d stav, %d zranění|ztraceny %d stavy, %d zranění|ztraceno %d stavů, %d zranění
+P4|Šťastný talisman: %d úspěch navíc se přičítá k výsledku hrdiny %s.|Šťastný talisman: %d úspěchy navíc se přičítají k výsledku hrdiny %s.|Šťastný talisman: %d úspěchů navíc se přičítá k výsledku hrdiny %s.
+P5|Nová vedlejší úloha: %s|Nové vedlejší úlohy: %s|Nových vedlejších úloh: %s

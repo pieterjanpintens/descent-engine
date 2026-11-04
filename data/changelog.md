@@ -1,4 +1,8 @@
-﻿## v0.0.60 - 2026-11-04
+﻿## v0.0.61 - 2026-11-04
+- The app's menus and dialogs are now translated into French, German, Italian, Portuguese, Polish, Czech, Hungarian, Russian, Korean, Simplified Chinese and Traditional Chinese (besides English, Spanish and Dutch). Key terms follow the game's own glossary where it has one. The translations are machine-made and still need a native speaker's review.
+- These languages can also be used as the language of a campaign or mission, and the language list in Options shows all of them.
+
+## v0.0.60 - 2026-11-04
 - Player: dragging from a hero now draws a smooth arch that starts at the top of the portrait, is wide at the start and thin at the end, and finishes in an arrow head.
 - Player: the "Players spawn. Place your tokens, then play." text is gone, and the phase label now sits right under the objective label, so it no longer overlaps the optional objectives.
 

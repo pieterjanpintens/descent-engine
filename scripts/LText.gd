@@ -119,8 +119,8 @@ static func clean_codes(list: Variant) -> Array[String]:
 	if typeof(list) != TYPE_ARRAY and typeof(list) != TYPE_PACKED_STRING_ARRAY:
 		return result
 	for item: Variant in list:
-		var code := str(item).to_lower().strip_edges()
-		if CampaignInfo.is_known(code) and not result.has(code):
+		var code := CampaignInfo.canonical(str(item))
+		if code != "" and not result.has(code):
 			result.append(code)
 	return result
 
