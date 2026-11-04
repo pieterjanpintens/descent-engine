@@ -1,4 +1,9 @@
-﻿## v0.0.55 - 2026-11-04
+﻿## v0.0.56 - 2026-11-04
+- Optional objectives now work end to end. The "Edit..." button in the objectives editor opens its window again, and the Player shows them: an "Optional:" section under the current objective (a bullet until done, a green tick once achieved), a popup and a quest log entry when one is completed, and "(optional)" lines in the quest log.
+- Mission editor: monster spawn areas can be deleted (right-click in the outline, or the Delete key, which now also removes selected LOS blockers). Deleting a spawn area that effects still use asks first, and the Problems checker reports a Spawn Monsters effect with no spawn area, or one whose area no longer exists.
+- Monsters: nine monster cards (berserker, doomcaller, golem, legionnaire, mercenary, reanimate, salamander, vampire, zealot) were lying on their side in the combat view and the monster attack dialog; they stand upright now. Single-piece cards also draw their front over their back, which fixes hollow helmets and parts of the back showing through.
+
+## v0.0.55 - 2026-11-04
 - Mission editor: a second tutorial, "The fork". It carries on from the first one (or loads an example mission to start from): a door and a side passage lead into the same hidden Lair, and you meet conditions on actions and effects, the built-in variables (player count, round number, difficulty), the details of an action, reusable monster groups, unaware monsters that sleep until they are attacked or woken, and a trigger that wakes them. Every step has a "Do it for me" button, and "Peek" plays the finished mission. The Help menu lists both tutorials.
 
 ## v0.0.54 - 2026-11-03
