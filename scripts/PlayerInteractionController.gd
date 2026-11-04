@@ -229,6 +229,7 @@ func _on_portrait_gui_input(event: InputEvent, dock_position: int) -> void:
 		_dragging = true
 		_drag_dock_position = dock_position
 		_drag_line.visible = true
+		_update_drag_line(get_viewport().get_mouse_position())  # visible from the first moment, before the mouse moves
 		get_viewport().set_input_as_handled()
 
 
@@ -257,7 +258,7 @@ func _input(event: InputEvent) -> void:
 
 func _update_drag_line(mouse_pos: Vector2) -> void:
 	var portrait := _portraits[_drag_dock_position]
-	var start := portrait.global_position + portrait.size / 2.0
+	var start := portrait.global_position + Vector2(portrait.size.x / 2.0, 0.0)  # the line leaves from the top edge of the portrait
 	_drag_line.points = PackedVector2Array([start, mouse_pos])
 
 
