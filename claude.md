@@ -1753,7 +1753,7 @@ a known-good image before trusting a freshly-extracted mesh:
    regardless of its absolute units, since only one monster is ever shown
    at a time.
 
-`MonsterDisplay` gained `flat_mesh_paths()`, `flat_diffuse_texture()`,
+**Card orientation (2026-11-04):** nine cards were authored lying down (thinnest axis Y, height along Z): berserker, doomcaller, golem, legionnaire, mercenary, reanimate, salamander, vampire, zealot; `FLAT_CARD_ROTATION_DEGREES` now pitches each by -90 (the mercenary also turned 180 degrees around the up axis; checked by eye in a dummy render of all 17 cards; +90 is upside down). Harbinger's pose is tilted by design and was left alone. The mercenary's "weirdness" (hollow helmet, parts of the back showing through) was NOT its facing but the depth-write problem again: monster cards were all drawn with `write_depth = false` (the layering fix for multi-piece cards), so every ONE-piece card had its back-facing triangles over the front. `MonsterDisplay.flat_write_depth(folder)` is now true for single-piece cards (all but bandit and fae), sent as `monster_flat_write_depth` to the combat view and the attack dialog; the 180 turn of the mercenary was taken out again. `MonsterDisplay` gained `flat_mesh_paths()`, `flat_diffuse_texture()`,
 `flat_surface_texture_overrides()`, `has_flat_card()` (the ONE place "does
 this monster have a real card" is decided - callers never special-case a
 monster by name), and `flat_card_rotation()` (`FLAT_CARD_ROTATION_DEGREES`,

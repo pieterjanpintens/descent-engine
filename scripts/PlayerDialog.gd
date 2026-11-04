@@ -261,7 +261,7 @@ func ask_monster_attack(cfg: Dictionary) -> int:
 		for path in meshes:
 			paths.append(str(path))
 		var size_units: float = cfg.get("monster_size_units", 1.0)
-		_attack_preview.show_meshes(paths, cfg.get("monster_flat_texture"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), size_units, size_units, false)
+		_attack_preview.show_meshes(paths, cfg.get("monster_flat_texture"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), size_units, size_units, cfg.get("monster_flat_write_depth", false))
 	else:
 		_attack_preview.show_quad(cfg.get("monster_image"))
 	_attack_preview.visible = true

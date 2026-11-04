@@ -435,6 +435,7 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 		cfg["monster_flat_texture"] = MonsterDisplay.flat_diffuse_texture(monster.folder)
 		cfg["monster_flat_rotation"] = MonsterDisplay.flat_card_rotation(monster.folder)
 		cfg["monster_flat_surface_overrides"] = MonsterDisplay.flat_surface_texture_overrides(monster.folder)
+		cfg["monster_flat_write_depth"] = MonsterDisplay.flat_write_depth(monster.folder)
 	else:
 		cfg["monster_image"] = MonsterDisplay.crop_texture(monster.folder)
 

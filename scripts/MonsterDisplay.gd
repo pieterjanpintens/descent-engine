@@ -420,6 +420,7 @@ static func preview_data(folder: String) -> Dictionary:
 		data["monster_flat_texture"] = flat_diffuse_texture(folder)
 		data["monster_flat_rotation"] = flat_card_rotation(folder)
 		data["monster_flat_surface_overrides"] = flat_surface_texture_overrides(folder)
+		data["monster_flat_write_depth"] = flat_write_depth(folder)
 	else:
 		data["monster_image"] = crop_texture(folder)
 	return data
@@ -429,13 +430,29 @@ static func has_flat_card(folder: String) -> bool:
 	return not flat_mesh_paths(folder).is_empty() and flat_diffuse_texture(folder) != null
 
 
-## Per-monster correction for the flat card's true facing (X/Y/Z degrees) -
-## UNVERIFIED for every entry so far (empty = no correction), same
-## "expect to fix these one at a time once actually seen" situation
-## REAL_MONSTERS' own pitch_correction_degrees/extra_rotation_degrees went
-## through - a placeholder dict so a future fix is one data line here, not
-## a code change in MonsterCombatPreview.gd.
-const FLAT_CARD_ROTATION_DEGREES: Dictionary = {}
+## Per-monster correction for the flat card's true facing (X/Y/Z degrees), applied by the combat view and the monster attack dialog.
+## Confirmed by eye 2026-11-04 in a dummy render of every card: these nine were authored lying down (their thinnest axis is Y and their height runs
+## along Z, the same signature the hero cards have), a pitch of -90 stands them up facing front. The others (thinnest axis Z) need nothing.
+## +90 puts them upside down.
+const FLAT_CARD_ROTATION_DEGREES: Dictionary = {
+	"berserker": Vector3(-90, 0, 0),
+	"doomcaller": Vector3(-90, 0, 0),
+	"golem": Vector3(-90, 0, 0),
+	"legionnaire": Vector3(-90, 0, 0),
+	"mercenary": Vector3(-90, 0, 0),
+	"reanimate": Vector3(-90, 0, 0),
+	"salamander": Vector3(-90, 0, 0),
+	"vampire": Vector3(-90, 0, 0),
+	"zealot": Vector3(-90, 0, 0),
+}
+
+
+## Whether a card's material writes depth (CombatMeshPreview.show_meshes(..., write_depth)). A card that is ONE open mesh needs it, or its back-facing
+## triangles are drawn over the front ones (the mercenary's helmet and torso looked hollow, parts of the back showed through). Cards made of
+## several pieces that composite by paint order and alpha (a jacket cutout over trousers) must NOT write depth, or the transparent parts of the
+## piece drawn first hide the piece drawn after it.
+static func flat_write_depth(folder: String) -> bool:
+	return flat_mesh_paths(folder).size() == 1
 
 
 static func flat_card_rotation(folder: String) -> Vector3:

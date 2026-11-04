@@ -690,7 +690,7 @@ func configure(cfg: Dictionary, animate: bool = true) -> void:
 	var monster_size_units: float = cfg.get("monster_size_units", 1.0)
 	var camera_size_units := maxf(hero_size_units, monster_size_units)
 	_configure_preview(_hero_preview, cfg.get("hero_flat_meshes", []), cfg.get("hero_flat_texture"), cfg.get("hero_image"), cfg.get("hero_flat_rotation", Vector3.ZERO), {}, hero_size_units, camera_size_units, true)
-	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), monster_size_units, camera_size_units, false)
+	_configure_preview(_monster_preview, cfg.get("monster_flat_meshes", []), cfg.get("monster_flat_texture"), cfg.get("monster_image"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), monster_size_units, camera_size_units, cfg.get("monster_flat_write_depth", false))
 	var hitpoints: int = cfg.get("hitpoints", 0)
 	var max_hitpoints: int = cfg.get("max_hitpoints", maxi(hitpoints, 1))
 	_hp_label.text = str(hitpoints)
