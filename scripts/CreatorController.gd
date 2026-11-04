@@ -1915,20 +1915,66 @@ func _piece_in_rect(origin: Vector3i, footprint: Array[Vector3i], grid: GridMap,
 	return rect.has_point(camera.unproject_position(middle))
 
 
-## Delete / Backspace: removes the selected props and tiles (groups, spawn areas and blockers stay - those have their own
-## context menu entries) as ONE undo step.
+## Delete / Backspace: removes the selected props, tiles, monster spawn areas and LOS blockers as ONE undo step (groups stay - they have their
+## own context menu entry).
 func delete_selection() -> void:
+	# Spawn areas that effects still point at: ask first (those effects would spawn nothing any more).
+	var used := 0
+	for id in selected_ids:
+		var spawn := _find_monster_spawn(id)
+		if spawn != null:
+			used += layered_map.mission.spawn_use_count(spawn.id)
+	if used > 0:
+		confirm_then(spawn_warning(used), _delete_selection_now)
+		return
+	_delete_selection_now()
+
+
+## The question asked before a monster spawn area that effects use is deleted.
+static func spawn_warning(uses: int) -> String:
+	return "%d Spawn / Wake Monsters effect%s use%s this spawn area. If you delete it, %s no longer have a place to spawn. Delete it anyway?" % [
+		uses, "" if uses == 1 else "s", "s" if uses == 1 else "", "it will" if uses == 1 else "they will"]
+
+
+var _confirm: ConfirmationDialog
+var _confirm_action: Callable
+
+
+## A small yes/no question in the editor's own look; runs `action` on OK.
+func confirm_then(text: String, action: Callable) -> void:
+	if _confirm == null:
+		_confirm = ConfirmationDialog.new()
+		_confirm.theme = AppTheme.check_theme()
+		_confirm.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		_confirm.confirmed.connect(func(): _confirm_action.call())
+		add_child(_confirm)
+	_confirm_action = action
+	_confirm.dialog_text = text
+	_confirm.popup_centered()
+
+
+func _delete_selection_now() -> void:
 	var props: Array[InteractableEntry] = []
 	var tiles: Array[TilePlacement] = []
+	var spawns: Array[MonsterSpawn] = []
+	var blockers: Array[LosBlocker] = []
 	for id in selected_ids:
 		var node := layered_map.mission.find_node_by_id(id)
 		if node is InteractableEntry:
 			props.append(node as InteractableEntry)
 		elif node is TilePlacement:
 			tiles.append(node as TilePlacement)
-	if props.is_empty() and tiles.is_empty():
+		elif node is MonsterSpawn:
+			spawns.append(node as MonsterSpawn)
+		elif node is LosBlocker:
+			blockers.append(node as LosBlocker)
+	if props.is_empty() and tiles.is_empty() and spawns.is_empty() and blockers.is_empty():
 		return
 	operation_history.record("Delete selection", func():
+		for spawn in spawns:
+			layered_map.mission.monster_spawns.erase(spawn)
+		for blocker in blockers:
+			layered_map.mission.los_blockers.erase(blocker)
 		var floors_changed := false
 		var underlays_changed := false
 		for entry in props:
@@ -1948,6 +1994,16 @@ func delete_selection() -> void:
 		if show_tile_labels:
 			_rebuild_tile_labels()
 	)
+	for spawn in spawns:
+		if active_monster_spawn_id == spawn.id:
+			set_active_monster_spawn("")
+	for blocker in blockers:
+		if active_los_blocker_id == blocker.id:
+			set_active_los_blocker("")
+	if not spawns.is_empty():
+		layered_map.refresh_monster_spawn_overlay()
+	if not blockers.is_empty():
+		layered_map.refresh_blocker_overlay()
 	clear_selection_highlight()
 	layered_map.notify_objects_changed()
 

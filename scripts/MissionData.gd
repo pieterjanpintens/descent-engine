@@ -278,6 +278,50 @@ func group_use_count(group_id: String) -> int:
 	return count
 
 
+## Every effect of the mission, wherever it hangs (triggers, prop actions, objectives, a Test's branches, monsters' "when defeated" effects).
+func all_effects() -> Array[Effect]:
+	var found: Array[Effect] = []
+	for effects in _effect_lists():
+		_gather_effects(effects, found)
+	for group in monster_groups:
+		for spawned in group.monsters:
+			_gather_effects(spawned.defeat_effects, found)
+	return found
+
+
+func _gather_effects(effects: Array[Effect], into: Array[Effect]) -> void:
+	for effect in effects:
+		into.append(effect)
+		for spawned in effect.spawn_monsters:
+			_gather_effects(spawned.defeat_effects, into)
+		_gather_effects(effect.pass_effects, into)
+		_gather_effects(effect.fail_effects, into)
+
+
+## How many Spawn Monsters and Wake Monsters effects (anywhere, incl. Test branches and monsters' "when defeated" effects) point at the
+## monster spawn area - what is left dangling when the area is deleted.
+func spawn_use_count(spawn_id: String) -> int:
+	var count := 0
+	for effects in _effect_lists():
+		count += _count_spawn_uses(effects, spawn_id)
+	for group in monster_groups:
+		for spawned in group.monsters:
+			count += _count_spawn_uses(spawned.defeat_effects, spawn_id)
+	return count
+
+
+func _count_spawn_uses(effects: Array[Effect], spawn_id: String) -> int:
+	var count := 0
+	for effect in effects:
+		if (effect.type == Effect.Type.SPAWN_MONSTERS or effect.type == Effect.Type.WAKE_MONSTERS) and effect.target_object_id == spawn_id:
+			count += 1
+		for spawned in effect.spawn_monsters:
+			count += _count_spawn_uses(spawned.defeat_effects, spawn_id)
+		count += _count_spawn_uses(effect.pass_effects, spawn_id)
+		count += _count_spawn_uses(effect.fail_effects, spawn_id)
+	return count
+
+
 func _count_group_uses(effects: Array[Effect], group_id: String) -> int:
 	var count := 0
 	for effect in effects:

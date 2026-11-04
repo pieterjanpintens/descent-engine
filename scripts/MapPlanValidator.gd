@@ -179,8 +179,25 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 		number += 1
 	_run_checks(pieces, creatures, maxi(mission.max_players, 1), result)
 	_check_objectives(mission, result)
+	_check_spawn_targets(mission, result)
 	result["ok"] = (result["errors"] as Array).is_empty()
 	return result
+
+
+## A Spawn Monsters effect needs a monster spawn area that exists (deleting an area leaves the effects that used it pointing at nothing, so
+## they would spawn nothing), and so does a Wake Monsters effect that names one (no area = wake every unaware monster, which is fine).
+static func _check_spawn_targets(mission: MissionData, result: Dictionary) -> void:
+	var areas := {}
+	for spawn in mission.monster_spawns:
+		areas[spawn.id] = true
+	for effect in mission.all_effects():
+		if effect.type == Effect.Type.SPAWN_MONSTERS:
+			if effect.target_object_id == "":
+				_add(result, "error", "no_spawn_area", -1, "A Spawn Monsters effect has no monster spawn area chosen, so it spawns nothing. Open the effect and pick an area.")
+			elif not areas.has(effect.target_object_id):
+				_add(result, "error", "missing_spawn_area", -1, "A Spawn Monsters effect points at a monster spawn area that no longer exists (deleted?), so it spawns nothing. Open the effect and pick another area.")
+		elif effect.type == Effect.Type.WAKE_MONSTERS and effect.target_object_id != "" and not areas.has(effect.target_object_id):
+			_add(result, "error", "missing_spawn_area", -1, "A Wake Monsters effect points at a monster spawn area that no longer exists (deleted?), so it wakes nothing. Open the effect and pick another area.")
 
 
 ## A mission has to be winnable: at least one objective, and some branch must END in an objective whose outcome is Win (the game only ends
