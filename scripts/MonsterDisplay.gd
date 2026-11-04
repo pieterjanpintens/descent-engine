@@ -438,7 +438,7 @@ const FLAT_CARD_ROTATION_DEGREES: Dictionary = {
 	"doomcaller": Vector3(-90, 0, 0),
 	"golem": Vector3(-90, 0, 0),
 	"legionnaire": Vector3(-90, 0, 0),
-	"mercenary": Vector3(-90, 0, 0),
+	"mercenary": Vector3(-90, 180, 0),  # also turned 180 degrees around the up axis
 	"reanimate": Vector3(-90, 0, 0),
 	"salamander": Vector3(-90, 0, 0),
 	"vampire": Vector3(-90, 0, 0),
