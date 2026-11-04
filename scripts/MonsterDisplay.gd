@@ -420,6 +420,7 @@ static func preview_data(folder: String) -> Dictionary:
 		data["monster_flat_texture"] = flat_diffuse_texture(folder)
 		data["monster_flat_rotation"] = flat_card_rotation(folder)
 		data["monster_flat_surface_overrides"] = flat_surface_texture_overrides(folder)
+		data["monster_flat_write_depth"] = flat_write_depth(folder)
 	else:
 		data["monster_image"] = crop_texture(folder)
 	return data
@@ -438,12 +439,20 @@ const FLAT_CARD_ROTATION_DEGREES: Dictionary = {
 	"doomcaller": Vector3(-90, 0, 0),
 	"golem": Vector3(-90, 0, 0),
 	"legionnaire": Vector3(-90, 0, 0),
-	"mercenary": Vector3(-90, 180, 0),  # also turned 180 degrees around the up axis
+	"mercenary": Vector3(-90, 0, 0),
 	"reanimate": Vector3(-90, 0, 0),
 	"salamander": Vector3(-90, 0, 0),
 	"vampire": Vector3(-90, 0, 0),
 	"zealot": Vector3(-90, 0, 0),
 }
+
+
+## Whether a card's material writes depth (CombatMeshPreview.show_meshes(..., write_depth)). A card that is ONE open mesh needs it, or its back-facing
+## triangles are drawn over the front ones (the mercenary's helmet and torso looked hollow, parts of the back showed through). Cards made of
+## several pieces that composite by paint order and alpha (a jacket cutout over trousers) must NOT write depth, or the transparent parts of the
+## piece drawn first hide the piece drawn after it.
+static func flat_write_depth(folder: String) -> bool:
+	return flat_mesh_paths(folder).size() == 1
 
 
 static func flat_card_rotation(folder: String) -> Vector3:
