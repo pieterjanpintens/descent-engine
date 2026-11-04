@@ -58,6 +58,12 @@ const MAP: Dictionary = {
 	# PlayerHud's "Quest" (map-view) icon button - same case as
 	# Button_EnemyView above, also confirmed unique.
 	"res://models/hud_quest.png": "Button_MapView",
+	# The campaign map's pins (2026-11-04): a mission chapter (the gold "!" marker of the campaign quests), a narrative chapter (the blue star
+	# badge of world events) and a side quest (the dark "!" marker). Dummy placeholders in models/ui/; resolved through
+	# OfficialAssetOverrides.texture_for() by CampaignMapView.
+	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",
+	"res://models/ui/map_pin_event.png": "Icon_WorldEvent",
+	"res://models/ui/map_pin_side.png": "Icon_SideQuest",
 	# Damage-type icons for the combat view (2026-09-26): dummy placeholders in
 	# models/icons/ (same sizes as the real ones), replaced by the user's own art
 	# when present. "unknown" is the red ? shown for undiscovered weaknesses.
