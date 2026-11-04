@@ -1915,20 +1915,30 @@ func _piece_in_rect(origin: Vector3i, footprint: Array[Vector3i], grid: GridMap,
 	return rect.has_point(camera.unproject_position(middle))
 
 
-## Delete / Backspace: removes the selected props and tiles (groups, spawn areas and blockers stay - those have their own
-## context menu entries) as ONE undo step.
+## Delete / Backspace: removes the selected props, tiles, monster spawn areas and LOS blockers as ONE undo step (groups stay - they have their
+## own context menu entry).
 func delete_selection() -> void:
 	var props: Array[InteractableEntry] = []
 	var tiles: Array[TilePlacement] = []
+	var spawns: Array[MonsterSpawn] = []
+	var blockers: Array[LosBlocker] = []
 	for id in selected_ids:
 		var node := layered_map.mission.find_node_by_id(id)
 		if node is InteractableEntry:
 			props.append(node as InteractableEntry)
 		elif node is TilePlacement:
 			tiles.append(node as TilePlacement)
-	if props.is_empty() and tiles.is_empty():
+		elif node is MonsterSpawn:
+			spawns.append(node as MonsterSpawn)
+		elif node is LosBlocker:
+			blockers.append(node as LosBlocker)
+	if props.is_empty() and tiles.is_empty() and spawns.is_empty() and blockers.is_empty():
 		return
 	operation_history.record("Delete selection", func():
+		for spawn in spawns:
+			layered_map.mission.monster_spawns.erase(spawn)
+		for blocker in blockers:
+			layered_map.mission.los_blockers.erase(blocker)
 		var floors_changed := false
 		var underlays_changed := false
 		for entry in props:
@@ -1948,6 +1958,16 @@ func delete_selection() -> void:
 		if show_tile_labels:
 			_rebuild_tile_labels()
 	)
+	for spawn in spawns:
+		if active_monster_spawn_id == spawn.id:
+			set_active_monster_spawn("")
+	for blocker in blockers:
+		if active_los_blocker_id == blocker.id:
+			set_active_los_blocker("")
+	if not spawns.is_empty():
+		layered_map.refresh_monster_spawn_overlay()
+	if not blockers.is_empty():
+		layered_map.refresh_blocker_overlay()
 	clear_selection_highlight()
 	layered_map.notify_objects_changed()
 

@@ -74,7 +74,7 @@ extends Tree
 ## whenever ITS OWN group-CRUD actions could orphan it.
 
 enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER }
-enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER }
+enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN }
 
 signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
 
@@ -721,8 +721,12 @@ func _populate_context_menu(type: SelectionType) -> void:
 			_context_menu.add_item("Delete Group", _ContextAction.DELETE_GROUP)
 			_context_menu.add_separator()
 			_add_move_to_submenu()
-		SelectionType.OBJECT, SelectionType.TILE, SelectionType.MONSTER_SPAWN:
+		SelectionType.OBJECT, SelectionType.TILE:
 			_add_move_to_submenu()
+		SelectionType.MONSTER_SPAWN:
+			_add_move_to_submenu()
+			_context_menu.add_separator()
+			_context_menu.add_item("Delete Monster Spawn", _ContextAction.DELETE_SPAWN)
 		SelectionType.LOS_BLOCKER:
 			_add_move_to_submenu()
 			_context_menu.add_separator()
@@ -782,6 +786,8 @@ func _on_context_menu_id_pressed(id: int) -> void:
 			_delete_group(_context_target_id)
 		_ContextAction.DELETE_BLOCKER:
 			_delete_blocker(_context_target_id)
+		_ContextAction.DELETE_SPAWN:
+			_delete_spawn(_context_target_id)
 
 
 func _create_group(parent_id: String) -> void:
@@ -844,7 +850,7 @@ func _delete_group(group_id: String) -> void:
 		creator_controller.set_working_group(group.parent_id)
 
 
-## Deletes a LOS blocker entity (the only entity type deletable from the tree: it has no GridMap presence, so removing it is just data).
+## Deletes a LOS blocker entity (it has no GridMap presence, so removing it is just data).
 func _delete_blocker(blocker_id: String) -> void:
 	var blocker := _find_blocker_by_id(blocker_id)
 	if blocker == null:
@@ -855,6 +861,20 @@ func _delete_blocker(blocker_id: String) -> void:
 	if creator_controller.active_los_blocker_id == blocker_id:
 		creator_controller.set_active_los_blocker("")
 	creator_controller.layered_map.refresh_blocker_overlay()
+	layered_map.notify_objects_changed()
+
+
+## Deletes a monster spawn area (no GridMap presence either, so just data). A Spawn Monsters effect that pointed at it keeps the stale id and spawns nothing.
+func _delete_spawn(spawn_id: String) -> void:
+	var spawn := _find_spawn_by_id(spawn_id)
+	if spawn == null:
+		return
+	operation_history.record("Delete monster spawn", func():
+		layered_map.mission.monster_spawns.erase(spawn)
+	)
+	if creator_controller.active_monster_spawn_id == spawn_id:
+		creator_controller.set_active_monster_spawn("")
+	layered_map.refresh_monster_spawn_overlay()
 	layered_map.notify_objects_changed()
 
 
