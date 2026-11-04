@@ -2292,6 +2292,18 @@ msgstr "Onoplettend: hij en zijn groep slaan de monsterfase over"
 msgid "Wake up"
 msgstr "Wakker maken"
 
+msgid "%s (optional)"
+msgstr "%s (optioneel)"
+
+msgid "Optional objective"
+msgstr "Optioneel doel"
+
+msgid "Optional objective completed:\n%s"
+msgstr "Optioneel doel bereikt:\n%s"
+
+msgid "Optional:"
+msgstr "Optioneel:"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

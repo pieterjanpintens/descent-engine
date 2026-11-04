@@ -760,6 +760,10 @@
 769|Unaware
 770|Unaware - it and its group are skipped in the monster phase
 771|Wake up
+772|%s (optional)
+773|Optional objective
+774|Optional objective completed:\n%s
+775|Optional:
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

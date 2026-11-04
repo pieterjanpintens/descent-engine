@@ -9,3 +9,7 @@
 769|Onoplettend
 770|Onoplettend: hij en zijn groep slaan de monsterfase over
 771|Wakker maken
+772|%s (optioneel)
+773|Optioneel doel
+774|Optioneel doel bereikt:\n%s
+775|Optioneel:

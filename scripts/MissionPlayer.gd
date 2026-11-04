@@ -166,7 +166,13 @@ func _ready() -> void:
 	var quest_log := LogDialog.new()
 	dialog.get_parent().add_child(quest_log)
 	quest_log.entries_provider = func() -> Array: return journal.entries
-	quest_log.objectives_provider = func() -> Array: return _runtime.get_current_objective_descriptions() if _runtime != null else []
+	quest_log.objectives_provider = func() -> Array:
+		if _runtime == null:
+			return []
+		var shown: Array = _runtime.get_current_objective_descriptions()
+		for optional: Dictionary in _runtime.get_current_optional_objectives():
+			shown.append(tr("%s (optional)") % optional["text"] + (" ✓" if optional["achieved"] else ""))
+		return shown
 	hud.open_quest_log = quest_log.open
 	# The big phase announcement - the LAST child of the CanvasLayer so it draws on top.
 	phase_banner = PhaseBanner.new()
@@ -998,7 +1004,8 @@ func _store_difficulty(value: int) -> void:
 
 func _refresh_objective_label() -> void:
 	var descriptions := _runtime.get_current_objective_descriptions()
-	if descriptions.is_empty():
+	var optionals := _runtime.get_current_optional_objectives()
+	if descriptions.is_empty() and optionals.is_empty():
 		objective_label.text = ""
 		return
 	# [lb] escapes a literal "[" - a mission-authored description could
@@ -1010,7 +1017,24 @@ func _refresh_objective_label() -> void:
 		_last_objective_text = key
 		journal.add("Objective", [func() -> String: return ", ".join(_runtime.get_current_objective_descriptions())])
 	var body := plain.replace("[", "[lb]")
-	objective_label.text = "[color=#8ecae6][b]%s[/b][/color]\n%s" % [tr("Current Objective:"), body]
+	var text := "[color=#8ecae6][b]%s[/b][/color]\n%s" % [tr("Current Objective:"), body] if not descriptions.is_empty() else ""
+	if not optionals.is_empty():
+		text += ("\n" if text != "" else "") + "[color=#8ecae6][b]%s[/b][/color]" % tr("Optional:")
+		for optional: Dictionary in optionals:
+			var line := str(optional["text"]).replace("[", "[lb]")
+			text += ("\n[color=#8fd18f]✓ %s[/color]" % line) if optional["achieved"] else ("\n• %s" % line)
+	objective_label.text = text
+
+
+## Tells the table which optional objectives were just completed (a popup, and a quest log entry; with a debug fast start only the entry).
+func _show_optional_completions() -> void:
+	for optional in _runtime.drain_pending_optional_completions():
+		var builder := func() -> String: return tr("Optional objective completed:\n%s") % _runtime.objective_text(optional)
+		if DebugSession.skipping():
+			journal.add("Optional objective", [builder])
+		else:
+			await dialog.ask_ok(builder, true, false, "Optional objective")
+	_refresh_objective_label()
 
 
 ## Reveals a MissionGroup as part of play - the "Show Stage" effect (see
@@ -1620,6 +1644,7 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	hud.set_save_enabled(checkpoint == RoundCheckpoint.Checkpoint.PLAYER_PHASE)
 	var objective := await _runtime.evaluate_checkpoint(checkpoint)
 	_refresh_objective_label()
+	await _show_optional_completions()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
@@ -1859,6 +1884,7 @@ func _on_game_over_requested(objective: MissionObjective) -> void:
 ## checkpoint-driven path.
 func _on_objectives_progressed() -> void:
 	_refresh_objective_label()
+	await _show_optional_completions()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
 	for removed_id in _runtime.drain_pending_object_removals():
