@@ -30,6 +30,8 @@ const LINK_COLORS := {
 	CampaignLink.Outcome.ANY: Color(0.7, 0.7, 0.7),
 }
 const AVAILABLE_COLOR := Color(0.4, 0.85, 0.4)
+## The map lies on a wooden table: this fills the whole control under the map image (cropped to cover, never stretched).
+const TABLE_TEXTURE := "res://models/ui/bg_campaign_table.jpg"
 
 var act: CampaignAct
 var texture: Texture2D
@@ -46,9 +48,11 @@ var ending_quest_ids: Array[String] = []
 var hidden_place_ids: Array[String] = []
 
 var _dragging: Resource  ## the CampaignChapter or CampaignPlace being dragged
+var _table: Texture2D  ## held here: a texture that is only loaded inside _draw() can be freed before the renderer draws it
 
 
 func _ready() -> void:
+	_table = load(TABLE_TEXTURE) as Texture2D
 	clip_contents = true
 	resized.connect(queue_redraw)
 
@@ -79,9 +83,10 @@ func pin_position(item: Resource) -> Vector2:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.09, 0.12))
+	_draw_table()
 	var rect := map_rect()
 	if texture != null:
+		draw_rect(Rect2(rect.position + Vector2(3, 6), rect.size), Color(0, 0, 0, 0.4))  # a soft shadow: the map lies on the table
 		draw_texture_rect(texture, rect, false)
 	else:
 		var step := 50.0
@@ -112,6 +117,16 @@ func _draw() -> void:
 	for chapter in act.chapters:
 		if not _is_hidden(chapter):
 			_draw_pin(chapter)
+
+
+func _draw_table() -> void:
+	if _table == null:
+		draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.09, 0.12))
+		return
+	var picture := _table.get_size()
+	var cover := maxf(size.x / picture.x, size.y / picture.y)
+	var shown := size / cover  # the part of the picture that is visible, in picture pixels
+	draw_texture_rect_region(_table, Rect2(Vector2.ZERO, size), Rect2((picture - shown) / 2.0, shown))
 
 
 func _draw_arrow(from: Vector2, to: Vector2, color: Color) -> void:
