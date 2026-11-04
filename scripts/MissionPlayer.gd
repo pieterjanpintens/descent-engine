@@ -1002,11 +1002,20 @@ func _store_difficulty(value: int) -> void:
 		PlayerSettings.save_settings()
 
 
+## The phase label sits right under the objective label, however many lines that has (the optional objectives made it longer than the fixed slot
+## the label used to have, so the two overlapped).
+func _place_phase_label() -> void:
+	var top := objective_label.offset_top + objective_label.get_combined_minimum_size().y + 4.0
+	phase_label.offset_top = top
+	phase_label.offset_bottom = top + 22.0
+
+
 func _refresh_objective_label() -> void:
 	var descriptions := _runtime.get_current_objective_descriptions()
 	var optionals := _runtime.get_current_optional_objectives()
 	if descriptions.is_empty() and optionals.is_empty():
 		objective_label.text = ""
+		_place_phase_label.call_deferred()
 		return
 	# [lb] escapes a literal "[" - a mission-authored description could
 	# otherwise contain one and get misread as a BBCode tag.
@@ -1024,6 +1033,7 @@ func _refresh_objective_label() -> void:
 			var line := str(optional["text"]).replace("[", "[lb]")
 			text += ("\n[color=#8fd18f]✓ %s[/color]" % line) if optional["achieved"] else ("\n• %s" % line)
 	objective_label.text = text
+	_place_phase_label.call_deferred()
 
 
 ## Tells the table which optional objectives were just completed (a popup, and a quest log entry; with a debug fast start only the entry).
@@ -1288,10 +1298,7 @@ func _show_player_phase_ui() -> void:
 	if not DebugSession.skipping():
 		phase_banner.show_phase("Player Phase", PLAYER_PHASE_COLOR, PhaseSounds.player_phase())
 	hud.set_save_enabled(true)  # redundant after _advance_to() itself, but this is resume's only path here
-	if current_round == 1:
-		phase_label.text = "Players spawn. Place your tokens, then play."
-	else:
-		phase_label.text = "Player phase"
+	phase_label.text = "Player phase"
 	darkness_overlay.visible = false
 	end_phase_button.visible = true
 	end_phase_button.disabled = false
