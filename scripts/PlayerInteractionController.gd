@@ -80,6 +80,7 @@ var _portraits: Array[Control] = []
 var _roster: Array[int] = []
 
 var _drag_line: Line2D
+var _drag_arrow: Polygon2D  ## the arrow head at the end of the line (a child of the line, so it shows and hides with it)
 var _dragging: bool = false
 var _drag_dock_position: int = -1
 
@@ -133,7 +134,15 @@ func _build_ui() -> void:
 	_drag_line.width = 4.0
 	_drag_line.default_color = Color(1.0, 1.0, 1.0, 0.85)
 	_drag_line.visible = false
+	_drag_line.antialiased = true
+	_drag_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_drag_line.joint_mode = Line2D.LINE_JOINT_ROUND
 	add_child(_drag_line)
+	_drag_arrow = Polygon2D.new()
+	_drag_arrow.color = _drag_line.default_color
+	_drag_arrow.antialiased = true
+	_drag_arrow.polygon = PackedVector2Array([Vector2.ZERO, Vector2(-17, -8), Vector2(-17, 8)])  # the tip at the origin, pointing right
+	_drag_line.add_child(_drag_arrow)
 
 
 ## Rebuilds the portrait row from the party EmbarkDialog.ask_roster()
@@ -259,7 +268,24 @@ func _input(event: InputEvent) -> void:
 func _update_drag_line(mouse_pos: Vector2) -> void:
 	var portrait := _portraits[_drag_dock_position]
 	var start := portrait.global_position + Vector2(portrait.size.x / 2.0, 0.0)  # the line leaves from the top edge of the portrait
-	_drag_line.points = PackedVector2Array([start, mouse_pos])
+	# A gentle arch: a quadratic curve whose middle is pulled up, more the longer the line, ending in an arrow head on the mouse.
+	var distance := start.distance_to(mouse_pos)
+	if distance < 6.0:
+		_drag_line.points = PackedVector2Array([start, mouse_pos])
+		_drag_arrow.visible = false
+		return
+	var control := (start + mouse_pos) / 2.0 + Vector2(0.0, -minf(distance * 0.3, 160.0))
+	var curve := PackedVector2Array()
+	const STEPS := 28
+	for i in STEPS + 1:
+		var t := float(i) / STEPS
+		curve.append(start.lerp(control, t).lerp(control.lerp(mouse_pos, t), t))
+	var direction := (mouse_pos - curve[STEPS - 3]).normalized()  # where the curve is heading at its end
+	curve[STEPS] = mouse_pos - direction * 12.0  # the line stops where the arrow head begins
+	_drag_line.points = curve
+	_drag_arrow.visible = true
+	_drag_arrow.position = mouse_pos
+	_drag_arrow.rotation = direction.angle()
 
 
 ## True while the M monster view is what's on screen - drags then target
