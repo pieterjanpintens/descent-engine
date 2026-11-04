@@ -63,6 +63,7 @@ var ending_quest_ids: Array[String] = []
 var hidden_place_ids: Array[String] = []
 
 var _dragging: Resource  ## the CampaignChapter or CampaignPlace being dragged
+var _hover_id: String = ""  ## the marker under the mouse: it glows and grows a little
 var _table: Texture2D  ## held here: a texture that is only loaded inside _draw() can be freed before the renderer draws it
 
 
@@ -166,7 +167,7 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 		ring = START_COLOR
 	elif not read_only and chapter.is_finale:
 		ring = FINALE_COLOR
-	_draw_icon(EVENT_ICON if chapter.is_narrative else STORY_ICON, center, chapter.id == selected_id, ring)
+	_draw_icon(EVENT_ICON if chapter.is_narrative else STORY_ICON, center, chapter.id == selected_id, ring, chapter.id == _hover_id)
 	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)", ICON_HEIGHT * 0.5 + 14.0)
 	if not read_only:
 		if chapter.wait_for_all:
@@ -188,26 +189,26 @@ func _draw_badge(anchor: Vector2, text: String, border: Color = Color(0.95, 0.8,
 
 func _draw_place(place: CampaignPlace) -> void:
 	var center := pin_position(place)
-	_draw_icon(PLACE_ICONS.get(place.kind, PLACE_ICONS[CampaignPlace.Kind.OFFERS]), center, place.id == selected_id, Color(0, 0, 0, 0))
+	_draw_icon(PLACE_ICONS.get(place.kind, PLACE_ICONS[CampaignPlace.Kind.OFFERS]), center, place.id == selected_id, Color(0, 0, 0, 0), place.id == _hover_id)
 	_draw_label(center, place.title if place.title != "" else "(unnamed place)", ICON_HEIGHT * 0.5 + 14.0)
 
 
 func _draw_side_quest(quest: CampaignSideQuest) -> void:
 	var center := pin_position(quest)
-	_draw_icon(SIDE_ICON, center, quest.id == selected_id, Color(0, 0, 0, 0))
+	_draw_icon(SIDE_ICON, center, quest.id == selected_id, Color(0, 0, 0, 0), quest.id == _hover_id)
 	if ending_quest_ids.has(quest.id):
 		_draw_badge(center + Vector2(0, -ICON_HEIGHT * 0.5 - 4.0), "ENDING", Color(0.95, 0.3, 0.25))
 	_draw_label(center, quest.title if quest.title != "" else "(unnamed side quest)", ICON_HEIGHT * 0.5 + 14.0)
 
 
 ## A marker picture centred on `center`; a white ring behind it when selected, or `ring` (when it has any colour) for the editor's start / finale.
-func _draw_icon(path: String, center: Vector2, selected: bool, ring: Color) -> void:
+func _draw_icon(path: String, center: Vector2, selected: bool, ring: Color, hovered: bool = false) -> void:
 	if selected:
 		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, Color.WHITE, 3.0, true)
 	elif ring.a > 0.0:
 		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, ring, 3.0, true)
 	var picture := _icon(path)
-	var shown := picture.get_size() / 2.0
+	var shown := picture.get_size() / 2.0 * (1.14 if hovered else 1.0)
 	draw_texture_rect(picture, Rect2(center - shown / 2.0, shown), false)
 
 
@@ -256,10 +257,29 @@ func _gui_input(event: InputEvent) -> void:
 				else:
 					chapter_moved.emit(_dragging.get("id"))
 			_dragging = null
+	elif event is InputEventMouseMotion and _dragging == null:
+		_set_hover(_item_at(event.position))
 	elif event is InputEventMouseMotion and _dragging != null:
 		var rect := map_rect()
 		var relative: Vector2 = (event.position - rect.position) / rect.size
 		_dragging.set("map_position", Vector2(clampf(relative.x, 0.0, 1.0), clampf(relative.y, 0.0, 1.0)))
+		queue_redraw()
+
+
+## Makes `item` (or nothing) the marker under the mouse: it glows, and the cursor becomes a hand over a marker.
+func _set_hover(item: Resource) -> void:
+	var id: String = str(item.get("id")) if item != null else ""
+	if id == _hover_id:
+		return
+	_hover_id = id
+	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if item != null else Control.CURSOR_ARROW
+	queue_redraw()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_MOUSE_EXIT and _hover_id != "":
+		_hover_id = ""
+		mouse_default_cursor_shape = Control.CURSOR_ARROW
 		queue_redraw()
 
 
