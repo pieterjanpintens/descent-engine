@@ -1,9 +1,9 @@
 class_name CampaignMapView
 extends Control
 
-## The map of one act: the act's map image (a plain grid when it has none) with a round pin per
-## chapter and a diamond per place (point of interest), and an arrow for every link between
-## chapters (green = on win, red = on lose, grey = always). A narrative chapter (story and questions, no mission) is a speech bubble instead of a round pin. In the editor pins/diamonds can be
+## The map of one act: the act's map image (a plain grid when it has none) with the game's marker per
+## chapter (mission / narrative) and a city badge per place (point of interest, by its kind), and an arrow for every link between
+## chapters (green = on win, red = on lose, grey = always). A narrative chapter (story and questions, no mission) has its own marker. In the editor the markers can be
 ## dragged (they edit `map_position` and tell the owner through the *_moved signals; saving and undo
 ## are the editor's business) and clicked to select. With `read_only` (the campaign player) nothing
 ## can be moved; chapters are coloured by `statuses` (chapter id -> "available" / "done" / "locked")
@@ -22,7 +22,6 @@ const PIN_RADIUS := 14.0
 const START_COLOR := Color(0.95, 0.8, 0.25)
 const FINALE_COLOR := Color(0.7, 0.4, 0.9)
 const PIN_COLOR := Color(0.3, 0.6, 0.95)
-const PLACE_COLOR := Color(0.25, 0.75, 0.7)
 const SIDE_QUEST_COLOR := Color(0.95, 0.55, 0.15)
 const LINK_COLORS := {
 	CampaignLink.Outcome.WIN: Color(0.4, 0.85, 0.4),
@@ -30,6 +29,24 @@ const LINK_COLORS := {
 	CampaignLink.Outcome.ANY: Color(0.7, 0.7, 0.7),
 }
 const AVAILABLE_COLOR := Color(0.4, 0.85, 0.4)
+## The map lies on a wooden table: this fills the whole control under the map image (cropped to cover, never stretched).
+const TABLE_TEXTURE := "res://models/ui/bg_campaign_table.jpg"
+## The pins are the game's own marker art when the user imported it (OfficialAssetMap), else dummy placeholders: a mission chapter, a narrative
+## chapter (a short story with questions) and a side quest. Drawn ICON_HEIGHT tall, centred on the pin's position.
+const STORY_ICON := "res://models/ui/map_pin_story.png"
+const EVENT_ICON := "res://models/ui/map_pin_event.png"
+const SIDE_ICON := "res://models/ui/map_pin_side.png"
+## A place's marker by its kind (the game's city badges).
+const PLACE_ICONS := {
+	CampaignPlace.Kind.OFFERS: "res://models/ui/map_pin_person.png",
+	CampaignPlace.Kind.MARKET: "res://models/ui/map_pin_shop.png",
+	CampaignPlace.Kind.RECIPE_SHOP: "res://models/ui/map_pin_crafting.png",
+	CampaignPlace.Kind.SMITHY: "res://models/ui/map_pin_smithy.png",
+	CampaignPlace.Kind.ALCHEMIST: "res://models/ui/map_pin_crafting.png",
+}
+const ICON_HEIGHT := 58.0
+const HIT_RADIUS := 28.0
+static var _icon_cache: Dictionary = {}  ## path -> ImageTexture at twice ICON_HEIGHT (shrunk once here: the art is 256 px, a 46 px draw of it would shimmer)
 
 var act: CampaignAct
 var texture: Texture2D
@@ -46,9 +63,11 @@ var ending_quest_ids: Array[String] = []
 var hidden_place_ids: Array[String] = []
 
 var _dragging: Resource  ## the CampaignChapter or CampaignPlace being dragged
+var _table: Texture2D  ## held here: a texture that is only loaded inside _draw() can be freed before the renderer draws it
 
 
 func _ready() -> void:
+	_table = load(TABLE_TEXTURE) as Texture2D
 	clip_contents = true
 	resized.connect(queue_redraw)
 
@@ -79,9 +98,10 @@ func pin_position(item: Resource) -> Vector2:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.09, 0.12))
+	_draw_table()
 	var rect := map_rect()
 	if texture != null:
+		draw_rect(Rect2(rect.position + Vector2(3, 6), rect.size), Color(0, 0, 0, 0.4))  # a soft shadow: the map lies on the table
 		draw_texture_rect(texture, rect, false)
 	else:
 		var step := 50.0
@@ -114,6 +134,16 @@ func _draw() -> void:
 			_draw_pin(chapter)
 
 
+func _draw_table() -> void:
+	if _table == null:
+		draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.09, 0.12))
+		return
+	var picture := _table.get_size()
+	var cover := maxf(size.x / picture.x, size.y / picture.y)
+	var shown := size / cover  # the part of the picture that is visible, in picture pixels
+	draw_texture_rect_region(_table, Rect2(Vector2.ZERO, size), Rect2((picture - shown) / 2.0, shown))
+
+
 func _draw_arrow(from: Vector2, to: Vector2, color: Color) -> void:
 	var direction := (to - from).normalized()
 	var start := from + direction * PIN_RADIUS
@@ -130,35 +160,19 @@ func _is_hidden(chapter: CampaignChapter) -> bool:
 
 func _draw_pin(chapter: CampaignChapter) -> void:
 	var center := pin_position(chapter)
-	var fill := PIN_COLOR
-	if read_only:
-		fill = AVAILABLE_COLOR
-	elif chapter.id == act.start_chapter_id:
-		fill = START_COLOR
-	elif chapter.is_finale:
-		fill = FINALE_COLOR
-	var outline_color := Color.WHITE if chapter.id == selected_id else Color(0, 0, 0, 0.7)
-	var outline_width := 3.0 if chapter.id == selected_id else 2.0
-	if chapter.is_narrative:
-		# A speech bubble instead of a round pin: a short story with questions, no mission.
-		var half := Vector2(PIN_RADIUS + 2.0, PIN_RADIUS - 3.0)
-		var bubble := PackedVector2Array([
-			center + Vector2(-half.x, -half.y), center + Vector2(half.x, -half.y), center + Vector2(half.x, half.y),
-			center + Vector2(-2.0, half.y), center + Vector2(-9.0, half.y + 8.0), center + Vector2(-8.0, half.y),
-			center + Vector2(-half.x, half.y)])
-		draw_colored_polygon(bubble, fill)
-		var bubble_outline := bubble.duplicate()
-		bubble_outline.append(bubble[0])
-		draw_polyline(bubble_outline, outline_color, outline_width, true)
-	else:
-		draw_circle(center, PIN_RADIUS, fill)
-		draw_arc(center, PIN_RADIUS, 0.0, TAU, 32, outline_color, outline_width, true)
-	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)")
+	# In the editor the start chapter and the finale are told apart by a coloured ring behind the marker.
+	var ring := Color(0, 0, 0, 0)
+	if not read_only and chapter.id == act.start_chapter_id:
+		ring = START_COLOR
+	elif not read_only and chapter.is_finale:
+		ring = FINALE_COLOR
+	_draw_icon(EVENT_ICON if chapter.is_narrative else STORY_ICON, center, chapter.id == selected_id, ring)
+	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)", ICON_HEIGHT * 0.5 + 14.0)
 	if not read_only:
 		if chapter.wait_for_all:
-			_draw_badge(center + Vector2(-PIN_RADIUS - 2.0, -PIN_RADIUS - 4.0), "ALL")
+			_draw_badge(center + Vector2(-ICON_HEIGHT * 0.5, -ICON_HEIGHT * 0.5 - 2.0), "ALL")
 		if chapter.exclusive_links:
-			_draw_badge(center + Vector2(PIN_RADIUS + 2.0, -PIN_RADIUS - 4.0), "XOR")
+			_draw_badge(center + Vector2(ICON_HEIGHT * 0.5, -ICON_HEIGHT * 0.5 - 2.0), "XOR")
 
 
 ## A small tag next to a pin (editor only): "ALL" = waits for every chapter leading to it, "XOR" = its links are
@@ -174,35 +188,47 @@ func _draw_badge(anchor: Vector2, text: String, border: Color = Color(0.95, 0.8,
 
 func _draw_place(place: CampaignPlace) -> void:
 	var center := pin_position(place)
-	var radius := PIN_RADIUS - 1.0
-	var diamond := PackedVector2Array([center + Vector2(0, -radius), center + Vector2(radius, 0), center + Vector2(0, radius), center + Vector2(-radius, 0)])
-	draw_colored_polygon(diamond, PLACE_COLOR)
-	var outline := diamond.duplicate()
-	outline.append(diamond[0])
-	draw_polyline(outline, Color.WHITE if place.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if place.id == selected_id else 2.0, true)
-	_draw_label(center, place.title if place.title != "" else "(unnamed place)")
+	_draw_icon(PLACE_ICONS.get(place.kind, PLACE_ICONS[CampaignPlace.Kind.OFFERS]), center, place.id == selected_id, Color(0, 0, 0, 0))
+	_draw_label(center, place.title if place.title != "" else "(unnamed place)", ICON_HEIGHT * 0.5 + 14.0)
 
 
 func _draw_side_quest(quest: CampaignSideQuest) -> void:
 	var center := pin_position(quest)
-	var star := PackedVector2Array()
-	for i in 10:
-		var angle := -PI / 2.0 + i * PI / 5.0
-		star.append(center + Vector2(cos(angle), sin(angle)) * (PIN_RADIUS + 3.0 if i % 2 == 0 else (PIN_RADIUS + 3.0) * 0.45))
-	draw_colored_polygon(star, SIDE_QUEST_COLOR)
-	var outline := star.duplicate()
-	outline.append(star[0])
-	draw_polyline(outline, Color.WHITE if quest.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if quest.id == selected_id else 2.0, true)
+	_draw_icon(SIDE_ICON, center, quest.id == selected_id, Color(0, 0, 0, 0))
 	if ending_quest_ids.has(quest.id):
-		_draw_badge(center + Vector2(0, -PIN_RADIUS - 6.0), "ENDING", Color(0.95, 0.3, 0.25))
-	_draw_label(center, quest.title if quest.title != "" else "(unnamed side quest)")
+		_draw_badge(center + Vector2(0, -ICON_HEIGHT * 0.5 - 4.0), "ENDING", Color(0.95, 0.3, 0.25))
+	_draw_label(center, quest.title if quest.title != "" else "(unnamed side quest)", ICON_HEIGHT * 0.5 + 14.0)
 
 
-func _draw_label(center: Vector2, label: String) -> void:
+## A marker picture centred on `center`; a white ring behind it when selected, or `ring` (when it has any colour) for the editor's start / finale.
+func _draw_icon(path: String, center: Vector2, selected: bool, ring: Color) -> void:
+	if selected:
+		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, Color.WHITE, 3.0, true)
+	elif ring.a > 0.0:
+		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, ring, 3.0, true)
+	var picture := _icon(path)
+	var shown := picture.get_size() / 2.0
+	draw_texture_rect(picture, Rect2(center - shown / 2.0, shown), false)
+
+
+## The marker art shrunk once to twice the height it is drawn at (official art when imported, else the shipped placeholder).
+static func _icon(path: String) -> Texture2D:
+	if _icon_cache.has(path):
+		return _icon_cache[path]
+	var source := OfficialAssetOverrides.texture_for(path)
+	var image := source.get_image()
+	var target_height := int(ICON_HEIGHT * 2.0)
+	image.resize(maxi(int(round(image.get_width() * float(target_height) / image.get_height())), 1), target_height, Image.INTERPOLATE_LANCZOS)
+	var texture := ImageTexture.create_from_image(image)
+	_icon_cache[path] = texture
+	return texture
+
+
+func _draw_label(center: Vector2, label: String, offset: float = PIN_RADIUS + 16.0) -> void:
 	var font := ThemeDB.fallback_font
 	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
-	draw_string_outline(font, center + Vector2(-width / 2.0, PIN_RADIUS + 16), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, 4, Color(0, 0, 0, 0.85))
-	draw_string(font, center + Vector2(-width / 2.0, PIN_RADIUS + 16), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+	draw_string_outline(font, center + Vector2(-width / 2.0, offset), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, 4, Color(0, 0, 0, 0.85))
+	draw_string(font, center + Vector2(-width / 2.0, offset), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -240,12 +266,12 @@ func _gui_input(event: InputEvent) -> void:
 ## The chapter, side quest or place whose pin is under `position` (chapters on top), or null.
 func _item_at(position: Vector2) -> Resource:
 	for i in range(act.chapters.size() - 1, -1, -1):
-		if not _is_hidden(act.chapters[i]) and pin_position(act.chapters[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+		if not _is_hidden(act.chapters[i]) and pin_position(act.chapters[i]).distance_to(position) <= HIT_RADIUS:
 			return act.chapters[i]
 	for i in range(side_quests.size() - 1, -1, -1):
-		if pin_position(side_quests[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+		if pin_position(side_quests[i]).distance_to(position) <= HIT_RADIUS:
 			return side_quests[i]
 	for i in range(act.places.size() - 1, -1, -1):
-		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= HIT_RADIUS:
 			return act.places[i]
 	return null
