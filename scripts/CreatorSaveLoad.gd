@@ -465,6 +465,19 @@ func _restore_from_play() -> void:
 	GameState.clear_debug()
 
 
+## Puts a mission that ships with the game in the editor as an UNTITLED mission (saving asks for a place; the shipped file is never written to).
+## What the tutorials use for "load the example".
+func load_example(path: String) -> void:
+	var loaded := MissionIO.load_mission(path)
+	if loaded == null:
+		return
+	current_path = ""
+	_update_read_only()
+	layered_map.reset_editor_view()
+	layered_map.apply_mission(loaded)
+	operation_history.mark_saved()
+
+
 func _load_from(path: String) -> void:
 	var loaded := MissionIO.load_mission(path)
 	if loaded == null:

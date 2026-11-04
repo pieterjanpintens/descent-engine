@@ -1,0 +1,327 @@
+{
+	"id": "fork",
+	"title": "The fork: conditions, groups and surprises",
+	"steps": [
+		{
+			"id": "welcome",
+			"chapter": "The starting point",
+			"title": "Part two: a fork in the road",
+			"text": "This tutorial carries on from the first one. Your cave gets two ways forward, a [b]door[/b] and a [b]side passage[/b], and both lead into the same hidden area, the [b]Lair[/b], where guards wait. Along the way you meet [b]conditions[/b], the mission's [b]built-in variables[/b], the details of an [b]action[/b], [b]monster groups[/b] and [b]unaware monsters[/b].\n\nContinue with the mission you made in part one, or press [b]Load the example[/b] to start from the one that ships with the game (that replaces the open mission, and asks first if it has unsaved changes).\n\n[color=#9fb4c8]This step is done when the mission has a stage with some floor and a start position.[/color]",
+			"highlight": [
+				"menu_bar"
+			],
+			"done": {
+				"check": "ready"
+			},
+			"assist": "load_start",
+			"assist_label": "Load the example"
+		},
+		{
+			"id": "plan",
+			"chapter": "The starting point",
+			"title": "What we are going to build",
+			"text": "From the cave two paths lead east and north-east:\n\n[b]North:[/b] a wide corridor with a [b]door[/b]. Opening it reveals the Lair and spawns the guards, who are [i]aware[/i] and ready to fight.\n[b]East:[/b] a [b]side passage[/b] with an exploration token that fires by itself. It also reveals the Lair and spawns the same guards, but they are [i]unaware[/i]: they sleep until something wakes them.\n\nThe Lair is a stage of its own that starts hidden, and the group of guards is defined once and used by both routes. A flag, [i]encounter_started[/i], makes sure the guards only appear once, whichever route is taken first.",
+			"highlight": []
+		},
+		{
+			"id": "lair_stage",
+			"chapter": "The map",
+			"title": "A hidden stage for the Lair",
+			"tab": "Outline",
+			"text": "Right-click the mission name in the Outline, choose [b]New Group[/b] and name it [i]Lair[/i]. Then select it and [b]untick Visible[/b] in the panel below the tree: a stage that is not visible stays secret until an effect reveals it. Finally choose it as the [b]Working group[/b] in the toolbar.\n\n[color=#9fb4c8]The stage you start in is shown automatically. Every other stage waits for a Show Stage effect.[/color]",
+			"highlight": [
+				"outline_tree",
+				"toolbar_working_group"
+			],
+			"done": {
+				"check": "hidden_stage"
+			},
+			"assist": "make_lair_stage",
+			"assist_label": "Make the Lair stage"
+		},
+		{
+			"id": "lair_floor",
+			"chapter": "The map",
+			"title": "The Lair's floor",
+			"tab": "Palette",
+			"text": "With the Lair as the working group, place a big floor tile to the east of the cave, about twelve squares from its left edge and a little higher up, for example [b]17a[/b]. It lands in the hidden stage.\n\n[color=#9fb4c8]Do it for me assumes the example cave; if yours differs, place it wherever you like and connect the paths yourself.[/color]",
+			"highlight": [
+				"palette_floor",
+				"palette_grid",
+				"toolbar_working_group"
+			],
+			"done": {
+				"check": "lair_floor"
+			},
+			"assist": "place_lair",
+			"assist_label": "Place the Lair floor"
+		},
+		{
+			"id": "paths",
+			"chapter": "The map",
+			"title": "Two ways to get there",
+			"tab": "Palette",
+			"text": "Switch the working group back to the stage you start in (the cave), then lay the two paths so that everything is [b]one connected floor[/b]:\n\n[b]North:[/b] a corridor going up and east from the top of the cave, two squares wide.\n[b]East:[/b] a second one leaving the cave on its east side and curving up into the Lair from below.\n\nKeep a gap of empty squares between the two paths, so they only meet in the Lair. Use whatever tiles you like (this tutorial's tiles: 3a, 15a, 6a and 21a).",
+			"highlight": [
+				"palette_floor",
+				"palette_grid",
+				"toolbar_working_group",
+				"toolbar_problems"
+			],
+			"done": {
+				"check": "fork_floors"
+			},
+			"assist": "place_paths",
+			"assist_label": "Place the two paths"
+		},
+		{
+			"id": "door",
+			"chapter": "The door",
+			"title": "A door in the north corridor",
+			"tab": "Palette",
+			"text": "Open the [b]Prop[/b] tab and place a [b]gate[/b] across the two-wide north corridor (press [b]R[/b] to turn it so it spans the corridor). Then select it in the Outline and give it a name, [i]lair_door[/i]. Names are how you find a prop again in dialogs.\n\nNothing happens with it yet. A door only does something when it has an [b]action[/b].",
+			"highlight": [
+				"palette_prop",
+				"palette_grid",
+				"name_field"
+			],
+			"done": {
+				"check": "door"
+			},
+			"assist": "place_door",
+			"assist_label": "Place and name the door"
+		},
+		{
+			"id": "variable",
+			"chapter": "Variables",
+			"title": "Remember that the guards came",
+			"tab": "Outline",
+			"text": "Both routes can wake up the encounter, but the guards should only ever appear [b]once[/b]. The mission has to remember it happened: a yes/no variable.\n\nClick the mission name in the Outline, press [b]Variables…[/b] and add [i]encounter_started[/i] (type [b]Bool[/b], no at the start).\n\nWhile the dialog is open, look at the variable list in any condition later on: next to your own variables there are [b]built-in[/b] ones the game keeps up to date by itself: [i]round_number[/i], [i]player_count[/i] and [i]difficulty[/i]. You will use two of them soon.",
+			"highlight": [
+				"outline_tree",
+				"button:Variables…",
+				"button:Add Variable"
+			],
+			"done": {
+				"check": "encounter_variable"
+			},
+			"assist": "add_encounter_variable",
+			"assist_label": "Add the variable"
+		},
+		{
+			"id": "lair_spawn",
+			"chapter": "The guards",
+			"title": "Where the guards stand",
+			"tab": "Palette",
+			"text": "Make sure the Lair is the working group again, open [b]Misc[/b], press [b]New spawn[/b] and click a few squares at the back of the Lair floor, away from the entrances. The spawn area belongs to the Lair stage, so it stays secret too.\n\nThree squares is a good size: two guards, and one square for the extra guard that joins bigger parties.",
+			"highlight": [
+				"palette_misc",
+				"button:New spawn",
+				"toolbar_working_group"
+			],
+			"done": {
+				"check": "lair_spawn"
+			},
+			"assist": "add_lair_spawn",
+			"assist_label": "Draw the spawn area"
+		},
+		{
+			"id": "door_action",
+			"chapter": "Actions in detail",
+			"title": "The door's action",
+			"tab": "Outline",
+			"text": "Select the door, press [b]Actions…[/b] and [b]Add Action[/b]. Here is what each field does:\n\n[b]Name[/b]: what the players see and pick (and what voice control listens for). Try [i]Open the door[/i].\n[b]Description[/b]: the line shown under the name. Say what happens.\n[b]Action id[/b]: a technical name for triggers to listen to. Players never see it.\n[b]Single shot[/b]: the action can only be used once. Tick it for a door.\n[b]Conditions[/b]: the action is only offered while they hold.\n[b]Apply automatically[/b]: no choice, the effects just happen. Leave it off here: we use it for the token.",
+			"highlight": [
+				"outline_tree",
+				"button:Actions…",
+				"button:Add Action"
+			],
+			"done": {
+				"check": "door_action"
+			},
+			"assist": "add_door_action",
+			"assist_label": "Fill in the action"
+		},
+		{
+			"id": "door_stage_effects",
+			"chapter": "Actions in detail",
+			"title": "A door that removes itself",
+			"tab": "Outline",
+			"text": "An action runs its [b]effects[/b] in order. Add two:\n\n[b]Remove Object[/b] and pick [b]Self[/b] at the top of the object list: the prop the action belongs to. In the real game an open door comes off the board. [i]Self[/i] always means \"this prop\", so you can copy the action to another prop and it still works.\n[b]Show Stage[/b]: pick the Lair. The table is told which pieces to put on the board.",
+			"highlight": [
+				"button:Add Effect"
+			],
+			"done": {
+				"check": "door_stage_effects"
+			},
+			"assist": "add_door_stage_effects",
+			"assist_label": "Add the two effects"
+		},
+		{
+			"id": "door_spawn",
+			"chapter": "Built-in variables",
+			"title": "The guards, and a bigger party",
+			"tab": "Outline",
+			"text": "Add a third effect to the door's action: [b]Spawn Monsters[/b], with your Lair spawn area. Press [b]Monsters…[/b], then [b]Add Monster[/b] twice.\n\nNow the built-in variables: open the second monster's [b]Properties…[/b] and press [b]Spawns always…[/b]. Add the condition [b]player_count >= 3[/b]. That guard only appears when three or more heroes play.\n\n[color=#9fb4c8]The same trick scales difficulty: Mission > Monster levels… lets a formula such as difficulty - 2 raise or lower every monster's level.[/color]",
+			"highlight": [
+				"button:Add Effect",
+				"button:Monsters…",
+				"button:Add Monster",
+				"button:Properties…",
+				"button:Spawns always…"
+			],
+			"done": {
+				"check": "door_spawn"
+			},
+			"assist": "add_door_spawn",
+			"assist_label": "Add the spawn effect"
+		},
+		{
+			"id": "spawn_guard",
+			"chapter": "Conditions",
+			"title": "Only spawn once",
+			"tab": "Outline",
+			"text": "If the side passage was used first, the guards are already there, so the door must not spawn them a second time. Every effect has its own [b]Conditions…[/b] button: the effect only runs while its conditions hold.\n\nOn the Spawn Monsters effect add the condition [b]encounter_started = false[/b]. Then, at the end of the action, add [b]Set Variable[/b]: encounter_started = true.",
+			"highlight": [
+				"button:Conditions…",
+				"button:Add Effect"
+			],
+			"done": {
+				"check": "spawn_guard"
+			},
+			"assist": "add_spawn_guard",
+			"assist_label": "Add the condition and the flag"
+		},
+		{
+			"id": "group",
+			"chapter": "Monster groups",
+			"title": "Define the guards once",
+			"tab": "Outline",
+			"text": "The side passage must spawn the same guards. You could build the list again, but then every later change has to be made twice. Make it a [b]group[/b] instead.\n\nOpen the spawn effect's [b]Monsters…[/b] and press [b]Make a reusable group of this list[/b]. Name it [i]Lair guards[/i]. The button on the effect now reads \"Group: Lair guards…\". Any Spawn Monsters effect can use a group: edit it in one place and every use follows.",
+			"highlight": [
+				"button:Monsters…",
+				"button:Make a reusable group of this list"
+			],
+			"done": {
+				"check": "monster_group"
+			},
+			"assist": "make_group",
+			"assist_label": "Make the group"
+		},
+		{
+			"id": "token",
+			"chapter": "The side passage",
+			"title": "A token on the east path",
+			"tab": "Palette",
+			"text": "Back in the Palette, with the cave stage as working group, place an [b]exploration token[/b] on the east path and name it [i]side_passage[/i].\n\nA token is just a prop that is made for [b]Apply automatically[/b]: dragging a hero onto it fires its action at once, without a choice. The app does not see anyone walking, so the table tells it as usual by dragging a hero onto the token.",
+			"highlight": [
+				"palette_prop",
+				"palette_grid",
+				"name_field"
+			],
+			"done": {
+				"check": "token"
+			},
+			"assist": "place_token",
+			"assist_label": "Place and name the token"
+		},
+		{
+			"id": "token_action",
+			"chapter": "The side passage",
+			"title": "Sneak in",
+			"tab": "Outline",
+			"text": "Select the token, press [b]Actions…[/b] and [b]Add Action[/b]: name [i]Sneak in[/i], with a description. Tick [b]Single shot[/b] and [b]Apply automatically[/b].\n\nNow a condition on the [i]action[/i] this time: [b]encounter_started = false[/b]. Once the guards are out, sneaking in is pointless, so the action is simply not offered any more.",
+			"highlight": [
+				"outline_tree",
+				"button:Actions…",
+				"button:Add Action",
+				"button:Add Condition"
+			],
+			"done": {
+				"check": "token_action"
+			},
+			"assist": "add_token_action",
+			"assist_label": "Set up the action"
+		},
+		{
+			"id": "token_effects",
+			"chapter": "Unaware monsters",
+			"title": "Guards who do not know you are there",
+			"tab": "Outline",
+			"text": "Give the token's action three effects: [b]Show Stage[/b] (the Lair), [b]Spawn Monsters[/b] and [b]Set Variable[/b] encounter_started = true.\n\nFor the spawn pick the Lair spawn area, press [b]Monsters…[/b] and choose [b]Group: Lair guards[/b] as the source. Then press [b]Unaware: no…[/b] and switch it on. The players can see unaware monsters, and attack them, but in the monster phase they do nothing. The whole group wakes up together, [b]when one of them is attacked[/b] or gets a status. That is what the two ticks in that window are for.",
+			"highlight": [
+				"button:Add Effect",
+				"button:Monsters…",
+				"button:Unaware: no…"
+			],
+			"done": {
+				"check": "token_effects"
+			},
+			"assist": "add_token_effects",
+			"assist_label": "Add the three effects"
+		},
+		{
+			"id": "door_wake",
+			"chapter": "Unaware monsters",
+			"title": "A noisy door",
+			"tab": "Outline",
+			"text": "If the heroes sneak in first and later open the door anyway, the guards should wake. Add one more effect to the door's action: [b]Wake Monsters[/b], leaving the target on all.\n\nIt costs nothing when the door was opened first: the guards that spawned are aware already, so there is nobody to wake.",
+			"highlight": [
+				"button:Actions…",
+				"button:Add Effect"
+			],
+			"done": {
+				"check": "door_wake"
+			},
+			"assist": "add_door_wake",
+			"assist_label": "Add the effect"
+		},
+		{
+			"id": "restless",
+			"chapter": "Triggers again",
+			"title": "Guards get restless",
+			"tab": "Outline",
+			"text": "Sleeping guards should not sleep for ever. Click the mission name, press [b]Triggers…[/b] and [b]Add Trigger[/b]: when [b]Before the player phase[/b], with the condition [b]round_number >= 5[/b] and the effect [b]Wake Monsters[/b]. [i]round_number[/i] is one of the built-in variables.\n\nThe trigger is checked at the start of every round, and fires once as soon as its condition holds.",
+			"highlight": [
+				"outline_tree",
+				"button:Triggers…",
+				"button:Add Trigger"
+			],
+			"done": {
+				"check": "restless"
+			},
+			"assist": "add_restless_trigger",
+			"assist_label": "Add the trigger"
+		},
+		{
+			"id": "problems",
+			"chapter": "Check and play",
+			"title": "Ask the checker",
+			"text": "Click the [b]Problems[/b] button in the toolbar. Errors are things that cannot work (floating tiles, pieces on empty ground); warnings are worth a look. A mission with errors can still be saved, but the table could not build it.\n\nIf something your own tiles caused shows up, press [b]Show[/b] to jump to it.",
+			"highlight": [
+				"toolbar_problems"
+			],
+			"done": {
+				"check": "no_errors"
+			}
+		},
+		{
+			"id": "play",
+			"chapter": "Check and play",
+			"title": "Play both routes",
+			"text": "Press [b]Play > Play[/b] (Ctrl+Enter). Before you move anyone, press [b]F9[/b] to take a snapshot.\n\nTake the door first: drag a hero onto it, choose [i]Open the door[/i]. The Lair appears and the guards are ready. Then press [b]F10[/b] to go back and take the side passage instead: the guards sleep. Attack one of them and the whole group wakes. Try Play > Play with 2 heroes and with 4 to see the extra guard come and go.\n\n[b]Ctrl+E[/b] brings you back to the editor.",
+			"highlight": [
+				"menu_bar"
+			],
+			"assist": "play_now",
+			"assist_label": "Play it now"
+		},
+		{
+			"id": "finished",
+			"chapter": "Done",
+			"title": "The fork is built",
+			"text": "Two routes, one encounter: a hidden stage, a group defined once, an effect that only runs when its conditions hold, built-in variables that change the monsters, and guards that can be asleep.\n\n[b]Peek[/b] shows the finished mission if something behaves differently from yours. The same tools carry bigger missions: more stages that reveal each other, doors that need keys, monsters that wake on a timer.",
+			"highlight": []
+		}
+	]
+}

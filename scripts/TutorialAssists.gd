@@ -56,6 +56,42 @@ static func run(name: String, r: TutorialRunner) -> String:
 		"play_now":
 			r.play()
 			return ""
+		# ---- tutorial 2: the fork ----
+		"load_start":
+			r.load_start_mission()
+			return ""
+		"make_lair_stage":
+			return _make_lair_stage(r)
+		"place_lair":
+			return _place_fork_tiles(r, true)
+		"place_paths":
+			return _place_fork_tiles(r, false)
+		"place_door":
+			return _place_door(r)
+		"add_encounter_variable":
+			return _add_encounter_variable(r)
+		"add_lair_spawn":
+			return _add_lair_spawn(r)
+		"add_door_action":
+			return _add_door_action(r)
+		"add_door_stage_effects":
+			return _add_door_stage_effects(r)
+		"add_door_spawn":
+			return _add_door_spawn(r)
+		"add_spawn_guard":
+			return _add_spawn_guard(r)
+		"make_group":
+			return _make_group(r)
+		"place_token":
+			return _place_token(r)
+		"add_token_action":
+			return _add_token_action(r)
+		"add_token_effects":
+			return _add_token_effects(r)
+		"add_door_wake":
+			return _add_door_wake(r)
+		"add_restless_trigger":
+			return _add_restless_trigger(r)
 	push_warning("TutorialAssists: unknown assist '%s'" % name)
 	return ""
 
@@ -464,3 +500,376 @@ static func _add_objectives(r: TutorialRunner) -> String:
 	r.history.record("Add objective", func(): mission.objectives.append(first))
 	r.layered_map.notify_objects_changed()
 	return "Added the two objectives: defeat the monster, then loot the lair (that wins the mission)."
+
+
+# ---- Tutorial 2: the fork ----
+
+## The Lair tile and the four tiles of the two paths, with the top-left square of each relative to the top-left square of the cave's 19a:
+## the north path (3a, 15a) is a wide corridor with the door, the east path (6a, 21a) the side passage; both end at the Lair (17a). The
+## layout is fixed for the example cave (19a, 1a and 2a); `ascii()` in a test prints it.
+const LAIR_TILE := ["17a", Vector2i(12, -3)]
+const PATH_TILES := [["3a", Vector2i(0, -3)], ["15a", Vector2i(4, -3)], ["6a", Vector2i(6, 2)], ["21a", Vector2i(10, 2)]]
+## Where the door (a gate across the two-wide north corridor), the side passage's token and the guards' spawn squares go, relative to the same square.
+const DOOR_SPOT := Vector2i(8, -1)
+const DOOR_TURNS := 0
+const TOKEN_SPOT := Vector2i(11, 3)
+const LAIR_SPAWN_SQUARES := [Vector2i(16, -1), Vector2i(17, -1), Vector2i(16, 0)]
+
+
+## The top-left tile square of the example cave's 19a, or null when the mission has none.
+static func _cave_anchor(mission: MissionData) -> Variant:
+	for placement in mission.floor_placements:
+		if placement.mesh_item_name == ROOM_TILES[0]:
+			return _top_left(mission, placement)
+	return null
+
+
+static func _shown_stage(mission: MissionData) -> MissionGroup:
+	for group in mission.groups:
+		if group.visible:
+			return group
+	return null
+
+
+static func _make_lair_stage(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var stage := TutorialChecks.hidden_stage(mission)
+	if stage == null:
+		r.history.record("New group", func():
+			var group := MissionGroup.new()
+			group.id = mission.allocate_object_id()
+			group.reference_name = "Lair"
+			group.visible = false
+			mission.groups.append(group)
+		)
+		r.layered_map.notify_objects_changed()
+		stage = TutorialChecks.hidden_stage(mission)
+	r.controller.set_working_group(stage.id)
+	return "Made the stage \"%s\", hidden from the start, and chose it as the working group." % stage.reference_name
+
+
+## Puts the Lair's tile (`lair`) or the four tiles of the two paths in place, each in the stage it belongs to: the Lair in the hidden stage,
+## the paths in the stage the heroes start in.
+static func _place_fork_tiles(r: TutorialRunner, lair: bool) -> String:
+	var mission := r.layered_map.mission
+	var anchor = _cave_anchor(mission)
+	if anchor == null:
+		return "This needs the example cave (the tiles 19a, 1a and 2a). Place the tiles yourself, or load the example mission from the first step."
+	var stage: MissionGroup = TutorialChecks.hidden_stage(mission) if lair else _shown_stage(mission)
+	if stage == null:
+		return "Make the hidden Lair stage first." if lair else "There is no stage the heroes start in."
+	r.controller.set_working_group(stage.id)
+	var tiles: Array = [LAIR_TILE] if lair else PATH_TILES
+	var placed := 0
+	for tile: Array in tiles:
+		var mesh: String = tile[0]
+		if _is_placed(mission, mesh):
+			continue
+		var top_left: Vector2i = anchor + tile[1]
+		var origin: Vector2i = top_left - _bounds(FootprintRegistry.get_footprint(mesh)).position
+		if r.controller.place_mesh_at_tile_square(mesh, Vector3i(origin.x, 0, origin.y)):
+			placed += 1
+	return "Placed %d tile(s)." % placed if placed > 0 else "Those tiles are already placed (or used up)."
+
+
+static func _name_prop(r: TutorialRunner, entry: InteractableEntry, prop_name: String) -> void:
+	r.history.record("Set name", func(): entry.reference_name = prop_name)
+	r.layered_map.notify_objects_changed()
+
+
+static func _place_door(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var existing := TutorialChecks.door(mission)
+	if existing == null:
+		var anchor = _cave_anchor(mission)
+		if anchor == null:
+			return "This needs the example cave. Place a gate across the corridor yourself."
+		var stage := _shown_stage(mission)
+		if stage != null:
+			r.controller.set_working_group(stage.id)
+		var spot: Vector2i = anchor + DOOR_SPOT
+		if not r.controller.place_mesh_at_tile_square("gate", Vector3i(spot.x, 0, spot.y), DOOR_TURNS):
+			return "The gate could not be placed (are all four used up?)."
+		existing = TutorialChecks.door(mission)
+	_name_prop(r, existing, "lair_door")
+	return "Placed a gate across the north corridor and named it lair_door."
+
+
+static func _add_encounter_variable(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	for variable in mission.custom_variables:
+		if variable.name == TutorialChecks.ENCOUNTER_STARTED:
+			return "The variable is already there."
+	r.history.record("Add variable", func():
+		var variable := MissionVariable.new()
+		variable.name = TutorialChecks.ENCOUNTER_STARTED
+		variable.type = MissionVariable.Type.BOOL
+		variable.default_value = false
+		mission.custom_variables.append(variable)
+	)
+	r.layered_map.notify_objects_changed()
+	return "Added encounter_started (yes/no, no at the start)."
+
+
+static func _add_lair_spawn(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var anchor = _cave_anchor(mission)
+	var stage := TutorialChecks.hidden_stage(mission)
+	if anchor == null or stage == null:
+		return "Make the hidden Lair stage and its floor first."
+	var floor_squares := _floor_squares(mission)
+	var tiles: Array[Vector3i] = []
+	for offset: Vector2i in LAIR_SPAWN_SQUARES:
+		var square := Vector3i(anchor.x + offset.x, 0, anchor.y + offset.y)
+		if floor_squares.has(square):
+			tiles.append(square)
+	if tiles.size() < 2:
+		return "The Lair floor is not in place yet."
+	r.controller.set_working_group(stage.id)
+	var id := r.controller.create_monster_spawn()
+	var spawn: MonsterSpawn = r.controller._find_monster_spawn(id)
+	r.history.record("Toggle spawn tile", func(): spawn.cells.append_array(tiles))
+	r.layered_map.refresh_monster_spawn_overlay()
+	r.layered_map.notify_objects_changed()
+	return "Drew a spawn area of %d squares at the back of the Lair." % tiles.size()
+
+
+static func _condition_on(variable_name: String, operator: Condition.Operator, value: Variant) -> Condition:
+	var condition := Condition.new()
+	condition.variable_name = variable_name
+	condition.operator = operator
+	condition.value = value
+	return condition
+
+
+## The door's first action, made on the spot when the gate has none.
+static func _door_action(r: TutorialRunner) -> PropAction:
+	var entry := TutorialChecks.door(r.layered_map.mission)
+	if entry == null:
+		return null
+	if entry.actions.is_empty():
+		var action := PropAction.new()
+		action.action_id = "open"
+		action.action_name = "Open the door"
+		action.description = "You heave the heavy door open."
+		action.single_shot = true
+		r.history.record("Add action", func(): entry.actions.append(action))
+	return entry.actions[0]
+
+
+static func _add_door_action(r: TutorialRunner) -> String:
+	var entry := TutorialChecks.door(r.layered_map.mission)
+	if entry == null:
+		return "Place the door first."
+	if entry.actions.is_empty():
+		_door_action(r)
+		r.layered_map.notify_objects_changed()
+		return "Gave the door the action 'Open the door': a name and a description for the players, single shot."
+	var action := entry.actions[0]
+	r.history.record("Edit action", func():
+		if action.action_name == "":
+			action.action_name = "Open the door"
+		if action.description == "":
+			action.description = "You heave the heavy door open."
+		action.single_shot = true
+	)
+	r.layered_map.notify_objects_changed()
+	return "Filled in the door's action."
+
+
+static func _add_door_stage_effects(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var stage := TutorialChecks.hidden_stage(mission)
+	var action := _door_action(r)
+	if action == null or stage == null:
+		return "Place the door and make the hidden Lair stage first."
+	r.history.record("Add effects", func():
+		var has_remove := false
+		var has_show := false
+		for effect in action.effects:
+			has_remove = has_remove or (effect.type == Effect.Type.REMOVE_OBJECT and effect.target_object_id == Effect.SELF_ID)
+			has_show = has_show or (effect.type == Effect.Type.SHOW_STAGE and effect.target_group_id == stage.id)
+		if not has_remove:
+			var remove := Effect.new()
+			remove.type = Effect.Type.REMOVE_OBJECT
+			remove.target_object_id = Effect.SELF_ID
+			action.effects.append(remove)
+		if not has_show:
+			var show := Effect.new()
+			show.type = Effect.Type.SHOW_STAGE
+			show.target_group_id = stage.id
+			action.effects.append(show)
+	)
+	r.layered_map.notify_objects_changed()
+	return "The door now removes itself and shows the Lair."
+
+
+static func _guard() -> MonsterTemplate:
+	if MonsterArchetypeLibrary.names_of_kind(MonsterArchetype.Kind.BASE).is_empty():
+		_make_template()  # nobody made a base template yet (tutorial 1 skipped): a simple one
+	var guard := MonsterTemplate.create_with_default_base()
+	if guard != null:
+		guard.folder = "bandit"
+		guard.custom_name = "Lair guard"
+	return guard
+
+
+static func _add_door_spawn(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var spawn := TutorialChecks.lair_spawn(mission)
+	var action := _door_action(r)
+	if spawn == null or action == null:
+		return "Draw the Lair's spawn area and place the door first."
+	if TutorialChecks.door_spawn(mission) != null:
+		return "The door already spawns monsters."
+	var first := _guard()
+	var second := _guard()
+	if first == null:
+		return "Make a base monster template first (File > Monster Templates)."
+	second.custom_name = "Extra guard"
+	second.conditions.append(_condition_on("player_count", Condition.Operator.GREATER_EQUAL, 3))
+	var effect := Effect.new()
+	effect.type = Effect.Type.SPAWN_MONSTERS
+	effect.target_object_id = spawn.id
+	effect.spawn_monsters.append(first)
+	effect.spawn_monsters.append(second)
+	r.history.record("Add effect", func(): action.effects.append(effect))
+	r.layered_map.notify_objects_changed()
+	return "The door now spawns a guard, and a second one only when three or more heroes play."
+
+
+static func _add_spawn_guard(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var effect := TutorialChecks.door_spawn(mission)
+	var action := _door_action(r)
+	if effect == null or action == null:
+		return "Add the door's Spawn Monsters effect first."
+	r.history.record("Add condition", func():
+		if not TutorialChecks.mentions(effect.conditions, TutorialChecks.ENCOUNTER_STARTED):
+			effect.conditions.append(_condition_on(TutorialChecks.ENCOUNTER_STARTED, Condition.Operator.EQUALS, false))
+		if not TutorialChecks.sets_variable(action.effects, TutorialChecks.ENCOUNTER_STARTED):
+			action.effects.append(_set_true(TutorialChecks.ENCOUNTER_STARTED))
+	)
+	r.layered_map.notify_objects_changed()
+	return "The spawn now only happens while encounter_started is no, and the door sets it to yes."
+
+
+static func _make_group(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var effect := TutorialChecks.door_spawn(mission)
+	if effect == null:
+		return "Add the door's Spawn Monsters effect first."
+	if effect.spawn_group_id != "":
+		return "The door already uses a group."
+	r.history.record("Make monster group", func():
+		var group := MonsterGroup.new()
+		group.id = mission.allocate_object_id()
+		group.group_name = "Lair guards"
+		group.monsters.assign(effect.spawn_monsters)
+		effect.spawn_monsters = []
+		mission.monster_groups.append(group)
+		effect.spawn_group_id = group.id
+	)
+	r.layered_map.notify_objects_changed()
+	return "Made the group \"Lair guards\" and pointed the door's spawn at it."
+
+
+static func _place_token(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var existing := TutorialChecks.token(mission)
+	if existing == null:
+		var anchor = _cave_anchor(mission)
+		if anchor == null:
+			return "This needs the example cave. Place an exploration token on the east path yourself."
+		var stage := _shown_stage(mission)
+		if stage != null:
+			r.controller.set_working_group(stage.id)
+		var spot: Vector2i = anchor + TOKEN_SPOT
+		if not r.controller.place_mesh_at_tile_square("exploration", Vector3i(spot.x, 0, spot.y)):
+			return "The token could not be placed."
+		existing = TutorialChecks.token(mission)
+	_name_prop(r, existing, "side_passage")
+	return "Placed an exploration token on the east path and named it side_passage."
+
+
+static func _token_action(r: TutorialRunner) -> PropAction:
+	var entry := TutorialChecks.token(r.layered_map.mission)
+	if entry == null:
+		return null
+	if entry.actions.is_empty():
+		var action := PropAction.new()
+		action.action_id = "sneak"
+		action.action_name = "Sneak in"
+		action.description = "You slip through the side passage, quiet as a mouse."
+		r.history.record("Add action", func(): entry.actions.append(action))
+	return entry.actions[0]
+
+
+static func _add_token_action(r: TutorialRunner) -> String:
+	var action := _token_action(r)
+	if action == null:
+		return "Place the token first."
+	r.history.record("Edit action", func():
+		action.auto_apply = true
+		action.single_shot = true
+		if not TutorialChecks.mentions(action.conditions, TutorialChecks.ENCOUNTER_STARTED):
+			action.conditions.append(_condition_on(TutorialChecks.ENCOUNTER_STARTED, Condition.Operator.EQUALS, false))
+	)
+	r.layered_map.notify_objects_changed()
+	return "The token's action 'Sneak in' fires by itself, once, and only while encounter_started is no."
+
+
+static func _add_token_effects(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var stage := TutorialChecks.hidden_stage(mission)
+	var door_effect := TutorialChecks.door_spawn(mission)
+	var action := _token_action(r)
+	if action == null or stage == null or door_effect == null or door_effect.spawn_group_id == "":
+		return "Finish the door's spawn (with its group) and place the token first."
+	r.history.record("Add effects", func():
+		var show := Effect.new()
+		show.type = Effect.Type.SHOW_STAGE
+		show.target_group_id = stage.id
+		var spawn := Effect.new()
+		spawn.type = Effect.Type.SPAWN_MONSTERS
+		spawn.target_object_id = door_effect.target_object_id
+		spawn.spawn_group_id = door_effect.spawn_group_id
+		spawn.spawn_unaware = true
+		action.effects.append(show)
+		action.effects.append(spawn)
+		action.effects.append(_set_true(TutorialChecks.ENCOUNTER_STARTED))
+	)
+	r.layered_map.notify_objects_changed()
+	return "The token shows the Lair, spawns the same group unaware, and sets encounter_started."
+
+
+static func _wake_effect() -> Effect:
+	var wake := Effect.new()
+	wake.type = Effect.Type.WAKE_MONSTERS
+	return wake
+
+
+static func _add_door_wake(r: TutorialRunner) -> String:
+	var action := _door_action(r)
+	if action == null:
+		return "Place the door first."
+	if TutorialChecks.has_effect_type(action.effects, Effect.Type.WAKE_MONSTERS):
+		return "The door already wakes monsters."
+	r.history.record("Add effect", func(): action.effects.append(_wake_effect()))
+	r.layered_map.notify_objects_changed()
+	return "The door now wakes any sleeping guards."
+
+
+static func _add_restless_trigger(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	if TutorialChecks.restless_trigger_ok(mission):
+		return "The trigger is already there."
+	var trigger := MissionTrigger.new()
+	trigger.id = mission.allocate_object_id()
+	trigger.checkpoint = RoundCheckpoint.Checkpoint.BEFORE_PLAYER_PHASE
+	trigger.one_shot = true
+	trigger.conditions.append(_condition_on("round_number", Condition.Operator.GREATER_EQUAL, 5))
+	trigger.effects.append(_wake_effect())
+	r.history.record("Add trigger", func(): mission.triggers.append(trigger))
+	r.layered_map.notify_objects_changed()
+	return "Added a trigger: from round 5 on, before the player phase, the sleeping guards wake up."

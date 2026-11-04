@@ -9,6 +9,8 @@ const TOKENS := ["exploration", "interact", "umbra"]
 ## The two variables the tutorial mission uses: the monster was defeated, the lair was looted.
 const MONSTER_DEAD := "monster_dead"
 const CHEST_LOOTED := "chest_looted"
+## The variable tutorial 2 (the fork) uses: has the Lair encounter been started by either route?
+const ENCOUNTER_STARTED := "encounter_started"
 
 
 static func check(spec: Dictionary, r: TutorialRunner) -> bool:
@@ -65,6 +67,43 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 			return false
 		"objectives":
 			return objective_chain_ok(mission)
+		# ---- tutorial 2: the fork ----
+		"ready":
+			return mission.player_spawn_cells.size() >= 1 and _floors({"n": 3, "in_stage": true}, mission)
+		"hidden_stage":
+			return hidden_stage(mission) != null
+		"lair_floor":
+			return not stage_floors(mission, hidden_stage(mission)).is_empty()
+		"fork_floors":
+			return fork_floors_ok(mission)
+		"door":
+			return door(mission) != null and door(mission).reference_name != ""
+		"encounter_variable":
+			return _has_bool_variable(mission, ENCOUNTER_STARTED)
+		"lair_spawn":
+			return lair_spawn(mission) != null
+		"door_action":
+			return door_action_basics(mission)
+		"door_stage_effects":
+			return door_stage_effects(mission)
+		"door_spawn":
+			return door_spawn_ok(mission)
+		"spawn_guard":
+			return spawn_guard_ok(mission)
+		"monster_group":
+			return monster_group_ok(mission)
+		"token":
+			return token(mission) != null and token(mission).reference_name != ""
+		"token_action":
+			return token_action_ok(mission)
+		"token_effects":
+			return token_effects_ok(mission)
+		"door_wake":
+			return has_effect_type(door_effects(mission), Effect.Type.WAKE_MONSTERS)
+		"restless":
+			return restless_trigger_ok(mission)
+		"no_errors":
+			return MapPlanValidator.validate_mission(mission)["errors"].is_empty()
 	push_warning("TutorialChecks: unknown check '%s'" % spec.get("check", ""))
 	return false
 
@@ -177,3 +216,189 @@ static func _find(parent: Dictionary, node: Vector3i) -> Vector3i:
 
 static func _union(parent: Dictionary, a: Vector3i, b: Vector3i) -> void:
 	parent[_find(parent, a)] = _find(parent, b)
+
+
+# ---- Tutorial 2: the fork (a door and a side passage into a shared, hidden Lair) ----
+
+## The first stage that starts hidden (Visible unticked): the Lair.
+static func hidden_stage(mission: MissionData) -> MissionGroup:
+	for group in mission.groups:
+		if not group.visible:
+			return group
+	return null
+
+
+static func stage_floors(mission: MissionData, stage: MissionGroup) -> Array[TilePlacement]:
+	var found: Array[TilePlacement] = []
+	if stage == null:
+		return found
+	for placement in mission.floor_placements:
+		if placement.parent_id == stage.id:
+			found.append(placement)
+	return found
+
+
+## All the floor is one connected piece: the Lair's own tiles, plus at least seven tiles in the stages that are shown from the start.
+static func fork_floors_ok(mission: MissionData) -> bool:
+	var stage := hidden_stage(mission)
+	if stage == null or stage_floors(mission, stage).is_empty():
+		return false
+	var shown := 0
+	for placement in mission.floor_placements:
+		if placement.parent_id != stage.id:
+			shown += 1
+	return shown >= 7 and connected_components(mission, mission.floor_placements) == 1
+
+
+static func door(mission: MissionData) -> InteractableEntry:
+	for entry in mission.interactables:
+		if entry.mesh_item_name == "gate":
+			return entry
+	return null
+
+
+static func token(mission: MissionData) -> InteractableEntry:
+	for entry in mission.interactables:
+		if TOKENS.has(entry.mesh_item_name):
+			return entry
+	return null
+
+
+static func lair_spawn(mission: MissionData) -> MonsterSpawn:
+	var stage := hidden_stage(mission)
+	if stage == null:
+		return null
+	for spawn in mission.monster_spawns:
+		if spawn.parent_id == stage.id and spawn.cells.size() >= 2:
+			return spawn
+	return null
+
+
+static func door_effects(mission: MissionData) -> Array[Effect]:
+	var found: Array[Effect] = []
+	var entry := door(mission)
+	if entry != null:
+		for action in entry.actions:
+			found.append_array(action.effects)
+	return found
+
+
+static func token_effects(mission: MissionData) -> Array[Effect]:
+	var found: Array[Effect] = []
+	var entry := token(mission)
+	if entry != null:
+		for action in entry.actions:
+			found.append_array(action.effects)
+	return found
+
+
+static func has_effect_type(effects: Array[Effect], type: Effect.Type) -> bool:
+	for effect in effects:
+		if effect.type == type:
+			return true
+	return false
+
+
+## True when some condition in the list reads the variable.
+static func mentions(conditions: Array[Condition], variable_name: String) -> bool:
+	for condition in conditions:
+		if condition.variable_name == variable_name:
+			return true
+	return false
+
+
+static func door_action_basics(mission: MissionData) -> bool:
+	var entry := door(mission)
+	if entry == null:
+		return false
+	for action in entry.actions:
+		if action.action_name != "" and action.description != "" and action.single_shot:
+			return true
+	return false
+
+
+static func door_stage_effects(mission: MissionData) -> bool:
+	var stage := hidden_stage(mission)
+	if stage == null:
+		return false
+	var removes_self := false
+	var shows_stage := false
+	for effect in door_effects(mission):
+		if effect.type == Effect.Type.REMOVE_OBJECT and effect.target_object_id == Effect.SELF_ID:
+			removes_self = true
+		if effect.type == Effect.Type.SHOW_STAGE and effect.target_group_id == stage.id:
+			shows_stage = true
+	return removes_self and shows_stage
+
+
+## The door's Spawn Monsters effect (at the Lair's spawn area).
+static func door_spawn(mission: MissionData) -> Effect:
+	var spawn := lair_spawn(mission)
+	if spawn == null:
+		return null
+	for effect in door_effects(mission):
+		if effect.type == Effect.Type.SPAWN_MONSTERS and effect.target_object_id == spawn.id:
+			return effect
+	return null
+
+
+## At least two guards, and one of them only appears for a bigger party (a condition on a built-in variable).
+static func door_spawn_ok(mission: MissionData) -> bool:
+	var effect := door_spawn(mission)
+	if effect == null:
+		return false
+	var monsters := mission.monsters_for(effect)
+	if monsters.size() < 2:
+		return false
+	for monster in monsters:
+		if mentions(monster.conditions, "player_count") or mentions(monster.conditions, "difficulty"):
+			return true
+	return false
+
+
+static func spawn_guard_ok(mission: MissionData) -> bool:
+	var effect := door_spawn(mission)
+	if effect == null or not mentions(effect.conditions, ENCOUNTER_STARTED):
+		return false
+	return sets_variable(door_effects(mission), ENCOUNTER_STARTED)
+
+
+static func monster_group_ok(mission: MissionData) -> bool:
+	var effect := door_spawn(mission)
+	if effect == null or effect.spawn_group_id == "":
+		return false
+	var group := mission.find_monster_group(effect.spawn_group_id)
+	return group != null and group.monsters.size() >= 2
+
+
+static func token_action_ok(mission: MissionData) -> bool:
+	var entry := token(mission)
+	if entry == null:
+		return false
+	for action in entry.actions:
+		if action.auto_apply and mentions(action.conditions, ENCOUNTER_STARTED):
+			return true
+	return false
+
+
+## The token's action reveals the Lair, spawns the SAME group unaware, and records that the encounter started.
+static func token_effects_ok(mission: MissionData) -> bool:
+	var stage := hidden_stage(mission)
+	var spawn := door_spawn(mission)
+	if stage == null or spawn == null or spawn.spawn_group_id == "":
+		return false
+	var shows := false
+	var spawns := false
+	for effect in token_effects(mission):
+		if effect.type == Effect.Type.SHOW_STAGE and effect.target_group_id == stage.id:
+			shows = true
+		if effect.type == Effect.Type.SPAWN_MONSTERS and effect.spawn_group_id == spawn.spawn_group_id and effect.spawn_unaware:
+			spawns = true
+	return shows and spawns and sets_variable(token_effects(mission), ENCOUNTER_STARTED)
+
+
+static func restless_trigger_ok(mission: MissionData) -> bool:
+	for trigger in mission.triggers:
+		if mentions(trigger.conditions, "round_number") and has_effect_type(trigger.effects, Effect.Type.WAKE_MONSTERS):
+			return true
+	return false

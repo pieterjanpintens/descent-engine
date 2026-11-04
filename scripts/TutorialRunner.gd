@@ -11,10 +11,14 @@ extends Node
 ## Controls are found through `tutorial_target(id)` on the palette / toolbar / properties panel (stable ids, not node paths), so a
 ## rearranged UI does not silently break a tutorial.
 
+## `finished` = the mission the tutorial builds (Peek plays it); `start` = the mission "Load the example" puts in the editor (a tutorial
+## that continues another one starts from the other one's result).
 const TUTORIALS: Array[Dictionary] = [
-	{"id": "build_a_mission", "title": "Build a mission", "file": "res://data/tutorials/build_a_mission.json"},
+	{"id": "build_a_mission", "title": "Build a mission", "file": "res://data/tutorials/build_a_mission.json",
+		"finished": "res://data/tutorials/finished_mission.tres", "start": ""},
+	{"id": "fork", "title": "The fork: conditions, groups and surprises", "file": "res://data/tutorials/fork.json",
+		"finished": "res://data/tutorials/finished_fork.tres", "start": "res://data/tutorials/finished_mission.tres"},
 ]
-const FINISHED_MISSION := "res://data/tutorials/finished_mission.tres"
 const PROGRESS_FILE := "user://configuration/tutorial.cfg"
 const PANEL_WIDTH := 410.0
 const CHECK_SECONDS := 0.25
@@ -115,6 +119,7 @@ func is_running() -> bool:
 
 ## Starts the tutorial `id`: where the user stopped last time, or from the first step when `restart` (or nothing was stored).
 func start(id: String = "build_a_mission", restart: bool = false) -> void:
+	_tutorial = {}
 	for tutorial in TUTORIALS:
 		if tutorial["id"] == id:
 			_tutorial = tutorial
@@ -249,6 +254,7 @@ func _go_to(index: int) -> void:
 	_title_label.text = step.get("title", "")
 	_body.text = step.get("text", "")
 	_note_label.text = ""
+	_peek_button.visible = _tutorial.get("finished", "") != ""
 	_assist_button.visible = step.has("assist")
 	_assist_button.text = step.get("assist_label", "Do it for me")
 	_back_button.disabled = index == 0
@@ -323,10 +329,29 @@ func play() -> void:
 	save_load.start_play("")
 
 
-## Plays the finished tutorial mission in the Player (the editor's own mission is kept; Ctrl+E comes back).
-func peek() -> void:
-	GameState.resume_tutorial = str(_tutorial.get("id", "")) if is_running() else ""
-	save_load.start_peek(FINISHED_MISSION)
+## Plays the finished mission of the running tutorial (or of tutorial `id`) in the Player (the editor's own mission is kept; Ctrl+E comes back).
+func peek(id: String = "") -> void:
+	var tutorial := _tutorial
+	if id != "":
+		for candidate in TUTORIALS:
+			if candidate["id"] == id:
+				tutorial = candidate
+	var path: String = tutorial.get("finished", "")
+	if path == "":
+		return
+	GameState.resume_tutorial = str(tutorial.get("id", "")) if is_running() else ""
+	save_load.start_peek(path)
+
+
+## Puts the running tutorial's example start mission in the editor (as an untitled mission), asking first when there is unsaved work.
+func load_start_mission() -> void:
+	var path: String = _tutorial.get("start", "")
+	if path == "":
+		return
+	if history.is_dirty():
+		_ask("This replaces the mission you have open, and its unsaved changes are lost. Load the example mission?", func(): save_load.load_example(path))
+	else:
+		save_load.load_example(path)
 
 
 # ---- Highlights ----
@@ -520,21 +545,26 @@ func _button(text: String) -> Button:
 	return button
 
 
-## The "Help" menu in the menu bar.
+## The "Help" menu in the menu bar: per tutorial the tutorial itself (continues where you stopped), starting it over, and a peek at what it builds.
 func _add_help_menu() -> void:
 	var menu := PopupMenu.new()
 	menu.name = "Help"
-	menu.add_item("Tutorial: build a mission…", 0)
-	menu.add_item("Start the tutorial from the beginning", 1)
-	menu.add_separator()
-	menu.add_item("Peek at the finished tutorial mission", 2)
+	for i in TUTORIALS.size():
+		var tutorial: Dictionary = TUTORIALS[i]
+		if i > 0:
+			menu.add_separator()
+		menu.add_item("Tutorial %d: %s…" % [i + 1, tutorial["title"]], i * 3)
+		menu.add_item("Start tutorial %d from the beginning" % (i + 1), i * 3 + 1)
+		if tutorial.get("finished", "") != "":
+			menu.add_item("Peek at the finished mission of tutorial %d" % (i + 1), i * 3 + 2)
 	menu.id_pressed.connect(func(id: int):
-		match id:
+		var tutorial: Dictionary = TUTORIALS[floori(id / 3.0)]
+		match id % 3:
 			0:
-				start("build_a_mission")
+				start(tutorial["id"])
 			1:
-				start("build_a_mission", true)
+				start(tutorial["id"], true)
 			2:
-				peek()
+				peek(tutorial["id"])
 	)
 	menu_bar.add_child(menu)
