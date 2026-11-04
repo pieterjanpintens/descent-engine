@@ -1,4 +1,7 @@
-﻿## v0.0.57 - 2026-11-04
+﻿## v0.0.58 - 2026-11-04
+- Campaign map: a recipe shop shows the market badge, like the market.
+
+## v0.0.57 - 2026-11-04
 - Campaign map: the map now lies on a wooden table, with a soft shadow under the map image.
 - Campaign map: the pins use the game's own marker art when you have imported the game assets (Options > Game assets, then restart): the gold quest marker for a mission chapter, the blue star badge for a narrative chapter, the dark marker for a side quest, and the city badges for places (market, smithy, crafting, person). Without the import you see simple placeholders. In the editor the start chapter has a gold ring and the finale a purple one.
 
