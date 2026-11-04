@@ -64,7 +64,7 @@ const MAP: Dictionary = {
 	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",
 	"res://models/ui/map_pin_event.png": "Icon_WorldEvent",
 	"res://models/ui/map_pin_side.png": "Icon_SideQuest",
-	# The campaign map's places, by kind: the game's city badges (market = shop, smithy = armory, recipe shop and alchemist = crafting,
+	# The campaign map's places, by kind: the game's city badges (market and recipe shop = shop, smithy = armory, alchemist = crafting,
 	# an authored place with offers = the person badge).
 	"res://models/ui/map_pin_shop.png": "CityIcon_Shop",
 	"res://models/ui/map_pin_smithy.png": "CityIcon_Armory",
