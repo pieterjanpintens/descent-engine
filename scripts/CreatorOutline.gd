@@ -869,6 +869,17 @@ func _delete_spawn(spawn_id: String) -> void:
 	var spawn := _find_spawn_by_id(spawn_id)
 	if spawn == null:
 		return
+	var uses := layered_map.mission.spawn_use_count(spawn_id)
+	if uses > 0:
+		creator_controller.confirm_then(CreatorController.spawn_warning(uses), func(): _delete_spawn_now(spawn_id))
+		return
+	_delete_spawn_now(spawn_id)
+
+
+func _delete_spawn_now(spawn_id: String) -> void:
+	var spawn := _find_spawn_by_id(spawn_id)
+	if spawn == null:
+		return
 	operation_history.record("Delete monster spawn", func():
 		layered_map.mission.monster_spawns.erase(spawn)
 	)

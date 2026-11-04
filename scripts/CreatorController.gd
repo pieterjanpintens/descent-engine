@@ -1918,6 +1918,42 @@ func _piece_in_rect(origin: Vector3i, footprint: Array[Vector3i], grid: GridMap,
 ## Delete / Backspace: removes the selected props, tiles, monster spawn areas and LOS blockers as ONE undo step (groups stay - they have their
 ## own context menu entry).
 func delete_selection() -> void:
+	# Spawn areas that effects still point at: ask first (those effects would spawn nothing any more).
+	var used := 0
+	for id in selected_ids:
+		var spawn := _find_monster_spawn(id)
+		if spawn != null:
+			used += layered_map.mission.spawn_use_count(spawn.id)
+	if used > 0:
+		confirm_then(spawn_warning(used), _delete_selection_now)
+		return
+	_delete_selection_now()
+
+
+## The question asked before a monster spawn area that effects use is deleted.
+static func spawn_warning(uses: int) -> String:
+	return "%d Spawn / Wake Monsters effect%s use%s this spawn area. If you delete it, %s no longer have a place to spawn. Delete it anyway?" % [
+		uses, "" if uses == 1 else "s", "s" if uses == 1 else "", "it will" if uses == 1 else "they will"]
+
+
+var _confirm: ConfirmationDialog
+var _confirm_action: Callable
+
+
+## A small yes/no question in the editor's own look; runs `action` on OK.
+func confirm_then(text: String, action: Callable) -> void:
+	if _confirm == null:
+		_confirm = ConfirmationDialog.new()
+		_confirm.theme = AppTheme.check_theme()
+		_confirm.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		_confirm.confirmed.connect(func(): _confirm_action.call())
+		add_child(_confirm)
+	_confirm_action = action
+	_confirm.dialog_text = text
+	_confirm.popup_centered()
+
+
+func _delete_selection_now() -> void:
 	var props: Array[InteractableEntry] = []
 	var tiles: Array[TilePlacement] = []
 	var spawns: Array[MonsterSpawn] = []
