@@ -1,4 +1,7 @@
-﻿## v0.0.58 - 2026-11-04
+﻿## v0.0.59 - 2026-11-04
+- Campaign map: the marker under the mouse grows a little and the cursor turns into a hand, so it is clear what can be clicked.
+
+## v0.0.58 - 2026-11-04
 - Campaign map: a recipe shop shows the market badge, like the market.
 
 ## v0.0.57 - 2026-11-04
