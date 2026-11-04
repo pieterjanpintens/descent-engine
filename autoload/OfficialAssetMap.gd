@@ -64,6 +64,12 @@ const MAP: Dictionary = {
 	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",
 	"res://models/ui/map_pin_event.png": "Icon_WorldEvent",
 	"res://models/ui/map_pin_side.png": "Icon_SideQuest",
+	# The campaign map's places, by kind: the game's city badges (market = shop, smithy = armory, recipe shop and alchemist = crafting,
+	# an authored place with offers = the person badge).
+	"res://models/ui/map_pin_shop.png": "CityIcon_Shop",
+	"res://models/ui/map_pin_smithy.png": "CityIcon_Armory",
+	"res://models/ui/map_pin_crafting.png": "CityIcon_Crafting",
+	"res://models/ui/map_pin_person.png": "CityIcon_Person",
 	# Damage-type icons for the combat view (2026-09-26): dummy placeholders in
 	# models/icons/ (same sizes as the real ones), replaced by the user's own art
 	# when present. "unknown" is the red ? shown for undiscovered weaknesses.

@@ -1,9 +1,9 @@
 class_name CampaignMapView
 extends Control
 
-## The map of one act: the act's map image (a plain grid when it has none) with a round pin per
-## chapter and a diamond per place (point of interest), and an arrow for every link between
-## chapters (green = on win, red = on lose, grey = always). A narrative chapter (story and questions, no mission) is a speech bubble instead of a round pin. In the editor pins/diamonds can be
+## The map of one act: the act's map image (a plain grid when it has none) with the game's marker per
+## chapter (mission / narrative) and a city badge per place (point of interest, by its kind), and an arrow for every link between
+## chapters (green = on win, red = on lose, grey = always). A narrative chapter (story and questions, no mission) has its own marker. In the editor the markers can be
 ## dragged (they edit `map_position` and tell the owner through the *_moved signals; saving and undo
 ## are the editor's business) and clicked to select. With `read_only` (the campaign player) nothing
 ## can be moved; chapters are coloured by `statuses` (chapter id -> "available" / "done" / "locked")
@@ -22,7 +22,6 @@ const PIN_RADIUS := 14.0
 const START_COLOR := Color(0.95, 0.8, 0.25)
 const FINALE_COLOR := Color(0.7, 0.4, 0.9)
 const PIN_COLOR := Color(0.3, 0.6, 0.95)
-const PLACE_COLOR := Color(0.25, 0.75, 0.7)
 const SIDE_QUEST_COLOR := Color(0.95, 0.55, 0.15)
 const LINK_COLORS := {
 	CampaignLink.Outcome.WIN: Color(0.4, 0.85, 0.4),
@@ -37,6 +36,14 @@ const TABLE_TEXTURE := "res://models/ui/bg_campaign_table.jpg"
 const STORY_ICON := "res://models/ui/map_pin_story.png"
 const EVENT_ICON := "res://models/ui/map_pin_event.png"
 const SIDE_ICON := "res://models/ui/map_pin_side.png"
+## A place's marker by its kind (the game's city badges).
+const PLACE_ICONS := {
+	CampaignPlace.Kind.OFFERS: "res://models/ui/map_pin_person.png",
+	CampaignPlace.Kind.MARKET: "res://models/ui/map_pin_shop.png",
+	CampaignPlace.Kind.RECIPE_SHOP: "res://models/ui/map_pin_crafting.png",
+	CampaignPlace.Kind.SMITHY: "res://models/ui/map_pin_smithy.png",
+	CampaignPlace.Kind.ALCHEMIST: "res://models/ui/map_pin_crafting.png",
+}
 const ICON_HEIGHT := 58.0
 const HIT_RADIUS := 28.0
 static var _icon_cache: Dictionary = {}  ## path -> ImageTexture at twice ICON_HEIGHT (shrunk once here: the art is 256 px, a 46 px draw of it would shimmer)
@@ -181,13 +188,8 @@ func _draw_badge(anchor: Vector2, text: String, border: Color = Color(0.95, 0.8,
 
 func _draw_place(place: CampaignPlace) -> void:
 	var center := pin_position(place)
-	var radius := PIN_RADIUS - 1.0
-	var diamond := PackedVector2Array([center + Vector2(0, -radius), center + Vector2(radius, 0), center + Vector2(0, radius), center + Vector2(-radius, 0)])
-	draw_colored_polygon(diamond, PLACE_COLOR)
-	var outline := diamond.duplicate()
-	outline.append(diamond[0])
-	draw_polyline(outline, Color.WHITE if place.id == selected_id else Color(0, 0, 0, 0.7), 3.0 if place.id == selected_id else 2.0, true)
-	_draw_label(center, place.title if place.title != "" else "(unnamed place)")
+	_draw_icon(PLACE_ICONS.get(place.kind, PLACE_ICONS[CampaignPlace.Kind.OFFERS]), center, place.id == selected_id, Color(0, 0, 0, 0))
+	_draw_label(center, place.title if place.title != "" else "(unnamed place)", ICON_HEIGHT * 0.5 + 14.0)
 
 
 func _draw_side_quest(quest: CampaignSideQuest) -> void:
@@ -270,6 +272,6 @@ func _item_at(position: Vector2) -> Resource:
 		if pin_position(side_quests[i]).distance_to(position) <= HIT_RADIUS:
 			return side_quests[i]
 	for i in range(act.places.size() - 1, -1, -1):
-		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= PIN_RADIUS + 4.0:
+		if not hidden_place_ids.has(act.places[i].id) and pin_position(act.places[i]).distance_to(position) <= HIT_RADIUS:
 			return act.places[i]
 	return null
