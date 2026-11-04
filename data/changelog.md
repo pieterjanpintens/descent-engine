@@ -1,4 +1,8 @@
-﻿## v0.0.56 - 2026-11-04
+﻿## v0.0.57 - 2026-11-04
+- Campaign map: the map now lies on a wooden table, with a soft shadow under the map image.
+- Campaign map: the pins use the game's own marker art when you have imported the game assets (Options > Game assets, then restart): the gold quest marker for a mission chapter, the blue star badge for a narrative chapter, the dark marker for a side quest, and the city badges for places (market, smithy, crafting, person). Without the import you see simple placeholders. In the editor the start chapter has a gold ring and the finale a purple one.
+
+## v0.0.56 - 2026-11-04
 - Optional objectives now work end to end. The "Edit..." button in the objectives editor opens its window again, and the Player shows them: an "Optional:" section under the current objective (a bullet until done, a green tick once achieved), a popup and a quest log entry when one is completed, and "(optional)" lines in the quest log.
 - Mission editor: monster spawn areas can be deleted (right-click in the outline, or the Delete key, which now also removes selected LOS blockers). Deleting a spawn area that effects still use asks first, and the Problems checker reports a Spawn Monsters effect with no spawn area, or one whose area no longer exists.
 - Monsters: nine monster cards (berserker, doomcaller, golem, legionnaire, mercenary, reanimate, salamander, vampire, zealot) were lying on their side in the combat view and the monster attack dialog; they stand upright now. Single-piece cards also draw their front over their back, which fixes hollow helmets and parts of the back showing through.
