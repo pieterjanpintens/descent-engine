@@ -1,4 +1,7 @@
-﻿## v0.0.54 - 2026-11-03
+﻿## v0.0.55 - 2026-11-04
+- Mission editor: a second tutorial, "The fork". It carries on from the first one (or loads an example mission to start from): a door and a side passage lead into the same hidden Lair, and you meet conditions on actions and effects, the built-in variables (player count, round number, difficulty), the details of an action, reusable monster groups, unaware monsters that sleep until they are attacked or woken, and a trigger that wakes them. Every step has a "Do it for me" button, and "Peek" plays the finished mission. The Help menu lists both tutorials.
+
+## v0.0.54 - 2026-11-03
 - Mission editor: a guided tutorial, in the editor itself. Help > Tutorial: build a mission takes you from an empty mission to a playable one in 25 steps: moving the camera, stages, tiles, props, start squares, monsters and where they appear, line-of-sight blockers, variables, actions and effects, triggers and objectives. A step is done when your mission reaches the right state, every step has a "Do it for me" button, and "Peek" plays a finished example mission (Ctrl+E brings you back). The tutorial panel can be moved and shrunk to a small icon.
 - Mission editor: the "Custom Properties" button is replaced by an "Interactible" tick next to "Show name to players". Untick it to make a prop unusable for the heroes until something turns it on.
 - Mission editor: unchecked check boxes (and menu ticks such as Fast start in the Play menu) were almost invisible on the dark background; they are visible now. The Play menu also showed the Fast start tick on the wrong entry.
