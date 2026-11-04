@@ -203,9 +203,6 @@ func _draw_side_quest(quest: CampaignSideQuest) -> void:
 
 ## A marker picture centred on `center`; a white ring behind it when selected, or `ring` (when it has any colour) for the editor's start / finale.
 func _draw_icon(path: String, center: Vector2, selected: bool, ring: Color, hovered: bool = false) -> void:
-	if hovered:
-		for i in 4:  # a soft warm glow: stacked translucent discs, the smaller ones on top of the bigger
-			draw_circle(center, ICON_HEIGHT * (0.86 - 0.12 * i), Color(1.0, 0.9, 0.5, 0.15))
 	if selected:
 		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, Color.WHITE, 3.0, true)
 	elif ring.a > 0.0:
