@@ -6,7 +6,7 @@ whitespace and its leading / trailing \n kept (added when missing). Run: python 
 import glob, os, re, sys
 BS = chr(92); NL = chr(10); Q = chr(34)
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-LANGS = {'es': 'Spanish', 'nl': 'Dutch'}
+LANGS = {'es': 'Spanish', 'nl': 'Dutch', 'fr': 'French', 'de': 'German'}
 PH = re.compile('%[-+0-9.]*[sdif]|%%|[{][a-z_]+[}]')
 
 

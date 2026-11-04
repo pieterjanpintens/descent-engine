@@ -46,7 +46,7 @@ import/blender/enabled=false
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://translations/es.po", "res://translations/nl.po")
+locale/translations=PackedStringArray("res://translations/es.po", "res://translations/nl.po", "res://translations/fr.po", "res://translations/de.po")
 
 [physics]
 

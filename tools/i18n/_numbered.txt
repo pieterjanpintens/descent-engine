@@ -487,7 +487,6 @@
 488|Play this side quest
 489|Player Phase
 490|Player phase
-491|Players spawn. Place your tokens, then play.
 492|Playtest
 493|Playtest:
 494|Preferred targets: %s
@@ -720,7 +719,6 @@
 727|Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough.
 728|▶ Read aloud
 729|☠ Defeated
-730|The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far.
 731|Unofficial App
 732|%s - %s\n\n%s gains an extra benefit: %s.
 733|A new act begins.
@@ -764,6 +762,7 @@
 773|Optional objective
 774|Optional objective completed:\n%s
 775|Optional:
+776|The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

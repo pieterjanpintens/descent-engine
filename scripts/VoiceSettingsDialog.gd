@@ -187,7 +187,7 @@ func _build() -> void:
 	languages_hint.modulate = Color(1, 1, 1, 0.75)
 	general.add_child(languages_hint)
 	var ui_hint := Label.new()
-	ui_hint.text = "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - English, Español and Nederlands so far."
+	ui_hint.text = tr("The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far.") % ", ".join(PlayerSettings.UI_LANGUAGES.map(func(code: String) -> String: return CampaignInfo.native_name(code)))
 	ui_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ui_hint.custom_minimum_size.x = BODY_SIZE.x - 40.0
 	ui_hint.modulate = Color(1, 1, 1, 0.75)

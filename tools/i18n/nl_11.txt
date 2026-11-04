@@ -13,3 +13,4 @@
 773|Optioneel doel
 774|Optioneel doel bereikt:\n%s
 775|Optioneel:
+776|De app zelf (menu's en dialogen) wordt getoond in de eerste taal van deze lijst waarin ze vertaald is - tot nu toe %s.

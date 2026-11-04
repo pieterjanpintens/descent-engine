@@ -773,6 +773,7 @@
 773|Optional objective
 774|Optional objective completed:\n%s
 775|Optional:
+776|The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

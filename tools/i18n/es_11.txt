@@ -13,3 +13,4 @@
 773|Objetivo opcional
 774|Objetivo opcional completado:\n%s
 775|Opcional:
+776|La propia aplicación (menús y diálogos) se muestra en el primer idioma de esta lista al que está traducida - hasta ahora %s.

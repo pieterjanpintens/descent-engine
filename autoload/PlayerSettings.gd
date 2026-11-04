@@ -91,7 +91,7 @@ var preferred_languages: Array[String] = _default_languages()
 
 
 ## The languages the app's own texts (menus, dialogs) are translated into: translations/<code>.po, registered in the project settings.
-const UI_LANGUAGES: Array[String] = ["en", "es", "nl"]
+const UI_LANGUAGES: Array[String] = ["en", "es", "nl", "fr", "de"]
 
 
 func _ready() -> void:
