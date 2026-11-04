@@ -6,7 +6,12 @@ whitespace and its leading / trailing \n kept (added when missing). Run: python 
 import glob, os, re, sys
 BS = chr(92); NL = chr(10); Q = chr(34)
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-LANGS = {'es': 'Spanish', 'nl': 'Dutch', 'fr': 'French', 'de': 'German'}
+LANGS = {'es': 'Spanish', 'nl': 'Dutch', 'fr': 'French', 'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'pl': 'Polish', 'cs': 'Czech', 'hu': 'Hungarian',
+         'ru': 'Russian', 'ko': 'Korean', 'zh': 'Chinese (Simplified)', 'zh-TW': 'Chinese (Traditional)'}
+# (number of plural forms, plural expression) - 2 forms 'n != 1' unless listed; a plural line then carries one text per form: 'PN|form1|form2|...'
+PLURALS = {'pl': (3, 'n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2'), 'cs': (3, 'n==1 ? 0 : n>=2 && n<=4 ? 1 : 2'),
+           'ru': (3, 'n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2'),
+           'ko': (1, '0'), 'zh': (1, '0'), 'zh-TW': (1, '0')}
 PH = re.compile('%[-+0-9.]*[sdif]|%%|[{][a-z_]+[}]')
 
 
@@ -61,12 +66,13 @@ def build(lang):
             if not line.strip(): continue
             key, _, rest = line.partition('|')
             if key.startswith('P'):
-                one, _, many = rest.partition('|'); trp[key] = (one, many)
+                trp[key] = rest.split('|')
             else:
                 tr[key] = rest
+    nforms, expression = PLURALS.get(lang, (2, 'n != 1'))
     problems = []; out = []
     out.append('msgid ' + Q + Q); out.append('msgstr ' + Q + Q)
-    for h in ('Project-Id-Version: Ascent', 'Language: ' + lang, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Plural-Forms: nplurals=2; plural=(n != 1);'):
+    for h in ('Project-Id-Version: Ascent', 'Language: ' + lang.replace('-', '_'), 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Plural-Forms: nplurals=%d; plural=(%s);' % (nforms, expression)):
         out.append(Q + h + BS + 'n' + Q)
     out.append('')
     missing = 0
@@ -80,10 +86,14 @@ def build(lang):
     for key in sorted(plurals):
         one, many = plurals[key]
         if key not in trp: missing += 1; continue
-        d1, d2 = trp[key]
-        check(one, d1, key + 'a', problems); check(many, d2, key + 'b', problems)
+        forms = trp[key]
+        if len(forms) != nforms:
+            problems.append('%s: %d plural forms given, %s needs %d' % (key, len(forms), lang, nforms)); continue
+        for i, form in enumerate(forms):
+            check(one if i == 0 and nforms > 1 else many, form, key + chr(97 + i), problems)
         out.append('msgid ' + Q + one + Q); out.append('msgid_plural ' + Q + many + Q)
-        out.append('msgstr[0] ' + Q + d1 + Q); out.append('msgstr[1] ' + Q + d2 + Q); out.append('')
+        for i, form in enumerate(forms): out.append('msgstr[%d] ' % i + Q + form + Q)
+        out.append('')
     open(os.path.join(ROOT, 'translations/%s.po' % lang), 'w', encoding='utf-8', newline=NL).write(NL.join(out))
     print('%s: %d translated, %d missing, %d problems' % (lang, len(tr) + len(trp), missing, len(problems)))
     for p in problems: print('  ' + p)
