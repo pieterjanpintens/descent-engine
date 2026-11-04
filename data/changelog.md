@@ -1,6 +1,7 @@
 ﻿## v0.0.61 - 2026-11-04
 - The app's menus and dialogs are now translated into French, German, Italian, Portuguese, Polish, Czech, Hungarian, Russian, Korean, Simplified Chinese and Traditional Chinese (besides English, Spanish and Dutch). Key terms follow the game's own glossary where it has one. The translations are machine-made and still need a native speaker's review.
 - These languages can also be used as the language of a campaign or mission, and the language list in Options shows all of them.
+- Narration: German and French voices (four each, about 205 MB per language) can be downloaded in Options > Voice, like the Spanish and Dutch ones.
 
 ## v0.0.60 - 2026-11-04
 - Player: dragging from a hero now draws a smooth arch that starts at the top of the portrait, is wide at the start and thin at the end, and finishes in an arrow head.
