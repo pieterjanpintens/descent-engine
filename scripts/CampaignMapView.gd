@@ -40,7 +40,7 @@ const SIDE_ICON := "res://models/ui/map_pin_side.png"
 const PLACE_ICONS := {
 	CampaignPlace.Kind.OFFERS: "res://models/ui/map_pin_person.png",
 	CampaignPlace.Kind.MARKET: "res://models/ui/map_pin_shop.png",
-	CampaignPlace.Kind.RECIPE_SHOP: "res://models/ui/map_pin_crafting.png",
+	CampaignPlace.Kind.RECIPE_SHOP: "res://models/ui/map_pin_shop.png",
 	CampaignPlace.Kind.SMITHY: "res://models/ui/map_pin_smithy.png",
 	CampaignPlace.Kind.ALCHEMIST: "res://models/ui/map_pin_crafting.png",
 }
