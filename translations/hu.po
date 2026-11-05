@@ -2301,6 +2301,57 @@ msgstr "Opcionális:"
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr "Maga az alkalmazás (menük és párbeszédablakok) e lista első olyan nyelvén jelenik meg, amelyre le van fordítva - egyelőre %s."
 
+msgid "AI writing help"
+msgstr "MI-alapú írássegítség"
+
+msgid "All set"
+msgstr "Minden kész"
+
+msgid "Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far."
+msgstr "A kampányok és küldetések a lista első olyan nyelvén jelennek meg, amellyel rendelkeznek. Maga az alkalmazás (menük és párbeszédablakok) a lista első olyan nyelvén jelenik meg, amelyre le van fordítva - eddig: %s."
+
+msgid "Finish"
+msgstr "Befejezés"
+
+msgid "Languages you want to read"
+msgstr "Olvasni kívánt nyelvek"
+
+msgid "Microphone:"
+msgstr "Mikrofon:"
+
+msgid "More voices (plain English, accents) can be downloaded later in Options > Voice."
+msgstr "További hangok (sima angol, akcentusok) később letölthetők a Beállítások > Hang alatt."
+
+msgid "Next (or skip)"
+msgstr "Következő (vagy kihagyás)"
+
+msgid "Off = hands-free: say \"hey DM\" before a command."
+msgstr "Ki = kihangosított: mondd a \"hey DM\" szavakat a parancs előtt."
+
+msgid "Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game."
+msgstr "Opcionális: ha megvan a \"Descent: Legends of the Dark\", az alkalmazás használhatja a játék valódi képeit, figuráit és adatait a saját telepítésedből. Enélkül az alkalmazás helyettesítő képeket mutat. Hagyd ki, ha nincs meg a játék."
+
+msgid "Setup Assistant"
+msgstr "Beállítási asszisztens"
+
+msgid "Step %d of %d"
+msgstr "%d. lépés / %d"
+
+msgid "That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "Ennyi! Mindezt később módosíthatod a Beállításokban (a fogaskerék lent balra), és ezt az asszisztenst újra elindíthatod a főmenü jobb alsó részén lévő \"Beállítási asszisztens\" gombbal."
+
+msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
+msgstr "Az alkalmazás hangosan felolvashatja a történetet a számítógépedre telepített hanggal. Semmi sem kerül sehová elküldésre. A hangok letöltést igényelnek."
+
+msgid "Voice commands"
+msgstr "Hangparancsok"
+
+msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
+msgstr "A hangparancsokkal beszéddel játszhatsz (\"hey DM, a kettes hős megtámadja a zöld banditát\"), és hangosan válaszolhatsz a párbeszédablakokra. A számítógépeden fut egy letöltendő beszédmodellel; mikrofon kell hozzá. A beírt parancsok mindig működnek."
+
+msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "Üdv! Ez az asszisztens segít beállítani az alkalmazást: a nyelvet, a játék erőforrásait, a narrációt, a hangparancsokat és az opcionális MI-alapú írássegítséget. Minden lépés kihagyható, és az asszisztenst újra megnyithatod a főmenü jobb alsó részén lévő \"Beállítási asszisztens\" gombbal."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

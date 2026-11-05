@@ -2301,6 +2301,57 @@ msgstr "Необязательно:"
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr "Само приложение (меню и окна) показывается на первом языке из этого списка, на который оно переведено - пока %s."
 
+msgid "AI writing help"
+msgstr "Помощь в письме с ИИ"
+
+msgid "All set"
+msgstr "Всё готово"
+
+msgid "Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far."
+msgstr "Кампании и миссии показываются на первом языке из этого списка, который у них есть. Само приложение (меню и диалоги) показывается на первом языке, на который оно переведено - пока что %s."
+
+msgid "Finish"
+msgstr "Готово"
+
+msgid "Languages you want to read"
+msgstr "Языки, на которых вы хотите читать"
+
+msgid "Microphone:"
+msgstr "Микрофон:"
+
+msgid "More voices (plain English, accents) can be downloaded later in Options > Voice."
+msgstr "Другие голоса (обычный английский, акценты) можно скачать позже в Настройки > Голос."
+
+msgid "Next (or skip)"
+msgstr "Далее (или пропустить)"
+
+msgid "Off = hands-free: say \"hey DM\" before a command."
+msgstr "Выкл = без рук: скажите \"hey DM\" перед командой."
+
+msgid "Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game."
+msgstr "Необязательно: если у вас есть \"Descent: Legends of the Dark\", приложение может использовать настоящие картинки, фигурки и данные игры из вашей собственной установки. Без этого приложение показывает временные картинки. Пропустите, если игры у вас нет."
+
+msgid "Setup Assistant"
+msgstr "Помощник настройки"
+
+msgid "Step %d of %d"
+msgstr "Шаг %d из %d"
+
+msgid "That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "Вот и всё! Всё это можно изменить позже в Настройках (шестерёнка слева внизу) и снова запустить этого помощника через \"Помощник настройки\" справа внизу в главном меню."
+
+msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
+msgstr "Приложение может читать историю вслух голосом, установленным на вашем компьютере. Ничего никуда не отправляется. Голоса нужно скачать."
+
+msgid "Voice commands"
+msgstr "Голосовые команды"
+
+msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
+msgstr "Голосовые команды позволяют играть, говоря (\"hey DM, герой два атакует зелёного бандита\"), и отвечать на диалоги вслух. Это работает на вашем компьютере с речевой моделью, которую нужно скачать; нужен микрофон. Набранные команды работают всегда."
+
+msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "Добро пожаловать! Этот помощник поможет настроить приложение: язык, ресурсы игры, озвучку, голосовые команды и необязательную помощь в письме с ИИ. Любой шаг можно пропустить, а помощника можно снова открыть через \"Помощник настройки\" справа внизу в главном меню."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

@@ -1,4 +1,8 @@
-﻿## v0.0.62 - 2026-11-05
+﻿## v0.0.63 - 2026-11-05
+- New Setup Assistant: a short wizard for the one-time setup - language, game assets, narration voices, voice commands and the optional AI writing help. It opens by itself the first time the app starts and any time from "Setup Assistant" at the bottom right of the main menu.
+- The reading language now starts as English only. It used to follow the computer's language, which could switch the app to a language you never chose (for example Hungarian); a language list stored by an earlier version is reset to English once - add your languages again in Options > General or in the assistant.
+
+## v0.0.62 - 2026-11-05
 - Player: the arrow dragged from a hero now uses the game's own arrow: a strip of chevrons that slides towards a wider arrow head, coloured like the hero's portrait background (Kehli blue, Syrus purple, ...). It starts in the middle of the portrait, behind it.
 - Player: the map-view and monster-view icons (top right) grow by 15% for the view that is showing and shrink by 15% for the other.
 - Player: the map and monster-view floors use the original game's ground textures when the game assets are imported.

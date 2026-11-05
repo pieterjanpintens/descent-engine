@@ -1,0 +1,17 @@
+777|MI-alapú írássegítség
+778|Minden kész
+779|A kampányok és küldetések a lista első olyan nyelvén jelennek meg, amellyel rendelkeznek. Maga az alkalmazás (menük és párbeszédablakok) a lista első olyan nyelvén jelenik meg, amelyre le van fordítva - eddig: %s.
+780|Befejezés
+781|Olvasni kívánt nyelvek
+782|Mikrofon:
+783|További hangok (sima angol, akcentusok) később letölthetők a Beállítások > Hang alatt.
+784|Következő (vagy kihagyás)
+785|Ki = kihangosított: mondd a \"hey DM\" szavakat a parancs előtt.
+786|Opcionális: ha megvan a \"Descent: Legends of the Dark\", az alkalmazás használhatja a játék valódi képeit, figuráit és adatait a saját telepítésedből. Enélkül az alkalmazás helyettesítő képeket mutat. Hagyd ki, ha nincs meg a játék.
+787|Beállítási asszisztens
+788|%d. lépés / %d
+789|Ennyi! Mindezt később módosíthatod a Beállításokban (a fogaskerék lent balra), és ezt az asszisztenst újra elindíthatod a főmenü jobb alsó részén lévő \"Beállítási asszisztens\" gombbal.
+790|Az alkalmazás hangosan felolvashatja a történetet a számítógépedre telepített hanggal. Semmi sem kerül sehová elküldésre. A hangok letöltést igényelnek.
+791|Hangparancsok
+792|A hangparancsokkal beszéddel játszhatsz (\"hey DM, a kettes hős megtámadja a zöld banditát\"), és hangosan válaszolhatsz a párbeszédablakokra. A számítógépeden fut egy letöltendő beszédmodellel; mikrofon kell hozzá. A beírt parancsok mindig működnek.
+793|Üdv! Ez az asszisztens segít beállítani az alkalmazást: a nyelvet, a játék erőforrásait, a narrációt, a hangparancsokat és az opcionális MI-alapú írássegítséget. Minden lépés kihagyható, és az asszisztenst újra megnyithatod a főmenü jobb alsó részén lévő \"Beállítási asszisztens\" gombbal.

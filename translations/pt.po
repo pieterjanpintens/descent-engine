@@ -2301,6 +2301,57 @@ msgstr "Opcional:"
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr "O app em si (menus e diálogos) é mostrado no primeiro idioma desta lista para o qual está traduzido - até agora %s."
 
+msgid "AI writing help"
+msgstr "Ajuda de escrita com IA"
+
+msgid "All set"
+msgstr "Tudo pronto"
+
+msgid "Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far."
+msgstr "As campanhas e missões são mostradas no primeiro idioma desta lista que tiverem. O próprio aplicativo (menus e diálogos) é mostrado no primeiro idioma para o qual está traduzido - até agora %s."
+
+msgid "Finish"
+msgstr "Concluir"
+
+msgid "Languages you want to read"
+msgstr "Idiomas que você quer ler"
+
+msgid "Microphone:"
+msgstr "Microfone:"
+
+msgid "More voices (plain English, accents) can be downloaded later in Options > Voice."
+msgstr "Mais vozes (inglês padrão, sotaques) podem ser baixadas depois em Opções > Voz."
+
+msgid "Next (or skip)"
+msgstr "Próximo (ou pular)"
+
+msgid "Off = hands-free: say \"hey DM\" before a command."
+msgstr "Desligado = mãos livres: diga \"hey DM\" antes de um comando."
+
+msgid "Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game."
+msgstr "Opcional: se você tem \"Descent: Legends of the Dark\", o aplicativo pode usar as imagens, figuras e dados reais do jogo da sua própria instalação. Sem isso, o aplicativo mostra imagens provisórias. Pule isto se você não tem o jogo."
+
+msgid "Setup Assistant"
+msgstr "Assistente de configuração"
+
+msgid "Step %d of %d"
+msgstr "Passo %d de %d"
+
+msgid "That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "É isso! Você pode mudar tudo isto depois em Opções (a engrenagem no canto inferior esquerdo) e executar este assistente de novo em \"Assistente de configuração\" no canto inferior direito do menu principal."
+
+msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
+msgstr "O aplicativo pode ler a história em voz alta com uma voz instalada no seu computador. Nada é enviado para lugar nenhum. As vozes são um download."
+
+msgid "Voice commands"
+msgstr "Comandos de voz"
+
+msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
+msgstr "Os comandos de voz permitem jogar falando (\"hey DM, o herói dois ataca o bandido verde\") e responder aos diálogos em voz alta. Funciona no seu computador com um modelo de voz que é um download; você precisa de um microfone. Os comandos digitados sempre funcionam."
+
+msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "Boas-vindas! Este assistente ajuda a configurar o aplicativo: o idioma, os recursos do jogo, a narração, os comandos de voz e a ajuda de escrita com IA opcional. Cada passo pode ser pulado, e você pode abrir o assistente de novo em \"Assistente de configuração\" no canto inferior direito do menu principal."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jogador)"

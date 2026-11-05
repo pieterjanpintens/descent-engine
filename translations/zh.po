@@ -2301,6 +2301,57 @@ msgstr "可选："
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr "应用本身（菜单和对话框）以此列表中它已翻译的第一种语言显示——目前有 %s。"
 
+msgid "AI writing help"
+msgstr "AI 写作帮助"
+
+msgid "All set"
+msgstr "全部就绪"
+
+msgid "Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far."
+msgstr "战役和任务会以此列表中它们所具备的第一种语言显示。应用本身（菜单和对话框）以已翻译语言中此列表的第一种语言显示 - 目前为 %s。"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid "Languages you want to read"
+msgstr "你想阅读的语言"
+
+msgid "Microphone:"
+msgstr "麦克风："
+
+msgid "More voices (plain English, accents) can be downloaded later in Options > Voice."
+msgstr "更多语音（普通英语、口音）可稍后在 选项 > 语音 中下载。"
+
+msgid "Next (or skip)"
+msgstr "下一步（或跳过）"
+
+msgid "Off = hands-free: say \"hey DM\" before a command."
+msgstr "关 = 免提：在命令前说“hey DM”。"
+
+msgid "Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game."
+msgstr "可选：如果你拥有《Descent: Legends of the Dark》，应用可以使用你自己安装的游戏中的真实图片、人物模型和数据。否则应用会显示占位图片。如果你没有这款游戏，请跳过此步。"
+
+msgid "Setup Assistant"
+msgstr "设置助手"
+
+msgid "Step %d of %d"
+msgstr "第 %d 步，共 %d 步"
+
+msgid "That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "就这些！以上所有内容之后都可以在 选项（左下角的齿轮）中更改，并可通过主菜单右下角的“设置助手”再次运行此助手。"
+
+msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
+msgstr "应用可以用安装在你电脑上的语音朗读故事。不会向任何地方发送任何内容。语音需要下载。"
+
+msgid "Voice commands"
+msgstr "语音命令"
+
+msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
+msgstr "语音命令让你通过说话来游戏（“hey DM，英雄二攻击绿色强盗”），并大声回答对话框。它在你的电脑上运行，需要下载一个语音模型；你需要一个麦克风。键入的命令始终可用。"
+
+msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "欢迎！这个助手帮你设置应用：语言、游戏资源、旁白、语音命令以及可选的 AI 写作帮助。每一步都可以跳过，你也可以通过主菜单右下角的“设置助手”再次打开它。"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"
