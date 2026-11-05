@@ -1,4 +1,7 @@
-﻿## v0.0.63 - 2026-11-05
+﻿## v0.0.64 - 2026-11-05
+- The heroes and monsters in the combat screens (attack, weapon choice, monster attack) now play the game's own idle animation, for all 17 monsters and both weapon poses of every hero. It needs the game assets: use Options > Game assets > Import again once (it has a new "Animated figures" step).
+
+## v0.0.63 - 2026-11-05
 - New Setup Assistant: a short wizard for the one-time setup - language, game assets, narration voices, voice commands and the optional AI writing help. It opens by itself the first time the app starts and any time from "Setup Assistant" at the bottom right of the main menu.
 - The reading language now starts as English only. It used to follow the computer's language, which could switch the app to a language you never chose (for example Hungarian); a language list stored by an earlier version is reset to English once - add your languages again in Options > General or in the assistant.
 

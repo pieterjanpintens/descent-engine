@@ -21,7 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "asset_importer"
 # Imported by name at run time (asset_importer.STEPS), so PyInstaller cannot see them by itself.
 MODULES = ["import_official_assets", "import_monster_meshes", "import_hero_meshes", "import_weapon_data",
-           "import_item_data", "import_monster_data", "import_original_props", "user_data"]
+           "import_item_data", "import_monster_data", "import_original_props", "import_flat_rigs", "user_data"]
 # Every module named in asset_importer.STEPS must be in this list (checked below), or the packaged tool cannot import it.
 # Packages whose data files / native libraries PyInstaller misses. fmod_toolkit: UnityPy loads its audio library
 # even when only decoding images - without it every image export fails.

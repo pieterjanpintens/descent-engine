@@ -14,12 +14,13 @@ prefab. Both are exported as pieces of the prefab's transform hierarchy; a rigid
   anim    {name, length, fps, frames, tracks: {bone name: {index, pos, rot, scl}}}   sampled keyframes (30 fps)
 Everything is mirrored along X like UnityPy's OBJ export, so the geometry lines up with the static meshes the app uses.
 
-Usage: python import_flat_rigs.py <bundles folder> <target> [<target> ...]   target = monster folder ("wolf") or "hero:<name>:<act index 0|1>"
-Run in groups of at most 8 targets (run_flat_rigs.py does that).
+Usage: python import_flat_rigs.py <bundles folder> [<target> ...]   target = monster folder ("wolf") or "hero:<name>:<act index 0|1>"
+With no target every figure is exported (the app's import step). With targets: at most 8 per run (run_flat_rigs.py runs everything in groups).
 """
 import json
 import math
 import os
+import re
 import struct
 import sys
 import zlib
@@ -419,20 +420,46 @@ def export_target(env, target, existing_pieces=None):
     return path, note
 
 
+def all_targets():
+    """Every monster and hero figure the app knows: from the app's manifest, or from the project's own scripts when run from the project."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    scripts = os.path.join(os.path.dirname(os.path.dirname(here)), "scripts")
+    monsters = user_data.manifest_list("monster_folders")
+    if monsters is None:
+        text = open(os.path.join(scripts, "MonsterDisplay.gd"), encoding="utf-8").read()
+        block = re.search(r"const REAL_MONSTERS := \[(.*?)\n\]", text, re.DOTALL).group(1)
+        monsters = re.findall(r'"folder"\s*:\s*"([^"]+)"', block)
+    heroes = user_data.manifest_list("hero_names")
+    if heroes is None:
+        text = open(os.path.join(scripts, "HeroCatalog.gd"), encoding="utf-8").read()
+        heroes = re.findall(r'"([^"]+)"', re.search(r"const HERO_NAMES[^=]*=\s*\[(.*?)\]", text, re.DOTALL).group(1))
+    found = list(monsters)
+    for hero in heroes:
+        for act in (0, 1):
+            found.append("hero:%s:%d" % (hero.lower(), act))
+    return found
+
+
 def main():
     bundles = sys.argv[1]
     targets = sys.argv[2:]
     if len(targets) > 8:
         sys.exit("At most 8 targets per run (got %d)" % len(targets))
+    explicit = bool(targets)
+    if not explicit:
+        targets = all_targets()  # the import step: everything, with the bundles loaded once
     print("Loading bundles (this can take a while)...", flush=True)
     env = UnityPy.load(bundles)
+    failed = 0
     for target in targets:
         try:
             path, note = export_target(env, target)
             print("OK   %-22s %s" % (target, note), flush=True)
-        except Exception as error:  # one figure failing must not stop the group
+        except Exception as error:  # one figure failing must not stop the others
+            failed += 1
             print("FAIL %-22s %s: %s" % (target, type(error).__name__, error), flush=True)
+    return 1 if failed == len(targets) else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
