@@ -247,10 +247,10 @@
 			"chapter": "Monsters",
 			"title": "Where the monster appears",
 			"tab": "Palette",
-			"text": "A monster needs a place to appear: a [b]spawn area[/b]. Open [b]Misc[/b], press [b]New spawn[/b] under Monster Spawn, then click two tile squares on your floor, away from the heroes. The first monster takes the first square, the next one the second. Click a square again to remove it.\n\nThe area is only a place: nothing spawns yet. We make that happen with a trigger, later.",
+			"text": "A monster needs a place to appear: a [b]spawn area[/b]. Open [b]Misc[/b], click [b]Monster Spawn[/b] (it starts a new area), then click two tile squares on your floor, away from the heroes. The first monster takes the first square, the next one the second. Click a square again to remove it.\n\nTo change the area later, select it (click one of its squares in Select mode, or pick it in the Outline) and press [b]Draw[/b]. [b]Ctrl+click[/b] adds a spawn or blocker to the selection (or takes it out again), and [b]Alt+click[/b] selects the floor tile beneath a spawn or blocker instead.\n\nThe area is only a place: nothing spawns yet. We make that happen with a trigger, later.",
 			"highlight": [
 				"palette_misc",
-				"button:New spawn"
+				"palette_monster_spawn"
 			],
 			"done": {
 				"check": "monster_spawn",
@@ -264,10 +264,10 @@
 			"chapter": "Line of sight",
 			"title": "A wall for the eyes",
 			"tab": "Palette",
-			"text": "Heroes and monsters can only shoot or cast at what they can [i]see[/i]. Tiles and tall props already block sight, but sometimes you need a wall where there is none. A [b]LOS blocker[/b] is an invisible wall that blocks sight only, not walking.\n\nIn [b]Misc[/b] press [b]New blocker[/b] and click two squares to mark where it stands. Because it was drawn while your stage was the working group, it belongs to that stage and stays secret until the stage is revealed.",
+			"text": "Heroes and monsters can only shoot or cast at what they can [i]see[/i]. Tiles and tall props already block sight, but sometimes you need a wall where there is none. A [b]LOS blocker[/b] is an invisible wall that blocks sight only, not walking.\n\nIn [b]Misc[/b] click [b]LOS Blocker[/b] (it starts a new one) and click two squares to mark where it stands. Because it was drawn while your stage was the working group, it belongs to that stage and stays secret until the stage is revealed.",
 			"highlight": [
 				"palette_misc",
-				"button:New blocker"
+				"palette_los_blocker"
 			],
 			"done": {
 				"check": "los_blocker",

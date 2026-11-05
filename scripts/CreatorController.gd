@@ -1955,7 +1955,23 @@ func pieces_in_screen_rect(rect: Rect2) -> Array[String]:
 			continue
 		if _tile_in_rect(placement, layered_map.underlay_grid, rect):
 			found.append(placement.id)
+	# monster spawn areas and LOS blockers: taken when the middle of any of their squares is inside the box
+	for spawn in mission.monster_spawns:
+		if not layered_map.is_editor_hidden(spawn) and _squares_in_rect(spawn.cells, rect):
+			found.append(spawn.id)
+	for blocker in mission.los_blockers:
+		if not layered_map.is_editor_hidden(blocker) and _squares_in_rect(blocker.cells, rect):
+			found.append(blocker.id)
 	return found
+
+
+func _squares_in_rect(cells: Array[Vector3i], rect: Rect2) -> bool:
+	for cell in cells:
+		var corners := layered_map.get_tile_square_world_corners(cell)
+		var middle := (corners[0] + corners[2]) * 0.5
+		if not camera.is_position_behind(middle) and rect.has_point(camera.unproject_position(middle)):
+			return true
+	return false
 
 
 func _tile_in_rect(placement: TilePlacement, grid: GridMap, rect: Rect2) -> bool:
@@ -2078,28 +2094,58 @@ func _delete_selection_now() -> void:
 ## difference is what happens with the resolved origin cell: look up which
 ## placed object/tile owns it and report that, rather than erasing it.
 func select_at_cursor() -> void:
+	var ctrl := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)
 	var hit := _raycast_hit_cell("select_at_cursor")
 	if hit.is_empty():
+		# Nothing solid under the cursor (open ground): a monster spawn / LOS blocker drawn there can still be clicked.
+		var ground := _overlay_entity_at_ground()
+		if ground["id"] != "":
+			_emit_overlay_pick(ground, ctrl)
 		return
 	var hit_grid: GridMap = hit["grid"]
 	var hit_cell: Vector3i = hit["cell"]
 	var origin := _origin_for_hit(hit_grid, hit_cell)
 	var resolved := _resolve_placed_at(hit_grid, origin)
 	# A monster spawn tile / LOS blocker square under the click is selected (and so becomes the one the draw tools edit) - unless a prop
-	# stands there; they win over the floor tile beneath them, which stays selectable from the outline.
-	if resolved["kind"] != "object" and not (Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)):
+	# stands there; they win over the floor tile beneath them, which stays selectable from the outline (or with Alt+click).
+	if resolved["kind"] != "object" and not Input.is_key_pressed(KEY_ALT):
 		var overlay := _overlay_entity_at(hit_cell)
+		if overlay["id"] == "":
+			overlay = _overlay_entity_at_ground()  # the ray ended on a floor tile at another height than the square was drawn at
 		if overlay["id"] != "":
-			object_picked.emit(overlay["kind"], overlay["id"])
+			_emit_overlay_pick(overlay, ctrl)
 			return
 	if resolved["id"] != "":
 		# Ctrl (Cmd on macOS) + click adds the piece to the selection, or takes it out when it is already in.
-		if Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META):
+		if ctrl:
 			object_toggled.emit(resolved["kind"], resolved["id"])
 		else:
 			object_picked.emit(resolved["kind"], resolved["id"])
 	# Nothing matched at this origin - nothing to select, print()s already
 	# covered by _raycast_hit_cell()'s own diagnostics.
+
+
+func _emit_overlay_pick(overlay: Dictionary, additive: bool) -> void:
+	if additive:
+		object_toggled.emit(overlay["kind"], overlay["id"])
+	else:
+		object_picked.emit(overlay["kind"], overlay["id"])
+
+
+## The monster spawn / LOS blocker whose square is under the cursor on the ground plane of the current level - for spawns and blockers drawn
+## where there is no floor to click on.
+func _overlay_entity_at_ground() -> Dictionary:
+	if camera == null or layered_map.mission == null:
+		return {"kind": "", "id": ""}
+	var mouse_pos := get_viewport().get_mouse_position()
+	var origin := camera.project_ray_origin(mouse_pos)
+	var direction := camera.project_ray_normal(mouse_pos)
+	var grid := layered_map.floor_grid
+	var plane := Plane(Vector3.UP, grid.to_global(Vector3(0, current_level * grid.cell_size.y + layered_map.floor_thickness, 0)).y)
+	var point = plane.intersects_ray(origin, direction)
+	if point == null:
+		return {"kind": "", "id": ""}
+	return _overlay_entity_at(grid.local_to_map(grid.to_local(point)))
 
 
 ## The monster spawn (or, failing that, LOS blocker) whose tile square covers this fine cell, as {"kind", "id"} ("" id = none).

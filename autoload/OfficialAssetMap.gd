@@ -32,8 +32,8 @@ const MAP: Dictionary = {
 	"res://models/floors_wood_planks.png": "W1_Tiles_WoodPlanks",
 	# Token props - each token type has its own unique official art (unlike
 	# the floor materials, there's no sharing here).
-	"res://models/tokens_Exploration.png": "Token_Explore",
-	"res://models/tokens_Interact.png": "Token_Interact",
+	"res://models/tokens_Exploration.png": "Token_Interact",  # the file names are historical: the exploration token is white, the interact token blue
+	"res://models/tokens_Interact.png": "Token_Explore",
 	"res://models/tokens_Umbra.png": "Token_Umbra",
 	# Hero portraits (see HeroCatalog.gd) - unlike everything else above,
 	# these aren't MeshLibrary materials (OfficialAssetOverrides.apply_overrides()

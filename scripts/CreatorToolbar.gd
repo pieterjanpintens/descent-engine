@@ -159,37 +159,16 @@ func _build_tool_buttons() -> void:
 	_update_tool_buttons()
 
 
-## `icon_name` is one of TOOL_ICONS; the buttons show only the picture (the tooltip says what it is and the key).
+## `icon_name` is one of EditorIcons.ICONS; the buttons show only the picture (the tooltip says what it is and the key).
 func _tool_button(icon_name: String, tooltip: String, toggle: bool) -> Button:
 	var button := Button.new()
-	button.icon = _tool_icon(icon_name)
+	button.icon = EditorIcons.icon(icon_name)
 	button.tooltip_text = tooltip
 	button.toggle_mode = toggle
 	button.custom_minimum_size = Vector2(34, 0)
 	button.focus_mode = Control.FOCUS_NONE  # a focused button would swallow the arrow keys / space the 3D view uses
 	add_child(button)
 	return button
-
-
-## Pictures drawn as SVG text (24x24, light strokes), rasterised once at startup - no image files needed.
-const TOOL_ICONS := {
-	"select": '<path d="M6 3 L6 19.5 L10.2 15.6 L13 21.5 L15.6 20.3 L12.8 14.5 L18.5 14.5 Z" fill="white" stroke="#202020" stroke-width="1" stroke-linejoin="round"/>',
-	"draw": '<path d="M3.5 20.5 L4.8 15.6 L15.8 4.6 L19.4 8.2 L8.4 19.2 Z" fill="white" stroke="#202020" stroke-width="1" stroke-linejoin="round"/>'
-		+ '<path d="M14.2 6.2 L17.8 9.8" stroke="#202020" stroke-width="1.2"/><path d="M4.8 15.6 L8.4 19.2" stroke="#202020" stroke-width="1.2"/>'
-		+ '<path d="M3.5 20.5 L4.8 15.6 L8.4 19.2 Z" fill="#202020"/>',
-	"move": '<path d="M12 4 L12 20 M4 12 L20 12" stroke="white" stroke-width="2" stroke-linecap="round"/>'
-		+ '<path d="M12 1.8 L8.6 6 L15.4 6 Z M12 22.2 L8.6 18 L15.4 18 Z M1.8 12 L6 8.6 L6 15.4 Z M22.2 12 L18 8.6 L18 15.4 Z" fill="white"/>',
-	"rotate": '<path d="M18.06 15.5 A7 7 0 1 1 16.5 6.6" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"/>'
-		+ '<path d="M19.4 9.2 L14.2 9.3 L18.6 4 Z" fill="white"/>',
-}
-
-
-static func _tool_icon(icon_name: String) -> Texture2D:
-	var svg := '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">%s</svg>' % TOOL_ICONS[icon_name]
-	var image := Image.new()
-	if image.load_svg_from_string(svg, 1.0) != OK:
-		return null
-	return ImageTexture.create_from_image(image)
 
 
 func _on_select_pressed() -> void:

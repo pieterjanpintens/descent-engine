@@ -113,10 +113,10 @@
 			"chapter": "The guards",
 			"title": "Where the guards stand",
 			"tab": "Palette",
-			"text": "Make sure the Lair is the working group again, open [b]Misc[/b], press [b]New spawn[/b] and click a few squares at the back of the Lair floor, away from the entrances. The spawn area belongs to the Lair stage, so it stays secret too.\n\nThree squares is a good size: two guards, and one square for the extra guard that joins bigger parties.",
+			"text": "Make sure the Lair is the working group again, open [b]Misc[/b], click [b]Monster Spawn[/b] (it starts a new area) and click a few squares at the back of the Lair floor, away from the entrances. The spawn area belongs to the Lair stage, so it stays secret too.\n\nThree squares is a good size: two guards, and one square for the extra guard that joins bigger parties.",
 			"highlight": [
 				"palette_misc",
-				"button:New spawn",
+				"palette_monster_spawn",
 				"toolbar_working_group"
 			],
 			"done": {

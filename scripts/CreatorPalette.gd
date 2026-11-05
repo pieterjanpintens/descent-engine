@@ -45,15 +45,9 @@ var _side_panel: TabContainer  ## our parent - see _on_side_panel_tab_changed()
 var _misc_button: Button
 var _misc_container: VBoxContainer
 var _player_start_button: Button
-var _active_blocker_option: OptionButton
-var _active_blocker_ids: Array[String] = []
-var _blocker_option_rebuild_queued: bool = false
-var _active_spawn_option: OptionButton
 var _monster_spawn_target_button: Button  ## the "Monster Spawn" heading: makes the active spawn what Draw draws into
 var _blocker_target_button: Button  ## the "LOS Blocker" heading, same idea
 var _last_misc_target: int = CreatorController.DrawTarget.PLAYER_START  ## what Draw means again when the Misc tab is opened
-var _active_spawn_ids: Array[String] = []
-var _spawn_option_rebuild_queued: bool = false
 
 
 func _ready() -> void:
@@ -67,8 +61,6 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.draw_target_changed.connect(_on_draw_target_changed)
-	creator_controller.active_los_blocker_changed.connect(_queue_blocker_option_rebuild.unbind(1))
-	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# The "Show unavailable" state is owned by the controller (so it survives a palette rebuild); the checkbox below the grid is back in this
 	# palette (moved from the toolbar 2026-10-31), and keeps in step when something else changes it.
 	creator_controller.show_unavailable_meshes_changed.connect(_queue_mesh_grid_rebuild.unbind(1))
@@ -80,8 +72,6 @@ func _ready() -> void:
 	# mesh stayed shown as available until something else (a layer switch,
 	# toggling "Show unavailable") happened to force a rebuild. Fixed 2026-09-10.
 	layered_map.mission_objects_changed.connect(_queue_mesh_grid_rebuild)
-	layered_map.mission_objects_changed.connect(_queue_spawn_option_rebuild)
-	layered_map.mission_objects_changed.connect(_queue_blocker_option_rebuild)
 
 	_side_panel = get_parent() as TabContainer
 	if _side_panel != null:
@@ -104,6 +94,10 @@ func tutorial_target(id: String) -> Control:
 			return _mesh_scroll
 		"palette_player_start":
 			return _player_start_button
+		"palette_monster_spawn":
+			return _monster_spawn_target_button
+		"palette_los_blocker":
+			return _blocker_target_button
 	return null
 
 
@@ -119,42 +113,6 @@ func _on_side_panel_tab_changed(tab_index: int) -> void:
 		creator_controller.set_spawn_paint_mode(false)
 		creator_controller.set_monster_spawn_paint_mode(false)
 		creator_controller.set_los_blocker_paint_mode(false)
-
-
-func _on_new_blocker_pressed() -> void:
-	creator_controller.create_los_blocker()
-	creator_controller.set_los_blocker_paint_mode(true)
-
-
-func _on_active_blocker_selected(index: int) -> void:
-	if index >= 0 and index < _active_blocker_ids.size():
-		creator_controller.set_active_los_blocker(_active_blocker_ids[index])
-		creator_controller.set_los_blocker_paint_mode(true)
-
-
-func _queue_blocker_option_rebuild() -> void:
-	if _blocker_option_rebuild_queued:
-		return
-	_blocker_option_rebuild_queued = true
-	_rebuild_active_blocker_option.call_deferred()
-
-
-func _rebuild_active_blocker_option() -> void:
-	_blocker_option_rebuild_queued = false
-	_active_blocker_option.clear()
-	_active_blocker_ids.clear()
-	var mission := creator_controller.layered_map.mission
-	if mission == null:
-		return
-	var selected := -1
-	for i in mission.los_blockers.size():
-		var blocker: LosBlocker = mission.los_blockers[i]
-		var label := blocker.reference_name if blocker.reference_name != "" else "LOS Blocker %d" % (i + 1)
-		_active_blocker_option.add_item("%s (%d squares)" % [label, blocker.cells.size()])
-		_active_blocker_ids.append(blocker.id)
-		if blocker.id == creator_controller.active_los_blocker_id:
-			selected = i
-	_active_blocker_option.selected = selected
 
 
 func _build_ui() -> void:
@@ -218,47 +176,19 @@ func _build_ui() -> void:
 	_misc_container.visible = false
 	vbox.add_child(_misc_container)
 
-	_player_start_button = _target_button("Player Start", "Draw the squares the heroes start on (also the P key). Click a marked square again to remove it.", CreatorController.DrawTarget.PLAYER_START)
+	# Three entries, each with its picture. Player Start just keeps adding squares to the start area; Monster Spawn and LOS Blocker begin a NEW
+	# area / blocker each time (an existing one is edited by selecting it - in the outline or by clicking it - and pressing Draw).
+	var hint := Label.new()
+	hint.text = "Click one, then click tile squares to draw it. Click a square again to remove it."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size.x = 200.0
+	_misc_container.add_child(hint)
+	_player_start_button = _target_button("Player Start", "player_start", "Draw the squares the heroes start on (also the P key); more squares are added to the same start area.", CreatorController.DrawTarget.PLAYER_START)
 	_misc_container.add_child(_player_start_button)
-
-	# The heading is the choice "Draw draws monster spawn tiles" (the toolbar's Draw button / D then draw them); choosing a spawn in the
-	# dropdown below, or "New spawn", also starts drawing into it.
-	_monster_spawn_target_button = _target_button("Monster Spawn", "Draw into the active monster spawn: click a tile square to add it, click one of its tiles again to remove it. (Tiles can also be removed or reordered in the Outline tab.)", CreatorController.DrawTarget.MONSTER_SPAWN)
+	_monster_spawn_target_button = _target_button("Monster Spawn", "monster_spawn", "Start a NEW monster spawn area: click tile squares to add them (the first monster takes the first square...). To change an existing one, select it and press Draw.", CreatorController.DrawTarget.MONSTER_SPAWN)
 	_misc_container.add_child(_monster_spawn_target_button)
-
-	# "Active spawn" - which MonsterSpawn the tool above draws into (see
-	# CreatorController.active_monster_spawn_id).
-	# Stacked (not side by side): the panel is only ~260px wide and a long
-	# "name (N tiles)" entry pushed a same-row "New spawn" button off screen.
-	var spawn_row := VBoxContainer.new()
-	_misc_container.add_child(spawn_row)
-	_active_spawn_option = OptionButton.new()
-	_active_spawn_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_active_spawn_option.clip_text = true
-	_active_spawn_option.fit_to_longest_item = false
-	_active_spawn_option.item_selected.connect(_on_active_spawn_selected)
-	spawn_row.add_child(_active_spawn_option)
-	var new_spawn_button := Button.new()
-	new_spawn_button.text = "New spawn"
-	new_spawn_button.pressed.connect(_on_new_spawn_pressed)
-	spawn_row.add_child(new_spawn_button)
-
-	# Virtual line-of-sight walls (LosBlocker entities - they can be put in a stage group). Choosing one in the dropdown, or "New blocker",
-	# engages the tool; click tile squares to add/remove them.
-	_blocker_target_button = _target_button("LOS Blocker", "Draw into the active LOS blocker: squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Click a tile square to add it, click one of its squares again to remove it. Put the blocker in a stage group to keep it secret until that stage is revealed.", CreatorController.DrawTarget.LOS_BLOCKER)
+	_blocker_target_button = _target_button("LOS Blocker", "los_blocker", "Start a NEW LOS blocker: squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Put it in a stage group to keep it secret until that stage is revealed. To change an existing one, select it and press Draw.", CreatorController.DrawTarget.LOS_BLOCKER)
 	_misc_container.add_child(_blocker_target_button)
-	var blocker_row := VBoxContainer.new()
-	_misc_container.add_child(blocker_row)
-	_active_blocker_option = OptionButton.new()
-	_active_blocker_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_active_blocker_option.clip_text = true
-	_active_blocker_option.fit_to_longest_item = false
-	_active_blocker_option.item_selected.connect(_on_active_blocker_selected)
-	blocker_row.add_child(_active_blocker_option)
-	var new_blocker_button := Button.new()
-	new_blocker_button.text = "New blocker"
-	new_blocker_button.pressed.connect(_on_new_blocker_pressed)
-	blocker_row.add_child(new_blocker_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -
@@ -312,18 +242,34 @@ func _on_misc_tab_pressed() -> void:
 		creator_controller.set_draw_target(_last_misc_target as CreatorController.DrawTarget)
 
 
-## The Misc tab's three headings (Player Start / Monster Spawn / LOS Blocker): choosing one is the "what Draw draws" choice and starts drawing it
-## (same "picking a tool is paint intent" reasoning as _on_layer_tab_pressed() above, mirrored). The pressed look follows the controller's
-## draw_target (_on_draw_target_changed), so a click on the already-chosen one just stays pressed.
-func _target_button(text: String, tip: String, target: int) -> Button:
+## The Misc tab's three entries (Player Start / Monster Spawn / LOS Blocker): choosing one is the "what Draw draws" choice and starts drawing it.
+## Player Start continues the one start area; a spawn / blocker starts a new one (an empty one that is still active is reused, so clicking twice
+## does not leave empty areas behind). The pressed look follows the controller's draw_target (_on_draw_target_changed).
+func _target_button(text: String, icon_name: String, tip: String, target: int) -> Button:
 	var button := Button.new()
 	button.text = text
+	button.icon = EditorIcons.icon(icon_name, 1.5)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.tooltip_text = tip
 	button.toggle_mode = true
+	button.custom_minimum_size.y = 44.0
 	button.pressed.connect(func():
-		creator_controller.start_drawing(target as CreatorController.DrawTarget)
+		_begin_target(target as CreatorController.DrawTarget)
 		_on_draw_target_changed(creator_controller.draw_target))
 	return button
+
+
+func _begin_target(target: CreatorController.DrawTarget) -> void:
+	match target:
+		CreatorController.DrawTarget.MONSTER_SPAWN:
+			var spawn := creator_controller._find_monster_spawn(creator_controller.active_monster_spawn_id)
+			if spawn == null or not spawn.cells.is_empty():
+				creator_controller.create_monster_spawn()
+		CreatorController.DrawTarget.LOS_BLOCKER:
+			var blocker := creator_controller._find_los_blocker(creator_controller.active_los_blocker_id)
+			if blocker == null or not blocker.cells.is_empty():
+				creator_controller.create_los_blocker()
+	creator_controller.start_drawing(target)
 
 
 func _on_draw_target_changed(target: int) -> void:
@@ -332,51 +278,6 @@ func _on_draw_target_changed(target: int) -> void:
 	_player_start_button.set_pressed_no_signal(target == CreatorController.DrawTarget.PLAYER_START)
 	_monster_spawn_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.MONSTER_SPAWN)
 	_blocker_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.LOS_BLOCKER)
-
-
-func _on_new_spawn_pressed() -> void:
-	creator_controller.create_monster_spawn()
-	creator_controller.set_monster_spawn_paint_mode(true)
-
-
-func _on_active_spawn_selected(index: int) -> void:
-	if index >= 0 and index < _active_spawn_ids.size():
-		creator_controller.set_active_monster_spawn(_active_spawn_ids[index])
-		creator_controller.set_monster_spawn_paint_mode(true)
-
-
-## Coalesced (mission_objects_changed can fire once per painted cell), same
-## pattern as _queue_mesh_grid_rebuild().
-func _queue_spawn_option_rebuild() -> void:
-	if _spawn_option_rebuild_queued:
-		return
-	_spawn_option_rebuild_queued = true
-	_rebuild_active_spawn_option.call_deferred()
-
-
-func _rebuild_active_spawn_option() -> void:
-	_spawn_option_rebuild_queued = false
-	_active_spawn_option.clear()
-	_active_spawn_ids.clear()
-	var mission := creator_controller.layered_map.mission
-	if mission == null:
-		return
-	var selected := -1
-	for i in mission.monster_spawns.size():
-		var spawn: MonsterSpawn = mission.monster_spawns[i]
-		var label := spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d" % (i + 1)
-		_active_spawn_option.add_item("%s (%d tiles)" % [label, spawn.cells.size()])
-		_active_spawn_option.set_item_icon(i, _color_icon(LayeredMap.monster_spawn_color(i)))
-		_active_spawn_ids.append(spawn.id)
-		if spawn.id == creator_controller.active_monster_spawn_id:
-			selected = i
-	_active_spawn_option.selected = selected
-
-
-func _color_icon(color: Color) -> Texture2D:
-	var image := Image.create(12, 12, false, Image.FORMAT_RGBA8)
-	image.fill(color)
-	return ImageTexture.create_from_image(image)
 
 
 var _mesh_grid_rebuild_queued: bool = false
