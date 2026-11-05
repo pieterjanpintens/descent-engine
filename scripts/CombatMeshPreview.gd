@@ -157,7 +157,17 @@ func show_meshes(mesh_paths: Array[String], default_texture: Texture2D, rotation
 	var overrides: Dictionary = surface_texture_overrides
 	for surface_name in overrides:
 		override_materials[surface_name] = _unshaded_material(overrides[surface_name], write_depth)
-	for path in mesh_paths:
+	# A figure with a rigged model + the game's idle animation (flat_rig.json beside its mesh, see FlatRig) is shown animated instead.
+	var static_paths: Array[String] = mesh_paths
+	var rig_path := FlatRig.rig_beside(mesh_paths[0]) if mesh_paths.size() == 1 else ""
+	if rig_path != "":
+		var rig := FlatRig.build(rig_path, default_material)
+		if not rig.is_empty():
+			_root.add_child(rig["node"])
+			combined = rig["aabb"]
+			first = false
+			static_paths = []
+	for path in static_paths:
 		# ArrayMesh, not the base Mesh - surface_get_name() (needed for the
 		# per-surface override lookup) is only declared on that subclass, and
 		# every mesh converted through this project's own import pipeline
