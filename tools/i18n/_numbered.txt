@@ -763,6 +763,23 @@
 774|Optional objective completed:\n%s
 775|Optional:
 776|The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far.
+777|AI writing help
+778|All set
+779|Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far.
+780|Finish
+781|Languages you want to read
+782|Microphone:
+783|More voices (plain English, accents) can be downloaded later in Options > Voice.
+784|Next (or skip)
+785|Off = hands-free: say \"hey DM\" before a command.
+786|Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game.
+787|Setup Assistant
+788|Step %d of %d
+789|That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu.
+790|The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download.
+791|Voice commands
+792|Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work.
+793|Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

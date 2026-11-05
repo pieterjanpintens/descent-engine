@@ -76,6 +76,8 @@ var community_author: String = ""
 var check_updates: bool = true
 ## The version whose "What's new" the player has already been shown (so it opens by itself once after an update).
 var last_seen_version: String = ""
+## The Setup Assistant (first-run wizard) has been shown once; it then only opens from its button at the main menu.
+var setup_assistant_shown: bool = false
 ## Optional AI writing help in the editors (AiClient / AiAssist). Off by default; the author's OWN Anthropic API key, kept in plain text
 ## in this file in their own user folder (never in a package, save game or release). Nothing is sent unless an AI button is pressed.
 var ai_enabled: bool = false
@@ -86,11 +88,13 @@ var ai_model: String = "claude-sonnet-5-5"
 var ai_provider: String = "api"
 var ai_claude_path: String = ""
 ## The languages the player wants to read, best first (campaigns and missions are shown in the first one they have; a campaign game
-## asks which one when it starts). Starts as the OS language, then English. See LText / CampaignInfo.LANGUAGES.
+## asks which one when it starts). Starts as English only. See LText / CampaignInfo.LANGUAGES.
 var preferred_languages: Array[String] = _default_languages()
 
 
 ## The languages the app's own texts (menus, dialogs) are translated into: translations/<code>.po, registered in the project settings.
+const LANGUAGE_DEFAULTS_VERSION := 2
+var language_defaults_reset := false  ## the stored language list was dropped at load (see load_settings())
 const UI_LANGUAGES: Array[String] = ["en", "es", "nl", "fr", "de", "it", "pt", "pl", "cs", "hu", "ru", "ko", "zh", "zh-TW"]
 
 
@@ -119,14 +123,10 @@ func apply_ui_language() -> void:
 		ui_language_changed.emit()
 
 
-## The OS language first (when it is one we know), then English.
+## English only: a new install starts in English, the player adds other languages in Options (the OS language is NOT guessed - it switched
+## some players to a language they never chose).
 static func _default_languages() -> Array[String]:
-	var locale := OS.get_locale()
-	var own := OS.get_locale_language()
-	if own == "zh" and (locale.contains("TW") or locale.contains("HK") or locale.contains("MO") or locale.contains("Hant")):
-		own = "zh-TW"
-	var list: Array = [own, "en"]
-	return LText.clean_codes(list)
+	return LText.clean_codes(["en"])
 
 
 ## Changes the list (unknown codes and repeats are dropped; never empty), saves it and makes it the reading order.
@@ -165,12 +165,17 @@ func load_settings() -> void:
 	community_author = config.get_value(_COMMUNITY, "author", community_author)
 	check_updates = config.get_value(_UPDATES, "check_updates", check_updates)
 	last_seen_version = config.get_value(_UPDATES, "last_seen_version", last_seen_version)
+	setup_assistant_shown = config.get_value(_UPDATES, "setup_assistant_shown", setup_assistant_shown)
 	ai_enabled = config.get_value(_AI, "enabled", ai_enabled)
 	ai_api_key = config.get_value(_AI, "api_key", ai_api_key)
 	ai_model = config.get_value(_AI, "model", ai_model)
 	ai_provider = config.get_value(_AI, "provider", ai_provider)
 	ai_claude_path = config.get_value(_AI, "claude_path", ai_claude_path)
 	var saved_languages := LText.clean_codes(config.get_value(_LANGUAGE, "preferred", []))
+	# Older versions guessed the OS language and stored that guess as if it were a choice: those lists are dropped once (back to English).
+	if int(config.get_value(_LANGUAGE, "defaults_version", 0)) < LANGUAGE_DEFAULTS_VERSION:
+		saved_languages = []
+		language_defaults_reset = true
 	if not saved_languages.is_empty():
 		preferred_languages = saved_languages
 
@@ -193,12 +198,14 @@ func save_settings() -> void:
 	config.set_value(_COMMUNITY, "author", community_author)
 	config.set_value(_UPDATES, "check_updates", check_updates)
 	config.set_value(_UPDATES, "last_seen_version", last_seen_version)
+	config.set_value(_UPDATES, "setup_assistant_shown", setup_assistant_shown)
 	config.set_value(_AI, "enabled", ai_enabled)
 	config.set_value(_AI, "api_key", ai_api_key)
 	config.set_value(_AI, "model", ai_model)
 	config.set_value(_AI, "provider", ai_provider)
 	config.set_value(_AI, "claude_path", ai_claude_path)
 	config.set_value(_LANGUAGE, "preferred", preferred_languages)
+	config.set_value(_LANGUAGE, "defaults_version", LANGUAGE_DEFAULTS_VERSION)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

@@ -1,0 +1,17 @@
+777|AI-schrijfhulp
+778|Klaar
+779|Campagnes en missies worden getoond in de eerste taal van deze lijst die ze hebben. De app zelf (menu's en dialogen) wordt getoond in de eerste taal waarin ze vertaald is - tot nu toe %s.
+780|Afronden
+781|Talen die je wilt lezen
+782|Microfoon:
+783|Meer stemmen (gewoon Engels, accenten) kun je later downloaden in Opties > Stem.
+784|Volgende (of overslaan)
+785|Uit = handsfree: zeg \"hey DM\" voor een commando.
+786|Optioneel: als je \"Descent: Legends of the Dark\" bezit, kan de app de echte afbeeldingen, figuren en gegevens van het spel uit je eigen installatie gebruiken. Zonder dat toont de app tijdelijke afbeeldingen. Sla dit over als je het spel niet hebt.
+787|Setup-assistent
+788|Stap %d van %d
+789|Dat was het! Je kunt dit alles later wijzigen in Opties (het tandwiel linksonder) en deze assistent opnieuw starten via \"Setup-assistent\" rechtsonder in het hoofdmenu.
+790|De app kan het verhaal hardop voorlezen met een stem die op je computer is geïnstalleerd. Er wordt niets ergens naartoe gestuurd. De stemmen zijn een download.
+791|Spraakcommando's
+792|Met spraakcommando's speel je door te praten (\"hey DM, held twee valt de groene bandiet aan\") en beantwoord je dialogen hardop. Het draait op je computer met een spraakmodel dat een download is; je hebt een microfoon nodig. Getypte commando's werken altijd.
+793|Welkom! Deze assistent helpt je de app in te stellen: de taal, de kunst van het spel, vertelling, spraakcommando's en de optionele AI-schrijfhulp. Elke stap kun je overslaan en je kunt hem opnieuw openen via \"Setup-assistent\" rechtsonder in het hoofdmenu.

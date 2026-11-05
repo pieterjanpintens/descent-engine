@@ -31,6 +31,7 @@ var _updater: AppUpdater
 var _update_button: Button
 var _update_dialog: UpdateDialog
 var _changelog_dialog: ChangelogDialog
+var _setup_assistant: SetupAssistant
 var _update_result: Dictionary = {}
 
 
@@ -70,6 +71,8 @@ func _rebuild_for_language() -> void:
 		keep.append(_options_listener)
 	if _updater != null:
 		keep.append(_updater)
+	if _setup_assistant != null:
+		keep.append(_setup_assistant)
 	for child in get_children():
 		if not keep.has(child):
 			remove_child(child)
@@ -85,6 +88,8 @@ func _rebuild_for_language() -> void:
 func _options_to_front() -> void:
 	if _options_dialog != null:  # the dialog stays on top of the rebuilt pages
 		move_child(_options_dialog, -1)
+	if _setup_assistant != null:
+		move_child(_setup_assistant, -1)
 
 
 ## The layout of the mockup: logo top left with the entries centred under it, the cog (Options; its Community tab holds the installed shared packages and the manual install) bottom left;
@@ -175,6 +180,11 @@ func _build_update_banner() -> void:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(row)
+	var setup := Button.new()
+	setup.text = "Setup Assistant"
+	setup.flat = true
+	setup.pressed.connect(_open_setup_assistant)
+	row.add_child(setup)
 	var credits := Button.new()
 	credits.text = "Credits"
 	credits.flat = true
@@ -185,7 +195,11 @@ func _build_update_banner() -> void:
 	news.flat = true
 	news.pressed.connect(_open_changelog)
 	row.add_child(news)
+	# the first time the app is started the Setup Assistant opens by itself; after an update the changelog comes first instead
+	var show_setup := not PlayerSettings.setup_assistant_shown
 	if current == "":
+		if show_setup:
+			_open_setup_assistant()
 		return  # a development build: no version, no update checks
 	var version := Label.new()
 	version.text = tr("Version %s") % current
@@ -198,6 +212,12 @@ func _build_update_banner() -> void:
 		PlayerSettings.save_settings()
 		if not first_run:
 			_open_changelog()
+			show_setup = false  # not on top of the changelog: it follows at the next start
+		elif show_setup:
+			_open_setup_assistant()
+			show_setup = false
+	if show_setup:
+		_open_setup_assistant()
 	if not PlayerSettings.check_updates:
 		return
 	var result := AppUpdater.last_check
@@ -206,6 +226,13 @@ func _build_update_banner() -> void:
 		add_child(_updater)
 		result = await _updater.check()
 	_show_update(result)
+
+
+func _open_setup_assistant() -> void:
+	if _setup_assistant == null:
+		_setup_assistant = SetupAssistant.new()
+		add_child(_setup_assistant)
+	_setup_assistant.open()
 
 
 func _open_changelog() -> void:
