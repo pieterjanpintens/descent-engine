@@ -1,0 +1,17 @@
+777|Pomoc s psaním pomocí AI
+778|Vše hotovo
+779|Kampaně a mise se zobrazují v prvním jazyce z tohoto seznamu, který mají. Samotná aplikace (nabídky a dialogy) se zobrazuje v prvním jazyce, do kterého je přeložena - zatím %s.
+780|Dokončit
+781|Jazyky, ve kterých chcete číst
+782|Mikrofon:
+783|Další hlasy (běžná angličtina, přízvuky) si můžete stáhnout později v Možnosti > Hlas.
+784|Další (nebo přeskočit)
+785|Vypnuto = bez rukou: před příkazem řekněte \"hey DM\".
+786|Volitelné: pokud vlastníte \"Descent: Legends of the Dark\", aplikace může použít skutečné obrázky, figurky a data hry z vaší vlastní instalace. Bez toho aplikace zobrazuje náhradní obrázky. Pokud hru nemáte, tento krok přeskočte.
+787|Průvodce nastavením
+788|Krok %d z %d
+789|To je vše! To všechno můžete později změnit v Možnostech (ozubené kolo vlevo dole) a tohoto průvodce spustit znovu přes \"Průvodce nastavením\" vpravo dole v hlavní nabídce.
+790|Aplikace může číst příběh nahlas hlasem nainstalovaným ve vašem počítači. Nic se nikam neposílá. Hlasy je třeba stáhnout.
+791|Hlasové příkazy
+792|Hlasové příkazy vám umožňují hrát mluvením (\"hey DM, hrdina dvě zaútočí na zeleného bandítu\") a odpovídat na dialogy nahlas. Běží to ve vašem počítači s hlasovým modelem, který je třeba stáhnout; potřebujete mikrofon. Psané příkazy fungují vždy.
+793|Vítejte! Tento průvodce vám pomůže aplikaci nastavit: jazyk, zdroje hry, vyprávění, hlasové příkazy a volitelnou pomoc s psaním pomocí AI. Každý krok lze přeskočit a průvodce můžete znovu otevřít přes \"Průvodce nastavením\" vpravo dole v hlavní nabídce.

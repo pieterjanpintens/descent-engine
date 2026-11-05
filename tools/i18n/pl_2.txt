@@ -1,0 +1,17 @@
+777|Pomoc w pisaniu z AI
+778|Wszystko gotowe
+779|Kampanie i misje są wyświetlane w pierwszym języku z tej listy, który mają. Sama aplikacja (menu i okna dialogowe) jest wyświetlana w pierwszym języku, na który jest przetłumaczona - jak dotąd %s.
+780|Zakończ
+781|Języki, w których chcesz czytać
+782|Mikrofon:
+783|Więcej głosów (zwykły angielski, akcenty) można pobrać później w Opcje > Głos.
+784|Dalej (lub pomiń)
+785|Wyłączone = bez użycia rąk: powiedz \"hey DM\" przed poleceniem.
+786|Opcjonalnie: jeśli masz \"Descent: Legends of the Dark\", aplikacja może używać prawdziwych obrazów, figurek i danych gry z Twojej instalacji. Bez tego aplikacja pokazuje obrazy zastępcze. Pomiń to, jeśli nie masz gry.
+787|Asystent konfiguracji
+788|Krok %d z %d
+789|To wszystko! Możesz to później zmienić w Opcjach (koło zębate w lewym dolnym rogu) i uruchomić tego asystenta ponownie przez \"Asystent konfiguracji\" w prawym dolnym rogu menu głównego.
+790|Aplikacja może czytać historię na głos głosem zainstalowanym na Twoim komputerze. Nic nie jest nigdzie wysyłane. Głosy trzeba pobrać.
+791|Polecenia głosowe
+792|Polecenia głosowe pozwalają grać mówiąc (\"hey DM, bohater dwa atakuje zielonego bandytę\") i odpowiadać na okna dialogowe na głos. Działa na Twoim komputerze z modelem mowy, który trzeba pobrać; potrzebny jest mikrofon. Polecenia wpisywane zawsze działają.
+793|Witaj! Ten asystent pomaga skonfigurować aplikację: język, zasoby gry, narrację, polecenia głosowe i opcjonalną pomoc w pisaniu z AI. Każdy krok można pominąć, a asystenta można otworzyć ponownie przez \"Asystent konfiguracji\" w prawym dolnym rogu menu głównego.

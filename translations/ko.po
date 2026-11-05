@@ -2301,6 +2301,57 @@ msgstr "선택:"
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr "앱 자체(메뉴와 대화 상자)는 이 목록에서 번역이 있는 첫 번째 언어로 표시됩니다 - 현재 %s."
 
+msgid "AI writing help"
+msgstr "AI 글쓰기 도우미"
+
+msgid "All set"
+msgstr "모두 준비되었습니다"
+
+msgid "Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far."
+msgstr "캠페인과 미션은 이 목록에서 해당 언어가 있는 첫 번째 언어로 표시됩니다. 앱 자체(메뉴와 대화상자)는 번역된 언어 중 목록의 첫 번째 언어로 표시됩니다 - 현재 %s."
+
+msgid "Finish"
+msgstr "마침"
+
+msgid "Languages you want to read"
+msgstr "읽고 싶은 언어"
+
+msgid "Microphone:"
+msgstr "마이크:"
+
+msgid "More voices (plain English, accents) can be downloaded later in Options > Voice."
+msgstr "추가 음성(일반 영어, 억양)은 나중에 옵션 > 음성에서 내려받을 수 있습니다."
+
+msgid "Next (or skip)"
+msgstr "다음 (또는 건너뛰기)"
+
+msgid "Off = hands-free: say \"hey DM\" before a command."
+msgstr "끔 = 핸즈프리: 명령 전에 \"hey DM\"이라고 말하세요."
+
+msgid "Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game."
+msgstr "선택 사항: \"Descent: Legends of the Dark\"를 가지고 있다면 앱이 직접 설치한 게임의 실제 그림, 피규어, 데이터를 사용할 수 있습니다. 그렇지 않으면 앱은 임시 그림을 보여 줍니다. 게임이 없다면 건너뛰세요."
+
+msgid "Setup Assistant"
+msgstr "설정 도우미"
+
+msgid "Step %d of %d"
+msgstr "%d / %d 단계"
+
+msgid "That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "이상입니다! 이 모든 것은 나중에 옵션(왼쪽 아래 톱니바퀴)에서 바꿀 수 있고, 메인 메뉴 오른쪽 아래의 \"설정 도우미\"에서 이 도우미를 다시 실행할 수 있습니다."
+
+msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
+msgstr "앱은 컴퓨터에 설치된 음성으로 이야기를 소리 내어 읽어 줄 수 있습니다. 어디로도 전송되지 않습니다. 음성은 내려받아야 합니다."
+
+msgid "Voice commands"
+msgstr "음성 명령"
+
+msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
+msgstr "음성 명령으로 말하면서 플레이하고(\"hey DM, 영웅 둘이 초록 도적을 공격한다\") 대화상자에 소리 내어 답할 수 있습니다. 내려받아야 하는 음성 모델로 컴퓨터에서 실행되며 마이크가 필요합니다. 입력한 명령은 항상 작동합니다."
+
+msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "환영합니다! 이 도우미는 언어, 게임 리소스, 내레이션, 음성 명령, 선택 사항인 AI 글쓰기 도우미를 설정하도록 도와줍니다. 모든 단계는 건너뛸 수 있으며, 메인 메뉴 오른쪽 아래의 \"설정 도우미\"에서 도우미를 다시 열 수 있습니다."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

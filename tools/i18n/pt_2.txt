@@ -1,0 +1,17 @@
+777|Ajuda de escrita com IA
+778|Tudo pronto
+779|As campanhas e missões são mostradas no primeiro idioma desta lista que tiverem. O próprio aplicativo (menus e diálogos) é mostrado no primeiro idioma para o qual está traduzido - até agora %s.
+780|Concluir
+781|Idiomas que você quer ler
+782|Microfone:
+783|Mais vozes (inglês padrão, sotaques) podem ser baixadas depois em Opções > Voz.
+784|Próximo (ou pular)
+785|Desligado = mãos livres: diga \"hey DM\" antes de um comando.
+786|Opcional: se você tem \"Descent: Legends of the Dark\", o aplicativo pode usar as imagens, figuras e dados reais do jogo da sua própria instalação. Sem isso, o aplicativo mostra imagens provisórias. Pule isto se você não tem o jogo.
+787|Assistente de configuração
+788|Passo %d de %d
+789|É isso! Você pode mudar tudo isto depois em Opções (a engrenagem no canto inferior esquerdo) e executar este assistente de novo em \"Assistente de configuração\" no canto inferior direito do menu principal.
+790|O aplicativo pode ler a história em voz alta com uma voz instalada no seu computador. Nada é enviado para lugar nenhum. As vozes são um download.
+791|Comandos de voz
+792|Os comandos de voz permitem jogar falando (\"hey DM, o herói dois ataca o bandido verde\") e responder aos diálogos em voz alta. Funciona no seu computador com um modelo de voz que é um download; você precisa de um microfone. Os comandos digitados sempre funcionam.
+793|Boas-vindas! Este assistente ajuda a configurar o aplicativo: o idioma, os recursos do jogo, a narração, os comandos de voz e a ajuda de escrita com IA opcional. Cada passo pode ser pulado, e você pode abrir o assistente de novo em \"Assistente de configuração\" no canto inferior direito do menu principal.

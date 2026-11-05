@@ -1,0 +1,17 @@
+777|KI-Schreibhilfe
+778|Alles bereit
+779|Kampagnen und Missionen werden in der ersten Sprache dieser Liste angezeigt, die sie haben. Die App selbst (Menüs und Dialoge) wird in der ersten Sprache angezeigt, in die sie übersetzt ist - bisher %s.
+780|Fertig
+781|Sprachen, die du lesen möchtest
+782|Mikrofon:
+783|Weitere Stimmen (normales Englisch, Akzente) kannst du später unter Optionen > Stimme herunterladen.
+784|Weiter (oder überspringen)
+785|Aus = freihändig: Sag \"hey DM\" vor einem Befehl.
+786|Optional: Wenn du \"Descent: Legends of the Dark\" besitzt, kann die App die echten Bilder, Figuren und Daten des Spiels aus deiner eigenen Installation verwenden. Ohne sie zeigt die App Platzhalter. Überspringe das, wenn du das Spiel nicht hast.
+787|Einrichtungsassistent
+788|Schritt %d von %d
+789|Das war's! Du kannst all das später in den Optionen (das Zahnrad unten links) ändern und diesen Assistenten über \"Einrichtungsassistent\" unten rechts im Hauptmenü erneut starten.
+790|Die App kann die Geschichte mit einer auf deinem Computer installierten Stimme vorlesen. Es wird nichts irgendwohin gesendet. Die Stimmen sind ein Download.
+791|Sprachbefehle
+792|Mit Sprachbefehlen spielst du durch Sprechen (\"hey DM, Held zwei greift den grünen Banditen an\") und beantwortest Dialoge laut. Es läuft auf deinem Computer mit einem Sprachmodell, das ein Download ist; du brauchst ein Mikrofon. Getippte Befehle funktionieren immer.
+793|Willkommen! Dieser Assistent hilft dir, die App einzurichten: Sprache, Spielressourcen, Erzählung, Sprachbefehle und die optionale KI-Schreibhilfe. Jeder Schritt kann übersprungen werden, und du kannst den Assistenten über \"Einrichtungsassistent\" unten rechts im Hauptmenü erneut öffnen.

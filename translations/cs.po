@@ -2301,6 +2301,57 @@ msgstr "Volitelné:"
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr "Samotná aplikace (nabídky a dialogy) se zobrazuje v prvním jazyce z tohoto seznamu, do kterého je přeložena - zatím %s."
 
+msgid "AI writing help"
+msgstr "Pomoc s psaním pomocí AI"
+
+msgid "All set"
+msgstr "Vše hotovo"
+
+msgid "Campaigns and missions are shown in the first language of this list that they have. The app itself (menus and dialogs) is shown in the first language that it is translated into - %s so far."
+msgstr "Kampaně a mise se zobrazují v prvním jazyce z tohoto seznamu, který mají. Samotná aplikace (nabídky a dialogy) se zobrazuje v prvním jazyce, do kterého je přeložena - zatím %s."
+
+msgid "Finish"
+msgstr "Dokončit"
+
+msgid "Languages you want to read"
+msgstr "Jazyky, ve kterých chcete číst"
+
+msgid "Microphone:"
+msgstr "Mikrofon:"
+
+msgid "More voices (plain English, accents) can be downloaded later in Options > Voice."
+msgstr "Další hlasy (běžná angličtina, přízvuky) si můžete stáhnout později v Možnosti > Hlas."
+
+msgid "Next (or skip)"
+msgstr "Další (nebo přeskočit)"
+
+msgid "Off = hands-free: say \"hey DM\" before a command."
+msgstr "Vypnuto = bez rukou: před příkazem řekněte \"hey DM\"."
+
+msgid "Optional: if you own \"Descent: Legends of the Dark\", the app can use the game's real pictures, figures and data from your own install. Without it the app shows placeholders. Skip this if you don't own the game."
+msgstr "Volitelné: pokud vlastníte \"Descent: Legends of the Dark\", aplikace může použít skutečné obrázky, figurky a data hry z vaší vlastní instalace. Bez toho aplikace zobrazuje náhradní obrázky. Pokud hru nemáte, tento krok přeskočte."
+
+msgid "Setup Assistant"
+msgstr "Průvodce nastavením"
+
+msgid "Step %d of %d"
+msgstr "Krok %d z %d"
+
+msgid "That's it! You can change all of this later in Options (the cog at the bottom left) and run this assistant again from \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "To je vše! To všechno můžete později změnit v Možnostech (ozubené kolo vlevo dole) a tohoto průvodce spustit znovu přes \"Průvodce nastavením\" vpravo dole v hlavní nabídce."
+
+msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
+msgstr "Aplikace může číst příběh nahlas hlasem nainstalovaným ve vašem počítači. Nic se nikam neposílá. Hlasy je třeba stáhnout."
+
+msgid "Voice commands"
+msgstr "Hlasové příkazy"
+
+msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
+msgstr "Hlasové příkazy vám umožňují hrát mluvením (\"hey DM, hrdina dvě zaútočí na zeleného bandítu\") a odpovídat na dialogy nahlas. Běží to ve vašem počítači s hlasovým modelem, který je třeba stáhnout; potřebujete mikrofon. Psané příkazy fungují vždy."
+
+msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
+msgstr "Vítejte! Tento průvodce vám pomůže aplikaci nastavit: jazyk, zdroje hry, vyprávění, hlasové příkazy a volitelnou pomoc s psaním pomocí AI. Každý krok lze přeskočit a průvodce můžete znovu otevřít přes \"Průvodce nastavením\" vpravo dole v hlavní nabídce."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"
