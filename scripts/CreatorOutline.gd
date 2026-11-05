@@ -424,7 +424,7 @@ func _select_only(item: TreeItem) -> void:
 ## selection carries the extra "grid" tag) and emits selection_changed.
 ## Highlight/camera-jump only apply when exactly one item is selected - a
 ## multi-selection has no single "the" object to outline or jump to.
-func _emit_selection_changed(jump_camera: bool) -> void:
+func _emit_selection_changed(jump_camera: bool, deliberate := false) -> void:  # deliberate: a pick the user made (not a rebuild's reselection)
 	var items: Array = []
 	for id in _selected_ids:
 		var item: TreeItem = _id_to_item.get(id)
@@ -490,6 +490,8 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 				# Selecting a spawn also makes it the one the Monster Spawn
 				# tool draws into.
 				creator_controller.set_active_monster_spawn(spawn.id)
+				if (jump_camera or deliberate) and not creator_controller.is_drawing():
+					creator_controller.set_draw_target(CreatorController.DrawTarget.MONSTER_SPAWN)  # a click: Draw now edits this spawn
 				if not spawn.cells.is_empty():
 					var first := spawn.cells[0]
 					var fine_origin := FootprintRegistry.tile_square_to_fine_far_corner(first)
@@ -504,6 +506,8 @@ func _emit_selection_changed(jump_camera: bool) -> void:
 			var blocker := _find_blocker_by_id(id)
 			if blocker != null:
 				creator_controller.set_active_los_blocker(blocker.id)
+				if (jump_camera or deliberate) and not creator_controller.is_drawing():
+					creator_controller.set_draw_target(CreatorController.DrawTarget.LOS_BLOCKER)
 				if not blocker.cells.is_empty():
 					var first_square := blocker.cells[0]
 					var fine_start := FootprintRegistry.tile_square_to_fine_far_corner(first_square)
@@ -592,7 +596,7 @@ func _on_object_picked(_kind: String, id: String) -> void:
 	_select_only(item)
 	scroll_to_item(item)
 	_recompute_selected_ids()
-	_emit_selection_changed(false)
+	_emit_selection_changed(false, true)
 
 
 ## Selects the tree item with this id from outside (the toolbar's problems list: "Show"); no camera jump.

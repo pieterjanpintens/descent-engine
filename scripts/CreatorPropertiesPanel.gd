@@ -301,8 +301,7 @@ func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
 		_rebuild_blocker_squares(_current_node as LosBlocker)
 		return
 	var spawn := _current_node as MonsterSpawn
-	var draw := _paint_toggle("Draw / erase tiles", "On: click tile squares to add them to this spawn, or click one of its tiles to remove it.", true)
-	_spawn_tiles_box.add_child(draw)
+	_spawn_tiles_box.add_child(_draw_hint("Press Draw (D) to add tile squares to this spawn, or click one of its tiles to remove it."))
 	var header := Label.new()
 	header.text = "Tiles (spawn order):"
 	_spawn_tiles_box.add_child(header)
@@ -329,31 +328,18 @@ func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
 		_spawn_tiles_box.add_child(row)
 
 
-## A toggle that draws into the SELECTED spawn / blocker: it is made the active one first, then the paint mode is switched, so
-## "select it, then paint" works from the Outline tab (the Palette tab is not needed). Kept in step with the controller's own mode.
-func _paint_toggle(text: String, tip: String, for_spawn: bool) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.tooltip_text = tip
-	button.toggle_mode = true
-	button.button_pressed = creator_outline.creator_controller.monster_spawn_paint_mode if for_spawn else creator_outline.creator_controller.los_blocker_paint_mode
-	button.toggled.connect(func(pressed: bool):
-		var controller := creator_outline.creator_controller
-		if _current_node == null:
-			return
-		if for_spawn:
-			controller.set_active_monster_spawn(_current_node.id)
-			controller.set_monster_spawn_paint_mode(pressed)
-		else:
-			controller.set_active_los_blocker(_current_node.id)
-			controller.set_los_blocker_paint_mode(pressed)
-	)
-	return button
+## A short reminder that the toolbar's Draw button draws into the selected spawn / blocker (selecting one in the outline makes it the Draw target).
+func _draw_hint(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 200.0
+	return label
 
 
 ## A LosBlocker's squares: "(x, y, z)" with a remove button (order does not matter).
 func _rebuild_blocker_squares(blocker: LosBlocker) -> void:
-	_spawn_tiles_box.add_child(_paint_toggle("Draw / erase squares", "On: click tile squares to add them to this blocker, or click one of its squares to remove it.", false))
+	_spawn_tiles_box.add_child(_draw_hint("Press Draw (D) to add squares to this blocker, or click one of its squares to remove it."))
 	var header := Label.new()
 	header.text = "Squares (draw with the Misc tab's LOS Blocker; put it in a stage group to reveal it with that stage):"
 	header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

@@ -231,6 +231,13 @@ var active_monster_spawn_id: String = ""
 ## Draws the squares of the ACTIVE LosBlocker (virtual line-of-sight walls, e.g. to stop shots across open space). Shares the spawn tools'
 ## hover/ghost; mutually exclusive with draw/spawn/monster spawn/move like they are. Set from the Palette's Misc tab (no hotkey).
 var los_blocker_paint_mode: bool = false
+
+## What the Draw tool (the toolbar's Draw button / the D key) draws: a mesh from the Palette, Player Start squares, the active monster spawn's
+## tiles or the active LOS blocker's squares. Each of those is still its own paint mode underneath (so the Player Start hotkey P etc. keep
+## working); this only remembers which one "Draw" means. Turning any of them on sets it. Tool state, not undo-tracked.
+enum DrawTarget { MESH, PLAYER_START, MONSTER_SPAWN, LOS_BLOCKER }
+var draw_target: DrawTarget = DrawTarget.MESH
+signal draw_target_changed(target: int)
 ## Which LosBlocker the tool draws into, see set_active_los_blocker().
 var active_los_blocker_id: String = ""
 var _spawn_hovered_cell: Vector3i = Vector3i.ZERO
@@ -772,6 +779,7 @@ func set_draw_mode(enabled: bool) -> void:
 		return
 	draw_mode = enabled
 	if draw_mode:
+		_note_draw_target(DrawTarget.MESH)
 		set_spawn_paint_mode(false)
 		set_move_mode(false)
 		set_monster_spawn_paint_mode(false)
@@ -780,8 +788,54 @@ func set_draw_mode(enabled: bool) -> void:
 	draw_mode_changed.emit(draw_mode)
 
 
+## Select mode = every tool off (the Select button and the S key).
+func select_mode() -> void:
+	set_draw_mode(false)
+	set_move_mode(false)
+	set_spawn_paint_mode(false)
+	set_monster_spawn_paint_mode(false)
+	set_los_blocker_paint_mode(false)
+
+
+func _note_draw_target(target: DrawTarget) -> void:
+	if draw_target != target:
+		draw_target = target
+		draw_target_changed.emit(target)
+
+
+## True while any of the drawing tools is on (mesh, Player Start, monster spawn tiles, LOS blocker squares).
+func is_drawing() -> bool:
+	return draw_mode or spawn_paint_mode or monster_spawn_paint_mode or los_blocker_paint_mode
+
+
+## Chooses what Draw draws. While drawing it switches the running tool to the new target; otherwise it only remembers it (the Draw button / D
+## then start that tool).
+func set_draw_target(target: DrawTarget) -> void:
+	if is_drawing():
+		start_drawing(target)
+	else:
+		_note_draw_target(target)
+
+
+## Starts drawing `target` (turning the other tools off).
+func start_drawing(target: DrawTarget) -> void:
+	match target:
+		DrawTarget.PLAYER_START:
+			set_spawn_paint_mode(true)
+		DrawTarget.MONSTER_SPAWN:
+			set_monster_spawn_paint_mode(true)
+		DrawTarget.LOS_BLOCKER:
+			set_los_blocker_paint_mode(true)
+		_:
+			set_draw_mode(true)
+
+
+## The Draw button / D key: draws the current target, or stops drawing (Select mode).
 func toggle_draw_mode() -> void:
-	set_draw_mode(not draw_mode)
+	if is_drawing():
+		select_mode()
+	else:
+		start_drawing(draw_target)
 
 
 func set_working_group(group_id: String) -> void:
@@ -803,6 +857,7 @@ func set_spawn_paint_mode(enabled: bool) -> void:
 		return
 	spawn_paint_mode = enabled
 	if spawn_paint_mode:
+		_note_draw_target(DrawTarget.PLAYER_START)
 		set_draw_mode(false)
 		set_move_mode(false)
 		set_monster_spawn_paint_mode(false)
@@ -815,6 +870,7 @@ func set_monster_spawn_paint_mode(enabled: bool) -> void:
 		return
 	monster_spawn_paint_mode = enabled
 	if monster_spawn_paint_mode:
+		_note_draw_target(DrawTarget.MONSTER_SPAWN)
 		set_draw_mode(false)
 		set_move_mode(false)
 		set_spawn_paint_mode(false)
@@ -827,6 +883,7 @@ func set_los_blocker_paint_mode(enabled: bool) -> void:
 		return
 	los_blocker_paint_mode = enabled
 	if los_blocker_paint_mode:
+		_note_draw_target(DrawTarget.LOS_BLOCKER)
 		set_draw_mode(false)
 		set_move_mode(false)
 		set_spawn_paint_mode(false)
@@ -1091,7 +1148,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				# The spawn overlay itself stays visible all the time now
 				# (see _ready()) - P only toggles whether clicking edits it.
 			KEY_D:
-				toggle_draw_mode()
+				if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):  # D also flies the camera sideways while the right button is held
+					toggle_draw_mode()
+			KEY_S:
+				# Select mode (all tools off); not Ctrl/Cmd+S (Save) and not while flying the camera backwards (right button held)
+				if not event.is_command_or_control_pressed() and not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+					select_mode()
 			KEY_M:
 				toggle_move_mode()
 			KEY_DELETE:

@@ -49,8 +49,9 @@ var _active_blocker_option: OptionButton
 var _active_blocker_ids: Array[String] = []
 var _blocker_option_rebuild_queued: bool = false
 var _active_spawn_option: OptionButton
-var _spawn_draw_button: Button  ## toggles drawing tiles into the active spawn (add a tile, or click one of its tiles again to remove it)
-var _blocker_draw_button: Button
+var _monster_spawn_target_button: Button  ## the "Monster Spawn" heading: makes the active spawn what Draw draws into
+var _blocker_target_button: Button  ## the "LOS Blocker" heading, same idea
+var _last_misc_target: int = CreatorController.DrawTarget.PLAYER_START  ## what Draw means again when the Misc tab is opened
 var _active_spawn_ids: Array[String] = []
 var _spawn_option_rebuild_queued: bool = false
 
@@ -65,9 +66,7 @@ func _ready() -> void:
 
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
-	creator_controller.spawn_paint_mode_changed.connect(_on_spawn_paint_mode_changed)
-	creator_controller.monster_spawn_paint_mode_changed.connect(func(enabled: bool): _spawn_draw_button.set_pressed_no_signal(enabled))
-	creator_controller.los_blocker_paint_mode_changed.connect(func(enabled: bool): _blocker_draw_button.set_pressed_no_signal(enabled))
+	creator_controller.draw_target_changed.connect(_on_draw_target_changed)
 	creator_controller.active_los_blocker_changed.connect(_queue_blocker_option_rebuild.unbind(1))
 	creator_controller.active_monster_spawn_changed.connect(_queue_spawn_option_rebuild.unbind(1))
 	# The "Show unavailable" state is owned by the controller (so it survives a palette rebuild); the checkbox below the grid is back in this
@@ -89,7 +88,7 @@ func _ready() -> void:
 		_side_panel.tab_changed.connect(_on_side_panel_tab_changed)
 
 	_on_layer_changed(creator_controller.current_layer)
-	_on_spawn_paint_mode_changed(creator_controller.spawn_paint_mode)
+	_on_draw_target_changed(creator_controller.draw_target)
 
 
 ## The controls the tutorial frames (TutorialRunner): stable ids instead of node paths.
@@ -219,17 +218,13 @@ func _build_ui() -> void:
 	_misc_container.visible = false
 	vbox.add_child(_misc_container)
 
-	_player_start_button = Button.new()
-	_player_start_button.text = "Player Start"
-	_player_start_button.toggle_mode = true
-	_player_start_button.pressed.connect(_on_player_start_tool_pressed)
+	_player_start_button = _target_button("Player Start", "Draw the squares the heroes start on (also the P key). Click a marked square again to remove it.", CreatorController.DrawTarget.PLAYER_START)
 	_misc_container.add_child(_player_start_button)
 
-	# No tool button: choosing a spawn in the dropdown below (or "New
-	# spawn") is what engages the monster spawn draw mode.
-	var monster_spawn_label := Label.new()
-	monster_spawn_label.text = "Monster Spawn"
-	_misc_container.add_child(monster_spawn_label)
+	# The heading is the choice "Draw draws monster spawn tiles" (the toolbar's Draw button / D then draw them); choosing a spawn in the
+	# dropdown below, or "New spawn", also starts drawing into it.
+	_monster_spawn_target_button = _target_button("Monster Spawn", "Draw into the active monster spawn: click a tile square to add it, click one of its tiles again to remove it. (Tiles can also be removed or reordered in the Outline tab.)", CreatorController.DrawTarget.MONSTER_SPAWN)
+	_misc_container.add_child(_monster_spawn_target_button)
 
 	# "Active spawn" - which MonsterSpawn the tool above draws into (see
 	# CreatorController.active_monster_spawn_id).
@@ -247,20 +242,11 @@ func _build_ui() -> void:
 	new_spawn_button.text = "New spawn"
 	new_spawn_button.pressed.connect(_on_new_spawn_pressed)
 	spawn_row.add_child(new_spawn_button)
-	# Picking the already-active spawn in the dropdown does nothing, so editing a spawn later (select it in the outline, or here) needs this toggle.
-	_spawn_draw_button = Button.new()
-	_spawn_draw_button.text = "Draw / erase tiles"
-	_spawn_draw_button.toggle_mode = true
-	_spawn_draw_button.tooltip_text = "On: click a tile square to add it to the active spawn; click one of its tiles again to remove it. (Tiles can also be removed or reordered in the Outline tab.)"
-	_spawn_draw_button.toggled.connect(func(pressed: bool): creator_controller.set_monster_spawn_paint_mode(pressed))
-	spawn_row.add_child(_spawn_draw_button)
 
 	# Virtual line-of-sight walls (LosBlocker entities - they can be put in a stage group). Choosing one in the dropdown, or "New blocker",
 	# engages the tool; click tile squares to add/remove them.
-	var blocker_label := Label.new()
-	blocker_label.text = "LOS Blocker"
-	blocker_label.tooltip_text = "Squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Put the blocker in a stage group to keep it secret until that stage is revealed."
-	_misc_container.add_child(blocker_label)
+	_blocker_target_button = _target_button("LOS Blocker", "Draw into the active LOS blocker: squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Click a tile square to add it, click one of its squares again to remove it. Put the blocker in a stage group to keep it secret until that stage is revealed.", CreatorController.DrawTarget.LOS_BLOCKER)
+	_misc_container.add_child(_blocker_target_button)
 	var blocker_row := VBoxContainer.new()
 	_misc_container.add_child(blocker_row)
 	_active_blocker_option = OptionButton.new()
@@ -273,12 +259,6 @@ func _build_ui() -> void:
 	new_blocker_button.text = "New blocker"
 	new_blocker_button.pressed.connect(_on_new_blocker_pressed)
 	blocker_row.add_child(new_blocker_button)
-	_blocker_draw_button = Button.new()
-	_blocker_draw_button.text = "Draw / erase squares"
-	_blocker_draw_button.toggle_mode = true
-	_blocker_draw_button.tooltip_text = "On: click a tile square to add it to the active blocker; click one of its squares again to remove it."
-	_blocker_draw_button.toggled.connect(func(pressed: bool): creator_controller.set_los_blocker_paint_mode(pressed))
-	blocker_row.add_child(_blocker_draw_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -
@@ -328,21 +308,30 @@ func _on_misc_tab_pressed() -> void:
 	_show_unavailable_check.visible = false
 	_misc_container.visible = true
 	creator_controller.set_draw_mode(false)
+	if not creator_controller.is_drawing():
+		creator_controller.set_draw_target(_last_misc_target as CreatorController.DrawTarget)
 
 
-## Same "picking a tool is paint/mark intent" reasoning as
-## _on_layer_tab_pressed() above, mirrored: engages spawn-paint mode and
-## disengages draw mode (Player Start isn't "drawing" a mesh).
-func _on_player_start_tool_pressed() -> void:
-	creator_controller.set_spawn_paint_mode(true)
-	creator_controller.set_draw_mode(false)
+## The Misc tab's three headings (Player Start / Monster Spawn / LOS Blocker): choosing one is the "what Draw draws" choice and starts drawing it
+## (same "picking a tool is paint intent" reasoning as _on_layer_tab_pressed() above, mirrored). The pressed look follows the controller's
+## draw_target (_on_draw_target_changed), so a click on the already-chosen one just stays pressed.
+func _target_button(text: String, tip: String, target: int) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.tooltip_text = tip
+	button.toggle_mode = true
+	button.pressed.connect(func():
+		creator_controller.start_drawing(target as CreatorController.DrawTarget)
+		_on_draw_target_changed(creator_controller.draw_target))
+	return button
 
 
-## Keeps the button's pressed state in sync regardless of which path
-## toggled spawn_paint_mode (this button, or the P hotkey) - same
-## "controller emits, UI listens" convention as _on_layer_changed() above.
-func _on_spawn_paint_mode_changed(enabled: bool) -> void:
-	_player_start_button.button_pressed = enabled
+func _on_draw_target_changed(target: int) -> void:
+	if target != CreatorController.DrawTarget.MESH:
+		_last_misc_target = target
+	_player_start_button.set_pressed_no_signal(target == CreatorController.DrawTarget.PLAYER_START)
+	_monster_spawn_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.MONSTER_SPAWN)
+	_blocker_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.LOS_BLOCKER)
 
 
 func _on_new_spawn_pressed() -> void:

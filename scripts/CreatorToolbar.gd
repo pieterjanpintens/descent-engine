@@ -43,6 +43,11 @@ var _pieces: Array = []
 var _check_timer: Timer
 var _last_signature: int = 0
 
+var _select_button: Button
+var _draw_button: Button
+var _move_button: Button
+var _rotate_button: Button
+
 var _working_group_option: OptionButton
 var _working_group_ids: Array[String] = []  # parallel to _working_group_option's items, same pattern as CreatorOutline's own _move_to_target_ids
 
@@ -86,6 +91,7 @@ func _ready() -> void:
 
 
 func _build_ui() -> void:
+	_build_tool_buttons()
 	var group_label := Label.new()
 	group_label.text = "Working group:"
 	add_child(group_label)
@@ -128,6 +134,74 @@ func _build_ui() -> void:
 	add_child(_problems_button)
 	_build_problems_dialog()
 	# "Show unavailable" lives in the Palette now (it only concerns the piece list shown there).
+
+
+## The tool buttons at the left: Select / Draw / Move are the editor's modes (exactly one lit; none lit while a paint tool such as Player Start,
+## Monster Spawn or LOS Blocker is active), Rotate turns the selected piece (or the placement ghost in Draw mode) - the same as the D, M and R keys.
+func _build_tool_buttons() -> void:
+	_select_button = _tool_button("select", "Select mode (S): click pieces in the 3D view to select them (drag a box to select several).", true)
+	_select_button.pressed.connect(_on_select_pressed)
+	_draw_button = _tool_button("draw", "Draw mode (D): draw what the Palette has chosen - a piece (Shift+click erases it), Player Start squares, the active monster spawn's tiles or the active LOS blocker's squares (click a square again to remove it).", true)
+	_draw_button.pressed.connect(func():
+		if _draw_button.button_pressed != creator_controller.is_drawing():
+			creator_controller.toggle_draw_mode()
+		_update_tool_buttons())
+	_move_button = _tool_button("move", "Move mode (M): drag a placed piece to another square.", true)
+	_move_button.pressed.connect(func():
+		creator_controller.set_move_mode(_move_button.button_pressed)
+		_update_tool_buttons())
+	_rotate_button = _tool_button("rotate", "Rotate (R): turn the selected piece a quarter turn - in Draw mode the piece you are about to place.", false)
+	_rotate_button.pressed.connect(func(): creator_controller.rotate_selection())
+	var separator := VSeparator.new()
+	add_child(separator)
+	for signal_name in ["draw_mode_changed", "move_mode_changed", "spawn_paint_mode_changed", "monster_spawn_paint_mode_changed", "los_blocker_paint_mode_changed"]:
+		creator_controller.connect(signal_name, func(_enabled: bool): _update_tool_buttons())
+	_update_tool_buttons()
+
+
+## `icon_name` is one of TOOL_ICONS; the buttons show only the picture (the tooltip says what it is and the key).
+func _tool_button(icon_name: String, tooltip: String, toggle: bool) -> Button:
+	var button := Button.new()
+	button.icon = _tool_icon(icon_name)
+	button.tooltip_text = tooltip
+	button.toggle_mode = toggle
+	button.custom_minimum_size = Vector2(34, 0)
+	button.focus_mode = Control.FOCUS_NONE  # a focused button would swallow the arrow keys / space the 3D view uses
+	add_child(button)
+	return button
+
+
+## Pictures drawn as SVG text (24x24, light strokes), rasterised once at startup - no image files needed.
+const TOOL_ICONS := {
+	"select": '<path d="M6 3 L6 19.5 L10.2 15.6 L13 21.5 L15.6 20.3 L12.8 14.5 L18.5 14.5 Z" fill="white" stroke="#202020" stroke-width="1" stroke-linejoin="round"/>',
+	"draw": '<path d="M3.5 20.5 L4.8 15.6 L15.8 4.6 L19.4 8.2 L8.4 19.2 Z" fill="white" stroke="#202020" stroke-width="1" stroke-linejoin="round"/>'
+		+ '<path d="M14.2 6.2 L17.8 9.8" stroke="#202020" stroke-width="1.2"/><path d="M4.8 15.6 L8.4 19.2" stroke="#202020" stroke-width="1.2"/>'
+		+ '<path d="M3.5 20.5 L4.8 15.6 L8.4 19.2 Z" fill="#202020"/>',
+	"move": '<path d="M12 4 L12 20 M4 12 L20 12" stroke="white" stroke-width="2" stroke-linecap="round"/>'
+		+ '<path d="M12 1.8 L8.6 6 L15.4 6 Z M12 22.2 L8.6 18 L15.4 18 Z M1.8 12 L6 8.6 L6 15.4 Z M22.2 12 L18 8.6 L18 15.4 Z" fill="white"/>',
+	"rotate": '<path d="M18.06 15.5 A7 7 0 1 1 16.5 6.6" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"/>'
+		+ '<path d="M19.4 9.2 L14.2 9.3 L18.6 4 Z" fill="white"/>',
+}
+
+
+static func _tool_icon(icon_name: String) -> Texture2D:
+	var svg := '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">%s</svg>' % TOOL_ICONS[icon_name]
+	var image := Image.new()
+	if image.load_svg_from_string(svg, 1.0) != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+func _on_select_pressed() -> void:
+	creator_controller.select_mode()
+	_update_tool_buttons()
+
+
+func _update_tool_buttons() -> void:
+	var c := creator_controller
+	_draw_button.set_pressed_no_signal(c.is_drawing())
+	_move_button.set_pressed_no_signal(c.move_mode)
+	_select_button.set_pressed_no_signal(not (c.is_drawing() or c.move_mode))
 
 
 ## "Languages" and "AI" next to File / Edit / View / Play in the MenuBar above the toolbar (a PopupMenu child of a MenuBar is a top-level menu).
