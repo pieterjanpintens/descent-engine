@@ -61,6 +61,7 @@ func _ready() -> void:
 	creator_controller.layer_changed.connect(_on_layer_changed)
 	creator_controller.mesh_changed.connect(_on_mesh_changed)
 	creator_controller.draw_target_changed.connect(_on_draw_target_changed)
+	creator_controller.working_group_changed.connect(_queue_mesh_grid_rebuild.unbind(1))  # the copies left are counted per Table
 	# The "Show unavailable" state is owned by the controller (so it survives a palette rebuild); the checkbox below the grid is back in this
 	# palette (moved from the toolbar 2026-10-31), and keeps in step when something else changes it.
 	creator_controller.show_unavailable_meshes_changed.connect(_queue_mesh_grid_rebuild.unbind(1))

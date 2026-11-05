@@ -237,20 +237,29 @@ func _rebuild_working_group_option() -> void:
 	_working_group_option.clear()
 	_working_group_ids.clear()
 
-	_working_group_option.add_item("(none - root)")
+	_working_group_option.add_item("(none - main table)")
 	_working_group_ids.append("")
 
 	var mission := layered_map.mission
 	if mission != null:
-		for group in mission.groups:
-			_working_group_option.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)")
-			_working_group_ids.append(group.id)
+		_add_group_entries(mission, "", 0)
 
 	var current_index := _working_group_ids.find(creator_controller.working_group_id)
 	if current_index == -1:
 		creator_controller.set_working_group("")
 		current_index = 0
 	_working_group_option.select(current_index)
+
+
+## The groups in tree order, a Table's stages under it and indented by depth (so Table > Stage reads as two levels); Tables are marked.
+func _add_group_entries(mission: MissionData, parent_id: String, depth: int) -> void:
+	for group in mission.groups:
+		if group.parent_id != parent_id:
+			continue
+		var label: String = group.reference_name if group.reference_name != "" else ("(unnamed table)" if group is MissionTable else "(unnamed group)")
+		_working_group_option.add_item("%s%s%s" % ["    ".repeat(depth), "Table: " if group is MissionTable else "", label])
+		_working_group_ids.append(group.id)
+		_add_group_entries(mission, group.id, depth + 1)
 
 
 func _on_working_group_option_selected(index: int) -> void:

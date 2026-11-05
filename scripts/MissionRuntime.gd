@@ -1048,6 +1048,10 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		if effect.target_group_id != "":
 			_pending_stage_reveals.append(effect.target_group_id)
 		return
+	if effect.type == Effect.Type.SWITCH_TABLE:
+		if effect.target_group_id != "":
+			_pending_table_switch = effect.target_group_id  # the caller with scene access does it (MissionPlayer._switch_table)
+		return
 	if effect.type == Effect.Type.REMOVE_OBJECT:
 		var removal_id := _resolve_object_target(effect.target_object_id)
 		if removal_id != "":
@@ -1375,6 +1379,24 @@ func _resolve_math_operand(is_variable: bool, literal_value: int, variable_name:
 		return null
 	var current: Variant = _variables.get(variable_name, 0)
 	return current if typeof(current) == TYPE_INT else 0
+
+
+## The Table a Switch Table effect asked for ("" = none, Effect.MAIN_TABLE = the main table); the last one wins if several fire together.
+var _pending_table_switch: String = ""
+
+
+func drain_pending_table_switch() -> String:
+	var wanted := _pending_table_switch
+	_pending_table_switch = ""
+	return wanted
+
+
+## Removes every live monster WITHOUT any loot or defeat handling - the table was reset, they just are not on it any more.
+func clear_monsters() -> void:
+	if monsters.is_empty():
+		return
+	monsters.clear()
+	monsters_changed.emit()
 
 
 ## Clears and returns whatever Show Stage targets queued up since the last

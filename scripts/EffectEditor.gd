@@ -340,7 +340,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Loot", Effect.Type.LOOT],
-			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION]]:
+			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["Switch Table", Effect.Type.SWITCH_TABLE]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -367,6 +367,8 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	var group_option := OptionButton.new()
 	var group_ids: Array[String] = []
 	for group in mission.groups:
+		if group is MissionTable:
+			continue  # a Table is switched to (Switch Table), not revealed
 		group_option.add_item(group.reference_name if group.reference_name != "" else "(unnamed group)")
 		group_ids.append(group.id)
 	var initial_group_index := group_ids.find(effect.target_group_id)
@@ -402,6 +404,21 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 			_commit_field("Edit effect target object", func(): effect.target_object_id = object_ids[index])
 	)
 	row.add_child(object_option)
+
+	## SWITCH_TABLE - which Table the physical table is reset to (the main table, or one of the extra Tables); see MissionTable.
+	var table_option := OptionButton.new()
+	var table_ids: Array[String] = [Effect.MAIN_TABLE]
+	table_option.add_item("Main table")
+	for table in mission.tables():
+		table_option.add_item("Table: %s" % (table.reference_name if table.reference_name != "" else "(unnamed table)"))
+		table_ids.append(table.id)
+	table_option.tooltip_text = "Resets the table: everything of the current Table goes back in the box, the monsters are removed, and this Table is set up with the heroes on its start squares."
+	table_option.select(table_ids.find(effect.target_group_id))
+	table_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < table_ids.size():
+			_commit_field("Edit effect table", func(): effect.target_group_id = table_ids[index])
+	)
+	row.add_child(table_option)
 
 	## RUN_TEST's full editor (attribute + threshold + accumulate variable +
 	## two nested effect lists) doesn't fit in one row - a compact button
@@ -578,6 +595,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
+		table_option.visible = type == Effect.Type.SWITCH_TABLE
 		object_option.visible = type == Effect.Type.REMOVE_OBJECT or type == Effect.Type.MOVE_OBJECT or type == Effect.Type.SHOW_OBJECT or type == Effect.Type.HIDE_OBJECT
 		test_button.visible = type == Effect.Type.RUN_TEST
 		message_edit.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION

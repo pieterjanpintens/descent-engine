@@ -3218,6 +3218,33 @@ when computing requirements, shows the dialog, then
 group is already visible, so a duplicate detection result or a re-fired
 trigger can't show the setup dialog twice.
 
+**Tables (2026-11-05, branch `feature/table`)** - a wrapper ABOVE stages, to "reset the table" (a magic portal that brings the party somewhere else).
+`MissionTable` (`scripts/MissionTable.gd`, `extends MissionGroup`, no fields of its own) is a top-level group: a mission always has its **main table** (the
+outline root - everything outside a `MissionTable`) plus any number of extra Tables; the working group is now two levels deep (Table > stage). Exactly one
+Table is on the physical table at a time: `MissionData.active_table_id` ("" = main; an `@export` so it is saved with the embedded mission like the other
+in-place progress, but only the Player changes it). `MissionData` helpers: `tables()`, `find_table()`, `table_of(node)` / `table_of_group(id)` (the
+`MissionTable` at the top of the parent chain), `table_of_cell(tile_square)` (the Table whose floor lies under a square), `player_start_cells_of(table_id)`,
+`get_component_usage(table_id)` (default `ALL_TABLES`); **`is_effectively_visible()` now also requires the node's Table to be the active one**, so every
+Player-side consumer (painting, sight, labels, stage requirements, blockers) follows the table switch for free; `find_starting_group_ids()` looks at the
+active Table's start squares only. **Player start squares stay ONE list (`player_spawn_cells`) - a square belongs to the Table whose floor is under it
+(none = main)**, so tables must be drawn in DIFFERENT places of the editor space (no overlap - the validator reports `tables_overlap`; the board grid holds one
+piece per cell anyway). **`Effect.Type.SWITCH_TABLE`** (appended; `target_group_id` = a Table id or `Effect.MAIN_TABLE`, "Switch Table" in `EffectEditor`):
+`MissionRuntime` queues it (`drain_pending_table_switch()`, drained next to the stage reveals at both `MissionPlayer` sites) and `MissionPlayer._switch_table()`
+does it: dialog "The table is reset!..." (skipped in a fast debug start), `MissionRuntime.clear_monsters()` (monsters are removed WITHOUT loot - decided with
+the user: "people do not switch between pieces all the time, it's not a builder game"; going back is just another Switch Table effect, other ways exist inside
+one table), `active_table_id` set + `MissionProgress.table_entry()` in the world log (debug snapshots replay it), repaint with every piece of the new Table
+held back, `_rebuild_bounding_box()` (outline + camera jump now follow the active Table), the new Table's visible pieces announced page by page
+(`_announce_pieces()`, extracted from `show_stage()` and shared with it), its starting stages revealed, and the start-square confirmation
+(`_show_spawn_area_and_confirm()` uses the active Table's squares). Variables, objectives, loot, wounds and the round carry over. **Creator**: root context
+menu "New Table" (a Table row has its own icon / colour, "New Stage", "Rename Table", "Delete Table" with a confirmation - its contents move to the main
+table - and cannot be moved into a group), the working-group dropdown lists Table > stage indented, `CreatorController.working_table_id()` makes the
+component limits and the "copies left" badges count PER TABLE (a reset hands the physical pieces back), a generated stage lands in the working Table. **Validator**:
+`MapPlanValidator.validate_mission()` runs the checks per Table when extra Tables exist (messages prefixed `[Table "X"]` / `[the main table]`; each Table needs its
+own start squares and walkable floor; `empty_table` warning), plus `tables_overlap`, `no_table` / `missing_table` for a Switch Table effect. Headless-checked in a
+real Player (switch at BEFORE_PLAYER_PHASE through a trigger, fast and with dialogs: only the new Table is painted, the setup pages list its pieces, the
+snapshot restores the table), the Creator logic and the validator; the outline / dropdown were looked at in a real window. Not built: hero placement
+overrides per switch effect, remembering a Table's state when switching away and back, a tutorial step.
+
 **"Test": attribute rolls, pass/fail branching, cumulative totals** (new
 2026-09-14) - `Effect.Type.RUN_TEST`. The physical game resolves many
 situations by having a player roll a dice pool for one of four attributes

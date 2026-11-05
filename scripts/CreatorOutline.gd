@@ -74,7 +74,7 @@ extends Tree
 ## whenever ITS OWN group-CRUD actions could orphan it.
 
 enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER }
-enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN }
+enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN, NEW_TABLE }
 
 signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
 
@@ -319,6 +319,10 @@ func _create_group_item(parent_item: TreeItem, group: MissionGroup) -> TreeItem:
 	# Only groups are inline-renamable (double-click, or "Rename Group" in
 	# the context menu below) - objects/root are not, see class doc.
 	item.set_editable(0, true)
+	if group is MissionTable:
+		item.set_icon(0, EditorIcons.icon("table"))
+		item.set_custom_color(0, Color(0.95, 0.78, 0.45))
+		item.set_tooltip_text(0, "A Table: the physical table is reset to one Table at a time (Switch Table effect). Put stages and pieces inside it.")
 	# The eye hides/shows the whole stage in the Creator only (LayeredMap.editor_hidden_groups).
 	var hidden := layered_map.is_group_editor_hidden(group.id)
 	item.add_button(0, _eye_closed_icon() if hidden else _eye_open_icon(), EYE_BUTTON_ID, false, "Show this stage in the editor" if hidden else "Hide this stage in the editor")
@@ -719,12 +723,18 @@ func _populate_context_menu(type: SelectionType) -> void:
 	match type:
 		SelectionType.ROOT:
 			_context_menu.add_item("New Group", _ContextAction.NEW_GROUP)
+			_context_menu.add_item("New Table", _ContextAction.NEW_TABLE)
 		SelectionType.GROUP:
-			_context_menu.add_item("New Subgroup", _ContextAction.NEW_SUBGROUP)
-			_context_menu.add_item("Rename Group", _ContextAction.RENAME_GROUP)
-			_context_menu.add_item("Delete Group", _ContextAction.DELETE_GROUP)
-			_context_menu.add_separator()
-			_add_move_to_submenu()
+			if _find_group_by_id(_context_target_id) is MissionTable:
+				_context_menu.add_item("New Stage", _ContextAction.NEW_SUBGROUP)
+				_context_menu.add_item("Rename Table", _ContextAction.RENAME_GROUP)
+				_context_menu.add_item("Delete Table", _ContextAction.DELETE_GROUP)
+			else:
+				_context_menu.add_item("New Subgroup", _ContextAction.NEW_SUBGROUP)
+				_context_menu.add_item("Rename Group", _ContextAction.RENAME_GROUP)
+				_context_menu.add_item("Delete Group", _ContextAction.DELETE_GROUP)
+				_context_menu.add_separator()
+				_add_move_to_submenu()
 		SelectionType.OBJECT, SelectionType.TILE:
 			_add_move_to_submenu()
 		SelectionType.MONSTER_SPAWN:
@@ -765,6 +775,8 @@ func is_valid_move_target(source_type: SelectionType, source_id: String, target_
 		return true
 	if target_group_id == source_id:
 		return false
+	if _find_group_by_id(source_id) is MissionTable:
+		return false  # a Table stays at the top level
 	var walk := target_group_id
 	var guard := layered_map.mission.groups.size() + 1  # defends against a corrupted/cyclic parent_id chain
 	while walk != "" and guard > 0:
@@ -782,6 +794,8 @@ func _on_context_menu_id_pressed(id: int) -> void:
 	match id:
 		_ContextAction.NEW_GROUP:
 			_create_group("")
+		_ContextAction.NEW_TABLE:
+			_create_table()
 		_ContextAction.NEW_SUBGROUP:
 			_create_group(_context_target_id)
 		_ContextAction.RENAME_GROUP:
@@ -806,6 +820,20 @@ func _create_group(parent_id: String) -> void:
 	layered_map.notify_objects_changed()
 
 
+## A new extra Table (see MissionTable), at the top level; it becomes the working group so what you draw next goes into it.
+func _create_table() -> void:
+	var mission := layered_map.mission
+	var table := MissionTable.new()
+	operation_history.record("New table", func():
+		table.id = mission.allocate_object_id()
+		table.reference_name = "New Table"
+		table.parent_id = ""
+		mission.groups.append(table)
+	)
+	layered_map.notify_objects_changed()
+	creator_controller.set_working_group(table.id)
+
+
 func _begin_rename_group(group_id: String) -> void:
 	var item: TreeItem = _id_to_item.get(group_id, null)
 	if item == null:
@@ -818,6 +846,14 @@ func _begin_rename_group(group_id: String) -> void:
 ## organizational, so its direct children (both groups and objects) get
 ## promoted to the deleted group's own parent rather than removed.
 func _delete_group(group_id: String) -> void:
+	var group := _find_group_by_id(group_id)
+	if group is MissionTable:
+		creator_controller.confirm_then("Delete the table '%s'? Its stages and pieces are not deleted: they move to the main table." % group.reference_name, func(): _delete_group_now(group_id))
+		return
+	_delete_group_now(group_id)
+
+
+func _delete_group_now(group_id: String) -> void:
 	var mission := layered_map.mission
 	var group := _find_group_by_id(group_id)
 	if group == null:

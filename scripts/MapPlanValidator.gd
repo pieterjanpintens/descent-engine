@@ -167,21 +167,105 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	var creatures: Array[Dictionary] = []
 	var number := 1
 	for cell in mission.player_spawn_cells:
-		creatures.append(_mission_creature("Player start %d" % number, "start", cell))
+		var start := _mission_creature("Player start %d" % number, "start", cell)
+		start["table"] = mission.table_of_cell(cell)
+		creatures.append(start)
 		number += 1
 	number = 1
 	for spawn in mission.monster_spawns:
 		var name_text: String = spawn.reference_name if spawn.reference_name != "" else "Monster spawn %d" % number
 		var tile := 1
 		for cell in spawn.cells:
-			creatures.append(_mission_creature("%s, tile %d" % [name_text, tile], "spawn", cell))
+			var spawn_creature := _mission_creature("%s, tile %d" % [name_text, tile], "spawn", cell)
+			spawn_creature["table"] = mission.table_of(spawn)
+			creatures.append(spawn_creature)
 			tile += 1
 		number += 1
-	_run_checks(pieces, creatures, maxi(mission.max_players, 1), result)
+	for piece in pieces:  # which Table each piece and creature belongs to (the checks run per Table: only one is on the physical table at a time)
+		piece["table"] = mission.table_of(mission.find_node_by_id(str(piece["node_id"])))
+	for creature in creatures:
+		creature["table"] = str(creature.get("table", ""))
+	_run_checks_per_table(mission, pieces, creatures, result)
 	_check_objectives(mission, result)
 	_check_spawn_targets(mission, result)
+	_check_table_targets(mission, result)
 	result["ok"] = (result["errors"] as Array).is_empty()
 	return result
+
+
+## A mission with extra Tables is checked one Table at a time (each is set up on its own, with its own box of pieces, start squares and walkable
+## floor), the messages say which Table they are about; a mission with only the main table goes through the checks exactly as before.
+static func _run_checks_per_table(mission: MissionData, pieces: Array[Dictionary], creatures: Array[Dictionary], result: Dictionary) -> void:
+	var table_ids: Array[String] = [""]
+	for table in mission.tables():
+		table_ids.append(table.id)
+	var heroes := maxi(mission.max_players, 1)
+	if table_ids.size() == 1:
+		_run_checks(pieces, creatures, heroes, result)
+		return
+	var cells_by_table: Dictionary = {}
+	for table_id in table_ids:
+		var table_pieces: Array[Dictionary] = []
+		var table_creatures: Array[Dictionary] = []
+		for piece in pieces:
+			if str(piece["table"]) == table_id:
+				table_pieces.append(piece)
+		for creature in creatures:
+			if str(creature["table"]) == table_id:
+				table_creatures.append(creature)
+		var table_name := "the main table" if table_id == "" else "Table \"%s\"" % _table_name(mission, table_id)
+		var sub := {"ok": false, "errors": [], "warnings": [], "pieces": [], "starts": [], "spawns": [], "usage": {}, "bounds": Rect2i(), "heights": []}
+		if table_pieces.is_empty() and table_creatures.is_empty():
+			if table_id != "":
+				_add(result, "warning", "empty_table", -1, "%s is empty: add stages, pieces and start squares to it." % table_name.capitalize())
+			continue
+		_run_checks(table_pieces, table_creatures, heroes, sub)
+		for kind in ["errors", "warnings"]:
+			for issue: Dictionary in sub[kind]:
+				issue["message"] = "[%s] %s" % [table_name, issue["message"]]
+				(result[kind] as Array).append(issue)
+		var footprint: Dictionary = {}
+		for piece in table_pieces:
+			if piece["layer"] == "floor":
+				for cell: Vector3i in piece["cells"]:
+					footprint[Vector2i(cell.x, cell.z)] = true
+		cells_by_table[table_id] = footprint
+	var drawn: Array = cells_by_table.keys()
+	for a in drawn.size():
+		for b in range(a + 1, drawn.size()):
+			var overlap := false
+			for square: Vector2i in cells_by_table[drawn[a]]:
+				if (cells_by_table[drawn[b]] as Dictionary).has(square):
+					overlap = true
+					break
+			if overlap:
+				var one := "the main table" if drawn[a] == "" else "Table \"%s\"" % _table_name(mission, drawn[a])
+				var two := "the main table" if drawn[b] == "" else "Table \"%s\"" % _table_name(mission, drawn[b])
+				_add(result, "error", "tables_overlap", -1, "%s and %s are drawn on the same squares of the editor. Tables must not overlap: move one of them (select its stage and use the arrow keys)." % [one.capitalize(), two])
+	result["bounds"] = _bounds(pieces)
+	var heights: Dictionary = {}
+	for piece in pieces:
+		heights[int(piece["height"])] = true
+	var sorted_heights: Array = heights.keys()
+	sorted_heights.sort()
+	result["heights"] = sorted_heights
+	result["ok"] = (result["errors"] as Array).is_empty()
+
+
+static func _table_name(mission: MissionData, table_id: String) -> String:
+	var table := mission.find_table(table_id)
+	return table.reference_name if table != null and table.reference_name != "" else "(unnamed table)"
+
+
+## A Switch Table effect needs a Table that exists (the main table or one of the extra ones).
+static func _check_table_targets(mission: MissionData, result: Dictionary) -> void:
+	for effect in mission.all_effects():
+		if effect.type != Effect.Type.SWITCH_TABLE:
+			continue
+		if effect.target_group_id == "":
+			_add(result, "error", "no_table", -1, "A Switch Table effect has no table chosen. Open the effect and pick the table to switch to.")
+		elif effect.target_group_id != Effect.MAIN_TABLE and mission.find_table(effect.target_group_id) == null:
+			_add(result, "error", "missing_table", -1, "A Switch Table effect points at a table that no longer exists (deleted?). Open the effect and pick another table.")
 
 
 ## A Spawn Monsters effect needs a monster spawn area that exists (deleting an area leaves the effects that used it pointing at nothing, so

@@ -838,6 +838,12 @@ func toggle_draw_mode() -> void:
 		start_drawing(draw_target)
 
 
+## The Table the working group is in ("" = the main table): the physical pieces are counted per Table (a table reset gives them back), so this is
+## whose box the limits and the "copies left" badges look at.
+func working_table_id() -> String:
+	return layered_map.mission.table_of_group(working_group_id) if layered_map.mission != null else ""
+
+
 func set_working_group(group_id: String) -> void:
 	if working_group_id == group_id:
 		return
@@ -1817,7 +1823,7 @@ func is_mesh_available(mesh_name: String) -> bool:
 	if max_count < 0:
 		return true  # untracked - no limit configured yet
 	var group := ComponentInventory.get_group(mesh_name)
-	var usage := layered_map.mission.get_component_usage()
+	var usage := layered_map.mission.get_component_usage(working_table_id())
 	return usage.get(group, 0) < max_count
 
 
@@ -1828,7 +1834,7 @@ func copies_left(mesh_name: String) -> Dictionary:
 	if max_count < 0:
 		return {"left": -1, "max": -1}
 	var group := ComponentInventory.get_group(mesh_name)
-	var used: int = layered_map.mission.get_component_usage().get(group, 0)
+	var used: int = layered_map.mission.get_component_usage(working_table_id()).get(group, 0)
 	return {"left": maxi(max_count - used, 0), "max": max_count}
 
 
@@ -1844,7 +1850,7 @@ func _can_place(mesh_name: String, target_cell: Vector3i) -> bool:
 		return true  # untracked - no limit configured yet
 
 	var group := ComponentInventory.get_group(mesh_name)
-	var usage := layered_map.mission.get_component_usage()
+	var usage := layered_map.mission.get_component_usage(working_table_id())
 	var current: int = usage.get(group, 0)
 
 	var existing_name := _mesh_name_at(target_cell)

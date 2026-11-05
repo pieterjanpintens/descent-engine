@@ -556,9 +556,10 @@ func _brew_basket_boons() -> void:
 
 
 func _show_spawn_area_and_confirm() -> void:
-	if mission.player_spawn_cells.is_empty() or DebugSession.skipping():
+	var start_cells := mission.player_start_cells_of(mission.active_table_id)
+	if start_cells.is_empty() or DebugSession.skipping():
 		return
-	layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
+	layered_map.set_spawn_overlay_cells(start_cells)
 	layered_map.set_spawn_overlay_visible(true)
 	_frame_camera_on_spawn_area()
 	await dialog.ask_ok("Place your player figures in the highlighted area, then confirm.", false)
@@ -575,7 +576,7 @@ func _show_spawn_area_and_confirm() -> void:
 ## doesn't get an unnecessarily distant view and a large one still fits.
 func _frame_camera_on_spawn_area() -> void:
 	var corners: Array[Vector3] = []
-	for cell in mission.player_spawn_cells:
+	for cell in mission.player_start_cells_of(mission.active_table_id):
 		corners.append_array(layered_map.get_tile_square_world_corners(cell))
 	if corners.is_empty():
 		return
@@ -1067,7 +1068,12 @@ func show_stage(group_id: String) -> void:
 	var before := _visible_nodes()
 	group.visible = true
 	_runtime.world_log.append(MissionProgress.reveal_entry(group))
-	var new_pieces := _stage_pieces(before)
+	await _announce_pieces(_stage_pieces(before), group.reference_name)
+
+
+## Tells the table which physical pieces to place, one page per level and kind, revealing them on the map as each page is read (used by a stage
+## reveal and by a table switch). `new_pieces` are the nodes that just became visible (_stage_pieces()); they must not be painted yet.
+func _announce_pieces(new_pieces: Array[Dictionary], area_name: String) -> void:
 	# Reveal piece by piece while the table is told how to set them up, one
 	# level at a time (lowest first); within a level: overlays (underlays),
 	# then floor tiles, then pillars, then props. One page per (level, kind).
@@ -1098,7 +1104,7 @@ func show_stage(group_id: String) -> void:
 			var lines_n := lines.duplicate()
 			var make_page := func() -> String:
 				var level_text := tr("Level %d - ") % level_n if levels.size() > 1 else ""
-				var shown_name: String = group.reference_name if group.reference_name != "" else tr("a new area")
+				var shown_name: String = area_name if area_name != "" else tr("a new area")
 				return tr("Setting up '%s'\n%s%s - place these as shown:\n%s") % [shown_name, level_text, tr(bucket_labels[bucket_n]), "\n".join(lines_n)]
 			pages.append(make_page.call())
 			page_builders.append(make_page)
@@ -1123,7 +1129,7 @@ func show_stage(group_id: String) -> void:
 			layered_map.repaint_visible_entries()
 			# Outline what this page is about (floor tiles also get their name).
 			stage_highlight.show_pieces(shown, page_keys[index]["bucket"] == "floor")
-		await dialog.ask_narrative(pages, func() -> String: return tr("Setting up %s") % (group.reference_name if group.reference_name != "" else tr("a new area")), false, show_upto, false, page_builders)
+		await dialog.ask_narrative(pages, func() -> String: return tr("Setting up %s") % (area_name if area_name != "" else tr("a new area")), false, show_upto, false, page_builders)
 	stage_highlight.clear()
 	layered_map.held_back.clear()
 	layered_map.repaint_visible_entries()
@@ -1158,6 +1164,38 @@ func _stage_pieces(before: Dictionary) -> Array[Dictionary]:
 			bucket = "pillar"
 		pieces.append({"node": n, "bucket": bucket, "mesh": n.mesh_item_name, "level": n.origin_cell.y})
 	return pieces
+
+
+## SWITCH_TABLE: resets the physical table to another Table (see MissionTable). The old Table's pieces go back in the box (nothing of it is painted any
+## more), the monsters are removed (their places belonged to the old Table), then the new Table is set up page by page like a stage reveal and the
+## heroes are placed on its start squares. Variables, objectives, loot, wounds and the round carry over. `table_id` is a MissionTable id or Effect.MAIN_TABLE.
+func _switch_table(table_id: String) -> void:
+	var target := "" if table_id == Effect.MAIN_TABLE else table_id
+	if target == mission.active_table_id or (target != "" and mission.find_table(target) == null):
+		if target != "" and mission.find_table(target) == null:
+			push_warning("SWITCH_TABLE points at an unknown table '%s' - skipped" % table_id)
+		return
+	var table_name := tr("the main table") if target == "" else mission.find_table(target).reference_name
+	if table_name == "":
+		table_name = tr("a new table")
+	stage_highlight.clear()
+	layered_map.held_back.clear()
+	if not DebugSession.skipping():
+		await dialog.ask_ok(func() -> String: return tr("The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'.") % table_name, true, false, "Table", null, null, true)
+	_runtime.clear_monsters()
+	mission.active_table_id = target
+	_runtime.world_log.append(MissionProgress.table_entry(target, table_name))
+	# the new Table's pieces are all new to the table: nothing is painted until its pages reveal them
+	var new_pieces := _stage_pieces({})
+	for piece in new_pieces:
+		layered_map.held_back[piece["node"]] = true
+	layered_map.repaint_visible_entries()
+	_rebuild_bounding_box()
+	await _announce_pieces(new_pieces, table_name)
+	for group_id in mission.find_starting_group_ids():
+		await show_stage(group_id)
+	await _show_spawn_area_and_confirm()
+	_refresh_objective_label()
 
 
 func _find_group(group_id: String) -> MissionGroup:
@@ -1200,11 +1238,39 @@ const BOUNDS_VIEW_MULTIPLIER := 1.6
 ## everything in the mission (floors, underlays, props - including stages not
 ## revealed yet), so the table knows how much room to leave when building the
 ## map with physical pieces. Also labelled with its size in tiles.
+var _bounds_nodes: Array[Node3D] = []  ## the outline and its label (rebuilt when the table is switched)
+
+
+func _rebuild_bounding_box() -> void:
+	for node in _bounds_nodes:
+		_ground_decor.erase(node)
+		node.queue_free()
+	_bounds_nodes.clear()
+	_add_bounding_box()
+
+
 func _add_bounding_box() -> void:
+	# only the Table that is on the table counts (every piece, revealed or not - but not the other Tables')
+	var table_origins := {}
+	for placement in mission.floor_placements:
+		if mission.table_of(placement) == mission.active_table_id:
+			table_origins[placement.origin_cell] = true
+	for placement in mission.underlay_placements:
+		if mission.table_of(placement) == mission.active_table_id:
+			table_origins[placement.origin_cell] = true
+	for entry in mission.interactables:
+		if mission.table_of(entry) == mission.active_table_id:
+			table_origins[entry.origin_cell] = true
 	var cells: Array = []
-	cells.append_array(mission.floor_occupied_cells.keys())
-	cells.append_array(mission.underlay_occupied_cells.keys())
-	cells.append_array(mission.occupied_cells.keys())
+	for occupied in [mission.floor_occupied_cells, mission.underlay_occupied_cells]:
+		for cell: Vector3i in occupied:
+			if table_origins.has(occupied[cell]):
+				cells.append(cell)
+	for cell: Vector3i in mission.occupied_cells:
+		for owner: Vector3i in mission.prop_owners_at(cell):
+			if table_origins.has(owner):
+				cells.append(cell)
+				break
 	if cells.is_empty():
 		return
 	var min_x := 1 << 30
@@ -1263,6 +1329,7 @@ func _add_bounding_box() -> void:
 	box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	grid.add_child(box)
 	_ground_decor.append(box)
+	_bounds_nodes.append(box)
 
 	var label := Label3D.new()
 	label.text = tr("%d x %d tiles") % [tile_max_x - tile_min_x, tile_max_z - tile_min_z]
@@ -1272,6 +1339,7 @@ func _add_bounding_box() -> void:
 	label.position = Vector3(x0 + size.x / 2.0, y, z1 + 0.5)
 	grid.add_child(label)
 	_ground_decor.append(label)
+	_bounds_nodes.append(label)
 
 
 func _enter_player_phase() -> void:
@@ -1656,6 +1724,9 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 	await _show_optional_completions()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
+	var table_switch := _runtime.drain_pending_table_switch()
+	if table_switch != "":
+		await _switch_table(table_switch)
 	for removed_id in _runtime.drain_pending_object_removals():
 		_remove_object(removed_id)
 	_set_objects_visible(_runtime.drain_pending_object_shows(), true)
@@ -1896,6 +1967,9 @@ func _on_objectives_progressed() -> void:
 	await _show_optional_completions()
 	for group_id in _runtime.drain_pending_stage_reveals():
 		await show_stage(group_id)
+	var table_switch := _runtime.drain_pending_table_switch()
+	if table_switch != "":
+		await _switch_table(table_switch)
 	for removed_id in _runtime.drain_pending_object_removals():
 		_remove_object(removed_id)
 	_set_objects_visible(_runtime.drain_pending_object_shows(), true)

@@ -65,7 +65,14 @@ enum Type {
 	HIDE_OBJECT,
 	WAKE_MONSTERS,
 	ASK_QUESTION,
+	SWITCH_TABLE,
 }
+
+## SWITCH_TABLE (appended, 2026-11-05) resets the physical table to another Table (see MissionTable): everything of the current Table goes back in the
+## box, the monsters are removed, and the target Table is set up and the heroes placed on its start squares. Variables, objectives, loot and wounds
+## carry over. The target Table is `target_group_id` (a MissionTable's id, or MAIN_TABLE for the main table); there is no way "back" other than
+## another Switch Table effect.
+const MAIN_TABLE := "@main"
 
 ## ASK_QUESTION (appended) asks the table a yes/no question - the text is `message` (with its $1/$2... `message_variables`),
 ## "Yes" runs `pass_effects`, "No" runs `fail_effects` (the same two lists a Test uses, no accumulation, no roll).

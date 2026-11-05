@@ -92,6 +92,11 @@ func offered_languages() -> Array[String]:
 ## `interactables`, not a spatial or gameplay concept of its own.
 @export var groups: Array[MissionGroup] = []
 
+## Which Table is on the physical table right now ("" = the main table = everything outside a MissionTable). Play state kept IN the mission like
+## the other in-place progress (group.visible, already_fired...): only the Player changes it (Effect.Type.SWITCH_TABLE), a freshly loaded mission file
+## starts at "". See MissionTable.
+@export var active_table_id: String = ""
+
 ## Backing counter for allocate_object_id() below - must be @export so it
 ## persists across save/load and never reissues an id already baked into
 ## a saved mission's own interactables/groups.
@@ -130,18 +135,84 @@ func offered_languages() -> Array[String]:
 ## Returns { group_name: count } tallying every placed floor/underlay/
 ## prop piece by its PHYSICAL component group (see ComponentInventory - both
 ## faces of a double-sided tile count as the same physical piece).
-func get_component_usage() -> Dictionary:
+func get_component_usage(table_id: String = ALL_TABLES) -> Dictionary:
 	var usage: Dictionary = {}
 	for placement in floor_placements:
+		if table_id != ALL_TABLES and table_of(placement) != table_id:
+			continue
 		var group := ComponentInventory.get_group(placement.mesh_item_name)
 		usage[group] = usage.get(group, 0) + 1
 	for placement in underlay_placements:
+		if table_id != ALL_TABLES and table_of(placement) != table_id:
+			continue
 		var group := ComponentInventory.get_group(placement.mesh_item_name)
 		usage[group] = usage.get(group, 0) + 1
 	for entry in interactables:
+		if table_id != ALL_TABLES and table_of(entry) != table_id:
+			continue
 		var group := ComponentInventory.get_group(entry.mesh_item_name)
 		usage[group] = usage.get(group, 0) + 1
 	return usage
+
+
+## `table_id` meaning "every Table together" for get_component_usage().
+const ALL_TABLES := "@all"
+
+
+## The extra Tables of this mission (the main table is implicit).
+func tables() -> Array[MissionTable]:
+	var result: Array[MissionTable] = []
+	for group in groups:
+		if group is MissionTable:
+			result.append(group)
+	return result
+
+
+func find_table(table_id: String) -> MissionTable:
+	for group in groups:
+		if group is MissionTable and group.id == table_id:
+			return group
+	return null
+
+
+## The id of the Table `node` belongs to: the MissionTable at the top of its parent_id chain, "" for the main table.
+func table_of(node: OutlineNode) -> String:
+	return table_of_group(node.parent_id)
+
+
+## The Table a group id (or "" = root) is in; a Table's own id is its Table.
+func table_of_group(group_id: String) -> String:
+	var walk := group_id
+	var guard := groups.size() + 1
+	while walk != "" and guard > 0:
+		var group := _find_group(walk)
+		if group == null:
+			break
+		if group is MissionTable:
+			return group.id
+		walk = group.parent_id
+		guard -= 1
+	return ""
+
+
+## The Table whose floor lies under a tile square ("" = the main table, also when there is no floor there) - how a player start square is
+## attributed to a Table.
+func table_of_cell(tile_square: Vector3i) -> String:
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var near_fine_cell := Vector3i(tile_square.x * cpt - cpt, tile_square.y, tile_square.z * cpt - cpt)
+	if not floor_occupied_cells.has(near_fine_cell):
+		return ""
+	var placement := _find_floor_placement_at(floor_occupied_cells[near_fine_cell])
+	return table_of(placement) if placement != null else ""
+
+
+## The player start squares of one Table (the squares drawn on its floor).
+func player_start_cells_of(table_id: String) -> Array[Vector3i]:
+	var result: Array[Vector3i] = []
+	for cell in player_spawn_cells:
+		if table_of_cell(cell) == table_id:
+			result.append(cell)
+	return result
 
 
 ## Mints a fresh, never-reused id - originally just for InteractableEntry/
@@ -472,6 +543,8 @@ func get_level_links_from(cell: Vector3i) -> Array[InteractableEntry]:
 func is_effectively_visible(node: OutlineNode) -> bool:
 	if not node.visible:
 		return false
+	if table_of(node) != active_table_id:
+		return false  # it belongs to a Table that is not on the table right now
 	var walk := node.parent_id
 	var guard := groups.size() + 1  # defends against a corrupted/cyclic parent_id chain
 	while walk != "" and guard > 0:
@@ -558,13 +631,13 @@ func get_stage_requirements(group_id: String) -> Dictionary:
 func find_starting_group_ids() -> Array[String]:
 	var ids: Array[String] = []
 	var cpt := FootprintRegistry.CELLS_PER_TILE
-	for spawn_cell in player_spawn_cells:
+	for spawn_cell in player_start_cells_of(active_table_id):  # the start squares of the Table that is on the table
 		var near_fine_cell := Vector3i(spawn_cell.x * cpt - cpt, spawn_cell.y, spawn_cell.z * cpt - cpt)
 		if not floor_occupied_cells.has(near_fine_cell):
 			continue
 		var origin: Vector3i = floor_occupied_cells[near_fine_cell]
 		var placement := _find_floor_placement_at(origin)
-		if placement == null or placement.parent_id == "":
+		if placement == null or placement.parent_id == "" or placement.parent_id == active_table_id:
 			continue
 		if not ids.has(placement.parent_id):
 			ids.append(placement.parent_id)

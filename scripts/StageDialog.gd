@@ -203,7 +203,7 @@ func _on_build_pressed() -> void:
 	if _last.is_empty() or not _last.get("ok", false):
 		return
 	var corner := Vector2i(int(_x_spin.value), int(_z_spin.value))
-	var options := {"name": _name_edit.text, "heroes_start": _heroes_check.button_pressed}
+	var options := {"name": _name_edit.text, "heroes_start": _heroes_check.button_pressed, "parent_id": layered_map.mission.table_of_group(creator_controller.working_group_id)}
 	var piece_count: int = _last["result"]["pieces"].size()
 	var result: Dictionary = _last["result"]
 	creator_controller.operation_history.record("Generate stage", func():

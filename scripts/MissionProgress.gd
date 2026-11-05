@@ -80,6 +80,14 @@ static func apply_before_paint(mission: MissionData, progress: Dictionary, outco
 				changed_node.visible = visibility_op == "show"
 				outcome["world"].append(op)
 			continue
+		if str(op.get("op", "")) == "table":
+			var table_id := str(op["id"])
+			if table_id == "" or mission.find_table(table_id) != null:
+				mission.active_table_id = table_id
+				outcome["world"].append(op)
+			else:
+				_note(outcome, "The table was switched to '%s' before, but it no longer exists." % str(op.get("name", op["id"])))
+			continue
 		if str(op.get("op", "")) != "reveal":
 			continue
 		var group := _find_group(mission, str(op["id"]))
@@ -127,6 +135,11 @@ static func all_objectives(mission: MissionData) -> Array[MissionObjective]:
 ## Entries for MissionRuntime.world_log (written by MissionPlayer where a group is revealed, a piece removed or moved).
 static func reveal_entry(group: MissionGroup) -> Dictionary:
 	return {"op": "reveal", "id": group.id, "name": group.reference_name if group.reference_name != "" else "a group"}
+
+
+## The table was switched to this Table ("" = the main table).
+static func table_entry(table_id: String, table_name: String) -> Dictionary:
+	return {"op": "table", "id": table_id, "name": table_name}
 
 
 static func show_entry(node: OutlineNode) -> Dictionary:

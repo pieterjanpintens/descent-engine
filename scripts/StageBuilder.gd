@@ -39,6 +39,7 @@ static func build(layered_map: LayeredMap, result: Dictionary, corner: Vector2i,
 	group.id = mission.allocate_object_id()
 	var stage_name := str(options.get("name", "")).strip_edges()
 	group.reference_name = stage_name if stage_name != "" else "Generated stage"
+	group.parent_id = str(options.get("parent_id", ""))  # inside the Table being worked on
 	mission.groups.append(group)
 
 	var floor_origins: Dictionary = {}
