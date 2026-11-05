@@ -19,7 +19,8 @@ import traceback
 # Bump this (here AND in scripts/AssetImporter.gd) whenever the steps or the manifest change: an app only reuses an
 # installed tool whose protocol equals its own, so the bump is what makes older installed tools download again.
 # 2: the "Original props" step.
-PROTOCOL = 3
+# 4: the "Animated figures" step.
+PROTOCOL = 4
 
 STEPS = [
     ("Textures, portraits, icons", "import_official_assets"),
@@ -29,6 +30,7 @@ STEPS = [
     ("Item data", "import_item_data"),
     ("Monster data", "import_monster_data"),
     ("Original props", "import_original_props"),
+    ("Animated figures", "import_flat_rigs"),
 ]
 
 

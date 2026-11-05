@@ -10,6 +10,7 @@ where only you will ever see them:
     4. import_weapon_data.py      - weapons, weapon parts, abilities and their texts (JSON)
     5. import_item_data.py        - materials, recipes, potions, armor, trinkets, enemy loot (JSON)
     6. import_monster_data.py     - the game's monsters: tiers, activations, weaknesses, abilities (JSON)
+    7. import_flat_rigs.py        - the figures' skeletons and idle animations (JSON, no Godot needed)
 
 Usage:
     import_all.bat                 (Windows: double-click)
@@ -151,6 +152,7 @@ def main() -> int:
     results["weapon data"] = run("4/6 Weapon data", "import_weapon_data.py", bundles)
     results["item data"] = run("5/6 Item data", "import_item_data.py", bundles)
     results["monster data"] = run("6/6 Monster data", "import_monster_data.py", bundles)
+    results["animated figures"] = run("7/7 Animated figures", "import_flat_rigs.py", bundles)
 
     print("\n=== Done ===")
     for name, ok in results.items():
