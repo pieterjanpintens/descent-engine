@@ -126,9 +126,12 @@ static func clean_codes(list: Variant) -> Array[String]:
 
 
 ## Loads a resource file that may be in the old (plain string) format - a campaign, a mission, a save game, a template.
-static func load_file(path: String, type_hint: String = "") -> Resource:
+## `type_hint` is accepted for the callers' sake but NOT passed on: a script class name ("MissionData") is no native class, and in an EXPORTED game
+## (where the shipped .tres files are binary .res) the loader then refuses the file ("Error loading resource") - the shipped tutorial missions
+## could not be loaded or peeked at. Callers check the result with `is` / `as` anyway.
+static func load_file(path: String, _type_hint: String = "") -> Resource:
 	var before := loading
 	loading = true
-	var loaded := ResourceLoader.load(path, type_hint, ResourceLoader.CACHE_MODE_IGNORE)
+	var loaded := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
 	loading = before
 	return loaded

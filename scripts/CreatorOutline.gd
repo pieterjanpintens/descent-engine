@@ -73,8 +73,8 @@ extends Tree
 ## tab is active) - this script still needs to keep that state consistent
 ## whenever ITS OWN group-CRUD actions could orphan it.
 
-enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER }
-enum _ContextAction { NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN, NEW_TABLE }
+enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER, PLAYER_START }
+enum _ContextAction { START_HERE, NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN, NEW_TABLE, DELETE_START }
 
 signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
 
@@ -191,6 +191,9 @@ func _migrate_missing_ids() -> void:
 	for blocker in mission.los_blockers:
 		if blocker.id == "":
 			blocker.id = mission.allocate_object_id()
+	for start in mission.player_starts:
+		if start.id == "":
+			start.id = mission.allocate_object_id()
 
 
 func _rebuild_tree() -> void:
@@ -212,6 +215,8 @@ func _rebuild_tree() -> void:
 
 	var root_item := create_item()
 	root_item.set_text(0, mission.mission_name if mission.mission_name != "" else "Untitled Mission")
+	if mission.initial_table_id() == "" and not mission.tables().is_empty():
+		root_item.set_suffix(0, "  (main table starts here)")
 	root_item.set_metadata(0, {"type": SelectionType.ROOT, "id": ""})
 	_id_to_item[""] = root_item
 
@@ -271,6 +276,15 @@ func _rebuild_tree() -> void:
 		_dim_if_hidden(blocker_item, blocker)
 		_id_to_item[blocker.id] = blocker_item
 
+	for start_index in mission.player_starts.size():
+		var start: PlayerStart = mission.player_starts[start_index]
+		var start_parent: TreeItem = _id_to_item.get(start.parent_id, root_item)
+		var start_item := create_item(start_parent)
+		start_item.set_text(0, start.reference_name if start.reference_name != "" else "Player Start %d (%d squares)" % [start_index + 1, start.cells.size()])
+		start_item.set_metadata(0, {"type": SelectionType.PLAYER_START, "id": start.id})
+		_dim_if_hidden(start_item, start)
+		_id_to_item[start.id] = start_item
+
 	# Re-select whatever was selected before this rebuild - ALL of it, not
 	# just one item. Floor/underlay edits already fire mission_objects_changed
 	# (rebuilding this tree) on every painted cell, so without preserving
@@ -315,6 +329,8 @@ func _add_tile_item(placement: TilePlacement, tile_grid: String) -> void:
 func _create_group_item(parent_item: TreeItem, group: MissionGroup) -> TreeItem:
 	var item := create_item(parent_item)
 	item.set_text(0, group.reference_name if group.reference_name != "" else "(unnamed group)")
+	if group is MissionTable and layered_map.mission.initial_table_id() == group.id:
+		item.set_suffix(0, "  (starts here)")
 	item.set_metadata(0, {"type": SelectionType.GROUP, "id": group.id})
 	# Only groups are inline-renamable (double-click, or "Rename Group" in
 	# the context menu below) - objects/root are not, see class doc.
@@ -522,6 +538,22 @@ func _emit_selection_changed(jump_camera: bool, deliberate := false) -> void:  #
 					if jump_camera:
 						creator_controller.jump_to_cell(fine_start, layered_map.floor_grid)
 					return
+		SelectionType.PLAYER_START:
+			var start := _find_start_by_id(id)
+			if start != null:
+				creator_controller.set_active_player_start(start.id)
+				if (jump_camera or deliberate) and not creator_controller.is_drawing():
+					creator_controller.set_draw_target(CreatorController.DrawTarget.PLAYER_START)
+				if not start.cells.is_empty():
+					var first_start := start.cells[0]
+					var start_origin := FootprintRegistry.tile_square_to_fine_far_corner(first_start)
+					var start_offsets: Array[Vector3i] = []
+					for cell in start.cells:
+						start_offsets.append(cell - first_start)
+					creator_controller.highlight_footprint(start_origin, FootprintRegistry.expand_footprint(start_offsets), layered_map.floor_grid)
+					if jump_camera:
+						creator_controller.jump_to_cell(start_origin, layered_map.floor_grid)
+					return
 	creator_controller.clear_selection_highlight()
 
 
@@ -647,6 +679,13 @@ func _find_blocker_by_id(id: String) -> LosBlocker:
 	return null
 
 
+func _find_start_by_id(id: String) -> PlayerStart:
+	for start in layered_map.mission.player_starts:
+		if start.id == id:
+			return start
+	return null
+
+
 func _find_group_by_id(id: String) -> MissionGroup:
 	for group in layered_map.mission.groups:
 		if group.id == id:
@@ -722,10 +761,12 @@ func _populate_context_menu(type: SelectionType) -> void:
 	_context_menu.clear()
 	match type:
 		SelectionType.ROOT:
+			_context_menu.add_item("Start the mission in the main table", _ContextAction.START_HERE)
 			_context_menu.add_item("New Group", _ContextAction.NEW_GROUP)
 			_context_menu.add_item("New Table", _ContextAction.NEW_TABLE)
 		SelectionType.GROUP:
 			if _find_group_by_id(_context_target_id) is MissionTable:
+				_context_menu.add_item("Start the mission here", _ContextAction.START_HERE)
 				_context_menu.add_item("New Stage", _ContextAction.NEW_SUBGROUP)
 				_context_menu.add_item("Rename Table", _ContextAction.RENAME_GROUP)
 				_context_menu.add_item("Delete Table", _ContextAction.DELETE_GROUP)
@@ -745,6 +786,10 @@ func _populate_context_menu(type: SelectionType) -> void:
 			_add_move_to_submenu()
 			_context_menu.add_separator()
 			_context_menu.add_item("Delete LOS Blocker", _ContextAction.DELETE_BLOCKER)
+		SelectionType.PLAYER_START:
+			_add_move_to_submenu()
+			_context_menu.add_separator()
+			_context_menu.add_item("Delete Player Start", _ContextAction.DELETE_START)
 
 
 func _add_move_to_submenu() -> void:
@@ -796,6 +841,12 @@ func _on_context_menu_id_pressed(id: int) -> void:
 			_create_group("")
 		_ContextAction.NEW_TABLE:
 			_create_table()
+		_ContextAction.START_HERE:
+			var chosen := Effect.MAIN_TABLE if _context_target_type == SelectionType.ROOT else _context_target_id
+			operation_history.record("Start table", func():
+				layered_map.mission.start_table_id = chosen
+			)
+			layered_map.notify_objects_changed()
 		_ContextAction.NEW_SUBGROUP:
 			_create_group(_context_target_id)
 		_ContextAction.RENAME_GROUP:
@@ -806,6 +857,8 @@ func _on_context_menu_id_pressed(id: int) -> void:
 			_delete_blocker(_context_target_id)
 		_ContextAction.DELETE_SPAWN:
 			_delete_spawn(_context_target_id)
+		_ContextAction.DELETE_START:
+			_delete_start(_context_target_id)
 
 
 func _create_group(parent_id: String) -> void:
@@ -877,6 +930,9 @@ func _delete_group_now(group_id: String) -> void:
 		for blocker in mission.los_blockers:
 			if blocker.parent_id == group_id:
 				blocker.parent_id = group.parent_id
+		for start in mission.player_starts:
+			if start.parent_id == group_id:
+				start.parent_id = group.parent_id
 		mission.groups.erase(group)
 	)
 	layered_map.notify_objects_changed()
@@ -901,6 +957,20 @@ func _delete_blocker(blocker_id: String) -> void:
 	if creator_controller.active_los_blocker_id == blocker_id:
 		creator_controller.set_active_los_blocker("")
 	creator_controller.layered_map.refresh_blocker_overlay()
+	layered_map.notify_objects_changed()
+
+
+## Deletes a player start area (data only).
+func _delete_start(start_id: String) -> void:
+	var start := _find_start_by_id(start_id)
+	if start == null:
+		return
+	operation_history.record("Delete player start", func():
+		layered_map.mission.player_starts.erase(start)
+	)
+	if creator_controller.active_player_start_id == start_id:
+		creator_controller.set_active_player_start("")
+	layered_map.refresh_start_overlay()
 	layered_map.notify_objects_changed()
 
 
@@ -942,6 +1012,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 	var placement: TilePlacement = null
 	var spawn: MonsterSpawn = null
 	var los_blocker: LosBlocker = null
+	var player_start: PlayerStart = null
 	match _context_target_type:
 		SelectionType.GROUP:
 			group = _find_group_by_id(_context_target_id)
@@ -953,9 +1024,11 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			spawn = _find_spawn_by_id(_context_target_id)
 		SelectionType.LOS_BLOCKER:
 			los_blocker = _find_blocker_by_id(_context_target_id)
+		SelectionType.PLAYER_START:
+			player_start = _find_start_by_id(_context_target_id)
 		_:
 			return
-	if group == null and entry == null and placement == null and spawn == null and los_blocker == null:
+	if group == null and entry == null and placement == null and spawn == null and los_blocker == null and player_start == null:
 		return
 
 	operation_history.record("Move to group", func():
@@ -969,5 +1042,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			spawn.parent_id = new_parent_id
 		elif los_blocker != null:
 			los_blocker.parent_id = new_parent_id
+		elif player_start != null:
+			player_start.parent_id = new_parent_id
 	)
 	layered_map.notify_objects_changed()

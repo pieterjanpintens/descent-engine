@@ -305,7 +305,7 @@ func _signature() -> int:
 	for spawn in mission.monster_spawns:
 		spawn_cells += spawn.cells.size()
 	return hash([mission.floor_placements.size(), mission.underlay_placements.size(), mission.interactables.size(), mission.monster_spawns.size(),
-		spawn_cells, mission.player_spawn_cells.hash(), mission.los_blockers.size(), mission.max_players, mission.objectives.size(), mission.custom_variables.size()])
+		spawn_cells, mission.all_start_cells().hash(), mission.los_blockers.size(), mission.max_players, mission.objectives.size(), mission.custom_variables.size()])
 
 
 func _watch() -> void:

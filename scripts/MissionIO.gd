@@ -38,6 +38,7 @@ static func load_mission(path: String) -> MissionData:
 		push_error("Failed to load a valid MissionData from %s" % path)
 		return null
 
+	(loaded as MissionData).upgrade_legacy_starts()
 	print("Loaded mission from %s" % path)
 	return loaded
 
@@ -74,5 +75,7 @@ static func load_game(path: String) -> SaveGame:
 		push_error("Failed to load a valid SaveGame from %s" % path)
 		return null
 
+	if (loaded as SaveGame).mission != null:
+		(loaded as SaveGame).mission.upgrade_legacy_starts()
 	print("Loaded game from %s" % path)
 	return loaded

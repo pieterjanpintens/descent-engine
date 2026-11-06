@@ -3218,6 +3218,29 @@ when computing requirements, shows the dialog, then
 group is already visible, so a duplicate detection result or a re-fired
 trigger can't show the setup dialog twice.
 
+**`PlayerStart` (2026-11-06, branch `feature/table`)** - the hero start squares are an `OutlineNode` entity like `MonsterSpawn` / `LosBlocker`
+(`scripts/PlayerStart.gd`, `cells: Array[Vector3i]` = tile squares), `MissionData.player_starts`; they show in the outline tree ("Player Start N (M squares)",
+`SelectionType.PLAYER_START`), can be moved into a stage / Table (context menu Move to…, Delete Player Start), are found by `find_node_by_id()`, selectable in the
+3D view (click, Ctrl, box) and edited with Draw: `CreatorController.active_player_start_id`, `create_player_start()`, `set_active_player_start()`; drawing a
+square goes into the start that sits in the WORKING GROUP (the active one if it is there, else the first one there, else a new one - so a start belongs to
+the stage it was drawn for); clicking a square that already belongs to any start removes it from that start. A start's squares always move together (move the
+whole start to another stage with Move to…; draw separate squares per stage to get separate starts). The yellow editor overlay skips starts in stages hidden
+with the eye (`LayeredMap.refresh_start_overlay()`). The Misc tab's Player
+Start button just starts drawing. **The P hotkey is gone** (tutorial text updated). The old flat `player_spawn_cells` is LEGACY: `MissionData.upgrade_legacy_starts()`
+(idempotent, called by `MissionIO.load_mission()` / `load_game()` and the accessors) turns it into one PlayerStart per Table (by the floor under each square) and
+empties it. Accessors: `all_start_cells()`, `player_start_cells_of(table_id)` (uses `table_of(start)`). `StageTransform` moves/turns the starts inside the selection,
+`StageBuilder` (heroes start) creates a PlayerStart in the new stage, `MapPlanValidator.validate_mission()` takes its start creatures from the entities (table via
+parent). Headless-checked (legacy upgrade of the shipped tutorial mission, tree entry, toggling, per-Table starts, undo, delete, stage move, stage builder); the Player
+switch flow was not re-run after this refactor, the outline was not looked at on screen. Not done: highlighting all squares of a start in the Player before round 1
+differently per start, a start deciding which stage is revealed first (`find_starting_group_ids()` still goes by the floor under the squares).
+
+**Which Table a mission starts on (2026-11-06)** - the main table (everything outside a Table) is implicit and normally first, but a mission whose pieces all sit
+inside Tables left it empty and the Player showed nothing (found in `DemoMission2`). `MissionData.start_table_id` ("" = automatic, `Effect.MAIN_TABLE` = the main
+table, else a Table id; set by "Start the mission here" in a Table's context menu / "Start the mission in the main table" on the root row; the tree shows
+"(starts here)") and `initial_table_id()` (explicit choice, else the main table when it has floor, else the first Table with floor). A FRESH `MissionPlayer`
+game sets `active_table_id = initial_table_id()` before painting (resumed saves keep theirs; a debug snapshot replays later switches). The validator reports
+`start_table_empty` (error) when the start Table has no floor, and `start_not_visible` (error) for a player start in a stage whose Visible box is off.
+
 **Tables (2026-11-05, branch `feature/table`)** - a wrapper ABOVE stages, to "reset the table" (a magic portal that brings the party somewhere else).
 `MissionTable` (`scripts/MissionTable.gd`, `extends MissionGroup`, no fields of its own) is a top-level group: a mission always has its **main table** (the
 outline root - everything outside a `MissionTable`) plus any number of extra Tables; the working group is now two levels deep (Table > stage). Exactly one
@@ -3226,8 +3249,8 @@ in-place progress, but only the Player changes it). `MissionData` helpers: `tabl
 `MissionTable` at the top of the parent chain), `table_of_cell(tile_square)` (the Table whose floor lies under a square), `player_start_cells_of(table_id)`,
 `get_component_usage(table_id)` (default `ALL_TABLES`); **`is_effectively_visible()` now also requires the node's Table to be the active one**, so every
 Player-side consumer (painting, sight, labels, stage requirements, blockers) follows the table switch for free; `find_starting_group_ids()` looks at the
-active Table's start squares only. **Player start squares stay ONE list (`player_spawn_cells`) - a square belongs to the Table whose floor is under it
-(none = main)**, so tables must be drawn in DIFFERENT places of the editor space (no overlap - the validator reports `tables_overlap`; the board grid holds one
+active Table's start squares only. **Player starts are outline entities (`PlayerStart`, since 2026-11-06, see below) - a start belongs to the Table it sits in
+(parent chain; none = main)**, so tables must be drawn in DIFFERENT places of the editor space (no overlap - the validator reports `tables_overlap`; the board grid holds one
 piece per cell anyway). **`Effect.Type.SWITCH_TABLE`** (appended; `target_group_id` = a Table id or `Effect.MAIN_TABLE`, "Switch Table" in `EffectEditor`):
 `MissionRuntime` queues it (`drain_pending_table_switch()`, drained next to the stage reveals at both `MissionPlayer` sites) and `MissionPlayer._switch_table()`
 does it: dialog "The table is reset!..." (skipped in a fast debug start), `MissionRuntime.clear_monsters()` (monsters are removed WITHOUT loot - decided with

@@ -199,7 +199,7 @@
 			"chapter": "Start position",
 			"title": "Where the heroes start",
 			"tab": "Palette",
-			"text": "Open the [b]Misc[/b] tab and click [b]Player Start[/b] (or press [b]P[/b]). Click tile squares to mark them: that is where the heroes stand when the mission begins. Click a marked square again to remove it.\n\nMark [b]four[/b] squares on your floor, one for each hero.",
+			"text": "Open the [b]Misc[/b] tab and click [b]Player Start[/b]. Click tile squares to mark them: that is where the heroes stand when the mission begins. Click a marked square again to remove it. The squares become a [b]Player Start[/b] entry in the Outline tab, which you can select, rename or move into a stage or Table like a monster spawn.\n\nMark [b]four[/b] squares on your floor, one for each hero.",
 			"highlight": [
 				"palette_misc",
 				"palette_player_start"

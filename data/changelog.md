@@ -1,4 +1,11 @@
-﻿## v0.0.64 - 2026-11-05
+﻿## v0.0.65 - 2026-11-06
+- Mission editor: new Tables. A Table is a wrapper above stages that lets one mission hold several complete set-ups (for example a magic portal that brings the party somewhere else). The new "Switch Table" effect resets the physical table to another Table; every Table has its own pieces, hero start and box limits, and the Problems list checks them per Table. Create one with right-click > New Table on the top row of the outline, and choose where the mission begins with "Start the mission here".
+- Mission editor: hero start squares are now Player Start entries in the outline, like monster spawns: select them, rename them, move them into a stage or Table, and hide them with the stage. Older missions are converted when they are opened. The P hotkey is gone; use the Draw tool.
+- Mission editor: new Select / Draw / Move / Rotate buttons with a single Draw tool for pieces, player starts, monster spawns and LOS blockers. Spawns and blockers can now be clicked in the 3D view (Ctrl adds, Alt picks the floor beneath, a dragged box selects several).
+- The Problems list now reports a player start in a stage that is not visible and a start Table without floor.
+- Fixed: the example mission of tutorial 2 and "Peek" did not load in the released game.
+
+## v0.0.64 - 2026-11-05
 - The heroes and monsters in the combat screens (attack, weapon choice, monster attack) now play the game's own idle animation, for all 17 monsters and both weapon poses of every hero. It needs the game assets: use Options > Game assets > Import again once (it has a new "Animated figures" step).
 
 ## v0.0.63 - 2026-11-05

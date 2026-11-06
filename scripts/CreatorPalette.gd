@@ -184,7 +184,7 @@ func _build_ui() -> void:
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.custom_minimum_size.x = 200.0
 	_misc_container.add_child(hint)
-	_player_start_button = _target_button("Player Start", "player_start", "Draw the squares the heroes start on (also the P key); more squares are added to the same start area.", CreatorController.DrawTarget.PLAYER_START)
+	_player_start_button = _target_button("Player Start", "player_start", "Draw the squares the heroes start on; more squares are added to the start area of the Table you work in. To change an existing one, select it and press Draw.", CreatorController.DrawTarget.PLAYER_START)
 	_misc_container.add_child(_player_start_button)
 	_monster_spawn_target_button = _target_button("Monster Spawn", "monster_spawn", "Start a NEW monster spawn area: click tile squares to add them (the first monster takes the first square...). To change an existing one, select it and press Draw.", CreatorController.DrawTarget.MONSTER_SPAWN)
 	_misc_container.add_child(_monster_spawn_target_button)

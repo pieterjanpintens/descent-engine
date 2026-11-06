@@ -166,11 +166,13 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	result["pieces"] = pieces
 	var creatures: Array[Dictionary] = []
 	var number := 1
-	for cell in mission.player_spawn_cells:
-		var start := _mission_creature("Player start %d" % number, "start", cell)
-		start["table"] = mission.table_of_cell(cell)
-		creatures.append(start)
-		number += 1
+	mission.upgrade_legacy_starts()
+	for start_area in mission.player_starts:
+		for cell in start_area.cells:
+			var start := _mission_creature("Player start %d" % number, "start", cell)
+			start["table"] = mission.table_of(start_area)
+			creatures.append(start)
+			number += 1
 	number = 1
 	for spawn in mission.monster_spawns:
 		var name_text: String = spawn.reference_name if spawn.reference_name != "" else "Monster spawn %d" % number
@@ -189,6 +191,8 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	_check_objectives(mission, result)
 	_check_spawn_targets(mission, result)
 	_check_table_targets(mission, result)
+	_check_start_visibility(mission, result)
+	_check_start_table(mission, result)
 	result["ok"] = (result["errors"] as Array).is_empty()
 	return result
 
@@ -258,6 +262,44 @@ static func _table_name(mission: MissionData, table_id: String) -> String:
 
 
 ## A Switch Table effect needs a Table that exists (the main table or one of the extra ones).
+## A player start in a stage that is not visible (its own Visible box or the stage's, or a stage above it, is off) is an error: the heroes would
+## start in a part of the map that is not set up.
+static func _check_start_visibility(mission: MissionData, result: Dictionary) -> void:
+	var number := 1
+	for start in mission.player_starts:
+		var hidden_in := ""
+		var hidden := not start.visible
+		if hidden:
+			hidden_in = "its own Visible box is off"
+		var walk := start.parent_id
+		var guard := mission.groups.size() + 1
+		while walk != "" and guard > 0:
+			var group: MissionGroup = mission._find_group(walk)
+			if group == null:
+				break
+			if not group.visible and not hidden:
+				hidden = true
+				hidden_in = "the stage \"%s\" it is in is not visible" % (group.reference_name if group.reference_name != "" else "(unnamed)")
+			walk = group.parent_id
+			guard -= 1
+		if hidden and not start.cells.is_empty():
+			var label: String = start.reference_name if start.reference_name != "" else "Player start area %d" % number
+			_add(result, "error", "start_not_visible", -1, "%s has hero start squares, but %s. Make the stage visible, or move the start into a visible stage." % [label, hidden_in])
+		number += 1
+
+
+## The Table the mission starts on must have floor (otherwise the Player shows nothing at the start).
+static func _check_start_table(mission: MissionData, result: Dictionary) -> void:
+	if mission.tables().is_empty():
+		return
+	var start_id := mission.initial_table_id()
+	for placement in mission.floor_placements:
+		if mission.table_of(placement) == start_id:
+			return
+	var name_text := "the main table" if start_id == "" else "Table \"%s\"" % _table_name(mission, start_id)
+	_add(result, "error", "start_table_empty", -1, "The mission starts on %s, but it has no floor, so nothing would be shown. Right-click the Table you want to begin on and choose \"Start the mission here\"." % name_text)
+
+
 static func _check_table_targets(mission: MissionData, result: Dictionary) -> void:
 	for effect in mission.all_effects():
 		if effect.type != Effect.Type.SWITCH_TABLE:

@@ -85,10 +85,15 @@ static func build(layered_map: LayeredMap, result: Dictionary, corner: Vector2i,
 
 	var starts := 0
 	if options.get("heroes_start", false):
+		var start_area := PlayerStart.new()
+		start_area.id = mission.allocate_object_id()
+		start_area.parent_id = group.id
 		for start: Dictionary in result["starts"]:
-			mission.player_spawn_cells.append(Vector3i(int(start["x"]) + shift.x + 1, int(start["height"]), int(start["z"]) + shift.y + 1))
+			start_area.cells.append(Vector3i(int(start["x"]) + shift.x + 1, int(start["height"]), int(start["z"]) + shift.y + 1))
 			starts += 1
-		layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
+		if starts > 0:
+			mission.player_starts.append(start_area)
+		layered_map.refresh_start_overlay()
 	layered_map.notify_objects_changed()
 	return {"group_id": group.id, "pieces": result["pieces"].size(), "starts": starts}
 

@@ -38,9 +38,9 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 					return true
 			return false
 		"starts":
-			return mission.player_spawn_cells.size() >= int(spec.get("n", 1))
+			return mission.all_start_cells().size() >= int(spec.get("n", 1))
 		"players_fit":
-			return not mission.player_spawn_cells.is_empty() and mission.max_players <= mission.player_spawn_cells.size()
+			return not mission.all_start_cells().is_empty() and mission.max_players <= mission.all_start_cells().size()
 		"template":
 			return not MonsterArchetypeLibrary.names_of_kind(MonsterArchetype.Kind.BASE).is_empty()
 		"monster_spawn":
@@ -69,7 +69,7 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 			return objective_chain_ok(mission)
 		# ---- tutorial 2: the fork ----
 		"ready":
-			return mission.player_spawn_cells.size() >= 1 and _floors({"n": 3, "in_stage": true}, mission)
+			return mission.all_start_cells().size() >= 1 and _floors({"n": 3, "in_stage": true}, mission)
 		"hidden_stage":
 			return hidden_stage(mission) != null
 		"lair_floor":

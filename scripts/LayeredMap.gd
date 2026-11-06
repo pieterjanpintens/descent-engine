@@ -374,6 +374,21 @@ func set_spawn_overlay_cells(cells: Array[Vector3i]) -> void:
 	_spawn_overlay.visible = true
 
 
+## Creator: the yellow start overlay of every PlayerStart that is not in a stage hidden with the eye.
+func refresh_start_overlay() -> void:
+	if mission == null or _spawn_overlay == null:
+		return
+	mission.upgrade_legacy_starts()
+	var cells: Array[Vector3i] = []
+	for start in mission.player_starts:
+		if is_editor_hidden(start):
+			continue
+		for cell in start.cells:
+			if not cells.has(cell):
+				cells.append(cell)
+	set_spawn_overlay_cells(cells)
+
+
 func set_spawn_overlay_visible(value: bool) -> void:
 	_spawn_overlay.visible = value and _spawn_overlay_mesh.get_surface_count() > 0
 
@@ -852,7 +867,7 @@ func _hidden_ids() -> Dictionary:
 	var ids: Dictionary = {}
 	if editor_hidden_groups.is_empty() or mission == null:
 		return ids
-	for list: Array in [mission.floor_placements, mission.underlay_placements, mission.interactables, mission.monster_spawns, mission.los_blockers]:
+	for list: Array in [mission.floor_placements, mission.underlay_placements, mission.interactables, mission.monster_spawns, mission.los_blockers, mission.player_starts]:
 		for node: OutlineNode in list:
 			if is_editor_hidden(node):
 				ids[node.id] = true
@@ -882,6 +897,7 @@ func _repaint_for_editor_hidden() -> void:
 		refresh_monster_spawn_overlay()
 	if _blocker_overlay != null:
 		refresh_blocker_overlay()
+	refresh_start_overlay()
 
 
 ## Placement/prop nodes temporarily NOT painted even though visible (keys are
@@ -921,7 +937,7 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	# (all apply_mission()) left the previous mission's area (or none)
 	# showing. The Player shows it itself, before round 1.
 	if _spawn_overlay != null and not respect_visibility:
-		set_spawn_overlay_cells(mission.player_spawn_cells)
+		refresh_start_overlay()
 	# Virtual LOS walls: the Creator draws them all as a fill; the Player shows a fine outline of the ones in force.
 	if _blocker_overlay != null and not respect_visibility:
 		refresh_blocker_overlay()

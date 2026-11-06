@@ -108,7 +108,7 @@ signal mesh_changed(mesh_name: String)
 ## layer_changed/mesh_changed above.
 signal draw_mode_changed(enabled: bool)
 
-## Same idea for spawn_paint_mode (P key, or set_spawn_paint_mode()) -
+## Same idea for spawn_paint_mode (set_spawn_paint_mode(); no hotkey since 2026-11-06) -
 ## CreatorPalette.gd's "Misc" tab / Player Start tool button (requested
 ## 2026-09-10, replacing an earlier toolbar-button idea - see claude.md)
 ## listens to this to stay in sync with the hotkey, same as draw_mode above.
@@ -220,11 +220,15 @@ var _tile_labels_container: Node3D
 var show_tile_labels: bool = false
 
 var spawn_paint_mode: bool = false
-## Same tool as spawn_paint_mode (shares its hover/ghost), but each
+## Draws the squares of the ACTIVE PlayerStart (see active_player_start_id).
+## Same tool shape as monster_spawn_paint_mode below (shares its hover/ghost), but each
 ## left-click toggles a MonsterSpawn entry in mission.monster_spawns
-## (one per tile-square, `cell`) instead of a player_spawn_cells entry.
+## (one per tile-square, `cell`) instead of a PlayerStart square.
 ## Mutually exclusive with draw/spawn/move - enforced in all four setters.
 var monster_spawn_paint_mode: bool = false
+## Which PlayerStart the Player Start tool draws into, see set_active_player_start(). Tool state, not undo-tracked.
+var active_player_start_id: String = ""
+signal active_player_start_changed(id: String)
 ## Which MonsterSpawn the monster spawn tool draws into, see
 ## set_active_monster_spawn().
 var active_monster_spawn_id: String = ""
@@ -321,7 +325,7 @@ func _ready() -> void:
 	# actively drawing it. set_spawn_overlay_visible() already no-ops to
 	# invisible when there's no geometry, so this is a safe no-op on a
 	# mission with no spawn cells authored yet.
-	layered_map.set_spawn_overlay_cells(layered_map.mission.player_spawn_cells)
+	layered_map.refresh_start_overlay()
 	layered_map.set_spawn_overlay_visible(true)
 	layered_map.refresh_monster_spawn_overlay()
 	layered_map.refresh_blocker_overlay()
@@ -1149,10 +1153,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				set_tile_labels(not show_tile_labels)
 			KEY_G:
 				set_grid_overlay(not show_grid_overlay)
-			KEY_P:
-				set_spawn_paint_mode(not spawn_paint_mode)
-				# The spawn overlay itself stays visible all the time now
-				# (see _ready()) - P only toggles whether clicking edits it.
 			KEY_D:
 				if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):  # D also flies the camera sideways while the right button is held
 					toggle_draw_mode()
@@ -1281,15 +1281,66 @@ func _toggle_spawn_cell_at_cursor() -> void:
 	if not _spawn_has_hover:
 		return
 	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
-	operation_history.record("Toggle spawn cell", func():
-		var cells := layered_map.mission.player_spawn_cells
-		var index := cells.find(tile_square)
-		if index == -1:
-			cells.append(tile_square)
+	var mission := layered_map.mission
+	# A square that is already part of a start area is taken out of THAT area (whichever stage / Table it is in).
+	for owner in mission.player_starts:
+		if layered_map.is_editor_hidden(owner):
+			continue
+		var at := owner.cells.find(tile_square)
+		if at != -1:
+			operation_history.record("Toggle spawn cell", func():
+				owner.cells.remove_at(at)
+			)
+			layered_map.refresh_start_overlay()
+			layered_map.notify_objects_changed()
+			return
+	# New squares go into a start area that sits in the group being worked in (a stage, a Table or the root): the active one if it is there,
+	# else the first one there, else a new one - so a start belongs to the stage it was drawn for, like a monster spawn.
+	var target := _find_player_start(active_player_start_id)
+	if target == null or target.parent_id != working_group_id:
+		target = null
+		for start in mission.player_starts:
+			if start.parent_id == working_group_id:
+				target = start
+				break
+		if target == null:
+			create_player_start()
+			target = _find_player_start(active_player_start_id)
 		else:
-			cells.remove_at(index)
-		layered_map.set_spawn_overlay_cells(cells)
+			set_active_player_start(target.id)
+	operation_history.record("Toggle spawn cell", func():
+		target.cells.append(tile_square)
 	)
+	layered_map.refresh_start_overlay()
+	layered_map.notify_objects_changed()
+
+
+func _find_player_start(id: String) -> PlayerStart:
+	for start in layered_map.mission.player_starts:
+		if start.id == id:
+			return start
+	return null
+
+
+## Creates an empty PlayerStart (in the current working group, so it lands in the stage / Table being built) and makes it the active one.
+## One undo step. Returns its id.
+func create_player_start() -> String:
+	var start := PlayerStart.new()
+	operation_history.record("New player start", func():
+		start.id = layered_map.mission.allocate_object_id()
+		start.parent_id = working_group_id
+		layered_map.mission.player_starts.append(start)
+	)
+	layered_map.notify_objects_changed()
+	set_active_player_start(start.id)
+	return start.id
+
+
+func set_active_player_start(id: String) -> void:
+	if active_player_start_id == id:
+		return
+	active_player_start_id = id
+	active_player_start_changed.emit(id)
 
 
 ## Toggles the hovered tile square in/out of the ACTIVE LosBlocker (one undo step per click); with no active blocker one is created first so
@@ -1968,6 +2019,9 @@ func pieces_in_screen_rect(rect: Rect2) -> Array[String]:
 	for blocker in mission.los_blockers:
 		if not layered_map.is_editor_hidden(blocker) and _squares_in_rect(blocker.cells, rect):
 			found.append(blocker.id)
+	for start in mission.player_starts:
+		if not layered_map.is_editor_hidden(start) and _squares_in_rect(start.cells, rect):
+			found.append(start.id)
 	return found
 
 
@@ -2042,6 +2096,7 @@ func _delete_selection_now() -> void:
 	var tiles: Array[TilePlacement] = []
 	var spawns: Array[MonsterSpawn] = []
 	var blockers: Array[LosBlocker] = []
+	var starts: Array[PlayerStart] = []
 	for id in selected_ids:
 		var node := layered_map.mission.find_node_by_id(id)
 		if node is InteractableEntry:
@@ -2052,13 +2107,17 @@ func _delete_selection_now() -> void:
 			spawns.append(node as MonsterSpawn)
 		elif node is LosBlocker:
 			blockers.append(node as LosBlocker)
-	if props.is_empty() and tiles.is_empty() and spawns.is_empty() and blockers.is_empty():
+		elif node is PlayerStart:
+			starts.append(node as PlayerStart)
+	if props.is_empty() and tiles.is_empty() and spawns.is_empty() and blockers.is_empty() and starts.is_empty():
 		return
 	operation_history.record("Delete selection", func():
 		for spawn in spawns:
 			layered_map.mission.monster_spawns.erase(spawn)
 		for blocker in blockers:
 			layered_map.mission.los_blockers.erase(blocker)
+		for start in starts:
+			layered_map.mission.player_starts.erase(start)
 		var floors_changed := false
 		var underlays_changed := false
 		for entry in props:
@@ -2084,6 +2143,11 @@ func _delete_selection_now() -> void:
 	for blocker in blockers:
 		if active_los_blocker_id == blocker.id:
 			set_active_los_blocker("")
+	for start in starts:
+		if active_player_start_id == start.id:
+			set_active_player_start("")
+	if not starts.is_empty():
+		layered_map.refresh_start_overlay()
 	if not spawns.is_empty():
 		layered_map.refresh_monster_spawn_overlay()
 	if not blockers.is_empty():
@@ -2169,6 +2233,12 @@ func _overlay_entity_at(fine_cell: Vector3i) -> Dictionary:
 		for cell in blocker.cells:
 			if cell.x == square.x and cell.z == square.z:
 				return {"kind": "los_blocker", "id": blocker.id}
+	for start in layered_map.mission.player_starts:
+		if layered_map.is_editor_hidden(start):
+			continue
+		for cell in start.cells:
+			if cell.x == square.x and cell.z == square.z:
+				return {"kind": "player_start", "id": start.id}
 	return {"kind": "", "id": ""}
 
 

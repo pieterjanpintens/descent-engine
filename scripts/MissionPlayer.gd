@@ -111,6 +111,9 @@ func _ready() -> void:
 		info_label.visible = true
 		return
 
+	if resume_save == null or resume_save.mission == null:
+		mission.active_table_id = mission.initial_table_id()  # a fresh game begins on the mission's start Table (a snapshot's progress replays any later switch)
+
 	LText.edit_language = ""
 	if GameState.campaign_folder == "":  # (a mission of a campaign game keeps the language the campaign player chose)
 		LText.reset_editing()

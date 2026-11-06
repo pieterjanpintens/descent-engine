@@ -294,8 +294,11 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 func _rebuild_spawn_tiles(type: CreatorOutline.SelectionType) -> void:
 	for child in _spawn_tiles_box.get_children():
 		child.queue_free()
-	_spawn_tiles_box.visible = type == CreatorOutline.SelectionType.MONSTER_SPAWN or type == CreatorOutline.SelectionType.LOS_BLOCKER
+	_spawn_tiles_box.visible = type == CreatorOutline.SelectionType.MONSTER_SPAWN or type == CreatorOutline.SelectionType.LOS_BLOCKER 			or type == CreatorOutline.SelectionType.PLAYER_START
 	if not _spawn_tiles_box.visible:
+		return
+	if type == CreatorOutline.SelectionType.PLAYER_START:
+		_rebuild_start_squares(_current_node as PlayerStart)
 		return
 	if type == CreatorOutline.SelectionType.LOS_BLOCKER:
 		_rebuild_blocker_squares(_current_node as LosBlocker)
@@ -356,6 +359,35 @@ func _rebuild_blocker_squares(blocker: LosBlocker) -> void:
 		remove.pressed.connect(_on_blocker_square_removed.bind(blocker, i))
 		row.add_child(remove)
 		_spawn_tiles_box.add_child(row)
+
+
+## A PlayerStart's squares: "(x, y, z)" with a remove button.
+func _rebuild_start_squares(start: PlayerStart) -> void:
+	_spawn_tiles_box.add_child(_draw_hint("Press Draw (D) to add squares to this start area, or click one of its squares to remove it. Where it sits (Table / stage) decides which Table it starts."))
+	var header := Label.new()
+	header.text = "Start squares:"
+	_spawn_tiles_box.add_child(header)
+	for i in start.cells.size():
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		label.text = FootprintRegistry.format_game_position(FootprintRegistry.tile_square_to_game_position(start.cells[i]))
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var remove := Button.new()
+		remove.text = "×"
+		remove.pressed.connect(_on_start_square_removed.bind(start, i))
+		row.add_child(remove)
+		_spawn_tiles_box.add_child(row)
+
+
+func _on_start_square_removed(start: PlayerStart, index: int) -> void:
+	if index < 0 or index >= start.cells.size():
+		return
+	operation_history.record("Remove start square", func():
+		start.cells.remove_at(index)
+	)
+	layered_map.refresh_start_overlay()
+	layered_map.notify_objects_changed()
 
 
 func _on_blocker_square_removed(blocker: LosBlocker, index: int) -> void:
@@ -507,6 +539,10 @@ func _resolve_node(type: CreatorOutline.SelectionType, id: String) -> OutlineNod
 			for blocker in layered_map.mission.los_blockers:
 				if blocker.id == id:
 					return blocker
+		CreatorOutline.SelectionType.PLAYER_START:
+			for start in layered_map.mission.player_starts:
+				if start.id == id:
+					return start
 	return null
 
 
@@ -523,6 +559,8 @@ func _describe(type: CreatorOutline.SelectionType) -> String:
 			return "%s\nMesh: %s\nPosition: %s" % [label, placement.mesh_item_name, FootprintRegistry.format_game_position(FootprintRegistry.placed_game_position(placement.origin_cell, placement_footprint))]
 		CreatorOutline.SelectionType.MONSTER_SPAWN:
 			return "Monster Spawn\n%d tile(s)" % (_current_node as MonsterSpawn).cells.size()
+		CreatorOutline.SelectionType.PLAYER_START:
+			return "Player Start\n%d square(s)" % (_current_node as PlayerStart).cells.size()
 		_:  # GROUP - no mesh/cell/type to show
 			return "Group (a stage)
 With the pointer over the 3D view: arrow keys move the whole group one square, R turns it. Everything in it keeps its place."
@@ -541,6 +579,8 @@ func _fallback_name(type: CreatorOutline.SelectionType) -> String:
 			return "Monster Spawn"
 		CreatorOutline.SelectionType.LOS_BLOCKER:
 			return "LOS Blocker"
+		CreatorOutline.SelectionType.PLAYER_START:
+			return "Player Start"
 		_:
 			return "(unnamed group)"
 

@@ -96,6 +96,9 @@ func offered_languages() -> Array[String]:
 ## the other in-place progress (group.visible, already_fired...): only the Player changes it (Effect.Type.SWITCH_TABLE), a freshly loaded mission file
 ## starts at "". See MissionTable.
 @export var active_table_id: String = ""
+## Which Table the mission BEGINS on (authored, Table / root context menu "Start the mission here"): "" = automatic (see initial_table_id()),
+## Effect.MAIN_TABLE ("@main") = the main table (everything outside a Table), else a MissionTable id.
+@export var start_table_id: String = ""
 
 ## Backing counter for allocate_object_id() below - must be @export so it
 ## persists across save/load and never reissues an id already baked into
@@ -110,7 +113,12 @@ func offered_languages() -> Array[String]:
 ## in the Creator, shown as a yellow overlay in the Player before round 1 -
 ## see LayeredMap.set_spawn_overlay_cells(). Empty is valid (no overlay
 ## shown, round 1 just starts) - not every mission needs this authored yet.
+## LEGACY (before 2026-11-06): one flat list of start squares. Only read by upgrade_legacy_starts(), which turns it into PlayerStart entities
+## and empties it; nothing writes it any more.
 @export var player_spawn_cells: Array[Vector3i] = []
+
+## Where the heroes start: entities that can sit in a Table / stage (see PlayerStart). Use all_start_cells() / player_start_cells_of().
+@export var player_starts: Array[PlayerStart] = []
 
 ## Virtual line-of-sight walls (see LosBlocker): entities that can sit in a group/stage, so they only count once revealed.
 @export var los_blockers: Array[LosBlocker] = []
@@ -157,6 +165,24 @@ func get_component_usage(table_id: String = ALL_TABLES) -> Dictionary:
 
 ## `table_id` meaning "every Table together" for get_component_usage().
 const ALL_TABLES := "@all"
+
+
+## The Table the mission starts on ("" = the main table). Authored through start_table_id; when that is not set the main table is used if it
+## has any floor, else the first Table that has floor - so a mission whose pieces all sit in Tables still starts on one of them.
+func initial_table_id() -> String:
+	if start_table_id == Effect.MAIN_TABLE:
+		return ""
+	if start_table_id != "" and find_table(start_table_id) != null:
+		return start_table_id
+	var has_floor: Dictionary = {}
+	for placement in floor_placements:
+		has_floor[table_of(placement)] = true
+	if has_floor.has("") or has_floor.is_empty():
+		return ""
+	for table in tables():
+		if has_floor.has(table.id):
+			return table.id
+	return ""
 
 
 ## The extra Tables of this mission (the main table is implicit).
@@ -206,12 +232,49 @@ func table_of_cell(tile_square: Vector3i) -> String:
 	return table_of(placement) if placement != null else ""
 
 
-## The player start squares of one Table (the squares drawn on its floor).
-func player_start_cells_of(table_id: String) -> Array[Vector3i]:
-	var result: Array[Vector3i] = []
+## One-time upgrade of a mission saved with the old flat `player_spawn_cells` list: the squares become PlayerStart entities, one per Table
+## the square's floor belongs to (parent = that Table, "" = the main table). Safe to call any number of times; the loaders call it, and so do
+## the accessors below.
+func upgrade_legacy_starts() -> void:
+	if player_spawn_cells.is_empty():
+		return
+	var by_table := {}
 	for cell in player_spawn_cells:
-		if table_of_cell(cell) == table_id:
-			result.append(cell)
+		var table_id := table_of_cell(cell)
+		if not by_table.has(table_id):
+			by_table[table_id] = []
+		by_table[table_id].append(cell)
+	player_spawn_cells = []
+	for table_id in by_table:
+		var start := PlayerStart.new()
+		start.id = allocate_object_id()
+		start.parent_id = table_id
+		for cell in by_table[table_id]:
+			start.cells.append(cell)
+		player_starts.append(start)
+
+
+## Every start square of the mission, all Tables together.
+func all_start_cells() -> Array[Vector3i]:
+	upgrade_legacy_starts()
+	var result: Array[Vector3i] = []
+	for start in player_starts:
+		for cell in start.cells:
+			if not result.has(cell):
+				result.append(cell)
+	return result
+
+
+## The player start squares of one Table (the PlayerStart entities inside it).
+func player_start_cells_of(table_id: String) -> Array[Vector3i]:
+	upgrade_legacy_starts()
+	var result: Array[Vector3i] = []
+	for start in player_starts:
+		if table_of(start) != table_id:
+			continue
+		for cell in start.cells:
+			if not result.has(cell):
+				result.append(cell)
 	return result
 
 
@@ -251,6 +314,9 @@ func find_node_by_id(id: String) -> OutlineNode:
 	for blocker in los_blockers:
 		if blocker.id == id:
 			return blocker
+	for start in player_starts:
+		if start.id == id:
+			return start
 	return null
 
 

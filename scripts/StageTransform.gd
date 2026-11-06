@@ -7,14 +7,14 @@ extends RefCounted
 ## Two steps so a blocked move can be refused before anything changes: plan() works out where everything goes (and returns {} when something
 ## would land on a piece that is not part of the selection), apply() puts it there. apply() is wrapped in an undo step by the caller.
 ## What moves: floor tiles, hazards and props (the same GridMap cells the editor paints), the tiles of monster spawns and LOS blockers inside the
-## selection, and - when a whole stage is selected - the hero start squares that lie on the stage's floor.
+## selection, and the player start areas inside it.
 
 const FLOOR := "floor"
 const UNDERLAY := "underlay"
 const PROP := "prop"
 
 
-## What the ids stand for: {floors, underlays, props, spawns, blockers, has_group}. A group stands for everything in it, subgroups included.
+## What the ids stand for: {floors, underlays, props, spawns, blockers, starts, has_group}. A group stands for everything in it, subgroups included.
 static func collect(mission: MissionData, ids: Array[String]) -> Dictionary:
 	var group_ids: Dictionary = {}
 	var direct: Dictionary = {}
@@ -42,6 +42,7 @@ static func collect(mission: MissionData, ids: Array[String]) -> Dictionary:
 	var props: Array[InteractableEntry] = []
 	var spawns: Array[MonsterSpawn] = []
 	var blockers: Array[LosBlocker] = []
+	var starts: Array[PlayerStart] = []
 	for placement in mission.floor_placements:
 		if direct.has(placement.id) or group_ids.has(placement.parent_id):
 			floors.append(placement)
@@ -57,7 +58,10 @@ static func collect(mission: MissionData, ids: Array[String]) -> Dictionary:
 	for blocker in mission.los_blockers:
 		if direct.has(blocker.id) or group_ids.has(blocker.parent_id):
 			blockers.append(blocker)
-	return {"floors": floors, "underlays": underlays, "props": props, "spawns": spawns, "blockers": blockers, "has_group": has_group}
+	for start in mission.player_starts:
+		if direct.has(start.id) or group_ids.has(start.parent_id):
+			starts.append(start)
+	return {"floors": floors, "underlays": underlays, "props": props, "spawns": spawns, "blockers": blockers, "starts": starts, "has_group": has_group}
 
 
 ## The fine cells of the floor tiles and hazards of a group (subgroups included), or of its props when it has no floor - for the selection outline.
@@ -92,7 +96,8 @@ static func plan(layered_map: LayeredMap, ids: Array[String], turn: bool, delta:
 		_add_piece(pieces, layered_map, layered_map.prop_grid, PROP, entry)
 	var spawns: Array[MonsterSpawn] = members["spawns"]
 	var blockers: Array[LosBlocker] = members["blockers"]
-	if pieces.is_empty() and spawns.is_empty() and blockers.is_empty():
+	var starts: Array[PlayerStart] = members["starts"]
+	if pieces.is_empty() and spawns.is_empty() and blockers.is_empty() and starts.is_empty():
 		return {}
 
 	# the box around everything that moves, in fine cells: [min_x, max_x, min_z, max_z] (empty until something is added)
@@ -105,6 +110,9 @@ static func plan(layered_map: LayeredMap, ids: Array[String], turn: bool, delta:
 			_grow(box, (cell.x - 1) * cpt, cell.x * cpt - 1, (cell.z - 1) * cpt, cell.z * cpt - 1)
 	for blocker in blockers:
 		for cell in blocker.cells:
+			_grow(box, (cell.x - 1) * cpt, cell.x * cpt - 1, (cell.z - 1) * cpt, cell.z * cpt - 1)
+	for start in starts:
+		for cell in start.cells:
 			_grow(box, (cell.x - 1) * cpt, cell.x * cpt - 1, (cell.z - 1) * cpt, cell.z * cpt - 1)
 	var min_x := box[0]
 	var max_x := box[1]
@@ -146,19 +154,6 @@ static func plan(layered_map: LayeredMap, ids: Array[String], turn: bool, delta:
 		var grid: GridMap = piece["grid"]
 		if grid.get_cell_item(piece["new_origin"]) != GridMap.INVALID_CELL_ITEM and not moving.has("%s:%s" % [piece["kind"], piece["new_origin"]]):
 			return {}
-
-	# the hero start squares on the stage's floor go along with a whole stage
-	var starts: Array[int] = []
-	if members["has_group"]:
-		var on_floor: Dictionary = {}
-		for piece in pieces:
-			if piece["kind"] == FLOOR:
-				for cell: Vector3i in piece["old_cells"]:
-					on_floor[Vector3i(floori(float(cell.x) / cpt), cell.y, floori(float(cell.z) / cpt))] = true
-		for index in layered_map.mission.player_spawn_cells.size():
-			var square: Vector3i = layered_map.mission.player_spawn_cells[index]
-			if on_floor.has(Vector3i(square.x - 1, square.y, square.z - 1)):
-				starts.append(index)
 
 	if not turn and delta == Vector2i.ZERO:
 		return {}
@@ -214,11 +209,12 @@ static func apply(layered_map: LayeredMap, plan: Dictionary) -> void:
 		for index in blocker.cells.size():
 			blocker.cells[index] = _move_square(blocker.cells[index], turn, delta, pivot)
 	var starts: Array = plan["starts"]
-	for index: int in starts:
-		mission.player_spawn_cells[index] = _move_square(mission.player_spawn_cells[index], turn, delta, pivot)
+	for start: PlayerStart in starts:
+		for index in start.cells.size():
+			start.cells[index] = _move_square(start.cells[index], turn, delta, pivot)
 
 	if not starts.is_empty():
-		layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
+		layered_map.refresh_start_overlay()
 	if not (plan["spawns"] as Array).is_empty():
 		layered_map.refresh_monster_spawn_overlay()
 	if not (plan["blockers"] as Array).is_empty():

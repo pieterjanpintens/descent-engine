@@ -248,7 +248,7 @@ static func _prop_squares(mission: MissionData) -> Array[Vector3i]:
 ## Floor squares without a prop, a start square, a monster spawn tile or a LOS blocker on them, west to east, north to south.
 static func _free_squares(mission: MissionData) -> Array[Vector3i]:
 	var taken := _prop_squares(mission)
-	for start in mission.player_spawn_cells:
+	for start in mission.all_start_cells():
 		taken.append(start)
 	for spawn in mission.monster_spawns:
 		taken.append_array(spawn.cells)
@@ -300,23 +300,34 @@ static func _name_chest(r: TutorialRunner) -> String:
 
 static func _add_starts(r: TutorialRunner) -> String:
 	var mission := r.layered_map.mission
-	var wanted := 4 - mission.player_spawn_cells.size()
+	var wanted := 4 - mission.all_start_cells().size()
 	if wanted <= 0:
 		return "There are already four or more."
 	var free := _free_squares(mission)
 	if free.is_empty():
 		return "There is no free floor to start on."
 	r.history.record("Toggle spawn cell", func():
+		var area: PlayerStart = null
+		for candidate in mission.player_starts:
+			if mission.table_of(candidate) == r.controller.working_table_id():
+				area = candidate
+				break
+		if area == null:
+			area = PlayerStart.new()
+			area.id = mission.allocate_object_id()
+			area.parent_id = r.controller.working_group_id
+			mission.player_starts.append(area)
 		for i in mini(wanted, free.size()):
-			mission.player_spawn_cells.append(free[i])
-		r.layered_map.set_spawn_overlay_cells(mission.player_spawn_cells)
+			area.cells.append(free[i])
+		r.layered_map.refresh_start_overlay()
 	)
+	r.layered_map.notify_objects_changed()
 	return "Marked %d start square(s)." % mini(wanted, free.size())
 
 
 static func _fit_players(r: TutorialRunner) -> String:
 	var mission := r.layered_map.mission
-	var starts := mission.player_spawn_cells.size()
+	var starts := mission.all_start_cells().size()
 	if starts < 1:
 		return "Mark some start squares first."
 	r.history.record("Set max players", func():
