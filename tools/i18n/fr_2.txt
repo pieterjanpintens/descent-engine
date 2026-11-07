@@ -15,3 +15,4 @@
 791|Commandes vocales
 792|Les commandes vocales permettent de jouer en parlant (\"hey DM, le héros deux attaque le bandit vert\") et de répondre aux boîtes de dialogue à voix haute. Cela fonctionne sur votre ordinateur avec un modèle vocal à télécharger ; il vous faut un microphone. Les commandes saisies au clavier fonctionnent toujours.
 793|Bienvenue ! Cet assistant vous aide à configurer l'application : la langue, les ressources du jeu, la narration, les commandes vocales et l'aide à l'écriture par IA facultative. Chaque étape peut être passée, et vous pouvez rouvrir l'assistant avec \"Assistant de configuration\" en bas à droite du menu principal.
+794|compétences et exploits des héros

@@ -2352,6 +2352,9 @@ msgstr "Les commandes vocales permettent de jouer en parlant (\"hey DM, le héro
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Bienvenue ! Cet assistant vous aide à configurer l'application : la langue, les ressources du jeu, la narration, les commandes vocales et l'aide à l'écriture par IA facultative. Chaque étape peut être passée, et vous pouvez rouvrir l'assistant avec \"Assistant de configuration\" en bas à droite du menu principal."
 
+msgid "hero skills and feats"
+msgstr "compétences et exploits des héros"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

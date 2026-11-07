@@ -15,3 +15,4 @@
 791|Comandos de voz
 792|Os comandos de voz permitem jogar falando (\"hey DM, o herói dois ataca o bandido verde\") e responder aos diálogos em voz alta. Funciona no seu computador com um modelo de voz que é um download; você precisa de um microfone. Os comandos digitados sempre funcionam.
 793|Boas-vindas! Este assistente ajuda a configurar o aplicativo: o idioma, os recursos do jogo, a narração, os comandos de voz e a ajuda de escrita com IA opcional. Cada passo pode ser pulado, e você pode abrir o assistente de novo em \"Assistente de configuração\" no canto inferior direito do menu principal.
+794|habilidades e feitos dos heróis

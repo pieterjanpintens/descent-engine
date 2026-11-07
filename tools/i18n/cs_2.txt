@@ -15,3 +15,4 @@
 791|Hlasové příkazy
 792|Hlasové příkazy vám umožňují hrát mluvením (\"hey DM, hrdina dvě zaútočí na zeleného bandítu\") a odpovídat na dialogy nahlas. Běží to ve vašem počítači s hlasovým modelem, který je třeba stáhnout; potřebujete mikrofon. Psané příkazy fungují vždy.
 793|Vítejte! Tento průvodce vám pomůže aplikaci nastavit: jazyk, zdroje hry, vyprávění, hlasové příkazy a volitelnou pomoc s psaním pomocí AI. Každý krok lze přeskočit a průvodce můžete znovu otevřít přes \"Průvodce nastavením\" vpravo dole v hlavní nabídce.
+794|dovednosti a činy hrdinů

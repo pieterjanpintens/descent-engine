@@ -780,6 +780,42 @@
 791|Voice commands
 792|Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work.
 793|Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu.
+794|hero skills and feats
+795|a new table
+796|Table
+797|the main table
+798|The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'.
+799|%s completed the feat \"%s\"!
+800|Available feats
+801|Buy %s for %d skill points?
+802|Buy a skill
+803|Change a feat
+804|Change…
+805|Completed feats: %d
+806|Cost %d
+807|Drop
+808|Drop \"%s\"? Its progress (%d) is lost.
+809|Drop a feat
+810|Feat completed
+811|Feats active: %d of %d
+812|Goal: %d
+813|It happened once more (marked by hand)
+814|Locked until a condition is met.
+815|Needs one of: %s
+816|No feat is active - start one below.
+817|No free feat slot - change or drop an active feat first.
+818|No other feat is available right now.
+819|Not enough skill points.
+820|Owned
+821|Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost.
+822|Replace with this
+823|Replace with which feat?
+824|Reward: %s
+825|Skill points: %d
+826|Skill points: +%d
+828|Skills
+829|Take one back
+830|The hero data is missing - import the game's assets first (Options > Game assets).
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

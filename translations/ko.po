@@ -2352,6 +2352,9 @@ msgstr "음성 명령으로 말하면서 플레이하고(\"hey DM, 영웅 둘이
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "환영합니다! 이 도우미는 언어, 게임 리소스, 내레이션, 음성 명령, 선택 사항인 AI 글쓰기 도우미를 설정하도록 도와줍니다. 모든 단계는 건너뛸 수 있으며, 메인 메뉴 오른쪽 아래의 \"설정 도우미\"에서 도우미를 다시 열 수 있습니다."
 
+msgid "hero skills and feats"
+msgstr "영웅 기술과 업적"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

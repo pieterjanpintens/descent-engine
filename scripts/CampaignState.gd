@@ -72,6 +72,10 @@ var brooch_enabled := true
 ## is the same after reloading.
 @export var shop_state: Dictionary = {}
 
+## Each hero's growth: skill points, owned skills, active and completed feats (see HeroProgress and the "Heroes' skills and feats" methods at the end).
+## An entry is made the first time a hero is looked at, so saves from before it existed just start fresh.
+@export var hero_progress: Array[HeroProgress] = []
+
 
 ## {hero name -> voice id} for a narration language ({} = not chosen for it yet).
 func hero_voices_for(lang: String) -> Dictionary:
@@ -234,6 +238,7 @@ func apply_side_quest_result(campaign: Campaign, quest_id: String, won: bool, mi
 	summary["materials"] = quest.reward_materials.duplicate()
 	_take_loot(summary, loot)
 	_take_loot(summary, _reward_items(quest.reward_cards, quest.reward_recipes))
+	_give_skill_rewards(campaign, quest.reward_skill_points, quest.skill_grants, summary)
 	summary["story_after"] = quest.story_after
 	add_log(func() -> String: return tr("Side quest: %s") % quest.title, [
 		func() -> String: return quest.story_before,
@@ -310,6 +315,7 @@ func apply_result(campaign: Campaign, chapter_id: String, won: bool, mission_val
 			add_material(str(material_name), int(chapter.reward_materials[material_name]))
 		_take_loot(summary, loot)
 		_take_loot(summary, _reward_items(chapter.reward_cards, chapter.reward_recipes))
+		_give_skill_rewards(campaign, chapter.reward_skill_points, chapter.skill_grants, summary)
 		summary["story_after"] = chapter.story_after
 		add_log(func() -> String: return chapter.title, [
 			func() -> String: return chapter.story_before,
@@ -794,3 +800,186 @@ func pick_skull_recipe(slot: int) -> String:
 func mark_completed(chapter_id: String) -> void:
 	if not completed_chapters.has(chapter_id):
 		completed_chapters.append(chapter_id)
+
+
+# --- Heroes' skills and feats ----------------------------------------------------------------------------------------------------
+# The six heroes grow separately (heroes not used in a mission keep their progress). A hero has skill points (the campaign's SkillTree: starting
+# points, `points_per_feat` for every completed feat), owns skills (bought from the tree, or granted by the campaign) and works on up to
+# Campaign.parallel_feats feats at once. A feat is "live": it keeps its progress until it is completed or the player changes it - changing it
+# (replace / unequip) throws that progress away. Counting what happens in a mission towards a feat is a separate step: add_feat_progress().
+# Needs the hero data export (HeroData.available()) for the feats; without it no feat can be equipped.
+
+## The hero ids a campaign tracks (HeroCatalog's six).
+static func hero_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for slot in HeroCatalog.HERO_NAMES.size():
+		ids.append(HeroData.id_for_slot(slot))
+	return ids
+
+
+## A hero's progress record, made on first use (starting skill points of the campaign's tree). null for an id that is not one of the six.
+func hero_state(campaign: Campaign, hero_id: String) -> HeroProgress:
+	for entry in hero_progress:
+		if entry.hero_id == hero_id:
+			return entry
+	if not hero_ids().has(hero_id):
+		return null
+	var created := HeroProgress.new()
+	created.hero_id = hero_id
+	created.skill_points = campaign.effective_skill_tree().starting_points
+	hero_progress.append(created)
+	return created
+
+
+func skill_points(campaign: Campaign, hero_id: String) -> int:
+	var state := hero_state(campaign, hero_id)
+	return state.skill_points if state != null else 0
+
+
+func owned_skills(campaign: Campaign, hero_id: String) -> Array[int]:
+	var state := hero_state(campaign, hero_id)
+	return state.skills if state != null else []
+
+
+## The feats a hero is working on: feat id -> progress.
+func active_feats(campaign: Campaign, hero_id: String) -> Dictionary:
+	var state := hero_state(campaign, hero_id)
+	return state.active_feats if state != null else {}
+
+
+func completed_feats(campaign: Campaign, hero_id: String) -> Array[String]:
+	var state := hero_state(campaign, hero_id)
+	return state.completed_feats if state != null else []
+
+
+## How many more feats the hero may start working on (the campaign's `parallel_feats` minus the active ones).
+func free_feat_slots(campaign: Campaign, hero_id: String) -> int:
+	var state := hero_state(campaign, hero_id)
+	return maxi(maxi(campaign.parallel_feats, 1) - state.active_feats.size(), 0) if state != null else 0
+
+
+## Whether the hero may start this feat: it is theirs, the game's unlock rule offers it (not completed, enough other feats completed, prerequisite feats
+## completed - HeroData.feat_offered), it is not active already, and a feat slot is free.
+func can_equip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
+	var state := hero_state(campaign, hero_id)
+	var feat := HeroData.feat(feat_id)
+	if state == null or feat.is_empty() or feat["hero"] != hero_id:
+		return false
+	if state.active_feats.has(feat_id) or free_feat_slots(campaign, hero_id) <= 0:
+		return false
+	return HeroData.feat_offered(feat_id, state.completed_feats)
+
+
+## Starts working on a feat (progress 0). False when can_equip_feat() says no.
+func equip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
+	if not can_equip_feat(campaign, hero_id, feat_id):
+		return false
+	hero_state(campaign, hero_id).active_feats[feat_id] = 0
+	return true
+
+
+## Stops working on a feat: ALL its progress is lost. False when it was not active.
+func unequip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
+	var state := hero_state(campaign, hero_id)
+	if state == null or not state.active_feats.has(feat_id):
+		return false
+	state.active_feats.erase(feat_id)
+	return true
+
+
+## Swaps an active feat for another one the hero may start: the old feat's progress is lost, the new one starts at 0. Nothing changes when the new
+## feat is not allowed (it is checked with the old feat's slot counted as free).
+func replace_feat(campaign: Campaign, hero_id: String, old_feat_id: String, new_feat_id: String) -> bool:
+	var state := hero_state(campaign, hero_id)
+	if state == null or not state.active_feats.has(old_feat_id) or old_feat_id == new_feat_id:
+		return false
+	var progress = state.active_feats[old_feat_id]
+	state.active_feats.erase(old_feat_id)
+	if equip_feat(campaign, hero_id, new_feat_id):
+		return true
+	state.active_feats[old_feat_id] = progress  # not allowed: keep the old one as it was
+	return false
+
+
+## Counts `amount` more events towards an active feat (a negative amount takes some back; progress never drops below 0). When the goal is reached the
+## feat is completed: it leaves the active list, the hero gets the campaign's `points_per_feat` skill points, and a recipe reward is learned by the party
+## (a skill reward of the original game is not given - the points replace it). Returns {completed, title, points, recipe} ({} when the feat is not active).
+func add_feat_progress(campaign: Campaign, hero_id: String, feat_id: String, amount: int = 1) -> Dictionary:
+	var state := hero_state(campaign, hero_id)
+	var feat := HeroData.feat(feat_id)
+	if state == null or feat.is_empty() or not state.active_feats.has(feat_id):
+		return {}
+	var progress := maxi(int(state.active_feats[feat_id]) + amount, 0)
+	var result := {"completed": false, "title": str(feat["title"]), "points": 0, "recipe": ""}
+	if progress < int(feat["goal"]):
+		state.active_feats[feat_id] = progress
+		return result
+	state.active_feats.erase(feat_id)
+	state.completed_feats.append(feat_id)
+	var points := campaign.effective_skill_tree().points_per_feat
+	state.skill_points += points
+	result["completed"] = true
+	result["points"] = points
+	if feat["reward_kind"] == "recipe":
+		var recipe_id := str(feat["reward"])
+		if recipe_id != "" and not owned_recipes.has(recipe_id):
+			owned_recipes.append(recipe_id)
+			_remove_from_shops(recipe_id)
+		result["recipe"] = recipe_id
+	return result
+
+
+## Whether the hero may buy this skill now: the campaign's tree opens it (parent owned, its conditions hold) and the points cover its cost.
+func can_buy_skill(campaign: Campaign, hero_id: String, number: int) -> bool:
+	var state := hero_state(campaign, hero_id)
+	if state == null:
+		return false
+	var tree := campaign.effective_skill_tree()
+	var slot := tree.node(number)
+	if slot == null or state.skill_points < slot.cost:
+		return false
+	return tree.can_learn(number, state.skills, func(conditions: Array[Condition]) -> bool: return conditions_hold(campaign, conditions))
+
+
+func buy_skill(campaign: Campaign, hero_id: String, number: int) -> bool:
+	if not can_buy_skill(campaign, hero_id, number):
+		return false
+	var state := hero_state(campaign, hero_id)
+	state.skill_points -= campaign.effective_skill_tree().node(number).cost
+	state.skills.append(number)
+	state.skills.sort()
+	return true
+
+
+## The campaign hands a skill out directly (a story reward): no points, no tree rules. False when the hero owns it already or the number is not 1-11.
+func grant_skill(campaign: Campaign, hero_id: String, number: int) -> bool:
+	var state := hero_state(campaign, hero_id)
+	if state == null or number < 1 or number > SkillTree.SLOTS or state.skills.has(number):
+		return false
+	state.skills.append(number)
+	state.skills.sort()
+	return true
+
+
+func grant_skill_points(campaign: Campaign, hero_id: String, points: int) -> void:
+	var state := hero_state(campaign, hero_id)
+	if state != null:
+		state.skill_points = maxi(state.skill_points + points, 0)
+
+
+## What a won chapter / side quest gives the heroes: `points` skill points to EVERY hero and the listed skills (a grant for "" goes to every hero). Each
+## thing given is noted in the summary's "items" for the result popup.
+func _give_skill_rewards(campaign: Campaign, points: int, grants: Array[SkillGrant], summary: Dictionary) -> void:
+	if points > 0:
+		for hero_id in hero_ids():
+			grant_skill_points(campaign, hero_id, points)
+		_note_item(summary, tr("Skill points: +%d") % points)
+	for grant in grants:
+		var targets: Array[String] = []
+		if grant.hero_id == "":
+			targets = hero_ids()
+		else:
+			targets.append(grant.hero_id)
+		for hero_id in targets:
+			if grant_skill(campaign, hero_id, grant.number):
+				_note_item(summary, "%s: %s" % [HeroData.hero_name(hero_id), HeroData.skill_name("SKILL_%s_%d" % [hero_id.trim_prefix("HERO_"), grant.number])])

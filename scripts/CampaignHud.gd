@@ -14,6 +14,7 @@ signal options_pressed
 signal rules_pressed
 signal log_pressed
 signal inventory_pressed
+signal heroes_pressed
 
 const MARGIN := 12.0
 const TOGGLE_SIZE := 48.0
@@ -142,6 +143,7 @@ func _build_bottom_left() -> void:
 	_menu_item(_gear_menu, "Rules Reference", func(): rules_pressed.emit())
 	_party_menu = _popup_menu()
 	_menu_item(_party_menu, "Campaign Log", func(): log_pressed.emit())
+	_menu_item(_party_menu, "Heroes", func(): heroes_pressed.emit())
 	_menu_item(_party_menu, "Inventory", func(): inventory_pressed.emit())
 
 

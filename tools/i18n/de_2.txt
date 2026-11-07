@@ -15,3 +15,4 @@
 791|Sprachbefehle
 792|Mit Sprachbefehlen spielst du durch Sprechen (\"hey DM, Held zwei greift den grünen Banditen an\") und beantwortest Dialoge laut. Es läuft auf deinem Computer mit einem Sprachmodell, das ein Download ist; du brauchst ein Mikrofon. Getippte Befehle funktionieren immer.
 793|Willkommen! Dieser Assistent hilft dir, die App einzurichten: Sprache, Spielressourcen, Erzählung, Sprachbefehle und die optionale KI-Schreibhilfe. Jeder Schritt kann übersprungen werden, und du kannst den Assistenten über \"Einrichtungsassistent\" unten rechts im Hauptmenü erneut öffnen.
+794|Heldenfertigkeiten und Heldentaten

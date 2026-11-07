@@ -44,6 +44,9 @@ var story_after: String:
 ## Counter for NarrativeStep ids (never reused, so a deleted step's id can't point at a newer one).
 @export var next_step_number: int = 1
 @export var reward_gold: int = 0
+## Skill points EVERY hero gets when this chapter is won, and skills it hands out for free (see SkillGrant).
+@export var reward_skill_points: int = 0
+@export var skill_grants: Array[SkillGrant] = []
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}
 ## Cards (weapon / part / rune / armor ids) and recipes (RecipeData ids) a win gives the party.

@@ -57,9 +57,32 @@ var intro: String:
 ## How many consumables each player may take into a mission (3 normally). The crafted consumables are available again every mission; the app shows
 ## the limit at embark but does not enforce it - the table keeps its own play area.
 @export var consumables_per_player: int = 3
+## How many feats a hero may have ACTIVE (equipped, being worked on) at the same time. The game allows exactly one; a campaign may allow more. Feats
+## themselves (HeroData.feats_of()) complete and pay skill points (SkillTree.points_per_feat); equipping them is not built yet.
+@export var parallel_feats: int = 1
 ## The monster that spawns together with the first monster of a mission when a hero wears the Tarnished Brooch (see TrinketData.BROOCH_ID).
 ## null = the Brooch is out of the game in this campaign.
 @export var brooch_monster: MonsterTemplate
+
+## The heroes' skill tree (see SkillTree), edited with the campaign editor's "Skill tree...". null = the default tree; a campaign only stores
+## one once it has been changed.
+@export var skill_tree: SkillTree
+
+
+## The tree in force: the authored one, or the default.
+func effective_skill_tree() -> SkillTree:
+	return skill_tree if skill_tree != null else SkillTree.default_tree()
+
+
+## Problems of an authored skill tree (the default one has none).
+func skill_tree_problems() -> Array[String]:
+	if skill_tree == null:
+		return []
+	var known: Array[String] = []
+	for variable in all_variables():
+		known.append(variable.name)
+	return skill_tree.problems(known)
+
 
 ## Problems with the Tarnished Brooch: given out without a monster, or a monster without a base template.
 func brooch_problems() -> Array[String]:

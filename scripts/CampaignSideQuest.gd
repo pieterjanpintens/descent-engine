@@ -32,6 +32,9 @@ var story_after: String:
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var reward_xp: int = 0
 @export var reward_gold: int = 0
+## Skill points EVERY hero gets when this side quest is won, and skills it hands out for free (see SkillGrant).
+@export var reward_skill_points: int = 0
+@export var skill_grants: Array[SkillGrant] = []
 ## Crafting materials a win gives the party: name -> count.
 @export var reward_materials: Dictionary = {}
 ## Cards (weapon / part / rune / armor ids) and recipes (RecipeData ids) a win gives the party.

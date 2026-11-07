@@ -20,7 +20,8 @@ import traceback
 # installed tool whose protocol equals its own, so the bump is what makes older installed tools download again.
 # 2: the "Original props" step.
 # 4: the "Animated figures" step.
-PROTOCOL = 4
+# 5: the "Hero data" step.
+PROTOCOL = 5
 
 STEPS = [
     ("Textures, portraits, icons", "import_official_assets"),
@@ -31,6 +32,7 @@ STEPS = [
     ("Monster data", "import_monster_data"),
     ("Original props", "import_original_props"),
     ("Animated figures", "import_flat_rigs"),
+    ("Hero data", "import_hero_data"),
 ]
 
 

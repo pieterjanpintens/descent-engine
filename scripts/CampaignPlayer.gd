@@ -60,6 +60,7 @@ var _options_dialog: VoiceSettingsDialog
 var _notice: AcceptDialog
 var _log_dialog: LogDialog
 var _inventory_dialog: InventoryDialog
+var _heroes_dialog: HeroGrowthDialog
 var _setup_page: CampaignSetupPage  ## the page between Begin campaign and the first chapter; null when not showing
 var _confirm: ConfirmationDialog
 var _confirm_action: Callable
@@ -122,6 +123,11 @@ func _ready() -> void:
 	_inventory_dialog = InventoryDialog.new()
 	_inventory_dialog.state_provider = func() -> CampaignState: return _state
 	add_child(_inventory_dialog)
+	_heroes_dialog = HeroGrowthDialog.new()
+	_heroes_dialog.campaign_provider = func() -> Campaign: return _campaign
+	_heroes_dialog.state_provider = func() -> CampaignState: return _state
+	_heroes_dialog.on_changed = _save
+	add_child(_heroes_dialog)
 	_confirm = ConfirmationDialog.new()
 	_confirm.min_size = Vector2i(420, 0)
 	_confirm.confirmed.connect(func(): _confirm_action.call())
@@ -304,6 +310,7 @@ func _build_play_page() -> Control:
 	_hud.back_to_editor_pressed.connect(_back_to_editor)
 	_hud.log_pressed.connect(func(): _log_dialog.open())
 	_hud.inventory_pressed.connect(func(): _inventory_dialog.open())
+	_hud.heroes_pressed.connect(func(): _heroes_dialog.open())
 	_hud.options_pressed.connect(_open_options)
 	_hud.rules_pressed.connect(func(): OS.shell_open(PlayerHud.RULES_REFERENCE_URL))
 	page.add_child(_hud)

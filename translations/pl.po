@@ -2352,6 +2352,9 @@ msgstr "Polecenia głosowe pozwalają grać mówiąc (\"hey DM, bohater dwa atak
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Witaj! Ten asystent pomaga skonfigurować aplikację: język, zasoby gry, narrację, polecenia głosowe i opcjonalną pomoc w pisaniu z AI. Każdy krok można pominąć, a asystenta można otworzyć ponownie przez \"Asystent konfiguracji\" w prawym dolnym rogu menu głównego."
 
+msgid "hero skills and feats"
+msgstr "umiejętności i wyczyny bohaterów"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

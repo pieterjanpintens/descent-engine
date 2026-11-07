@@ -14,6 +14,7 @@ const STEP_FOLDERS := {
 	"weapon_data": "weapons",
 	"item_data": "items",
 	"monster_data": "monsters",
+	"hero_data": "hero skills and feats",
 }
 
 var _bundles := ""

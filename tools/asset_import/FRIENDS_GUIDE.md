@@ -51,7 +51,7 @@ available on your computer (for example an Intel Mac) or doesn't work.
 - Linux: `~/.local/share/godot/app_userdata/Descent-Engine/`
 
 To go back to the
-placeholders, delete the `official_assets`, `monster_assets`, `hero_assets`, `weapon_data`, `item_data` and `monster_data` folders in there.
+placeholders, delete the `official_assets`, `monster_assets`, `hero_assets`, `weapon_data`, `item_data`, `monster_data` and `hero_data` folders in there.
 
 ## If something goes wrong
 

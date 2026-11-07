@@ -2352,6 +2352,9 @@ msgstr "Mit Sprachbefehlen spielst du durch Sprechen (\"hey DM, Held zwei greift
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Willkommen! Dieser Assistent hilft dir, die App einzurichten: Sprache, Spielressourcen, Erzählung, Sprachbefehle und die optionale KI-Schreibhilfe. Jeder Schritt kann übersprungen werden, und du kannst den Assistenten über \"Einrichtungsassistent\" unten rechts im Hauptmenü erneut öffnen."
 
+msgid "hero skills and feats"
+msgstr "Heldenfertigkeiten und Heldentaten"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d für %d Spieler)"

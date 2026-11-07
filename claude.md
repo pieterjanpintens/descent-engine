@@ -6919,6 +6919,66 @@ Rune, Lucky Charm, Mana Weave, Shadow Bracers, Stormbound Pendant, Undying Skull
 Mirror, Fae Crystal, Heart Thorn Root, Mage-Sight Goggles, Prescient Charm, Rusted Nail, Tarnished Brooch.
 The item rule texts are in the localization export; not read/modelled yet.
 
+## Hero data export: skills, legends, feats (2026-11-07, data only)
+
+`tools/asset_import/import_hero_data.py` (step 9 of `asset_importer.STEPS` = "Hero data", step 8 of `import_all.py`; `PROTOCOL` 5 on both sides, in `build_importer.MODULES`;
+panel label "hero skills and feats", folder `hero_data` in `AssetImporter.OUTPUT_FOLDERS`) writes to `user://hero_data/`: `heroes.json`
+({heroes, skills, legends, feats, companions}, the game's own fields, references replaced by `_id`s) and `localization_<code>.json` for all 13 game languages
+(HERO_/SKILL_/LEGEND_/FEAT_/VIRTUE_/COMPANION_ texts plus the TERM_EXPERIENCE*, TERM_FEAT*, UI_FEAT* glossary/UI texts). Nothing in the app reads it yet. Run for real against the
+game: 6 heroes, 66 skills, 36 legends, 120 feats, 1 companion (Indris, Syrus), no unresolved feat rewards.
+- **Skills**: 11 per hero (`Hero` index 0 Brynn, 1 Chance, 2 Galaden, 3 Kehli, 4 Syrus, 5 Vaerix), `XPCost` 1-3, `_act` 0 (skills 1-7) / 1 (8-11); a skill's text is only its NAME, "Side A / Side B"
+  (two card sides). **The rule text of skills and legends is in no text table** (card pictures only), like the injuries. A hero's full set costs about 18 XP. **Legends**: 3 per hero, two sides (`FlipId`), `XPCost`.
+- **XP in the game is an equip limit, not a currency**: "XP is never lost or permanently expended"; the total `XPCost` of the skills/companion/legend cards a hero equips for a quest may not exceed the hero's XP
+  (TERM_EXPERIENCE_DESC_*); all heroes gain XP at the same rate, also those not used in a quest. (This corrects the older note that the game has no XP system - our campaign `experience` counter already behaves like the cap.)
+- **Skills are earned two ways**: the story/campaign unlocks them, or a feat reward. Per hero 5 of the 11 are feat rewards (skill 11 always; the others differ per hero), the other 6 (cost 1,1,2,1,2,2) come from the story.
+- **Feats**: 20 per hero. `Goal` (1-8 events, a few grinds of 25-144), `Timing` (when progress is checked; raw: 1 attack, 2 enemy activation, 3 hero wounded, 4 defeat, 5 interaction, 6 recipe/material gain,
+  7 end of round, 8 end of quest, 9 / 10 other - inferred from the descriptions), many `{Enable, Value}` filters (weapon class, enemy types, prop type, minimum damage, statuses, first attack of the round,
+  hero injured...), `AmountCompletedRequired` (0/4/8/12/14 feats the hero must already have completed), `PrerequisiteFeats` (30 feats chain on an earlier one), `Rewards` (one each: 5 skills + 15 recipes per hero,
+  90 recipes overall - weapon parts B/C, potions, trinkets, armor upgrades, rune upgrades). The game: one active feat per hero at a time, progress carries between quests, replace the active feat with one of
+  two offered (limited shared pool, +1 per quest, progress lost), completed feats are never replaced.
+- **Reader: `HeroData`** (`scripts/HeroData.gd`, static like `WeaponData`/`TrinketData`; reads `user://hero_data/` in the content language via `ItemData.text_language()` / `load_texts()` and rebuilds when the
+  language changes; empty without the export, `available()`). Hero ids are the game's ("HERO_CHANCE", `id_for_slot(slot)` / `slot_for_id()` map HeroCatalog slots). `heroes()` / `hero()` / `hero_name()` ({id, name, virtues,
+  starting_weapons, starting_feat, color_light/dark}); `skills_of()` / `skill()` / `skill_name()` / `skill_cost()` / `total_skill_cost()` / `skill_feat()` (the feat that rewards it, "" = story) with entries
+  {id, hero, number, name "A / B", name_a, name_b, xp, act, feat}; `legends_of()` (a CARD per number, "LEGEND_CHANCE_1", with both sides folded together); `feats_of()` / `feat()` ({title, description, goal, timing, act,
+  completed_required, prerequisites, rewards, reward, reward_kind "skill"|"recipe"}, the "<b>Title</b>: text" description is split); `feat_offered(id, completed_ids)` / `feats_offered(hero, completed_ids)` = the game's unlock
+  rule (not done yet, `completed_required` feats finished, all prerequisites finished); `term_text(key)` for the game's own glossary/UI texts. Names with a slash are split with or without spaces (Chinese has none). Reading is
+  only data (what owns / earns skills is the "Hero growth in the save" bullet below). `ItemData.clean_markup()` was added as the public markup cleaner. Scene-tested against the real export (6 heroes; 11 skills / 18 XP, 3 legend cards,
+  20 feats each; 30 skill + 90 recipe rewards; unlock rule gives 6 feats at the start and the right set after four finished; es / zh / ko / de names).
+- **Skill tree, authored part (2026-11-07)**: the campaign decides how skills are bought. `SkillTree` (`scripts/SkillTree.gd`) holds 11 `SkillTreeNode` slots (`number`, `cost`, `parents` = skill numbers of which owning ANY ONE opens the
+  slot, none = a starting point; `conditions` = `Array[Condition]`, implicit AND, none by default) shared by every hero (slot N = skill N of each hero), plus `points_per_feat` (default 1) and `starting_points` (skill points every hero
+  has at the start, default 0). **Holding a skill back is a regular condition** over the campaign's variables, e.g. `act_number >= 2` for "from the second act of this campaign" (`act_number` is the read-only built-in = `CampaignState.current_act + 1`; any
+  campaign variable works) - the game's own acts are not used. `Campaign.skill_tree` (null = the default; `effective_skill_tree()`, `skill_tree_problems()` into the Problems list) is only stored once edited, so older campaigns need no
+  migration and packages carry it as plain Resource data (checked against `SharePackage.validate_resource_text`). **Defaults** (`SkillTree.default_tree()`): the costs are the game's (verified equal for all 66 skills: 1-4 cost 1, 5-7 cost 2,
+  8/9/10 = 1/2/2 and 11 = 3); the shape is ours because the game has no skill-to-skill links: starting points 1-4 and 8, 5<-1|2, 6<-2|3, 7<-3|4, 9 and 10 <- 8|5|6|7, 11 <- 9|10, no conditions, one skill point per feat, none at the start.
+  API: `can_learn(number, owned, conditions_hold)` (`conditions_hold` = a Callable(conditions) -> bool, normally `CampaignState.conditions_hold(campaign, conditions)`), `learnable(owned, conditions_hold)`, `reachable()`, `roots()`, `layers()` (rows
+  for drawing, each slot below all its parents), `total_cost()`, `is_default()`, `problems(known_variables)` (slot missing/doubled, parent missing or itself, negative cost, no starting point, a slot nothing leads to, a condition on a variable the
+  campaign does not have - it would never hold). Editor: General tab "Skill tree…" -> `SkillTreeDialog` (picture `SkillTreePreview`; per slot cost / "needs any of" check boxes / the campaign editor's own condition rows - `_build_conditions_section`
+  is passed in; points per feat, starting points, "Reset to the default tree", a hero picker that only shows that hero's names via `HeroData`); while it is open the campaign holds the tree (the condition rows edit the nodes in place), closing it drops
+  it again when it is still exactly the default, so a campaign only keeps one it changed; edits go through the editor's `_mark_dirty()` (undo + Problems); locked for releases like every other control. Tested through the real campaign editor
+  (default tree, reachability, a full purchase order, a condition on `act_number` blocking skill 9 in act 1 and opening it in act 2, unknown-variable problem, drop-when-default, save round trip, package validator); the dialog was looked at in a
+  real window. **Not built**: skill points and owned skills in `CampaignState`, per-hero tree shapes, feat -> skill-point rewards per feat tier.
+- **Hero growth in the save (2026-11-07)**: `Campaign.parallel_feats` (default 1 = the game's one active feat per hero, 1-20; editor: General tab "Feats active at once (per hero)") and, in `CampaignState`, `hero_progress: Array[HeroProgress]`
+  (`HeroProgress` = `hero_id`, `skill_points`, `skills` (numbers 1-11), `active_feats` {feat id -> progress}, `completed_feats`); a record is made the first time a hero is looked at (`hero_state()`, starting points from the campaign's tree), so
+  older saves just start fresh; `SaveUpdater`'s deep copy carries it. The six heroes grow separately (`hero_ids()`, ids like "HERO_CHANCE"; heroes not used in a mission keep their progress). Rules (all take the `Campaign`):
+  **a feat is live** - `equip_feat()` starts it at 0 and it keeps its progress between missions and quests until it is completed or the player changes it; `replace_feat(old, new)` / `unequip_feat()` throw ALL its progress away (a replace to a
+  feat that is not allowed changes nothing); no limit on how often (the game's shared pool of replacements is not copied). `can_equip_feat()` = the feat is the hero's, `HeroData.feat_offered()` (not completed, enough other feats completed,
+  prerequisites completed) says yes, it is not already active and `free_feat_slots()` > 0 (`parallel_feats` minus the active ones; lowering the setting never removes an active feat). `add_feat_progress(hero, feat, amount)` counts events (negative
+  allowed, floor 0; {} for a feat that is not active); reaching `HeroData.feat(id)["goal"]` completes it: it leaves the active list, `points_per_feat` skill points are paid, a RECIPE reward is learned by the party (`owned_recipes`, removed from
+  the shops) - the original game's SKILL rewards are not given, the points replace them - and it returns {completed, title, points, recipe}. Skills: `can_buy_skill()` / `buy_skill()` (the campaign tree opens it - parent owned, conditions hold
+  via `conditions_hold` - and the points cover its cost), `grant_skill()` (free story reward, ignores the tree), `grant_skill_points()`. No log entry is written on completion (the result dict is for the UI). A hero does NOT start with the
+  game's `starting_feat` equipped. Tested headlessly against the real feat data (35 checks: slots, locked / foreign feats, progress kept through a save and a deep copy, replace / unequip lose progress, completion pays points and the recipe,
+  the unlock chain, buying with parents / cost / an `act_number` condition, heroes separate). **Rewards and screens (2026-11-07)**: a chapter / side quest has `reward_skill_points` (to EVERY hero) and `skill_grants: Array[SkillGrant]` (`SkillGrant` = `hero_id`, "" = every hero, and `number` 1-11; free, ignores the tree), applied on a
+  win next to the other rewards (`_give_skill_rewards()`, noted in the result popup's items as "Skill points: +N" and "Hero: skill name"; a loss gives nothing); `CampaignCombine` adds the points and joins the grants; campaign editor: "Skill points
+  (every hero)" and "Add skill reward" rows under Loot in the chapter and side quest panels. **Heroes screen**: Party menu > Heroes opens `HeroGrowthDialog` (modal like the Inventory; a button per hero, tabs Skills / Feats): Skills = the skill points and
+  the tree drawn in rows (`SkillTree.layers()`), a skill button is owned (green) / buyable (click, confirm, `buy_skill()`) / locked (tooltip says why: not enough points, needs one of..., a condition); Feats = the active feats (title, description, goal,
+  reward, a progress bar with "n / goal", **+ and - to mark progress BY HAND at the table** - there is no automatic counting yet - a completion popup with the points and recipe, "Change..." = pick a replacement from the available feats after a
+  confirm that the progress is lost, "Drop"), the available feats with "Start" (disabled with no free slot), and the completed ones. Every change calls the owner's `on_changed` (CampaignPlayer saves the state). Skills are NOT chosen or equipped at embark
+  (decided with the user: skills are not specified at embark time - an equip limit and an embark picker were built for a moment and removed); owning a skill is all the app tracks, the table plays the cards. Texts are translated in Spanish and
+  Dutch (`HeroGrowthDialog` is in `tools/i18n/player_files.txt`); the other 11 languages show English for them until translated (35 texts, incl. 4 older Tables texts). Tested headlessly + in a real window (buy a skill, complete a feat by hand, start / change /
+  drop, hero switch, rewards from a chapter and a side quest, the editor rows, save round trip, package validator, the combine merge). **Not built**: counting events of a mission towards feats (the game does it automatically; ours could for attacks /
+  defeats / interactions), a log entry when a feat completes, the game's `starting_feat` equipped automatically.
+- (The idea of feats earning skill points that are spent on a skill roster is what the skill tree, hero growth and Heroes screen above implement; skill rewards of feats became points.)
+
 ## Hero-specific board pieces (concepts defined by the user 2026-10-10, NOT built yet)
 
 Needed by weapon parts that need a "system" (Mothwing Ornament, Tinker's Grip, Duskstrike Belt) and by hero abilities in general:

@@ -15,3 +15,39 @@
 791|Spraakcommando's
 792|Met spraakcommando's speel je door te praten (\"hey DM, held twee valt de groene bandiet aan\") en beantwoord je dialogen hardop. Het draait op je computer met een spraakmodel dat een download is; je hebt een microfoon nodig. Getypte commando's werken altijd.
 793|Welkom! Deze assistent helpt je de app in te stellen: de taal, de kunst van het spel, vertelling, spraakcommando's en de optionele AI-schrijfhulp. Elke stap kun je overslaan en je kunt hem opnieuw openen via \"Setup-assistent\" rechtsonder in het hoofdmenu.
+794|vaardigheden en prestaties van de helden
+795|een nieuwe tafel
+796|Tafel
+797|de hoofdtafel
+798|De tafel wordt gereset!\nHaal alles van de tafel en stop de stukken terug in de doos. Daarna bouw je '%s' op.
+799|%s heeft de prestatie \"%s\" voltooid!
+800|Beschikbare prestaties
+801|%s kopen voor %d vaardigheidspunten?
+802|Een vaardigheid kopen
+803|Een prestatie wisselen
+804|Wisselen…
+805|Voltooide prestaties: %d
+806|Kosten %d
+807|Laten vallen
+808|\"%s\" laten vallen? De voortgang (%d) gaat verloren.
+809|Een prestatie laten vallen
+810|Prestatie voltooid
+811|Actieve prestaties: %d van %d
+812|Doel: %d
+813|Het is nog een keer gebeurd (met de hand genoteerd)
+814|Vergrendeld totdat aan een voorwaarde is voldaan.
+815|Heeft er een nodig van: %s
+816|Geen prestatie actief - begin hieronder met een.
+817|Geen vrije prestatieplek - wissel of laat eerst een actieve prestatie vallen.
+818|Er is nu geen andere prestatie beschikbaar.
+819|Niet genoeg vaardigheidspunten.
+820|In bezit
+821|\"%s\" vervangen door \"%s\"? De voortgang (%d) van de oude prestatie gaat verloren.
+822|Vervang door deze
+823|Door welke prestatie vervangen?
+824|Beloning: %s
+825|Vaardigheidspunten: %d
+826|Vaardigheidspunten: +%d
+828|Vaardigheden
+829|Eentje terug
+830|De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spelmateriaal).

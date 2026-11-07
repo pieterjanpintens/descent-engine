@@ -39,3 +39,4 @@ I use the %s.
  Attack with the %s.
 TabContainer
 \n[color=#8fd18f]✓ %s[/color]
+SKILL_%s_%d

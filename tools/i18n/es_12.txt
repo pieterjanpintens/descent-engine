@@ -15,3 +15,39 @@
 791|Órdenes de voz
 792|Las órdenes de voz te permiten jugar hablando (\"hey DM, héroe dos ataca al bandido verde\") y responder a los diálogos en voz alta. Funciona en tu ordenador con un modelo de voz que es una descarga; necesitas un micrófono. Las órdenes escritas siempre funcionan.
 793|¡Bienvenido! Este asistente te ayuda a configurar la aplicación: el idioma, el arte del juego, la narración, las órdenes de voz y la ayuda de escritura con IA opcional. Todos los pasos se pueden omitir y puedes abrirlo de nuevo con \"Asistente de configuración\" abajo a la derecha del menú principal.
+794|habilidades y proezas de los héroes
+795|una mesa nueva
+796|Mesa
+797|la mesa principal
+798|¡La mesa se reinicia!\nQuita todo de la mesa y guarda las piezas en la caja. A continuación prepararás '%s'.
+799|¡%s ha completado la proeza \"%s\"!
+800|Proezas disponibles
+801|¿Comprar %s por %d puntos de habilidad?
+802|Comprar una habilidad
+803|Cambiar una proeza
+804|Cambiar…
+805|Proezas completadas: %d
+806|Coste %d
+807|Abandonar
+808|¿Abandonar \"%s\"? Se pierde su progreso (%d).
+809|Abandonar una proeza
+810|Proeza completada
+811|Proezas activas: %d de %d
+812|Objetivo: %d
+813|Ha ocurrido una vez más (anotado a mano)
+814|Bloqueada hasta que se cumpla una condición.
+815|Necesita una de: %s
+816|Ninguna proeza está activa: empieza una abajo.
+817|No queda hueco libre para proezas: cambia o abandona primero una proeza activa.
+818|Ahora mismo no hay otra proeza disponible.
+819|No hay suficientes puntos de habilidad.
+820|Adquirida
+821|¿Sustituir \"%s\" por \"%s\"? Se pierde el progreso (%d) de la proeza anterior.
+822|Sustituir por esta
+823|¿Por qué proeza la sustituyes?
+824|Recompensa: %s
+825|Puntos de habilidad: %d
+826|Puntos de habilidad: +%d
+828|Habilidades
+829|Quitar uno
+830|Faltan los datos de héroes: importa primero los recursos del juego (Opciones > Recursos del juego).

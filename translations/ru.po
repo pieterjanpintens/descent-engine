@@ -2352,6 +2352,9 @@ msgstr "Голосовые команды позволяют играть, го�
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Добро пожаловать! Этот помощник поможет настроить приложение: язык, ресурсы игры, озвучку, голосовые команды и необязательную помощь в письме с ИИ. Любой шаг можно пропустить, а помощника можно снова открыть через \"Помощник настройки\" справа внизу в главном меню."
 
+msgid "hero skills and feats"
+msgstr "навыки и подвиги героев"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

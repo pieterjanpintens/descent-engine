@@ -2352,6 +2352,114 @@ msgstr "Met spraakcommando's speel je door te praten (\"hey DM, held twee valt d
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Welkom! Deze assistent helpt je de app in te stellen: de taal, de kunst van het spel, vertelling, spraakcommando's en de optionele AI-schrijfhulp. Elke stap kun je overslaan en je kunt hem opnieuw openen via \"Setup-assistent\" rechtsonder in het hoofdmenu."
 
+msgid "hero skills and feats"
+msgstr "vaardigheden en prestaties van de helden"
+
+msgid "a new table"
+msgstr "een nieuwe tafel"
+
+msgid "Table"
+msgstr "Tafel"
+
+msgid "the main table"
+msgstr "de hoofdtafel"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "De tafel wordt gereset!\nHaal alles van de tafel en stop de stukken terug in de doos. Daarna bouw je '%s' op."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s heeft de prestatie \"%s\" voltooid!"
+
+msgid "Available feats"
+msgstr "Beschikbare prestaties"
+
+msgid "Buy %s for %d skill points?"
+msgstr "%s kopen voor %d vaardigheidspunten?"
+
+msgid "Buy a skill"
+msgstr "Een vaardigheid kopen"
+
+msgid "Change a feat"
+msgstr "Een prestatie wisselen"
+
+msgid "Change…"
+msgstr "Wisselen…"
+
+msgid "Completed feats: %d"
+msgstr "Voltooide prestaties: %d"
+
+msgid "Cost %d"
+msgstr "Kosten %d"
+
+msgid "Drop"
+msgstr "Laten vallen"
+
+msgid "Drop \"%s\"? Its progress (%d) is lost."
+msgstr "\"%s\" laten vallen? De voortgang (%d) gaat verloren."
+
+msgid "Drop a feat"
+msgstr "Een prestatie laten vallen"
+
+msgid "Feat completed"
+msgstr "Prestatie voltooid"
+
+msgid "Feats active: %d of %d"
+msgstr "Actieve prestaties: %d van %d"
+
+msgid "Goal: %d"
+msgstr "Doel: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Het is nog een keer gebeurd (met de hand genoteerd)"
+
+msgid "Locked until a condition is met."
+msgstr "Vergrendeld totdat aan een voorwaarde is voldaan."
+
+msgid "Needs one of: %s"
+msgstr "Heeft er een nodig van: %s"
+
+msgid "No feat is active - start one below."
+msgstr "Geen prestatie actief - begin hieronder met een."
+
+msgid "No free feat slot - change or drop an active feat first."
+msgstr "Geen vrije prestatieplek - wissel of laat eerst een actieve prestatie vallen."
+
+msgid "No other feat is available right now."
+msgstr "Er is nu geen andere prestatie beschikbaar."
+
+msgid "Not enough skill points."
+msgstr "Niet genoeg vaardigheidspunten."
+
+msgid "Owned"
+msgstr "In bezit"
+
+msgid "Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost."
+msgstr "\"%s\" vervangen door \"%s\"? De voortgang (%d) van de oude prestatie gaat verloren."
+
+msgid "Replace with this"
+msgstr "Vervang door deze"
+
+msgid "Replace with which feat?"
+msgstr "Door welke prestatie vervangen?"
+
+msgid "Reward: %s"
+msgstr "Beloning: %s"
+
+msgid "Skill points: %d"
+msgstr "Vaardigheidspunten: %d"
+
+msgid "Skill points: +%d"
+msgstr "Vaardigheidspunten: +%d"
+
+msgid "Skills"
+msgstr "Vaardigheden"
+
+msgid "Take one back"
+msgstr "Eentje terug"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spelmateriaal)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

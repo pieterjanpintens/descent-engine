@@ -15,3 +15,4 @@
 791|Hangparancsok
 792|A hangparancsokkal beszéddel játszhatsz (\"hey DM, a kettes hős megtámadja a zöld banditát\"), és hangosan válaszolhatsz a párbeszédablakokra. A számítógépeden fut egy letöltendő beszédmodellel; mikrofon kell hozzá. A beírt parancsok mindig működnek.
 793|Üdv! Ez az asszisztens segít beállítani az alkalmazást: a nyelvet, a játék erőforrásait, a narrációt, a hangparancsokat és az opcionális MI-alapú írássegítséget. Minden lépés kihagyható, és az asszisztenst újra megnyithatod a főmenü jobb alsó részén lévő \"Beállítási asszisztens\" gombbal.
+794|a hősök képességei és tettei

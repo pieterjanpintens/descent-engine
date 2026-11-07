@@ -2352,6 +2352,9 @@ msgstr "语音命令让你通过说话来游戏（“hey DM，英雄二攻击绿
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "欢迎！这个助手帮你设置应用：语言、游戏资源、旁白、语音命令以及可选的 AI 写作帮助。每一步都可以跳过，你也可以通过主菜单右下角的“设置助手”再次打开它。"
 
+msgid "hero skills and feats"
+msgstr "英雄技能和壮举"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"

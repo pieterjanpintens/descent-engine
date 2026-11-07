@@ -2352,6 +2352,9 @@ msgstr "語音指令讓你透過說話來遊玩（「hey DM，英雄二攻擊綠
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "歡迎！這個助手幫你設定應用程式：語言、遊戲資源、旁白、語音指令以及選用的 AI 寫作協助。每一步都可以略過，你也可以透過主選單右下角的「設定助手」再次開啟它。"
 
+msgid "hero skills and feats"
+msgstr "英雄技能與壯舉"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

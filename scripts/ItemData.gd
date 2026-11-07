@@ -110,6 +110,11 @@ static func text_for(key: String) -> String:
 	return _clean(str(_texts.get(key, "")))
 
 
+## The same cleaning for a text another reader loaded itself (HeroData).
+static func clean_markup(text: String) -> String:
+	return _clean(text)
+
+
 ## The game's rich-text markup as plain text: `<b>..</b>` and other tags go, a term link around words keeps the words, a
 ## term link around an icon glyph becomes "[success]" (the glyphs show as boxes in a normal font).
 static func _clean(text: String) -> String:

@@ -146,6 +146,8 @@ static func combine(campaign: Campaign, folder: String, chapters: Array, title: 
 				first.steps.append(step)
 		first.reward_xp += chapter.reward_xp
 		first.reward_gold += chapter.reward_gold
+		first.reward_skill_points += chapter.reward_skill_points
+		first.skill_grants.append_array(chapter.skill_grants)
 		for material in chapter.reward_materials:
 			first.reward_materials[material] = int(first.reward_materials.get(material, 0)) + int(chapter.reward_materials[material])
 		for card_id in chapter.reward_cards:

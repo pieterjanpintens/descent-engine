@@ -11,6 +11,7 @@ where only you will ever see them:
     5. import_item_data.py        - materials, recipes, potions, armor, trinkets, enemy loot (JSON)
     6. import_monster_data.py     - the game's monsters: tiers, activations, weaknesses, abilities (JSON)
     7. import_flat_rigs.py        - the figures' skeletons and idle animations (JSON, no Godot needed)
+    8. import_hero_data.py        - the heroes' skills, legends and feats with their rewards (JSON)
 
 Usage:
     import_all.bat                 (Windows: double-click)
@@ -145,14 +146,15 @@ def main() -> int:
     if not ensure_unitypy():
         return 1
 
-    results = {"textures": run("1/6 Textures, portraits, icons", "import_official_assets.py", bundles)}
+    results = {"textures": run("1/8 Textures, portraits, icons", "import_official_assets.py", bundles)}
     if godot:
-        results["monster figures"] = run("2/6 Monster figures", "import_monster_meshes.py", bundles, godot)
-        results["hero models"] = run("3/6 Hero models", "import_hero_meshes.py", bundles, godot)
-    results["weapon data"] = run("4/6 Weapon data", "import_weapon_data.py", bundles)
-    results["item data"] = run("5/6 Item data", "import_item_data.py", bundles)
-    results["monster data"] = run("6/6 Monster data", "import_monster_data.py", bundles)
-    results["animated figures"] = run("7/7 Animated figures", "import_flat_rigs.py", bundles)
+        results["monster figures"] = run("2/8 Monster figures", "import_monster_meshes.py", bundles, godot)
+        results["hero models"] = run("3/8 Hero models", "import_hero_meshes.py", bundles, godot)
+    results["weapon data"] = run("4/8 Weapon data", "import_weapon_data.py", bundles)
+    results["item data"] = run("5/8 Item data", "import_item_data.py", bundles)
+    results["monster data"] = run("6/8 Monster data", "import_monster_data.py", bundles)
+    results["animated figures"] = run("7/8 Animated figures", "import_flat_rigs.py", bundles)
+    results["hero data"] = run("8/8 Hero data", "import_hero_data.py", bundles)
 
     print("\n=== Done ===")
     for name, ok in results.items():

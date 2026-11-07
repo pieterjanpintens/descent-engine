@@ -68,3 +68,4 @@ Narrator tr
 CampaignInfo tr
 Difficulty tr
 SetupAssistant
+HeroGrowthDialog

@@ -15,3 +15,4 @@
 791|Comandi vocali
 792|I comandi vocali ti permettono di giocare parlando (\"hey DM, l'eroe due attacca il bandito verde\") e di rispondere ai dialoghi ad alta voce. Funziona sul tuo computer con un modello vocale da scaricare; serve un microfono. I comandi digitati funzionano sempre.
 793|Benvenuto! Questo assistente ti aiuta a configurare l'app: la lingua, le risorse di gioco, la narrazione, i comandi vocali e l'aiuto alla scrittura con IA facoltativo. Ogni passaggio si può saltare e puoi riaprire l'assistente da \"Assistente di configurazione\" in basso a destra nel menu principale.
+794|abilità e imprese degli eroi

@@ -2352,6 +2352,9 @@ msgstr "A hangparancsokkal beszéddel játszhatsz (\"hey DM, a kettes hős megt�
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Üdv! Ez az asszisztens segít beállítani az alkalmazást: a nyelvet, a játék erőforrásait, a narrációt, a hangparancsokat és az opcionális MI-alapú írássegítséget. Minden lépés kihagyható, és az asszisztenst újra megnyithatod a főmenü jobb alsó részén lévő \"Beállítási asszisztens\" gombbal."
 
+msgid "hero skills and feats"
+msgstr "a hősök képességei és tettei"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

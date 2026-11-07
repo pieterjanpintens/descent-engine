@@ -30,6 +30,7 @@ var _effect_editor: EffectEditor
 var _variables_dialog: MissionVariablesDialog
 var _characters_dialog: CharactersDialog
 var _starting_set_dialog: StartingSetDialog
+var _skill_tree_dialog: SkillTreeDialog
 var _sell_spin: SpinBox
 var _story_window: NarrativeWindow
 var _manuscript_window: ManuscriptWindow
@@ -87,6 +88,7 @@ var _problems_list: VBoxContainer
 var _problem_lines: Array[String] = []
 var _materials_dialog: LootDialog
 var _potion_spin: SpinBox
+var _feats_spin: SpinBox
 var _brooch_option: OptionButton
 var _brooch_properties: Button
 var _brooch_dialog: MonsterPropertiesDialog
@@ -271,6 +273,9 @@ func _ready() -> void:
 		_mark_dirty()
 		_update_problems()
 	)))
+	general.add_child(_button("Skill tree…", func(): _skill_tree_dialog.open_for(_campaign, func():
+		_mark_dirty()
+	, _build_conditions_section)))
 	general.add_child(_button("Characters…", func(): _characters_dialog.open_for_list(_campaign.characters, func(_label: String, mutate: Callable):
 		mutate.call()
 		_mark_dirty()
@@ -306,6 +311,21 @@ func _ready() -> void:
 	)
 	_potion_spin = potion_spin
 	potion_row.add_child(potion_spin)
+	var feats_row := HBoxContainer.new()
+	general.add_child(feats_row)
+	feats_row.add_child(_label("Feats active at once (per hero):"))
+	var feats_spin := SpinBox.new()
+	feats_spin.min_value = 1
+	feats_spin.max_value = 20
+	feats_spin.value = _campaign.parallel_feats if _campaign != null else 1
+	feats_spin.tooltip_text = "How many feats a hero may work on at the same time. The original game allows one; each hero has 20 feats."
+	feats_spin.value_changed.connect(func(value: float):
+		if _campaign != null:
+			_campaign.parallel_feats = int(value)
+			_mark_dirty()
+	)
+	_feats_spin = feats_spin
+	feats_row.add_child(feats_spin)
 	var brooch_row := HBoxContainer.new()
 	general.add_child(brooch_row)
 	brooch_row.add_child(_label("Tarnished Brooch monster:"))
@@ -502,6 +522,8 @@ func _ready() -> void:
 	add_child(_characters_dialog)
 	_starting_set_dialog = StartingSetDialog.new()
 	add_child(_starting_set_dialog)
+	_skill_tree_dialog = SkillTreeDialog.new()
+	add_child(_skill_tree_dialog)
 
 	_refresh_open_list()
 	_refresh_all()
@@ -1319,6 +1341,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 	reward_row.add_child(_label("XP:"))
 	reward_row.add_child(_reward_spin(quest.reward_xp, func(value: int): quest.reward_xp = value))
 	_chapter_panel.add_child(_reward_loot_row(quest))
+	_build_skill_reward_rows(quest)
 
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete side quest", func(): _delete_side_quest(quest)))
@@ -1758,6 +1781,7 @@ func _refresh_all() -> void:
 	_duration_spin.set_value_no_signal(_campaign.duration_minutes)
 	_update_language_bar()
 	_potion_spin.set_value_no_signal(_campaign.consumables_per_player)
+	_feats_spin.set_value_no_signal(_campaign.parallel_feats)
 	_refresh_brooch_row()
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")
 	_cover_preview.texture = CampaignIO.image_texture(_folder, _campaign.cover_image)
@@ -1814,6 +1838,8 @@ func _update_problems() -> void:
 	for problem in _campaign.starting_set_problems():
 		lines.append(problem)
 	for problem in _campaign.brooch_problems():
+		lines.append(problem)
+	for problem in _campaign.skill_tree_problems():
 		lines.append(problem)
 	for problem in CampaignIO.mission_link_problems(_campaign, _folder):
 		lines.append(problem)
@@ -2025,6 +2051,7 @@ func _rebuild_chapter_panel() -> void:
 	reward_row.add_child(_label("XP:"))
 	reward_row.add_child(_reward_spin(chapter.reward_xp, func(value: int): chapter.reward_xp = value))
 	_chapter_panel.add_child(_reward_loot_row(chapter))
+	_build_skill_reward_rows(chapter)
 
 	_chapter_panel.add_child(HSeparator.new())
 	_chapter_panel.add_child(_button("Delete chapter", func(): _on_delete_chapter_pressed(chapter)))
@@ -2077,6 +2104,67 @@ func _reward_spin(initial: int, on_change: Callable) -> SpinBox:
 		_mark_dirty()
 	)
 	return spin
+
+
+## The skill rewards of a chapter or side quest (`holder`): skill points for EVERY hero, and a list of skills handed out for free to one hero or all.
+func _build_skill_reward_rows(holder: Object) -> void:
+	var points_row := HBoxContainer.new()
+	_chapter_panel.add_child(points_row)
+	var points_label := _label("Skill points (every hero):")
+	points_label.tooltip_text = "Skill points every hero gets when this is won, to spend in the skill tree."
+	points_row.add_child(points_label)
+	points_row.add_child(_reward_spin(int(holder.reward_skill_points), func(value: int): holder.reward_skill_points = value))
+	var grants: Array[SkillGrant] = holder.skill_grants
+	if not grants.is_empty():
+		_chapter_panel.add_child(_label("Skills handed out for free:"))
+	for grant in grants:
+		_chapter_panel.add_child(_skill_grant_row(grants, grant))
+	_chapter_panel.add_child(_button("Add skill reward", func():
+		grants.append(SkillGrant.new())
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+
+
+func _skill_grant_row(grants: Array[SkillGrant], grant: SkillGrant) -> Control:
+	var row := HFlowContainer.new()
+	var hero_option := OptionButton.new()
+	hero_option.add_item("Every hero")
+	hero_option.set_item_metadata(0, "")
+	var selected := 0
+	for hero_id in CampaignState.hero_ids():
+		hero_option.add_item(HeroData.hero_name(hero_id) if HeroData.available() else hero_id.trim_prefix("HERO_").capitalize())
+		hero_option.set_item_metadata(hero_option.item_count - 1, hero_id)
+		if hero_id == grant.hero_id:
+			selected = hero_option.item_count - 1
+	hero_option.select(selected)
+	var skill_option := OptionButton.new()
+	var fill_skills := func():
+		skill_option.clear()
+		for number in range(1, SkillTree.SLOTS + 1):
+			var text := "Skill %d" % number
+			if grant.hero_id != "" and HeroData.available():
+				text += " - " + HeroData.skill_name("SKILL_%s_%d" % [grant.hero_id.trim_prefix("HERO_"), number])
+			skill_option.add_item(text)
+		skill_option.select(clampi(grant.number, 1, SkillTree.SLOTS) - 1)
+	fill_skills.call()
+	hero_option.item_selected.connect(func(index: int):
+		grant.hero_id = str(hero_option.get_item_metadata(index))
+		fill_skills.call()
+		_mark_dirty()
+	)
+	skill_option.item_selected.connect(func(index: int):
+		grant.number = index + 1
+		_mark_dirty()
+	)
+	row.add_child(hero_option)
+	row.add_child(skill_option)
+	row.add_child(_button("×", func():
+		grants.erase(grant)
+		_mark_dirty()
+		_rebuild_chapter_panel()
+	))
+	return row
 
 
 # ---------------------------------------------------------------- narrative chapters

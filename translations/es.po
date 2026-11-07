@@ -2352,6 +2352,114 @@ msgstr "Las órdenes de voz te permiten jugar hablando (\"hey DM, héroe dos ata
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "¡Bienvenido! Este asistente te ayuda a configurar la aplicación: el idioma, el arte del juego, la narración, las órdenes de voz y la ayuda de escritura con IA opcional. Todos los pasos se pueden omitir y puedes abrirlo de nuevo con \"Asistente de configuración\" abajo a la derecha del menú principal."
 
+msgid "hero skills and feats"
+msgstr "habilidades y proezas de los héroes"
+
+msgid "a new table"
+msgstr "una mesa nueva"
+
+msgid "Table"
+msgstr "Mesa"
+
+msgid "the main table"
+msgstr "la mesa principal"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "¡La mesa se reinicia!\nQuita todo de la mesa y guarda las piezas en la caja. A continuación prepararás '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "¡%s ha completado la proeza \"%s\"!"
+
+msgid "Available feats"
+msgstr "Proezas disponibles"
+
+msgid "Buy %s for %d skill points?"
+msgstr "¿Comprar %s por %d puntos de habilidad?"
+
+msgid "Buy a skill"
+msgstr "Comprar una habilidad"
+
+msgid "Change a feat"
+msgstr "Cambiar una proeza"
+
+msgid "Change…"
+msgstr "Cambiar…"
+
+msgid "Completed feats: %d"
+msgstr "Proezas completadas: %d"
+
+msgid "Cost %d"
+msgstr "Coste %d"
+
+msgid "Drop"
+msgstr "Abandonar"
+
+msgid "Drop \"%s\"? Its progress (%d) is lost."
+msgstr "¿Abandonar \"%s\"? Se pierde su progreso (%d)."
+
+msgid "Drop a feat"
+msgstr "Abandonar una proeza"
+
+msgid "Feat completed"
+msgstr "Proeza completada"
+
+msgid "Feats active: %d of %d"
+msgstr "Proezas activas: %d de %d"
+
+msgid "Goal: %d"
+msgstr "Objetivo: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Ha ocurrido una vez más (anotado a mano)"
+
+msgid "Locked until a condition is met."
+msgstr "Bloqueada hasta que se cumpla una condición."
+
+msgid "Needs one of: %s"
+msgstr "Necesita una de: %s"
+
+msgid "No feat is active - start one below."
+msgstr "Ninguna proeza está activa: empieza una abajo."
+
+msgid "No free feat slot - change or drop an active feat first."
+msgstr "No queda hueco libre para proezas: cambia o abandona primero una proeza activa."
+
+msgid "No other feat is available right now."
+msgstr "Ahora mismo no hay otra proeza disponible."
+
+msgid "Not enough skill points."
+msgstr "No hay suficientes puntos de habilidad."
+
+msgid "Owned"
+msgstr "Adquirida"
+
+msgid "Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost."
+msgstr "¿Sustituir \"%s\" por \"%s\"? Se pierde el progreso (%d) de la proeza anterior."
+
+msgid "Replace with this"
+msgstr "Sustituir por esta"
+
+msgid "Replace with which feat?"
+msgstr "¿Por qué proeza la sustituyes?"
+
+msgid "Reward: %s"
+msgstr "Recompensa: %s"
+
+msgid "Skill points: %d"
+msgstr "Puntos de habilidad: %d"
+
+msgid "Skill points: +%d"
+msgstr "Puntos de habilidad: +%d"
+
+msgid "Skills"
+msgstr "Habilidades"
+
+msgid "Take one back"
+msgstr "Quitar uno"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Faltan los datos de héroes: importa primero los recursos del juego (Opciones > Recursos del juego)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

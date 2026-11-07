@@ -15,3 +15,4 @@
 791|Polecenia głosowe
 792|Polecenia głosowe pozwalają grać mówiąc (\"hey DM, bohater dwa atakuje zielonego bandytę\") i odpowiadać na okna dialogowe na głos. Działa na Twoim komputerze z modelem mowy, który trzeba pobrać; potrzebny jest mikrofon. Polecenia wpisywane zawsze działają.
 793|Witaj! Ten asystent pomaga skonfigurować aplikację: język, zasoby gry, narrację, polecenia głosowe i opcjonalną pomoc w pisaniu z AI. Każdy krok można pominąć, a asystenta można otworzyć ponownie przez \"Asystent konfiguracji\" w prawym dolnym rogu menu głównego.
+794|umiejętności i wyczyny bohaterów

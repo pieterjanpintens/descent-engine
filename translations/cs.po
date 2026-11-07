@@ -2352,6 +2352,9 @@ msgstr "Hlasové příkazy vám umožňují hrát mluvením (\"hey DM, hrdina dv
 msgid "Welcome! This assistant helps you set up the app: the language, the game's art, narration, voice commands and the optional AI writing help. Every step can be skipped, and you can open it again with \"Setup Assistant\" at the bottom right of the main menu."
 msgstr "Vítejte! Tento průvodce vám pomůže aplikaci nastavit: jazyk, zdroje hry, vyprávění, hlasové příkazy a volitelnou pomoc s psaním pomocí AI. Každý krok lze přeskočit a průvodce můžete znovu otevřít přes \"Průvodce nastavením\" vpravo dole v hlavní nabídce."
 
+msgid "hero skills and feats"
+msgstr "dovednosti a činy hrdinů"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

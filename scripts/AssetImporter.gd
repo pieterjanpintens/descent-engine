@@ -20,12 +20,12 @@ const INSTALL_DIR := "user://importer/"
 const STAGING_DIR := "user://importer/staging/"
 const TOOL_NAME := "asset_importer"
 ## Must match asset_importer.PROTOCOL: an installed tool that answers something else is downloaded again.
-## Bump it together with the tool whenever the steps change (2: the original props step), or installed older tools are kept.
-const PROTOCOL := 4
+## Bump it together with the tool whenever the steps change (2: the original props step, 5: the hero data step), or installed older tools are kept.
+const PROTOCOL := 5
 ## What the button tells the player.
 const DOWNLOAD_SIZE_TEXT := "about 25 MB"
 ## The user-data folders an import fills (what "imported" means, and what to delete to go back to the placeholders).
-const OUTPUT_FOLDERS: Array[String] = ["official_assets", "monster_assets", "hero_assets", "weapon_data", "item_data", "monster_data"]
+const OUTPUT_FOLDERS: Array[String] = ["official_assets", "monster_assets", "hero_assets", "weapon_data", "item_data", "monster_data", "hero_data"]
 
 ## Overridable (tests point this at a local server). The newest release always carries the tool.
 var download_base_url := "https://github.com/pieterjanpintens/descent-engine/releases/latest/download/"
