@@ -60,6 +60,10 @@ var intro: String:
 ## How many feats a hero may have ACTIVE (equipped, being worked on) at the same time. The game allows exactly one; a campaign may allow more. Feats
 ## themselves (HeroData.feats_of()) complete and pay skill points (SkillTree.points_per_feat); equipping them is not built yet.
 @export var parallel_feats: int = 1
+## Base-template names (monster library) that count as a DRAGON (dragonkind) / an ANIMUS for the heroes' feats, besides the game's own families (see
+## FeatMonstersDialog): a dragon has no figure of its own, and a custom template may wear another figure.
+@export var dragon_templates: Array[String] = []
+@export var animus_templates: Array[String] = []
 ## The monster that spawns together with the first monster of a mission when a hero wears the Tarnished Brooch (see TrinketData.BROOCH_ID).
 ## null = the Brooch is out of the game in this campaign.
 @export var brooch_monster: MonsterTemplate

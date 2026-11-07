@@ -408,6 +408,8 @@ signal skull_kill(monster: RuntimeMonster, hero_slot: int)
 ## The Brooch's monster has spawned in this mission already (once per mission; saved with the game).
 var brooch_spawned := false
 ## A defeated monster's loot went to the party: (monster display name, text for the table, e.g. "Metal, Terros").
+## Something the party gained that feats count: crafting materials (a total number), consumables (looted usable ones) and recipes (ids).
+signal items_gained(materials: int, consumables: int, recipes: Array)
 signal loot_collected(monster_name: String, text: Callable, usable_text: Callable)  ## the texts are builders (language-proof for the quest log, see LogText); an invalid Callable = none
 ## Materials the party has taken from defeated monsters this mission (LootMaterials key -> count). Handed to the
 ## campaign when the mission is WON (CampaignState.apply_result()); saved with the game.
@@ -472,6 +474,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.id = "monster_%d" % _next_monster_number
 	_next_monster_number += 1
 	created.folder = folder
+	created.base_template_name = template.base_archetype.template_name
 	created.custom_name = template.custom_name
 	# The level shift formula (the monster's own or the mission's, by default "difficulty - 2") moves the monster's level, so the level
 	# tables of its templates give it other numbers.
@@ -613,6 +616,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 			defense_lines.append(tr("defense +%d during this attack") % during)
 	var defense_roll := 0 if (immune or modifiers.get("ignore_defense", false)) else randi_range(0, defense_value)
 	var dealt := maxi(damage - defense_roll, 0)
+	var hitpoints_before := monster.hitpoints
 	monster.hitpoints -= dealt
 	monster.attacked_this_round = true
 	var defeated := monster.hitpoints <= 0
@@ -623,6 +627,8 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated,
 		"conditions_applied": conditions_applied, "conditions_resisted": conditions_resisted, "exposed_bonus": exposed_bonus,
 		"exposed": not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED),
+		# what feats count: the damage that came from weaknesses (the extra damage per success), the hitpoints it had before, and the overkill (damage past zero)
+		"weakness_damage": 0 if immune else final_successes * bonus, "hitpoints_before": hitpoints_before, "overkill": maxi(dealt - maxi(hitpoints_before, 0), 0),
 	}
 	if defeated:
 		var brooch_kill: bool = monster.brooch_target and hero_slot >= 0 and hero_slot == monster.brooch_wearer
@@ -903,6 +909,7 @@ func _collect_loot(monster: RuntimeMonster) -> void:
 		return
 	for key in gained:
 		collected_loot[key] = int(collected_loot.get(key, 0)) + int(gained[key])
+	items_gained.emit(_material_count(gained), usable_ids.size(), [])
 	var text_builder := Callable()
 	if has_loot_text or compass_gold > 0:
 		text_builder = func() -> String:
@@ -914,6 +921,16 @@ func _collect_loot(monster: RuntimeMonster) -> void:
 	if not usable_ids.is_empty():
 		usable_builder = func() -> String: return ConsumableData.usable_notice(usable_ids)
 	loot_collected.emit(monster.display_name(), text_builder, usable_builder)
+
+
+## How many crafting materials a loot dictionary holds (gold, cards and recipes are not materials).
+static func _material_count(loot: Dictionary) -> int:
+	var total := 0
+	for key in loot:
+		var name := str(key)
+		if name != LootMaterials.GOLD and not name.begins_with(LootMaterials.CARD_PREFIX) and not name.begins_with(LootMaterials.RECIPE_PREFIX):
+			total += int(loot[key])
+	return total
 
 
 ## Whether a loot dictionary holds crafting materials (gold, cards and recipes are not materials).
@@ -1133,6 +1150,8 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 func _apply_loot(effect: Effect) -> void:
 	var found := add_loot(effect.loot_materials, effect.loot_cards, effect.loot_recipes)
 	var usable := ConsumableData.usable_notice(effect.loot_usable)
+	if not effect.loot_usable.is_empty():
+		items_gained.emit(0, effect.loot_usable.size(), [])
 	if found == "" and effect.loot_text == "" and usable == "":
 		return
 	var lines: Array[String] = []
@@ -1158,6 +1177,7 @@ func add_loot(materials: Dictionary, cards: Array, recipes: Array) -> String:
 		collected_loot[LootMaterials.CARD_PREFIX + str(card_id)] = 1
 	for recipe_id in recipes:
 		collected_loot[LootMaterials.RECIPE_PREFIX + str(recipe_id)] = 1
+	items_gained.emit(_material_count(materials), 0, recipes.duplicate())
 	return loot_summary(materials, cards, recipes)
 
 
@@ -1413,6 +1433,16 @@ func drain_pending_stage_reveals() -> Array[String]:
 ## last drain - called by MissionPlayer right alongside
 ## drain_pending_stage_reveals(), so it can call
 ## LayeredMap.remove_node() for each.
+## The ids of the objects the effects that just ran will remove (not drained) - what a feat like "open a chest" looks at before the caller acts on them.
+func pending_removal_ids() -> Array[String]:
+	return _pending_object_removals.duplicate()
+
+
+## Whether the effects that just ran queued monsters to spawn (not drained).
+func has_pending_spawns() -> bool:
+	return not _pending_monster_spawns.is_empty()
+
+
 func drain_pending_object_removals() -> Array[String]:
 	var removals := _pending_object_removals
 	_pending_object_removals = []

@@ -16,6 +16,9 @@ extends RefCounted
 const FILE := "user://hero_data/heroes.json"
 const FOLDER := "user://hero_data/"
 
+## How many numbered skills a hero has; the legends follow as skills 12-14.
+const SKILLS_PER_HERO := 11
+
 static var _loaded := false
 static var _language := ""  ## the text language the cached data was built for
 static var _texts: Dictionary = {}
@@ -72,7 +75,7 @@ static func hero_name(hero_id: String) -> String:
 
 # --- skills ---------------------------------------------------------------------------------------------------------
 
-## A hero's skill cards in the game's order (1-11).
+## A hero's skill cards in the game's order: skills 1-11, then the three LEGEND cards as skills 12-14 (a legend is a skill of the tree like any other).
 static func skills_of(hero_id: String) -> Array[Dictionary]:
 	_load()
 	var result: Array[Dictionary] = []
@@ -85,7 +88,7 @@ static func skills_of(hero_id: String) -> Array[Dictionary]:
 static func skill(skill_id: String) -> Dictionary:
 	_load()
 	var entry = _by_id.get(skill_id)
-	return entry if entry != null and entry.has("number") and entry["id"].begins_with("SKILL_") else {}
+	return entry if entry != null and entry.has("number") and (entry["id"].begins_with("SKILL_") or entry["id"].begins_with("LEGEND_")) else {}
 
 
 ## "Disguise / Careful"; the id itself when unknown.
@@ -114,7 +117,7 @@ static func skill_feat(skill_id: String) -> String:
 
 # --- legends --------------------------------------------------------------------------------------------------------
 
-## A hero's legend cards (3): {id ("LEGEND_CHANCE_1"), hero, number, name ("Clever-Paw / Clever-Heart"), name_a, name_b, xp, act}.
+## A hero's legend cards (3): {id ("LEGEND_CHANCE_1"), hero, number (12-14: the skill slot), legend_number (1-3), name ("Clever-Paw / Clever-Heart"), name_a, name_b, xp, act}.
 static func legends_of(hero_id: String) -> Array[Dictionary]:
 	_load()
 	var result: Array[Dictionary] = []
@@ -233,11 +236,13 @@ static func _load() -> void:
 		var raw: Dictionary = legend_raw[card]
 		var side_a := str(legend_sides[card].get("A", ""))
 		var side_b := str(legend_sides[card].get("B", ""))
+		# a legend is a skill of the tree: its number is 12-14 ("legend_number" is 1-3), and no feat gives it
 		var legend_entry := {
-			"id": card, "hero": _hero_of(card), "number": _number_of(card), "name": "%s / %s" % [side_a, side_b], "name_a": side_a,
-			"name_b": side_b, "xp": int(raw.get("XPCost", 0)), "act": int(raw.get("_act", 0)),
+			"id": card, "hero": _hero_of(card), "number": SKILLS_PER_HERO + _number_of(card), "legend_number": _number_of(card),
+			"name": "%s / %s" % [side_a, side_b], "name_a": side_a, "name_b": side_b, "xp": int(raw.get("XPCost", 0)), "act": int(raw.get("_act", 0)), "feat": "",
 		}
 		_legends.append(legend_entry)
+		_skills.append(legend_entry)
 		_by_id[card] = legend_entry
 	_legends.sort_custom(_by_hero_number)
 
@@ -265,13 +270,25 @@ static func _build_feat(raw: Dictionary) -> Dictionary:
 	for needed in raw.get("PrerequisiteFeats", []):
 		prerequisites.append(str(needed))
 	var first := rewards[0] if not rewards.is_empty() else ""
+	# the rule filters that are switched on: name -> {"Value": ..., "InvertCondition": ...} (what FeatTracker evaluates)
+	var filters: Dictionary = {}
+	for key in raw:
+		var value = raw[key]
+		if value is Dictionary and value.has("Enable") and int(value["Enable"]) == 1:
+			filters[key] = value
 	return {
 		"id": id, "hero": str(raw.get("HeroSource", "")), "number": _number_of(id), "title": title,
 		"description": ItemData.clean_markup(description), "goal": int(raw.get("Goal", 1)), "timing": int(raw.get("Timing", 0)),
 		"act": int(raw.get("_act", 0)), "completed_required": int(raw.get("AmountCompletedRequired", 0)),
 		"prerequisites": prerequisites, "rewards": rewards, "reward": first,
-		"reward_kind": "skill" if first.begins_with("SKILL_") else "recipe",
+		"reward_kind": "skill" if first.begins_with("SKILL_") else "recipe", "filters": filters,
 	}
+
+
+## The card id of a skill slot: numbers 1-11 are the skills ("SKILL_CHANCE_3"), 12-14 the legends ("LEGEND_CHANCE_1" ... "_3").
+static func slot_id(hero_id: String, number: int) -> String:
+	var hero_name := hero_id.trim_prefix("HERO_")
+	return "SKILL_%s_%d" % [hero_name, number] if number <= SKILLS_PER_HERO else "LEGEND_%s_%d" % [hero_name, number - SKILLS_PER_HERO]
 
 
 ## "SKILL_CHANCE_3" / "LEGEND_CHANCE_1A" / "FEAT_CHANCE_7" -> "HERO_CHANCE".

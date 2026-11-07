@@ -8,7 +8,7 @@ extends Resource
 @export var hero_id: String = ""
 ## Skill points not spent yet: the campaign's starting points, plus what completed feats paid, minus what bought skills cost.
 @export var skill_points: int = 0
-## The skill numbers (1-11, HeroData) the hero owns.
+## The skill numbers (1-11, and 12-14 for the legends; HeroData) the hero owns.
 @export var skills: Array[int] = []
 ## The feats being worked on: feat id -> progress (how many times its condition has happened). A feat stays here, with its progress, until it is
 ## completed or the player changes it - not between quests, not between missions.

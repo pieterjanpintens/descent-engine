@@ -858,6 +858,16 @@ func free_feat_slots(campaign: Campaign, hero_id: String) -> int:
 	return maxi(maxi(campaign.parallel_feats, 1) - state.active_feats.size(), 0) if state != null else 0
 
 
+## The feats the hero is offered that are not active yet - the choices for "start a feat" (whether a slot is free is free_feat_slots()'s business).
+func startable_feats(campaign: Campaign, hero_id: String) -> Array[Dictionary]:
+	var active := active_feats(campaign, hero_id)
+	var choices: Array[Dictionary] = []
+	for feat in HeroData.feats_offered(hero_id, completed_feats(campaign, hero_id)):
+		if not active.has(feat["id"]):
+			choices.append(feat)
+	return choices
+
+
 ## Whether the hero may start this feat: it is theirs, the game's unlock rule offers it (not completed, enough other feats completed, prerequisite feats
 ## completed - HeroData.feat_offered), it is not active already, and a feat slot is free.
 func can_equip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
@@ -951,7 +961,7 @@ func buy_skill(campaign: Campaign, hero_id: String, number: int) -> bool:
 	return true
 
 
-## The campaign hands a skill out directly (a story reward): no points, no tree rules. False when the hero owns it already or the number is not 1-11.
+## The campaign hands a skill out directly (a story reward): no points, no tree rules. False when the hero owns it already or the number is not a slot (1-14).
 func grant_skill(campaign: Campaign, hero_id: String, number: int) -> bool:
 	var state := hero_state(campaign, hero_id)
 	if state == null or number < 1 or number > SkillTree.SLOTS or state.skills.has(number):
@@ -982,4 +992,4 @@ func _give_skill_rewards(campaign: Campaign, points: int, grants: Array[SkillGra
 			targets.append(grant.hero_id)
 		for hero_id in targets:
 			if grant_skill(campaign, hero_id, grant.number):
-				_note_item(summary, "%s: %s" % [HeroData.hero_name(hero_id), HeroData.skill_name("SKILL_%s_%d" % [hero_id.trim_prefix("HERO_"), grant.number])])
+				_note_item(summary, "%s: %s" % [HeroData.hero_name(hero_id), HeroData.skill_name(HeroData.slot_id(hero_id, grant.number))])

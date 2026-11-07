@@ -31,6 +31,7 @@ var _variables_dialog: MissionVariablesDialog
 var _characters_dialog: CharactersDialog
 var _starting_set_dialog: StartingSetDialog
 var _skill_tree_dialog: SkillTreeDialog
+var _feat_monsters_dialog: FeatMonstersDialog
 var _sell_spin: SpinBox
 var _story_window: NarrativeWindow
 var _manuscript_window: ManuscriptWindow
@@ -273,6 +274,7 @@ func _ready() -> void:
 		_mark_dirty()
 		_update_problems()
 	)))
+	general.add_child(_button("Feat monsters…", func(): _feat_monsters_dialog.open_for(_campaign, func(): _mark_dirty())))
 	general.add_child(_button("Skill tree…", func(): _skill_tree_dialog.open_for(_campaign, func():
 		_mark_dirty()
 	, _build_conditions_section)))
@@ -524,6 +526,8 @@ func _ready() -> void:
 	add_child(_starting_set_dialog)
 	_skill_tree_dialog = SkillTreeDialog.new()
 	add_child(_skill_tree_dialog)
+	_feat_monsters_dialog = FeatMonstersDialog.new()
+	add_child(_feat_monsters_dialog)
 
 	_refresh_open_list()
 	_refresh_all()
@@ -2144,7 +2148,7 @@ func _skill_grant_row(grants: Array[SkillGrant], grant: SkillGrant) -> Control:
 		for number in range(1, SkillTree.SLOTS + 1):
 			var text := "Skill %d" % number
 			if grant.hero_id != "" and HeroData.available():
-				text += " - " + HeroData.skill_name("SKILL_%s_%d" % [grant.hero_id.trim_prefix("HERO_"), number])
+				text += " - " + HeroData.skill_name(HeroData.slot_id(grant.hero_id, number))
 			skill_option.add_item(text)
 		skill_option.select(clampi(grant.number, 1, SkillTree.SLOTS) - 1)
 	fill_skills.call()

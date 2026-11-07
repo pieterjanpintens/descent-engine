@@ -2460,6 +2460,9 @@ msgstr "Eentje terug"
 msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
 msgstr "De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spelmateriaal)."
 
+msgid "%s: choose a new feat"
+msgstr "%s: kies een nieuwe prestatie"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

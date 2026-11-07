@@ -8,6 +8,8 @@ extends RefCounted
 
 var id: String = ""
 var folder: String = ""  ## MonsterDisplay.REAL_MONSTERS `folder`, e.g. "wolf"
+## The name of the base template (monster library) it was made from - what a campaign's "counts as a dragon / animus" lists refer to.
+var base_template_name: String = ""
 var chip: int = MonsterChip.Chip.YELLOW  ## which colour chip is on its base
 var custom_name: String = ""  ## empty = generic type name
 ## Added around the name (already combined from the monster's own and its
@@ -192,7 +194,7 @@ func defense_ability_text(after: bool) -> String:
 ## field; a save just carries a Dictionary of these fields instead.
 func to_dict() -> Dictionary:
 	return {
-		"id": id, "folder": folder, "chip": chip, "custom_name": custom_name, "name_prefix": name_prefix, "name_postfix": name_postfix,
+		"id": id, "folder": folder, "base_template_name": base_template_name, "chip": chip, "custom_name": custom_name, "name_prefix": name_prefix, "name_postfix": name_postfix,
 		"hitpoints": hitpoints, "max_hitpoints": max_hitpoints, "level": level, "defense": defense, "speed": speed,
 		"weaknesses": weaknesses.duplicate(), "resistances": resistances.duplicate(), "immunities": immunities.duplicate(),
 		"known_weaknesses": known_weaknesses.duplicate(), "known_resistances": known_resistances.duplicate(), "known_immunities": known_immunities.duplicate(),
@@ -213,6 +215,7 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	var m := RuntimeMonster.new()
 	m.id = d.get("id", "")
 	m.folder = d.get("folder", "")
+	m.base_template_name = d.get("base_template_name", "")
 	m.chip = d.get("chip", MonsterChip.Chip.YELLOW)
 	m.custom_name = d.get("custom_name", "")
 	m.name_prefix = d.get("name_prefix", "")

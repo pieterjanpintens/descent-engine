@@ -257,6 +257,7 @@ func _ready() -> void:
 	_runtime.brooch_defeated.connect(_on_brooch_defeated)
 	_runtime.skull_kill.connect(_on_skull_kill)
 	interaction_dock.mission_runtime = _runtime
+	_setup_feat_tracker()
 	interaction_dock.monster_display = monster_display
 	if resume_save == null:
 		for variable_name in GameState.campaign_mission_inputs:
@@ -1429,6 +1430,11 @@ func _run_darkness_and_loop() -> void:
 	# Last step of the darkness phase: Tactics - one monster prepares a special activation for the next round.
 	await _run_tactics_step()
 
+	# The round is over: feats about finishing a round are checked, and the round's records start afresh.
+	if _feat_tracker != null:
+		_feat_tracker.on_round_end()
+		await _drain_feat_queue()
+
 	# End of the monster phase: conditions only last a round (Doomed ones keep the rest).
 	_runtime.end_monster_phase_conditions()
 
@@ -1531,7 +1537,10 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 func _run_monster_attacks() -> void:
 	for monster in _runtime.monsters.duplicate():
 		if _runtime.monsters.has(monster) and monster.attack_power > 0 and not monster.unaware:  # a surprised group stays put
+			var activation_marker := _feat_tracker.activation_start() if _feat_tracker != null else 0
 			await _monster_attack(monster)
+			if _feat_tracker != null:
+				_feat_tracker.activation_end(activation_marker)
 
 
 ## One monster's turn: it attacks once - more when an attack ability says so
@@ -1689,6 +1698,12 @@ func _apply_affliction() -> void:
 	var results := _runtime.apply_affliction()
 	if results.is_empty():
 		return
+	if _feat_tracker != null:
+		var fallen: Array = []
+		for entry in results:
+			if entry["defeated"]:
+				fallen.append(entry["monster"])
+		_feat_tracker.on_affliction_defeats(fallen)
 	var chips: Dictionary = {}  # a defeated monster has lost its chip by the time the text is built per language
 	for entry in results:
 		chips[entry["monster"]] = (entry["monster"] as RuntimeMonster).chip
@@ -1751,6 +1766,9 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 ## quest log as "Wound".
 var _defeat_queue: Array[RuntimeMonster] = []
 var _defeat_busy := false
+var _feat_tracker: FeatTracker
+var _feat_queue: Array[Dictionary] = []
+var _feat_busy := false
 
 
 ## What each monster has dropped so far (display name -> texts), for the defeat dialog - a part's early drop, the loot of
@@ -1822,6 +1840,74 @@ func _flush_wake_notices() -> void:
 		await get_tree().process_frame
 
 
+## Counts what happens in this mission towards the heroes' active feats - in a campaign mission, with the hero data export (see FeatTracker).
+func _setup_feat_tracker() -> void:
+	if GameState.campaign_folder == "" or not HeroData.available():
+		return
+	var feat_campaign := CampaignIO.load_campaign(GameState.campaign_folder)
+	var feat_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	if feat_campaign == null or feat_state == null:
+		return
+	_feat_tracker = FeatTracker.new()
+	_feat_tracker.setup(feat_campaign, feat_state, _runtime, player_roster, current_round)
+	_feat_tracker.feat_completed.connect(_on_feat_completed)
+	interaction_dock.feat_tracker = _feat_tracker
+
+
+func _on_feat_completed(hero_id: String, result: Dictionary) -> void:
+	_feat_queue.append({"hero_id": hero_id, "result": result})
+	_drain_feat_queue()
+
+
+## Announces the completed feats one after the other (once no dialog is open) and lets the player pick a new feat for the hero. Awaitable: when a drain is
+## already running it waits for it, so the caller knows everything has been shown.
+func _drain_feat_queue() -> void:
+	if _feat_busy:
+		while _feat_busy:
+			await get_tree().process_frame
+		return
+	_feat_busy = true
+	while not _feat_queue.is_empty():
+		var quiet := 0
+		while quiet < 3:  # wait until no dialog has been open for a few frames in a row
+			await get_tree().process_frame
+			quiet = quiet + 1 if not dialog.visible else 0
+		var done: Dictionary = _feat_queue.pop_front()
+		await _announce_feat(str(done["hero_id"]), done["result"])
+	_feat_busy = false
+
+
+func _announce_feat(hero_id: String, result: Dictionary) -> void:
+	var make_text := func() -> String:
+		var text := tr("%s completed the feat \"%s\"!") % [HeroData.hero_name(hero_id), result["title"]]
+		text += "\n" + tr("Skill points: +%d") % int(result["points"])
+		if str(result["recipe"]) != "":
+			var recipe := RecipeData.find(str(result["recipe"]))
+			text += "\n" + tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(result["recipe"]))
+		return text
+	await dialog.ask_ok(make_text, true, false, func() -> String: return tr("Feat completed"))
+	await _offer_new_feat(hero_id)
+
+
+## After a feat is completed the hero may start another one right away: a choice of the feats they are offered (Cancel = later, from the Heroes screen).
+func _offer_new_feat(hero_id: String) -> void:
+	var feat_state := _feat_tracker.state
+	var feat_campaign := _feat_tracker.campaign
+	if feat_state.free_feat_slots(feat_campaign, hero_id) <= 0:
+		return
+	var choices := feat_state.startable_feats(feat_campaign, hero_id)
+	if choices.is_empty():
+		return
+	var labels: Array[String] = []
+	var details: Array[String] = []
+	for feat in choices:
+		labels.append(str(feat["title"]))
+		details.append("%s\n%s" % [feat["description"], tr("Goal: %d") % int(feat["goal"])])
+	var picked: int = await dialog.ask_choice(tr("%s: choose a new feat") % HeroData.hero_name(hero_id), labels, [], true, false, details)
+	if picked >= 0 and feat_state.equip_feat(feat_campaign, hero_id, str(choices[picked]["id"])):
+		CampaignIO.save_state(feat_state)
+
+
 func _on_monster_defeated(monster: RuntimeMonster) -> void:
 	_defeat_queue.append(monster)
 	if _defeat_busy:
@@ -1877,6 +1963,8 @@ func _apply_wound(slot: int) -> void:
 	var hero_name := HeroCatalog.slot_name(slot)
 	var wounds := _runtime.wound_hero(slot)
 	interaction_dock.refresh_wounds(_runtime.hero_wounds)
+	if _feat_tracker != null:
+		_feat_tracker.on_wound(slot, wounds)
 	if wounds >= MissionRuntime.HERO_WOUND_LIMIT:
 		var defeat := MissionObjective.new()
 		defeat.outcome = MissionObjective.Outcome.LOSE
@@ -1944,6 +2032,9 @@ func _handle_game_over(objective: MissionObjective) -> void:
 	var make_text := func() -> String: return "%s\n%s" % [outcome_of.call(), _runtime.objective_text(objective)]
 	var make_title := func() -> String: return outcome_of.call().trim_suffix("!").trim_suffix(".")
 	await dialog.ask_ok(make_text, true, false, make_title)
+	if _feat_tracker != null:
+		_feat_tracker.on_quest_end(won)
+		await _drain_feat_queue()
 	_exit_mission({
 		"won": objective.outcome == MissionObjective.Outcome.WIN,
 		"chapter_id": GameState.campaign_chapter_id,

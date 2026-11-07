@@ -1,10 +1,10 @@
 class_name SkillTreeNode
 extends Resource
 
-## One slot of a campaign's skill tree (see SkillTree). The tree has the same 11 slots for every hero: slot N holds skill N of each hero
+## One slot of a campaign's skill tree (see SkillTree). The tree has the same 14 slots for every hero: slot N holds skill N of each hero (12-14 are the legends)
 ## (the game's own skill numbers, HeroData), so a hero's skill N is bought where slot N sits.
 
-## The skill number (1-11) this slot stands for.
+## The skill number (1-11; 12-14 = the legends) this slot stands for.
 @export var number: int = 1
 ## What buying it costs, in skill points (the game's XP cost of that skill number by default).
 @export var cost: int = 1

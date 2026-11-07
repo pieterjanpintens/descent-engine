@@ -10,6 +10,9 @@ extends Control
 var campaign_provider: Callable
 var state_provider: Callable
 var on_changed: Callable
+## Assigned by the owner: true while playtesting from the campaign editor - only then are the manual progress buttons (+ / -) shown. In real play feat progress
+## comes from what happens in the missions.
+var manual_marking := false
 
 var _hero_id := ""
 var _replacing := ""  ## the active feat the next "Replace with this" will take the place of ("" = starting a feat in a free slot)
@@ -116,7 +119,7 @@ func _hero_label(hero_id: String) -> String:
 
 
 func _skill_name(hero_id: String, number: int) -> String:
-	return HeroData.skill_name("SKILL_%s_%d" % [hero_id.trim_prefix("HERO_"), number]) if HeroData.available() else ""
+	return HeroData.skill_name(HeroData.slot_id(hero_id, number)) if HeroData.available() else ""
 
 
 # --- building -------------------------------------------------------------------------------------------------------
@@ -236,11 +239,7 @@ func _build_feats(campaign: Campaign, state: CampaignState) -> void:
 		_feats_box.add_child(_active_feat_row(campaign, state, feat_id, int(active[feat_id])))
 
 	var completed := state.completed_feats(campaign, _hero_id)
-	var offered := HeroData.feats_offered(_hero_id, completed)
-	var choices: Array[Dictionary] = []
-	for feat in offered:
-		if not active.has(feat["id"]):
-			choices.append(feat)
+	var choices := state.startable_feats(campaign, _hero_id)
 	var heading := Label.new()
 	heading.text = tr("Replace with which feat?") if _replacing != "" else tr("Available feats")
 	heading.add_theme_font_size_override("font_size", 16)
@@ -317,16 +316,8 @@ func _active_feat_row(campaign: Campaign, state: CampaignState, feat_id: String,
 	var count := Label.new()
 	count.text = "%d / %d" % [progress, int(feat["goal"])]
 	row.add_child(count)
-	var minus := _button("−", func():
-		state.add_feat_progress(campaign, _hero_id, feat_id, -1)
-		_changed()
-	)
-	minus.tooltip_text = tr("Take one back")
-	minus.disabled = progress <= 0
-	row.add_child(minus)
-	var plus := _button("+", func(): _mark_progress(campaign, state, feat_id))
-	plus.tooltip_text = tr("It happened once more (marked by hand)")
-	row.add_child(plus)
+	if manual_marking:
+		row.add_child(_manual_buttons(campaign, state, feat_id, progress))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
@@ -336,6 +327,22 @@ func _active_feat_row(campaign: Campaign, state: CampaignState, feat_id: String,
 	))
 	row.add_child(_button(tr("Drop"), func(): _ask_drop(campaign, state, feat_id, progress)))
 	return panel
+
+
+## The hand-marking buttons of an active feat: take one back / it happened once more. Only shown while playtesting (manual_marking).
+func _manual_buttons(campaign: Campaign, state: CampaignState, feat_id: String, progress: int) -> Control:
+	var box := HBoxContainer.new()
+	var minus := _button("−", func():
+		state.add_feat_progress(campaign, _hero_id, feat_id, -1)
+		_changed()
+	)
+	minus.tooltip_text = tr("Take one back")
+	minus.disabled = progress <= 0
+	box.add_child(minus)
+	var plus := _button("+", func(): _mark_progress(campaign, state, feat_id))
+	plus.tooltip_text = tr("It happened once more (marked by hand)")
+	box.add_child(plus)
+	return box
 
 
 func _mark_progress(campaign: Campaign, state: CampaignState, feat_id: String) -> void:

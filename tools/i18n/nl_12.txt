@@ -51,3 +51,4 @@
 828|Vaardigheden
 829|Eentje terug
 830|De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spelmateriaal).
+831|%s: kies een nieuwe prestatie

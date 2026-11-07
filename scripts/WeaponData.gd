@@ -255,6 +255,14 @@ static func _game_weapon_for_part(part_id: String) -> Dictionary:
 	return {}
 
 
+## The game's weapon class number of a part id (what feats filter on: 0 hammer, 1 crossbow, 2 sword, 3 warhammer, 4 warbell, 5 spear, 6 wand, 7 staff,
+## 8 gauntlet, 9 throwing knives, 10 dual blades, 11 bow, 12 rune), -1 when unknown (no export, or not a game weapon).
+static func class_of_part(part_id: String) -> int:
+	_load()
+	var game_weapon := _game_weapon_for_part(part_id)
+	return int(game_weapon.get("Class", -1)) if not game_weapon.is_empty() else -1
+
+
 ## The weapon TYPE name ("Sword") of an A/B/C part id, "" if unknown.
 static func weapon_type_of_part(part_id: String) -> String:
 	_load()

@@ -51,3 +51,4 @@
 828|Habilidades
 829|Quitar uno
 830|Faltan los datos de héroes: importa primero los recursos del juego (Opciones > Recursos del juego).
+831|%s: elige una nueva proeza

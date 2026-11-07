@@ -2460,6 +2460,9 @@ msgstr "Quitar uno"
 msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
 msgstr "Faltan los datos de héroes: importa primero los recursos del juego (Opciones > Recursos del juego)."
 
+msgid "%s: choose a new feat"
+msgstr "%s: elige una nueva proeza"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

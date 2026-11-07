@@ -310,7 +310,10 @@ func _build_play_page() -> Control:
 	_hud.back_to_editor_pressed.connect(_back_to_editor)
 	_hud.log_pressed.connect(func(): _log_dialog.open())
 	_hud.inventory_pressed.connect(func(): _inventory_dialog.open())
-	_hud.heroes_pressed.connect(func(): _heroes_dialog.open())
+	_hud.heroes_pressed.connect(func():
+		_heroes_dialog.manual_marking = _in_playtest()  # hand-marking feat progress is a playtest tool only
+		_heroes_dialog.open()
+	)
 	_hud.options_pressed.connect(_open_options)
 	_hud.rules_pressed.connect(func(): OS.shell_open(PlayerHud.RULES_REFERENCE_URL))
 	page.add_child(_hud)

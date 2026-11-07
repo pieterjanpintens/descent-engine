@@ -828,6 +828,7 @@
 828|Skills
 829|Take one back
 830|The hero data is missing - import the game's assets first (Options > Game assets).
+831|%s: choose a new feat
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

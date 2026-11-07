@@ -57,6 +57,8 @@ signal objectives_progressed
 ## CreatorPropertiesPanel._build_object_fields() uses for
 ## PropertiesDialog.operation_history/.layered_map).
 var mission_runtime: MissionRuntime
+## Counts attacks and interactions towards the heroes' feats (a campaign mission only; null otherwise).
+var feat_tracker: FeatTracker
 
 ## Assigned by MissionPlayer._ready() (same plain-var reasoning as above).
 ## While it's visible (the M view) a drag targets its monsters, not the world.
@@ -602,8 +604,14 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	for kind in plan.conditions:
 		if not conditions.has(kind):
 			conditions.append(kind)
+	var feat_pre := feat_tracker.snapshot(monster, hero_slot) if feat_tracker != null else {}
+	if feat_tracker != null:
+		feat_tracker.begin_action(hero_slot, "attack")
 	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot, plan.modifiers())
 	await runner.finish(plan, r)
+	if feat_tracker != null:
+		feat_tracker.end_action()
+		feat_tracker.on_attack(hero_slot, weapon_index, weapon, monster, feat_pre, r)
 	if consume_deactivation and not plan.defense_off_set:
 		monster.defense_ability_off = 0  # "the next attack" was this one
 	# The same cfg with what the monster now has discovered.
@@ -698,6 +706,19 @@ func _weapon_subtitle(hero_slot: int, weapon_index: int, weapon: Weapon) -> Stri
 ## which _interactable_at() already excludes from being a valid drop
 ## target in the first place) does nothing. Otherwise fires the chosen
 ## action exactly like the old single-action _end_drag() body did.
+## Fires a prop action and tells the feat tracker about the interaction (after the effects ran, before the caller drains what they queued - the tracker reads
+## whether the object is removed or monsters spawn from those queues).
+func _fire_tracked(action: PropAction, hero_name: String, entry: InteractableEntry) -> MissionObjective:
+	var slot := HeroCatalog.HERO_NAMES.find(hero_name)
+	if feat_tracker != null:
+		feat_tracker.begin_action(slot, "interaction")
+	var objective := await mission_runtime.fire_prop_action(action, hero_name, entry)
+	if feat_tracker != null:
+		feat_tracker.end_action()
+		feat_tracker.on_interaction(slot, entry)
+	return objective
+
+
 func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	if mission_runtime == null:
 		return
@@ -717,7 +738,7 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 			offered.append(candidate)
 	if not chosen_actions.is_empty():
 		for auto_action in chosen_actions:
-			var auto_objective := await mission_runtime.fire_prop_action(auto_action, hero_name, entry)
+			var auto_objective := await _fire_tracked(auto_action, hero_name, entry)
 			objectives_progressed.emit()
 			if auto_objective != null:
 				game_over_requested.emit(auto_objective)
@@ -756,7 +777,7 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 		# cheap insurance rather than trusting the UI's disabled state alone.
 		print("%s: '%s' has already been used on '%s'" % [hero_name, action.description, label])
 		return
-	var objective := await mission_runtime.fire_prop_action(action, hero_name, entry)
+	var objective := await _fire_tracked(action, hero_name, entry)
 	objectives_progressed.emit()
 	if objective != null:
 		game_over_requested.emit(objective)

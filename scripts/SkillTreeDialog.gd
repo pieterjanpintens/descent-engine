@@ -1,7 +1,7 @@
 class_name SkillTreeDialog
 extends Window
 
-## The campaign's SKILL TREE editor (Campaign.skill_tree, see SkillTree): the same 11 slots for every hero. Per slot: the skill-point cost, which other
+## The campaign's SKILL TREE editor (Campaign.skill_tree, see SkillTree): the same 14 slots for every hero (the 11 skills and the 3 legends). Per slot: the skill-point cost, which other
 ## skills it needs (owning ANY ONE of them opens it; none = a starting point) and optional conditions over the campaign's variables that must hold
 ## (the same rows as a side quest's; act_number >= 2 holds a skill back until the campaign's second act). Plus the skill points a completed feat pays
 ## and the points every hero starts with. A picture of the tree sits on top. While the dialog is open the campaign has a tree (the default one until
@@ -36,7 +36,7 @@ func _ready() -> void:
 	margin.add_child(outer)
 
 	var intro := Label.new()
-	intro.text = "Where the heroes' 11 skills sit and what it takes to buy them (the same for every hero). A skill opens as soon as ANY ONE of the skills it needs is owned; a skill that needs none is a starting point. Skill points come from completed feats."
+	intro.text = "Where the heroes' skills and legends (14 slots) sit and what it takes to buy them (the same for every hero). A skill opens as soon as ANY ONE of the skills it needs is owned; a skill that needs none is a starting point. Skill points come from completed feats."
 	intro.autowrap_mode = TextServer.AUTOWRAP_WORD
 	intro.custom_minimum_size.x = 500
 	outer.add_child(intro)
@@ -47,7 +47,7 @@ func _ready() -> void:
 	_points_spin = SpinBox.new()
 	_points_spin.min_value = 0
 	_points_spin.max_value = 10
-	_points_spin.tooltip_text = "The game has 20 feats per hero and the skills of a hero cost 18 together."
+	_points_spin.tooltip_text = "The game has 20 feats per hero; a hero's skills and legends cost 24 together."
 	_points_spin.value_changed.connect(func(value: float):
 		if _campaign == null:
 			return
@@ -61,7 +61,7 @@ func _ready() -> void:
 	_starting_spin = SpinBox.new()
 	_starting_spin.min_value = 0
 	_starting_spin.max_value = 30
-	_starting_spin.tooltip_text = "Spent on the skills above before any feat is completed (0 = none). All of a hero's skills cost 18 together."
+	_starting_spin.tooltip_text = "Spent on the skills above before any feat is completed (0 = none). All of a hero's skills and legends cost 24 together."
 	_starting_spin.value_changed.connect(func(value: float):
 		if _campaign == null:
 			return

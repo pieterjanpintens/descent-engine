@@ -1,21 +1,22 @@
 class_name SkillTree
 extends Resource
 
-## A campaign's SKILL TREE: where a hero's 11 skills sit and what it takes to buy them. Authored in the campaign editor (Skill tree...) and
+## A campaign's SKILL TREE: where a hero's 14 skill slots (the 11 skills and the 3 legends) sit and what it takes to buy them. Authored in the campaign editor (Skill tree...) and
 ## shared by every hero (slot N = skill N of each hero, see HeroData). A slot is a starting point (no parents) or opens as soon as ANY ONE of
 ## its parent skills is owned; it also has a skill-point cost and the first act it can be bought in. Skill points are earned by completing feats
 ## (`points_per_feat`) and every hero begins with `starting_points`. Campaign.skill_tree == null means the DEFAULT tree (default_tree()); nothing is stored until a campaign edits it.
 ##
-## The defaults follow the game's own data where it has any: the costs (skills 1-4 cost 1, 5-7 cost 2, 8-10 cost 1/2/2, 11 costs 3). The game has no
+## The defaults follow the game's own data where it has any: the costs (skills 1-4 cost 1, 5-7 cost 2, 8-10 cost 1/2/2, 11 costs 3, the legends 12-14 cost 1/2/3). The game has no
 ## skill-to-skill links, so the shape is ours: five starting points, three tier-2 skills each between two of them, two more skills and a capstone.
 ## The game's own acts are NOT used: a slot can be held back by ordinary conditions over the campaign's variables (`SkillTreeNode.conditions`, e.g.
 ## act_number >= 2 for "from the second act of this campaign"), and by default none is. Buying and owning skills is not built yet - this is the
 ## authored part only.
 
-const SLOTS := 11
-const DEFAULT_COSTS: Array[int] = [1, 1, 1, 1, 2, 2, 2, 1, 2, 2, 3]
+## The 11 skills of a hero and, as slots 12-14, the three legend cards (HeroData.slot_id()): a legend is bought like a skill, usually behind conditions.
+const SLOTS := 14
+const DEFAULT_COSTS: Array[int] = [1, 1, 1, 1, 2, 2, 2, 1, 2, 2, 3, 1, 2, 3]
 ## Slot -> its parents in the default tree; slots not listed are starting points.
-const DEFAULT_PARENTS := {5: [1, 2], 6: [2, 3], 7: [3, 4], 9: [8, 5, 6, 7], 10: [8, 5, 6, 7], 11: [9, 10]}
+const DEFAULT_PARENTS := {5: [1, 2], 6: [2, 3], 7: [3, 4], 9: [8, 5, 6, 7], 10: [8, 5, 6, 7], 11: [9, 10], 12: [5, 6, 7], 13: [12], 14: [13]}
 
 @export var nodes: Array[SkillTreeNode] = []
 ## Skill points a completed feat pays.
@@ -172,7 +173,7 @@ func problems(known_variables: Array[String] = []) -> Array[String]:
 			found.append("Skill tree: slot %d appears twice" % entry.number)
 		seen.append(entry.number)
 		if entry.number < 1 or entry.number > SLOTS:
-			found.append("Skill tree: slot %d does not exist (the heroes have skills 1-%d)" % [entry.number, SLOTS])
+			found.append("Skill tree: slot %d does not exist (the heroes have slots 1-%d)" % [entry.number, SLOTS])
 	for number in range(1, SLOTS + 1):
 		if not seen.has(number):
 			found.append("Skill tree: slot %d is missing" % number)

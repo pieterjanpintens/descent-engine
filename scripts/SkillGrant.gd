@@ -5,5 +5,5 @@ extends Resource
 
 ## The hero that learns it (HeroData id, "HERO_CHANCE"); "" = every hero.
 @export var hero_id: String = ""
-## The skill number (1-11, HeroData).
+## The skill number (1-11, or 12-14 for the legends; HeroData).
 @export var number: int = 1
