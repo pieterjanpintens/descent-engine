@@ -2463,6 +2463,36 @@ msgstr "Faltan los datos de héroes: importa primero los recursos del juego (Opc
 msgid "%s: choose a new feat"
 msgstr "%s: elige una nueva proeza"
 
+msgid "Only available in a campaign."
+msgstr "Solo disponible en una campaña."
+
+msgid "A change costs %d gold - the party has only %d."
+msgstr "Un cambio cuesta %d de oro: el grupo solo tiene %d."
+
+msgid "Changes left after this: %d"
+msgstr "Cambios restantes después de este: %d"
+
+msgid "Changing feats is not allowed during a mission."
+msgstr "No se permite cambiar proezas durante una misión."
+
+msgid "Changing feats is not allowed outside a mission."
+msgstr "No se permite cambiar proezas fuera de una misión."
+
+msgid "No feat changes left for this hero in the campaign."
+msgstr "A este héroe no le quedan cambios de proeza en la campaña."
+
+msgid "No feat changes left in this mission."
+msgstr "No quedan cambios de proeza en esta misión."
+
+msgid "Start \"%s\"?"
+msgstr "¿Empezar \"%s\"?"
+
+msgid "Start a feat"
+msgstr "Empezar una proeza"
+
+msgid "This costs %d gold."
+msgstr "Esto cuesta %d de oro."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

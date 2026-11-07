@@ -75,6 +75,11 @@ var brooch_enabled := true
 ## Each hero's growth: skill points, owned skills, active and completed feats (see HeroProgress and the "Heroes' skills and feats" methods at the end).
 ## An entry is made the first time a hero is looked at, so saves from before it existed just start fresh.
 @export var hero_progress: Array[HeroProgress] = []
+## How often each hero changed an active feat (hero id -> count): during the current mission, during missions in the whole campaign, and outside missions in the
+## whole campaign (see Campaign.feat_change_mode / map_feat_change_mode).
+@export var feat_changes_mission: Dictionary = {}
+@export var feat_changes_campaign: Dictionary = {}
+@export var feat_changes_map: Dictionary = {}
 
 
 ## {hero name -> voice id} for a narration language ({} = not chosen for it yet).
@@ -888,24 +893,92 @@ func equip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
 	return true
 
 
-## Stops working on a feat: ALL its progress is lost. False when it was not active.
-func unequip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
+## Starts a feat in a free slot. DURING a mission (`in_mission`) it counts as a change - the campaign's setting for a mission applies (a cost, a limit, or not allowed) -
+## because otherwise a hero with an empty slot could pick whatever feat suits what they see in the mission. The pick offered right after a feat is completed is the
+## exception: it calls equip_feat() directly and is free. On the campaign map starting a feat is free.
+func start_feat(campaign: Campaign, hero_id: String, feat_id: String, in_mission: bool = false) -> bool:
+	if in_mission and feat_change_problem(campaign, hero_id, true) != "":
+		return false
+	if not equip_feat(campaign, hero_id, feat_id):
+		return false
+	if in_mission:
+		_pay_feat_change(campaign, hero_id, true)
+	return true
+
+
+## A mission starts: nobody has changed a feat in it yet.
+func reset_mission_feat_changes() -> void:
+	feat_changes_mission.clear()
+
+
+## "" when the hero may change an active feat now; else why not (the campaign's setting for a change during a mission - `in_mission` - or outside one).
+func feat_change_problem(campaign: Campaign, hero_id: String, in_mission: bool) -> String:
+	var amount := campaign.feat_change_amount_for(in_mission)
+	match campaign.feat_change_mode_for(in_mission):
+		Campaign.FeatChange.NOT_ALLOWED:
+			return tr("Changing feats is not allowed during a mission.") if in_mission else tr("Changing feats is not allowed outside a mission.")
+		Campaign.FeatChange.GOLD:
+			if gold < amount:
+				return tr("A change costs %d gold - the party has only %d.") % [amount, gold]
+		Campaign.FeatChange.PER_MISSION:
+			if int(feat_changes_mission.get(hero_id, 0)) >= amount:
+				return tr("No feat changes left in this mission.")
+		Campaign.FeatChange.PER_HERO:
+			if _changes_used(hero_id, in_mission) >= amount:
+				return tr("No feat changes left for this hero in the campaign.")
+	return ""
+
+
+## What a change costs, for the confirmation ("" when it is free).
+func feat_change_note(campaign: Campaign, hero_id: String, in_mission: bool) -> String:
+	var amount := campaign.feat_change_amount_for(in_mission)
+	match campaign.feat_change_mode_for(in_mission):
+		Campaign.FeatChange.GOLD:
+			return tr("This costs %d gold.") % amount
+		Campaign.FeatChange.PER_MISSION:
+			return tr("Changes left after this: %d") % maxi(amount - int(feat_changes_mission.get(hero_id, 0)) - 1, 0)
+		Campaign.FeatChange.PER_HERO:
+			return tr("Changes left after this: %d") % maxi(amount - _changes_used(hero_id, in_mission) - 1, 0)
+	return ""
+
+
+## The changes a hero has made in this context that count against a per-hero limit for the whole campaign.
+func _changes_used(hero_id: String, in_mission: bool) -> int:
+	return int((feat_changes_campaign if in_mission else feat_changes_map).get(hero_id, 0))
+
+
+## A change was made: take the gold and count it.
+func _pay_feat_change(campaign: Campaign, hero_id: String, in_mission: bool) -> void:
+	if campaign.feat_change_mode_for(in_mission) == Campaign.FeatChange.GOLD:
+		gold = maxi(gold - campaign.feat_change_amount_for(in_mission), 0)
+	if in_mission:
+		feat_changes_mission[hero_id] = int(feat_changes_mission.get(hero_id, 0)) + 1
+		feat_changes_campaign[hero_id] = int(feat_changes_campaign.get(hero_id, 0)) + 1
+	else:
+		feat_changes_map[hero_id] = int(feat_changes_map.get(hero_id, 0)) + 1
+
+
+## Stops working on a feat: ALL its progress is lost. False when it was not active, or when the campaign's setting for this context (`in_mission` or not, see
+## feat_change_problem()) does not allow it; a change is paid for / counted.
+func unequip_feat(campaign: Campaign, hero_id: String, feat_id: String, in_mission: bool = false) -> bool:
 	var state := hero_state(campaign, hero_id)
-	if state == null or not state.active_feats.has(feat_id):
+	if state == null or not state.active_feats.has(feat_id) or feat_change_problem(campaign, hero_id, in_mission) != "":
 		return false
 	state.active_feats.erase(feat_id)
+	_pay_feat_change(campaign, hero_id, in_mission)
 	return true
 
 
 ## Swaps an active feat for another one the hero may start: the old feat's progress is lost, the new one starts at 0. Nothing changes when the new
 ## feat is not allowed (it is checked with the old feat's slot counted as free).
-func replace_feat(campaign: Campaign, hero_id: String, old_feat_id: String, new_feat_id: String) -> bool:
+func replace_feat(campaign: Campaign, hero_id: String, old_feat_id: String, new_feat_id: String, in_mission: bool = false) -> bool:
 	var state := hero_state(campaign, hero_id)
-	if state == null or not state.active_feats.has(old_feat_id) or old_feat_id == new_feat_id:
+	if state == null or not state.active_feats.has(old_feat_id) or old_feat_id == new_feat_id or feat_change_problem(campaign, hero_id, in_mission) != "":
 		return false
 	var progress = state.active_feats[old_feat_id]
 	state.active_feats.erase(old_feat_id)
 	if equip_feat(campaign, hero_id, new_feat_id):
+		_pay_feat_change(campaign, hero_id, in_mission)
 		return true
 	state.active_feats[old_feat_id] = progress  # not allowed: keep the old one as it was
 	return false

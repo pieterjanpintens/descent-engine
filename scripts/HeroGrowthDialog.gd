@@ -13,6 +13,8 @@ var on_changed: Callable
 ## Assigned by the owner: true while playtesting from the campaign editor - only then are the manual progress buttons (+ / -) shown. In real play feat progress
 ## comes from what happens in the missions.
 var manual_marking := false
+## Assigned by the owner: true inside a mission - changing or dropping a feat then follows the campaign's feat_change_mode (a cost or a limit).
+var in_mission := false
 
 var _hero_id := ""
 var _replacing := ""  ## the active feat the next "Replace with this" will take the place of ("" = starting a feat in a free slot)
@@ -90,11 +92,14 @@ func _tab(tab_name: String) -> VBoxContainer:
 	return box
 
 
-func open() -> void:
+## `tab`: 0 = Skills, 1 = Feats, -1 = keep the tab that was open.
+func open(tab: int = -1) -> void:
 	if _hero_id == "":
 		_hero_id = CampaignState.hero_ids()[0]
 	_replacing = ""
 	_refresh()
+	if tab >= 0 and tab < _tabs.get_tab_count():
+		_tabs.current_tab = tab
 	visible = true
 
 
@@ -321,11 +326,16 @@ func _active_feat_row(campaign: Campaign, state: CampaignState, feat_id: String,
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	row.add_child(_button(tr("Change…"), func():
+	var blocked := state.feat_change_problem(campaign, _hero_id, in_mission)
+	var change_button := _button(tr("Change…"), func():
 		_replacing = feat_id
 		_refresh()
-	))
-	row.add_child(_button(tr("Drop"), func(): _ask_drop(campaign, state, feat_id, progress)))
+	)
+	var drop_button := _button(tr("Drop"), func(): _ask_drop(campaign, state, feat_id, progress))
+	for button in [change_button, drop_button]:
+		button.disabled = blocked != ""
+		button.tooltip_text = blocked if blocked != "" else state.feat_change_note(campaign, _hero_id, in_mission)
+		row.add_child(button)
 	return panel
 
 
@@ -359,11 +369,29 @@ func _mark_progress(campaign: Campaign, state: CampaignState, feat_id: String) -
 	_changed()
 
 
+## Starting a feat: free on the campaign map; during a mission it follows the campaign's setting for a change, so a cost is confirmed first.
+func _ask_start(campaign: Campaign, state: CampaignState, feat_id: String, note: String) -> void:
+	var begin := func():
+		if state.start_feat(campaign, _hero_id, feat_id, in_mission):
+			_changed()
+	if note == "":
+		begin.call()
+		return
+	_confirm.title = tr("Start a feat")
+	_confirm.dialog_text = tr("Start \"%s\"?") % str(HeroData.feat(feat_id).get("title", feat_id)) + "
+" + note
+	_confirm_action = begin
+	_confirm.popup_centered()
+
+
 func _ask_drop(campaign: Campaign, state: CampaignState, feat_id: String, progress: int) -> void:
 	_confirm.title = tr("Drop a feat")
 	_confirm.dialog_text = tr("Drop \"%s\"? Its progress (%d) is lost.") % [str(HeroData.feat(feat_id).get("title", feat_id)), progress]
+	var note := state.feat_change_note(campaign, _hero_id, in_mission)
+	if note != "":
+		_confirm.dialog_text += "\n" + note
 	_confirm_action = func():
-		state.unequip_feat(campaign, _hero_id, feat_id)
+		state.unequip_feat(campaign, _hero_id, feat_id, in_mission)
 		_changed()
 	_confirm.popup_centered()
 
@@ -377,13 +405,16 @@ func _feat_card(campaign: Campaign, state: CampaignState, feat: Dictionary, free
 	if _replacing != "":
 		box.add_child(_button(tr("Replace with this"), func(): _ask_replace(campaign, state, feat_id)))
 	else:
-		var start := _button(tr("Start"), func():
-			if state.equip_feat(campaign, _hero_id, feat_id):
-				_changed()
-		)
-		start.disabled = free_slots <= 0
+		var blocked := state.feat_change_problem(campaign, _hero_id, true) if in_mission else ""
+		var note := state.feat_change_note(campaign, _hero_id, true) if in_mission else ""
+		var start := _button(tr("Start"), func(): _ask_start(campaign, state, feat_id, note))
+		start.disabled = free_slots <= 0 or blocked != ""
 		if free_slots <= 0:
 			start.tooltip_text = tr("No free feat slot - change or drop an active feat first.")
+		elif blocked != "":
+			start.tooltip_text = blocked
+		else:
+			start.tooltip_text = note
 		box.add_child(start)
 	return panel
 
@@ -394,8 +425,11 @@ func _ask_replace(campaign: Campaign, state: CampaignState, new_feat_id: String)
 	_confirm.title = tr("Change a feat")
 	_confirm.dialog_text = tr("Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost.") % [
 		str(HeroData.feat(old_id).get("title", old_id)), str(HeroData.feat(new_feat_id).get("title", new_feat_id)), progress]
+	var note := state.feat_change_note(campaign, _hero_id, in_mission)
+	if note != "":
+		_confirm.dialog_text += "\n" + note
 	_confirm_action = func():
-		if state.replace_feat(campaign, _hero_id, old_id, new_feat_id):
+		if state.replace_feat(campaign, _hero_id, old_id, new_feat_id, in_mission):
 			_replacing = ""
 			_changed()
 	_confirm.popup_centered()

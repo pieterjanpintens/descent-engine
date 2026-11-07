@@ -174,6 +174,9 @@ func _on_play_mission_pressed(path: String) -> void:
 	GameState.clear_campaign()
 	GameState.clear_debug()
 	GameState.current_mission_path = path
+	if _state != null:
+		_state.reset_mission_feat_changes()  # nobody has changed a feat in this mission yet
+		_save()
 	get_tree().change_scene_to_file("res://player/MissionPlayer.tscn")
 
 
@@ -893,6 +896,9 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 		return
 	GameState.clear_debug()
 	GameState.current_mission_path = path
+	if _state != null:
+		_state.reset_mission_feat_changes()  # nobody has changed a feat in this mission yet
+		_save()
 	GameState.load_save_path = ""
 	GameState.campaign_folder = _folder
 	GameState.campaign_save = CampaignIO.save_key(_state.save_name)

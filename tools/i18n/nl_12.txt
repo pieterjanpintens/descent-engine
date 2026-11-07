@@ -52,3 +52,13 @@
 829|Eentje terug
 830|De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spelmateriaal).
 831|%s: kies een nieuwe prestatie
+832|Alleen beschikbaar in een campagne.
+833|Een wisseling kost %d goud - de groep heeft maar %d.
+834|Wisselingen over na deze: %d
+835|Prestaties wisselen is niet toegestaan tijdens een missie.
+836|Prestaties wisselen is niet toegestaan buiten een missie.
+837|Deze held heeft geen prestatiewisselingen meer in de campagne.
+838|Er zijn geen prestatiewisselingen meer in deze missie.
+839|\"%s\" beginnen?
+840|Een prestatie beginnen
+841|Dit kost %d goud.

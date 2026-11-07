@@ -52,3 +52,13 @@
 829|Quitar uno
 830|Faltan los datos de héroes: importa primero los recursos del juego (Opciones > Recursos del juego).
 831|%s: elige una nueva proeza
+832|Solo disponible en una campaña.
+833|Un cambio cuesta %d de oro: el grupo solo tiene %d.
+834|Cambios restantes después de este: %d
+835|No se permite cambiar proezas durante una misión.
+836|No se permite cambiar proezas fuera de una misión.
+837|A este héroe no le quedan cambios de proeza en la campaña.
+838|No quedan cambios de proeza en esta misión.
+839|¿Empezar \"%s\"?
+840|Empezar una proeza
+841|Esto cuesta %d de oro.

@@ -817,6 +817,16 @@
 829|Take one back
 830|The hero data is missing - import the game's assets first (Options > Game assets).
 831|%s: choose a new feat
+832|Only available in a campaign.
+833|A change costs %d gold - the party has only %d.
+834|Changes left after this: %d
+835|Changing feats is not allowed during a mission.
+836|Changing feats is not allowed outside a mission.
+837|No feat changes left for this hero in the campaign.
+838|No feat changes left in this mission.
+839|Start \"%s\"?
+840|Start a feat
+841|This costs %d gold.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

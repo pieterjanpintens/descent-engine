@@ -60,6 +60,10 @@ var open_voice_settings: Callable
 var open_quest_log: Callable
 ## HeroesDialog.open (wound state + the "wound hero" action) - the Party menu's "Heroes".
 var open_heroes: Callable
+## The Party menu's "Campaign Log", "Feats" and "Inventory" (a campaign mission only; the owner says so in a plain mission).
+var open_campaign_log: Callable
+var open_feats: Callable
+var open_inventory: Callable
 ## MissionPlayer's line-of-sight toggle; returns the new on/off state.
 var toggle_line_of_sight: Callable
 ## MissionPlayer.save_game() - the Gear menu's "Save" item.
@@ -284,6 +288,12 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 				btn.pressed.connect(_on_quest_log_pressed)
 			"Heroes":
 				btn.pressed.connect(_on_heroes_pressed)
+			"Campaign Log":
+				btn.pressed.connect(_on_campaign_log_pressed)
+			"Feats":
+				btn.pressed.connect(_on_feats_pressed)
+			"Inventory":
+				btn.pressed.connect(_on_inventory_pressed)
 			"Line of Sight":
 				btn.pressed.connect(_on_line_of_sight_pressed.bind(btn))
 			"Save":
@@ -330,6 +340,29 @@ func _on_line_of_sight_pressed(btn: Button) -> void:
 	if toggle_line_of_sight.is_valid():
 		var on: bool = toggle_line_of_sight.call()
 		btn.text = "Line of Sight (on)" if on else "Line of Sight"
+
+
+func _on_party_item_pressed(action: Callable) -> void:
+	_party_menu.visible = false
+	action.call()
+
+
+func _on_campaign_log_pressed() -> void:
+	_party_menu.visible = false
+	if open_campaign_log.is_valid():
+		open_campaign_log.call()
+
+
+func _on_feats_pressed() -> void:
+	_party_menu.visible = false
+	if open_feats.is_valid():
+		open_feats.call()
+
+
+func _on_inventory_pressed() -> void:
+	_party_menu.visible = false
+	if open_inventory.is_valid():
+		open_inventory.call()
 
 
 func _on_heroes_pressed() -> void:

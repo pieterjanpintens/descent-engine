@@ -2463,6 +2463,36 @@ msgstr "De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spe
 msgid "%s: choose a new feat"
 msgstr "%s: kies een nieuwe prestatie"
 
+msgid "Only available in a campaign."
+msgstr "Alleen beschikbaar in een campagne."
+
+msgid "A change costs %d gold - the party has only %d."
+msgstr "Een wisseling kost %d goud - de groep heeft maar %d."
+
+msgid "Changes left after this: %d"
+msgstr "Wisselingen over na deze: %d"
+
+msgid "Changing feats is not allowed during a mission."
+msgstr "Prestaties wisselen is niet toegestaan tijdens een missie."
+
+msgid "Changing feats is not allowed outside a mission."
+msgstr "Prestaties wisselen is niet toegestaan buiten een missie."
+
+msgid "No feat changes left for this hero in the campaign."
+msgstr "Deze held heeft geen prestatiewisselingen meer in de campagne."
+
+msgid "No feat changes left in this mission."
+msgstr "Er zijn geen prestatiewisselingen meer in deze missie."
+
+msgid "Start \"%s\"?"
+msgstr "\"%s\" beginnen?"
+
+msgid "Start a feat"
+msgstr "Een prestatie beginnen"
+
+msgid "This costs %d gold."
+msgstr "Dit kost %d goud."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

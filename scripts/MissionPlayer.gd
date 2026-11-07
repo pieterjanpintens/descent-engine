@@ -177,6 +177,35 @@ func _ready() -> void:
 			shown.append(tr("%s (optional)") % optional["text"] + (" ✓" if optional["achieved"] else ""))
 		return shown
 	hud.open_quest_log = quest_log.open
+	# The campaign's own screens, linked to the Party menu (a plain mission has no campaign: the menu says so).
+	var campaign_log := LogDialog.new()
+	campaign_log.heading = "Campaign Log"
+	campaign_log.current_label = "You can play"
+	campaign_log.entries_provider = func() -> Array: return _campaign_state.log_entries if _campaign_state != null else []
+	campaign_log.objectives_provider = func() -> Array:
+		var titles: Array = []
+		if _campaign_state != null and _campaign_ref != null and _campaign_state.current_act < _campaign_ref.acts.size():
+			for id in _campaign_state.available_chapters:
+				var chapter := _campaign_ref.acts[_campaign_state.current_act].find_chapter(id)
+				if chapter != null:
+					titles.append(chapter.title)
+		return titles
+	dialog.get_parent().add_child(campaign_log)
+	var inventory_dialog := InventoryDialog.new()
+	inventory_dialog.state_provider = func() -> CampaignState: return _campaign_state
+	dialog.get_parent().add_child(inventory_dialog)
+	var growth_dialog := HeroGrowthDialog.new()
+	growth_dialog.campaign_provider = func() -> Campaign: return _campaign_ref
+	growth_dialog.state_provider = func() -> CampaignState: return _campaign_state
+	growth_dialog.on_changed = func():
+		if _campaign_state != null:
+			CampaignIO.save_state(_campaign_state)  # the feat tracker shares this state, so a feat started here is counted at once
+	growth_dialog.in_mission = true  # a feat change during a mission follows the campaign's setting
+	growth_dialog.manual_marking = GameState.campaign_from_editor  # hand-marking feat progress is a playtest tool only
+	dialog.get_parent().add_child(growth_dialog)
+	hud.open_campaign_log = func(): await _open_campaign_screen(campaign_log.open)
+	hud.open_inventory = func(): await _open_campaign_screen(inventory_dialog.open)
+	hud.open_feats = func(): await _open_campaign_screen(func(): growth_dialog.open(1))
 	# The big phase announcement - the LAST child of the CanvasLayer so it draws on top.
 	phase_banner = PhaseBanner.new()
 	dialog.get_parent().add_child(phase_banner)
@@ -1767,6 +1796,9 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 var _defeat_queue: Array[RuntimeMonster] = []
 var _defeat_busy := false
 var _feat_tracker: FeatTracker
+## The campaign this mission is played in and its save game (null in a plain mission): what the Party menu's Campaign Log / Feats / Inventory show.
+var _campaign_ref: Campaign
+var _campaign_state: CampaignState
 var _feat_queue: Array[Dictionary] = []
 var _feat_busy := false
 
@@ -1840,14 +1872,32 @@ func _flush_wake_notices() -> void:
 		await get_tree().process_frame
 
 
+## Opens one of the campaign's screens from the Party menu; a plain mission (no campaign) says so instead.
+func _open_campaign_screen(open_it: Callable) -> void:
+	if _campaign_state == null or _campaign_ref == null:
+		await dialog.ask_ok(tr("Only available in a campaign."))
+		return
+	open_it.call()
+
+
+## Loads the campaign and its save game when this mission is played in a campaign (the Party menu's screens read them).
+func _load_campaign_context() -> void:
+	if GameState.campaign_folder == "":
+		return
+	_campaign_ref = CampaignIO.load_campaign(GameState.campaign_folder)
+	_campaign_state = CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	if _campaign_ref == null or _campaign_state == null:
+		_campaign_ref = null
+		_campaign_state = null
+
+
 ## Counts what happens in this mission towards the heroes' active feats - in a campaign mission, with the hero data export (see FeatTracker).
 func _setup_feat_tracker() -> void:
-	if GameState.campaign_folder == "" or not HeroData.available():
+	_load_campaign_context()
+	if _campaign_state == null or not HeroData.available():
 		return
-	var feat_campaign := CampaignIO.load_campaign(GameState.campaign_folder)
-	var feat_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
-	if feat_campaign == null or feat_state == null:
-		return
+	var feat_campaign := _campaign_ref
+	var feat_state := _campaign_state
 	_feat_tracker = FeatTracker.new()
 	_feat_tracker.setup(feat_campaign, feat_state, _runtime, player_roster, current_round)
 	_feat_tracker.feat_completed.connect(_on_feat_completed)
