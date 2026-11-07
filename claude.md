@@ -7373,7 +7373,7 @@ appears locally, for a user who separately owns the official game and runs
 found by `AssetImporter.find_game()` in the usual Steam/GOG/Epic places per platform, or chosen with a native folder dialog; any folder above `bundles` works -, one
 "Import game assets" button, progress, a per-step result and "restart the app"). `AssetImporter` (`scripts/AssetImporter.gd`, a `Downloader`): (1) gets the import TOOL - the
 Python import tools packaged with PyInstaller (`tools/asset_import/asset_importer.py` = all six steps in one process; `build_importer.py` builds
-`Descent-Engine-importer-<windows-x86_64.zip|linux-x86_64.tar.gz|macos-arm64.tar.gz>`; release job `build-importer`, a matrix over ubuntu-22.04 / windows-latest / macos-14 with
+`Descent-Engine-importer-<windows-x86_64.zip|linux-x86_64.tar.gz|macos-arm64.tar.gz>`; release job `build-importer`, a matrix over ubuntu-22.04 / windows-latest / macos-15 with
 `continue-on-error` so a broken platform can't block a release) - downloaded on demand from `releases/latest/download/` into `user://importer/` (like Piper/Whisper; nothing of
 the game is downloaded); a `--protocol` number (`PROTOCOL` on both sides) makes an incompatible installed tool get replaced. **Run from the project with
 `tools/asset_import/.venv` present it runs the Python source instead - no download** (`use_project_source`; `command_override` is the test seam). (2) writes a manifest
@@ -7472,7 +7472,7 @@ and the Python tools parse the bundled scripts (17 monsters, 61 official names, 
 - **macOS signing fixed (2026-10-12, branch `fix/macos-signing`)** - the v0.0.14 and v0.0.15 Mac builds did not start at all: macOS killed them at launch
   (SIGKILL, exit 137, no output, no crash report). Cause, proven by comparing releases on a Mac: Godot's built-in signer always sets the hardened-runtime flag, and an app
   it signs WITH entitlements (the three added for voice control) is killed; v0.0.13 (same signer, no entitlements) starts, and the same app re-signed with Apple's
-  `codesign` (with or without those entitlements) starts. Fix: the three entitlements are off again in the preset, and a new release job **`sign-macos`** (macos-14 runner)
+  `codesign` (with or without those entitlements) starts. Fix: the three entitlements are off again in the preset, and a new release job **`sign-macos`** (macos-15 runner; was macos-14 until GitHub dropped that image 2026-11-07)
   re-signs the export with Apple's tool - `codesign --force --deep --sign -`, plain ad-hoc, NO hardened runtime - and re-zips it with `ditto`; without the hardened runtime
   the microphone (usage text only) and loading the downloaded speech library need no entitlements. `export-macos` now uploads `Descent-Engine-macos-unsigned.zip` (artifact
   `macos-unsigned`), which the release job deletes before publishing. Verified locally: the v0.0.13 export re-signed, zipped and unzipped that way starts. The job itself has
