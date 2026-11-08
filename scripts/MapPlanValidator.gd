@@ -190,6 +190,7 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	_run_checks_per_table(mission, pieces, creatures, result)
 	_check_objectives(mission, result)
 	_check_spawn_targets(mission, result)
+	_check_macros(mission, result)
 	_check_table_targets(mission, result)
 	_check_start_visibility(mission, result)
 	_check_start_table(mission, result)
@@ -308,6 +309,22 @@ static func _check_table_targets(mission: MissionData, result: Dictionary) -> vo
 			_add(result, "error", "no_table", -1, "A Switch Table effect has no table chosen. Open the effect and pick the table to switch to.")
 		elif effect.target_group_id != Effect.MAIN_TABLE and mission.find_table(effect.target_group_id) == null:
 			_add(result, "error", "missing_table", -1, "A Switch Table effect points at a table that no longer exists (deleted?). Open the effect and pick another table.")
+
+
+## A macro record whose macro this editor does not know (a mission from a newer version), or one applied to something it does not fit.
+## Only warnings: what a macro generated is ordinary data and works either way.
+static func _check_macros(mission: MissionData, result: Dictionary) -> void:
+	var nodes: Array[OutlineNode] = []
+	nodes.append_array(mission.interactables)
+	nodes.append_array(mission.groups)
+	for node in nodes:
+		for applied in node.macros:
+			var macro := MacroCatalog.find(applied.macro_id)
+			var name := node.reference_name if node.reference_name != "" else (node as InteractableEntry).mesh_item_name if node is InteractableEntry else "a stage"
+			if macro == null:
+				_add(result, "warning", "unknown_macro", -1, "'%s' has a macro ('%s') that this editor does not know. What it generated still works as normal data." % [name, applied.macro_id])
+			elif not macro.fits(node):
+				_add(result, "warning", "macro_misfit", -1, "The macro '%s' on '%s' does not fit this object (it was changed into something else?). What it generated still works; remove the macro record or regenerate on a fitting object." % [macro.title(), name])
 
 
 ## A Spawn Monsters effect needs a monster spawn area that exists (deleting an area leaves the effects that used it pointing at nothing, so

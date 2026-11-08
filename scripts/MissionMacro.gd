@@ -25,6 +25,11 @@ func description() -> String:
 	return ""
 
 
+## Whether the same macro may be applied to one node more than once (most make no sense twice: a chest opens once).
+func repeatable() -> bool:
+	return false
+
+
 ## Whether the macro can be applied to `target` (a prop, a tile, a group, a monster spawn...).
 func fits(_target: OutlineNode) -> bool:
 	return false

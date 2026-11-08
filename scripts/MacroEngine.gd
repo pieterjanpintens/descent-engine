@@ -60,6 +60,28 @@ static func fingerprint(mission: MissionData, applied: AppliedMacro) -> String:
 	return "\n".join(parts)
 
 
+## The display titles of these records ("Treasure chest"); an unknown macro shows its id.
+static func titles(records: Array[AppliedMacro]) -> Array[String]:
+	var names: Array[String] = []
+	for applied in records:
+		var macro := MacroCatalog.find(applied.macro_id)
+		names.append(macro.title() if macro != null else applied.macro_id)
+	return names
+
+
+## The macros that can still be applied to `target` (they fit, and are not applied yet unless repeatable).
+static func available_for(target: OutlineNode) -> Array[MissionMacro]:
+	var list: Array[MissionMacro] = []
+	for macro in MacroCatalog.for_target(target):
+		var applied_already := false
+		for record in target.macros:
+			if record.macro_id == macro.id():
+				applied_already = true
+		if macro.repeatable() or not applied_already:
+			list.append(macro)
+	return list
+
+
 ## "" or a sentence for the Problems list: a record whose macro no longer exists.
 static func problem(applied: AppliedMacro) -> String:
 	if MacroCatalog.find(applied.macro_id) == null:

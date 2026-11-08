@@ -247,7 +247,9 @@ func _rebuild_tree() -> void:
 	for entry in mission.interactables:
 		var parent_item: TreeItem = _id_to_item.get(entry.parent_id, root_item)
 		var item := create_item(parent_item)
-		item.set_text(0, entry.reference_name if entry.reference_name != "" else entry.mesh_item_name)
+		item.set_text(0, (entry.reference_name if entry.reference_name != "" else entry.mesh_item_name) + (" ⚙" if not entry.macros.is_empty() else ""))
+		if not entry.macros.is_empty():
+			item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(entry.macros)))
 		item.set_metadata(0, {"type": SelectionType.OBJECT, "id": entry.id})
 		_dim_if_hidden(item, entry)
 		_id_to_item[entry.id] = item

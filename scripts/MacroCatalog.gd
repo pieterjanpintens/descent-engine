@@ -7,7 +7,7 @@ static var _registered: Array[MissionMacro] = []
 
 
 static func builtin() -> Array[MissionMacro]:
-	var list: Array[MissionMacro] = []
+	var list: Array[MissionMacro] = [TreasureChestMacro.new()]
 	return list
 
 
