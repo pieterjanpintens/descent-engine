@@ -102,6 +102,8 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 			return has_effect_type(door_effects(mission), Effect.Type.WAKE_MONSTERS)
 		"restless":
 			return restless_trigger_ok(mission)
+		"reinforcements":
+			return reinforcements_ok(mission)
 		"no_errors":
 			return MapPlanValidator.validate_mission(mission)["errors"].is_empty()
 	push_warning("TutorialChecks: unknown check '%s'" % spec.get("check", ""))
@@ -395,6 +397,29 @@ static func token_effects_ok(mission: MissionData) -> bool:
 		if effect.type == Effect.Type.SPAWN_MONSTERS and effect.spawn_group_id == spawn.spawn_group_id and effect.spawn_unaware:
 			spawns = true
 	return shows and spawns and sets_variable(token_effects(mission), ENCOUNTER_STARTED)
+
+
+## The reinforcement trigger of tutorial 2: it fires on every Nth round (a "mod = 0" condition), only while there are few monsters on the board (a condition on
+## monsters_on_the_map), and its effect is a Spawn Random Monsters at the Lair's spawn area that draws from the guards' group.
+static func reinforcements_trigger(mission: MissionData) -> MissionTrigger:
+	var spawn := lair_spawn(mission)
+	if spawn == null:
+		return null
+	for trigger in mission.triggers:
+		var has_mod := false
+		for condition in trigger.conditions:
+			if condition.variable_name == "round_number" and condition.operator == Condition.Operator.MULTIPLE_OF:
+				has_mod = true
+		if not has_mod or not mentions(trigger.conditions, "monsters_on_the_map"):
+			continue
+		for effect in trigger.effects:
+			if effect.type == Effect.Type.SPAWN_RANDOM_MONSTERS and effect.target_object_id == spawn.id and not mission.monsters_for(effect).is_empty():
+				return trigger
+	return null
+
+
+static func reinforcements_ok(mission: MissionData) -> bool:
+	return reinforcements_trigger(mission) != null
 
 
 static func restless_trigger_ok(mission: MissionData) -> bool:

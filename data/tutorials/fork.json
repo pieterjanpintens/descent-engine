@@ -294,6 +294,25 @@
 			"assist_label": "Add the trigger"
 		},
 		{
+			"id": "reinforcements",
+			"chapter": "Triggers again",
+			"title": "Reinforcements",
+			"tab": "Outline",
+			"text": "A cleared Lair lets the heroes rest, and resting forever is boring. Add a trigger that keeps a trickle of guards coming: click the mission name, press [b]Triggers…[/b] and [b]Add Trigger[/b], and set it up like this:\n\n[b]When:[/b] Before the monster phase, and untick [b]One shot[/b] so it can fire again.\n[b]Conditions:[/b] [b]round_number[/b] [b]mod = 0[/b] [b]3[/b] (every third round), and [b]monsters_on_the_map[/b] [b]<[/b] [b]3[/b] (the limit: nothing spawns while three or more monsters are on the board).\n[b]Effect:[/b] [b]Spawn Random Monsters[/b] at the Lair's spawn area, [b]How many[/b] [b]1[/b], and under [b]Monsters…[/b] pick the group [i]Lair guards[/i] as the pool.\n\nEach pick takes a random guard from the pool, skips any type that is no longer left in the box, and when nothing is left it simply spawns nothing. [i]How many[/i] can be a formula too, for example [b]3 - monsters_on_the_map[/b] to fill the board up to three.",
+			"highlight": [
+				"outline_tree",
+				"button:Triggers…",
+				"button:Add Trigger",
+				"button:Add Effect",
+				"button:Monsters…"
+			],
+			"done": {
+				"check": "reinforcements"
+			},
+			"assist": "add_reinforcements",
+			"assist_label": "Add the trigger"
+		},
+		{
 			"id": "problems",
 			"chapter": "Check and play",
 			"title": "Ask the checker",

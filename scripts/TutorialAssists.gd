@@ -92,6 +92,8 @@ static func run(name: String, r: TutorialRunner) -> String:
 			return _add_door_wake(r)
 		"add_restless_trigger":
 			return _add_restless_trigger(r)
+		"add_reinforcements":
+			return _add_reinforcements(r)
 	push_warning("TutorialAssists: unknown assist '%s'" % name)
 	return ""
 
@@ -884,3 +886,37 @@ static func _add_restless_trigger(r: TutorialRunner) -> String:
 	r.history.record("Add trigger", func(): mission.triggers.append(trigger))
 	r.layered_map.notify_objects_changed()
 	return "Added a trigger: from round 5 on, before the player phase, the sleeping guards wake up."
+
+
+## The reinforcement trigger as data (tutorial 2, "Reinforcements"): before the monster phase of every third round, while fewer than three monsters are on
+## the board, one random monster of the guards' group spawns at the Lair. null when the Lair spawn area or the guards' group is missing.
+static func reinforcement_trigger(mission: MissionData) -> MissionTrigger:
+	var spawn := TutorialChecks.lair_spawn(mission)
+	var door_effect := TutorialChecks.door_spawn(mission)
+	if spawn == null or door_effect == null or door_effect.spawn_group_id == "":
+		return null
+	var trigger := MissionTrigger.new()
+	trigger.id = mission.allocate_object_id()
+	trigger.checkpoint = RoundCheckpoint.Checkpoint.BEFORE_DARKNESS_PHASE
+	trigger.one_shot = false  # a stream: it may fire again every third round
+	trigger.conditions.append(_condition_on("round_number", Condition.Operator.MULTIPLE_OF, 3))
+	trigger.conditions.append(_condition_on("monsters_on_the_map", Condition.Operator.LESS, 3))
+	var spawn_effect := Effect.new()
+	spawn_effect.type = Effect.Type.SPAWN_RANDOM_MONSTERS
+	spawn_effect.target_object_id = spawn.id
+	spawn_effect.spawn_group_id = door_effect.spawn_group_id
+	spawn_effect.random_spawn_count = "1"
+	trigger.effects.append(spawn_effect)
+	return trigger
+
+
+static func _add_reinforcements(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	if TutorialChecks.reinforcements_ok(mission):
+		return "The reinforcement trigger is already there."
+	var trigger := reinforcement_trigger(mission)
+	if trigger == null:
+		return "Draw the Lair's spawn area and give the door its guards' group first."
+	r.history.record("Add trigger", func(): mission.triggers.append(trigger))
+	r.layered_map.notify_objects_changed()
+	return "Added a trigger: every third round, while fewer than three monsters are on the board, one random guard spawns in the Lair."

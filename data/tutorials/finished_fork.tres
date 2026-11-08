@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://scripts/MonsterSpawn.gd" id="19_unyyh"]
 [ext_resource type="Script" path="res://scripts/MissionObjective.gd" id="20_kdbkt"]
 [ext_resource type="Script" path="res://scripts/MissionData.gd" id="21_4ys2v"]
+[ext_resource type="Script" path="res://scripts/PlayerStart.gd" id="21_xf2np"]
 [ext_resource type="Script" path="res://scripts/TileEntry.gd" id="22_fng4d"]
 [ext_resource type="Script" path="res://scripts/MissionTrigger.gd" id="23_oyd8f"]
 
@@ -376,835 +377,16 @@ conditions = Array[ExtResource("7_wxwo2")]([SubResource("Resource_wxcmg")])
 children = Array[ExtResource("20_kdbkt")]([SubResource("Resource_r8k4t")])
 editor_position = Vector2(60, 80)
 
-[sub_resource type="Resource" id="Resource_l5rjs"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_vqwul"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_xfocu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_oka52"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_crf80"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_0j311"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_pa1r2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_hg1vy"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_pe76s"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_xlicv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_fa2vc"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_ydbpv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_4g0yg"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_qkr5q"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_m7twd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_e3o26"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_yd28u"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_exgvy"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_ht4t8"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_svn75"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_7xvtp"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_ktfyd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_rbhfu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_rd13f"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_q78l3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_ii417"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_lfnse"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_w58jj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_s50w2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_7201i"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_rp4vj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_8vq8b"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_u30kj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_fknag"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_an6r6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_vv6uk"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_odxvn"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_v8y61"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_rkni7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_gurht"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "19a"
-
-[sub_resource type="Resource" id="Resource_kuwxy"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_keh1c"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_ces5g"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_b3sxv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_h5tkx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_ykjy2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_mwwt7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_k4b28"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_siunl"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_wb2re"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_qy02i"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_ko3yi"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_u760x"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_isnf4"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_tly4t"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_71lrq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_2n14q"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_0uuce"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_aq75j"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_sm4ig"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_vq7tf"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_7r55a"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_b6uqn"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_41tlu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "1a"
-
-[sub_resource type="Resource" id="Resource_5330a"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_eas4i"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_b3shn"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_jvkvg"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_v5lll"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_5k50u"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_gchov"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_mu8cj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_vh6dg"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_xetl3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_dffrt"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_bsjbg"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_d0xeq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_ybnt8"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_rmkop"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_r4imq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_aki48"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_xbrpa"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_i8210"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_vfu5p"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_3v6w3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_jhepp"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_q8krv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_scfsb"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "2a"
-
-[sub_resource type="Resource" id="Resource_17x6k"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_123d1"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_c1fx7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_iyws7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_313h6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_30d7e"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_ejxe6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_qliyc"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_7aoj6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_cb8n0"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_4h65h"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_xp875"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_ad4xn"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_gjebx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_cmmjf"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_rajnb"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_fxv1b"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_olt02"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_1132x"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_4rml2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_ussql"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_y8pxf"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_je0rc"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_72qmn"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_sipyu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_stx3t"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_hc062"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_jix8s"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_w3e5g"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_bx6pi"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_hqymq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_xm0dw"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_x1lwr"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_3jf71"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_xq6ig"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_wmpjj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_7nkum"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_1me60"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_6qtu8"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_v3mql"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_wm0iu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_2g16v"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_qkkky"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_sfqri"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_f1v6f"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_8nyf7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_dtx0f"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_hggfx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_b4gko"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_vkpcn"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_vnrsl"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_lcakx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_qcrgv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_ee6t8"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_f10s8"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_2q8oq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_igeeh"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_4ht5r"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_qwdqu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_xpqis"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_py13n"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_fmov3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_7d64l"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_u81q7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_a03bj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_vmbar"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_3r5gm"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_ttj88"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_u2pel"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_oliqr"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_145ak"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_gr1h6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_8b4n2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_mnl8p"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_mnaa1"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_pk6kk"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_2p3cg"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_0mfvt"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_0ltnv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_kge1q"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_wj8di"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_tplw1"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_3jq72"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_fntio"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_454py"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_iek1f"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_dnsqy"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_iqoe3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_h04xf"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_bspac"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_fu7xu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_or87d"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_1xvk5"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_y7vkj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_vaaap"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_vq6ve"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_2d2jw"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_ne7gj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_05j2w"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_nlauq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_mdcw3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_je5ja"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_8vi1v"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_6te7i"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_hkwff"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_4rg8q"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_t0tqc"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_iee17"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_b2duw"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_x81as"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_wlb87"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
-
-[sub_resource type="Resource" id="Resource_13w8l"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "17a"
+[sub_resource type="Resource" id="Resource_cg4v5"]
+script = ExtResource("21_xf2np")
+cells = Array[Vector3i]([Vector3i(1, 0, 1), Vector3i(1, 0, 2), Vector3i(1, 0, 4), Vector3i(1, 0, 5)])
+id = "obj_23"
 
 [sub_resource type="Resource" id="Resource_7jobk"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
 [sub_resource type="Resource" id="Resource_74bbj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_pxxp3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_lfgn5"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_7ayav"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_uv4na"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_6fkgo"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_2g4uk"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
@@ -1216,67 +398,59 @@ mesh_item_name = "3a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
-[sub_resource type="Resource" id="Resource_gle8y"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_pcu37"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_tbnap"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_x2fos"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_dqq4t"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_ywcw3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_0sm7b"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_68v1g"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_ddjpd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_eh4pv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_vtgla"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_6bsvj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_cqi0w"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
-[sub_resource type="Resource" id="Resource_pvese"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "3a"
-
 [sub_resource type="Resource" id="Resource_duxw1"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
 [sub_resource type="Resource" id="Resource_c0kv4"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_l5rjs"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_vqwul"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_yd28u"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_exgvy"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_kuwxy"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_keh1c"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_u760x"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_isnf4"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_pxxp3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_lfgn5"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_gle8y"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_pcu37"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
@@ -1288,11 +462,115 @@ mesh_item_name = "3a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
+[sub_resource type="Resource" id="Resource_xfocu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_oka52"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ht4t8"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_svn75"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ces5g"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_b3sxv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_tly4t"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_71lrq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_7ayav"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_uv4na"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_tbnap"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_x2fos"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
 [sub_resource type="Resource" id="Resource_jrmr1"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
 [sub_resource type="Resource" id="Resource_rglnl"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_crf80"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_0j311"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_7xvtp"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ktfyd"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_u30kj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_fknag"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_h5tkx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ykjy2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_2n14q"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_0uuce"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_6fkgo"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_2g4uk"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_dqq4t"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_ywcw3"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
@@ -1304,11 +582,107 @@ mesh_item_name = "3a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
+[sub_resource type="Resource" id="Resource_pa1r2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_hg1vy"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_rbhfu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_rd13f"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_an6r6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_vv6uk"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_mwwt7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_k4b28"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_aq75j"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_sm4ig"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_0sm7b"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_68v1g"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
 [sub_resource type="Resource" id="Resource_4hugg"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
 [sub_resource type="Resource" id="Resource_lxft3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_pe76s"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_xlicv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_q78l3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ii417"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_odxvn"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_v8y61"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_siunl"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_wb2re"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_vq7tf"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_7r55a"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ddjpd"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_eh4pv"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
@@ -1320,11 +694,99 @@ mesh_item_name = "3a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
+[sub_resource type="Resource" id="Resource_fa2vc"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_ydbpv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_lfnse"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_w58jj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_rkni7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_gurht"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_qy02i"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_ko3yi"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_b6uqn"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_41tlu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "1a"
+
+[sub_resource type="Resource" id="Resource_vtgla"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_6bsvj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
 [sub_resource type="Resource" id="Resource_yfssi"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
 [sub_resource type="Resource" id="Resource_24x1n"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_4g0yg"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_qkr5q"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_s50w2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_7201i"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_5330a"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_eas4i"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_d0xeq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_ybnt8"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_cqi0w"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "3a"
+
+[sub_resource type="Resource" id="Resource_pvese"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
@@ -1336,67 +798,43 @@ mesh_item_name = "3a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "3a"
 
+[sub_resource type="Resource" id="Resource_m7twd"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_e3o26"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_rp4vj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_8vq8b"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "19a"
+
+[sub_resource type="Resource" id="Resource_b3shn"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_jvkvg"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_rmkop"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_r4imq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
 [sub_resource type="Resource" id="Resource_33du6"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
 [sub_resource type="Resource" id="Resource_xdlnq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_eciw7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_f80fs"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_nvi84"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_hyki7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_unsgr"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_f5gdg"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_4imu4"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_2c25q"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_yobal"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_daqxq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_n4373"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_brioa"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_ms4dx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_gu1ne"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
@@ -1408,131 +846,43 @@ mesh_item_name = "15a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_wvt8m"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_tm10b"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_jq6ur"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_jna62"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_db3en"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_n2mk4"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_0waht"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_ll8lq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_kkqet"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_kqqbx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_monit"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_5cl8w"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_ymbxi"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_xq388"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_xqn17"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_18am5"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_7iphv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_1fcou"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_mx8l0"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_fhp1o"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_afk52"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_bs2p1"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_mxkl3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_4dp3y"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_p1ts7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_fisjp"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_t3wu7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_5ul3r"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_11l0l"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_ok3os"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
 [sub_resource type="Resource" id="Resource_88v5v"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
 [sub_resource type="Resource" id="Resource_nb5gq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_v5lll"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_5k50u"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_aki48"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_xbrpa"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_eciw7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_f80fs"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_wvt8m"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_tm10b"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
@@ -1544,11 +894,75 @@ mesh_item_name = "15a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
+[sub_resource type="Resource" id="Resource_gchov"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_mu8cj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_i8210"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_vfu5p"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_nvi84"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_hyki7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_jq6ur"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_jna62"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
 [sub_resource type="Resource" id="Resource_6numb"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
 [sub_resource type="Resource" id="Resource_4fs6t"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_vh6dg"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_xetl3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_3v6w3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_jhepp"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_unsgr"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_f5gdg"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_db3en"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_n2mk4"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
@@ -1560,6 +974,30 @@ mesh_item_name = "15a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
+[sub_resource type="Resource" id="Resource_dffrt"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_bsjbg"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_q8krv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_scfsb"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "2a"
+
+[sub_resource type="Resource" id="Resource_0waht"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_ll8lq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
 [sub_resource type="Resource" id="Resource_0do3k"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
@@ -1568,187 +1006,11 @@ mesh_item_name = "15a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_k25hi"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_pruuc"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_s46fa"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_3leuw"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_5il3y"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_qfpto"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_iw5nv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_5emcd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_osrl0"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_6yymj"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_fevfe"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_d5vew"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_2attf"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_rn4sk"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_h5sh0"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_0hlvp"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_wh5t7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_afssf"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_7gnq7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_jvo72"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_q5lhw"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_dujkd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "15a"
-
-[sub_resource type="Resource" id="Resource_koumv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_atahm"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_a4yl4"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_28kr2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_8iwjl"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_xt6iv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_1n1p8"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_6nqum"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
 [sub_resource type="Resource" id="Resource_jn1tn"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
 [sub_resource type="Resource" id="Resource_u6j5u"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_vc6b6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_lvygd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_51e7y"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_8ljga"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_rv574"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_lsqr5"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_nqpw0"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_wqgjs"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_5lajl"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_kvx2i"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_kbca4"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_0nuol"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_dncym"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_1xtrh"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
@@ -1760,67 +1022,43 @@ mesh_item_name = "6a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
-[sub_resource type="Resource" id="Resource_lfrkm"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_l6lxc"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_pwafr"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_jorp2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_kk5vp"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_vn2hm"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_1x6d7"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_rygpq"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_pwtvx"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_h6xj3"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_wawhm"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_y2ffu"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_u1xod"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
-[sub_resource type="Resource" id="Resource_wjlyi"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "6a"
-
 [sub_resource type="Resource" id="Resource_202lq"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
 [sub_resource type="Resource" id="Resource_dtvdu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_kkqet"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_kqqbx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_k25hi"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_pruuc"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_vc6b6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_lvygd"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_lfrkm"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_l6lxc"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
@@ -1832,11 +1070,91 @@ mesh_item_name = "6a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
+[sub_resource type="Resource" id="Resource_monit"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_5cl8w"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_s46fa"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_3leuw"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_koumv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_atahm"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_51e7y"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_8ljga"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_pwafr"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_jorp2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
 [sub_resource type="Resource" id="Resource_owj1o"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
 [sub_resource type="Resource" id="Resource_yke0g"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_ymbxi"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_xq388"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_5il3y"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_qfpto"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_a4yl4"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_28kr2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_rv574"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_lsqr5"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_kk5vp"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_vn2hm"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
@@ -1848,11 +1166,91 @@ mesh_item_name = "6a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
+[sub_resource type="Resource" id="Resource_xqn17"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_18am5"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_iw5nv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_5emcd"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_8iwjl"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_xt6iv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_nqpw0"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_wqgjs"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_1x6d7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_rygpq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
 [sub_resource type="Resource" id="Resource_bbd4l"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
 [sub_resource type="Resource" id="Resource_vsujo"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_7iphv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_1fcou"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_osrl0"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_6yymj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_1n1p8"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_6nqum"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_5lajl"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_kvx2i"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_pwtvx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_h6xj3"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
@@ -1864,11 +1262,75 @@ mesh_item_name = "6a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
+[sub_resource type="Resource" id="Resource_mx8l0"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_fhp1o"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_fevfe"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_d5vew"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_kbca4"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_0nuol"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_wawhm"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_y2ffu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
 [sub_resource type="Resource" id="Resource_8x51s"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
 [sub_resource type="Resource" id="Resource_hy800"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_afk52"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_bs2p1"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_2attf"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_rn4sk"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_dncym"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_1xtrh"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_u1xod"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "6a"
+
+[sub_resource type="Resource" id="Resource_wjlyi"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
@@ -1880,99 +1342,35 @@ mesh_item_name = "6a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "6a"
 
-[sub_resource type="Resource" id="Resource_pbeci"]
+[sub_resource type="Resource" id="Resource_4imu4"]
 script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
+mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_w0rwc"]
+[sub_resource type="Resource" id="Resource_2c25q"]
 script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
+mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_hx06x"]
+[sub_resource type="Resource" id="Resource_mxkl3"]
 script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
+mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_x0qji"]
+[sub_resource type="Resource" id="Resource_4dp3y"]
 script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
+mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_stc4h"]
+[sub_resource type="Resource" id="Resource_h5sh0"]
 script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
+mesh_item_name = "15a"
 
-[sub_resource type="Resource" id="Resource_6iyik"]
+[sub_resource type="Resource" id="Resource_0hlvp"]
 script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_wlonv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_igqm6"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
+mesh_item_name = "15a"
 
 [sub_resource type="Resource" id="Resource_iennb"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
 [sub_resource type="Resource" id="Resource_2ieyd"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_x4vao"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_jk7xa"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_2ngoy"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_0si0p"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_l4vxr"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_3qnhv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_bb7v2"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_qaclv"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_7c453"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_517md"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_br03x"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_fxoo4"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_gvafo"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_fphgh"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
@@ -1984,11 +1382,83 @@ mesh_item_name = "21a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
+[sub_resource type="Resource" id="Resource_yobal"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_daqxq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_p1ts7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_fisjp"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_wh5t7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_afssf"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_x4vao"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_jk7xa"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
 [sub_resource type="Resource" id="Resource_gt0wh"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
 [sub_resource type="Resource" id="Resource_umwbx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_n4373"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_brioa"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_t3wu7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_5ul3r"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_7gnq7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_jvo72"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_pbeci"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_w0rwc"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_2ngoy"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_0si0p"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
@@ -2000,51 +1470,59 @@ mesh_item_name = "21a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
-[sub_resource type="Resource" id="Resource_mfirt"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_j2y0e"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_f780q"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_2yned"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_2jkqe"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_xfr00"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_6r1om"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_tieff"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_f562u"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
-[sub_resource type="Resource" id="Resource_pl6fl"]
-script = ExtResource("22_fng4d")
-mesh_item_name = "21a"
-
 [sub_resource type="Resource" id="Resource_sdltu"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
 [sub_resource type="Resource" id="Resource_1r0ht"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_ms4dx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_gu1ne"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_11l0l"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_ok3os"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_q5lhw"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_dujkd"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "15a"
+
+[sub_resource type="Resource" id="Resource_hx06x"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_x0qji"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_l4vxr"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_3qnhv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_mfirt"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_j2y0e"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
@@ -2056,11 +1534,139 @@ mesh_item_name = "21a"
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
+[sub_resource type="Resource" id="Resource_17x6k"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_123d1"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_fxv1b"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_olt02"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_wm0iu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_2g16v"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_a03bj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_vmbar"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_h04xf"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_bspac"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_stc4h"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_6iyik"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_bb7v2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_qaclv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_f780q"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_2yned"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
 [sub_resource type="Resource" id="Resource_syytt"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
 [sub_resource type="Resource" id="Resource_isvpq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_c1fx7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_iyws7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_1132x"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_4rml2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_qkkky"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_sfqri"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_3r5gm"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_ttj88"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_fu7xu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_or87d"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_wlonv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_igqm6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_7c453"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_517md"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_2jkqe"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_xfr00"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
 
@@ -2071,6 +1677,406 @@ mesh_item_name = "21a"
 [sub_resource type="Resource" id="Resource_6hmja"]
 script = ExtResource("22_fng4d")
 mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_313h6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_30d7e"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_ussql"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_y8pxf"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_f1v6f"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_8nyf7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_u2pel"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_oliqr"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_1xvk5"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_y7vkj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_br03x"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_fxoo4"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_6r1om"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_tieff"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_ejxe6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_qliyc"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_je0rc"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_72qmn"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_dtx0f"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_hggfx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_145ak"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_gr1h6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_vaaap"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_vq6ve"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_gvafo"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_fphgh"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_f562u"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_pl6fl"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "21a"
+
+[sub_resource type="Resource" id="Resource_sipyu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_stx3t"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_b4gko"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_vkpcn"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_8b4n2"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_mnl8p"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_2d2jw"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_ne7gj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_hc062"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_jix8s"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_vnrsl"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_lcakx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_mnaa1"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_pk6kk"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_05j2w"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_nlauq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_w3e5g"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_bx6pi"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_qcrgv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_ee6t8"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_2p3cg"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_0mfvt"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_mdcw3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_je5ja"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_hqymq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_xm0dw"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_f10s8"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_2q8oq"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_0ltnv"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_kge1q"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_8vi1v"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_6te7i"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_7aoj6"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_cb8n0"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_x1lwr"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_3jf71"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_igeeh"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_4ht5r"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_wj8di"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_tplw1"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_hkwff"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_4rg8q"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_4h65h"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_xp875"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_xq6ig"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_wmpjj"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_qwdqu"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_xpqis"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_3jq72"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_fntio"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_t0tqc"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_iee17"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_ad4xn"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_gjebx"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_7nkum"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_1me60"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_py13n"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_fmov3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_454py"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_iek1f"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_b2duw"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_x81as"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_cmmjf"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_rajnb"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_6qtu8"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_v3mql"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_7d64l"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_u81q7"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_dnsqy"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_iqoe3"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_wlb87"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
+
+[sub_resource type="Resource" id="Resource_13w8l"]
+script = ExtResource("22_fng4d")
+mesh_item_name = "17a"
 
 [sub_resource type="Resource" id="Resource_y6e6h"]
 script = ExtResource("13_4id7e")
@@ -2335,6 +2341,33 @@ id = "obj_22"
 checkpoint = 1
 conditions = Array[ExtResource("7_wxwo2")]([SubResource("Resource_f77yf")])
 effects = Array[ExtResource("8_m1guk")]([SubResource("Resource_8u7tf")])
+
+[sub_resource type="Resource" id="Resource_4aifr"]
+script = ExtResource("7_wxwo2")
+variable_name = "round_number"
+operator = 6
+value = 3
+
+[sub_resource type="Resource" id="Resource_f2g6p"]
+script = ExtResource("7_wxwo2")
+variable_name = "monsters_on_the_map"
+operator = 4
+value = 3
+
+[sub_resource type="Resource" id="Resource_5a8b5"]
+script = ExtResource("8_m1guk")
+type = 14
+value = null
+target_object_id = "obj_19"
+spawn_group_id = "obj_20"
+
+[sub_resource type="Resource" id="Resource_wxwo2"]
+script = ExtResource("23_oyd8f")
+id = "obj_24"
+checkpoint = 4
+conditions = Array[ExtResource("7_wxwo2")]([SubResource("Resource_4aifr"), SubResource("Resource_f2g6p")])
+effects = Array[ExtResource("8_m1guk")]([SubResource("Resource_5a8b5")])
+one_shot = false
 
 [resource]
 script = ExtResource("21_4ys2v")
@@ -3219,10 +3252,10 @@ Vector3i(23, 0, 7): [Vector3i(24, 0, 8)]
 }
 interactables = Array[ExtResource("5_f2g6p")]([SubResource("Resource_hcyrk"), SubResource("Resource_i30xh"), SubResource("Resource_8ykhl"), SubResource("Resource_puyt3")])
 monster_spawns = Array[ExtResource("19_unyyh")]([SubResource("Resource_bmafm"), SubResource("Resource_tspt7")])
-triggers = Array[ExtResource("23_oyd8f")]([SubResource("Resource_dnhu1"), SubResource("Resource_sgwc6")])
+triggers = Array[ExtResource("23_oyd8f")]([SubResource("Resource_dnhu1"), SubResource("Resource_sgwc6"), SubResource("Resource_wxwo2")])
 groups = Array[ExtResource("4_4aifr")]([SubResource("Resource_g0qi0"), SubResource("Resource_cmbd2")])
-_next_object_id = 23
-player_spawn_cells = Array[Vector3i]([Vector3i(1, 0, 1), Vector3i(1, 0, 2), Vector3i(1, 0, 4), Vector3i(1, 0, 5)])
+_next_object_id = 25
+player_starts = Array[ExtResource("21_xf2np")]([SubResource("Resource_cg4v5")])
 los_blockers = Array[ExtResource("10_tq3ui")]([SubResource("Resource_rqufo")])
 objectives = Array[ExtResource("20_kdbkt")]([SubResource("Resource_peig4")])
 custom_variables = Array[ExtResource("2_xf2np")]([SubResource("Resource_xyio2"), SubResource("Resource_3fdhc"), SubResource("Resource_umv3j")])
