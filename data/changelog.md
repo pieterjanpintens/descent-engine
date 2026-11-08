@@ -1,4 +1,12 @@
-﻿## v0.0.65 - 2026-11-06
+﻿## v0.0.66 - 2026-11-08
+- New hero growth in campaigns. Every hero has a list of feats in the game's own order; the first ones (the campaign decides how many run in parallel) are active from the start, and when one is completed the next one starts by itself. Feat progress is kept between missions. Completed feats pay skill points, which are spent on skills in a skill tree the campaign author designs (with defaults). Open it from the Party menu > Heroes (also during a mission, where the list is read-only).
+- Feats are now counted automatically during missions (attacks, defeats, wounds, interactions, loot, ...). Campaign authors choose which monster templates count as dragons and animus, and what rearranging a hero's feat list costs on the campaign map (free, not allowed, gold, or a limited number of times).
+- Chapters and side quests can reward skill points and skills. The Party menu's Campaign Log, Feats and Inventory now work inside a campaign mission.
+- Fixed: parts of a campaign mission could save an older copy of the campaign over newer progress.
+- The hero data needs the game assets: use Options > Game assets > Import again once (new "Hero data" step).
+- All new texts are translated into the 13 app languages.
+
+## v0.0.65 - 2026-11-06
 - Mission editor: new Tables. A Table is a wrapper above stages that lets one mission hold several complete set-ups (for example a magic portal that brings the party somewhere else). The new "Switch Table" effect resets the physical table to another Table; every Table has its own pieces, hero start and box limits, and the Problems list checks them per Table. Create one with right-click > New Table on the top row of the outline, and choose where the mission begins with "Start the mission here".
 - Mission editor: hero start squares are now Player Start entries in the outline, like monster spawns: select them, rename them, move them into a stage or Table, and hide them with the stage. Older missions are converted when they are opened. The P hotkey is gone; use the Draw tool.
 - Mission editor: new Select / Draw / Move / Rotate buttons with a single Draw tool for pieces, player starts, monster spawns and LOS blockers. Spawns and blockers can now be clicked in the 3D view (Ctrl adds, Alt picks the floor beneath, a dragged box selects several).

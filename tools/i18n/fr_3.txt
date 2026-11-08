@@ -1,0 +1,47 @@
+795|une nouvelle table
+796|Table
+797|la table principale
+798|La table est réinitialisée !\nRetirez tout de la table et rangez les pièces dans la boîte. Ensuite, vous installez '%s'.
+799|%s a accompli l'exploit \"%s\" !
+801|Acheter %s pour %d points de compétence ?
+802|Acheter une compétence
+805|Exploits accomplis : %d
+806|Coût %d
+810|Exploit accompli
+812|Objectif : %d
+813|C'est arrivé une fois de plus (noté à la main)
+814|Verrouillée jusqu'à ce qu'une condition soit remplie.
+815|Nécessite l'un de : %s
+819|Pas assez de points de compétence.
+820|Acquise
+824|Récompense : %s
+825|Points de compétence : %d
+826|Points de compétence : +%d
+828|Compétences
+829|En retirer un
+830|Les données des héros sont absentes : importez d'abord les ressources du jeu (Options > Ressources du jeu).
+832|Disponible uniquement dans une campagne.
+841|Cela coûte %d d'or.
+842|ACTIF
+845|Appliquer le nouvel ordre des exploits ?
+846|Appliquer le nouvel ordre
+847|Modifier l'ordre des exploits
+848|Liste d'exploits : les %d premiers sont actifs
+850|Sa progression (%d) est perdue si cet ordre est appliqué.
+851|Descendre
+852|Monter
+853|Exploit suivant : %s
+854|Plus aucun réarrangement possible pour ce héros dans la campagne.
+855|Progression perdue sur \"%s\" : %d
+856|Réarrangements restants après celui-ci : %d
+857|Réorganiser les exploits coûte %d d'or : le groupe n'en a que %d.
+858|Annuler
+859|Commence quand le nouvel ordre est appliqué
+864|L'ordre ne peut être modifié que sur la carte de la campagne. Quand un exploit est accompli, le suivant de la liste commence tout seul.
+865|Ce changement est gratuit.
+866|En attente
+867|%d exploits accomplis
+868|Verrouillé : nécessite : %s
+873|La liste est vide.
+874|Les exploits du haut sont en cours. Quand l'un est accompli, le suivant débloqué de la liste commence tout seul. Modifier l'ordre peut avoir un coût.
+875|L'ordre des exploits ne peut pas être modifié dans cette campagne.

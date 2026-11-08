@@ -60,26 +60,13 @@ var intro: String:
 ## How many feats a hero may have ACTIVE (equipped, being worked on) at the same time. The game allows exactly one; a campaign may allow more. Feats
 ## themselves (HeroData.feats_of()) complete and pay skill points (SkillTree.points_per_feat); equipping them is not built yet.
 @export var parallel_feats: int = 1
-## What it costs a hero to CHANGE an active feat (replace or drop it - the old feat's progress is lost). Two separate settings: DURING a mission (`feat_change_mode`) and
-## outside a mission, on the campaign map (`map_feat_change_mode`; PER_MISSION makes no sense there and counts as FREE). Both default to FREE. Starting a feat in a free
-## slot is always free. The amount is the gold a change costs, or how many changes are allowed (per hero per mission, or per hero in the whole campaign - counted
-## separately for changes in missions and on the map), depending on the mode.
-enum FeatChange { FREE, NOT_ALLOWED, GOLD, PER_MISSION, PER_HERO }
+## What it costs to CHANGE a hero's feat list on the campaign map: moving entries (the active feats pushed out of the first `parallel_feats` places lose
+## their progress). ONE payment per rearrangement, however many entries it moves. During a mission the list
+## cannot be changed at all (when a feat is completed the next in the list starts by itself). `feat_change_amount` = the gold a rearrangement costs, or how many
+## rearrangements each hero may make in the whole campaign.
+enum FeatChange { FREE, NOT_ALLOWED, GOLD, PER_HERO }
 @export var feat_change_mode: int = FeatChange.FREE
 @export var feat_change_amount: int = 1
-@export var map_feat_change_mode: int = FeatChange.FREE
-@export var map_feat_change_amount: int = 1
-
-
-## The mode that applies to a change during a mission (`in_mission`) or outside one.
-func feat_change_mode_for(in_mission: bool) -> int:
-	if in_mission:
-		return feat_change_mode
-	return map_feat_change_mode if map_feat_change_mode != FeatChange.PER_MISSION else FeatChange.FREE
-
-
-func feat_change_amount_for(in_mission: bool) -> int:
-	return feat_change_amount if in_mission else map_feat_change_amount
 ## Base-template names (monster library) that count as a DRAGON (dragonkind) / an ANIMUS for the heroes' feats, besides the game's own families (see
 ## FeatMonstersDialog): a dragon has no figure of its own, and a custom template may wear another figure.
 @export var dragon_templates: Array[String] = []

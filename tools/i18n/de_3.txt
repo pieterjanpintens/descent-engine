@@ -1,0 +1,47 @@
+795|ein neuer Tisch
+796|Tisch
+797|der Haupttisch
+798|Der Tisch wird zurückgesetzt!\nRäumt alles vom Tisch und legt die Teile zurück in die Schachtel. Danach baut ihr '%s' auf.
+799|%s hat die Errungenschaft \"%s\" abgeschlossen!
+801|%s für %d Fertigkeitspunkte kaufen?
+802|Fertigkeit kaufen
+805|Abgeschlossene Errungenschaften: %d
+806|Kosten %d
+810|Errungenschaft abgeschlossen
+812|Ziel: %d
+813|Es ist noch einmal passiert (von Hand markiert)
+814|Gesperrt, bis eine Bedingung erfüllt ist.
+815|Benötigt eine von: %s
+819|Nicht genug Fertigkeitspunkte.
+820|Erlernt
+824|Belohnung: %s
+825|Fertigkeitspunkte: %d
+826|Fertigkeitspunkte: +%d
+828|Fertigkeiten
+829|Eins zurücknehmen
+830|Die Heldendaten fehlen - importiert zuerst die Spielressourcen (Optionen > Spielressourcen).
+832|Nur in einer Kampagne verfügbar.
+841|Das kostet %d Gold.
+842|AKTIV
+845|Die neue Reihenfolge der Errungenschaften anwenden?
+846|Neue Reihenfolge anwenden
+847|Reihenfolge der Errungenschaften ändern
+848|Errungenschaftsliste - die ersten %d sind aktiv
+850|Ihr Fortschritt (%d) geht verloren, wenn diese Reihenfolge angewendet wird.
+851|Nach unten
+852|Nach oben
+853|Nächste Errungenschaft: %s
+854|Für diesen Helden sind in der Kampagne keine Umordnungen mehr übrig.
+855|Verlorener Fortschritt bei \"%s\": %d
+856|Verbleibende Umordnungen danach: %d
+857|Das Umordnen der Errungenschaften kostet %d Gold - die Gruppe hat nur %d.
+858|Zurücksetzen
+859|Beginnt, sobald die neue Reihenfolge angewendet wird
+864|Die Reihenfolge lässt sich nur auf der Kampagnenkarte ändern. Wird eine Errungenschaft abgeschlossen, beginnt die nächste in der Liste von selbst.
+865|Diese Änderung ist kostenlos.
+866|Wartet
+867|%d abgeschlossene Errungenschaften
+868|Gesperrt - benötigt: %s
+873|Die Liste ist leer.
+874|Die Errungenschaften oben werden bearbeitet. Wird eine abgeschlossen, beginnt die nächste freigeschaltete in der Liste von selbst. Das Ändern der Reihenfolge kann etwas kosten.
+875|Die Reihenfolge der Errungenschaften kann in dieser Kampagne nicht geändert werden.

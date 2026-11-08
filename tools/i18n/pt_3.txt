@@ -1,0 +1,47 @@
+795|uma nova mesa
+796|Mesa
+797|a mesa principal
+798|A mesa é reiniciada!\nTirem tudo da mesa e guardem as peças na caixa. Depois, montem '%s'.
+799|%s completou a proeza \"%s\"!
+801|Comprar %s por %d pontos de perícia?
+802|Comprar uma perícia
+805|Proezas completadas: %d
+806|Custo %d
+810|Proeza completada
+812|Objetivo: %d
+813|Aconteceu mais uma vez (marcado à mão)
+814|Bloqueada até que uma condição seja cumprida.
+815|Requer uma de: %s
+819|Pontos de perícia insuficientes.
+820|Adquirida
+824|Recompensa: %s
+825|Pontos de perícia: %d
+826|Pontos de perícia: +%d
+828|Perícias
+829|Desfazer um
+830|Os dados dos heróis estão ausentes - importe primeiro os recursos do jogo (Opções > Recursos do jogo).
+832|Disponível apenas em uma campanha.
+841|Isto custa %d de ouro.
+842|ATIVA
+845|Aplicar a nova ordem das proezas?
+846|Aplicar a nova ordem
+847|Mudar a ordem das proezas
+848|Lista de proezas - as primeiras %d estão ativas
+850|O progresso (%d) é perdido quando esta ordem for aplicada.
+851|Mover para baixo
+852|Mover para cima
+853|Próxima proeza: %s
+854|Não restam reorganizações para este herói na campanha.
+855|Progresso perdido em \"%s\": %d
+856|Reorganizações restantes depois desta: %d
+857|Reorganizar as proezas custa %d de ouro - o grupo tem só %d.
+858|Reverter
+859|Começa quando a nova ordem for aplicada
+864|A ordem só pode ser mudada no mapa da campanha. Quando uma proeza é completada, a próxima da lista começa sozinha.
+865|Esta mudança é gratuita.
+866|Aguardando
+867|%d proezas completadas
+868|Bloqueada - requer: %s
+873|A lista está vazia.
+874|As proezas do topo estão em andamento. Quando uma é completada, a próxima desbloqueada da lista começa sozinha. Mudar a ordem pode ter um custo.
+875|A ordem das proezas não pode ser mudada nesta campanha.

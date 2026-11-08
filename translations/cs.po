@@ -2355,6 +2355,147 @@ msgstr "Vítejte! Tento průvodce vám pomůže aplikaci nastavit: jazyk, zdroje
 msgid "hero skills and feats"
 msgstr "dovednosti a činy hrdinů"
 
+msgid "a new table"
+msgstr "nový stůl"
+
+msgid "Table"
+msgstr "Stůl"
+
+msgid "the main table"
+msgstr "hlavní stůl"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "Stůl se resetuje!\nSundejte všechno ze stolu a vraťte díly do krabice. Poté připravíte '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s dokončil(a) úspěch \"%s\"!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Koupit %s za %d bodů dovednosti?"
+
+msgid "Buy a skill"
+msgstr "Koupit dovednost"
+
+msgid "Completed feats: %d"
+msgstr "Dokončené úspěchy: %d"
+
+msgid "Cost %d"
+msgstr "Cena: %d"
+
+msgid "Feat completed"
+msgstr "Úspěch dokončen"
+
+msgid "Goal: %d"
+msgstr "Cíl: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Stalo se to ještě jednou (označeno ručně)"
+
+msgid "Locked until a condition is met."
+msgstr "Zamčeno, dokud není splněna podmínka."
+
+msgid "Needs one of: %s"
+msgstr "Vyžaduje jednu z: %s"
+
+msgid "Not enough skill points."
+msgstr "Nedostatek bodů dovednosti."
+
+msgid "Owned"
+msgstr "Vlastněno"
+
+msgid "Reward: %s"
+msgstr "Odměna: %s"
+
+msgid "Skill points: %d"
+msgstr "Body dovednosti: %d"
+
+msgid "Skill points: +%d"
+msgstr "Body dovednosti: +%d"
+
+msgid "Skills"
+msgstr "Dovednosti"
+
+msgid "Take one back"
+msgstr "Vzít jedno zpět"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Chybí data hrdinů - nejprve naimportujte herní zdroje (Možnosti > Herní zdroje)."
+
+msgid "Only available in a campaign."
+msgstr "K dispozici pouze v kampani."
+
+msgid "This costs %d gold."
+msgstr "To stojí %d zlata."
+
+msgid "ACTIVE"
+msgstr "AKTIVNÍ"
+
+msgid "Apply the new feat order?"
+msgstr "Použít nové pořadí úspěchů?"
+
+msgid "Apply the new order"
+msgstr "Použít nové pořadí"
+
+msgid "Change the feat order"
+msgstr "Změnit pořadí úspěchů"
+
+msgid "Feat list - the first %d are active"
+msgstr "Seznam úspěchů - prvních %d je aktivních"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Jeho postup (%d) se ztratí, když se toto pořadí použije."
+
+msgid "Move down"
+msgstr "Dolů"
+
+msgid "Move up"
+msgstr "Nahoru"
+
+msgid "Next feat: %s"
+msgstr "Další úspěch: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Pro tohoto hrdinu už v kampani nezbývají žádné změny pořadí."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Ztracený postup u \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Zbývající změny pořadí po této: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Změna pořadí úspěchů stojí %d zlata - družina má jen %d."
+
+msgid "Revert"
+msgstr "Vrátit zpět"
+
+msgid "Starts when the new order is applied"
+msgstr "Začne, až se použije nové pořadí"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "Pořadí lze měnit jen na mapě kampaně. Když je úspěch dokončen, další v seznamu začne sám."
+
+msgid "This change is free."
+msgstr "Tato změna je zdarma."
+
+msgid "Waiting"
+msgstr "Čeká"
+
+msgid "%d completed feats"
+msgstr "%d dokončených úspěchů"
+
+msgid "Locked - needs: %s"
+msgstr "Zamčeno - vyžaduje: %s"
+
+msgid "The list is empty."
+msgstr "Seznam je prázdný."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "Úspěchy nahoře se plní. Když je jeden dokončen, další odemčený v seznamu začne sám. Změna pořadí může něco stát."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "Pořadí úspěchů nelze v této kampani měnit."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

@@ -1,0 +1,47 @@
+795|nowy stół
+796|Stół
+797|główny stół
+798|Stół zostaje zresetowany!\nZdejmijcie wszystko ze stołu i włóżcie elementy do pudełka. Potem ustawiacie '%s'.
+799|%s ukończył(a) osiągnięcie \"%s\"!
+801|Kupić %s za %d punktów umiejętności?
+802|Kup umiejętność
+805|Ukończone osiągnięcia: %d
+806|Koszt: %d
+810|Osiągnięcie ukończone
+812|Cel: %d
+813|Zdarzyło się jeszcze raz (zaznaczone ręcznie)
+814|Zablokowana, dopóki nie zostanie spełniony warunek.
+815|Wymaga jednej z: %s
+819|Za mało punktów umiejętności.
+820|Posiadana
+824|Nagroda: %s
+825|Punkty umiejętności: %d
+826|Punkty umiejętności: +%d
+828|Umiejętności
+829|Cofnij jedno
+830|Brakuje danych bohaterów - najpierw zaimportuj zasoby gry (Opcje > Zasoby gry).
+832|Dostępne tylko w kampanii.
+841|To kosztuje %d złota.
+842|AKTYWNE
+845|Zastosować nową kolejność osiągnięć?
+846|Zastosuj nową kolejność
+847|Zmień kolejność osiągnięć
+848|Lista osiągnięć - pierwsze %d są aktywne
+850|Jego postęp (%d) przepadnie po zastosowaniu tej kolejności.
+851|W dół
+852|W górę
+853|Następne osiągnięcie: %s
+854|Nie zostały już żadne zmiany kolejności dla tego bohatera w kampanii.
+855|Utracony postęp w \"%s\": %d
+856|Pozostałe zmiany kolejności po tej: %d
+857|Zmiana kolejności osiągnięć kosztuje %d złota - drużyna ma tylko %d.
+858|Cofnij zmiany
+859|Zaczyna się po zastosowaniu nowej kolejności
+864|Kolejność można zmienić tylko na mapie kampanii. Gdy osiągnięcie zostanie ukończone, następne z listy zaczyna się samo.
+865|Ta zmiana jest bezpłatna.
+866|Oczekuje
+867|%d ukończonych osiągnięć
+868|Zablokowane - wymaga: %s
+873|Lista jest pusta.
+874|Osiągnięcia na górze są w toku. Gdy jedno zostanie ukończone, następne odblokowane z listy zaczyna się samo. Zmiana kolejności może coś kosztować.
+875|Kolejności osiągnięć nie można zmienić w tej kampanii.

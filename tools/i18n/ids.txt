@@ -839,6 +839,40 @@
 839|Start \"%s\"?
 840|Start a feat
 841|This costs %d gold.
+842|ACTIVE
+843|Add to the list
+844|Adds it at the end of the list - free.
+845|Apply the new feat order?
+846|Apply the new order
+847|Change the feat order
+848|Feat list - the first %d are active
+849|Feats at the top are worked on. When one is completed, the next one in the list starts by itself. Adding feats at the end is free; changing the order may cost something.
+850|Its progress (%d) is lost when this order is applied.
+851|Move down
+852|Move up
+853|Next feat: %s
+854|No rearrangements left for this hero in the campaign.
+855|Progress lost on \"%s\": %d
+856|Rearrangements left after this: %d
+857|Rearranging the feats costs %d gold - the party has only %d.
+858|Revert
+859|Starts when the new order is applied
+860|Take it off the list
+861|The feat order cannot be changed in this campaign (feats can still be added at the end).
+862|The list can only be changed on the campaign map.
+863|The list is empty - add feats below.
+864|The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself.
+865|This change is free.
+866|Waiting
+867|%d completed feats
+868|Locked - needs: %s
+869|Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order or taking a feat off the list may cost something.
+870|Put back on the list
+871|Puts it back at the end of the list - free.
+872|Taken off the list
+873|The list is empty.
+874|Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something.
+875|The feat order cannot be changed in this campaign.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

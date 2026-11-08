@@ -1,0 +1,47 @@
+795|egy új asztal
+796|Asztal
+797|a fő asztal
+798|Az asztal alaphelyzetbe áll!\nSzedjetek le mindent az asztalról, és tegyétek vissza az elemeket a dobozba. Ezután felállítjátok: '%s'.
+799|%s befejezte a(z) \"%s\" teljesítményt!
+801|Megveszed a(z) %s készséget %d készségpontért?
+802|Készség vásárlása
+805|Befejezett teljesítmények: %d
+806|Ár: %d
+810|Teljesítmény befejezve
+812|Cél: %d
+813|Megint megtörtént (kézzel jelölve)
+814|Zárolva, amíg egy feltétel nem teljesül.
+815|A következők egyike kell: %s
+819|Nincs elég készségpont.
+820|Megvan
+824|Jutalom: %s
+825|Készségpontok: %d
+826|Készségpontok: +%d
+828|Készségek
+829|Egy visszavétele
+830|Hiányoznak a hősadatok - előbb importáld a játék erőforrásait (Beállítások > Játékerőforrások).
+832|Csak kampányban érhető el.
+841|Ez %d aranyba kerül.
+842|AKTÍV
+845|Alkalmazod a teljesítmények új sorrendjét?
+846|Új sorrend alkalmazása
+847|A teljesítmények sorrendjének módosítása
+848|Teljesítménylista - az első %d aktív
+850|Az előrehaladása (%d) elvész, ha ez a sorrend érvénybe lép.
+851|Lejjebb
+852|Feljebb
+853|Következő teljesítmény: %s
+854|Ennél a hősnél már nem maradt átrendezés a kampányban.
+855|Elveszett előrehaladás ennél: \"%s\": %d
+856|Átrendezések ezután: %d
+857|A teljesítmények átrendezése %d aranyba kerül - a csapatnak csak %d van.
+858|Visszaállítás
+859|Akkor kezdődik, amikor az új sorrend érvénybe lép
+864|A sorrend csak a kampánytérképen módosítható. Ha egy teljesítmény befejeződik, a lista következője magától elkezdődik.
+865|Ez a módosítás ingyenes.
+866|Várakozik
+867|%d befejezett teljesítmény
+868|Zárolva - szükséges: %s
+873|A lista üres.
+874|A felül lévő teljesítményeken dolgoznak a hősök. Ha egy befejeződik, a lista következő feloldott eleme magától elkezdődik. A sorrend módosítása kerülhet valamennyibe.
+875|A teljesítmények sorrendje ebben a kampányban nem módosítható.

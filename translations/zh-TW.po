@@ -2355,6 +2355,147 @@ msgstr "歡迎！這個助手幫你設定應用程式：語言、遊戲資源、
 msgid "hero skills and feats"
 msgstr "英雄技能與壯舉"
 
+msgid "a new table"
+msgstr "一張新桌子"
+
+msgid "Table"
+msgstr "桌子"
+
+msgid "the main table"
+msgstr "主桌子"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "桌子已重置！\n請把桌上的所有東西拿走，將配件放回盒子。接下來佈置「%s」。"
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s 完成了成就「%s」！"
+
+msgid "Buy %s for %d skill points?"
+msgstr "購買 %s，需要 %d 點技能點？"
+
+msgid "Buy a skill"
+msgstr "購買技能"
+
+msgid "Completed feats: %d"
+msgstr "已完成的成就：%d"
+
+msgid "Cost %d"
+msgstr "花費 %d"
+
+msgid "Feat completed"
+msgstr "成就完成"
+
+msgid "Goal: %d"
+msgstr "目標：%d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "又發生了一次（手動標記）"
+
+msgid "Locked until a condition is met."
+msgstr "已鎖定，需滿足條件。"
+
+msgid "Needs one of: %s"
+msgstr "需要以下之一：%s"
+
+msgid "Not enough skill points."
+msgstr "技能點不足。"
+
+msgid "Owned"
+msgstr "已擁有"
+
+msgid "Reward: %s"
+msgstr "獎勵：%s"
+
+msgid "Skill points: %d"
+msgstr "技能點：%d"
+
+msgid "Skill points: +%d"
+msgstr "技能點：+%d"
+
+msgid "Skills"
+msgstr "技能"
+
+msgid "Take one back"
+msgstr "撤回一次"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "缺少英雄資料——請先匯入遊戲資源（選項 > 遊戲資源）。"
+
+msgid "Only available in a campaign."
+msgstr "僅在戰役中可用。"
+
+msgid "This costs %d gold."
+msgstr "這需要 %d 金幣。"
+
+msgid "ACTIVE"
+msgstr "進行中"
+
+msgid "Apply the new feat order?"
+msgstr "套用新的成就順序？"
+
+msgid "Apply the new order"
+msgstr "套用新順序"
+
+msgid "Change the feat order"
+msgstr "變更成就順序"
+
+msgid "Feat list - the first %d are active"
+msgstr "成就清單——前 %d 個進行中"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "套用此順序後，其進度（%d）將遺失。"
+
+msgid "Move down"
+msgstr "下移"
+
+msgid "Move up"
+msgstr "上移"
+
+msgid "Next feat: %s"
+msgstr "下一個成就：%s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "該英雄在戰役中已沒有可用的重新排序次數。"
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "「%s」上遺失的進度：%d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "此次之後剩餘的重新排序次數：%d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "重新排序成就需要 %d 金幣——隊伍只有 %d。"
+
+msgid "Revert"
+msgstr "還原"
+
+msgid "Starts when the new order is applied"
+msgstr "套用新順序後開始"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "只能在戰役地圖上變更順序。完成一個成就後，清單中的下一個會自動開始。"
+
+msgid "This change is free."
+msgstr "此變更免費。"
+
+msgid "Waiting"
+msgstr "等待中"
+
+msgid "%d completed feats"
+msgstr "%d 個已完成的成就"
+
+msgid "Locked - needs: %s"
+msgstr "已鎖定——需要：%s"
+
+msgid "The list is empty."
+msgstr "清單為空。"
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "排在最上面的成就正在進行。完成一個後，清單中下一個已解鎖的會自動開始。變更順序可能需要花費。"
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "此戰役中不能變更成就順序。"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

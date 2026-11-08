@@ -90,7 +90,9 @@ var _problem_lines: Array[String] = []
 var _materials_dialog: LootDialog
 var _potion_spin: SpinBox
 var _feats_spin: SpinBox
-var _feat_change_rows: Dictionary = {}  ## true (in a mission) / false (outside) -> {option, spin, unit, modes}
+var _feat_change_option: OptionButton
+var _feat_change_spin: SpinBox
+var _feat_change_unit: Label
 var _brooch_option: OptionButton
 var _brooch_properties: Button
 var _brooch_dialog: MonsterPropertiesDialog
@@ -329,8 +331,7 @@ func _ready() -> void:
 	)
 	_feats_spin = feats_spin
 	feats_row.add_child(feats_spin)
-	_build_feat_change_row(general, true)
-	_build_feat_change_row(general, false)
+	_build_feat_change_row(general)
 	var brooch_row := HBoxContainer.new()
 	general.add_child(brooch_row)
 	brooch_row.add_child(_label("Tarnished Brooch monster:"))
@@ -1833,74 +1834,54 @@ func _refresh_brooch_row() -> void:
 	_brooch_properties.disabled = monster == null
 
 
-## One row of the "changing a feat" settings: what it costs to replace or drop an active feat during a mission (`in_mission`) or outside one.
-func _build_feat_change_row(parent: Container, in_mission: bool) -> void:
-	var modes: Array[int] = [Campaign.FeatChange.FREE, Campaign.FeatChange.NOT_ALLOWED, Campaign.FeatChange.GOLD, Campaign.FeatChange.PER_MISSION, Campaign.FeatChange.PER_HERO]
-	var names: Array[String] = ["Free", "Not allowed", "Costs gold", "Limited per mission (per hero)", "Limited for the campaign (per hero)"]
-	if not in_mission:  # "per mission" means nothing outside a mission
-		modes = [Campaign.FeatChange.FREE, Campaign.FeatChange.NOT_ALLOWED, Campaign.FeatChange.GOLD, Campaign.FeatChange.PER_HERO]
-		names = ["Free", "Not allowed", "Costs gold", "Limited for the campaign (per hero)"]
+## The "rearranging the feat list" setting: what it costs on the campaign map to change the order of a hero's feats.
+func _build_feat_change_row(parent: Container) -> void:
 	var row := HFlowContainer.new()
 	parent.add_child(row)
-	var label := _label("Changing a feat during a mission:" if in_mission else "Changing a feat outside a mission:")
-	label.tooltip_text = "Replacing or dropping an active feat loses its progress. This sets what that costs %s. Starting a feat in a free slot is always free." % ("while a mission is played" if in_mission else "on the campaign map")
+	var label := _label("Rearranging a hero's feat list:")
+	label.tooltip_text = "Each hero has an ordered list of feats; the first ones are worked on and the next one starts when one is completed. Changing the order (which loses the progress of an active feat pushed out of the first places) is paid ONCE per rearrangement, however many entries it moves. During a mission the list cannot be changed."
 	row.add_child(label)
-	var option := OptionButton.new()
-	for mode_name in names:
-		option.add_item(mode_name)
-	row.add_child(option)
-	var spin := SpinBox.new()
-	spin.min_value = 0
-	spin.max_value = 9999
-	row.add_child(spin)
-	var unit := _label("")
-	row.add_child(unit)
-	_feat_change_rows[in_mission] = {"option": option, "spin": spin, "unit": unit, "modes": modes}
-	option.item_selected.connect(func(index: int):
+	_feat_change_option = OptionButton.new()
+	for mode_name in ["Free", "Not allowed", "Costs gold", "Limited per hero (whole campaign)"]:
+		_feat_change_option.add_item(mode_name)
+	row.add_child(_feat_change_option)
+	_feat_change_spin = SpinBox.new()
+	_feat_change_spin.min_value = 0
+	_feat_change_spin.max_value = 9999
+	row.add_child(_feat_change_spin)
+	_feat_change_unit = _label("")
+	row.add_child(_feat_change_unit)
+	_feat_change_option.item_selected.connect(func(index: int):
 		if _campaign == null:
 			return
-		if in_mission:
-			_campaign.feat_change_mode = modes[index]
-		else:
-			_campaign.map_feat_change_mode = modes[index]
+		_campaign.feat_change_mode = index
 		_refresh_feat_change_ui()
 		_mark_dirty()
 	)
-	spin.value_changed.connect(func(value: float):
+	_feat_change_spin.value_changed.connect(func(value: float):
 		if _campaign == null:
 			return
-		if in_mission:
-			_campaign.feat_change_amount = int(value)
-		else:
-			_campaign.map_feat_change_amount = int(value)
+		_campaign.feat_change_amount = int(value)
 		_mark_dirty()
 	)
 
 
-## Shows each row's amount only for the modes that have one, with its unit, and the campaign's current values.
+## Shows the amount only for the modes that have one, with its unit, and the campaign's current values.
 func _refresh_feat_change_ui() -> void:
-	if _campaign == null:
+	if _campaign == null or _feat_change_option == null:
 		return
-	for in_mission: bool in _feat_change_rows:
-		var row: Dictionary = _feat_change_rows[in_mission]
-		var modes: Array[int] = row["modes"]
-		var mode := _campaign.feat_change_mode_for(in_mission)
-		var option: OptionButton = row["option"]
-		var spin: SpinBox = row["spin"]
-		var unit: Label = row["unit"]
-		option.select(maxi(modes.find(mode), 0))
-		spin.set_value_no_signal(_campaign.feat_change_amount_for(in_mission))
-		spin.visible = mode >= Campaign.FeatChange.GOLD
-		unit.visible = spin.visible
-		match mode:
-			Campaign.FeatChange.GOLD:
-				unit.text = " gold per change"
-			Campaign.FeatChange.PER_MISSION:
-				unit.text = " changes per hero per mission"
-			Campaign.FeatChange.PER_HERO:
-				unit.text = " changes per hero in the campaign"
-			_:
-				unit.text = ""
+	var mode := clampi(_campaign.feat_change_mode, 0, _feat_change_option.item_count - 1)
+	_feat_change_option.select(mode)
+	_feat_change_spin.set_value_no_signal(_campaign.feat_change_amount)
+	_feat_change_spin.visible = mode >= Campaign.FeatChange.GOLD
+	_feat_change_unit.visible = _feat_change_spin.visible
+	match mode:
+		Campaign.FeatChange.GOLD:
+			_feat_change_unit.text = " gold per rearrangement"
+		Campaign.FeatChange.PER_HERO:
+			_feat_change_unit.text = " rearrangements per hero in the campaign"
+		_:
+			_feat_change_unit.text = ""
 
 
 func _update_problems() -> void:

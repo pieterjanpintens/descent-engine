@@ -2355,6 +2355,147 @@ msgstr "Witaj! Ten asystent pomaga skonfigurować aplikację: język, zasoby gry
 msgid "hero skills and feats"
 msgstr "umiejętności i wyczyny bohaterów"
 
+msgid "a new table"
+msgstr "nowy stół"
+
+msgid "Table"
+msgstr "Stół"
+
+msgid "the main table"
+msgstr "główny stół"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "Stół zostaje zresetowany!\nZdejmijcie wszystko ze stołu i włóżcie elementy do pudełka. Potem ustawiacie '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s ukończył(a) osiągnięcie \"%s\"!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Kupić %s za %d punktów umiejętności?"
+
+msgid "Buy a skill"
+msgstr "Kup umiejętność"
+
+msgid "Completed feats: %d"
+msgstr "Ukończone osiągnięcia: %d"
+
+msgid "Cost %d"
+msgstr "Koszt: %d"
+
+msgid "Feat completed"
+msgstr "Osiągnięcie ukończone"
+
+msgid "Goal: %d"
+msgstr "Cel: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Zdarzyło się jeszcze raz (zaznaczone ręcznie)"
+
+msgid "Locked until a condition is met."
+msgstr "Zablokowana, dopóki nie zostanie spełniony warunek."
+
+msgid "Needs one of: %s"
+msgstr "Wymaga jednej z: %s"
+
+msgid "Not enough skill points."
+msgstr "Za mało punktów umiejętności."
+
+msgid "Owned"
+msgstr "Posiadana"
+
+msgid "Reward: %s"
+msgstr "Nagroda: %s"
+
+msgid "Skill points: %d"
+msgstr "Punkty umiejętności: %d"
+
+msgid "Skill points: +%d"
+msgstr "Punkty umiejętności: +%d"
+
+msgid "Skills"
+msgstr "Umiejętności"
+
+msgid "Take one back"
+msgstr "Cofnij jedno"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Brakuje danych bohaterów - najpierw zaimportuj zasoby gry (Opcje > Zasoby gry)."
+
+msgid "Only available in a campaign."
+msgstr "Dostępne tylko w kampanii."
+
+msgid "This costs %d gold."
+msgstr "To kosztuje %d złota."
+
+msgid "ACTIVE"
+msgstr "AKTYWNE"
+
+msgid "Apply the new feat order?"
+msgstr "Zastosować nową kolejność osiągnięć?"
+
+msgid "Apply the new order"
+msgstr "Zastosuj nową kolejność"
+
+msgid "Change the feat order"
+msgstr "Zmień kolejność osiągnięć"
+
+msgid "Feat list - the first %d are active"
+msgstr "Lista osiągnięć - pierwsze %d są aktywne"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Jego postęp (%d) przepadnie po zastosowaniu tej kolejności."
+
+msgid "Move down"
+msgstr "W dół"
+
+msgid "Move up"
+msgstr "W górę"
+
+msgid "Next feat: %s"
+msgstr "Następne osiągnięcie: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Nie zostały już żadne zmiany kolejności dla tego bohatera w kampanii."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Utracony postęp w \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Pozostałe zmiany kolejności po tej: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Zmiana kolejności osiągnięć kosztuje %d złota - drużyna ma tylko %d."
+
+msgid "Revert"
+msgstr "Cofnij zmiany"
+
+msgid "Starts when the new order is applied"
+msgstr "Zaczyna się po zastosowaniu nowej kolejności"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "Kolejność można zmienić tylko na mapie kampanii. Gdy osiągnięcie zostanie ukończone, następne z listy zaczyna się samo."
+
+msgid "This change is free."
+msgstr "Ta zmiana jest bezpłatna."
+
+msgid "Waiting"
+msgstr "Oczekuje"
+
+msgid "%d completed feats"
+msgstr "%d ukończonych osiągnięć"
+
+msgid "Locked - needs: %s"
+msgstr "Zablokowane - wymaga: %s"
+
+msgid "The list is empty."
+msgstr "Lista jest pusta."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "Osiągnięcia na górze są w toku. Gdy jedno zostanie ukończone, następne odblokowane z listy zaczyna się samo. Zmiana kolejności może coś kosztować."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "Kolejności osiągnięć nie można zmienić w tej kampanii."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

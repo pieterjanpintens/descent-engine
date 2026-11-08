@@ -2355,6 +2355,147 @@ msgstr "Добро пожаловать! Этот помощник поможе�
 msgid "hero skills and feats"
 msgstr "навыки и подвиги героев"
 
+msgid "a new table"
+msgstr "новый стол"
+
+msgid "Table"
+msgstr "Стол"
+
+msgid "the main table"
+msgstr "основной стол"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "Стол сбрасывается!\nУберите всё со стола и сложите детали в коробку. Затем вы подготовите '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s получает достижение \"%s\"!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Купить %s за %d очков навыков?"
+
+msgid "Buy a skill"
+msgstr "Купить навык"
+
+msgid "Completed feats: %d"
+msgstr "Полученные достижения: %d"
+
+msgid "Cost %d"
+msgstr "Стоимость %d"
+
+msgid "Feat completed"
+msgstr "Достижение получено"
+
+msgid "Goal: %d"
+msgstr "Цель: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Это случилось ещё раз (отмечено вручную)"
+
+msgid "Locked until a condition is met."
+msgstr "Заблокирован, пока не выполнено условие."
+
+msgid "Needs one of: %s"
+msgstr "Требуется одно из: %s"
+
+msgid "Not enough skill points."
+msgstr "Недостаточно очков навыков."
+
+msgid "Owned"
+msgstr "Получен"
+
+msgid "Reward: %s"
+msgstr "Награда: %s"
+
+msgid "Skill points: %d"
+msgstr "Очки навыков: %d"
+
+msgid "Skill points: +%d"
+msgstr "Очки навыков: +%d"
+
+msgid "Skills"
+msgstr "Навыки"
+
+msgid "Take one back"
+msgstr "Убрать одно"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Данные героев отсутствуют - сначала импортируйте ресурсы игры (Настройки > Ресурсы игры)."
+
+msgid "Only available in a campaign."
+msgstr "Доступно только в кампании."
+
+msgid "This costs %d gold."
+msgstr "Это стоит %d золота."
+
+msgid "ACTIVE"
+msgstr "АКТИВНО"
+
+msgid "Apply the new feat order?"
+msgstr "Применить новый порядок достижений?"
+
+msgid "Apply the new order"
+msgstr "Применить новый порядок"
+
+msgid "Change the feat order"
+msgstr "Изменить порядок достижений"
+
+msgid "Feat list - the first %d are active"
+msgstr "Список достижений - первые %d активны"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Его прогресс (%d) будет потерян при применении этого порядка."
+
+msgid "Move down"
+msgstr "Вниз"
+
+msgid "Move up"
+msgstr "Вверх"
+
+msgid "Next feat: %s"
+msgstr "Следующее достижение: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "У этого героя в кампании не осталось перестановок."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Потерян прогресс по \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Перестановок осталось после этой: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Перестановка достижений стоит %d золота - у отряда только %d."
+
+msgid "Revert"
+msgstr "Отменить"
+
+msgid "Starts when the new order is applied"
+msgstr "Начнётся, когда будет применён новый порядок"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "Порядок можно менять только на карте кампании. Когда достижение получено, следующее в списке начинается само."
+
+msgid "This change is free."
+msgstr "Это изменение бесплатно."
+
+msgid "Waiting"
+msgstr "Ожидает"
+
+msgid "%d completed feats"
+msgstr "%d полученных достижений"
+
+msgid "Locked - needs: %s"
+msgstr "Заблокировано - требуется: %s"
+
+msgid "The list is empty."
+msgstr "Список пуст."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "Достижения вверху выполняются сейчас. Когда одно получено, следующее разблокированное в списке начинается само. Изменение порядка может чего-то стоить."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "Порядок достижений нельзя менять в этой кампании."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

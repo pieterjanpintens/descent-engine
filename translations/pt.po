@@ -2355,6 +2355,147 @@ msgstr "Boas-vindas! Este assistente ajuda a configurar o aplicativo: o idioma, 
 msgid "hero skills and feats"
 msgstr "habilidades e feitos dos heróis"
 
+msgid "a new table"
+msgstr "uma nova mesa"
+
+msgid "Table"
+msgstr "Mesa"
+
+msgid "the main table"
+msgstr "a mesa principal"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "A mesa é reiniciada!\nTirem tudo da mesa e guardem as peças na caixa. Depois, montem '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s completou a proeza \"%s\"!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Comprar %s por %d pontos de perícia?"
+
+msgid "Buy a skill"
+msgstr "Comprar uma perícia"
+
+msgid "Completed feats: %d"
+msgstr "Proezas completadas: %d"
+
+msgid "Cost %d"
+msgstr "Custo %d"
+
+msgid "Feat completed"
+msgstr "Proeza completada"
+
+msgid "Goal: %d"
+msgstr "Objetivo: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Aconteceu mais uma vez (marcado à mão)"
+
+msgid "Locked until a condition is met."
+msgstr "Bloqueada até que uma condição seja cumprida."
+
+msgid "Needs one of: %s"
+msgstr "Requer uma de: %s"
+
+msgid "Not enough skill points."
+msgstr "Pontos de perícia insuficientes."
+
+msgid "Owned"
+msgstr "Adquirida"
+
+msgid "Reward: %s"
+msgstr "Recompensa: %s"
+
+msgid "Skill points: %d"
+msgstr "Pontos de perícia: %d"
+
+msgid "Skill points: +%d"
+msgstr "Pontos de perícia: +%d"
+
+msgid "Skills"
+msgstr "Perícias"
+
+msgid "Take one back"
+msgstr "Desfazer um"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Os dados dos heróis estão ausentes - importe primeiro os recursos do jogo (Opções > Recursos do jogo)."
+
+msgid "Only available in a campaign."
+msgstr "Disponível apenas em uma campanha."
+
+msgid "This costs %d gold."
+msgstr "Isto custa %d de ouro."
+
+msgid "ACTIVE"
+msgstr "ATIVA"
+
+msgid "Apply the new feat order?"
+msgstr "Aplicar a nova ordem das proezas?"
+
+msgid "Apply the new order"
+msgstr "Aplicar a nova ordem"
+
+msgid "Change the feat order"
+msgstr "Mudar a ordem das proezas"
+
+msgid "Feat list - the first %d are active"
+msgstr "Lista de proezas - as primeiras %d estão ativas"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "O progresso (%d) é perdido quando esta ordem for aplicada."
+
+msgid "Move down"
+msgstr "Mover para baixo"
+
+msgid "Move up"
+msgstr "Mover para cima"
+
+msgid "Next feat: %s"
+msgstr "Próxima proeza: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Não restam reorganizações para este herói na campanha."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Progresso perdido em \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Reorganizações restantes depois desta: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Reorganizar as proezas custa %d de ouro - o grupo tem só %d."
+
+msgid "Revert"
+msgstr "Reverter"
+
+msgid "Starts when the new order is applied"
+msgstr "Começa quando a nova ordem for aplicada"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "A ordem só pode ser mudada no mapa da campanha. Quando uma proeza é completada, a próxima da lista começa sozinha."
+
+msgid "This change is free."
+msgstr "Esta mudança é gratuita."
+
+msgid "Waiting"
+msgstr "Aguardando"
+
+msgid "%d completed feats"
+msgstr "%d proezas completadas"
+
+msgid "Locked - needs: %s"
+msgstr "Bloqueada - requer: %s"
+
+msgid "The list is empty."
+msgstr "A lista está vazia."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "As proezas do topo estão em andamento. Quando uma é completada, a próxima desbloqueada da lista começa sozinha. Mudar a ordem pode ter um custo."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "A ordem das proezas não pode ser mudada nesta campanha."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jogador)"

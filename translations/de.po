@@ -2355,6 +2355,147 @@ msgstr "Willkommen! Dieser Assistent hilft dir, die App einzurichten: Sprache, S
 msgid "hero skills and feats"
 msgstr "Heldenfertigkeiten und Heldentaten"
 
+msgid "a new table"
+msgstr "ein neuer Tisch"
+
+msgid "Table"
+msgstr "Tisch"
+
+msgid "the main table"
+msgstr "der Haupttisch"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "Der Tisch wird zurückgesetzt!\nRäumt alles vom Tisch und legt die Teile zurück in die Schachtel. Danach baut ihr '%s' auf."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s hat die Errungenschaft \"%s\" abgeschlossen!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "%s für %d Fertigkeitspunkte kaufen?"
+
+msgid "Buy a skill"
+msgstr "Fertigkeit kaufen"
+
+msgid "Completed feats: %d"
+msgstr "Abgeschlossene Errungenschaften: %d"
+
+msgid "Cost %d"
+msgstr "Kosten %d"
+
+msgid "Feat completed"
+msgstr "Errungenschaft abgeschlossen"
+
+msgid "Goal: %d"
+msgstr "Ziel: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Es ist noch einmal passiert (von Hand markiert)"
+
+msgid "Locked until a condition is met."
+msgstr "Gesperrt, bis eine Bedingung erfüllt ist."
+
+msgid "Needs one of: %s"
+msgstr "Benötigt eine von: %s"
+
+msgid "Not enough skill points."
+msgstr "Nicht genug Fertigkeitspunkte."
+
+msgid "Owned"
+msgstr "Erlernt"
+
+msgid "Reward: %s"
+msgstr "Belohnung: %s"
+
+msgid "Skill points: %d"
+msgstr "Fertigkeitspunkte: %d"
+
+msgid "Skill points: +%d"
+msgstr "Fertigkeitspunkte: +%d"
+
+msgid "Skills"
+msgstr "Fertigkeiten"
+
+msgid "Take one back"
+msgstr "Eins zurücknehmen"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Die Heldendaten fehlen - importiert zuerst die Spielressourcen (Optionen > Spielressourcen)."
+
+msgid "Only available in a campaign."
+msgstr "Nur in einer Kampagne verfügbar."
+
+msgid "This costs %d gold."
+msgstr "Das kostet %d Gold."
+
+msgid "ACTIVE"
+msgstr "AKTIV"
+
+msgid "Apply the new feat order?"
+msgstr "Die neue Reihenfolge der Errungenschaften anwenden?"
+
+msgid "Apply the new order"
+msgstr "Neue Reihenfolge anwenden"
+
+msgid "Change the feat order"
+msgstr "Reihenfolge der Errungenschaften ändern"
+
+msgid "Feat list - the first %d are active"
+msgstr "Errungenschaftsliste - die ersten %d sind aktiv"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Ihr Fortschritt (%d) geht verloren, wenn diese Reihenfolge angewendet wird."
+
+msgid "Move down"
+msgstr "Nach unten"
+
+msgid "Move up"
+msgstr "Nach oben"
+
+msgid "Next feat: %s"
+msgstr "Nächste Errungenschaft: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Für diesen Helden sind in der Kampagne keine Umordnungen mehr übrig."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Verlorener Fortschritt bei \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Verbleibende Umordnungen danach: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Das Umordnen der Errungenschaften kostet %d Gold - die Gruppe hat nur %d."
+
+msgid "Revert"
+msgstr "Zurücksetzen"
+
+msgid "Starts when the new order is applied"
+msgstr "Beginnt, sobald die neue Reihenfolge angewendet wird"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "Die Reihenfolge lässt sich nur auf der Kampagnenkarte ändern. Wird eine Errungenschaft abgeschlossen, beginnt die nächste in der Liste von selbst."
+
+msgid "This change is free."
+msgstr "Diese Änderung ist kostenlos."
+
+msgid "Waiting"
+msgstr "Wartet"
+
+msgid "%d completed feats"
+msgstr "%d abgeschlossene Errungenschaften"
+
+msgid "Locked - needs: %s"
+msgstr "Gesperrt - benötigt: %s"
+
+msgid "The list is empty."
+msgstr "Die Liste ist leer."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "Die Errungenschaften oben werden bearbeitet. Wird eine abgeschlossen, beginnt die nächste freigeschaltete in der Liste von selbst. Das Ändern der Reihenfolge kann etwas kosten."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "Die Reihenfolge der Errungenschaften kann in dieser Kampagne nicht geändert werden."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d für %d Spieler)"

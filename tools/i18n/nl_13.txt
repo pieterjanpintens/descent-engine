@@ -1,0 +1,34 @@
+842|ACTIEF
+843|Aan de lijst toevoegen
+844|Voegt het onderaan de lijst toe - gratis.
+845|De nieuwe volgorde van prestaties toepassen?
+846|Nieuwe volgorde toepassen
+847|De volgorde van prestaties wijzigen
+848|Prestatielijst - de eerste %d zijn actief
+849|De prestaties bovenaan zijn in uitvoering. Als er een voltooid is, begint de volgende in de lijst vanzelf. Prestaties onderaan toevoegen is gratis; de volgorde wijzigen kan iets kosten.
+850|De voortgang (%d) gaat verloren als deze volgorde wordt toegepast.
+851|Omlaag
+852|Omhoog
+853|Volgende prestatie: %s
+854|Geen herschikkingen meer over voor deze held in de campagne.
+855|Verloren voortgang op \"%s\": %d
+856|Herschikkingen over na deze: %d
+857|De prestaties herschikken kost %d goud - de groep heeft maar %d.
+858|Terugzetten
+859|Begint zodra de nieuwe volgorde wordt toegepast
+860|Van de lijst halen
+861|De volgorde van prestaties kan in deze campagne niet worden gewijzigd (onderaan toevoegen kan nog wel).
+862|De lijst kan alleen op de campagnekaart worden gewijzigd.
+863|De lijst is leeg - voeg hieronder prestaties toe.
+864|De volgorde kan alleen op de campagnekaart worden gewijzigd. Als een prestatie voltooid is, begint de volgende in de lijst vanzelf.
+865|Deze wijziging is gratis.
+866|Wachtend
+867|%d voltooide prestaties
+868|Vergrendeld - heeft nodig: %s
+869|De prestaties bovenaan zijn in uitvoering. Als er een voltooid is, begint de volgende ontgrendelde in de lijst vanzelf. De volgorde wijzigen of een prestatie van de lijst halen kan iets kosten.
+870|Weer op de lijst zetten
+871|Zet het weer onderaan de lijst - gratis.
+872|Van de lijst gehaald
+873|De lijst is leeg.
+874|De prestaties bovenaan zijn in uitvoering. Als er een voltooid is, begint de volgende ontgrendelde in de lijst vanzelf. De volgorde wijzigen kan iets kosten.
+875|De volgorde van prestaties kan in deze campagne niet worden gewijzigd.

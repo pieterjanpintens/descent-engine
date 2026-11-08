@@ -2,7 +2,7 @@ class_name HeroGrowthDialog
 extends Control
 
 ## The party's heroes in a campaign (Party menu > Heroes): per hero their skill points and skill tree (buy a skill with points) and their feats (work on
-## up to `parallel_feats` at once, mark progress by hand, change or drop one - which loses its progress - and see what is completed). The rules are
+## the first `parallel_feats` of their ordered feat list at once, rearrange the list on the campaign map, and see what is completed). The rules are
 ## CampaignState's (hero progress methods); this only shows them. A skill's rule text is not in the game data, so only names and costs are shown.
 ## Built in code, modal scrim like InventoryDialog; open() rebuilds from the providers the owner assigns.
 
@@ -13,15 +13,18 @@ var on_changed: Callable
 ## Assigned by the owner: true while playtesting from the campaign editor - only then are the manual progress buttons (+ / -) shown. In real play feat progress
 ## comes from what happens in the missions.
 var manual_marking := false
-## Assigned by the owner: true inside a mission - changing or dropping a feat then follows the campaign's feat_change_mode (a cost or a limit).
+## Assigned by the owner: true inside a mission - the feat list is then read-only (it can only be rearranged on the campaign map).
 var in_mission := false
 
 var _hero_id := ""
-var _replacing := ""  ## the active feat the next "Replace with this" will take the place of ("" = starting a feat in a free slot)
+const ACTIVE_COLOR := Color(0.95, 0.65, 0.2)
+var _draft: Array[String] = []  ## the feat order being edited (not saved until "Apply the new order")
+var _drafting := false
 var _tabs: TabContainer
 var _hero_row: HBoxContainer
 var _skills_box: VBoxContainer
 var _feats_box: VBoxContainer
+var _apply_holder: HBoxContainer
 var _confirm: ConfirmationDialog
 var _confirm_action := Callable()
 var _notice: AcceptDialog
@@ -62,10 +65,18 @@ func _ready() -> void:
 	_skills_box = _tab("Skills")
 	_feats_box = _tab("Feats")
 
+	# The bottom row never scrolls away: the cost of a changed feat order with "Apply" / "Revert" (only while the order has been changed) next to Close.
+	var footer := HBoxContainer.new()
+	footer.add_theme_constant_override("separation", 8)
+	vbox.add_child(footer)
+	_apply_holder = HBoxContainer.new()
+	_apply_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_apply_holder.add_theme_constant_override("separation", 8)
+	footer.add_child(_apply_holder)
 	var close_button := Button.new()
 	close_button.text = "Close"
 	close_button.pressed.connect(func(): visible = false)
-	vbox.add_child(close_button)
+	footer.add_child(close_button)
 
 	_confirm = ConfirmationDialog.new()
 	_confirm.min_size = Vector2i(420, 0)
@@ -96,7 +107,7 @@ func _tab(tab_name: String) -> VBoxContainer:
 func open(tab: int = -1) -> void:
 	if _hero_id == "":
 		_hero_id = CampaignState.hero_ids()[0]
-	_replacing = ""
+	_drafting = false
 	_refresh()
 	if tab >= 0 and tab < _tabs.get_tab_count():
 		_tabs.current_tab = tab
@@ -136,7 +147,7 @@ func _refresh() -> void:
 	for child in _hero_row.get_children():
 		_hero_row.remove_child(child)
 		child.queue_free()
-	for box in [_skills_box, _feats_box]:
+	for box in [_skills_box, _feats_box, _apply_holder]:
 		for child in box.get_children():
 			box.remove_child(child)
 			child.queue_free()
@@ -155,7 +166,7 @@ func _refresh() -> void:
 		button.button_pressed = hero_id == _hero_id
 		button.pressed.connect(func():
 			_hero_id = hero_id
-			_replacing = ""
+			_drafting = false
 			_refresh()
 		)
 		_hero_row.add_child(button)
@@ -232,34 +243,31 @@ func _ask_buy(campaign: Campaign, state: CampaignState, number: int, cost: int, 
 
 
 func _build_feats(campaign: Campaign, state: CampaignState) -> void:
-	var active := state.active_feats(campaign, _hero_id)
-	var free_slots := state.free_feat_slots(campaign, _hero_id)
+	var committed := state.feat_queue(campaign, _hero_id)
+	var queue: Array[String] = _draft if _drafting else committed
+	var limit := maxi(campaign.parallel_feats, 1)
+	var live := state.active_feats(campaign, _hero_id)
+	var editable := not in_mission
+	var window := state.feat_window(campaign, _hero_id, queue)  # the feats this order would work on
+	var costly := _drafting and CampaignState.feat_list_change_costs(committed, queue)
+	var lost := state.feats_lost_by(campaign, _hero_id, queue) if costly else {}
+
 	var header := Label.new()
-	header.text = tr("Feats active: %d of %d") % [active.size(), maxi(campaign.parallel_feats, 1)]
+	header.text = tr("Feat list - the first %d are active") % limit
 	header.add_theme_font_size_override("font_size", 18)
 	_feats_box.add_child(header)
-	if active.is_empty():
-		_feats_box.add_child(_wrapped(tr("No feat is active - start one below."), 500.0))
-	for feat_id: String in active:
-		_feats_box.add_child(_active_feat_row(campaign, state, feat_id, int(active[feat_id])))
+	if in_mission:
+		_feats_box.add_child(_wrapped(tr("The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."), 520.0))
+	else:
+		_feats_box.add_child(_wrapped(tr("Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."), 520.0))
+	if queue.is_empty():
+		_feats_box.add_child(_wrapped(tr("The list is empty."), 520.0))
+	for index in queue.size():
+		_feats_box.add_child(_queue_row(campaign, state, queue, index, window, lost, live, editable))
+	if _drafting and queue != committed:
+		_apply_holder.add_child(_apply_bar(campaign, state, committed, queue))
 
 	var completed := state.completed_feats(campaign, _hero_id)
-	var choices := state.startable_feats(campaign, _hero_id)
-	var heading := Label.new()
-	heading.text = tr("Replace with which feat?") if _replacing != "" else tr("Available feats")
-	heading.add_theme_font_size_override("font_size", 16)
-	heading.modulate = Color(0.56, 0.79, 0.9)
-	_feats_box.add_child(heading)
-	if _replacing != "":
-		_feats_box.add_child(_button(tr("Cancel"), func():
-			_replacing = ""
-			_refresh()
-		))
-	if choices.is_empty():
-		_feats_box.add_child(_wrapped(tr("No other feat is available right now."), 500.0))
-	for feat in choices:
-		_feats_box.add_child(_feat_card(campaign, state, feat, free_slots))
-
 	var done_label := Label.new()
 	done_label.text = tr("Completed feats: %d") % completed.size()
 	done_label.add_theme_font_size_override("font_size", 16)
@@ -287,21 +295,103 @@ func _feat_texts(campaign: Campaign, feat: Dictionary, box: VBoxContainer) -> vo
 	title.text = str(feat["title"])
 	title.add_theme_font_size_override("font_size", 16)
 	box.add_child(title)
-	box.add_child(_wrapped(str(feat["description"]), 520.0))
+	box.add_child(_wrapped(str(feat["description"]), 460.0))
 	var info := Label.new()
 	info.text = tr("Goal: %d") % int(feat["goal"]) + "    " + tr("Reward: %s") % _reward_text(campaign, feat)
 	info.modulate = Color(1, 1, 1, 0.7)
 	box.add_child(info)
 
 
-func _active_feat_row(campaign: Campaign, state: CampaignState, feat_id: String, progress: int) -> Control:
-	var feat := HeroData.feat(feat_id)
+## A framed row: orange and brighter for a feat that is being worked on, dim for one that is waiting in the list.
+func _row_panel(active: bool) -> PanelContainer:
 	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.30, 0.20, 0.08, 0.6) if active else Color(0.12, 0.13, 0.17, 0.5)
+	style.border_color = ACTIVE_COLOR if active else Color(0.35, 0.38, 0.45)
+	style.set_border_width_all(2 if active else 1)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+	return panel
+
+
+## One feat of the list: its place, whether it is active, waiting or locked, its text and progress, and (on the map) the buttons that move or remove it in the draft order.
+func _queue_row(campaign: Campaign, state: CampaignState, queue: Array[String], index: int, window: Array[String], lost: Dictionary, live: Dictionary, editable: bool) -> Control:
+	var feat_id := queue[index]
+	var feat := HeroData.feat(feat_id)
+	var is_live := live.has(feat_id)
+	var unlocked := state.feat_unlocked(campaign, _hero_id, feat_id)
+	var highlighted := is_live or (_drafting and window.has(feat_id))
+	var panel := _row_panel(highlighted)
+	panel.modulate = Color.WHITE if highlighted else (Color(1, 1, 1, 0.75) if unlocked else Color(1, 1, 1, 0.55))
+	var outer := HBoxContainer.new()
+	outer.add_theme_constant_override("separation", 10)
+	panel.add_child(outer)
+	var number := Label.new()
+	number.text = "%d" % (index + 1)
+	number.add_theme_font_size_override("font_size", 22)
+	number.modulate = ACTIVE_COLOR if highlighted else Color(1, 1, 1, 0.5)
+	number.custom_minimum_size.x = 26
+	number.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	outer.add_child(number)
+
 	var box := VBoxContainer.new()
-	panel.add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(box)
+	var status := Label.new()
+	if is_live:
+		status.text = "● " + tr("ACTIVE")
+		status.modulate = ACTIVE_COLOR
+	elif highlighted:
+		status.text = "● " + tr("Starts when the new order is applied")
+		status.modulate = ACTIVE_COLOR
+	elif not unlocked:
+		status.text = "🔒 " + _lock_text(campaign, state, feat)
+		status.modulate = Color(1, 1, 1, 0.55)
+	else:
+		status.text = "○ " + tr("Waiting")
+		status.modulate = Color(1, 1, 1, 0.55)
+	status.add_theme_font_size_override("font_size", 13)
+	box.add_child(status)
 	_feat_texts(campaign, feat, box)
+	if is_live:
+		var progress := int(live[feat_id])
+		box.add_child(_progress_row(feat, progress, not _drafting and manual_marking, campaign, state, feat_id))
+		if lost.has(feat_id):
+			var warning := Label.new()
+			warning.text = tr("Its progress (%d) is lost when this order is applied.") % progress
+			warning.modulate = Color(1.0, 0.55, 0.45)
+			box.add_child(warning)
+
+	if editable:
+		var buttons := HBoxContainer.new()
+		buttons.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		var up := _button("▲", func(): _move_in_draft(campaign, state, index, -1))
+		up.disabled = index == 0
+		up.tooltip_text = tr("Move up")
+		buttons.add_child(up)
+		var down := _button("▼", func(): _move_in_draft(campaign, state, index, 1))
+		down.disabled = index >= queue.size() - 1
+		down.tooltip_text = tr("Move down")
+		buttons.add_child(down)
+		outer.add_child(buttons)
+	return panel
+
+
+## What a locked feat is waiting for: other feats of the hero that have to be completed first.
+func _lock_text(campaign: Campaign, state: CampaignState, feat: Dictionary) -> String:
+	var done := state.completed_feats(campaign, _hero_id)
+	var parts: Array[String] = []
+	if done.size() < int(feat["completed_required"]):
+		parts.append(tr("%d completed feats") % int(feat["completed_required"]))
+	for needed: String in feat["prerequisites"]:
+		if not done.has(needed):
+			parts.append(str(HeroData.feat(needed).get("title", needed)))
+	return tr("Locked - needs: %s") % ", ".join(parts)
+
+
+func _progress_row(feat: Dictionary, progress: int, with_marking: bool, campaign: Campaign, state: CampaignState, feat_id: String) -> Control:
 	var row := HBoxContainer.new()
-	box.add_child(row)
 	var bar := ProgressBar.new()
 	bar.min_value = 0
 	bar.max_value = maxi(int(feat["goal"]), 1)
@@ -315,28 +405,15 @@ func _active_feat_row(campaign: Campaign, state: CampaignState, feat_id: String,
 	track.set_border_width_all(1)
 	bar.add_theme_stylebox_override("background", track)
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(0.9, 0.62, 0.2)
+	fill.bg_color = ACTIVE_COLOR
 	bar.add_theme_stylebox_override("fill", fill)
 	row.add_child(bar)
 	var count := Label.new()
 	count.text = "%d / %d" % [progress, int(feat["goal"])]
 	row.add_child(count)
-	if manual_marking:
+	if with_marking:
 		row.add_child(_manual_buttons(campaign, state, feat_id, progress))
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
-	var blocked := state.feat_change_problem(campaign, _hero_id, in_mission)
-	var change_button := _button(tr("Change…"), func():
-		_replacing = feat_id
-		_refresh()
-	)
-	var drop_button := _button(tr("Drop"), func(): _ask_drop(campaign, state, feat_id, progress))
-	for button in [change_button, drop_button]:
-		button.disabled = blocked != ""
-		button.tooltip_text = blocked if blocked != "" else state.feat_change_note(campaign, _hero_id, in_mission)
-		row.add_child(button)
-	return panel
+	return row
 
 
 ## The hand-marking buttons of an active feat: take one back / it happened once more. Only shown while playtesting (manual_marking).
@@ -363,75 +440,88 @@ func _mark_progress(campaign: Campaign, state: CampaignState, feat_id: String) -
 		if str(result["recipe"]) != "":
 			var recipe := RecipeData.find(str(result["recipe"]))
 			text += "\n" + tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(result["recipe"]))
+		if not result["started"].is_empty():
+			text += "\n" + tr("Next feat: %s") % ", ".join(result["started"])
 		_notice.title = tr("Feat completed")
 		_notice.dialog_text = text
 		_notice.popup_centered()
+	_drafting = false
 	_changed()
 
 
-## Starting a feat: free on the campaign map; during a mission it follows the campaign's setting for a change, so a cost is confirmed first.
-func _ask_start(campaign: Campaign, state: CampaignState, feat_id: String, note: String) -> void:
-	var begin := func():
-		if state.start_feat(campaign, _hero_id, feat_id, in_mission):
-			_changed()
-	if note == "":
-		begin.call()
+# --- editing the order: a draft that is applied (and paid for) once --------------------------------------------------
+
+## The draft order the buttons edit: made from the saved list the first time something changes.
+func _edit_draft(campaign: Campaign, state: CampaignState) -> Array[String]:
+	if not _drafting:
+		_draft.clear()
+		_draft.append_array(state.feat_queue(campaign, _hero_id))
+		_drafting = true
+	return _draft
+
+
+func _move_in_draft(campaign: Campaign, state: CampaignState, index: int, delta: int) -> void:
+	var draft := _edit_draft(campaign, state)
+	var target := index + delta
+	if target < 0 or target >= draft.size():
 		return
-	_confirm.title = tr("Start a feat")
-	_confirm.dialog_text = tr("Start \"%s\"?") % str(HeroData.feat(feat_id).get("title", feat_id)) + "
-" + note
-	_confirm_action = begin
-	_confirm.popup_centered()
+	var moved := draft[index]
+	draft[index] = draft[target]
+	draft[target] = moved
+	_refresh()
 
 
-func _ask_drop(campaign: Campaign, state: CampaignState, feat_id: String, progress: int) -> void:
-	_confirm.title = tr("Drop a feat")
-	_confirm.dialog_text = tr("Drop \"%s\"? Its progress (%d) is lost.") % [str(HeroData.feat(feat_id).get("title", feat_id)), progress]
-	var note := state.feat_change_note(campaign, _hero_id, in_mission)
-	if note != "":
-		_confirm.dialog_text += "\n" + note
-	_confirm_action = func():
-		state.unequip_feat(campaign, _hero_id, feat_id, in_mission)
-		_changed()
-	_confirm.popup_centered()
-
-
-func _feat_card(campaign: Campaign, state: CampaignState, feat: Dictionary, free_slots: int) -> Control:
-	var panel := PanelContainer.new()
-	var box := VBoxContainer.new()
-	panel.add_child(box)
-	_feat_texts(campaign, feat, box)
-	var feat_id: String = feat["id"]
-	if _replacing != "":
-		box.add_child(_button(tr("Replace with this"), func(): _ask_replace(campaign, state, feat_id)))
+## The bar in the dialog's bottom row (next to Close, so it never scrolls away) while the order differs from the saved one: what applying costs, Apply and Revert.
+func _apply_bar(campaign: Campaign, state: CampaignState, committed: Array[String], draft: Array[String]) -> Control:
+	var costly := CampaignState.feat_list_change_costs(committed, draft)
+	var problem := state.feat_change_problem(campaign, _hero_id) if costly else ""
+	var note := state.feat_change_note(campaign, _hero_id) if costly else ""
+	var bar := HBoxContainer.new()
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.add_theme_constant_override("separation", 8)
+	var label := Label.new()
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 160.0
+	if problem != "":
+		label.text = problem
+		label.modulate = Color(1.0, 0.55, 0.45)
+	elif note != "":
+		label.text = note
 	else:
-		var blocked := state.feat_change_problem(campaign, _hero_id, true) if in_mission else ""
-		var note := state.feat_change_note(campaign, _hero_id, true) if in_mission else ""
-		var start := _button(tr("Start"), func(): _ask_start(campaign, state, feat_id, note))
-		start.disabled = free_slots <= 0 or blocked != ""
-		if free_slots <= 0:
-			start.tooltip_text = tr("No free feat slot - change or drop an active feat first.")
-		elif blocked != "":
-			start.tooltip_text = blocked
-		else:
-			start.tooltip_text = note
-		box.add_child(start)
-	return panel
+		label.text = tr("This change is free.")
+	bar.add_child(label)
+	var apply := _button(tr("Apply the new order"), func(): _ask_apply(campaign, state, committed, draft))
+	apply.disabled = problem != ""
+	bar.add_child(apply)
+	bar.add_child(_button(tr("Revert"), func():
+		_drafting = false
+		_refresh()
+	))
+	return bar
 
 
-func _ask_replace(campaign: Campaign, state: CampaignState, new_feat_id: String) -> void:
-	var old_id := _replacing
-	var progress := int(state.active_feats(campaign, _hero_id).get(old_id, 0))
-	_confirm.title = tr("Change a feat")
-	_confirm.dialog_text = tr("Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost.") % [
-		str(HeroData.feat(old_id).get("title", old_id)), str(HeroData.feat(new_feat_id).get("title", new_feat_id)), progress]
-	var note := state.feat_change_note(campaign, _hero_id, in_mission)
-	if note != "":
-		_confirm.dialog_text += "\n" + note
-	_confirm_action = func():
-		if state.replace_feat(campaign, _hero_id, old_id, new_feat_id, in_mission):
-			_replacing = ""
+func _ask_apply(campaign: Campaign, state: CampaignState, committed: Array[String], draft: Array[String]) -> void:
+	var costly := CampaignState.feat_list_change_costs(committed, draft)
+	var lost := state.feats_lost_by(campaign, _hero_id, draft) if costly else {}
+	var note := state.feat_change_note(campaign, _hero_id) if costly else ""
+	var apply := func():
+		var wanted: Array[String] = []
+		wanted.append_array(draft)
+		if not state.set_feat_list(campaign, _hero_id, wanted, in_mission).is_empty():
+			_drafting = false
 			_changed()
+	if lost.is_empty() and note == "":
+		apply.call()
+		return
+	var text := tr("Apply the new feat order?")
+	for feat_id in lost:
+		text += "\n" + tr("Progress lost on \"%s\": %d") % [str(HeroData.feat(str(feat_id)).get("title", feat_id)), int(lost[feat_id])]
+	if note != "":
+		text += "\n" + note
+	_confirm.title = tr("Change the feat order")
+	_confirm.dialog_text = text
+	_confirm_action = apply
 	_confirm.popup_centered()
 
 

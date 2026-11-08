@@ -2355,6 +2355,147 @@ msgstr "Üdv! Ez az asszisztens segít beállítani az alkalmazást: a nyelvet, 
 msgid "hero skills and feats"
 msgstr "a hősök képességei és tettei"
 
+msgid "a new table"
+msgstr "egy új asztal"
+
+msgid "Table"
+msgstr "Asztal"
+
+msgid "the main table"
+msgstr "a fő asztal"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "Az asztal alaphelyzetbe áll!\nSzedjetek le mindent az asztalról, és tegyétek vissza az elemeket a dobozba. Ezután felállítjátok: '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s befejezte a(z) \"%s\" teljesítményt!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Megveszed a(z) %s készséget %d készségpontért?"
+
+msgid "Buy a skill"
+msgstr "Készség vásárlása"
+
+msgid "Completed feats: %d"
+msgstr "Befejezett teljesítmények: %d"
+
+msgid "Cost %d"
+msgstr "Ár: %d"
+
+msgid "Feat completed"
+msgstr "Teljesítmény befejezve"
+
+msgid "Goal: %d"
+msgstr "Cél: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "Megint megtörtént (kézzel jelölve)"
+
+msgid "Locked until a condition is met."
+msgstr "Zárolva, amíg egy feltétel nem teljesül."
+
+msgid "Needs one of: %s"
+msgstr "A következők egyike kell: %s"
+
+msgid "Not enough skill points."
+msgstr "Nincs elég készségpont."
+
+msgid "Owned"
+msgstr "Megvan"
+
+msgid "Reward: %s"
+msgstr "Jutalom: %s"
+
+msgid "Skill points: %d"
+msgstr "Készségpontok: %d"
+
+msgid "Skill points: +%d"
+msgstr "Készségpontok: +%d"
+
+msgid "Skills"
+msgstr "Készségek"
+
+msgid "Take one back"
+msgstr "Egy visszavétele"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Hiányoznak a hősadatok - előbb importáld a játék erőforrásait (Beállítások > Játékerőforrások)."
+
+msgid "Only available in a campaign."
+msgstr "Csak kampányban érhető el."
+
+msgid "This costs %d gold."
+msgstr "Ez %d aranyba kerül."
+
+msgid "ACTIVE"
+msgstr "AKTÍV"
+
+msgid "Apply the new feat order?"
+msgstr "Alkalmazod a teljesítmények új sorrendjét?"
+
+msgid "Apply the new order"
+msgstr "Új sorrend alkalmazása"
+
+msgid "Change the feat order"
+msgstr "A teljesítmények sorrendjének módosítása"
+
+msgid "Feat list - the first %d are active"
+msgstr "Teljesítménylista - az első %d aktív"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Az előrehaladása (%d) elvész, ha ez a sorrend érvénybe lép."
+
+msgid "Move down"
+msgstr "Lejjebb"
+
+msgid "Move up"
+msgstr "Feljebb"
+
+msgid "Next feat: %s"
+msgstr "Következő teljesítmény: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Ennél a hősnél már nem maradt átrendezés a kampányban."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Elveszett előrehaladás ennél: \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Átrendezések ezután: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "A teljesítmények átrendezése %d aranyba kerül - a csapatnak csak %d van."
+
+msgid "Revert"
+msgstr "Visszaállítás"
+
+msgid "Starts when the new order is applied"
+msgstr "Akkor kezdődik, amikor az új sorrend érvénybe lép"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "A sorrend csak a kampánytérképen módosítható. Ha egy teljesítmény befejeződik, a lista következője magától elkezdődik."
+
+msgid "This change is free."
+msgstr "Ez a módosítás ingyenes."
+
+msgid "Waiting"
+msgstr "Várakozik"
+
+msgid "%d completed feats"
+msgstr "%d befejezett teljesítmény"
+
+msgid "Locked - needs: %s"
+msgstr "Zárolva - szükséges: %s"
+
+msgid "The list is empty."
+msgstr "A lista üres."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "A felül lévő teljesítményeken dolgoznak a hősök. Ha egy befejeződik, a lista következő feloldott eleme magától elkezdődik. A sorrend módosítása kerülhet valamennyibe."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "A teljesítmények sorrendje ebben a kampányban nem módosítható."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

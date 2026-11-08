@@ -698,7 +698,7 @@ func _spawn_brooch_monster(spawned: Array[RuntimeMonster]) -> String:
 	var wearer := _brooch_wearer()
 	if wearer < 0 or _runtime.brooch_spawned or GameState.campaign_folder == "":
 		return ""
-	var state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	var state := _live_campaign_state()
 	if state == null or state.brooch_spawned_chapters.has(GameState.campaign_chapter_id):
 		return ""
 	if _campaign_brooch.base_archetype == null or MonsterDisplay.find_monster(_campaign_brooch.folder).is_empty():
@@ -721,7 +721,7 @@ func _spawn_brooch_monster(spawned: Array[RuntimeMonster]) -> String:
 func _on_brooch_defeated(_monster: RuntimeMonster) -> void:
 	if GameState.campaign_folder == "":
 		return
-	var state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+	var state := _live_campaign_state()
 	if state == null:
 		return
 	var was_upgraded := state.upgraded_cards.has(TrinketData.BROOCH_ID)
@@ -746,7 +746,7 @@ func _on_skull_kill(monster: RuntimeMonster, slot: int) -> void:
 	var allowed := 2 if bool(worn.get("upgraded", false)) else 1
 	var state: CampaignState = null
 	if GameState.campaign_folder != "":
-		state = CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		state = _live_campaign_state()
 	var count := 0
 	var recipe_id := ""
 	if state != null:
@@ -1014,7 +1014,7 @@ func _set_game_language(code: String) -> void:
 			order.append(preferred)
 	LText.set_preferred(order)
 	if GameState.campaign_folder != "":
-		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		var campaign_state := _live_campaign_state()
 		if campaign_state != null:
 			campaign_state.language = code
 			CampaignIO.save_state(campaign_state)
@@ -1029,7 +1029,7 @@ func _store_difficulty(value: int) -> void:
 	value = Difficulty.clamped(value)
 	if GameState.campaign_folder != "":
 		GameState.campaign_difficulty = value
-		var campaign_state := CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+		var campaign_state := _live_campaign_state()
 		if campaign_state != null:
 			campaign_state.difficulty = value
 			CampaignIO.save_state(campaign_state)
@@ -1880,6 +1880,14 @@ func _open_campaign_screen(open_it: Callable) -> void:
 	open_it.call()
 
 
+## The campaign save game of this mission: ONE shared object (the feat tracker, the Heroes screen and the brooch / skull / language / difficulty updates all use it), so
+## nothing saves an older copy over what another part has just written. Before the mission's own copy is loaded (the embark screen) it is read from disk.
+func _live_campaign_state() -> CampaignState:
+	if _campaign_state != null:
+		return _campaign_state
+	return CampaignIO.load_state(GameState.campaign_folder, GameState.campaign_save)
+
+
 ## Loads the campaign and its save game when this mission is played in a campaign (the Party menu's screens read them).
 func _load_campaign_context() -> void:
 	if GameState.campaign_folder == "":
@@ -1934,28 +1942,10 @@ func _announce_feat(hero_id: String, result: Dictionary) -> void:
 		if str(result["recipe"]) != "":
 			var recipe := RecipeData.find(str(result["recipe"]))
 			text += "\n" + tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(result["recipe"]))
+		if not result.get("started", []).is_empty():
+			text += "\n" + tr("Next feat: %s") % ", ".join(result["started"])
 		return text
 	await dialog.ask_ok(make_text, true, false, func() -> String: return tr("Feat completed"))
-	await _offer_new_feat(hero_id)
-
-
-## After a feat is completed the hero may start another one right away: a choice of the feats they are offered (Cancel = later, from the Heroes screen).
-func _offer_new_feat(hero_id: String) -> void:
-	var feat_state := _feat_tracker.state
-	var feat_campaign := _feat_tracker.campaign
-	if feat_state.free_feat_slots(feat_campaign, hero_id) <= 0:
-		return
-	var choices := feat_state.startable_feats(feat_campaign, hero_id)
-	if choices.is_empty():
-		return
-	var labels: Array[String] = []
-	var details: Array[String] = []
-	for feat in choices:
-		labels.append(str(feat["title"]))
-		details.append("%s\n%s" % [feat["description"], tr("Goal: %d") % int(feat["goal"])])
-	var picked: int = await dialog.ask_choice(tr("%s: choose a new feat") % HeroData.hero_name(hero_id), labels, [], true, false, details)
-	if picked >= 0 and feat_state.equip_feat(feat_campaign, hero_id, str(choices[picked]["id"])):
-		CampaignIO.save_state(feat_state)
 
 
 func _on_monster_defeated(monster: RuntimeMonster) -> void:

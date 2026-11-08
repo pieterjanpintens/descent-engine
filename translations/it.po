@@ -2355,6 +2355,147 @@ msgstr "Benvenuto! Questo assistente ti aiuta a configurare l'app: la lingua, le
 msgid "hero skills and feats"
 msgstr "abilità e imprese degli eroi"
 
+msgid "a new table"
+msgstr "un nuovo tavolo"
+
+msgid "Table"
+msgstr "Tavolo"
+
+msgid "the main table"
+msgstr "il tavolo principale"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "Il tavolo viene resettato!\nTogliete tutto dal tavolo e rimettete i pezzi nella scatola. Poi preparate '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s ha completato il traguardo \"%s\"!"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Comprare %s per %d punti abilità?"
+
+msgid "Buy a skill"
+msgstr "Compra un'abilità"
+
+msgid "Completed feats: %d"
+msgstr "Traguardi completati: %d"
+
+msgid "Cost %d"
+msgstr "Costo %d"
+
+msgid "Feat completed"
+msgstr "Traguardo completato"
+
+msgid "Goal: %d"
+msgstr "Obiettivo: %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "È successo ancora una volta (segnato a mano)"
+
+msgid "Locked until a condition is met."
+msgstr "Bloccata finché non si soddisfa una condizione."
+
+msgid "Needs one of: %s"
+msgstr "Richiede una tra: %s"
+
+msgid "Not enough skill points."
+msgstr "Punti abilità insufficienti."
+
+msgid "Owned"
+msgstr "Posseduta"
+
+msgid "Reward: %s"
+msgstr "Ricompensa: %s"
+
+msgid "Skill points: %d"
+msgstr "Punti abilità: %d"
+
+msgid "Skill points: +%d"
+msgstr "Punti abilità: +%d"
+
+msgid "Skills"
+msgstr "Abilità"
+
+msgid "Take one back"
+msgstr "Toglierne uno"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "I dati degli eroi mancano - importate prima le risorse di gioco (Opzioni > Risorse di gioco)."
+
+msgid "Only available in a campaign."
+msgstr "Disponibile solo in una campagna."
+
+msgid "This costs %d gold."
+msgstr "Questo costa %d oro."
+
+msgid "ACTIVE"
+msgstr "ATTIVO"
+
+msgid "Apply the new feat order?"
+msgstr "Applicare il nuovo ordine dei traguardi?"
+
+msgid "Apply the new order"
+msgstr "Applica il nuovo ordine"
+
+msgid "Change the feat order"
+msgstr "Cambia l'ordine dei traguardi"
+
+msgid "Feat list - the first %d are active"
+msgstr "Elenco dei traguardi - i primi %d sono attivi"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Il suo progresso (%d) va perso quando questo ordine viene applicato."
+
+msgid "Move down"
+msgstr "Sposta giù"
+
+msgid "Move up"
+msgstr "Sposta su"
+
+msgid "Next feat: %s"
+msgstr "Prossimo traguardo: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Non restano riordinamenti per questo eroe nella campagna."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Progresso perso su \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Riordinamenti rimasti dopo questo: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Riordinare i traguardi costa %d oro - il gruppo ne ha solo %d."
+
+msgid "Revert"
+msgstr "Ripristina"
+
+msgid "Starts when the new order is applied"
+msgstr "Inizia quando viene applicato il nuovo ordine"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "L'ordine si può cambiare solo sulla mappa della campagna. Quando un traguardo è completato, il successivo dell'elenco inizia da solo."
+
+msgid "This change is free."
+msgstr "Questa modifica è gratuita."
+
+msgid "Waiting"
+msgstr "In attesa"
+
+msgid "%d completed feats"
+msgstr "%d traguardi completati"
+
+msgid "Locked - needs: %s"
+msgstr "Bloccato - richiede: %s"
+
+msgid "The list is empty."
+msgstr "L'elenco è vuoto."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "I traguardi in alto sono quelli in corso. Quando uno è completato, il successivo sbloccato dell'elenco inizia da solo. Cambiare l'ordine può avere un costo."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "L'ordine dei traguardi non può essere cambiato in questa campagna."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d per %d giocatore)"

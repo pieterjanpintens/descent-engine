@@ -786,47 +786,48 @@
 797|the main table
 798|The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'.
 799|%s completed the feat \"%s\"!
-800|Available feats
 801|Buy %s for %d skill points?
 802|Buy a skill
-803|Change a feat
-804|Change…
 805|Completed feats: %d
 806|Cost %d
-807|Drop
-808|Drop \"%s\"? Its progress (%d) is lost.
-809|Drop a feat
 810|Feat completed
-811|Feats active: %d of %d
 812|Goal: %d
 813|It happened once more (marked by hand)
 814|Locked until a condition is met.
 815|Needs one of: %s
-816|No feat is active - start one below.
-817|No free feat slot - change or drop an active feat first.
-818|No other feat is available right now.
 819|Not enough skill points.
 820|Owned
-821|Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost.
-822|Replace with this
-823|Replace with which feat?
 824|Reward: %s
 825|Skill points: %d
 826|Skill points: +%d
 828|Skills
 829|Take one back
 830|The hero data is missing - import the game's assets first (Options > Game assets).
-831|%s: choose a new feat
 832|Only available in a campaign.
-833|A change costs %d gold - the party has only %d.
-834|Changes left after this: %d
-835|Changing feats is not allowed during a mission.
-836|Changing feats is not allowed outside a mission.
-837|No feat changes left for this hero in the campaign.
-838|No feat changes left in this mission.
-839|Start \"%s\"?
-840|Start a feat
 841|This costs %d gold.
+842|ACTIVE
+845|Apply the new feat order?
+846|Apply the new order
+847|Change the feat order
+848|Feat list - the first %d are active
+850|Its progress (%d) is lost when this order is applied.
+851|Move down
+852|Move up
+853|Next feat: %s
+854|No rearrangements left for this hero in the campaign.
+855|Progress lost on \"%s\": %d
+856|Rearrangements left after this: %d
+857|Rearranging the feats costs %d gold - the party has only %d.
+858|Revert
+859|Starts when the new order is applied
+864|The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself.
+865|This change is free.
+866|Waiting
+867|%d completed feats
+868|Locked - needs: %s
+873|The list is empty.
+874|Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something.
+875|The feat order cannot be changed in this campaign.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

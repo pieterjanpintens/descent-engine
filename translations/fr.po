@@ -2355,6 +2355,147 @@ msgstr "Bienvenue ! Cet assistant vous aide à configurer l'application : la lan
 msgid "hero skills and feats"
 msgstr "compétences et exploits des héros"
 
+msgid "a new table"
+msgstr "une nouvelle table"
+
+msgid "Table"
+msgstr "Table"
+
+msgid "the main table"
+msgstr "la table principale"
+
+msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
+msgstr "La table est réinitialisée !\nRetirez tout de la table et rangez les pièces dans la boîte. Ensuite, vous installez '%s'."
+
+msgid "%s completed the feat \"%s\"!"
+msgstr "%s a accompli l'exploit \"%s\" !"
+
+msgid "Buy %s for %d skill points?"
+msgstr "Acheter %s pour %d points de compétence ?"
+
+msgid "Buy a skill"
+msgstr "Acheter une compétence"
+
+msgid "Completed feats: %d"
+msgstr "Exploits accomplis : %d"
+
+msgid "Cost %d"
+msgstr "Coût %d"
+
+msgid "Feat completed"
+msgstr "Exploit accompli"
+
+msgid "Goal: %d"
+msgstr "Objectif : %d"
+
+msgid "It happened once more (marked by hand)"
+msgstr "C'est arrivé une fois de plus (noté à la main)"
+
+msgid "Locked until a condition is met."
+msgstr "Verrouillée jusqu'à ce qu'une condition soit remplie."
+
+msgid "Needs one of: %s"
+msgstr "Nécessite l'un de : %s"
+
+msgid "Not enough skill points."
+msgstr "Pas assez de points de compétence."
+
+msgid "Owned"
+msgstr "Acquise"
+
+msgid "Reward: %s"
+msgstr "Récompense : %s"
+
+msgid "Skill points: %d"
+msgstr "Points de compétence : %d"
+
+msgid "Skill points: +%d"
+msgstr "Points de compétence : +%d"
+
+msgid "Skills"
+msgstr "Compétences"
+
+msgid "Take one back"
+msgstr "En retirer un"
+
+msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
+msgstr "Les données des héros sont absentes : importez d'abord les ressources du jeu (Options > Ressources du jeu)."
+
+msgid "Only available in a campaign."
+msgstr "Disponible uniquement dans une campagne."
+
+msgid "This costs %d gold."
+msgstr "Cela coûte %d d'or."
+
+msgid "ACTIVE"
+msgstr "ACTIF"
+
+msgid "Apply the new feat order?"
+msgstr "Appliquer le nouvel ordre des exploits ?"
+
+msgid "Apply the new order"
+msgstr "Appliquer le nouvel ordre"
+
+msgid "Change the feat order"
+msgstr "Modifier l'ordre des exploits"
+
+msgid "Feat list - the first %d are active"
+msgstr "Liste d'exploits : les %d premiers sont actifs"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Sa progression (%d) est perdue si cet ordre est appliqué."
+
+msgid "Move down"
+msgstr "Descendre"
+
+msgid "Move up"
+msgstr "Monter"
+
+msgid "Next feat: %s"
+msgstr "Exploit suivant : %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Plus aucun réarrangement possible pour ce héros dans la campagne."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Progression perdue sur \"%s\" : %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Réarrangements restants après celui-ci : %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Réorganiser les exploits coûte %d d'or : le groupe n'en a que %d."
+
+msgid "Revert"
+msgstr "Annuler"
+
+msgid "Starts when the new order is applied"
+msgstr "Commence quand le nouvel ordre est appliqué"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "L'ordre ne peut être modifié que sur la carte de la campagne. Quand un exploit est accompli, le suivant de la liste commence tout seul."
+
+msgid "This change is free."
+msgstr "Ce changement est gratuit."
+
+msgid "Waiting"
+msgstr "En attente"
+
+msgid "%d completed feats"
+msgstr "%d exploits accomplis"
+
+msgid "Locked - needs: %s"
+msgstr "Verrouillé : nécessite : %s"
+
+msgid "The list is empty."
+msgstr "La liste est vide."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "Les exploits du haut sont en cours. Quand l'un est accompli, le suivant débloqué de la liste commence tout seul. Modifier l'ordre peut avoir un coût."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "L'ordre des exploits ne peut pas être modifié dans cette campagne."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

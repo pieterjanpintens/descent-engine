@@ -1,0 +1,47 @@
+795|nový stůl
+796|Stůl
+797|hlavní stůl
+798|Stůl se resetuje!\nSundejte všechno ze stolu a vraťte díly do krabice. Poté připravíte '%s'.
+799|%s dokončil(a) úspěch \"%s\"!
+801|Koupit %s za %d bodů dovednosti?
+802|Koupit dovednost
+805|Dokončené úspěchy: %d
+806|Cena: %d
+810|Úspěch dokončen
+812|Cíl: %d
+813|Stalo se to ještě jednou (označeno ručně)
+814|Zamčeno, dokud není splněna podmínka.
+815|Vyžaduje jednu z: %s
+819|Nedostatek bodů dovednosti.
+820|Vlastněno
+824|Odměna: %s
+825|Body dovednosti: %d
+826|Body dovednosti: +%d
+828|Dovednosti
+829|Vzít jedno zpět
+830|Chybí data hrdinů - nejprve naimportujte herní zdroje (Možnosti > Herní zdroje).
+832|K dispozici pouze v kampani.
+841|To stojí %d zlata.
+842|AKTIVNÍ
+845|Použít nové pořadí úspěchů?
+846|Použít nové pořadí
+847|Změnit pořadí úspěchů
+848|Seznam úspěchů - prvních %d je aktivních
+850|Jeho postup (%d) se ztratí, když se toto pořadí použije.
+851|Dolů
+852|Nahoru
+853|Další úspěch: %s
+854|Pro tohoto hrdinu už v kampani nezbývají žádné změny pořadí.
+855|Ztracený postup u \"%s\": %d
+856|Zbývající změny pořadí po této: %d
+857|Změna pořadí úspěchů stojí %d zlata - družina má jen %d.
+858|Vrátit zpět
+859|Začne, až se použije nové pořadí
+864|Pořadí lze měnit jen na mapě kampaně. Když je úspěch dokončen, další v seznamu začne sám.
+865|Tato změna je zdarma.
+866|Čeká
+867|%d dokončených úspěchů
+868|Zamčeno - vyžaduje: %s
+873|Seznam je prázdný.
+874|Úspěchy nahoře se plní. Když je jeden dokončen, další odemčený v seznamu začne sám. Změna pořadí může něco stát.
+875|Pořadí úspěchů nelze v této kampani měnit.

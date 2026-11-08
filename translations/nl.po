@@ -2370,20 +2370,11 @@ msgstr "De tafel wordt gereset!\nHaal alles van de tafel en stop de stukken teru
 msgid "%s completed the feat \"%s\"!"
 msgstr "%s heeft de prestatie \"%s\" voltooid!"
 
-msgid "Available feats"
-msgstr "Beschikbare prestaties"
-
 msgid "Buy %s for %d skill points?"
 msgstr "%s kopen voor %d vaardigheidspunten?"
 
 msgid "Buy a skill"
 msgstr "Een vaardigheid kopen"
-
-msgid "Change a feat"
-msgstr "Een prestatie wisselen"
-
-msgid "Change…"
-msgstr "Wisselen…"
 
 msgid "Completed feats: %d"
 msgstr "Voltooide prestaties: %d"
@@ -2391,20 +2382,8 @@ msgstr "Voltooide prestaties: %d"
 msgid "Cost %d"
 msgstr "Kosten %d"
 
-msgid "Drop"
-msgstr "Laten vallen"
-
-msgid "Drop \"%s\"? Its progress (%d) is lost."
-msgstr "\"%s\" laten vallen? De voortgang (%d) gaat verloren."
-
-msgid "Drop a feat"
-msgstr "Een prestatie laten vallen"
-
 msgid "Feat completed"
 msgstr "Prestatie voltooid"
-
-msgid "Feats active: %d of %d"
-msgstr "Actieve prestaties: %d van %d"
 
 msgid "Goal: %d"
 msgstr "Doel: %d"
@@ -2418,29 +2397,11 @@ msgstr "Vergrendeld totdat aan een voorwaarde is voldaan."
 msgid "Needs one of: %s"
 msgstr "Heeft er een nodig van: %s"
 
-msgid "No feat is active - start one below."
-msgstr "Geen prestatie actief - begin hieronder met een."
-
-msgid "No free feat slot - change or drop an active feat first."
-msgstr "Geen vrije prestatieplek - wissel of laat eerst een actieve prestatie vallen."
-
-msgid "No other feat is available right now."
-msgstr "Er is nu geen andere prestatie beschikbaar."
-
 msgid "Not enough skill points."
 msgstr "Niet genoeg vaardigheidspunten."
 
 msgid "Owned"
 msgstr "In bezit"
-
-msgid "Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost."
-msgstr "\"%s\" vervangen door \"%s\"? De voortgang (%d) van de oude prestatie gaat verloren."
-
-msgid "Replace with this"
-msgstr "Vervang door deze"
-
-msgid "Replace with which feat?"
-msgstr "Door welke prestatie vervangen?"
 
 msgid "Reward: %s"
 msgstr "Beloning: %s"
@@ -2460,38 +2421,80 @@ msgstr "Eentje terug"
 msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
 msgstr "De heldendata ontbreken - importeer eerst de spelbestanden (Opties > Spelmateriaal)."
 
-msgid "%s: choose a new feat"
-msgstr "%s: kies een nieuwe prestatie"
-
 msgid "Only available in a campaign."
 msgstr "Alleen beschikbaar in een campagne."
 
-msgid "A change costs %d gold - the party has only %d."
-msgstr "Een wisseling kost %d goud - de groep heeft maar %d."
-
-msgid "Changes left after this: %d"
-msgstr "Wisselingen over na deze: %d"
-
-msgid "Changing feats is not allowed during a mission."
-msgstr "Prestaties wisselen is niet toegestaan tijdens een missie."
-
-msgid "Changing feats is not allowed outside a mission."
-msgstr "Prestaties wisselen is niet toegestaan buiten een missie."
-
-msgid "No feat changes left for this hero in the campaign."
-msgstr "Deze held heeft geen prestatiewisselingen meer in de campagne."
-
-msgid "No feat changes left in this mission."
-msgstr "Er zijn geen prestatiewisselingen meer in deze missie."
-
-msgid "Start \"%s\"?"
-msgstr "\"%s\" beginnen?"
-
-msgid "Start a feat"
-msgstr "Een prestatie beginnen"
-
 msgid "This costs %d gold."
 msgstr "Dit kost %d goud."
+
+msgid "ACTIVE"
+msgstr "ACTIEF"
+
+msgid "Apply the new feat order?"
+msgstr "De nieuwe volgorde van prestaties toepassen?"
+
+msgid "Apply the new order"
+msgstr "Nieuwe volgorde toepassen"
+
+msgid "Change the feat order"
+msgstr "De volgorde van prestaties wijzigen"
+
+msgid "Feat list - the first %d are active"
+msgstr "Prestatielijst - de eerste %d zijn actief"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "De voortgang (%d) gaat verloren als deze volgorde wordt toegepast."
+
+msgid "Move down"
+msgstr "Omlaag"
+
+msgid "Move up"
+msgstr "Omhoog"
+
+msgid "Next feat: %s"
+msgstr "Volgende prestatie: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "Geen herschikkingen meer over voor deze held in de campagne."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Verloren voortgang op \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Herschikkingen over na deze: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "De prestaties herschikken kost %d goud - de groep heeft maar %d."
+
+msgid "Revert"
+msgstr "Terugzetten"
+
+msgid "Starts when the new order is applied"
+msgstr "Begint zodra de nieuwe volgorde wordt toegepast"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "De volgorde kan alleen op de campagnekaart worden gewijzigd. Als een prestatie voltooid is, begint de volgende in de lijst vanzelf."
+
+msgid "This change is free."
+msgstr "Deze wijziging is gratis."
+
+msgid "Waiting"
+msgstr "Wachtend"
+
+msgid "%d completed feats"
+msgstr "%d voltooide prestaties"
+
+msgid "Locked - needs: %s"
+msgstr "Vergrendeld - heeft nodig: %s"
+
+msgid "The list is empty."
+msgstr "De lijst is leeg."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "De prestaties bovenaan zijn in uitvoering. Als er een voltooid is, begint de volgende ontgrendelde in de lijst vanzelf. De volgorde wijzigen kan iets kosten."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "De volgorde van prestaties kan in deze campagne niet worden gewijzigd."
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

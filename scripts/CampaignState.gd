@@ -75,11 +75,8 @@ var brooch_enabled := true
 ## Each hero's growth: skill points, owned skills, active and completed feats (see HeroProgress and the "Heroes' skills and feats" methods at the end).
 ## An entry is made the first time a hero is looked at, so saves from before it existed just start fresh.
 @export var hero_progress: Array[HeroProgress] = []
-## How often each hero changed an active feat (hero id -> count): during the current mission, during missions in the whole campaign, and outside missions in the
-## whole campaign (see Campaign.feat_change_mode / map_feat_change_mode).
-@export var feat_changes_mission: Dictionary = {}
-@export var feat_changes_campaign: Dictionary = {}
-@export var feat_changes_map: Dictionary = {}
+## How often each hero rearranged their feat list (hero id -> count), for a per-hero limit (see Campaign.feat_change_mode).
+@export var feat_changes: Dictionary = {}
 
 
 ## {hero name -> voice id} for a narration language ({} = not chosen for it yet).
@@ -826,6 +823,7 @@ static func hero_ids() -> Array[String]:
 func hero_state(campaign: Campaign, hero_id: String) -> HeroProgress:
 	for entry in hero_progress:
 		if entry.hero_id == hero_id:
+			_normalize_feats(campaign, entry)
 			return entry
 	if not hero_ids().has(hero_id):
 		return null
@@ -833,7 +831,61 @@ func hero_state(campaign: Campaign, hero_id: String) -> HeroProgress:
 	created.hero_id = hero_id
 	created.skill_points = campaign.effective_skill_tree().starting_points
 	hero_progress.append(created)
+	_normalize_feats(campaign, created)
 	return created
+
+
+## Keeps a hero's feats in line with the rules: an active feat is always in the list (a save from before the list existed gets its active feats at the front);
+## the first time (and only then) the list is filled with ALL the hero's feats in the game's own order, so the hero has feats to work on from the start - the
+## player can rearrange it; and the free places among the first `parallel_feats` are filled from the list (the setting may have been raised).
+func _normalize_feats(campaign: Campaign, entry: HeroProgress) -> void:
+	var at := 0
+	for feat_id in entry.active_feats:
+		if not entry.feat_queue.has(str(feat_id)):
+			entry.feat_queue.insert(at, str(feat_id))
+			at += 1
+	if not entry.feat_list_ready and HeroData.available():
+		for feat in HeroData.feats_of(entry.hero_id):
+			var feat_id := str(feat["id"])
+			if not entry.feat_queue.has(feat_id) and not entry.completed_feats.has(feat_id):
+				entry.feat_queue.append(feat_id)
+		entry.feat_list_ready = true
+	_fill_active_feats(campaign, entry)
+
+
+## Starts the next feats of the list until the hero works on `parallel_feats` of them. A feat the game does not offer yet (it needs other feats completed first)
+## is skipped - it stays in the list and starts once it is unlocked and a place is free. Returns the ids started.
+func _fill_active_feats(campaign: Campaign, entry: HeroProgress) -> Array[String]:
+	var started: Array[String] = []
+	var limit := maxi(campaign.parallel_feats, 1)
+	for feat_id in entry.feat_queue:
+		if entry.active_feats.size() >= limit:
+			break
+		if not entry.active_feats.has(feat_id) and HeroData.feat_offered(feat_id, entry.completed_feats):
+			entry.active_feats[feat_id] = 0
+			started.append(feat_id)
+	return started
+
+
+## The feats `list` would have the hero work on: its first `parallel_feats` entries that the game offers now (the others are locked or waiting).
+func feat_window(campaign: Campaign, hero_id: String, list: Array[String]) -> Array[String]:
+	var window: Array[String] = []
+	var state := hero_state(campaign, hero_id)
+	if state == null:
+		return window
+	var limit := maxi(campaign.parallel_feats, 1)
+	for feat_id in list:
+		if window.size() >= limit:
+			break
+		if HeroData.feat_offered(feat_id, state.completed_feats):
+			window.append(feat_id)
+	return window
+
+
+## Whether the game offers this feat to the hero now (otherwise it is locked: other feats have to be completed first).
+func feat_unlocked(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
+	var state := hero_state(campaign, hero_id)
+	return state != null and HeroData.feat_offered(feat_id, state.completed_feats)
 
 
 func skill_points(campaign: Campaign, hero_id: String) -> int:
@@ -857,148 +909,144 @@ func completed_feats(campaign: Campaign, hero_id: String) -> Array[String]:
 	return state.completed_feats if state != null else []
 
 
-## How many more feats the hero may start working on (the campaign's `parallel_feats` minus the active ones).
-func free_feat_slots(campaign: Campaign, hero_id: String) -> int:
+## The hero's feat list, in order. The first `parallel_feats` entries are the active ones.
+func feat_queue(campaign: Campaign, hero_id: String) -> Array[String]:
 	var state := hero_state(campaign, hero_id)
-	return maxi(maxi(campaign.parallel_feats, 1) - state.active_feats.size(), 0) if state != null else 0
+	return state.feat_queue if state != null else []
 
 
-## The feats the hero is offered that are not active yet - the choices for "start a feat" (whether a slot is free is free_feat_slots()'s business).
+## How many feats of the list are not being worked on yet because they are further down (the active places are taken).
+func waiting_feats(campaign: Campaign, hero_id: String) -> int:
+	var state := hero_state(campaign, hero_id)
+	return maxi(state.feat_queue.size() - state.active_feats.size(), 0) if state != null else 0
+
+
+## The feats the hero is offered that are not in their list yet - the choices for "add to the list".
 func startable_feats(campaign: Campaign, hero_id: String) -> Array[Dictionary]:
-	var active := active_feats(campaign, hero_id)
+	var queued := feat_queue(campaign, hero_id)
 	var choices: Array[Dictionary] = []
 	for feat in HeroData.feats_offered(hero_id, completed_feats(campaign, hero_id)):
-		if not active.has(feat["id"]):
+		if not queued.has(feat["id"]):
 			choices.append(feat)
 	return choices
 
 
-## Whether the hero may start this feat: it is theirs, the game's unlock rule offers it (not completed, enough other feats completed, prerequisite feats
-## completed - HeroData.feat_offered), it is not active already, and a feat slot is free.
-func can_equip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
-	var state := hero_state(campaign, hero_id)
-	var feat := HeroData.feat(feat_id)
-	if state == null or feat.is_empty() or feat["hero"] != hero_id:
-		return false
-	if state.active_feats.has(feat_id) or free_feat_slots(campaign, hero_id) <= 0:
-		return false
-	return HeroData.feat_offered(feat_id, state.completed_feats)
-
-
-## Starts working on a feat (progress 0). False when can_equip_feat() says no.
-func equip_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
-	if not can_equip_feat(campaign, hero_id, feat_id):
-		return false
-	hero_state(campaign, hero_id).active_feats[feat_id] = 0
-	return true
-
-
-## Starts a feat in a free slot. DURING a mission (`in_mission`) it counts as a change - the campaign's setting for a mission applies (a cost, a limit, or not allowed) -
-## because otherwise a hero with an empty slot could pick whatever feat suits what they see in the mission. The pick offered right after a feat is completed is the
-## exception: it calls equip_feat() directly and is free. On the campaign map starting a feat is free.
-func start_feat(campaign: Campaign, hero_id: String, feat_id: String, in_mission: bool = false) -> bool:
-	if in_mission and feat_change_problem(campaign, hero_id, true) != "":
-		return false
-	if not equip_feat(campaign, hero_id, feat_id):
-		return false
-	if in_mission:
-		_pay_feat_change(campaign, hero_id, true)
-	return true
-
-
-## A mission starts: nobody has changed a feat in it yet.
-func reset_mission_feat_changes() -> void:
-	feat_changes_mission.clear()
-
-
-## "" when the hero may change an active feat now; else why not (the campaign's setting for a change during a mission - `in_mission` - or outside one).
-func feat_change_problem(campaign: Campaign, hero_id: String, in_mission: bool) -> String:
-	var amount := campaign.feat_change_amount_for(in_mission)
-	match campaign.feat_change_mode_for(in_mission):
-		Campaign.FeatChange.NOT_ALLOWED:
-			return tr("Changing feats is not allowed during a mission.") if in_mission else tr("Changing feats is not allowed outside a mission.")
-		Campaign.FeatChange.GOLD:
-			if gold < amount:
-				return tr("A change costs %d gold - the party has only %d.") % [amount, gold]
-		Campaign.FeatChange.PER_MISSION:
-			if int(feat_changes_mission.get(hero_id, 0)) >= amount:
-				return tr("No feat changes left in this mission.")
-		Campaign.FeatChange.PER_HERO:
-			if _changes_used(hero_id, in_mission) >= amount:
-				return tr("No feat changes left for this hero in the campaign.")
-	return ""
-
-
-## What a change costs, for the confirmation ("" when it is free).
-func feat_change_note(campaign: Campaign, hero_id: String, in_mission: bool) -> String:
-	var amount := campaign.feat_change_amount_for(in_mission)
-	match campaign.feat_change_mode_for(in_mission):
-		Campaign.FeatChange.GOLD:
-			return tr("This costs %d gold.") % amount
-		Campaign.FeatChange.PER_MISSION:
-			return tr("Changes left after this: %d") % maxi(amount - int(feat_changes_mission.get(hero_id, 0)) - 1, 0)
-		Campaign.FeatChange.PER_HERO:
-			return tr("Changes left after this: %d") % maxi(amount - _changes_used(hero_id, in_mission) - 1, 0)
-	return ""
-
-
-## The changes a hero has made in this context that count against a per-hero limit for the whole campaign.
-func _changes_used(hero_id: String, in_mission: bool) -> int:
-	return int((feat_changes_campaign if in_mission else feat_changes_map).get(hero_id, 0))
-
-
-## A change was made: take the gold and count it.
-func _pay_feat_change(campaign: Campaign, hero_id: String, in_mission: bool) -> void:
-	if campaign.feat_change_mode_for(in_mission) == Campaign.FeatChange.GOLD:
-		gold = maxi(gold - campaign.feat_change_amount_for(in_mission), 0)
-	if in_mission:
-		feat_changes_mission[hero_id] = int(feat_changes_mission.get(hero_id, 0)) + 1
-		feat_changes_campaign[hero_id] = int(feat_changes_campaign.get(hero_id, 0)) + 1
-	else:
-		feat_changes_map[hero_id] = int(feat_changes_map.get(hero_id, 0)) + 1
-
-
-## Stops working on a feat: ALL its progress is lost. False when it was not active, or when the campaign's setting for this context (`in_mission` or not, see
-## feat_change_problem()) does not allow it; a change is paid for / counted.
-func unequip_feat(campaign: Campaign, hero_id: String, feat_id: String, in_mission: bool = false) -> bool:
-	var state := hero_state(campaign, hero_id)
-	if state == null or not state.active_feats.has(feat_id) or feat_change_problem(campaign, hero_id, in_mission) != "":
-		return false
-	state.active_feats.erase(feat_id)
-	_pay_feat_change(campaign, hero_id, in_mission)
-	return true
-
-
-## Swaps an active feat for another one the hero may start: the old feat's progress is lost, the new one starts at 0. Nothing changes when the new
-## feat is not allowed (it is checked with the old feat's slot counted as free).
-func replace_feat(campaign: Campaign, hero_id: String, old_feat_id: String, new_feat_id: String, in_mission: bool = false) -> bool:
-	var state := hero_state(campaign, hero_id)
-	if state == null or not state.active_feats.has(old_feat_id) or old_feat_id == new_feat_id or feat_change_problem(campaign, hero_id, in_mission) != "":
-		return false
-	var progress = state.active_feats[old_feat_id]
-	state.active_feats.erase(old_feat_id)
-	if equip_feat(campaign, hero_id, new_feat_id):
-		_pay_feat_change(campaign, hero_id, in_mission)
+## Whether rearranging the list from `old_list` to `new_list` is a "change" the campaign may charge for: anything but adding feats at the END.
+static func feat_list_change_costs(old_list: Array[String], new_list: Array[String]) -> bool:
+	if new_list.size() < old_list.size():
 		return true
-	state.active_feats[old_feat_id] = progress  # not allowed: keep the old one as it was
+	for index in old_list.size():
+		if new_list[index] != old_list[index]:
+			return true
 	return false
 
 
+## The active feats that would lose their progress if the list became `new_list` (they would be pushed out of its first `parallel_feats` available places or removed):
+## feat id -> progress. Only a costly change (feat_list_change_costs) does that.
+func feats_lost_by(campaign: Campaign, hero_id: String, new_list: Array[String]) -> Dictionary:
+	var lost := {}
+	var state := hero_state(campaign, hero_id)
+	if state == null:
+		return lost
+	var window := feat_window(campaign, hero_id, new_list)
+	for feat_id in state.active_feats:
+		if not window.has(str(feat_id)):
+			lost[feat_id] = state.active_feats[feat_id]
+	return lost
+
+
+## Replaces the hero's feat list (campaign map only: `in_mission` refuses). Every feat must be the hero's, not completed, and either already in the list or offered
+## by the game's unlock rule. A rearrangement (not just feats added at the end) is charged once as the campaign says; the feats pushed out of the first places lose
+## their progress and the next ones in the list start. Returns {} when refused, else {paid, lost (feat id -> progress), started (feat ids)}.
+func set_feat_list(campaign: Campaign, hero_id: String, new_list: Array[String], in_mission: bool = false) -> Dictionary:
+	var state := hero_state(campaign, hero_id)
+	if state == null or in_mission:
+		return {}
+	var wanted: Array[String] = []
+	wanted.append_array(new_list)  # a copy: new_list may be the list itself
+	var seen := {}
+	for feat_id in wanted:
+		var feat := HeroData.feat(feat_id)
+		if seen.has(feat_id) or feat.is_empty() or feat["hero"] != hero_id or state.completed_feats.has(feat_id):
+			return {}
+		if not state.feat_queue.has(feat_id) and not HeroData.feat_offered(feat_id, state.completed_feats):
+			return {}
+		seen[feat_id] = true
+	var costly := feat_list_change_costs(state.feat_queue, wanted)
+	if costly and feat_change_problem(campaign, hero_id) != "":
+		return {}
+	var lost := {}
+	if costly:
+		lost = feats_lost_by(campaign, hero_id, wanted)
+		for feat_id in lost:
+			state.active_feats.erase(feat_id)
+		_pay_feat_change(campaign, hero_id)
+	state.feat_queue.clear()
+	state.feat_queue.append_array(wanted)
+	return {"paid": costly, "lost": lost, "started": _fill_active_feats(campaign, state)}
+
+
+## Adds a feat to the END of the hero's list (free). False when it is not allowed (not the hero's, not offered, already in the list).
+func queue_feat(campaign: Campaign, hero_id: String, feat_id: String) -> bool:
+	var state := hero_state(campaign, hero_id)
+	if state == null or state.feat_queue.has(feat_id):
+		return false
+	var wanted: Array[String] = []
+	wanted.append_array(state.feat_queue)
+	wanted.append(feat_id)
+	return not set_feat_list(campaign, hero_id, wanted).is_empty()
+
+
+## "" when the hero's feat list may be rearranged now; else why not (the campaign's setting).
+func feat_change_problem(campaign: Campaign, hero_id: String) -> String:
+	match campaign.feat_change_mode:
+		Campaign.FeatChange.NOT_ALLOWED:
+			return tr("The feat order cannot be changed in this campaign.")
+		Campaign.FeatChange.GOLD:
+			if gold < campaign.feat_change_amount:
+				return tr("Rearranging the feats costs %d gold - the party has only %d.") % [campaign.feat_change_amount, gold]
+		Campaign.FeatChange.PER_HERO:
+			if int(feat_changes.get(hero_id, 0)) >= campaign.feat_change_amount:
+				return tr("No rearrangements left for this hero in the campaign.")
+	return ""
+
+
+## What rearranging the list costs, for the confirmation ("" when it is free).
+func feat_change_note(campaign: Campaign, hero_id: String) -> String:
+	match campaign.feat_change_mode:
+		Campaign.FeatChange.GOLD:
+			return tr("This costs %d gold.") % campaign.feat_change_amount
+		Campaign.FeatChange.PER_HERO:
+			return tr("Rearrangements left after this: %d") % maxi(campaign.feat_change_amount - int(feat_changes.get(hero_id, 0)) - 1, 0)
+	return ""
+
+
+## A rearrangement was made: take the gold and count it.
+func _pay_feat_change(campaign: Campaign, hero_id: String) -> void:
+	if campaign.feat_change_mode == Campaign.FeatChange.GOLD:
+		gold = maxi(gold - campaign.feat_change_amount, 0)
+	feat_changes[hero_id] = int(feat_changes.get(hero_id, 0)) + 1
+
+
 ## Counts `amount` more events towards an active feat (a negative amount takes some back; progress never drops below 0). When the goal is reached the
-## feat is completed: it leaves the active list, the hero gets the campaign's `points_per_feat` skill points, and a recipe reward is learned by the party
-## (a skill reward of the original game is not given - the points replace it). Returns {completed, title, points, recipe} ({} when the feat is not active).
+## feat is completed: it leaves the list, the next feat of the list starts by itself, the hero gets the campaign's `points_per_feat` skill points, and a recipe reward is learned by the party
+## (a skill reward of the original game is not given - the points replace it). Returns {completed, title, points, recipe, started (titles of the feats that
+## started because of it)} ({} when the feat is not active).
 func add_feat_progress(campaign: Campaign, hero_id: String, feat_id: String, amount: int = 1) -> Dictionary:
 	var state := hero_state(campaign, hero_id)
 	var feat := HeroData.feat(feat_id)
 	if state == null or feat.is_empty() or not state.active_feats.has(feat_id):
 		return {}
 	var progress := maxi(int(state.active_feats[feat_id]) + amount, 0)
-	var result := {"completed": false, "title": str(feat["title"]), "points": 0, "recipe": ""}
+	var result := {"completed": false, "title": str(feat["title"]), "points": 0, "recipe": "", "started": []}
 	if progress < int(feat["goal"]):
 		state.active_feats[feat_id] = progress
 		return result
 	state.active_feats.erase(feat_id)
+	state.feat_queue.erase(feat_id)
 	state.completed_feats.append(feat_id)
+	for started_id in _fill_active_feats(campaign, state):
+		result["started"].append(str(HeroData.feat(started_id).get("title", started_id)))
 	var points := campaign.effective_skill_tree().points_per_feat
 	state.skill_points += points
 	result["completed"] = true

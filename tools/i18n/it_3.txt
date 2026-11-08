@@ -1,0 +1,47 @@
+795|un nuovo tavolo
+796|Tavolo
+797|il tavolo principale
+798|Il tavolo viene resettato!\nTogliete tutto dal tavolo e rimettete i pezzi nella scatola. Poi preparate '%s'.
+799|%s ha completato il traguardo \"%s\"!
+801|Comprare %s per %d punti abilità?
+802|Compra un'abilità
+805|Traguardi completati: %d
+806|Costo %d
+810|Traguardo completato
+812|Obiettivo: %d
+813|È successo ancora una volta (segnato a mano)
+814|Bloccata finché non si soddisfa una condizione.
+815|Richiede una tra: %s
+819|Punti abilità insufficienti.
+820|Posseduta
+824|Ricompensa: %s
+825|Punti abilità: %d
+826|Punti abilità: +%d
+828|Abilità
+829|Toglierne uno
+830|I dati degli eroi mancano - importate prima le risorse di gioco (Opzioni > Risorse di gioco).
+832|Disponibile solo in una campagna.
+841|Questo costa %d oro.
+842|ATTIVO
+845|Applicare il nuovo ordine dei traguardi?
+846|Applica il nuovo ordine
+847|Cambia l'ordine dei traguardi
+848|Elenco dei traguardi - i primi %d sono attivi
+850|Il suo progresso (%d) va perso quando questo ordine viene applicato.
+851|Sposta giù
+852|Sposta su
+853|Prossimo traguardo: %s
+854|Non restano riordinamenti per questo eroe nella campagna.
+855|Progresso perso su \"%s\": %d
+856|Riordinamenti rimasti dopo questo: %d
+857|Riordinare i traguardi costa %d oro - il gruppo ne ha solo %d.
+858|Ripristina
+859|Inizia quando viene applicato il nuovo ordine
+864|L'ordine si può cambiare solo sulla mappa della campagna. Quando un traguardo è completato, il successivo dell'elenco inizia da solo.
+865|Questa modifica è gratuita.
+866|In attesa
+867|%d traguardi completati
+868|Bloccato - richiede: %s
+873|L'elenco è vuoto.
+874|I traguardi in alto sono quelli in corso. Quando uno è completato, il successivo sbloccato dell'elenco inizia da solo. Cambiare l'ordine può avere un costo.
+875|L'ordine dei traguardi non può essere cambiato in questa campagna.

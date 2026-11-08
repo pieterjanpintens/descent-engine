@@ -2370,20 +2370,11 @@ msgstr "¡La mesa se reinicia!\nQuita todo de la mesa y guarda las piezas en la 
 msgid "%s completed the feat \"%s\"!"
 msgstr "¡%s ha completado la proeza \"%s\"!"
 
-msgid "Available feats"
-msgstr "Proezas disponibles"
-
 msgid "Buy %s for %d skill points?"
 msgstr "¿Comprar %s por %d puntos de habilidad?"
 
 msgid "Buy a skill"
 msgstr "Comprar una habilidad"
-
-msgid "Change a feat"
-msgstr "Cambiar una proeza"
-
-msgid "Change…"
-msgstr "Cambiar…"
 
 msgid "Completed feats: %d"
 msgstr "Proezas completadas: %d"
@@ -2391,20 +2382,8 @@ msgstr "Proezas completadas: %d"
 msgid "Cost %d"
 msgstr "Coste %d"
 
-msgid "Drop"
-msgstr "Abandonar"
-
-msgid "Drop \"%s\"? Its progress (%d) is lost."
-msgstr "¿Abandonar \"%s\"? Se pierde su progreso (%d)."
-
-msgid "Drop a feat"
-msgstr "Abandonar una proeza"
-
 msgid "Feat completed"
 msgstr "Proeza completada"
-
-msgid "Feats active: %d of %d"
-msgstr "Proezas activas: %d de %d"
 
 msgid "Goal: %d"
 msgstr "Objetivo: %d"
@@ -2418,29 +2397,11 @@ msgstr "Bloqueada hasta que se cumpla una condición."
 msgid "Needs one of: %s"
 msgstr "Necesita una de: %s"
 
-msgid "No feat is active - start one below."
-msgstr "Ninguna proeza está activa: empieza una abajo."
-
-msgid "No free feat slot - change or drop an active feat first."
-msgstr "No queda hueco libre para proezas: cambia o abandona primero una proeza activa."
-
-msgid "No other feat is available right now."
-msgstr "Ahora mismo no hay otra proeza disponible."
-
 msgid "Not enough skill points."
 msgstr "No hay suficientes puntos de habilidad."
 
 msgid "Owned"
 msgstr "Adquirida"
-
-msgid "Replace \"%s\" with \"%s\"? The old feat's progress (%d) is lost."
-msgstr "¿Sustituir \"%s\" por \"%s\"? Se pierde el progreso (%d) de la proeza anterior."
-
-msgid "Replace with this"
-msgstr "Sustituir por esta"
-
-msgid "Replace with which feat?"
-msgstr "¿Por qué proeza la sustituyes?"
 
 msgid "Reward: %s"
 msgstr "Recompensa: %s"
@@ -2460,38 +2421,80 @@ msgstr "Quitar uno"
 msgid "The hero data is missing - import the game's assets first (Options > Game assets)."
 msgstr "Faltan los datos de héroes: importa primero los recursos del juego (Opciones > Recursos del juego)."
 
-msgid "%s: choose a new feat"
-msgstr "%s: elige una nueva proeza"
-
 msgid "Only available in a campaign."
 msgstr "Solo disponible en una campaña."
 
-msgid "A change costs %d gold - the party has only %d."
-msgstr "Un cambio cuesta %d de oro: el grupo solo tiene %d."
-
-msgid "Changes left after this: %d"
-msgstr "Cambios restantes después de este: %d"
-
-msgid "Changing feats is not allowed during a mission."
-msgstr "No se permite cambiar proezas durante una misión."
-
-msgid "Changing feats is not allowed outside a mission."
-msgstr "No se permite cambiar proezas fuera de una misión."
-
-msgid "No feat changes left for this hero in the campaign."
-msgstr "A este héroe no le quedan cambios de proeza en la campaña."
-
-msgid "No feat changes left in this mission."
-msgstr "No quedan cambios de proeza en esta misión."
-
-msgid "Start \"%s\"?"
-msgstr "¿Empezar \"%s\"?"
-
-msgid "Start a feat"
-msgstr "Empezar una proeza"
-
 msgid "This costs %d gold."
 msgstr "Esto cuesta %d de oro."
+
+msgid "ACTIVE"
+msgstr "ACTIVA"
+
+msgid "Apply the new feat order?"
+msgstr "¿Aplicar el nuevo orden de proezas?"
+
+msgid "Apply the new order"
+msgstr "Aplicar el nuevo orden"
+
+msgid "Change the feat order"
+msgstr "Cambiar el orden de las proezas"
+
+msgid "Feat list - the first %d are active"
+msgstr "Lista de proezas: las primeras %d están activas"
+
+msgid "Its progress (%d) is lost when this order is applied."
+msgstr "Su progreso (%d) se pierde al aplicar este orden."
+
+msgid "Move down"
+msgstr "Bajar"
+
+msgid "Move up"
+msgstr "Subir"
+
+msgid "Next feat: %s"
+msgstr "Siguiente proeza: %s"
+
+msgid "No rearrangements left for this hero in the campaign."
+msgstr "No quedan reordenaciones para este héroe en la campaña."
+
+msgid "Progress lost on \"%s\": %d"
+msgstr "Progreso perdido en \"%s\": %d"
+
+msgid "Rearrangements left after this: %d"
+msgstr "Reordenaciones restantes tras esta: %d"
+
+msgid "Rearranging the feats costs %d gold - the party has only %d."
+msgstr "Reordenar las proezas cuesta %d de oro: el grupo solo tiene %d."
+
+msgid "Revert"
+msgstr "Deshacer"
+
+msgid "Starts when the new order is applied"
+msgstr "Empieza cuando se aplique el nuevo orden"
+
+msgid "The order can only be changed on the campaign map. When a feat is completed, the next one in the list starts by itself."
+msgstr "El orden solo se puede cambiar en el mapa de la campaña. Cuando se completa una proeza, la siguiente de la lista empieza sola."
+
+msgid "This change is free."
+msgstr "Este cambio es gratis."
+
+msgid "Waiting"
+msgstr "En espera"
+
+msgid "%d completed feats"
+msgstr "%d proezas completadas"
+
+msgid "Locked - needs: %s"
+msgstr "Bloqueada - necesita: %s"
+
+msgid "The list is empty."
+msgstr "La lista está vacía."
+
+msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
+msgstr "Las proezas de arriba están en marcha. Cuando se completa una, la siguiente desbloqueada de la lista empieza sola. Cambiar el orden puede costar algo."
+
+msgid "The feat order cannot be changed in this campaign."
+msgstr "El orden de las proezas no se puede cambiar en esta campaña."
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
