@@ -45,6 +45,7 @@ var choice_cancel_button: Button  ## ...its Cancel
 var _art_layer: Control  ## the hero/monster previews (every stage)
 var selected_conditions: Array[int] = []  ## MonsterCondition.Kind values toggled in the Conditions dialog - applied to the monster when the attack is confirmed (read by PlayerDialog.ask_attack())
 var _conditions_button: Button
+var debug_defeat_button: Button  ## only while debugging a mission (DebugSession.active()): defeats the monster at once, no roll - PlayerDialog closes the view and the attack flow removes the monster
 var _conditions_dialog: Control
 var _condition_checks: Dictionary = {}  # MonsterCondition.Kind -> CheckBox
 var _calc_conditions: Label
@@ -352,6 +353,13 @@ func _build() -> void:
 	_conditions_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_conditions_button.pressed.connect(_open_conditions_dialog)
 	centre.add_child(_conditions_button)
+
+	# Debug sessions only: defeat the monster without rolling, to test what follows a defeat (loot, defeat effects, objectives, feats...).
+	debug_defeat_button = _big_button("Defeat (debug)", Color(0.55, 0.12, 0.10), 16, Vector2(150, 32))
+	debug_defeat_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	debug_defeat_button.tooltip_text = "Debug: defeat this monster at once (no roll, no weapon effects)"
+	debug_defeat_button.visible = false
+	centre.add_child(debug_defeat_button)
 
 	# Confirm/Cancel sit at the very bottom, between the Damage Type and
 	# Weakness/Resistance/Immunity columns - not in the centre column, so they
@@ -993,6 +1001,7 @@ func _set_outcome_mode(on: bool) -> void:
 	cancel_button.visible = not on
 	confirm_button.text = "Close" if on else "Confirm"
 	_conditions_button.visible = not on
+	debug_defeat_button.visible = DebugSession.active() and not on
 	if on:
 		_conditions_dialog.visible = false
 	_hp_lost.visible = false

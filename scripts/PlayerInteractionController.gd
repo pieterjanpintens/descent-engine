@@ -585,11 +585,13 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	# The successes screen - skipped when they were already spoken in the command.
 	var successes: int = preset_successes
 	var conditions: Array[int] = []
+	var debug_kill := false  # the debug "Defeat" button of the successes screen
 	if successes < 0:
 		successes = await dialog.ask_attack(cfg)
 		if successes < 0:
 			return
 		conditions = dialog.attack_conditions.duplicate()
+		debug_kill = dialog.debug_defeat and DebugSession.active()
 	# What the table entered is what weapon part A did (successes, conditions). The weapon's parts B and C now roll
 	# their chance and apply what they can (PartEffectRunner), the damage is worked out, and what comes after the
 	# damage is applied.
@@ -607,7 +609,10 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	var feat_pre := feat_tracker.snapshot(monster, hero_slot) if feat_tracker != null else {}
 	if feat_tracker != null:
 		feat_tracker.begin_action(hero_slot, "attack")
-	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot, plan.modifiers())
+	var attack_modifiers := plan.modifiers()
+	if debug_kill:
+		attack_modifiers["debug_damage"] = 10000  # a normal attack (feats, loot, defeat effects, part effects...) that cannot fail to kill
+	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot, attack_modifiers)
 	await runner.finish(plan, r)
 	if feat_tracker != null:
 		feat_tracker.end_action()

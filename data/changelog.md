@@ -1,4 +1,10 @@
-﻿## v0.0.66 - 2026-11-08
+﻿## v0.0.67 - 2026-11-08
+- New condition operators "mod = 0" and "mod != 0": true when a whole-number variable is (not) a multiple of the value, e.g. every third round (round_number mod = 0 3).
+- New effect "Spawn Random Monsters" for mission authors: spawns a number of monsters (a number or a formula, e.g. player_count / 2) picked at random from a pool, skipping monsters that are no longer physically available in the box. When the pool runs dry, whatever is left spawns. Good for a steady stream of enemies that keeps players moving.
+- New built-in variable monsters_on_the_map (the number of monsters on the board), usable in conditions, math and spawn formulas.
+- Mission debugging: the combat screen has a "Defeat (debug)" button that defeats the monster through a normal attack (feats, loot and defeat effects still happen).
+
+## v0.0.66 - 2026-11-08
 - New hero growth in campaigns. Every hero has a list of feats in the game's own order; the first ones (the campaign decides how many run in parallel) are active from the start, and when one is completed the next one starts by itself. Feat progress is kept between missions. Completed feats pay skill points, which are spent on skills in a skill tree the campaign author designs (with defaults). Open it from the Party menu > Heroes (also during a mission, where the list is read-only).
 - Feats are now counted automatically during missions (attacks, defeats, wounds, interactions, loot, ...). Campaign authors choose which monster templates count as dragons and animus, and what rearranging a hero's feat list costs on the campaign map (free, not allowed, gold, or a limited number of times).
 - Chapters and side quests can reward skill points and skills. The Party menu's Campaign Log, Feats and Inventory now work inside a campaign mission.

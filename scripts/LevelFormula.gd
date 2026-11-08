@@ -5,7 +5,7 @@ extends RefCounted
 ## (the result is the level the monster spawns at, never below 1). MissionData.level_formula is the mission's default, MonsterTemplate.level_formula
 ## overrides it for one monster ("" = use the mission's; "0" = ignore difficulty). With no formula at all, DEFAULT is used.
 ##
-## Names the formula can use (`variables()`): difficulty (1-4), player_count, round_number, level (the monster's authored level) and the mission's
+## Names the formula can use (`variables()`): difficulty (1-4), player_count, round_number, monsters_on_the_map, level (the monster's authored level) and the mission's
 ## own INT variables. Functions: min max clamp abs sign floor ceil round floori ceili roundi signi pow sqrt. Operators: + - * / % and ( ), comparisons
 ## (a bool counts as 1 / 0 in arithmetic through int()), and / or / not.  `/` between two whole numbers is a whole-number division.
 ## Examples:  difficulty - 2   |   0   |   difficulty - 2 + (player_count - 3) / 2   |   clamp(difficulty - 2, 0, 2)
@@ -18,7 +18,7 @@ const MAX_LENGTH := 200
 const MAX_SHIFT := 20  ## the result is clamped to +-this, so a typo cannot spawn level 9999 monsters
 
 const FUNCTIONS: Array[String] = ["min", "max", "clamp", "abs", "sign", "floor", "ceil", "round", "floori", "ceili", "roundi", "signi", "pow", "sqrt", "int", "float"]
-const BUILTIN_NAMES: Array[String] = ["difficulty", "player_count", "round_number", "level"]
+const BUILTIN_NAMES: Array[String] = ["difficulty", "player_count", "round_number", "monsters_on_the_map", "level"]
 const KEYWORDS: Array[String] = ["and", "or", "not", "true", "false"]
 
 ## (name, formula, what it does) - the presets of the editor's picker.
@@ -110,6 +110,14 @@ static func evaluate(formula: String, values: Dictionary) -> Dictionary:
 	if is_nan(number) or is_inf(number):
 		return {"ok": false, "shift": 0, "error": TranslationServer.translate("The formula does not give a number.")}
 	return {"ok": true, "shift": clampi(floori(number), -MAX_SHIFT, MAX_SHIFT), "error": ""}
+
+
+## For a COUNT (the "random spawn" effect): `formula` ("" = 1) calculated with `values`, a whole number from 0 to MAX_SHIFT. Returns {ok, count, error}.
+static func evaluate_count(formula: String, values: Dictionary) -> Dictionary:
+	if formula.strip_edges() == "":
+		return {"ok": true, "count": 1, "error": ""}
+	var result := evaluate(formula, values)
+	return {"ok": result["ok"], "count": maxi(0, int(result["shift"])), "error": result["error"]}
 
 
 static func _is_identifier(text: String) -> bool:

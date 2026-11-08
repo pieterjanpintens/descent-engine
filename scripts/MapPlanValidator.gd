@@ -317,7 +317,7 @@ static func _check_spawn_targets(mission: MissionData, result: Dictionary) -> vo
 	for spawn in mission.monster_spawns:
 		areas[spawn.id] = true
 	for effect in mission.all_effects():
-		if effect.type == Effect.Type.SPAWN_MONSTERS:
+		if effect.type == Effect.Type.SPAWN_MONSTERS or effect.type == Effect.Type.SPAWN_RANDOM_MONSTERS:
 			if effect.target_object_id == "":
 				_add(result, "error", "no_spawn_area", -1, "A Spawn Monsters effect has no monster spawn area chosen, so it spawns nothing. Open the effect and pick an area.")
 			elif not areas.has(effect.target_object_id):

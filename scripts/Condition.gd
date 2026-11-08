@@ -19,6 +19,11 @@ enum Operator {
 	GREATER_EQUAL,
 	LESS,
 	LESS_EQUAL,
+	## Appended (saved values keep their meaning): the variable modulo the value is 0, i.e. the variable is a whole multiple of
+	## the value ("every 3rd round": round_number is a multiple of 3). Whole-number variables only; a value of 0 never holds.
+	MULTIPLE_OF,
+	## The opposite: the variable modulo the value is not 0 (round_number is not a multiple of 2 = every odd round).
+	NOT_MULTIPLE_OF,
 }
 
 @export var variable_name: String = ""
@@ -47,4 +52,16 @@ func holds_for(current: Variant, target: Variant) -> bool:
 			return current < target
 		Operator.LESS_EQUAL:
 			return current <= target
+		Operator.MULTIPLE_OF:
+			return _is_multiple(current, target) == 1
+		Operator.NOT_MULTIPLE_OF:
+			return _is_multiple(current, target) == 0
 	return false
+
+
+## 1 when `current` is a whole multiple of `target`, 0 when it is not, -1 when the question makes no sense
+## (not whole numbers, or a divisor of 0) - then neither "multiple of" nor "not multiple of" holds.
+static func _is_multiple(current: Variant, target: Variant) -> int:
+	if typeof(current) != TYPE_INT or typeof(target) != TYPE_INT or int(target) == 0:
+		return -1
+	return 1 if int(current) % int(target) == 0 else 0

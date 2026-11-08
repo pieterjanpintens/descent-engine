@@ -66,7 +66,20 @@ enum Type {
 	WAKE_MONSTERS,
 	ASK_QUESTION,
 	SWITCH_TABLE,
+	SPAWN_RANDOM_MONSTERS,
 }
+
+## SPAWN_RANDOM_MONSTERS (appended, 2026-11-08) spawns a RANDOM selection of monsters at the MonsterSpawn `target_object_id` - a steady stream of
+## enemies so the players cannot stand still and heal up ("move on or die"). How many is `random_spawn_count` (a formula, see below); WHICH comes
+## from the same list / group a Spawn Monsters effect uses (`spawn_monsters` or `spawn_group_id`, here a POOL, not an ordered list): every pick is
+## a random pool entry (an entry listed twice is twice as likely). Only monsters that are still physically available are picked (the box has a
+## limited number of each figure, and of the colour chips - ComponentInventory.MONSTER_COUNTS / COLOR_INDICATOR_COUNTS, minus the ones already on
+## the board); entries whose own spawn conditions fail are ignored too. When fewer are available than asked for, whatever is left spawns (maybe
+## nothing - then the effect quietly does nothing). Never more than the spawn area has tiles. Surprise (`spawn_unaware`...) works as for Spawn
+## Monsters. See MissionRuntime.pick_random_monsters().
+## How many monsters: a small formula (LevelFormula: difficulty, player_count, round_number, the mission's INT variables; + - * / % min max clamp ...),
+## e.g. "1", "player_count / 2", "1 + difficulty - 2". A blank formula means 1; the result is a whole number between 0 and 20 (LevelFormula.MAX_SHIFT).
+@export var random_spawn_count: String = "1"
 
 ## SWITCH_TABLE (appended, 2026-11-05) resets the physical table to another Table (see MissionTable): everything of the current Table goes back in the
 ## box, the monsters are removed, and the target Table is set up and the heroes placed on its start squares. Variables, objectives, loot and wounds

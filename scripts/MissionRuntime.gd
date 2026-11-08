@@ -29,6 +29,7 @@ const BUILTIN_TYPES := {
 	"player_count": MissionVariable.Type.INT,
 	"affliction_damage": MissionVariable.Type.INT,
 	"difficulty": MissionVariable.Type.INT,  ## 1-4 (Difficulty), read-only: the player chooses it
+	"monsters_on_the_map": MissionVariable.Type.INT,  ## how many monsters are on the board right now, read-only (kept in step with `monsters`)
 }
 
 ## Built-ins an Effect MAY write (the rest are runtime-owned). `affliction_damage`
@@ -80,6 +81,8 @@ func _init(p_mission: MissionData) -> void:
 	mission = p_mission
 	_variables["affliction_damage"] = DEFAULT_AFFLICTION_DAMAGE
 	_variables["difficulty"] = Difficulty.DEFAULT
+	_variables["monsters_on_the_map"] = 0
+	monsters_changed.connect(_sync_monster_count)  # every spawn, defeat, restore and clear goes through this signal
 	for variable in mission.custom_variables:
 		var coerced: Variant = _coerce(variable.default_value, variable.type)
 		if typeof(coerced) == TYPE_NIL:
@@ -133,12 +136,18 @@ func preset_variable(variable_name: String, value: Variant) -> void:
 	_variables[variable_name] = coerced
 
 
+## The built-in `monsters_on_the_map`: how many monsters are on the board. Always follows the registry, so a saved or restored value is never stale.
+func _sync_monster_count() -> void:
+	_variables["monsters_on_the_map"] = monsters.size()
+
+
 func get_variables_state() -> Dictionary:
 	return _variables.duplicate()
 
 
 func load_variables_state(state: Dictionary) -> void:
 	_variables = state.duplicate()
+	_sync_monster_count()
 
 
 ## Puts saved variable values onto a mission that may have been edited since (a debug snapshot, see MissionProgress): a
@@ -159,6 +168,7 @@ func restore_variables_checked(state: Dictionary) -> Array[String]:
 			report.append(tr("Variable '%s' changed type - it has its default again.") % variable_name)
 			continue
 		_variables[variable_name] = coerced
+	_sync_monster_count()
 	return report
 
 
@@ -441,6 +451,71 @@ func monster_level_shift(template: MonsterTemplate) -> int:
 	return int(result["shift"])
 
 
+## How many monsters a SPAWN_RANDOM_MONSTERS effect asks for now: its formula over difficulty, player_count, round_number and the mission's INT
+## variables (blank = 1). A broken formula gives 0 (and warns) so a typo can never stop a mission.
+func random_spawn_count(effect: Effect) -> int:
+	var values := {}
+	for variable_name in LevelFormula.variables(mission):
+		if variable_name != "level":  # there is no single monster whose level could be meant
+			values[variable_name] = int(_variables.get(variable_name, 0))
+	var result := LevelFormula.evaluate_count(effect.random_spawn_count, values)
+	if not result["ok"]:
+		push_warning("Random spawn count '%s': %s" % [effect.random_spawn_count, result["error"]])
+	return int(result["count"])
+
+
+## Whether one more figure of type `folder` could still be put on the board, with `extra_by_type` (folder -> count) and `extra_total` already
+## picked but not registered yet: the box holds a limited number of each monster (ComponentInventory.MONSTER_COUNTS) and the colour chips are
+## limited too (a type needs a colour of its own, every colour has a limited number of chips). Monsters on the board count.
+func can_field_another(folder: String, extra_by_type: Dictionary = {}, extra_total: int = 0) -> bool:
+	var of_type := int(extra_by_type.get(folder, 0))
+	for monster in monsters:
+		if monster.folder == folder:
+			of_type += 1
+	var physical := ComponentInventory.get_monster_count(folder)
+	if physical >= 0 and of_type >= physical:
+		return false
+	var colours := MonsterChip.Chip.values()
+	if of_type >= colours.size():  # one chip colour per monster of a type
+		return false
+	var chips_total := 0
+	for chip in colours:
+		var per_colour := ComponentInventory.get_color_indicator_count(MonsterChip.key(chip))
+		if per_colour < 0:
+			chips_total = -1
+			break
+		chips_total += per_colour
+	return chips_total < 0 or monsters.size() + extra_total < chips_total
+
+
+## The monsters a SPAWN_RANDOM_MONSTERS effect spawns now: `random_spawn_count()` picks, each a random entry of the effect's pool (its monster
+## list or group) among those that are still available - spawn conditions hold, a base template, a known figure, and (see can_field_another())
+## a figure left in the box and a chip colour left. Fewer when the pool runs dry, never more than the spawn area has tiles. Empty = nothing spawns.
+func pick_random_monsters(effect: Effect) -> Array[MonsterTemplate]:
+	var picked: Array[MonsterTemplate] = []
+	var spawn := mission.find_node_by_id(effect.target_object_id) as MonsterSpawn
+	if spawn == null:
+		push_warning("Random spawn references an unknown monster spawn '%s' - skipped" % effect.target_object_id)
+		return picked
+	var pool: Array[MonsterTemplate] = []
+	for entry in mission.monsters_for(effect):
+		if entry.base_archetype != null and not MonsterDisplay.find_monster(entry.folder).is_empty() and evaluate_conditions(entry.conditions):
+			pool.append(entry)
+	var wanted := mini(random_spawn_count(effect), spawn.cells.size())
+	var by_type := {}
+	while picked.size() < wanted and not pool.is_empty():
+		var choices: Array[MonsterTemplate] = []
+		for entry in pool:
+			if can_field_another(entry.folder, by_type, picked.size()):
+				choices.append(entry)
+		if choices.is_empty():
+			break  # nothing left in the box: spawn whatever was picked
+		var chosen: MonsterTemplate = choices[randi() % choices.size()]
+		picked.append(chosen)
+		by_type[chosen.folder] = int(by_type.get(chosen.folder, 0)) + 1
+	return picked
+
+
 ## Registers a newly spawned monster from `template` (its properties are
 ## inherited) with a random colour chip.
 ## Rules: a chip colour is never shared by two live monsters of the SAME
@@ -607,6 +682,10 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	if not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED):
 		exposed_bonus = floori(base_total * EXPOSED_DAMAGE_PERCENT / 100.0)
 	var bonus_damage := 0 if immune else int(modifiers.get("bonus_damage", 0))
+	var debug_damage := int(modifiers.get("debug_damage", 0))  # debug "Defeat" button: this much extra damage, immunity or not
+	if debug_damage > 0:
+		immune = false
+		bonus_damage += debug_damage
 	var damage := base_total + exposed_bonus + bonus_damage
 	var defense_value := monster.effective_defense()
 	if ability_on:
@@ -1106,6 +1185,13 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 				qualifying.append(spawned)
 		if not qualifying.is_empty():
 			_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": qualifying, "group_id": effect.spawn_group_id,
+				"unaware": effect.spawn_unaware, "wake_conditions": effect.spawn_wake_conditions,
+				"wake_on_attack": effect.spawn_wake_on_attack, "wake_on_status": effect.spawn_wake_on_status})
+		return
+	if effect.type == Effect.Type.SPAWN_RANDOM_MONSTERS:
+		var picked := pick_random_monsters(effect)
+		if not picked.is_empty():
+			_pending_monster_spawns.append({"spawn_id": effect.target_object_id, "monsters": picked, "group_id": effect.spawn_group_id,
 				"unaware": effect.spawn_unaware, "wake_conditions": effect.spawn_wake_conditions,
 				"wake_on_attack": effect.spawn_wake_on_attack, "wake_on_status": effect.spawn_wake_on_status})
 		return

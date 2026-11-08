@@ -83,6 +83,15 @@ func _move_in_array(array: Array, item, delta: int) -> bool:
 	return true
 
 
+## The names the "how many" formula of a random spawn can use (the level formula's names, without "level": no single monster is meant).
+func _random_count_names() -> Array[String]:
+	var names: Array[String] = []
+	for variable_name in LevelFormula.variables(mission):
+		if variable_name != "level":
+			names.append(variable_name)
+	return names
+
+
 func _label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
@@ -111,7 +120,7 @@ func _declared_type_of(variable_name: String) -> int:
 			if variable.name == variable_name:
 				return variable.type
 		return -1
-	if ["round_number", "player_count", "affliction_damage", "difficulty"].has(variable_name):
+	if ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map"].has(variable_name):
 		return MissionVariable.Type.INT
 	for variable in mission.custom_variables:
 		if variable.name == variable_name:
@@ -152,7 +161,7 @@ func _known_variable_names() -> Array[String]:
 		for variable in campaign_variables:
 			campaign_names.append(variable.name)
 		return campaign_names
-	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map"]
 	for variable in mission.custom_variables:
 		names.append(variable.name)
 	return names
@@ -189,7 +198,7 @@ func _known_int_variable_names() -> Array[String]:
 			if variable.type == MissionVariable.Type.INT:
 				campaign_names.append(variable.name)
 		return campaign_names
-	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map"]
 	for variable in mission.custom_variables:
 		if variable.type == MissionVariable.Type.INT:
 			names.append(variable.name)
@@ -281,6 +290,10 @@ func build_condition_row(conditions_list: Array[Condition], condition: Condition
 	operator_option.add_item(">=", Condition.Operator.GREATER_EQUAL)
 	operator_option.add_item("<", Condition.Operator.LESS)
 	operator_option.add_item("<=", Condition.Operator.LESS_EQUAL)
+	operator_option.add_item("mod = 0", Condition.Operator.MULTIPLE_OF)
+	operator_option.set_item_tooltip(operator_option.get_item_index(Condition.Operator.MULTIPLE_OF), "True when the variable is a whole multiple of the value (variable mod value = 0), e.g. round_number mod 3 = 0 is every third round.")
+	operator_option.add_item("mod != 0", Condition.Operator.NOT_MULTIPLE_OF)
+	operator_option.set_item_tooltip(operator_option.get_item_index(Condition.Operator.NOT_MULTIPLE_OF), "True when the variable is NOT a whole multiple of the value (variable mod value is not 0), e.g. round_number mod 2 != 0 is every odd round.")
 	operator_option.select(operator_option.get_item_index(condition.operator))
 	operator_option.item_selected.connect(func(_index):
 		var value: int = operator_option.get_selected_id()
@@ -339,7 +352,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	var type_option := OptionButton.new()
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
-			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Loot", Effect.Type.LOOT],
+			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Spawn Random Monsters", Effect.Type.SPAWN_RANDOM_MONSTERS], ["Loot", Effect.Type.LOOT],
 			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["Switch Table", Effect.Type.SWITCH_TABLE]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
@@ -549,6 +562,31 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	surprise_button.pressed.connect(func(): _open_surprise_editor(effect, refresh_surprise_button))
 	row.add_child(surprise_button)
 
+	## SPAWN_RANDOM_MONSTERS - how many: a formula (difficulty, player_count, round_number, the mission's INT variables...). The pool is the same
+	## list / group the Spawn Monsters rows above edit ("Monsters…").
+	var random_count_box := HBoxContainer.new()
+	random_count_box.add_child(_label("How many:"))
+	var random_count_edit := LineEdit.new()
+	random_count_edit.custom_minimum_size.x = 150
+	random_count_edit.placeholder_text = "1"
+	random_count_edit.text = effect.random_spawn_count
+	random_count_edit.tooltip_text = "How many monsters spawn: a number or a formula, e.g. player_count / 2 or 1 + difficulty - 2. You can use: %s. Blank = 1, never more than 20 or the spawn area's tiles." % ", ".join(_random_count_names())
+	var check_random_count := func():
+		var problem := LevelFormula.check(random_count_edit.text, _random_count_names())
+		random_count_edit.modulate = Color.WHITE if problem == "" else Color(1.0, 0.55, 0.45)
+		if problem != "":
+			random_count_edit.tooltip_text = problem
+	check_random_count.call()
+	var commit_random_count := func(new_text: String = ""):
+		if random_count_edit.text != effect.random_spawn_count:
+			var typed := random_count_edit.text
+			_commit_field("Edit random spawn count", func(): effect.random_spawn_count = typed)
+		check_random_count.call()
+	random_count_edit.text_submitted.connect(commit_random_count)
+	random_count_edit.focus_exited.connect(commit_random_count)
+	random_count_box.add_child(random_count_edit)
+	row.add_child(random_count_box)
+
 	## WAKE_MONSTERS - wakes unaware monsters (and so their groups): all of them, one monster group, or those spawned at one spawn area.
 	var wake_option := OptionButton.new()
 	var wake_targets: Array = [["", ""]]  # [kind, id] per entry; "" = every unaware monster
@@ -588,9 +626,11 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	var update_visibility := func():
 		var type: int = type_option.get_selected_id()
 		loot_button.visible = type == Effect.Type.LOOT
-		spawn_option.visible = type == Effect.Type.SPAWN_MONSTERS
-		spawn_monsters_button.visible = type == Effect.Type.SPAWN_MONSTERS
-		surprise_button.visible = type == Effect.Type.SPAWN_MONSTERS
+		var spawns_monsters := type == Effect.Type.SPAWN_MONSTERS or type == Effect.Type.SPAWN_RANDOM_MONSTERS
+		spawn_option.visible = spawns_monsters
+		spawn_monsters_button.visible = spawns_monsters
+		surprise_button.visible = spawns_monsters
+		random_count_box.visible = type == Effect.Type.SPAWN_RANDOM_MONSTERS
 		wake_option.visible = type == Effect.Type.WAKE_MONSTERS
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
@@ -1235,7 +1275,10 @@ func _open_spawn_monsters_editor(effect: Effect, after: Callable = Callable()) -
 		)
 		_spawn_monsters_editor_container.add_child(make_group_button)
 
-	_spawn_monsters_editor_container.add_child(_wrapped_label("Monsters in spawn-tile order (1st on tile 1, ...). Name, hitpoints, level: Properties…", 600))
+	if effect.type == Effect.Type.SPAWN_RANDOM_MONSTERS:
+		_spawn_monsters_editor_container.add_child(_wrapped_label("The pool: each spawn picks a random entry (list a monster twice to make it twice as likely). Monsters that are not left in the box are skipped, and when the pool runs dry whatever is left spawns. Name, hitpoints, level, spawn conditions: Properties…", 600))
+	else:
+		_spawn_monsters_editor_container.add_child(_wrapped_label("Monsters in spawn-tile order (1st on tile 1, ...). Name, hitpoints, level: Properties…", 600))
 	for i in list.size():
 		var index := i  # captured by value for this row's own closures below
 		var template: MonsterTemplate = list[index]

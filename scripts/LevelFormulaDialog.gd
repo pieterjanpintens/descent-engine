@@ -202,7 +202,7 @@ func _refresh_preview() -> void:
 
 ## The formula's result for a difficulty and a party size; round 1, the preview monster's level, every custom INT variable at its default.
 func _evaluate(formula: String, difficulty: int, players: int) -> Dictionary:
-	var values := {"difficulty": difficulty, "player_count": players, "round_number": 1, "level": _monster_level}
+	var values := {"difficulty": difficulty, "player_count": players, "round_number": 1, "monsters_on_the_map": 0, "level": _monster_level}
 	if _mission != null:
 		for variable in _mission.custom_variables:
 			if variable.type == MissionVariable.Type.INT and LevelFormula.variables(_mission).has(variable.name):

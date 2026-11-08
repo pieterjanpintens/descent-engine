@@ -288,6 +288,7 @@ func ask_monster_attack(cfg: Dictionary) -> int:
 func ask_attack(cfg: Dictionary) -> int:
 	_ensure_combat()
 	attack_conditions = []
+	debug_defeat = false
 	_count_input.min_value = 0
 	_count_input.max_value = 99
 	_count_input.value = 0
@@ -355,6 +356,10 @@ func _ensure_combat() -> void:
 	_count_input.value_changed.connect(func(v: float): _combat.show_value(int(v)))
 	_combat.confirm_button.pressed.connect(_on_button_pressed.bind(null))
 	_combat.cancel_button.pressed.connect(_on_button_pressed.bind(-1))
+	_combat.debug_defeat_button.pressed.connect(func():
+		debug_defeat = true  # like Confirm, but the attack flow adds a huge amount of damage (see PlayerInteractionController._attack())
+		_on_button_pressed(null)
+	)
 	_combat.choice_buttons[0].pressed.connect(_on_button_pressed.bind(0))
 	_combat.choice_buttons[1].pressed.connect(_on_button_pressed.bind(1))
 	_combat.choice_cancel_button.pressed.connect(_on_button_pressed.bind(-1))
@@ -394,6 +399,7 @@ func _leave_combat_view() -> void:
 
 
 var attack_conditions: Array[int] = []  ## MonsterCondition.Kind values chosen during the last ask_attack()
+var debug_defeat: bool = false  ## the last ask_attack() was confirmed with the debug "Defeat" button: a normal attack, with 10000 extra damage
 var _combat_open: bool = false
 var _combat_saved_hint: Label
 
