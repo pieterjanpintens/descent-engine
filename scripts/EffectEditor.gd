@@ -1513,6 +1513,15 @@ func _loot_summary(effect: Effect) -> String:
 	return ", ".join(parts)
 
 
+## Public entry points for other dialogs (MacroDialog edits a Loot effect with the same editor and summary text).
+func loot_summary(effect: Effect) -> String:
+	return _loot_summary(effect)
+
+
+func open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
+	_open_loot_editor(effect, on_refresh)
+
+
 func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 	if _loot_editor == null:
 		_loot_editor = Window.new()
