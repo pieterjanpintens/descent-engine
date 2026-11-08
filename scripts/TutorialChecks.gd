@@ -104,6 +104,15 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 			return restless_trigger_ok(mission)
 		"reinforcements":
 			return reinforcements_ok(mission)
+		# ---- tutorial 3: macros ----
+		"fork_ready":
+			return lair_spawn(mission) != null and door_spawn(mission) != null
+		"lair_chest":
+			return lair_chest(mission) != null
+		"chest_macro":
+			return has_macro(lair_chest(mission), "treasure_chest")
+		"reinforce_macro":
+			return cave_spawn_with_macro(mission) != null
 		"no_errors":
 			return MapPlanValidator.validate_mission(mission)["errors"].is_empty()
 	push_warning("TutorialChecks: unknown check '%s'" % spec.get("check", ""))
@@ -415,6 +424,35 @@ static func reinforcements_trigger(mission: MissionData) -> MissionTrigger:
 		for effect in trigger.effects:
 			if effect.type == Effect.Type.SPAWN_RANDOM_MONSTERS and effect.target_object_id == spawn.id and not mission.monsters_for(effect).is_empty():
 				return trigger
+	return null
+
+
+## A chest prop inside the hidden Lair stage (tutorial 3).
+static func lair_chest(mission: MissionData) -> InteractableEntry:
+	var stage := hidden_stage(mission)
+	if stage == null:
+		return null
+	for entry in mission.interactables:
+		if entry.mesh_item_name == "chest" and entry.parent_id == stage.id:
+			return entry
+	return null
+
+
+static func has_macro(node: OutlineNode, macro_id: String) -> bool:
+	if node == null:
+		return false
+	for applied in node.macros:
+		if applied.macro_id == macro_id:
+			return true
+	return false
+
+
+## A monster spawn area other than the Lair's that has the Reinforcements macro.
+static func cave_spawn_with_macro(mission: MissionData) -> MonsterSpawn:
+	var lair := lair_spawn(mission)
+	for spawn in mission.monster_spawns:
+		if (lair == null or spawn.id != lair.id) and has_macro(spawn, "reinforcements"):
+			return spawn
 	return null
 
 

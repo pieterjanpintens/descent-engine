@@ -183,6 +183,18 @@ func _param_row(param: MacroParam) -> Control:
 				_refresh_status()
 			))
 			box.add_child(button)
+		MacroParam.Kind.MONSTERS:
+			var pool: Effect = _values.get(param.id)
+			var pool_button := Button.new()
+			var refresh_pool := func():
+				var summary := _editor.monsters_summary(pool)
+				pool_button.text = "Monsters…" if summary == "" else "Monsters: " + summary
+			refresh_pool.call()
+			pool_button.pressed.connect(func(): _editor.open_monsters_editor(pool, func():
+				refresh_pool.call()
+				_refresh_status()
+			))
+			box.add_child(pool_button)
 	if param.hint != "":
 		var hint := Label.new()
 		hint.text = param.hint

@@ -11,8 +11,10 @@ extends RefCounted
 ##   CHOICE one of `choices` - each entry is [label, value] (the value is what the macro receives, typically an int enum)
 ##   LOOT   an Effect of type LOOT (gold, materials, cards, recipes, title, text), edited with the normal Loot editor; the macro
 ##          should .duplicate(true) it into the data it generates
+##   MONSTERS a pool of monsters: an Effect of type SPAWN_RANDOM_MONSTERS whose `spawn_monsters` (or `spawn_group_id`) is the list, edited with the
+##          Spawn Monsters editor; the macro duplicates it into the effect it generates and sets the target and count itself
 
-enum Kind { INT, BOOL, TEXT, CHOICE, LOOT }
+enum Kind { INT, BOOL, TEXT, CHOICE, LOOT, MONSTERS }
 
 var id: String = ""
 var label: String = ""
@@ -77,10 +79,23 @@ static func loot_param(p_id: String, p_label: String, p_hint: String = "") -> Ma
 	return param
 
 
-## A fresh default value (a LOOT param starts as an empty Loot effect).
+static func monsters_param(p_id: String, p_label: String, p_hint: String = "") -> MacroParam:
+	var param := MacroParam.new()
+	param.id = p_id
+	param.label = p_label
+	param.kind = Kind.MONSTERS
+	param.hint = p_hint
+	return param
+
+
+## A fresh default value (a LOOT param starts as an empty Loot effect, a MONSTERS param as an empty random-spawn effect).
 func make_default() -> Variant:
 	if kind == Kind.LOOT:
 		var loot := Effect.new()
 		loot.type = Effect.Type.LOOT
 		return loot
+	if kind == Kind.MONSTERS:
+		var pool := Effect.new()
+		pool.type = Effect.Type.SPAWN_RANDOM_MONSTERS
+		return pool
 	return default_value

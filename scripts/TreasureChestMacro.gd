@@ -48,7 +48,15 @@ func description() -> String:
 
 
 func fits(target: OutlineNode) -> bool:
-	return target is InteractableEntry and (target as InteractableEntry).mesh_item_name == "chest"
+	return target is InteractableEntry and fits_mesh((target as InteractableEntry).mesh_item_name)
+
+
+func fits_mesh(mesh: String) -> bool:
+	return mesh == "chest"
+
+
+func plan_hint() -> String:
+	return 'chest: "macro": {"id": "treasure_chest", "attribute": "strength|agility|intelligence|will", "needed": 3, "gold": 30} - the heroes must pass a test to open it (the successes of every attempt add up to "needed") and then find the gold; the chest disappears.'
 
 
 func params() -> Array[MacroParam]:

@@ -1,4 +1,9 @@
-﻿## v0.0.67 - 2026-11-08
+﻿## v0.0.68 - unreleased
+- New in the mission editor: macros. A macro is a recipe with a few questions that builds the data for a common thing for you. Select a prop or spawn area and press "Apply macro" in its properties (or use the right-click menu): Treasure chest (a test to open it, accumulated successes, loot, the chest removes itself), Locked door (a key variable, optionally forced with a test) and Reinforcements (a stream of random monsters while the board is nearly empty). What a macro makes is ordinary data you can still edit, and you can reopen the macro to regenerate it or remove it. Props with macros show a gear mark in the outline.
+- New tutorial "Macros: shortcuts for common things" (Help menu).
+- The AI stage generator can now ask for a treasure chest or a locked door on the props it plans.
+
+## v0.0.67 - 2026-11-08
 - New condition operators "mod = 0" and "mod != 0": true when a whole-number variable is (not) a multiple of the value, e.g. every third round (round_number mod = 0 3).
 - New effect "Spawn Random Monsters" for mission authors: spawns a number of monsters (a number or a formula, e.g. player_count / 2) picked at random from a pool, skipping monsters that are no longer physically available in the box. When the pool runs dry, whatever is left spawns. Good for a steady stream of enemies that keeps players moving.
 - New built-in variable monsters_on_the_map (the number of monsters on the board), usable in conditions, math and spawn formulas.

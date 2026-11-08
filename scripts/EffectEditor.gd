@@ -1522,6 +1522,18 @@ func open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 	_open_loot_editor(effect, on_refresh)
 
 
+func open_monsters_editor(effect: Effect, on_refresh: Callable) -> void:
+	_open_spawn_monsters_editor(effect, on_refresh)
+
+
+## "3 monsters" / "Group: Lair guards" / "" - what a spawn effect's list holds, for a button caption.
+func monsters_summary(effect: Effect) -> String:
+	var shared := mission.find_monster_group(effect.spawn_group_id)
+	if shared != null:
+		return "Group: %s" % shared.display_name()
+	return "" if effect.spawn_monsters.is_empty() else "%d monster(s)" % effect.spawn_monsters.size()
+
+
 func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 	if _loot_editor == null:
 		_loot_editor = Window.new()

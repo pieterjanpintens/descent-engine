@@ -1,0 +1,117 @@
+{
+	"id": "macros",
+	"title": "Macros: shortcuts for common things",
+	"steps": [
+		{
+			"id": "welcome",
+			"chapter": "Shortcuts",
+			"title": "Part three: macros",
+			"text": "Building everything by hand gives you full control, but common patterns should not take twenty clicks. A [b]macro[/b] is a recipe with a few questions: you fill in the answers and it creates the variables, actions and triggers for you. What it makes is ordinary data you can still edit by hand.\n\nThis tutorial carries on from the finished fork. If your mission is still open from tutorial 2 you are ready; otherwise load the example.",
+			"highlight": [
+				"menu_bar"
+			],
+			"done": {
+				"check": "fork_ready"
+			},
+			"assist": "load_start",
+			"assist_label": "Load the example"
+		},
+		{
+			"id": "idea",
+			"chapter": "Shortcuts",
+			"title": "How macros work",
+			"text": "A prop or spawn area that fits a macro gets an [b]Apply macro[/b] button in its properties (the panel below the Outline tree), and the same entry in the right-click menu in the 3D view. Applying one is a single undo step.\n\nObjects with macros show a [b]⚙[/b] in the outline. Later you can reopen the macro to change its answers (it regenerates what it made) or remove it, which deletes exactly what it created.",
+			"highlight": []
+		},
+		{
+			"id": "chest",
+			"chapter": "A treasure chest",
+			"title": "A chest in the Lair",
+			"tab": "Palette",
+			"text": "Place a [b]chest[/b] (Prop tab) on the Lair's floor, in the Lair stage, and name it [i]lair_chest[/i]. Keep it off the guards' spawn squares. If the Lair stage is hidden, set it as the working group in the toolbar first so the chest lands in it.",
+			"highlight": [
+				"palette_prop",
+				"palette_grid",
+				"toolbar_working_group",
+				"name_field"
+			],
+			"done": {
+				"check": "lair_chest"
+			},
+			"assist": "place_lair_chest",
+			"assist_label": "Place the chest"
+		},
+		{
+			"id": "chest_macro",
+			"chapter": "A treasure chest",
+			"title": "Apply the Treasure chest macro",
+			"tab": "Outline",
+			"text": "Select the chest in the Outline. In its properties, press [b]Apply macro: Treasure chest…[/b]. Choose the test the heroes make (say Strength), the total successes needed, and press [b]Loot…[/b] to choose what is inside (add some gold). Press [b]Apply[/b].",
+			"highlight": [
+				"outline_tree",
+				"button:Apply macro: Treasure chest…"
+			],
+			"done": {
+				"check": "chest_macro"
+			},
+			"assist": "apply_chest_macro",
+			"assist_label": "Apply it for me"
+		},
+		{
+			"id": "look",
+			"chapter": "A treasure chest",
+			"title": "See what it made",
+			"tab": "Outline",
+			"text": "With the chest selected, press [b]Actions…[/b]: there is one action, [i]Open the chest[/i], with a test that adds up the successes of every attempt in a new variable (see [b]Variables…[/b] under the mission name: [i]lair_chest_progress[/i]). When the total reaches the goal it gives the loot and removes the chest; until then it says the lock holds. The players are never told the number.\n\nThis is exactly what you would have built by hand, and you can change any of it.",
+			"highlight": [
+				"button:Actions…"
+			]
+		},
+		{
+			"id": "reinforce",
+			"chapter": "Reinforcements",
+			"title": "A stream of enemies for the cave",
+			"tab": "Outline",
+			"text": "Select the cave's own [b]monster spawn area[/b] in the Outline (the one that is not in the Lair). Press [b]Apply macro: Reinforcements…[/b], choose [b]Monsters…[/b] and pick the group [i]Lair guards[/i] as the pool, and set every [b]3[/b] rounds with a limit of [b]3[/b] monsters. Press [b]Apply[/b].\n\nIt makes one repeating trigger (before the monster phase) with the modulo and monster-limit conditions you wrote by hand in tutorial 2.",
+			"highlight": [
+				"outline_tree",
+				"button:Apply macro: Reinforcements…",
+				"button:Monsters…"
+			],
+			"done": {
+				"check": "reinforce_macro"
+			},
+			"assist": "apply_reinforce_macro",
+			"assist_label": "Apply it for me"
+		},
+		{
+			"id": "change",
+			"chapter": "Changing your mind",
+			"title": "Edit, regenerate, remove",
+			"tab": "Outline",
+			"text": "Select the chest again and press [b]Edit…[/b] next to its macro. Change an answer and press [b]Regenerate[/b]: the actions and variable it made are replaced with fresh ones (the variable keeps its name, so references stay valid). If you edited the generated data by hand the dialog warns you first, and the line in the properties says [i](edited by hand)[/i]. [b]Remove macro[/b] deletes what it generated.\n\nThe checker also warns when a macro sits on something it no longer fits.",
+			"highlight": [
+				"button:Edit…"
+			]
+		},
+		{
+			"id": "problems",
+			"chapter": "Check",
+			"title": "Ask the checker",
+			"text": "Click the [b]Problems[/b] button. Macros should not add errors: the chest stands on floor and the trigger points at an existing spawn area.",
+			"highlight": [
+				"toolbar_problems"
+			],
+			"done": {
+				"check": "no_errors"
+			}
+		},
+		{
+			"id": "finished",
+			"chapter": "Done",
+			"title": "Macros",
+			"text": "Two macros so far: [b]Treasure chest[/b] and [b]Reinforcements[/b], plus [b]Locked door[/b] on a gate (a key variable, optionally forced with a test). They are built the same way you built tutorial 1 and 2, so when you need something a macro does not offer, you already know how to make it by hand.\n\n[b]Peek[/b] shows the finished mission.",
+			"highlight": []
+		}
+	]
+}

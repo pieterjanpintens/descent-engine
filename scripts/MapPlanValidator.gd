@@ -317,10 +317,11 @@ static func _check_macros(mission: MissionData, result: Dictionary) -> void:
 	var nodes: Array[OutlineNode] = []
 	nodes.append_array(mission.interactables)
 	nodes.append_array(mission.groups)
+	nodes.append_array(mission.monster_spawns)
 	for node in nodes:
 		for applied in node.macros:
 			var macro := MacroCatalog.find(applied.macro_id)
-			var name := node.reference_name if node.reference_name != "" else (node as InteractableEntry).mesh_item_name if node is InteractableEntry else "a stage"
+			var name := node.reference_name if node.reference_name != "" else (node as InteractableEntry).mesh_item_name if node is InteractableEntry else "a spawn area" if node is MonsterSpawn else "a stage"
 			if macro == null:
 				_add(result, "warning", "unknown_macro", -1, "'%s' has a macro ('%s') that this editor does not know. What it generated still works as normal data." % [name, applied.macro_id])
 			elif not macro.fits(node):
@@ -531,8 +532,23 @@ static func _read_piece(entry: Variant, index: int, result: Dictionary) -> Dicti
 	if layer == "prop":
 		for offset in FootprintRegistry.rotate_footprint(BuildRules.sight_offsets(mesh), basis):
 			sight_cells.append(origin + Vector3i(offset.x, 0, offset.z))
+	# An optional macro the planner asks for on this piece ("macro": {"id": ..., params...}): kept only when it is a known macro that fits the mesh and
+	# its inputs are usable - otherwise dropped with a warning (what the piece does is then up to the author).
+	var macro_request: Dictionary = {}
+	var raw_macro: Variant = entry.get("macro", null)
+	if typeof(raw_macro) == TYPE_DICTIONARY:
+		var wanted := MacroCatalog.for_plan(str(raw_macro.get("id", "")), mesh)
+		if wanted == null:
+			_add(result, "warning", "bad_macro", index, "Piece %d (\"%s\"): the macro \"%s\" is unknown or does not fit this piece and was ignored." % [index, mesh, str(raw_macro.get("id", ""))])
+		else:
+			var macro_values := wanted.values_from_plan(raw_macro)
+			var macro_problem := wanted.problem(macro_values)
+			if macro_problem != "":
+				_add(result, "warning", "bad_macro", index, "Piece %d (\"%s\"): the macro \"%s\" was ignored: %s" % [index, mesh, wanted.id(), macro_problem])
+			else:
+				macro_request = {"id": wanted.id(), "values": macro_values}
 	var piece := {
-		"index": index, "mesh": mesh, "layer": layer,
+		"index": index, "mesh": mesh, "layer": layer, "macro": macro_request,
 		"x": fx, "z": fz, "height": height, "quarter_turns": turns, "name": piece_name,
 		"fine_origin": origin, "cells": cells, "support_cells": support_cells, "solid_cells": solid_cells, "sight_cells": sight_cells,
 	}

@@ -265,6 +265,9 @@ func _rebuild_tree() -> void:
 		var spawn_parent: TreeItem = _id_to_item.get(spawn.parent_id, root_item)
 		var spawn_item := create_item(spawn_parent)
 		spawn_item.set_text(0, spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d (%d tiles)" % [spawn_index + 1, spawn.cells.size()])
+		if not spawn.macros.is_empty():
+			spawn_item.set_text(0, spawn_item.get_text(0) + " ⚙")
+			spawn_item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(spawn.macros)))
 		spawn_item.set_metadata(0, {"type": SelectionType.MONSTER_SPAWN, "id": spawn.id})
 		_dim_if_hidden(spawn_item, spawn)
 		_id_to_item[spawn.id] = spawn_item

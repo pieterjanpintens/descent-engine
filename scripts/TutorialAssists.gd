@@ -94,6 +94,12 @@ static func run(name: String, r: TutorialRunner) -> String:
 			return _add_restless_trigger(r)
 		"add_reinforcements":
 			return _add_reinforcements(r)
+		"place_lair_chest":
+			return _place_lair_chest(r)
+		"apply_chest_macro":
+			return _apply_chest_macro(r)
+		"apply_reinforce_macro":
+			return _apply_reinforce_macro(r)
 	push_warning("TutorialAssists: unknown assist '%s'" % name)
 	return ""
 
@@ -920,3 +926,85 @@ static func _add_reinforcements(r: TutorialRunner) -> String:
 	r.history.record("Add trigger", func(): mission.triggers.append(trigger))
 	r.layered_map.notify_objects_changed()
 	return "Added a trigger: every third round, while fewer than three monsters are on the board, one random guard spawns in the Lair."
+
+
+# ---- tutorial 3: macros ----
+
+## Puts a chest on a free square of the Lair's floor (not on a guard's spawn square), in the Lair stage, named lair_chest.
+static func _place_lair_chest(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var stage := TutorialChecks.hidden_stage(mission)
+	var spawn := TutorialChecks.lair_spawn(mission)
+	if stage == null or spawn == null:
+		return "This needs the example from tutorial 2 (the Lair stage). Place a chest in the Lair yourself."
+	var existing := TutorialChecks.lair_chest(mission)
+	if existing == null:
+		var taken := {}
+		for cell in spawn.cells:
+			taken[Vector2i(cell.x, cell.z)] = true
+		for fine: Vector3i in mission.occupied_cells:  # squares with a prop on them
+			var occupied := FootprintRegistry.fine_cell_to_tile_square(fine)
+			taken[Vector2i(occupied.x, occupied.z)] = true
+		var free: Array[Vector2i] = []
+		for placement in TutorialChecks.stage_floors(mission, stage):
+			for cell: Vector3i in mission.floor_occupied_cells:
+				if mission.floor_occupied_cells[cell] != placement.origin_cell:
+					continue
+				var square := FootprintRegistry.fine_cell_to_tile_square(cell)
+				var spot := Vector2i(square.x, square.z)
+				if not taken.has(spot) and not free.has(spot):
+					free.append(spot)
+		if free.is_empty():
+			return "There is no free square in the Lair. Place a chest in it yourself."
+		free.sort_custom(func(a: Vector2i, b: Vector2i): return a.x > b.x or (a.x == b.x and a.y < b.y))
+		r.controller.set_working_group(stage.id)
+		if not r.controller.place_mesh_at_tile_square("chest", Vector3i(free[0].x, 0, free[0].y)):
+			return "The chest could not be placed."
+		existing = TutorialChecks.lair_chest(mission)
+	if existing != null and existing.reference_name == "":
+		r.history.record("Name chest", func(): existing.reference_name = "lair_chest")
+		r.layered_map.notify_objects_changed()
+	return "Placed a chest in the Lair and named it lair_chest."
+
+
+static func _apply_chest_macro(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var chest := TutorialChecks.lair_chest(mission)
+	if chest == null:
+		return "Place the chest in the Lair first."
+	if TutorialChecks.has_macro(chest, "treasure_chest"):
+		return "The chest already has the macro."
+	var macro := MacroCatalog.find("treasure_chest")
+	var values := macro.default_values()
+	values["attribute"] = PlayerAttribute.Attribute.STRENGTH
+	values["needed"] = 4
+	(values["loot"] as Effect).loot_materials = {LootMaterials.GOLD: 40}
+	r.history.record("Apply macro", func(): MacroEngine.apply(mission, chest, macro, values))
+	r.layered_map.notify_objects_changed()
+	return "Applied the Treasure chest macro: a Strength test, 4 successes in total, 40 gold inside."
+
+
+## The cave's own monster spawn area (not the Lair's) gets a Reinforcements macro that draws from the Lair guards group.
+static func _apply_reinforce_macro(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var lair := TutorialChecks.lair_spawn(mission)
+	var door_effect := TutorialChecks.door_spawn(mission)
+	if lair == null or door_effect == null or door_effect.spawn_group_id == "":
+		return "This needs the example from tutorial 2 (the Lair guards group)."
+	var target: MonsterSpawn = null
+	for spawn in mission.monster_spawns:
+		if spawn.id != lair.id:
+			target = spawn
+	if target == null:
+		return "There is no other monster spawn area. Draw one in the cave first."
+	if TutorialChecks.has_macro(target, "reinforcements"):
+		return "That spawn area already has the macro."
+	var macro := MacroCatalog.find("reinforcements")
+	var values := macro.default_values()
+	(values["pool"] as Effect).spawn_group_id = door_effect.spawn_group_id
+	values["every"] = 3
+	values["limit"] = 3
+	r.history.record("Apply macro", func(): MacroEngine.apply(mission, target, macro, values))
+	r.layered_map.notify_objects_changed()
+	return "Applied Reinforcements to the cave's spawn area: every third round, while fewer than three monsters are on the map, one guard appears."
+
