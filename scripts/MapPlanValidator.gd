@@ -190,6 +190,7 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	_run_checks_per_table(mission, pieces, creatures, result)
 	_check_objectives(mission, result)
 	_check_spawn_targets(mission, result)
+	_check_macros(mission, result)
 	_check_table_targets(mission, result)
 	_check_start_visibility(mission, result)
 	_check_start_table(mission, result)
@@ -308,6 +309,23 @@ static func _check_table_targets(mission: MissionData, result: Dictionary) -> vo
 			_add(result, "error", "no_table", -1, "A Switch Table effect has no table chosen. Open the effect and pick the table to switch to.")
 		elif effect.target_group_id != Effect.MAIN_TABLE and mission.find_table(effect.target_group_id) == null:
 			_add(result, "error", "missing_table", -1, "A Switch Table effect points at a table that no longer exists (deleted?). Open the effect and pick another table.")
+
+
+## A macro record whose macro this editor does not know (a mission from a newer version), or one applied to something it does not fit.
+## Only warnings: what a macro generated is ordinary data and works either way.
+static func _check_macros(mission: MissionData, result: Dictionary) -> void:
+	var nodes: Array[OutlineNode] = []
+	nodes.append_array(mission.interactables)
+	nodes.append_array(mission.groups)
+	nodes.append_array(mission.monster_spawns)
+	for node in nodes:
+		for applied in node.macros:
+			var macro := MacroEngine.macro_for(mission, applied)
+			var name := node.reference_name if node.reference_name != "" else (node as InteractableEntry).mesh_item_name if node is InteractableEntry else "a spawn area" if node is MonsterSpawn else "a stage"
+			if macro == null:
+				_add(result, "warning", "unknown_macro", -1, "'%s' has a macro ('%s') that this editor does not know. What it generated still works as normal data." % [name, applied.macro_id])
+			elif not macro.fits(node):
+				_add(result, "warning", "macro_misfit", -1, "The macro '%s' on '%s' does not fit this object (it was changed into something else?). What it generated still works; remove the macro record or regenerate on a fitting object." % [macro.title(), name])
 
 
 ## A Spawn Monsters effect needs a monster spawn area that exists (deleting an area leaves the effects that used it pointing at nothing, so
@@ -514,8 +532,23 @@ static func _read_piece(entry: Variant, index: int, result: Dictionary) -> Dicti
 	if layer == "prop":
 		for offset in FootprintRegistry.rotate_footprint(BuildRules.sight_offsets(mesh), basis):
 			sight_cells.append(origin + Vector3i(offset.x, 0, offset.z))
+	# An optional macro the planner asks for on this piece ("macro": {"id": ..., params...}): kept only when it is a known macro that fits the mesh and
+	# its inputs are usable - otherwise dropped with a warning (what the piece does is then up to the author).
+	var macro_request: Dictionary = {}
+	var raw_macro: Variant = entry.get("macro", null)
+	if typeof(raw_macro) == TYPE_DICTIONARY:
+		var wanted := MacroCatalog.for_plan(str(raw_macro.get("id", "")), mesh)
+		if wanted == null:
+			_add(result, "warning", "bad_macro", index, "Piece %d (\"%s\"): the macro \"%s\" is unknown or does not fit this piece and was ignored." % [index, mesh, str(raw_macro.get("id", ""))])
+		else:
+			var macro_values := wanted.values_from_plan(raw_macro)
+			var macro_problem := wanted.problem(macro_values)
+			if macro_problem != "":
+				_add(result, "warning", "bad_macro", index, "Piece %d (\"%s\"): the macro \"%s\" was ignored: %s" % [index, mesh, wanted.id(), macro_problem])
+			else:
+				macro_request = {"id": wanted.id(), "values": macro_values}
 	var piece := {
-		"index": index, "mesh": mesh, "layer": layer,
+		"index": index, "mesh": mesh, "layer": layer, "macro": macro_request,
 		"x": fx, "z": fz, "height": height, "quarter_turns": turns, "name": piece_name,
 		"fine_origin": origin, "cells": cells, "support_cells": support_cells, "solid_cells": solid_cells, "sight_cells": sight_cells,
 	}

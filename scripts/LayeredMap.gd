@@ -478,6 +478,7 @@ func sync_prop_cell(origin: Vector3i, new_parent_id: String = "") -> void:
 		entry.visible = existing.visible
 		entry.props = existing.props
 		entry.actions = existing.actions
+		entry.macros = existing.macros
 		entry.description_texts = existing.description_texts
 	else:
 		entry.id = mission.allocate_object_id()

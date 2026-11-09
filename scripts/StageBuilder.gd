@@ -46,6 +46,7 @@ static func build(layered_map: LayeredMap, result: Dictionary, corner: Vector2i,
 	var underlay_origins: Dictionary = {}
 	var prop_origins: Array[Vector3i] = []
 	var names: Dictionary = {}  # origin -> reference name
+	var macros: Dictionary = {}  # origin -> {id, values} the plan asked for on that prop
 	for piece: Dictionary in result["pieces"]:
 		var mesh: String = piece["mesh"]
 		var layer: String = piece["layer"]
@@ -66,6 +67,8 @@ static func build(layered_map: LayeredMap, result: Dictionary, corner: Vector2i,
 				prop_origins.append(origin)
 		if str(piece["name"]) != "":
 			names[origin] = str(piece["name"])
+		if layer == "prop" and not (piece.get("macro", {}) as Dictionary).is_empty():
+			macros[origin] = piece["macro"]
 
 	layered_map.rebuild_floor_tiles()
 	layered_map.rebuild_underlay_tiles()
@@ -82,6 +85,12 @@ static func build(layered_map: LayeredMap, result: Dictionary, corner: Vector2i,
 	for entry in mission.interactables:
 		if prop_origins.has(entry.origin_cell) and names.has(entry.origin_cell):
 			entry.reference_name = str(names[entry.origin_cell])
+	for entry in mission.interactables:  # after the names, which the macros use for their variable names
+		if macros.has(entry.origin_cell):
+			var request: Dictionary = macros[entry.origin_cell]
+			var macro := MacroCatalog.find(str(request["id"]))
+			if macro != null:
+				MacroEngine.apply(mission, entry, macro, request["values"])
 
 	var starts := 0
 	if options.get("heroes_start", false):

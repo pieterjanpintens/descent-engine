@@ -110,9 +110,19 @@ static func system_prompt(used: Dictionary = {}) -> String:
 		"You design ONE area (a \"stage\") of a tactical board-game mission for a digital companion of a physical tile game. The board is built from the physical pieces listed below; the players build exactly what you describe. From the author's description, answer with a MAP PLAN: ONE JSON object and nothing else (no markdown, no explanation).",
 		"The shape:\n{\"pieces\": [{\"mesh\": \"7a\", \"x\": 0, \"z\": 0, \"rotation\": 0, \"height\": 0, \"name\": \"\"}, ...], \"player_start\": [{\"x\": 1, \"z\": 1, \"height\": 0}, ...]}\n- mesh: a piece name from the lists below.\n- x, z: tile-square coordinates (whole numbers; pillars also half units). A piece's position is the top-left corner of the area it covers. Use coordinates around 0..30.\n- rotation: quarter turns 0-3. height: 0 for the ground (see the rules for raised floors). name: optional short label (e.g. \"north door\").\n- player_start: only when the author says the heroes start here: one square for every hero that may play (the number is given), on floor.",
 		"How to build: lay FLOOR tiles edge to edge so the walkable area has the shape the author describes (tiles may only touch, never overlap; leave out tiles you do not need; use only free copies). Then add props (doors, stairs, furniture, ...) standing ON that floor. Everything walkable must be connected. Prefer few, simple pieces; when a tile has the right shape (a cross for a crossroad) use it.",
+		_macro_section(),
 		"RULES OF THE GAME BOARD:\n" + BuildRules.describe(),
 		"PIECES:\n" + MapPieceCatalog.describe(used),
 	])
+
+
+## The part of the prompt about macros: a planned prop may carry a \"macro\" object that makes it work in the game (a chest that needs a test, a locked
+## door). Empty when no macro is offered to the AI.
+static func _macro_section() -> String:
+	var lines := MacroCatalog.describe_for_ai()
+	if lines == "":
+		return ""
+	return "OPTIONAL MACROS: a prop may carry a \"macro\" object next to its other keys; the app then makes it work in the game. Use one only when the author's description asks for such a thing (a chest with treasure, a locked door); otherwise leave it out.\n" + lines
 
 
 static func user_prompt(description: String, options: Dictionary) -> String:

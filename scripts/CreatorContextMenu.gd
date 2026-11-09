@@ -13,11 +13,13 @@ extends Node
 @export var operation_history: OperationHistory
 
 ## High ids: an item added without one (separators, submenus) gets its index as id, which must not match these.
-enum Action { ACTIONS = 1000, VISIBLE, ROTATE, DELETE, SELECT_MODE, DRAW_MODE, MOVE_MODE, LEVEL_UP, LEVEL_DOWN }
+const MACRO_FIRST_ID := 2000  # macro items are MACRO_FIRST_ID + index into _macro_entries
+enum Action { ACTIONS = 1000, VISIBLE, ROTATE, DELETE, SELECT_MODE, DRAW_MODE, MOVE_MODE, LEVEL_UP, LEVEL_DOWN, SAVE_MACRO }
 
 var _menu: PopupMenu
 var _stage_menu: PopupMenu
 var _stage_ids: Array[String] = []
+var _macro_entries: Array[Dictionary] = []  # {macro: MissionMacro, existing: AppliedMacro or null} per macro menu item
 
 
 func _ready() -> void:
@@ -54,6 +56,7 @@ func _fill_piece_menu() -> void:
 	var prop := properties_panel.current_prop() if properties_panel != null else null
 	if prop != null:
 		_menu.add_item("Actions…", Action.ACTIONS)
+		_fill_macro_items(prop)
 		_menu.add_separator()
 	_fill_stage_menu()
 	_menu.add_submenu_node_item("Move to stage", _stage_menu)
@@ -63,6 +66,21 @@ func _fill_piece_menu() -> void:
 	_menu.add_separator()
 	_menu.add_item("Rotate", Action.ROTATE)
 	_menu.add_item("Delete", Action.DELETE)
+
+
+## "Edit macro: X…" for every macro applied to the prop and "Apply macro: X…" for each that fits and is not applied yet.
+func _fill_macro_items(prop: InteractableEntry) -> void:
+	_macro_entries.clear()
+	for applied in prop.macros:
+		var macro := MacroEngine.macro_for(layered_map.mission, applied)
+		if macro != null:
+			_menu.add_item("Edit macro: %s…" % macro.title(), MACRO_FIRST_ID + _macro_entries.size())
+			_macro_entries.append({"macro": macro, "existing": applied})
+	for macro in MacroEngine.available_for(prop):
+		_menu.add_item("Apply macro: %s…" % macro.title(), MACRO_FIRST_ID + _macro_entries.size())
+		_macro_entries.append({"macro": macro, "existing": null})
+	if not prop.actions.is_empty():
+		_menu.add_item("Save as macro…", Action.SAVE_MACRO)
 
 
 func _selected_nodes() -> Array[OutlineNode]:
@@ -105,9 +123,16 @@ func _fill_ground_menu() -> void:
 
 
 func _on_action(id: int) -> void:
+	if id >= MACRO_FIRST_ID:
+		var entry_index := id - MACRO_FIRST_ID
+		if entry_index < _macro_entries.size() and properties_panel != null:
+			properties_panel.open_macro(_macro_entries[entry_index]["macro"], _macro_entries[entry_index]["existing"])
+		return
 	match id:
 		Action.ACTIONS:
 			properties_panel.open_actions()
+		Action.SAVE_MACRO:
+			properties_panel.open_capture()
 		Action.VISIBLE:
 			var nodes := _selected_nodes()
 			if nodes.is_empty():

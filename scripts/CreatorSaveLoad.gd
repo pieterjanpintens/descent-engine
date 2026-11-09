@@ -206,16 +206,33 @@ func _build_mission_menu(characters_button: Button) -> void:
 	for i in entries.size():
 		mission_menu.add_item(entries[i][0], i)
 	mission_menu.add_separator()
+	mission_menu.add_item("Macros…", entries.size() + 1)
+	mission_menu.set_item_tooltip(mission_menu.item_count - 1, "Your own macros: rename, change their inputs, delete, export or import.")
 	mission_menu.add_item("Monster levels…", entries.size())
 	mission_menu.set_item_tooltip(mission_menu.item_count - 1, "The default formula that moves the level monsters spawn at, from the difficulty, the number of heroes...")
 	mission_menu.id_pressed.connect(func(id: int):
 		if id == entries.size():
 			_open_level_formula()
 			return
+		if id == entries.size() + 1:
+			_open_macro_manager()
+			return
 		var button: Button = entries[id][1]
 		button.pressed.emit())
 	# The menu bar is still setting up its children while this runs, so adding to it has to wait a moment.
 	_attach_mission_menu.call_deferred(menu_bar, mission_menu)
+
+
+var _macro_manager: MacroManagerDialog
+
+
+## Mission > Macros…: the author's own macros. A change tells the editor the objects changed so open panels offer the current list.
+func _open_macro_manager() -> void:
+	if _macro_manager == null:
+		_macro_manager = MacroManagerDialog.new()
+		_macro_manager.changed.connect(func(): layered_map.notify_objects_changed())
+		add_child(_macro_manager)
+	_macro_manager.open()
 
 
 var _level_formula_dialog: LevelFormulaDialog

@@ -94,6 +94,29 @@ static func run(name: String, r: TutorialRunner) -> String:
 			return _add_restless_trigger(r)
 		"add_reinforcements":
 			return _add_reinforcements(r)
+		"place_lair_chest":
+			return _place_lair_chest(r)
+		"apply_chest_macro":
+			return _apply_chest_macro(r)
+		"apply_reinforce_macro":
+			return _apply_reinforce_macro(r)
+		# ---- tutorial 4: your own macro ----
+		"place_well":
+			return _place_named_prop(r, "well", TutorialChecks.WELL_NAME)
+		"add_well_variable":
+			return _add_well_variable(r)
+		"add_well_action":
+			return _add_well_action(r)
+		"add_well_effects":
+			return _add_well_effects(r)
+		"save_well_macro":
+			return _save_well_macro(r)
+		"set_well_hint":
+			return _set_well_hint()
+		"place_cauldron":
+			return _place_named_prop(r, "pot", TutorialChecks.CAULDRON_NAME)
+		"apply_cauldron_macro":
+			return _apply_cauldron_macro(r)
 	push_warning("TutorialAssists: unknown assist '%s'" % name)
 	return ""
 
@@ -920,3 +943,241 @@ static func _add_reinforcements(r: TutorialRunner) -> String:
 	r.history.record("Add trigger", func(): mission.triggers.append(trigger))
 	r.layered_map.notify_objects_changed()
 	return "Added a trigger: every third round, while fewer than three monsters are on the board, one random guard spawns in the Lair."
+
+
+# ---- tutorial 3: macros ----
+
+## Puts a chest on a free square of the Lair's floor (not on a guard's spawn square), in the Lair stage, named lair_chest.
+static func _place_lair_chest(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var stage := TutorialChecks.hidden_stage(mission)
+	var spawn := TutorialChecks.lair_spawn(mission)
+	if stage == null or spawn == null:
+		return "This needs the example from tutorial 2 (the Lair stage). Place a chest in the Lair yourself."
+	var existing := TutorialChecks.lair_chest(mission)
+	if existing == null:
+		var taken := {}
+		for cell in spawn.cells:
+			taken[Vector2i(cell.x, cell.z)] = true
+		for fine: Vector3i in mission.occupied_cells:  # squares with a prop on them
+			var occupied := FootprintRegistry.fine_cell_to_tile_square(fine)
+			taken[Vector2i(occupied.x, occupied.z)] = true
+		var free: Array[Vector2i] = []
+		for placement in TutorialChecks.stage_floors(mission, stage):
+			for cell: Vector3i in mission.floor_occupied_cells:
+				if mission.floor_occupied_cells[cell] != placement.origin_cell:
+					continue
+				var square := FootprintRegistry.fine_cell_to_tile_square(cell)
+				var spot := Vector2i(square.x, square.z)
+				if not taken.has(spot) and not free.has(spot):
+					free.append(spot)
+		if free.is_empty():
+			return "There is no free square in the Lair. Place a chest in it yourself."
+		free.sort_custom(func(a: Vector2i, b: Vector2i): return a.x > b.x or (a.x == b.x and a.y < b.y))
+		r.controller.set_working_group(stage.id)
+		if not r.controller.place_mesh_at_tile_square("chest", Vector3i(free[0].x, 0, free[0].y)):
+			return "The chest could not be placed."
+		existing = TutorialChecks.lair_chest(mission)
+	if existing != null and existing.reference_name == "":
+		r.history.record("Name chest", func(): existing.reference_name = "lair_chest")
+		r.layered_map.notify_objects_changed()
+	return "Placed a chest in the Lair and named it lair_chest."
+
+
+static func _apply_chest_macro(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var chest := TutorialChecks.lair_chest(mission)
+	if chest == null:
+		return "Place the chest in the Lair first."
+	if TutorialChecks.has_macro(chest, "treasure_chest"):
+		return "The chest already has the macro."
+	var macro := MacroCatalog.find("treasure_chest")
+	var values := macro.default_values()
+	values["attribute"] = PlayerAttribute.Attribute.STRENGTH
+	values["needed"] = 4
+	(values["loot"] as Effect).loot_materials = {LootMaterials.GOLD: 40}
+	r.history.record("Apply macro", func(): MacroEngine.apply(mission, chest, macro, values))
+	r.layered_map.notify_objects_changed()
+	return "Applied the Treasure chest macro: a Strength test, 4 successes in total, 40 gold inside."
+
+
+## The cave's own monster spawn area (not the Lair's) gets a Reinforcements macro that draws from the Lair guards group.
+static func _apply_reinforce_macro(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var lair := TutorialChecks.lair_spawn(mission)
+	var door_effect := TutorialChecks.door_spawn(mission)
+	if lair == null or door_effect == null or door_effect.spawn_group_id == "":
+		return "This needs the example from tutorial 2 (the Lair guards group)."
+	var target: MonsterSpawn = null
+	for spawn in mission.monster_spawns:
+		if spawn.id != lair.id:
+			target = spawn
+	if target == null:
+		return "There is no other monster spawn area. Draw one in the cave first."
+	if TutorialChecks.has_macro(target, "reinforcements"):
+		return "That spawn area already has the macro."
+	var macro := MacroCatalog.find("reinforcements")
+	var values := macro.default_values()
+	(values["pool"] as Effect).spawn_group_id = door_effect.spawn_group_id
+	values["every"] = 3
+	values["limit"] = 3
+	r.history.record("Apply macro", func(): MacroEngine.apply(mission, target, macro, values))
+	r.layered_map.notify_objects_changed()
+	return "Applied Reinforcements to the cave's spawn area: every third round, while fewer than three monsters are on the map, one guard appears."
+
+
+# ---- tutorial 4: your own macro ----
+
+## A free floor square of the stage the cave is in (no prop, start square, spawn tile or blocker on it), west to east; the whole map when there is no shown stage.
+static func _stage_free_squares(mission: MissionData) -> Array[Vector3i]:
+	var stage := _shown_stage(mission)
+	var free := _free_squares(mission)
+	if stage == null:
+		return free
+	var in_stage := {}
+	for placement in TutorialChecks.stage_floors(mission, stage):
+		for cell: Vector3i in mission.floor_occupied_cells:
+			if mission.floor_occupied_cells[cell] == placement.origin_cell:
+				in_stage[FootprintRegistry.fine_cell_to_tile_square(cell)] = true
+	var squares: Array[Vector3i] = []
+	for square in free:
+		if in_stage.has(square):
+			squares.append(square)
+	return squares
+
+
+## Puts a prop (a well, a pot) on a free square of the cave and names it.
+static func _place_named_prop(r: TutorialRunner, mesh: String, prop_name: String) -> String:
+	var mission := r.layered_map.mission
+	if TutorialChecks.named_prop(mission, mesh, prop_name) != null:
+		return "The %s is already there." % prop_name
+	var squares := _stage_free_squares(mission)
+	if squares.is_empty():
+		return "There is no free floor square. Place the %s yourself." % mesh
+	var stage := _shown_stage(mission)
+	if stage != null:
+		r.controller.set_working_group(stage.id)
+	if not r.controller.place_mesh_at_tile_square(mesh, Vector3i(squares[0].x, 0, squares[0].z)):
+		return "The %s could not be placed (are all of them used up?)." % mesh
+	for entry in mission.interactables:
+		if entry.mesh_item_name == mesh and entry.reference_name == "":
+			_name_prop(r, entry, prop_name)
+			break
+	return "Placed a %s in the cave and named it %s." % [mesh, prop_name]
+
+
+static func _add_well_variable(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	for variable in mission.custom_variables:
+		if variable.name == TutorialChecks.WELL_VARIABLE:
+			return "The variable is already there."
+	r.history.record("Add variable", func():
+		var variable := MissionVariable.new()
+		variable.name = TutorialChecks.WELL_VARIABLE
+		variable.type = MissionVariable.Type.INT
+		variable.default_value = 0
+		mission.custom_variables.append(variable)
+	)
+	r.layered_map.notify_objects_changed()
+	return "Added the number variable old_well_uses (starts at 0)."
+
+
+static func _add_well_action(r: TutorialRunner) -> String:
+	var well := TutorialChecks.named_prop(r.layered_map.mission, "well", TutorialChecks.WELL_NAME)
+	if well == null:
+		return "Place the well first."
+	if TutorialChecks.well_action(r.layered_map.mission) != null:
+		return "The well already has that action."
+	var action := PropAction.new()
+	action.action_id = "drink"
+	action.action_name = "Drink from the well"
+	action.description = "Cool water bubbles up from deep below."
+	action.conditions.append(_condition_on(TutorialChecks.WELL_VARIABLE, Condition.Operator.LESS, 3))
+	r.history.record("Add action", func(): well.actions.append(action))
+	r.layered_map.notify_objects_changed()
+	return "Gave the well the action 'Drink from the well', offered only while old_well_uses < 3."
+
+
+static func _add_well_effects(r: TutorialRunner) -> String:
+	var action := TutorialChecks.well_action(r.layered_map.mission)
+	if action == null:
+		return "Give the well its action first."
+	if TutorialChecks.well_effects_ok(r.layered_map.mission):
+		return "The action already has those effects."
+	var message := Effect.new()
+	message.type = Effect.Type.SHOW_MESSAGE
+	message.message = "The water is cold and clear. You feel refreshed."
+	var count := Effect.new()
+	count.type = Effect.Type.MATH
+	count.variable_name = TutorialChecks.WELL_VARIABLE
+	count.math_operator = Effect.MathOperator.ADD
+	count.math_operand_a_is_variable = true
+	count.math_operand_a_variable = TutorialChecks.WELL_VARIABLE
+	count.math_operand_b_literal = 1
+	r.history.record("Add effects", func():
+		action.effects.append(message)
+		action.effects.append(count)
+	)
+	r.layered_map.notify_objects_changed()
+	return "Added a message and a Math effect that adds 1 to old_well_uses."
+
+
+## What "Save as macro..." does in the tutorial: the well becomes the macro "Limited well" that can go on any prop, with two inputs.
+static func _save_well_macro(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var well := TutorialChecks.named_prop(mission, "well", TutorialChecks.WELL_NAME)
+	if well == null or well.actions.is_empty():
+		return "Build the well and its action first."
+	var capture := MacroCapture.new(mission, well)
+	for field in capture.fields:
+		var path: String = field["path"]
+		if path == "conditions/0/value":
+			capture.field_choice[field["key"]] = true
+			capture.field_label[field["key"]] = "Uses allowed"
+		elif path.ends_with("/message"):
+			capture.field_choice[field["key"]] = true
+			capture.field_label[field["key"]] = "Message"
+	var template := capture.build("Limited well", "A prop that can be used a limited number of times, then runs dry.", TutorialChecks.WELL_MACRO_ID, true)
+	var existing := MacroTemplateLibrary.load_file(MacroTemplateLibrary.file_for(template.macro_id))
+	if existing != null:
+		template.version = existing.version + 1
+	var error := MacroTemplateLibrary.save_template(template)
+	if error != "":
+		return error
+	# like the dialog's "Replace what I made with the macro" (ticked by default): the well now comes from the macro
+	r.history.record("Replace with macro", func(): capture.replace_original(template))
+	r.layered_map.notify_objects_changed()
+	return "Saved the macro 'Limited well' (any prop; inputs: Uses allowed, Message) and replaced the well's hand-made parts with it."
+
+
+## Adds a hint to the first input of the saved macro, as the manager does.
+static func _set_well_hint() -> String:
+	var template := MacroTemplateLibrary.load_file(MacroTemplateLibrary.file_for(TutorialChecks.WELL_MACRO_ID))
+	if template == null or template.params.is_empty():
+		return "Save the macro first."
+	template.params[0].hint = "How many times the prop can be used before it runs dry."
+	template.version += 1
+	var error := MacroTemplateLibrary.save_template(template)
+	return error if error != "" else "Added a hint to the first input and saved the macro (version %d)." % template.version
+
+
+## Applies the saved macro to the cauldron: 2 uses, its own message.
+static func _apply_cauldron_macro(r: TutorialRunner) -> String:
+	var mission := r.layered_map.mission
+	var cauldron := TutorialChecks.named_prop(mission, "pot", TutorialChecks.CAULDRON_NAME)
+	if cauldron == null:
+		return "Place the cauldron first."
+	var macro := MacroCatalog.find(TutorialChecks.WELL_MACRO_ID)
+	if macro == null:
+		return "Save the macro first."
+	if TutorialChecks.has_macro(cauldron, TutorialChecks.WELL_MACRO_ID):
+		return "The cauldron already has the macro."
+	var values := macro.default_values()
+	for param in macro.params():
+		if param.label == "Uses allowed":
+			values[param.id] = 2
+		elif param.label == "Message":
+			values[param.id] = "The brew tastes of iron and smoke."
+	r.history.record("Apply macro", func(): MacroEngine.apply(mission, cauldron, macro, values))
+	r.layered_map.notify_objects_changed()
+	return "Applied 'Limited well' to the cauldron: 2 uses, its own message."

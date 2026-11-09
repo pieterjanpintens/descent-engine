@@ -56,3 +56,7 @@ extends Resource
 ## Effect.Type.SHOW_STAGE is what flips a group's own visible to true as
 ## part of play - see claude.md's Story layer section, "Show Stage".
 @export var visible: bool = true
+
+## Macros applied to this node (see MissionMacro / MacroEngine): authoring-side records of what each macro generated, so it can be edited
+## or removed again. The Player ignores them - what they generated is ordinary mission data.
+@export var macros: Array[AppliedMacro] = []

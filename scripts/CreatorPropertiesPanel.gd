@@ -59,6 +59,10 @@ var _actions_button: Button
 ## rebuilt by _rebuild_spawn_tiles() on every selection refresh.
 var _spawn_tiles_box: VBoxContainer
 var _actions_dialog: PropActionsDialog
+## Macros (MissionMacro): the applied ones with an Edit button and the ones that can still be applied - rebuilt on every selection refresh.
+var _macros_box: VBoxContainer
+var _macro_dialog: MacroDialog
+var _capture_dialog: MacroCaptureDialog
 
 ## Multi-select batch panel (see class doc) - built once alongside
 ## _object_fields/mission_fields, shown only while selection_changed
@@ -191,6 +195,19 @@ func _build_object_fields() -> void:
 	_actions_dialog.layered_map = layered_map
 	add_child(_actions_dialog)
 
+	_macros_box = VBoxContainer.new()
+	_macros_box.visible = false
+	_object_content.add_child(_macros_box)
+	_macro_dialog = MacroDialog.new()
+	_macro_dialog.operation_history = operation_history
+	_macro_dialog.layered_map = layered_map
+	add_child(_macro_dialog)
+	_capture_dialog = MacroCaptureDialog.new()
+	_capture_dialog.operation_history = operation_history
+	_capture_dialog.layered_map = layered_map
+	_capture_dialog.saved.connect(func(_template: MacroTemplate): _rebuild_macros())  # the new macro is offered at once
+	add_child(_capture_dialog)
+
 	_spawn_tiles_box = VBoxContainer.new()
 	_spawn_tiles_box.visible = false
 	_object_content.add_child(_spawn_tiles_box)
@@ -255,6 +272,7 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 		_show_name_check.visible = false
 		_interactible_check.visible = false
 		_actions_button.visible = false
+		_macros_box.visible = false
 		_description_box.visible = false
 		_spawn_tiles_box.visible = false
 		return
@@ -264,6 +282,7 @@ func _show_single(type: CreatorOutline.SelectionType, id: String) -> void:
 	_info_label.text = _describe(type)
 	_name_edit.placeholder_text = _fallback_name(type)
 	_actions_button.visible = type == CreatorOutline.SelectionType.OBJECT
+	_rebuild_macros()
 	var token_index := -1
 	if _current_node is InteractableEntry:
 		token_index = LayeredMap.TOKEN_MESHES.find((_current_node as InteractableEntry).mesh_item_name)
@@ -495,6 +514,69 @@ func tutorial_target(id: String) -> Control:
 
 func current_prop() -> InteractableEntry:
 	return _current_node as InteractableEntry
+
+
+## Rebuilds the Macros section for the shown node: each applied macro (Edit… opens its form, where it can be regenerated or removed;
+## a warning mark when the generated data was edited by hand) and one "Apply" button per macro that fits and is not applied yet.
+func _rebuild_macros() -> void:
+	for child in _macros_box.get_children():
+		_macros_box.remove_child(child)
+		child.free()
+	var node := _current_node
+	var available: Array[MissionMacro] = []
+	if node != null:
+		available = MacroEngine.available_for(node)
+	var can_capture := node is InteractableEntry and not (node as InteractableEntry).actions.is_empty()
+	var shown := node != null and (not node.macros.is_empty() or not available.is_empty() or can_capture)
+	_macros_box.visible = shown
+	if not shown:
+		return
+	var header := Label.new()
+	header.text = "Macros:"
+	_macros_box.add_child(header)
+	for applied in node.macros:
+		var macro := MacroEngine.macro_for(layered_map.mission, applied)
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		label.text = "⚙ " + (macro.title() if macro != null else applied.macro_id)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if layered_map.mission != null and MacroEngine.is_modified(layered_map.mission, applied):
+			label.text += "  (edited by hand)"
+			label.tooltip_text = "What this macro generated was changed by hand. Edit… > Regenerate replaces it with a fresh version."
+		row.add_child(label)
+		var edit_button := Button.new()
+		edit_button.text = "Edit…"
+		edit_button.disabled = macro == null
+		edit_button.pressed.connect(open_macro.bind(macro, applied))
+		row.add_child(edit_button)
+		_macros_box.add_child(row)
+	for macro in available:
+		var apply_button := Button.new()
+		apply_button.text = "Apply macro: %s…" % macro.title()
+		apply_button.tooltip_text = macro.description()
+		apply_button.pressed.connect(open_macro.bind(macro, null))
+		_macros_box.add_child(apply_button)
+	if can_capture:
+		var save_button := Button.new()
+		save_button.text = "Save as macro…"
+		save_button.tooltip_text = "Turns this prop's actions into a macro you can apply to other props."
+		save_button.pressed.connect(open_capture)
+		_macros_box.add_child(save_button)
+
+
+## Opens "Save as macro…" for the shown prop.
+func open_capture() -> void:
+	var entry := _current_node as InteractableEntry
+	if entry == null or layered_map.mission == null or entry.actions.is_empty():
+		return
+	_capture_dialog.open_for(layered_map.mission, entry)
+
+
+## Opens the macro form on the shown node: a new application when `existing` is null, else that record (regenerate / remove).
+func open_macro(macro: MissionMacro, existing: AppliedMacro = null) -> void:
+	if _current_node == null or macro == null or layered_map.mission == null:
+		return
+	_macro_dialog.open_for(layered_map.mission, _current_node, macro, existing)
 
 
 func open_actions() -> void:

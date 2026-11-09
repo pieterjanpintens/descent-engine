@@ -18,12 +18,18 @@ const TUTORIALS: Array[Dictionary] = [
 		"finished": "res://data/tutorials/finished_mission.tres", "start": ""},
 	{"id": "fork", "title": "The fork: conditions, groups and surprises", "file": "res://data/tutorials/fork.json",
 		"finished": "res://data/tutorials/finished_fork.tres", "start": "res://data/tutorials/finished_mission.tres"},
+	{"id": "macros", "title": "Macros: shortcuts for common things", "file": "res://data/tutorials/macros.json",
+		"finished": "res://data/tutorials/finished_macros.tres", "start": "res://data/tutorials/finished_fork.tres"},
+	{"id": "own_macro", "title": "Your own macro: capture, reuse, manage", "file": "res://data/tutorials/own_macro.json",
+		"finished": "res://data/tutorials/finished_own_macro.tres", "start": "res://data/tutorials/finished_macros.tres"},
 ]
 const PROGRESS_FILE := "user://configuration/tutorial.cfg"
 const PANEL_WIDTH := 410.0
 const CHECK_SECONDS := 0.25
 const MARGIN := Vector2(12.0, 44.0)  ## the default distance of the panel from the bottom left corner (44: above the status bar)
 const ICON_SIZE := Vector2(104.0, 34.0)
+const MIN_SCROLL_HEIGHT := 60.0  ## the scrolling middle part is never smaller than this
+const SCROLLBAR_ROOM := 14.0  ## width kept free in the scrolling part for its scroll bar
 const DRAG_SLOP := 4.0  ## the mouse may move this far on the little icon and it still counts as a click
 
 var controller: CreatorController
@@ -54,10 +60,13 @@ var _panel: PanelContainer
 var _icon: Button  ## the small stand-in the panel shrinks to
 var _running := false
 var _collapsed := false
+var _placed_dialogs: Dictionary = {}  ## instance ids of the open dialogs already moved clear of the panel
 var _drag_offset := Vector2.ZERO  ## how far the user moved the panel from its default place (right, down)
 var _dragging := false
 var _drag_distance := 0.0
 var _chapter_label: Label
+var _scroll: ScrollContainer  ## the middle part of the panel; scrolls when the window is too short
+var _scroll_inner: VBoxContainer
 var _title_label: Label
 var _body: RichTextLabel
 var _note_label: Label
@@ -261,13 +270,37 @@ func _go_to(index: int) -> void:
 	_next_button.text = "Finish" if index == _steps.size() - 1 else "Next"
 	_skip_button.visible = step.has("done") and index < _steps.size() - 1
 	_highlight.visible = true
+	_scroll.scroll_vertical = 0
 	_refresh_state()
+	_fit_later()
+
+
+## Gives the middle part of the panel the height its text needs, but never more than the window has room for (it scrolls then).
+func _fit_scroll() -> void:
+	if _panel == null or _scroll == null or not _panel.visible or _canvas == null:
+		return
+	var view := _canvas.get_viewport().get_visible_rect().size
+	var content := _scroll_inner.get_combined_minimum_size().y
+	var chrome := _panel.get_combined_minimum_size().y - _scroll.get_combined_minimum_size().y
+	var room := view.y - MARGIN.y - 12.0 - chrome
+	var wanted := clampf(content, MIN_SCROLL_HEIGHT, maxf(room, MIN_SCROLL_HEIGHT))
+	if not is_equal_approx(_scroll.custom_minimum_size.y, wanted):
+		_scroll.custom_minimum_size.y = wanted
+		_panel.reset_size.call_deferred()  # the new minimum size is only known after the layout pass
+
+
+## The label sizes settle one frame after the text changes.
+func _fit_later() -> void:
+	await get_tree().process_frame
+	_fit_scroll()
+	_place_controls()
 
 
 func _refresh_state() -> void:
 	if _panel == null or not _running or _index < 0:
 		return
 	_follow_window()
+	_fit_scroll()
 	_place_controls()
 	var step: Dictionary = _steps[_index]
 	var has_check := step.has("done")
@@ -396,6 +429,33 @@ func _follow_window() -> void:
 			host = window
 	if _canvas.get_parent() != host:
 		_canvas.reparent(host, false)
+	if host == self:
+		_keep_dialogs_clear(screen)
+
+
+## Dialogs (the macro forms, the manager, ...) open in the middle of the window and would cover the tutorial panel. When one opens over it, it is
+## moved to the right of the panel once; after that the user can drag it wherever they like.
+func _keep_dialogs_clear(screen: Vector2) -> void:
+	var open_now: Dictionary = {}
+	for node in get_parent().find_children("*", "Window", true, false):
+		var window := node as Window
+		if not window.visible or window is Popup or window.get_parent() == null:
+			continue
+		var id := window.get_instance_id()
+		open_now[id] = true
+		if _placed_dialogs.has(id) or _collapsed or not _panel.visible:
+			_placed_dialogs[id] = true
+			continue
+		_placed_dialogs[id] = true
+		var rect := Rect2(Vector2(window.position), Vector2(window.size))
+		var panel_rect := _panel.get_global_rect().grow(4.0)
+		if not rect.intersects(panel_rect):
+			continue
+		var x := minf(panel_rect.end.x + 8.0, screen.x - rect.size.x)
+		window.position = Vector2i(maxi(int(x), 0), window.position.y)
+	for id in _placed_dialogs.keys():
+		if not open_now.has(id):
+			_placed_dialogs.erase(id)  # closed: placed afresh the next time it opens
 
 
 func _highlight_rects() -> Array[Rect2]:
@@ -482,24 +542,34 @@ func _build_ui() -> void:
 	close.pressed.connect(stop)
 	header.add_child(close)
 
+	# The middle part (title, text, note) scrolls when the window is too short for it; header and buttons stay put.
+	_scroll = ScrollContainer.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(_scroll)
+	_scroll_inner = VBoxContainer.new()
+	_scroll_inner.add_theme_constant_override("separation", 6)
+	_scroll_inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_scroll_inner)
+
+	var inner_width := PANEL_WIDTH - 24.0 - SCROLLBAR_ROOM
 	_title_label = Label.new()
 	_title_label.add_theme_font_size_override("font_size", 19)
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_title_label.custom_minimum_size.x = PANEL_WIDTH - 24.0
-	box.add_child(_title_label)
+	_title_label.custom_minimum_size.x = inner_width
+	_scroll_inner.add_child(_title_label)
 
 	_body = RichTextLabel.new()
 	_body.bbcode_enabled = true
 	_body.fit_content = true
 	_body.scroll_active = false
-	_body.custom_minimum_size.x = PANEL_WIDTH - 24.0
-	box.add_child(_body)
+	_body.custom_minimum_size.x = inner_width
+	_scroll_inner.add_child(_body)
 
 	_note_label = Label.new()
 	_note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_note_label.custom_minimum_size.x = PANEL_WIDTH - 24.0
+	_note_label.custom_minimum_size.x = inner_width
 	_note_label.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0))
-	box.add_child(_note_label)
+	_scroll_inner.add_child(_note_label)
 	_status_label = Label.new()
 	_status_label.add_theme_color_override("font_color", Color(0.55, 0.9, 0.55))
 	box.add_child(_status_label)
