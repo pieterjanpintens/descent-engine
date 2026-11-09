@@ -68,20 +68,40 @@ func _variable_taken(name: String) -> bool:
 ## Adds a new prop action to `entry` (default: the target, which must be a prop) with a unique action id based on `wanted_id`, and returns it
 ## for the macro to fill in.
 func action(wanted_id: String, entry: InteractableEntry = null) -> PropAction:
+	return adopt_action(PropAction.new(), wanted_id, entry)
+
+
+## Like action(), but adds an action the caller already made (a user-defined macro copies its template's action): it gets the unique id
+## and is remembered as generated. Returns it, or null when there is no prop to put it on.
+func adopt_action(created: PropAction, wanted_id: String, entry: InteractableEntry = null) -> PropAction:
 	var holder := entry if entry != null else target as InteractableEntry
 	if holder == null:
 		push_warning("MacroContext.action(): the macro target is not a prop")
 		return null
+	created.action_id = unique_action_id(wanted_id)
+	holder.actions.append(created)
+	applied.action_ids.append(created.action_id)
+	return created
+
+
+## `wanted_id`, or with a number added when a prop action in the mission already has it.
+func unique_action_id(wanted_id: String) -> String:
 	var action_id := wanted_id
 	var suffix := 2
 	while _action_id_taken(action_id):
 		action_id = "%s_%d" % [wanted_id, suffix]
 		suffix += 1
-	var created := PropAction.new()
-	created.action_id = action_id
-	holder.actions.append(created)
-	applied.action_ids.append(action_id)
-	return created
+	return action_id
+
+
+## `wanted` or with a number added when a variable of that name exists (without declaring anything).
+func unique_variable_name(wanted: String) -> String:
+	var name := wanted
+	var suffix := 2
+	while _variable_taken(name):
+		name = "%s_%d" % [wanted, suffix]
+		suffix += 1
+	return name
 
 
 func _action_id_taken(action_id: String) -> bool:

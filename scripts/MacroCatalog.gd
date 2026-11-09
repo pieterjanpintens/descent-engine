@@ -4,6 +4,8 @@ extends RefCounted
 ## The macros the editor offers. Built-in macros are listed in builtin(); register() adds more at run time (tests, later user-defined macros).
 
 static var _registered: Array[MissionMacro] = []
+static var _user: Array[MissionMacro] = []
+static var _user_loaded: bool = false
 
 
 static func builtin() -> Array[MissionMacro]:
@@ -26,9 +28,30 @@ static func unregister(macro_id: String) -> void:
 			return
 
 
+## The author's own macros (MacroTemplateLibrary), read from the user folder the first time they are needed.
+static func user_macros() -> Array[MissionMacro]:
+	if not _user_loaded:
+		_user_loaded = true
+		_user.clear()
+		var taken := {}
+		for macro in builtin():
+			taken[macro.id()] = true
+		for template in MacroTemplateLibrary.load_all():
+			if not taken.has(template.macro_id):
+				taken[template.macro_id] = true
+				_user.append(UserMacro.new(template))
+	return _user
+
+
+## Reads the user folder again (after a template was saved or deleted).
+static func reload_user_macros() -> void:
+	_user_loaded = false
+
+
 static func all() -> Array[MissionMacro]:
 	var list := builtin()
 	list.append_array(_registered)
+	list.append_array(user_macros())
 	return list
 
 

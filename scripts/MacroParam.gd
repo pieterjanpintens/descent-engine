@@ -1,5 +1,5 @@
 class_name MacroParam
-extends RefCounted
+extends Resource
 
 ## One input of a MissionMacro (see MissionMacro.params()): what the author fills in in the MacroDialog before the macro builds its data.
 ## The dialog is generated from these, so a new macro needs no UI code.
@@ -8,7 +8,8 @@ extends RefCounted
 ##   INT    a whole number between min_value and max_value
 ##   BOOL   true / false
 ##   TEXT   one line of text
-##   CHOICE one of `choices` - each entry is [label, value] (the value is what the macro receives, typically an int enum)
+##   CHOICE one of `choices` - each entry is [label, value] (the value is what the macro receives, typically an int enum); an optional
+##          third entry is a Dictionary of extra texts ({"success": "..."}) that a user-defined macro template reads as {param.success}
 ##   LOOT   an Effect of type LOOT (gold, materials, cards, recipes, title, text), edited with the normal Loot editor; the macro
 ##          should .duplicate(true) it into the data it generates
 ##   MONSTERS a pool of monsters: an Effect of type SPAWN_RANDOM_MONSTERS whose `spawn_monsters` (or `spawn_group_id`) is the list, edited with the
@@ -16,14 +17,17 @@ extends RefCounted
 
 enum Kind { INT, BOOL, TEXT, CHOICE, LOOT, MONSTERS }
 
-var id: String = ""
-var label: String = ""
-var hint: String = ""
-var kind: Kind = Kind.INT
-var default_value: Variant = null
-var min_value: int = 0
-var max_value: int = 99
-var choices: Array = []
+## (A Resource, not a plain object, so the inputs of a user-defined macro template can be saved - see MacroTemplate.)
+@export var id: String = ""
+@export var label: String = ""
+@export var hint: String = ""
+@export var kind: Kind = Kind.INT
+@export var default_value: Variant = null
+@export var min_value: int = 0
+@export var max_value: int = 99
+@export var choices: Array = []
+## LOOT / MONSTERS only: whether an empty value is allowed (a user macro's problem() refuses an empty one otherwise).
+@export var allow_empty: bool = false
 
 
 static func int_param(p_id: String, p_label: String, p_default: int, p_min: int = 0, p_max: int = 99, p_hint: String = "") -> MacroParam:
