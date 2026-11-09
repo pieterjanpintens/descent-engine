@@ -62,6 +62,7 @@ var _actions_dialog: PropActionsDialog
 ## Macros (MissionMacro): the applied ones with an Edit button and the ones that can still be applied - rebuilt on every selection refresh.
 var _macros_box: VBoxContainer
 var _macro_dialog: MacroDialog
+var _capture_dialog: MacroCaptureDialog
 
 ## Multi-select batch panel (see class doc) - built once alongside
 ## _object_fields/mission_fields, shown only while selection_changed
@@ -201,6 +202,9 @@ func _build_object_fields() -> void:
 	_macro_dialog.operation_history = operation_history
 	_macro_dialog.layered_map = layered_map
 	add_child(_macro_dialog)
+	_capture_dialog = MacroCaptureDialog.new()
+	_capture_dialog.saved.connect(func(_template: MacroTemplate): _rebuild_macros())  # the new macro is offered at once
+	add_child(_capture_dialog)
 
 	_spawn_tiles_box = VBoxContainer.new()
 	_spawn_tiles_box.visible = false
@@ -520,7 +524,8 @@ func _rebuild_macros() -> void:
 	var available: Array[MissionMacro] = []
 	if node != null:
 		available = MacroEngine.available_for(node)
-	var shown := node != null and (not node.macros.is_empty() or not available.is_empty())
+	var can_capture := node is InteractableEntry and not (node as InteractableEntry).actions.is_empty()
+	var shown := node != null and (not node.macros.is_empty() or not available.is_empty() or can_capture)
 	_macros_box.visible = shown
 	if not shown:
 		return
@@ -549,6 +554,20 @@ func _rebuild_macros() -> void:
 		apply_button.tooltip_text = macro.description()
 		apply_button.pressed.connect(open_macro.bind(macro, null))
 		_macros_box.add_child(apply_button)
+	if can_capture:
+		var save_button := Button.new()
+		save_button.text = "Save as macro…"
+		save_button.tooltip_text = "Turns this prop's actions into a macro you can apply to other props."
+		save_button.pressed.connect(open_capture)
+		_macros_box.add_child(save_button)
+
+
+## Opens "Save as macro…" for the shown prop.
+func open_capture() -> void:
+	var entry := _current_node as InteractableEntry
+	if entry == null or layered_map.mission == null or entry.actions.is_empty():
+		return
+	_capture_dialog.open_for(layered_map.mission, entry)
 
 
 ## Opens the macro form on the shown node: a new application when `existing` is null, else that record (regenerate / remove).

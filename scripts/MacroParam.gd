@@ -14,8 +14,9 @@ extends Resource
 ##          should .duplicate(true) it into the data it generates
 ##   MONSTERS a pool of monsters: an Effect of type SPAWN_RANDOM_MONSTERS whose `spawn_monsters` (or `spawn_group_id`) is the list, edited with the
 ##          Spawn Monsters editor; the macro duplicates it into the effect it generates and sets the target and count itself
+##   VARIABLE the name of one of the mission's variables (picked from a list, of the type `variable_type` unless that is -1); the value is the name
 
-enum Kind { INT, BOOL, TEXT, CHOICE, LOOT, MONSTERS }
+enum Kind { INT, BOOL, TEXT, CHOICE, LOOT, MONSTERS, VARIABLE }
 
 ## (A Resource, not a plain object, so the inputs of a user-defined macro template can be saved - see MacroTemplate.)
 @export var id: String = ""
@@ -26,6 +27,8 @@ enum Kind { INT, BOOL, TEXT, CHOICE, LOOT, MONSTERS }
 @export var min_value: int = 0
 @export var max_value: int = 99
 @export var choices: Array = []
+## VARIABLE only: MissionVariable.Type the picker is limited to, -1 = any.
+@export var variable_type: int = -1
 ## LOOT / MONSTERS only: whether an empty value is allowed (a user macro's problem() refuses an empty one otherwise).
 @export var allow_empty: bool = false
 
@@ -92,8 +95,23 @@ static func monsters_param(p_id: String, p_label: String, p_hint: String = "") -
 	return param
 
 
-## A fresh default value (a LOOT param starts as an empty Loot effect, a MONSTERS param as an empty random-spawn effect).
+## `p_type` = a MissionVariable.Type or -1 for any; `p_default` = the variable's name ("" = nothing chosen yet).
+static func variable_param(p_id: String, p_label: String, p_type: int = -1, p_default: String = "", p_hint: String = "") -> MacroParam:
+	var param := MacroParam.new()
+	param.id = p_id
+	param.label = p_label
+	param.kind = Kind.VARIABLE
+	param.variable_type = p_type
+	param.default_value = p_default
+	param.hint = p_hint
+	return param
+
+
+## A fresh default value (a LOOT param starts as an empty Loot effect - or a copy of the default it was given -, a MONSTERS param as an empty
+## random-spawn effect).
 func make_default() -> Variant:
+	if (kind == Kind.LOOT or kind == Kind.MONSTERS) and default_value is Resource:
+		return (default_value as Resource).duplicate(true)
 	if kind == Kind.LOOT:
 		var loot := Effect.new()
 		loot.type = Effect.Type.LOOT

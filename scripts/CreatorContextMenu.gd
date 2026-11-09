@@ -14,7 +14,7 @@ extends Node
 
 ## High ids: an item added without one (separators, submenus) gets its index as id, which must not match these.
 const MACRO_FIRST_ID := 2000  # macro items are MACRO_FIRST_ID + index into _macro_entries
-enum Action { ACTIONS = 1000, VISIBLE, ROTATE, DELETE, SELECT_MODE, DRAW_MODE, MOVE_MODE, LEVEL_UP, LEVEL_DOWN }
+enum Action { ACTIONS = 1000, VISIBLE, ROTATE, DELETE, SELECT_MODE, DRAW_MODE, MOVE_MODE, LEVEL_UP, LEVEL_DOWN, SAVE_MACRO }
 
 var _menu: PopupMenu
 var _stage_menu: PopupMenu
@@ -79,6 +79,8 @@ func _fill_macro_items(prop: InteractableEntry) -> void:
 	for macro in MacroEngine.available_for(prop):
 		_menu.add_item("Apply macro: %s…" % macro.title(), MACRO_FIRST_ID + _macro_entries.size())
 		_macro_entries.append({"macro": macro, "existing": null})
+	if not prop.actions.is_empty():
+		_menu.add_item("Save as macro…", Action.SAVE_MACRO)
 
 
 func _selected_nodes() -> Array[OutlineNode]:
@@ -129,6 +131,8 @@ func _on_action(id: int) -> void:
 	match id:
 		Action.ACTIONS:
 			properties_panel.open_actions()
+		Action.SAVE_MACRO:
+			properties_panel.open_capture()
 		Action.VISIBLE:
 			var nodes := _selected_nodes()
 			if nodes.is_empty():

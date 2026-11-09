@@ -183,6 +183,8 @@ func _param_row(param: MacroParam) -> Control:
 				_refresh_status()
 			))
 			box.add_child(button)
+		MacroParam.Kind.VARIABLE:
+			box.add_child(_variable_picker(param))
 		MacroParam.Kind.MONSTERS:
 			var pool: Effect = _values.get(param.id)
 			var pool_button := Button.new()
@@ -203,6 +205,29 @@ func _param_row(param: MacroParam) -> Control:
 		hint.modulate = Color(1, 1, 1, 0.6)
 		box.add_child(hint)
 	return box
+
+
+## A dropdown of the mission's variables (of the input's type); the value is the chosen name, "" for none.
+func _variable_picker(param: MacroParam) -> OptionButton:
+	var picker := OptionButton.new()
+	picker.add_item(tr("(choose a variable)"))
+	var names: Array[String] = []
+	for variable in _mission.custom_variables:
+		if param.variable_type < 0 or int(variable.type) == param.variable_type:
+			names.append(variable.name)
+	var current := str(_values.get(param.id, param.default_value if param.default_value != null else ""))
+	var selected := 0
+	for index in names.size():
+		picker.add_item(names[index])
+		if names[index] == current:
+			selected = index + 1
+	picker.select(selected)
+	_values[param.id] = "" if selected == 0 else current
+	picker.item_selected.connect(func(index: int):
+		_values[param.id] = "" if index == 0 else names[index - 1]
+		_refresh_status()
+	)
+	return picker
 
 
 func _refresh_status() -> void:

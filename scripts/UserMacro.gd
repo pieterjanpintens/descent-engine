@@ -58,9 +58,11 @@ func problem(values: Dictionary) -> String:
 	if not broken.is_empty():
 		return broken[0]
 	for param in template.params:
+		var value: Variant = values.get(param.id)
+		if param.kind == MacroParam.Kind.VARIABLE and str(value if value != null else "") == "":
+			return "Choose a variable for '%s' first." % param.label
 		if param.allow_empty:
 			continue
-		var value: Variant = values.get(param.id)
 		if param.kind == MacroParam.Kind.LOOT:
 			var loot := value as Effect
 			if loot == null or (loot.loot_materials.is_empty() and loot.loot_cards.is_empty() and loot.loot_recipes.is_empty() and loot.loot_usable.is_empty()):
