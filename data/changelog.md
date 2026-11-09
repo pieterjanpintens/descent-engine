@@ -2,6 +2,7 @@
 - New in the mission editor: macros. A macro is a recipe with a few questions that builds the data for a common thing for you. Select a prop or spawn area and press "Apply macro" in its properties (or use the right-click menu): Treasure chest (a test to open it, accumulated successes, loot, the chest removes itself), Locked door (a key variable, optionally forced with a test) and Reinforcements (a stream of random monsters while the board is nearly empty). What a macro makes is ordinary data you can still edit, and you can reopen the macro to regenerate it or remove it. Props with macros show a gear mark in the outline.
 - New tutorial "Macros: shortcuts for common things" (Help menu).
 - You can make your own macros: put actions on a prop, then "Save as macro…" (properties panel or right-click menu). Choose which actions, triggers and variables belong to it and which values (loot, test, successes needed, texts...) you want to fill in each time; the macro is then offered on matching props like the built-in ones. Variables other parts of the mission use become a picker when you apply it.
+- New Mission > Macros… screen to manage your own macros: rename them, change the description, the labels, hints and defaults of their inputs and the order of the inputs, delete them, or export a macro to a file and import one someone sent you (imported files are checked before anything is loaded).
 - The AI stage generator can now ask for a treasure chest or a locked door on the props it plans.
 
 ## v0.0.67 - 2026-11-08

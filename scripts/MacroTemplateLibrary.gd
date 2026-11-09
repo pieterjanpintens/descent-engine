@@ -58,3 +58,43 @@ static func delete_template(macro_id: String) -> void:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
 	MacroCatalog.reload_user_macros()
+
+
+const MAX_IMPORT_BYTES := 1048576
+const IMPORT_TEMP := "user://_macro_import.tres"
+
+
+## Reads a macro file from anywhere (one somebody sent) WITHOUT trusting it: the text is checked first (SharePackage.validate_resource_text:
+## only the app's own data classes and plain values, nothing that could load code), then loaded, then checked as a template. Returns
+## {"template": MacroTemplate or null, "error": text, "" when fine}. Nothing is saved.
+static func read_importable(path: String) -> Dictionary:
+	var result := {"template": null, "error": ""}
+	if not FileAccess.file_exists(path):
+		result["error"] = "the file does not exist."
+		return result
+	var size := FileAccess.get_file_as_bytes(path).size()
+	if size == 0 or size > MAX_IMPORT_BYTES:
+		result["error"] = "the file is empty or too large for a macro."
+		return result
+	var text := FileAccess.get_file_as_string(path)
+	var unsafe := SharePackage.validate_resource_text(text, "MacroTemplate")
+	if not unsafe.is_empty():
+		result["error"] = "this is not a safe macro file: " + unsafe[0]
+		return result
+	var temp := FileAccess.open(IMPORT_TEMP, FileAccess.WRITE)
+	if temp == null:
+		result["error"] = "could not read the file."
+		return result
+	temp.store_string(text)
+	temp.close()
+	var loaded := load_file(IMPORT_TEMP)
+	DirAccess.remove_absolute(IMPORT_TEMP)
+	if loaded == null:
+		result["error"] = "this is not a macro file."
+		return result
+	var broken := loaded.problems()
+	if not broken.is_empty():
+		result["error"] = broken[0]
+		return result
+	result["template"] = loaded
+	return result
