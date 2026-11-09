@@ -60,6 +60,7 @@ var _panel: PanelContainer
 var _icon: Button  ## the small stand-in the panel shrinks to
 var _running := false
 var _collapsed := false
+var _placed_dialogs: Dictionary = {}  ## instance ids of the open dialogs already moved clear of the panel
 var _drag_offset := Vector2.ZERO  ## how far the user moved the panel from its default place (right, down)
 var _dragging := false
 var _drag_distance := 0.0
@@ -428,6 +429,33 @@ func _follow_window() -> void:
 			host = window
 	if _canvas.get_parent() != host:
 		_canvas.reparent(host, false)
+	if host == self:
+		_keep_dialogs_clear(screen)
+
+
+## Dialogs (the macro forms, the manager, ...) open in the middle of the window and would cover the tutorial panel. When one opens over it, it is
+## moved to the right of the panel once; after that the user can drag it wherever they like.
+func _keep_dialogs_clear(screen: Vector2) -> void:
+	var open_now: Dictionary = {}
+	for node in get_parent().find_children("*", "Window", true, false):
+		var window := node as Window
+		if not window.visible or window is Popup or window.get_parent() == null:
+			continue
+		var id := window.get_instance_id()
+		open_now[id] = true
+		if _placed_dialogs.has(id) or _collapsed or not _panel.visible:
+			_placed_dialogs[id] = true
+			continue
+		_placed_dialogs[id] = true
+		var rect := Rect2(Vector2(window.position), Vector2(window.size))
+		var panel_rect := _panel.get_global_rect().grow(4.0)
+		if not rect.intersects(panel_rect):
+			continue
+		var x := minf(panel_rect.end.x + 8.0, screen.x - rect.size.x)
+		window.position = Vector2i(maxi(int(x), 0), window.position.y)
+	for id in _placed_dialogs.keys():
+		if not open_now.has(id):
+			_placed_dialogs.erase(id)  # closed: placed afresh the next time it opens
 
 
 func _highlight_rects() -> Array[Rect2]:
