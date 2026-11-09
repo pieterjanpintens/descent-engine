@@ -320,7 +320,7 @@ static func _check_macros(mission: MissionData, result: Dictionary) -> void:
 	nodes.append_array(mission.monster_spawns)
 	for node in nodes:
 		for applied in node.macros:
-			var macro := MacroCatalog.find(applied.macro_id)
+			var macro := MacroEngine.macro_for(mission, applied)
 			var name := node.reference_name if node.reference_name != "" else (node as InteractableEntry).mesh_item_name if node is InteractableEntry else "a spawn area" if node is MonsterSpawn else "a stage"
 			if macro == null:
 				_add(result, "warning", "unknown_macro", -1, "'%s' has a macro ('%s') that this editor does not know. What it generated still works as normal data." % [name, applied.macro_id])

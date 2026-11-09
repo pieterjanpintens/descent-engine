@@ -23,12 +23,16 @@ var _macro: MissionMacro
 var _existing: AppliedMacro
 var _values: Dictionary = {}
 var _editor: EffectEditor
+var _embedded_macro: MissionMacro  # the macro as the record holds it
+var _library_macro: UserMacro  # the author's library version, when it differs from the record's
 
 var _description_label: Label
 var _form: VBoxContainer
 var _status_label: Label
 var _apply_button: Button
 var _remove_button: Button
+var _update_check: CheckBox
+var _add_button: Button
 
 
 func _ready() -> void:
@@ -61,6 +65,11 @@ func _ready() -> void:
 	_form.add_theme_constant_override("separation", 8)
 	scroll.add_child(_form)
 
+	_update_check = CheckBox.new()
+	_update_check.toggled.connect(_on_update_toggled)
+	_update_check.visible = false
+	root.add_child(_update_check)
+
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_status_label.custom_minimum_size.x = WRAP_WIDTH
@@ -73,6 +82,11 @@ func _ready() -> void:
 	_remove_button.tooltip_text = "Deletes everything this macro generated (variables, actions, triggers)."
 	_remove_button.pressed.connect(_on_remove_pressed)
 	buttons.add_child(_remove_button)
+	_add_button = Button.new()
+	_add_button.text = "Add to my macros"
+	_add_button.tooltip_text = "This macro's recipe came with the mission. Adds it to your own macros so you can apply it to other props."
+	_add_button.pressed.connect(_on_add_pressed)
+	buttons.add_child(_add_button)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(spacer)
@@ -95,15 +109,17 @@ func open_for(mission: MissionData, target: OutlineNode, macro: MissionMacro, ex
 	_mission = mission
 	_target = target
 	_macro = macro
+	_embedded_macro = macro
 	_existing = existing
 	_editor.mission = mission
 	_editor.hide_nested()
-	_values = macro.default_values()
-	if existing != null:
-		var stored := macro.completed(existing.values)
-		for key in stored:
-			var value: Variant = stored[key]
-			_values[key] = value.duplicate(true) if value is Resource else value  # a working copy: Cancel changes nothing
+	_library_macro = MacroEngine.library_update_for(mission, existing) if existing != null else null
+	_update_check.visible = _library_macro != null
+	_update_check.set_pressed_no_signal(false)
+	if _library_macro != null:
+		_update_check.text = tr("Use my current version of this macro (v%d; this prop was made with v%d)") % [_library_macro.template.version, existing.macro_version]
+	_add_button.visible = existing != null and existing.template_key != "" and MacroCatalog.find(existing.macro_id) == null
+	_load_values()
 	title = macro.title() if existing == null else tr("%s (applied)") % macro.title()
 	_description_label.text = macro.description()
 	_apply_button.text = "Apply" if existing == null else "Regenerate"
@@ -112,6 +128,38 @@ func open_for(mission: MissionData, target: OutlineNode, macro: MissionMacro, ex
 	_refresh_status()
 	if not visible:
 		popup_centered()
+
+
+## The inputs for the current macro: its defaults, overlaid with what the record was made with (inputs the macro still has).
+func _load_values() -> void:
+	_values = _macro.default_values()
+	if _existing != null:
+		var stored := _macro.completed(_existing.values)
+		for key in stored:
+			var value: Variant = stored[key]
+			_values[key] = value.duplicate(true) if value is Resource else value  # a working copy: Cancel changes nothing
+
+
+func _on_update_toggled(pressed: bool) -> void:
+	_macro = _library_macro if pressed else _embedded_macro
+	_load_values()
+	_description_label.text = _macro.description()
+	_rebuild_form()
+	_refresh_status()
+
+
+## Saves the recipe that came with the mission into the author's own macros.
+func _on_add_pressed() -> void:
+	if _existing == null or _embedded_macro == null or not _embedded_macro is UserMacro:
+		return
+	var error := MacroTemplateLibrary.save_template((_embedded_macro as UserMacro).template)
+	if error != "":
+		_status_label.text = error
+		_status_label.modulate = Color(1.0, 0.55, 0.45)
+		return
+	_add_button.visible = false
+	_status_label.text = tr("Added to your macros (Mission > Macros…).")
+	_status_label.modulate = Color(0.6, 0.9, 0.6)
 
 
 func _rebuild_form() -> void:

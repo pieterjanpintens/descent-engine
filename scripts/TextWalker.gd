@@ -53,10 +53,11 @@ static func _walk(resource: Resource, path: String, segments: Array, visited: Di
 						_walk(items[index], _join(path, "%s/%d" % [name, index]), own_segments, visited, entries)
 
 
-## Monster templates (MonsterArchetype) are copies from the shared template library and are translated there, once, not per mission.
+## Monster templates (MonsterArchetype) are copies from the shared template library and are translated there, once, not per mission. Macro recipes
+## (MacroTemplate, and the AppliedMacro records that hold the inputs) are authoring data: the texts they GENERATED are ordinary texts and are walked.
 static func _is_library_data(resource: Resource) -> bool:
 	var script := resource.get_script() as Script
-	return script != null and str(script.get_global_name()) == "MonsterArchetype"
+	return script != null and ["MonsterArchetype", "MacroTemplate", "AppliedMacro"].has(str(script.get_global_name()))
 
 
 static func _join(path: String, part: String) -> String:

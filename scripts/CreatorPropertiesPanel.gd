@@ -533,7 +533,7 @@ func _rebuild_macros() -> void:
 	header.text = "Macros:"
 	_macros_box.add_child(header)
 	for applied in node.macros:
-		var macro := MacroCatalog.find(applied.macro_id)
+		var macro := MacroEngine.macro_for(layered_map.mission, applied)
 		var row := HBoxContainer.new()
 		var label := Label.new()
 		label.text = "⚙ " + (macro.title() if macro != null else applied.macro_id)

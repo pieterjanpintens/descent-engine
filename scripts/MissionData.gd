@@ -138,6 +138,9 @@ func offered_languages() -> Array[String]:
 @export var monster_groups: Array[MonsterGroup] = []
 ## The named speakers of this mission's messages: `[Name]...[/Name]` in a text is read in the character's voice (NarrationMarkup).
 @export var characters: Array[NarratorCharacter] = []
+## The recipes of the user-defined macros applied in this mission (authoring data, ignored by the Player): each AppliedMacro.template_key names one,
+## so a mission is self-contained and its macros can be regenerated anywhere. See MacroEngine.macro_for().
+@export var macro_templates: Array[MacroTemplate] = []
 
 
 ## Returns { group_name: count } tallying every placed floor/underlay/

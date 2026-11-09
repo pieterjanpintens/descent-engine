@@ -249,7 +249,7 @@ func _rebuild_tree() -> void:
 		var item := create_item(parent_item)
 		item.set_text(0, (entry.reference_name if entry.reference_name != "" else entry.mesh_item_name) + (" ⚙" if not entry.macros.is_empty() else ""))
 		if not entry.macros.is_empty():
-			item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(entry.macros)))
+			item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(entry.macros, layered_map.mission)))
 		item.set_metadata(0, {"type": SelectionType.OBJECT, "id": entry.id})
 		_dim_if_hidden(item, entry)
 		_id_to_item[entry.id] = item
@@ -267,7 +267,7 @@ func _rebuild_tree() -> void:
 		spawn_item.set_text(0, spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d (%d tiles)" % [spawn_index + 1, spawn.cells.size()])
 		if not spawn.macros.is_empty():
 			spawn_item.set_text(0, spawn_item.get_text(0) + " ⚙")
-			spawn_item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(spawn.macros)))
+			spawn_item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(spawn.macros, layered_map.mission)))
 		spawn_item.set_metadata(0, {"type": SelectionType.MONSTER_SPAWN, "id": spawn.id})
 		_dim_if_hidden(spawn_item, spawn)
 		_id_to_item[spawn.id] = spawn_item

@@ -72,7 +72,7 @@ func _fill_piece_menu() -> void:
 func _fill_macro_items(prop: InteractableEntry) -> void:
 	_macro_entries.clear()
 	for applied in prop.macros:
-		var macro := MacroCatalog.find(applied.macro_id)
+		var macro := MacroEngine.macro_for(layered_map.mission, applied)
 		if macro != null:
 			_menu.add_item("Edit macro: %s…" % macro.title(), MACRO_FIRST_ID + _macro_entries.size())
 			_macro_entries.append({"macro": macro, "existing": applied})

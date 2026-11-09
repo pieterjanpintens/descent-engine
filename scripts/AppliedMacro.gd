@@ -8,6 +8,11 @@ extends Resource
 
 ## MissionMacro.id() of the macro.
 @export var macro_id: String = ""
+## The version of a user-defined macro (MacroTemplate.version) this record was made with; 0 for a built-in macro.
+@export var macro_version: int = 0
+## A user-defined macro's recipe is stored in the mission (MissionData.macro_templates), so the record can be regenerated on a machine that
+## does not have the macro: this is the MacroTemplate.content_key() of the stored copy ("" for a built-in macro).
+@export var template_key: String = ""
 ## The inputs as the author filled them in (MacroParam.id -> value; a LOOT input is an Effect).
 @export var values: Dictionary = {}
 ## What the macro generated, by identity: variable names (MissionData.custom_variables), prop action ids (on the target) and

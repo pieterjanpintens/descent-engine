@@ -28,6 +28,11 @@ enum TargetType { PROP, MONSTER_SPAWN, ANY }
 @export var bindings: Array[MacroBinding] = []
 
 
+## A fingerprint of the recipe's content: two templates with the same key generate the same data. Used to store one copy per recipe in a mission.
+func content_key() -> String:
+	return str(MacroEngine.dump(self).hash())
+
+
 func find_part(key: String) -> MacroTemplatePart:
 	for part in parts:
 		if part.key == key:

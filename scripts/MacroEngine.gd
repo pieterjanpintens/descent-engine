@@ -28,6 +28,7 @@ static func reapply(mission: MissionData, target: OutlineNode, old: AppliedMacro
 		target.macros[index] = fresh
 	else:
 		target.macros.append(fresh)
+	prune_templates(mission)
 	return fresh
 
 
@@ -35,6 +36,7 @@ static func reapply(mission: MissionData, target: OutlineNode, old: AppliedMacro
 static func remove(mission: MissionData, target: OutlineNode, applied: AppliedMacro) -> void:
 	_remove_generated(mission, applied)
 	target.macros.erase(applied)
+	prune_templates(mission)
 
 
 ## Whether the generated pieces differ from how the macro built them (edited by hand, or deleted).
@@ -60,11 +62,73 @@ static func fingerprint(mission: MissionData, applied: AppliedMacro) -> String:
 	return "\n".join(parts)
 
 
+## The macro a record was made with: a user-defined macro comes from the recipe stored in the mission (so it works where the macro is not
+## in the library), a built-in one - or a record without a stored recipe - from the catalog. Null when neither is known.
+static func macro_for(mission: MissionData, applied: AppliedMacro) -> MissionMacro:
+	if mission != null and applied.template_key != "":
+		for template in mission.macro_templates:
+			if template.content_key() == applied.template_key:
+				return UserMacro.new(template)
+	return MacroCatalog.find(applied.macro_id)
+
+
+## The author's library version of a user-defined macro when it differs from the recipe the record holds (the macro was edited since), else null.
+static func library_update_for(mission: MissionData, applied: AppliedMacro) -> UserMacro:
+	if applied.template_key == "":
+		return null
+	var current := MacroCatalog.find(applied.macro_id) as UserMacro
+	if current != null and current.template.content_key() != applied.template_key:
+		return current
+	return null
+
+
+## Every macro record in the mission.
+static func all_records(mission: MissionData) -> Array[AppliedMacro]:
+	var nodes: Array[OutlineNode] = []
+	nodes.append_array(mission.interactables)
+	nodes.append_array(mission.groups)
+	nodes.append_array(mission.monster_spawns)
+	nodes.append_array(mission.floor_placements)
+	nodes.append_array(mission.underlay_placements)
+	nodes.append_array(mission.player_starts)
+	nodes.append_array(mission.los_blockers)
+	var records: Array[AppliedMacro] = []
+	for node in nodes:
+		records.append_array(node.macros)
+	return records
+
+
+## Stores the recipe of a user-defined macro in the mission (one copy per distinct recipe) and returns its key.
+static func embed(mission: MissionData, template: MacroTemplate) -> String:
+	var key := template.content_key()
+	for stored in mission.macro_templates:
+		if stored.content_key() == key:
+			return key
+	mission.macro_templates.append(template.duplicate(true) as MacroTemplate)
+	return key
+
+
+## Drops stored recipes no record uses any more.
+static func prune_templates(mission: MissionData) -> void:
+	var used := {}
+	for applied in all_records(mission):
+		if applied.template_key != "":
+			used[applied.template_key] = true
+	for stored in mission.macro_templates.duplicate():
+		if not used.has(stored.content_key()):
+			mission.macro_templates.erase(stored)
+
+
+## A text dump of any data (see _dump), for comparing and fingerprinting.
+static func dump(value: Variant) -> String:
+	return _dump(value)
+
+
 ## The display titles of these records ("Treasure chest"); an unknown macro shows its id.
-static func titles(records: Array[AppliedMacro]) -> Array[String]:
+static func titles(records: Array[AppliedMacro], mission: MissionData = null) -> Array[String]:
 	var names: Array[String] = []
 	for applied in records:
-		var macro := MacroCatalog.find(applied.macro_id)
+		var macro := macro_for(mission, applied)
 		names.append(macro.title() if macro != null else applied.macro_id)
 	return names
 
@@ -83,8 +147,8 @@ static func available_for(target: OutlineNode) -> Array[MissionMacro]:
 
 
 ## "" or a sentence for the Problems list: a record whose macro no longer exists.
-static func problem(applied: AppliedMacro) -> String:
-	if MacroCatalog.find(applied.macro_id) == null:
+static func problem(applied: AppliedMacro, mission: MissionData = null) -> String:
+	if macro_for(mission, applied) == null:
 		return "A macro called '%s' was applied here, but this version of the editor does not know it. Its generated data still works as normal data." % applied.macro_id
 	return ""
 
@@ -92,6 +156,10 @@ static func problem(applied: AppliedMacro) -> String:
 static func _build(mission: MissionData, target: OutlineNode, macro: MissionMacro, values: Dictionary) -> AppliedMacro:
 	var applied := AppliedMacro.new()
 	applied.macro_id = macro.id()
+	if macro is UserMacro:
+		var template := (macro as UserMacro).template
+		applied.macro_version = template.version
+		applied.template_key = embed(mission, template)
 	applied.values = _copy_values(macro.completed(values))
 	var context := MacroContext.new(mission, target, applied)
 	macro.build(context, _copy_values(applied.values))  # a copy: build() may keep or change what it is given without touching the record
