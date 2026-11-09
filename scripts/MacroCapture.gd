@@ -276,14 +276,19 @@ func build(title: String, description: String, macro_id: String, any_prop: bool)
 	for action in actions:
 		var part := MacroTemplatePart.new()
 		part.kind = MacroTemplatePart.Kind.ACTION
-		part.key = _unique(MacroContext.identifier(action.action_id), keys)
-		part.wanted = action.action_id
+		# an action without an id (only a name was typed) gets one from its name, so the template still has a usable key
+		var wanted_id := action.action_id
+		if wanted_id == "":
+			wanted_id = MacroContext.identifier(action.action_name) if action.action_name.strip_edges() != "" else "action"
+		part.key = _unique(MacroContext.identifier(wanted_id), keys)
+		part.wanted = wanted_id
 		var copy := action.duplicate(true) as PropAction
 		copy.already_used = false
 		part.data = copy
 		parts.append(part)
 		action_parts.append(part)
-		mapping[action.action_id] = "{action:%s}" % part.key
+		if action.action_id != "":  # an empty text must never be replaced everywhere
+			mapping[action.action_id] = "{action:%s}" % part.key
 	var trigger_parts: Array[MacroTemplatePart] = []
 	for entry in triggers:
 		if not entry["selected"]:
