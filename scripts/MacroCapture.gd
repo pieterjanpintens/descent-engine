@@ -129,6 +129,31 @@ func refresh() -> void:
 		_warn_references(trigger, "A trigger")
 
 
+## Replaces what was captured - the chosen actions, triggers and created-by-the-macro variables - by the macro applied to the same prop
+## with the captured values, so the prop behaves as before but now comes from the macro (and can be regenerated). Call after build().
+## Removing first frees the names, so the macro gets the same variable name and action id back and everything else that mentions them keeps working.
+func replace_original(template: MacroTemplate) -> void:
+	refresh()
+	var removed_actions := actions.duplicate()
+	var removed_triggers: Array[MissionTrigger] = []
+	for entry in triggers:
+		if entry["selected"]:
+			removed_triggers.append(entry["trigger"])
+	var owned_names := {}
+	for variable in variables:
+		if variable["owned"]:
+			owned_names[variable["name"]] = true
+	for action in removed_actions:
+		target.actions.erase(action)
+	for trigger in removed_triggers:
+		mission.triggers.erase(trigger)
+	for index in range(mission.custom_variables.size() - 1, -1, -1):
+		if owned_names.has(mission.custom_variables[index].name):
+			mission.custom_variables.remove_at(index)
+	var macro := UserMacro.new(template)
+	MacroEngine.apply(mission, target, macro, macro.default_values())
+
+
 func _variable_names() -> Dictionary:
 	var names := {}
 	for variable in mission.custom_variables:

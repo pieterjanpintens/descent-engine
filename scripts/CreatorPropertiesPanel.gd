@@ -203,6 +203,8 @@ func _build_object_fields() -> void:
 	_macro_dialog.layered_map = layered_map
 	add_child(_macro_dialog)
 	_capture_dialog = MacroCaptureDialog.new()
+	_capture_dialog.operation_history = operation_history
+	_capture_dialog.layered_map = layered_map
 	_capture_dialog.saved.connect(func(_template: MacroTemplate): _rebuild_macros())  # the new macro is offered at once
 	add_child(_capture_dialog)
 

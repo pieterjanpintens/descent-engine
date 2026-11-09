@@ -25,6 +25,10 @@ var _applies_option: OptionButton
 var _sections: VBoxContainer
 var _status_label: Label
 var _save_button: Button
+var _replace_check: CheckBox
+
+var operation_history: OperationHistory
+var layered_map: LayeredMap
 
 
 func _ready() -> void:
@@ -74,6 +78,11 @@ func _ready() -> void:
 	_sections.add_theme_constant_override("separation", 6)
 	body.add_child(_sections)
 
+	_replace_check = CheckBox.new()
+	_replace_check.text = tr("Replace what I made with the macro")
+	_replace_check.tooltip_text = tr("Removes the chosen actions, triggers and variables from this prop and applies the new macro to it instead, so the prop now comes from the macro.")
+	_replace_check.button_pressed = true
+	root.add_child(_replace_check)
 	_status_label = _wrapping_label("")
 	root.add_child(_status_label)
 	var buttons := HBoxContainer.new()
@@ -299,4 +308,13 @@ func _on_save_pressed() -> void:
 		_status_label.modulate = Color(1.0, 0.55, 0.45)
 		return
 	hide()
+	if _replace_check.button_pressed:
+		var capture := _capture
+		var replace := func(): capture.replace_original(template)
+		if operation_history != null:
+			operation_history.record("Replace with macro", replace)
+		else:
+			replace.call()
+		if layered_map != null:
+			layered_map.notify_objects_changed()
 	saved.emit(template)

@@ -1144,7 +1144,10 @@ static func _save_well_macro(r: TutorialRunner) -> String:
 	var error := MacroTemplateLibrary.save_template(template)
 	if error != "":
 		return error
-	return "Saved the macro 'Limited well' (any prop; inputs: Uses allowed, Message)."
+	# like the dialog's "Replace what I made with the macro" (ticked by default): the well now comes from the macro
+	r.history.record("Replace with macro", func(): capture.replace_original(template))
+	r.layered_map.notify_objects_changed()
+	return "Saved the macro 'Limited well' (any prop; inputs: Uses allowed, Message) and replaced the well's hand-made parts with it."
 
 
 ## Adds a hint to the first input of the saved macro, as the manager does.
