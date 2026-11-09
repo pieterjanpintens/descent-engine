@@ -1,0 +1,212 @@
+{
+	"id": "own_macro",
+	"title": "Your own macro: capture, reuse, manage",
+	"steps": [
+		{
+			"id": "welcome",
+			"chapter": "Your own macro",
+			"title": "Part four: make a macro yourself",
+			"text": "The built-in macros cover chests, doors and reinforcements. For everything else you can make your own: build the thing by hand once, then [b]capture[/b] it as a macro and reuse it on other props.\n\nThis tutorial carries on from tutorial 3. If its mission is still open you are ready; otherwise load the example.",
+			"highlight": [
+				"menu_bar"
+			],
+			"done": {
+				"check": "fork_ready"
+			},
+			"assist": "load_start",
+			"assist_label": "Load the example"
+		},
+		{
+			"id": "plan",
+			"chapter": "Your own macro",
+			"title": "What we are going to do",
+			"text": "We will build a [b]well[/b] that the heroes can drink from only [b]three times[/b] before it runs dry: a prop, a counter variable and one action. Then we save that as a macro called [i]Limited well[/i], and reuse it on a [b]cauldron[/b] with different answers (two uses, another message).\n\nAlong the way you will see what a macro captures, what it turns into inputs, how it is named after the prop, and how to manage, update and share it. Every step can be done for you with [b]Do it for me[/b], and each one explains what to look for, so you can check the result yourself.",
+			"highlight": []
+		},
+		{
+			"id": "well",
+			"chapter": "The thing to capture",
+			"title": "A well in the cave",
+			"tab": "Palette",
+			"text": "Place a [b]well[/b] (Prop tab) on a free square of the cave and name it [i]old_well[/i].\n\n[b]Why the name matters:[/b] a macro names the things it makes after the prop it is applied to. A variable called [i]old_well_uses[/i] on a prop called [i]old_well[/i] becomes [i]cauldron_uses[/i] on a prop called [i]cauldron[/i]. Without the prop-name prefix the macro would keep calling it [i]old_well_uses[/i] everywhere.",
+			"highlight": [
+				"palette_prop",
+				"palette_grid",
+				"toolbar_working_group",
+				"name_field"
+			],
+			"done": {
+				"check": "old_well"
+			},
+			"assist": "place_well",
+			"assist_label": "Place the well"
+		},
+		{
+			"id": "variable",
+			"chapter": "The thing to capture",
+			"title": "A counter variable",
+			"text": "Open [b]Variables…[/b] (Mission menu, or select the mission name at the top of the Outline) and add a [b]number[/b] variable called [i]old_well_uses[/i], starting at 0. It will count how often the well has been used.\n\nThis variable belongs to the well only. When you capture the macro it will be offered as [b]Created by the macro[/b], so every prop that gets the macro gets its own counter.",
+			"highlight": [
+				"menu_bar",
+				"button:Variables…"
+			],
+			"done": {
+				"check": "well_variable"
+			},
+			"assist": "add_well_variable",
+			"assist_label": "Add the variable"
+		},
+		{
+			"id": "action",
+			"chapter": "The thing to capture",
+			"title": "The action, with a limit",
+			"tab": "Outline",
+			"text": "Select the well in the Outline and press [b]Actions…[/b]. Add an action named [i]Drink from the well[/i] (any description). Under its [b]Conditions[/b] add one: [i]old_well_uses[/i] is [b]less than[/b] [b]3[/b].\n\nThe action is only offered while the counter is below 3, so after three drinks it disappears. The [b]3[/b] is the number we will turn into an input in a moment.",
+			"highlight": [
+				"outline_tree",
+				"button:Actions…",
+				"button:Add Action",
+				"button:Add Condition"
+			],
+			"done": {
+				"check": "well_action"
+			},
+			"assist": "add_well_action",
+			"assist_label": "Add the action"
+		},
+		{
+			"id": "effects",
+			"chapter": "The thing to capture",
+			"title": "What drinking does",
+			"tab": "Outline",
+			"text": "In the same action add two effects: a [b]Show Message[/b] with some text for the table (for example [i]The water is cold and clear. You feel refreshed.[/i]) and a [b]Math[/b] effect that sets [i]old_well_uses[/i] to [i]old_well_uses + 1[/i] (tick [b]Var[/b] on the first number and pick the variable, type 1 as the second).\n\nThe message is the other thing we will turn into an input, so a cauldron can say something different.",
+			"highlight": [
+				"button:Actions…",
+				"button:Add Effect"
+			],
+			"done": {
+				"check": "well_effects"
+			},
+			"assist": "add_well_effects",
+			"assist_label": "Add the effects"
+		},
+		{
+			"id": "capture",
+			"chapter": "Capture it",
+			"title": "Save as macro",
+			"tab": "Outline",
+			"text": "Select the well and press [b]Save as macro…[/b] in its properties (or right-click it). Fill in the form like this:\n\n• [b]Name[/b]: [i]Limited well[/i] (the id fills in itself: [i]user.limited_well[/i]).\n• [b]Can be applied to[/b]: choose [b]Any prop[/b], otherwise it would only fit wells and we want it on a cauldron.\n• [b]Actions[/b]: the drink action is ticked.\n• [b]Variables[/b]: [i]old_well_uses[/i] says [b]Created by the macro[/b]. (If another part of the mission used it too, it would say [i]Chosen when applied[/i] and become a variable picker.)\n• [b]Values to fill in each time[/b]: tick the [b]Condition[/b] row (the 3) and the [b]Message[/b] row, and rename them [i]Uses allowed[/i] and [i]Message[/i] - these become the questions of the macro.\n\nPress [b]Save macro[/b].",
+			"highlight": [
+				"outline_tree",
+				"button:Save as macro…"
+			],
+			"done": {
+				"check": "well_macro"
+			},
+			"assist": "save_well_macro",
+			"assist_label": "Save it for me"
+		},
+		{
+			"id": "manager",
+			"chapter": "Manage it",
+			"title": "Mission > Macros…",
+			"text": "Open [b]Mission > Macros…[/b]. Your macro is in the list. On the right you can change its name and description, the piece names it applies to, and for each input the [b]label[/b], a [b]hint[/b] shown under it, the [b]default[/b] and the order.\n\nAdd a hint to [i]Uses allowed[/i] (for example [i]How many times it can be used before it runs dry[/i]) and press [b]Save changes[/b]. Saving raises the macro's version number: remember it, we use it in a few steps.\n\nWhat the macro [i]generates[/i] cannot be edited here: to change that, capture again under the same name. [b]Delete[/b], [b]Export…[/b] and [b]Import…[/b] are in this window too.",
+			"highlight": [
+				"menu_bar"
+			],
+			"done": {
+				"check": "well_hint"
+			},
+			"assist": "set_well_hint",
+			"assist_label": "Add the hint"
+		},
+		{
+			"id": "cauldron",
+			"chapter": "Use it again",
+			"title": "A cauldron",
+			"tab": "Palette",
+			"text": "Now reuse it. Place a [b]pot[/b] (Prop tab) on another free square of the cave and name it [i]cauldron[/i]. It has no actions at all: the macro will give it everything.",
+			"highlight": [
+				"palette_prop",
+				"palette_grid",
+				"toolbar_working_group",
+				"name_field"
+			],
+			"done": {
+				"check": "cauldron"
+			},
+			"assist": "place_cauldron",
+			"assist_label": "Place the cauldron"
+		},
+		{
+			"id": "apply",
+			"chapter": "Use it again",
+			"title": "Apply your macro",
+			"tab": "Outline",
+			"text": "Select the cauldron. Your macro shows up like the built-in ones: [b]Apply macro: Limited well…[/b]. Open it and answer the two questions: [b]Uses allowed[/b] = [b]2[/b], and a [b]Message[/b] of your own (for example [i]The brew tastes of iron and smoke.[/i]). Press [b]Apply[/b].",
+			"highlight": [
+				"outline_tree",
+				"button:Apply macro: Limited well…"
+			],
+			"done": {
+				"check": "cauldron_macro"
+			},
+			"assist": "apply_cauldron_macro",
+			"assist_label": "Apply it for me"
+		},
+		{
+			"id": "verify",
+			"chapter": "Use it again",
+			"title": "Check what it made",
+			"tab": "Outline",
+			"text": "Verify it did what you expect:\n\n• [b]Variables…[/b]: a new variable [b]cauldron_uses[/b] (named after the cauldron, not [i]old_well_uses[/i]).\n• Select the cauldron and press [b]Actions…[/b]: the action [i]Drink from the well[/i], offered while [i]cauldron_uses[/i] is less than [b]2[/b], with your message, and a Math effect that adds 1 to [i]cauldron_uses[/i].\n• The well keeps its own counter and limit of 3: the two do not affect each other.\n\nThe cauldron's gear mark ⚙ in the Outline shows it has a macro. Next to it in its properties, [b]Edit…[/b] reopens the answers.",
+			"highlight": [
+				"menu_bar",
+				"button:Variables…",
+				"button:Actions…",
+				"button:Edit…"
+			],
+			"done": {
+				"check": "cauldron_variable"
+			}
+		},
+		{
+			"id": "update",
+			"chapter": "Change your mind",
+			"title": "Updating props after you change the macro",
+			"text": "Props keep what their macro generated, even when you later change the macro. Try it:\n\n1. In [b]Mission > Macros…[/b] change the default of [i]Uses allowed[/i] (say to 5) and save: the macro is now a newer version.\n2. Select the cauldron and press [b]Edit…[/b]: a checkbox appears, [b]Use my current version of this macro[/b], naming both versions.\n3. Tick it and press [b]Regenerate[/b] to rebuild the cauldron from the new version. Leave it unticked to keep the old recipe.\n\nThe cauldron regenerates from [i]its own[/i] stored recipe by default, so changing the macro never alters a prop behind your back.",
+			"highlight": [
+				"menu_bar",
+				"button:Edit…"
+			]
+		},
+		{
+			"id": "share",
+			"chapter": "Sharing",
+			"title": "Missions carry their macros",
+			"text": "When you apply one of your own macros, a copy of its recipe is stored [b]inside the mission[/b]. So a mission you share or release still works, and can still be edited, on a computer that does not have your macro: Edit… on a prop uses the stored recipe, and an [b]Add to my macros[/b] button saves it to that person's own list.\n\nTo give a macro on its own, use [b]Export…[/b] in Mission > Macros…; the other person uses [b]Import…[/b], which checks the file before loading anything.",
+			"highlight": [
+				"menu_bar"
+			]
+		},
+		{
+			"id": "problems",
+			"chapter": "Check",
+			"title": "Ask the checker",
+			"text": "Press the [b]Problems[/b] button. A macro should not add errors: the well and the cauldron stand on floor, and their actions only use variables that exist.",
+			"highlight": [
+				"toolbar_problems"
+			],
+			"done": {
+				"check": "no_errors"
+			}
+		},
+		{
+			"id": "finished",
+			"chapter": "Done",
+			"title": "Your own macros",
+			"text": "You built a small mechanism by hand, captured it as a macro with two questions, reused it on another prop, and saw how macros are named, managed, updated and shared.\n\nWhenever you build the same thing twice, capture it. The macro [i]Limited well[/i] stays in your list ([b]Mission > Macros…[/b]); delete it there when you no longer want it.\n\n[b]Peek[/b] shows the finished mission.",
+			"highlight": []
+		}
+	]
+}

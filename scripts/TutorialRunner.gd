@@ -20,6 +20,8 @@ const TUTORIALS: Array[Dictionary] = [
 		"finished": "res://data/tutorials/finished_fork.tres", "start": "res://data/tutorials/finished_mission.tres"},
 	{"id": "macros", "title": "Macros: shortcuts for common things", "file": "res://data/tutorials/macros.json",
 		"finished": "res://data/tutorials/finished_macros.tres", "start": "res://data/tutorials/finished_fork.tres"},
+	{"id": "own_macro", "title": "Your own macro: capture, reuse, manage", "file": "res://data/tutorials/own_macro.json",
+		"finished": "res://data/tutorials/finished_own_macro.tres", "start": "res://data/tutorials/finished_macros.tres"},
 ]
 const PROGRESS_FILE := "user://configuration/tutorial.cfg"
 const PANEL_WIDTH := 410.0

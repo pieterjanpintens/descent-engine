@@ -113,6 +113,25 @@ static func check(spec: Dictionary, r: TutorialRunner) -> bool:
 			return has_macro(lair_chest(mission), "treasure_chest")
 		"reinforce_macro":
 			return cave_spawn_with_macro(mission) != null
+		# ---- tutorial 4: your own macro ----
+		"old_well":
+			return named_prop(mission, "well", WELL_NAME) != null
+		"well_variable":
+			return _has_variable(mission, WELL_VARIABLE, MissionVariable.Type.INT)
+		"well_action":
+			return well_action(mission) != null
+		"well_effects":
+			return well_effects_ok(mission)
+		"well_macro":
+			return well_macro_ok()
+		"well_hint":
+			return well_hint_ok()
+		"cauldron":
+			return named_prop(mission, "pot", CAULDRON_NAME) != null
+		"cauldron_macro":
+			return has_macro(named_prop(mission, "pot", CAULDRON_NAME), WELL_MACRO_ID)
+		"cauldron_variable":
+			return cauldron_variable_ok(mission)
 		"no_errors":
 			return MapPlanValidator.validate_mission(mission)["errors"].is_empty()
 	push_warning("TutorialChecks: unknown check '%s'" % spec.get("check", ""))
@@ -458,6 +477,80 @@ static func cave_spawn_with_macro(mission: MissionData) -> MonsterSpawn:
 
 static func reinforcements_ok(mission: MissionData) -> bool:
 	return reinforcements_trigger(mission) != null
+
+
+# ---- tutorial 4: your own macro ----
+
+## What tutorial 4 builds: a well that can be used three times, captured as the macro "Limited well", then reused on a cauldron.
+const WELL_NAME := "old_well"
+const CAULDRON_NAME := "cauldron"
+const WELL_VARIABLE := "old_well_uses"
+const WELL_MACRO_ID := "user.limited_well"
+
+
+static func named_prop(mission: MissionData, mesh: String, prop_name: String) -> InteractableEntry:
+	for entry in mission.interactables:
+		if entry.mesh_item_name == mesh and entry.reference_name == prop_name:
+			return entry
+	return null
+
+
+static func _has_variable(mission: MissionData, variable_name: String, type: MissionVariable.Type) -> bool:
+	for variable in mission.custom_variables:
+		if variable.name == variable_name and variable.type == type:
+			return true
+	return false
+
+
+## The well's action that is only offered while old_well_uses < something.
+static func well_action(mission: MissionData) -> PropAction:
+	var well := named_prop(mission, "well", WELL_NAME)
+	if well == null:
+		return null
+	for action in well.actions:
+		for condition in action.conditions:
+			if condition.variable_name == WELL_VARIABLE and condition.operator == Condition.Operator.LESS:
+				return action
+	return null
+
+
+## The action adds 1 to the counter (Math) and tells the players something (Show Message).
+static func well_effects_ok(mission: MissionData) -> bool:
+	var action := well_action(mission)
+	if action == null:
+		return false
+	var counts := false
+	for effect in action.effects:
+		if effect.type == Effect.Type.MATH and effect.variable_name == WELL_VARIABLE:
+			counts = true
+	return counts and has_effect_type(action.effects, Effect.Type.SHOW_MESSAGE)
+
+
+## The saved macro: applies to any prop and has at least the two inputs (uses allowed, message).
+static func well_macro_ok() -> bool:
+	var macro := MacroCatalog.find(WELL_MACRO_ID) as UserMacro
+	return macro != null and macro.template.meshes.is_empty() and macro.template.params.size() >= 2
+
+
+static func well_hint_ok() -> bool:
+	var macro := MacroCatalog.find(WELL_MACRO_ID) as UserMacro
+	if macro == null:
+		return false
+	for param in macro.template.params:
+		if param.hint.strip_edges() != "":
+			return true
+	return false
+
+
+## The macro made a counter named after the cauldron, and the cauldron's action reads it.
+static func cauldron_variable_ok(mission: MissionData) -> bool:
+	var cauldron := named_prop(mission, "pot", CAULDRON_NAME)
+	if cauldron == null or not _has_variable(mission, CAULDRON_NAME + "_uses", MissionVariable.Type.INT):
+		return false
+	for action in cauldron.actions:
+		if mentions(action.conditions, CAULDRON_NAME + "_uses"):
+			return true
+	return false
 
 
 static func restless_trigger_ok(mission: MissionData) -> bool:
