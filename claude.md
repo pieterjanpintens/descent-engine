@@ -7938,14 +7938,8 @@ These cost real debugging time — worth not re-learning them:
   zigzag), `21a`/`21b` (small 4×4 cross) — all of these except `9a`/`9b`,
   `13a`/`13b`, and `21a`/`21b` were derived from mesh geometry rather than
   hand-typed ASCII art, see **Footprint extraction from mesh geometry** below.
-  - **`6a`/`6b` and `19a`/`19b` are UNVERIFIED** - the user modeled these two
-	tiles' meshes from memory while away from the physical box with no scan to
-	check against ("on holiday", 2026-09-08), so their shape is a guess. The
-	extracted footprint faithfully matches whatever the mesh says, but the mesh
-	itself might not match the real physical tile - re-check both against the
-	actual box before relying on them for a real mission, and re-run the
-	extraction tool if the mesh gets corrected. (2026-11-10: the author fixed the meshes /
-	textures of tiles 6 and 19, `floors.glb` and `descent-meshes.res` updated.)
+  - `6a`/`6b` and `19a`/`19b` were modeled from memory at first; the author fixed and verified them
+	(2026-11-10), so nothing is open for them any more.
   - `9a`/`9b`, `13a`/`13b`, and `21a`/`21b` were hand-authored from ASCII art
 	instead of extracted (their footprints in `FootprintRegistry` are the source of truth).
   - `bridge.001` and `stair.001` are also present in `floors.glb` but aren't
@@ -7994,9 +7988,6 @@ These cost real debugging time — worth not re-learning them:
    (see **Current data authored so far** above for exactly which numbers) - most of
    these can now go through `tools/footprint_extraction/` instead of hand-typed
    ASCII art once their mesh exists in `floors.glb` with a correct corner pivot.
-   - **Verify `6a`/`6b` and `19a`/`19b` against the real physical box** - these were
-	 modeled from memory while the user was away from the box with no scan to check
-	 against, so they're guesses and might not match the real tiles.
 2. ~~Real palette UI~~ — done, see `CreatorPalette.gd`, including the "jump to a
    placed instance" follow-up (via the "Show unavailable" mode + `locate_mesh()`).
    **Unverified in-editor** (built without visual feedback — I have no way to launch
