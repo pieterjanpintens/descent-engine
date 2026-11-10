@@ -1,4 +1,7 @@
-﻿## v0.0.68 - 2026-11-09
+﻿## v0.0.69 - 2026-11-10
+- Fixed the shapes and textures of floor tiles 6 and 19.
+
+## v0.0.68 - 2026-11-09
 - New in the mission editor: macros. A macro is a recipe with a few questions that builds the data for a common thing for you. Select a prop or spawn area and press "Apply macro" in its properties (or use the right-click menu): Treasure chest (a test to open it, accumulated successes, loot, the chest removes itself), Locked door (a key variable, optionally forced with a test) and Reinforcements (a stream of random monsters while the board is nearly empty). What a macro makes is ordinary data you can still edit, and you can reopen the macro to regenerate it or remove it. Props with macros show a gear mark in the outline.
 - New tutorial "Macros: shortcuts for common things" (Help menu).
 - New tutorial "Your own macro: capture, reuse, manage" (Help menu): build a small well by hand, save it as your own macro, reuse it on another prop with different answers, check what it made, and learn how to update, manage and share it.
