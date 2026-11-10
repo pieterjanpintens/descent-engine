@@ -7944,13 +7944,10 @@ These cost real debugging time — worth not re-learning them:
 	extracted footprint faithfully matches whatever the mesh says, but the mesh
 	itself might not match the real physical tile - re-check both against the
 	actual box before relying on them for a real mission, and re-run the
-	extraction tool if the mesh gets corrected.
+	extraction tool if the mesh gets corrected. (2026-11-10: the author fixed the meshes /
+	textures of tiles 6 and 19, `floors.glb` and `descent-meshes.res` updated.)
   - `9a`/`9b`, `13a`/`13b`, and `21a`/`21b` were hand-authored from ASCII art
-	instead of extracted: the mesh geometry in `floors.glb` for those three
-	names is a large solid rectangle with the pivot in its interior (72/72/56
-	cells respectively) - nothing like the actual shapes, so it's not just a
-	pivot-correction case, the meshes themselves need fixing/replacing in
-	Blender before extraction would work for tiles 9/13/21.
+	instead of extracted (their footprints in `FootprintRegistry` are the source of truth).
   - `bridge.001` and `stair.001` are also present in `floors.glb` but aren't
 	tile-face names and are deliberately skipped by the extraction tool - the
 	user has flagged these as unexpected/leftover, not (yet) real tiles.
@@ -8000,10 +7997,6 @@ These cost real debugging time — worth not re-learning them:
    - **Verify `6a`/`6b` and `19a`/`19b` against the real physical box** - these were
 	 modeled from memory while the user was away from the box with no scan to check
 	 against, so they're guesses and might not match the real tiles.
-   - Fix the Blender pivot (move to a real corner, re-export) for `9a`/`9b`,
-	 `13a`/`13b`, and `21a`/`21b` - their meshes currently have the origin in the
-	 shape's interior, which the extraction tool can detect but not correct.
-	 All three are unblocked in the meantime via hand-authored ASCII art.
 2. ~~Real palette UI~~ — done, see `CreatorPalette.gd`, including the "jump to a
    placed instance" follow-up (via the "Show unavailable" mode + `locate_mesh()`).
    **Unverified in-editor** (built without visual feedback — I have no way to launch
