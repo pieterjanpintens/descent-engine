@@ -247,7 +247,7 @@ func _rebuild_tree() -> void:
 	for entry in mission.interactables:
 		var parent_item: TreeItem = _id_to_item.get(entry.parent_id, root_item)
 		var item := create_item(parent_item)
-		item.set_text(0, (entry.reference_name if entry.reference_name != "" else entry.mesh_item_name) + (" ⚙" if not entry.macros.is_empty() else ""))
+		item.set_text(0, (entry.reference_name if entry.reference_name != "" else entry.mesh_item_name) + _macro_mark(entry.macros.size()))
 		if not entry.macros.is_empty():
 			item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(entry.macros, layered_map.mission)))
 		item.set_metadata(0, {"type": SelectionType.OBJECT, "id": entry.id})
@@ -266,7 +266,7 @@ func _rebuild_tree() -> void:
 		var spawn_item := create_item(spawn_parent)
 		spawn_item.set_text(0, spawn.reference_name if spawn.reference_name != "" else "Monster Spawn %d (%d tiles)" % [spawn_index + 1, spawn.cells.size()])
 		if not spawn.macros.is_empty():
-			spawn_item.set_text(0, spawn_item.get_text(0) + " ⚙")
+			spawn_item.set_text(0, spawn_item.get_text(0) + _macro_mark(spawn.macros.size()))
 			spawn_item.set_tooltip_text(0, "Macro: " + ", ".join(MacroEngine.titles(spawn.macros, layered_map.mission)))
 		spawn_item.set_metadata(0, {"type": SelectionType.MONSTER_SPAWN, "id": spawn.id})
 		_dim_if_hidden(spawn_item, spawn)
@@ -355,6 +355,17 @@ const EYE_BUTTON_ID := 1
 const HIDDEN_TEXT_COLOR := Color(0.5, 0.5, 0.5)
 static var _eye_open_texture: ImageTexture
 static var _eye_closed_texture: ImageTexture
+
+
+## The outline marker for a node with macros: a gear with the number applied as a small raised digit ("⚙²"); nothing when there are none.
+func _macro_mark(count: int) -> String:
+	if count <= 0:
+		return ""
+	var raised := "⁰¹²³⁴⁵⁶⁷⁸⁹"
+	var digits := ""
+	for digit in str(count):
+		digits += raised[int(digit)]
+	return " ⚙" + digits
 
 
 func _dim_if_hidden(item: TreeItem, node: OutlineNode) -> void:

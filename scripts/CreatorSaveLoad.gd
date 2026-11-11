@@ -57,6 +57,8 @@ var current_path: String = ""
 var read_only := false
 var _leave_dialog: ConfirmationDialog
 var _pending_leave: Callable
+## True while the file dialog opened by "Save as…" from the unsaved-changes dialog is up: after saving, the pending leave goes on.
+var _leave_after_save: bool = false
 var _banner: HBoxContainer
 var _banner_label: Label
 
@@ -78,6 +80,11 @@ var _suppress_player_count_recording: bool = false
 
 
 func _ready() -> void:
+	# Closing the window must ask about unsaved changes (see _on_quit_requested()); restored in _exit_tree().
+	get_tree().auto_accept_quit = false
+	get_tree().root.close_requested.connect(_on_quit_requested)
+	file_dialog.canceled.connect(func(): _leave_after_save = false)
+
 	# Real accelerators (not just inline text like the View menu's "(O)"/
 	# "(N)" hints) - requested 2026-09-10. Safe to bind globally through
 	# Godot's own MenuBar-accelerator system here specifically because
@@ -329,11 +336,30 @@ func _confirm_leave(go: Callable) -> void:
 
 func _on_leave_save() -> void:
 	if current_path == "":
-		_on_save_button_pressed()  # no file yet: choose one, then leave with Back again
+		_leave_after_save = true  # no file yet: choose one, then leave
+		_on_save_button_pressed()
 		return
 	_save_to(current_path)
 	if not operation_history.is_dirty():
 		_pending_leave.call()
+
+
+## Closing the game window while the mission editor is open: ask about unsaved changes first (the same dialog as Back to Menu),
+## then quit. The editor takes over the quit request for as long as it is in the tree.
+func _on_quit_requested() -> void:
+	if _leave_dialog != null and _leave_dialog.visible:
+		return
+	_confirm_leave(func(): get_tree().quit())
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if is_inside_tree() and not get_tree().auto_accept_quit:
+			_on_quit_requested()
+
+
+func _exit_tree() -> void:
+	get_tree().auto_accept_quit = true
 
 
 func _leave() -> void:
@@ -374,6 +400,10 @@ func _on_new_button_pressed() -> void:
 func _on_mission_file_dialog_file_selected(path: String) -> void:
 	if file_dialog.file_mode == FileDialog.FILE_MODE_SAVE_FILE:
 		_save_to(path)
+		if _leave_after_save:
+			_leave_after_save = false
+			if not operation_history.is_dirty():
+				_pending_leave.call()
 	else:
 		_load_from(path)
 

@@ -1,4 +1,8 @@
-﻿## v0.0.69 - 2026-11-10
+﻿## v0.0.70 - 2026-11-11
+- The mission editor now asks to save when you close the game window with unsaved changes, like Back to Menu does.
+- The outline shows how many macros a prop or spawn area has (a small number next to the gear).
+
+## v0.0.69 - 2026-11-10
 - Fixed the shapes and textures of floor tiles 6 and 19.
 
 ## v0.0.68 - 2026-11-09
