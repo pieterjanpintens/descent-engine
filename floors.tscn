@@ -130,212 +130,336 @@ data = PackedVector3Array(-0.0001, 0, 0, -0.0001, 0.19999999, -3.1999998, -0.000
 
 [node name="floors" unique_id=1595643 instance=ExtResource("1_ffyv4")]
 
-[node name="StaticBody3D" type="StaticBody3D" parent="1a" parent_id_path=PackedInt32Array(542458642) index="0" unique_id=1574604544]
+[node name="1a" parent="." index="0" unique_id=417449810]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="1a" index="0" unique_id=1574604544]
+visible = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="1a/StaticBody3D" index="0" unique_id=991988076]
+visible = false
 shape = SubResource("ConcavePolygonShape3D_ffyv4")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="1b" parent_id_path=PackedInt32Array(2017977993) index="0" unique_id=2037062326]
+[node name="1b" parent="." index="1" unique_id=633873926]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="1b" index="0" unique_id=2037062326]
+visible = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="1b/StaticBody3D" index="0" unique_id=139055505]
+visible = false
 shape = SubResource("ConcavePolygonShape3D_k6cl7")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="2a" parent_id_path=PackedInt32Array(1071662289) index="0" unique_id=830259668]
+[node name="2a" parent="." index="2" unique_id=458503606]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="2a" index="0" unique_id=830259668]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="2a/StaticBody3D" index="0" unique_id=1295374125]
 shape = SubResource("ConcavePolygonShape3D_6mv4r")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="2b" parent_id_path=PackedInt32Array(641882824) index="0" unique_id=1495698107]
+[node name="2b" parent="." index="3" unique_id=810608190]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="2b" index="0" unique_id=1495698107]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="2b/StaticBody3D" index="0" unique_id=255201432]
 shape = SubResource("ConcavePolygonShape3D_iukat")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="3a" parent_id_path=PackedInt32Array(430893751) index="0" unique_id=371619499]
+[node name="3a" parent="." index="4" unique_id=716368062]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="3a" index="0" unique_id=371619499]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="3a/StaticBody3D" index="0" unique_id=1703827758]
 shape = SubResource("ConcavePolygonShape3D_us0e1")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="3b" parent_id_path=PackedInt32Array(368779171) index="0" unique_id=1286516819]
+[node name="3b" parent="." index="5" unique_id=1251134440]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="3b" index="0" unique_id=1286516819]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="3b/StaticBody3D" index="0" unique_id=641234985]
 shape = SubResource("ConcavePolygonShape3D_xoyxr")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="4a" parent_id_path=PackedInt32Array(1460802585) index="0" unique_id=1909877630]
+[node name="4a" parent="." index="6" unique_id=538901874]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="4a" index="0" unique_id=1909877630]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="4a/StaticBody3D" index="0" unique_id=1544116456]
 shape = SubResource("ConcavePolygonShape3D_ikd0o")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="4b" parent_id_path=PackedInt32Array(441916392) index="0" unique_id=1971213472]
+[node name="4b" parent="." index="7" unique_id=1547196727]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="4b" index="0" unique_id=1971213472]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="4b/StaticBody3D" index="0" unique_id=823983053]
 shape = SubResource("ConcavePolygonShape3D_g1olq")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="5a" parent_id_path=PackedInt32Array(1790265396) index="0" unique_id=1905136969]
+[node name="5a" parent="." index="8" unique_id=788816851]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="5a" index="0" unique_id=1905136969]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="5a/StaticBody3D" index="0" unique_id=400317371]
 shape = SubResource("ConcavePolygonShape3D_68mft")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="5b" parent_id_path=PackedInt32Array(59670264) index="0" unique_id=1681548805]
+[node name="5b" parent="." index="9" unique_id=1291211673]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="5b" index="0" unique_id=1681548805]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="5b/StaticBody3D" index="0" unique_id=2071170392]
 shape = SubResource("ConcavePolygonShape3D_jc1dw")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="6a" parent_id_path=PackedInt32Array(522775003) index="0" unique_id=634996320]
+[node name="6a" parent="." index="10" unique_id=558150309]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="6a" index="0" unique_id=634996320]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="6a/StaticBody3D" index="0" unique_id=1075337375]
 shape = SubResource("ConcavePolygonShape3D_kgkug")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="6b" parent_id_path=PackedInt32Array(529517629) index="0" unique_id=2129381748]
+[node name="6b" parent="." index="11" unique_id=1235634603]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="6b" index="0" unique_id=2129381748]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="6b/StaticBody3D" index="0" unique_id=1096045415]
 shape = SubResource("ConcavePolygonShape3D_6tukk")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="7a" parent_id_path=PackedInt32Array(820736113) index="0" unique_id=1512656428]
+[node name="7a" parent="." index="12" unique_id=2002621814]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="7a" index="0" unique_id=1512656428]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="7a/StaticBody3D" index="0" unique_id=54173809]
 shape = SubResource("ConcavePolygonShape3D_240nf")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="7b" parent_id_path=PackedInt32Array(968721285) index="0" unique_id=1397823243]
+[node name="7b" parent="." index="13" unique_id=1954554905]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="7b" index="0" unique_id=1397823243]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="7b/StaticBody3D" index="0" unique_id=285389054]
 shape = SubResource("ConcavePolygonShape3D_jcbof")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="8a" parent_id_path=PackedInt32Array(272257924) index="0" unique_id=1092397980]
+[node name="8a" parent="." index="14" unique_id=1699596459]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="8a" index="0" unique_id=1092397980]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="8a/StaticBody3D" index="0" unique_id=150201841]
 shape = SubResource("ConcavePolygonShape3D_stryc")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="8b" parent_id_path=PackedInt32Array(1840089396) index="0" unique_id=991431912]
+[node name="8b" parent="." index="15" unique_id=2047592592]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="8b" index="0" unique_id=991431912]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="8b/StaticBody3D" index="0" unique_id=349723490]
 shape = SubResource("ConcavePolygonShape3D_27qgo")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="9a" parent_id_path=PackedInt32Array(1082302850) index="0" unique_id=1406783870]
+[node name="9a" parent="." index="16" unique_id=1436352961]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="9a" index="0" unique_id=1406783870]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="9a/StaticBody3D" index="0" unique_id=238990353]
 shape = SubResource("ConcavePolygonShape3D_irg45")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="9b" parent_id_path=PackedInt32Array(1485459010) index="0" unique_id=581502052]
+[node name="9b" parent="." index="17" unique_id=1594301657]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="9b" index="0" unique_id=581502052]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="9b/StaticBody3D" index="0" unique_id=9976475]
 shape = SubResource("ConcavePolygonShape3D_0atom")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="10a" parent_id_path=PackedInt32Array(1888310884) index="0" unique_id=355913813]
+[node name="10a" parent="." index="18" unique_id=551545799]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="10a" index="0" unique_id=355913813]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="10a/StaticBody3D" index="0" unique_id=1143626407]
 shape = SubResource("ConcavePolygonShape3D_qywoo")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="10b" parent_id_path=PackedInt32Array(130122888) index="0" unique_id=381931844]
+[node name="10b" parent="." index="19" unique_id=1691634426]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="10b" index="0" unique_id=381931844]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="10b/StaticBody3D" index="0" unique_id=1727057873]
 shape = SubResource("ConcavePolygonShape3D_7au12")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="11a" parent_id_path=PackedInt32Array(173206275) index="0" unique_id=1161347018]
+[node name="11a" parent="." index="20" unique_id=848750821]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="11a" index="0" unique_id=1161347018]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="11a/StaticBody3D" index="0" unique_id=526073347]
 shape = SubResource("ConcavePolygonShape3D_xdpfg")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="11b" parent_id_path=PackedInt32Array(1903470617) index="0" unique_id=1807529258]
+[node name="11b" parent="." index="21" unique_id=1315857767]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="11b" index="0" unique_id=1807529258]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="11b/StaticBody3D" index="0" unique_id=1141828014]
 shape = SubResource("ConcavePolygonShape3D_ukqbi")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="12a" parent_id_path=PackedInt32Array(1758295996) index="0" unique_id=769512717]
+[node name="12a" parent="." index="22" unique_id=372241262]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="12a" index="0" unique_id=769512717]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="12a/StaticBody3D" index="0" unique_id=366843125]
 shape = SubResource("ConcavePolygonShape3D_0bb23")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="12b" parent_id_path=PackedInt32Array(782726524) index="0" unique_id=1658501919]
+[node name="12b" parent="." index="23" unique_id=319173848]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="12b" index="0" unique_id=1658501919]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="12b/StaticBody3D" index="0" unique_id=504400813]
 shape = SubResource("ConcavePolygonShape3D_mskml")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="13a" parent_id_path=PackedInt32Array(779719611) index="0" unique_id=1576305586]
+[node name="13a" parent="." index="24" unique_id=161762664]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="13a" index="0" unique_id=1576305586]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="13a/StaticBody3D" index="0" unique_id=326617452]
 shape = SubResource("ConcavePolygonShape3D_4bro0")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="13b" parent_id_path=PackedInt32Array(1897700087) index="0" unique_id=87050984]
+[node name="13b" parent="." index="25" unique_id=843385691]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="13b" index="0" unique_id=87050984]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="13b/StaticBody3D" index="0" unique_id=2037791478]
 shape = SubResource("ConcavePolygonShape3D_sc0j4")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="14a" parent_id_path=PackedInt32Array(418805759) index="0" unique_id=571321904]
+[node name="14a" parent="." index="26" unique_id=1326681904]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="14a" index="0" unique_id=571321904]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="14a/StaticBody3D" index="0" unique_id=1733295171]
 shape = SubResource("ConcavePolygonShape3D_lwtka")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="14b" parent_id_path=PackedInt32Array(1945728223) index="0" unique_id=114726679]
+[node name="14b" parent="." index="27" unique_id=1000269229]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="14b" index="0" unique_id=114726679]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="14b/StaticBody3D" index="0" unique_id=704339872]
 shape = SubResource("ConcavePolygonShape3D_wotje")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="15a" parent_id_path=PackedInt32Array(493948346) index="0" unique_id=579426134]
+[node name="15a" parent="." index="28" unique_id=5794428]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="15a" index="0" unique_id=579426134]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="15a/StaticBody3D" index="0" unique_id=735595779]
 shape = SubResource("ConcavePolygonShape3D_jgv0i")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="15b" parent_id_path=PackedInt32Array(445403241) index="0" unique_id=2068700785]
+[node name="15b" parent="." index="29" unique_id=1715842838]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="15b" index="0" unique_id=2068700785]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="15b/StaticBody3D" index="0" unique_id=1985642843]
 shape = SubResource("ConcavePolygonShape3D_qkn32")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="16a" parent_id_path=PackedInt32Array(1296199603) index="0" unique_id=1661179055]
+[node name="16a" parent="." index="30" unique_id=1357268806]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="16a" index="0" unique_id=1661179055]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="16a/StaticBody3D" index="0" unique_id=1822923758]
 shape = SubResource("ConcavePolygonShape3D_6b7pi")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="16b" parent_id_path=PackedInt32Array(2038595483) index="0" unique_id=696074337]
+[node name="16b" parent="." index="31" unique_id=969024784]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="16b" index="0" unique_id=696074337]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="16b/StaticBody3D" index="0" unique_id=1754656709]
 shape = SubResource("ConcavePolygonShape3D_iu6hs")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="17a" parent_id_path=PackedInt32Array(1538083485) index="0" unique_id=1591212631]
+[node name="17a" parent="." index="32" unique_id=1194839896]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="17a" index="0" unique_id=1591212631]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="17a/StaticBody3D" index="0" unique_id=2115005867]
 shape = SubResource("ConcavePolygonShape3D_l8ewn")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="17b" parent_id_path=PackedInt32Array(1539674239) index="0" unique_id=1998929875]
+[node name="17b" parent="." index="33" unique_id=1445905496]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="17b" index="0" unique_id=1998929875]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="17b/StaticBody3D" index="0" unique_id=1263948484]
 shape = SubResource("ConcavePolygonShape3D_1iebk")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="18a" parent_id_path=PackedInt32Array(1541148744) index="0" unique_id=29813948]
+[node name="18a" parent="." index="34" unique_id=533230610]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="18a" index="0" unique_id=29813948]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="18a/StaticBody3D" index="0" unique_id=1250116281]
 shape = SubResource("ConcavePolygonShape3D_xhvvm")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="18b" parent_id_path=PackedInt32Array(357743241) index="0" unique_id=4082435]
+[node name="18b" parent="." index="35" unique_id=1489274734]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="18b" index="0" unique_id=4082435]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="18b/StaticBody3D" index="0" unique_id=1433560714]
 shape = SubResource("ConcavePolygonShape3D_dp7fj")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="19a" parent_id_path=PackedInt32Array(1820133530) index="0" unique_id=426305088]
+[node name="StaticBody3D" type="StaticBody3D" parent="19a" parent_id_path=PackedInt32Array(836706958) index="0" unique_id=426305088]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="19a/StaticBody3D" index="0" unique_id=1073630386]
 shape = SubResource("ConcavePolygonShape3D_taosd")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="19b" parent_id_path=PackedInt32Array(1611634475) index="0" unique_id=1440217258]
+[node name="StaticBody3D" type="StaticBody3D" parent="19b" parent_id_path=PackedInt32Array(1406176938) index="0" unique_id=1440217258]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="19b/StaticBody3D" index="0" unique_id=1098943198]
 shape = SubResource("ConcavePolygonShape3D_uwrhx")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="20a" parent_id_path=PackedInt32Array(1471311068) index="0" unique_id=1956299465]
+[node name="20a" parent="." index="38" unique_id=461606715]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="20a" index="0" unique_id=1956299465]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="20a/StaticBody3D" index="0" unique_id=1115733736]
 shape = SubResource("ConcavePolygonShape3D_1wj80")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="20b" parent_id_path=PackedInt32Array(945659111) index="0" unique_id=1323835363]
+[node name="20b" parent="." index="39" unique_id=1886670881]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="20b" index="0" unique_id=1323835363]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="20b/StaticBody3D" index="0" unique_id=16586411]
 shape = SubResource("ConcavePolygonShape3D_2e6gu")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="21a" parent_id_path=PackedInt32Array(1603944709) index="0" unique_id=1872372963]
+[node name="21a" parent="." index="40" unique_id=938258723]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="21a" index="0" unique_id=1872372963]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="21a/StaticBody3D" index="0" unique_id=1524780425]
 shape = SubResource("ConcavePolygonShape3D_xfq6n")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="21b" parent_id_path=PackedInt32Array(1914031539) index="0" unique_id=1406962495]
+[node name="21b" parent="." index="41" unique_id=153694735]
+visible = false
+
+[node name="StaticBody3D" type="StaticBody3D" parent="21b" index="0" unique_id=1406962495]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="21b/StaticBody3D" index="0" unique_id=1144646669]
 shape = SubResource("ConcavePolygonShape3D_mnsmv")
