@@ -58,7 +58,7 @@ func _ready() -> void:
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	root.add_child(scroll)
 	_form = VBoxContainer.new()
 	_form.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -127,7 +127,7 @@ func open_for(mission: MissionData, target: OutlineNode, macro: MissionMacro, ex
 	_rebuild_form()
 	_refresh_status()
 	if not visible:
-		popup_centered()
+		popup_centered_clamped(BODY_SIZE, 0.9)
 
 
 ## The inputs for the current macro: its defaults, overlaid with what the record was made with (inputs the macro still has).

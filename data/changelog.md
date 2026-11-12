@@ -1,4 +1,9 @@
-﻿## v0.0.70 - 2026-11-11
+﻿## v0.0.71 - 2026-11-12
+- The mission Player has a new look around the board: the play area is lit and the table around it fades into darkness with a black background, the edge of the shadow slowly drifts, and (with the game's own cloud picture imported through Game assets) fog drifts along the edge. The floor is brighter and its pattern repeats less often.
+- Fixed: the map icon in the Player is now shown bigger at the start, as if it was clicked.
+- Fixed: the "Save as macro" window could push its Save button out of sight when an action had a long description.
+
+## v0.0.70 - 2026-11-11
 - The mission editor now asks to save when you close the game window with unsaved changes, like Back to Menu does.
 - The outline shows how many macros a prop or spawn area has (a small number next to the gear).
 

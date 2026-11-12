@@ -141,8 +141,14 @@ func _build_top_right() -> void:
 	add_child(icons)
 	_quest_button = _round_icon_button("Quest", Color(0.2, 0.4, 0.65), _on_quest_pressed, QUEST_ICON_PATH)
 	_threat_button = _round_icon_button("Threat", Color(0.55, 0.22, 0.08), _on_threat_pressed, THREAT_ICON_PATH)
-	icons.add_child(_quest_button)
-	icons.add_child(_threat_button)
+	# A container resets the scale of its children every time it lays them out (it wiped the highlight at the start), so each icon sits in a
+	# plain holder of its size and the button inside is scaled freely.
+	for button in [_quest_button, _threat_button]:
+		var holder := Control.new()
+		holder.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
+		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(button)
+		icons.add_child(holder)
 	set_active_view(false, false)  # the map is the view a mission starts in
 
 

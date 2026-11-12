@@ -138,6 +138,7 @@ func _ready() -> void:
 		MissionProgress.apply_after_paint(mission, layered_map, snapshot_progress, progress_outcome)
 	_add_ground_floor()
 	_add_bounding_box()
+	_set_black_sky()
 	_style_end_phase_button()
 
 	# New HUD chrome (Quest/Threat icons top-right, Gear/Party menus
@@ -1248,6 +1249,8 @@ const GROUND_Y := -0.05
 ## Ground plane + bounding box (+ label), hidden while the table picks
 ## heroes/weapons (see _ready()).
 var _ground_decor: Array[Node3D] = []
+var _ground: MeshInstance3D  ## the big map ground; lit inside the play area, in shadow outside it
+var _fog: MeshInstance3D  ## fog drifting along the edge of the play area (only with the game's cloud texture)
 
 
 func _set_ground_decor_visible(shown: bool) -> void:
@@ -1255,10 +1258,29 @@ func _set_ground_decor_visible(shown: bool) -> void:
 		n.visible = shown
 
 
+## The Player has no sky: what shows past the ground is the background colour, black here so the fog around the play area runs out into
+## complete darkness. Without an environment Godot takes the AMBIENT light from the clear colour too, and the floors are lit almost only by
+## ambient light (the scene's light shines along the ground), so the ambient light is set explicitly to the colour it always had.
+func _set_black_sky() -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color.BLACK
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = ProjectSettings.get_setting("rendering/environment/defaults/default_clear_color", Color(0.3, 0.3, 0.3, 1.0))
+	var world := WorldEnvironment.new()
+	world.environment = env
+	add_child(world)
+
+
 func _add_ground_floor() -> void:
 	var ground := GroundFloor.create(GROUND_Y)
 	layered_map.add_child(ground)
 	_ground_decor.append(ground)
+	_ground = ground
+	_fog = PlayFog.create()  # null without the game's cloud texture: then there is simply no fog
+	if _fog != null:
+		layered_map.add_child(_fog)
+		_ground_decor.append(_fog)
 
 
 ## Thickness (world units) of the bounding-box outline strips.
@@ -1336,6 +1358,11 @@ func _add_bounding_box() -> void:
 	var z0 := origin.z
 	var x1 := origin.x + size.x
 	var z1 := origin.z + size.y
+	# the play area is lit, the ground around it falls into shadow (both grids and the ground sit at the same origin in layered_map)
+	# the lit stage reaches a margin past the board, the shadow and the fog sit out there
+	var lit_area := Rect2(x0, z0, size.x, size.y).grow(GroundFloor.PLAY_MARGIN)
+	GroundFloor.set_play_area(_ground, lit_area)
+	PlayFog.set_area(_fog, lit_area)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	# Four strips just outside the area, so tiles never cover them.

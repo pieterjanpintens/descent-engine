@@ -61,6 +61,9 @@ const MAP: Dictionary = {
 	# The huge ground planes (GroundFloor): the map view's stone and the monster view's floor.
 	"res://models/floor_concrete.jpg": "GroundStone_Diffuse",
 	"res://models/floor_enemy.jpg": "EnemyGround",
+	# The fog drifting along the edge of the play area (PlayFog): a seamless cloud texture. There is NO placeholder file - without the game's art
+	# there is no fog - so the key is only a label for the import tool (read through OfficialAssetOverrides.official_texture()).
+	"res://models/fog_clouds.png": "Clouds_Wrappable",
 	# PlayerHud's "Quest" (map-view) icon button - same case as
 	# Button_EnemyView above, also confirmed unique.
 	"res://models/hud_quest.png": "Button_MapView",

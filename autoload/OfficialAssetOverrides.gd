@@ -78,6 +78,12 @@ func texture_for(placeholder_path: String) -> Texture2D:
 	return load(placeholder_path)
 
 
+## An official texture that has NO shipped placeholder (the feature using it simply does not exist without the game's art): the
+## imported texture, or null when it was not imported. `official_name` is the name from OfficialAssetMap.
+func official_texture(official_name: String) -> Texture2D:
+	return _load_override_texture(official_name)
+
+
 func _load_override_texture(official_name: String) -> ImageTexture:
 	var path := OVERRIDE_DIR + official_name + ".png"
 	if not FileAccess.file_exists(path):

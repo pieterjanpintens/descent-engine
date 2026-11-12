@@ -52,7 +52,7 @@ func _ready() -> void:
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	root.add_child(scroll)
 	var body := VBoxContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -116,14 +116,15 @@ func open_for(mission: MissionData, target: InteractableEntry) -> void:
 	_rebuild_sections()
 	_refresh_status()
 	if not visible:
-		popup_centered()
+		popup_centered_clamped(BODY_SIZE, 0.9)  # never taller than the window, so the Cancel / Save row stays on screen
 
 
 func _wrapping_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	label.custom_minimum_size.x = WRAP_WIDTH
+	label.custom_minimum_size.x = 200  # wraps to the width it is given; a big minimum would widen the dialog past its window
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return label
 
 
@@ -172,7 +173,7 @@ func _rebuild_sections() -> void:
 			_rebuild_sections.call_deferred()
 			_refresh_status()
 		)
-		_sections.add_child(check)
+		_sections.add_child(_clipped(check))
 
 	if not _capture.triggers.is_empty():
 		_sections.add_child(_heading(tr("Triggers that belong to it")))
@@ -186,7 +187,7 @@ func _rebuild_sections() -> void:
 				_rebuild_sections.call_deferred()
 				_refresh_status()
 			)
-			_sections.add_child(check)
+			_sections.add_child(_clipped(check))
 
 	if not _capture.variables.is_empty():
 		_sections.add_child(_heading(tr("Variables")))
@@ -204,6 +205,16 @@ func _rebuild_sections() -> void:
 		var label := _wrapping_label("⚠ " + warning)
 		label.modulate = Color(1.0, 0.8, 0.45)
 		_sections.add_child(label)
+
+
+## A check box cannot wrap its text, so a long one would make the whole dialog wider than its window and push the buttons out of sight:
+## it is cut with an ellipsis instead (the full text is the tooltip).
+func _clipped(check: CheckBox) -> CheckBox:
+	check.tooltip_text = check.text
+	check.clip_text = true
+	check.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	check.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return check
 
 
 func _trigger_summary(trigger: MissionTrigger) -> String:
