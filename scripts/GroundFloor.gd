@@ -21,7 +21,7 @@ const MONSTER_TEXTURE := "res://models/floor_enemy.jpg"      ## official: EnemyG
 ## The original game's ground texture is very dark (average ~15% brightness; the game lights it much more than we do), so it is lifted
 ## with a gamma curve in the shader: 1 = as it is, lower = brighter (it keeps the pattern, brightens the dark parts most).
 ## The shipped placeholders were already brightened in their files and are never touched. Tune these two after a look.
-const OFFICIAL_GAMMA_MAP := 0.6
+const OFFICIAL_GAMMA_MAP := 0.7
 const OFFICIAL_GAMMA_MONSTER := 1.0
 
 ## The play area is lit, the ground around it falls into shadow: outside the rectangle the floor fades to this fraction of its
@@ -33,7 +33,7 @@ const PLAY_FADE := 18.0
 const PLAY_MARGIN := 9.0
 ## How much of its own colour the map floor gives off on top of the scene light (0 = only lit by the scene, which is very dark with the
 ## game's own ground texture). Fades with the shadow like the rest. Tune after a look.
-const PLAY_GLOW := 1.0
+const PLAY_GLOW := 0.1
 ## How far (world units) slow noise pushes the edge of the shadow in and out, so it creeps around the play area. 0 = a still edge.
 const PLAY_WOBBLE := 3.5
 ## Inside the play area the floor gets a slight lift (1 = none), so the area reads as the lit stage.

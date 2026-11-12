@@ -139,6 +139,7 @@ func _ready() -> void:
 	_add_ground_floor()
 	_add_bounding_box()
 	_set_black_sky()
+	_add_key_light()
 	_style_end_phase_button()
 
 	# New HUD chrome (Quest/Threat icons top-right, Gear/Party menus
@@ -1270,6 +1271,22 @@ func _set_black_sky() -> void:
 	var world := WorldEnvironment.new()
 	world.environment = env
 	add_child(world)
+
+
+## The scene's own light shines horizontally along the ground, so the tops of tiles and props were lit by ambient light only and did not
+## stand out from the table. This second light comes from above and to the side; it is a child of the layered map so it goes away with
+## the world in the monster view (the figures there keep their lighting).
+const KEY_LIGHT_ROTATION := Vector3(-58.0, -32.0, 0.0)
+const KEY_LIGHT_ENERGY := 0.7
+
+
+func _add_key_light() -> void:
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = KEY_LIGHT_ROTATION
+	light.light_energy = KEY_LIGHT_ENERGY
+	light.shadow_enabled = false
+	layered_map.add_child(light)
+	_ground_decor.append(light)
 
 
 func _add_ground_floor() -> void:
