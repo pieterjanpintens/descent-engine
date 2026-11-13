@@ -33,6 +33,16 @@ var story_after: String:
 		LText.put(story_after_texts, value)
 @export var map_position: Vector2 = Vector2(0.5, 0.5)
 @export var is_finale: bool = false
+## Announced but not made yet (a campaign released episode by episode): the chapter shows on the map as "coming soon" with the teaser
+## text below, cannot be played and needs no mission. A later release of the campaign makes it playable - keep its id, so the save games
+## of the earlier version move over to it.
+@export var coming_soon: bool = false
+@export var coming_soon_texts: Dictionary = {}
+var coming_soon_text: String:
+	get:
+		return LText.pick(coming_soon_texts)
+	set(value):
+		LText.put(coming_soon_texts, value)
 ## A join after a fan-out: the chapter only becomes playable once EVERY chapter of the act that links to it
 ## has been won (1 -> 2 and 3 in any order -> 4). Without it, the first link followed makes it playable.
 @export var wait_for_all: bool = false

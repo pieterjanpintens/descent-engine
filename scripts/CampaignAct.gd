@@ -94,7 +94,9 @@ func problems(mission_files: Array[String]) -> Array[String]:
 	var reachable := reachable_ids()
 	var finale_reachable := false
 	for chapter in chapters:
-		if chapter.is_narrative:
+		if chapter.coming_soon:
+			pass  # announced only: it needs no mission, no story and no way forward until it is made
+		elif chapter.is_narrative:
 			if chapter.steps.is_empty():
 				found.append("'%s' is a narrative without steps" % chapter.title)
 			for step in chapter.steps:
@@ -110,7 +112,7 @@ func problems(mission_files: Array[String]) -> Array[String]:
 		for link in chapter.links:
 			if find_chapter(link.target_id) == null:
 				found.append("'%s' links to a chapter that no longer exists" % chapter.title)
-		if not chapter.is_finale and not _has_way_forward(chapter):
+		if not chapter.is_finale and not chapter.coming_soon and not _has_way_forward(chapter):
 			found.append("'%s' has no way forward (link it on win, or make it a finale)" % chapter.title)
 		if chapter.wait_for_all:
 			for before in predecessors(chapter.id):

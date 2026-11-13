@@ -167,6 +167,17 @@ func open_campaign(folder: String, suggested_name: String) -> void:
 	_rights_box.visible = pictures > 0
 	_rights_box.button_pressed = false
 	_info_label.text = tr("A release is a frozen version of the whole campaign folder (%d mission file(s), %d picture(s); save games are not included). Players' save games stay on the version they started with, so a release can never be changed afterwards.") % [missions, pictures]
+	var draft := CampaignIO.load_campaign(folder)
+	if draft != null:
+		var soon := draft.coming_soon_chapters().size()
+		if soon > 0:
+			_info_label.text += "
+
+" + tr_n("%d chapter is marked 'coming soon': players see it announced but cannot play it. Keep its id when you make it playable in a later version, so their save games can move over.", "%d chapters are marked 'coming soon': players see them announced but cannot play them. Keep their ids when you make them playable in a later version, so their save games can move over.", soon) % soon
+		if draft.feedback_url != "" and not Campaign.valid_feedback_url(draft.feedback_url):
+			_info_label.text += "
+
+" + tr("The feedback link is not a plain https:// address - players will not be able to open it.")
 	_fill(suggested_name)
 
 

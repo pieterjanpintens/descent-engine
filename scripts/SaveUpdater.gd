@@ -18,6 +18,50 @@ static func newer_release(folder: String) -> Dictionary:
 	return {}
 
 
+## Right after a new release of a campaign was installed: the save games on OLDER versions of it, as [{folder, key, name}] (empty = nothing to offer).
+static func saves_to_update(new_entry: Dictionary) -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	if str(new_entry.get("type", "")) != SharePackage.TYPE_CAMPAIGN:
+		return found
+	for entry in CommunityLibrary.versions_of(str(new_entry.get("id", ""))):
+		if CommunityLibrary.compare_versions(str(entry["version"]), str(new_entry.get("version", ""))) >= 0:
+			continue
+		var folder := str(entry["path"]).get_file()
+		for key in CampaignIO.save_keys(folder):
+			var saved := CampaignIO.load_state(folder, key)
+			if saved != null:
+				found.append({"folder": folder, "key": key, "name": saved.save_name if saved.save_name != "" else key})
+	return found
+
+
+## Moves every save in `candidates` (from saves_to_update()) to `new_entry` where check() allows it. {updated: Array[String] (save names), blocked: Array[String]
+## ("name: first reason"), warnings: how many of the updated ones carry warnings}. Originals are never touched.
+static func update_all(candidates: Array[Dictionary], new_entry: Dictionary) -> Dictionary:
+	var updated: Array[String] = []
+	var blocked: Array[String] = []
+	var warned := 0
+	var new_campaign := CampaignIO.load_campaign(str(new_entry["path"]).get_file())
+	for candidate in candidates:
+		var folder := str(candidate["folder"])
+		var saved := CampaignIO.load_state(folder, str(candidate["key"]))
+		var old_campaign := CampaignIO.load_campaign(folder)
+		if new_campaign == null or saved == null or old_campaign == null:
+			blocked.append("%s: %s" % [candidate["name"], TranslationServer.translate("the campaign could not be opened")])
+			continue
+		var report := check(saved, old_campaign, new_campaign, str(new_entry["path"]).get_file())
+		var errors: Array = report["errors"]
+		if not errors.is_empty():
+			blocked.append("%s: %s" % [candidate["name"], str(errors[0])])
+			continue
+		if apply(saved, new_entry, new_campaign) == null:
+			blocked.append("%s: %s" % [candidate["name"], TranslationServer.translate("the updated copy could not be saved")])
+			continue
+		updated.append(str(candidate["name"]))
+		if not (report["warnings"] as Array).is_empty():
+			warned += 1
+	return {"updated": updated, "blocked": blocked, "warnings": warned}
+
+
 ## Does the new version fit this save? {errors: Array[String] (block the update), warnings: Array[String] (update possible, tell the player)}.
 static func check(state: CampaignState, old_campaign: Campaign, new_campaign: Campaign, new_folder: String) -> Dictionary:
 	var errors: Array[String] = []
@@ -38,7 +82,7 @@ static func check(state: CampaignState, old_campaign: Campaign, new_campaign: Ca
 				var chapter := act.find_chapter(id)
 				if chapter == null:
 					errors.append(TranslationServer.translate("Chapter \"%s\", where you are now, is not in act %d of the new version.") % [_chapter_title(old_campaign, id), state.current_act + 1])
-				elif not chapter.is_narrative and not FileAccess.file_exists("%s/%s" % [CampaignIO.folder_path(new_folder), chapter.mission_file]):
+				elif not chapter.is_narrative and not chapter.coming_soon and not FileAccess.file_exists("%s/%s" % [CampaignIO.folder_path(new_folder), chapter.mission_file]):
 					errors.append(TranslationServer.translate("The mission of chapter \"%s\" is missing from the new version.") % chapter.title)
 	var new_quests := {}
 	for quest in new_campaign.side_quests:

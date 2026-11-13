@@ -26,6 +26,9 @@ var intro: String:
 ## The language the texts were first written in: what is read when none of the player's languages has a text (see LText).
 @export var default_language: String = "en"
 @export var duration_minutes: int = 0
+## Where players can leave feedback (a web page, a form, an issue tracker): shown in the campaign screen and where the story stops at a
+## "coming soon" chapter. Only an https address is ever opened (see valid_feedback_url()).
+@export var feedback_url: String = ""
 @export var acts: Array[CampaignAct] = []
 ## Source of unique chapter ids ("ch_1", "ch_2", ...), never reused.
 @export var next_chapter_number: int = 1
@@ -118,6 +121,31 @@ func brooch_problems() -> Array[String]:
 ## the game's difficulty and read-only too (the player chooses it).
 const BUILTIN_VARIABLES: Array[String] = ["experience", "gold", "act_number", "difficulty"]
 const READ_ONLY_VARIABLES: Array[String] = ["act_number", "difficulty"]
+
+
+## An address is only opened from the app when it is a plain https link: no other scheme (a campaign is data somebody else made), no spaces, a sane length.
+const MAX_FEEDBACK_URL := 300
+
+
+static func valid_feedback_url(url: String) -> bool:
+	var text := url.strip_edges()
+	return text.length() <= MAX_FEEDBACK_URL and text.begins_with("https://") and text.length() > "https://".length() and not text.contains(" ") \
+		and not text.contains("\n") and not text.contains("\t")
+
+
+## The feedback address when it can be opened, else "".
+func safe_feedback_url() -> String:
+	return feedback_url.strip_edges() if valid_feedback_url(feedback_url) else ""
+
+
+## Every chapter of every act that is announced but not made yet.
+func coming_soon_chapters() -> Array[CampaignChapter]:
+	var found: Array[CampaignChapter] = []
+	for act in acts:
+		for chapter in act.chapters:
+			if chapter.coming_soon:
+				found.append(chapter)
+	return found
 
 
 ## The built-in counters (INT) followed by the declared variables - everything a condition can read.

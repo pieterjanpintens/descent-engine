@@ -15,6 +15,7 @@ signal rules_pressed
 signal log_pressed
 signal inventory_pressed
 signal heroes_pressed
+signal feedback_pressed
 
 const MARGIN := 12.0
 const TOGGLE_SIZE := 48.0
@@ -23,6 +24,7 @@ const MENU_WIDTH := 180.0
 ## The pieces CampaignPlayer switches on and off.
 var back_to_menu_button: Button
 var back_to_editor_button: Button
+var feedback_button: Button
 
 var _heading_panel: PanelContainer
 var _title_label: Label
@@ -56,6 +58,11 @@ func set_status(text: String) -> void:
 func set_playtest_tools(from_editor: bool) -> void:
 	back_to_editor_button.visible = from_editor
 	back_to_menu_button.visible = not from_editor
+
+
+## "Send feedback" is only in the Gear menu while the campaign has a feedback link it may open.
+func set_feedback_available(available: bool) -> void:
+	feedback_button.visible = available
 
 
 func close_menus() -> void:
@@ -141,6 +148,8 @@ func _build_bottom_left() -> void:
 	back_to_menu_button = _menu_item(_gear_menu, "Back to Menu", func(): back_to_menu_pressed.emit())
 	_menu_item(_gear_menu, "Options", func(): options_pressed.emit())
 	_menu_item(_gear_menu, "Rules Reference", func(): rules_pressed.emit())
+	feedback_button = _menu_item(_gear_menu, "Send feedback", func(): feedback_pressed.emit())
+	feedback_button.visible = false
 	_party_menu = _popup_menu()
 	_menu_item(_party_menu, "Campaign Log", func(): log_pressed.emit())
 	_menu_item(_party_menu, "Heroes", func(): heroes_pressed.emit())

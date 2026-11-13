@@ -33,6 +33,8 @@ var _starting_set_dialog: StartingSetDialog
 var _skill_tree_dialog: SkillTreeDialog
 var _feat_monsters_dialog: FeatMonstersDialog
 var _sell_spin: SpinBox
+var _feedback_edit: LineEdit
+var _feedback_hint: Label
 var _story_window: NarrativeWindow
 var _manuscript_window: ManuscriptWindow
 var _dirty: bool = false
@@ -301,6 +303,27 @@ func _ready() -> void:
 	)
 	_sell_spin = sell_spin
 	sell_row.add_child(sell_spin)
+	var feedback_row := HBoxContainer.new()
+	general.add_child(feedback_row)
+	feedback_row.add_child(_label("Feedback link:"))
+	_feedback_edit = LineEdit.new()
+	_feedback_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_feedback_edit.placeholder_text = "https://… (a form or page where players can leave feedback)"
+	_feedback_edit.tooltip_text = "Players can open this from the Gear menu and from the 'to be continued' notice. Only a plain https address is accepted."
+	_feedback_edit.text_changed.connect(func(text: String):
+		if _suppress or _campaign == null:
+			return
+		_campaign.feedback_url = text.strip_edges()
+		_update_feedback_hint()
+		_mark_dirty()
+	)
+	feedback_row.add_child(_feedback_edit)
+	_feedback_hint = _wrapped_label("")
+	_feedback_hint.custom_minimum_size.x = 150.0
+	_feedback_hint.modulate = Color(1.0, 0.45, 0.4)
+	_feedback_hint.visible = false
+	general.add_child(_feedback_hint)
+
 	var potion_row := HBoxContainer.new()
 	general.add_child(potion_row)
 	potion_row.add_child(_label("Consumables per player:"))
@@ -1772,6 +1795,13 @@ func _build_offer_block(place: CampaignPlace, offer: CampaignOffer, attachment_i
 
 # ---------------------------------------------------------------- refreshing
 
+## A red note under the feedback link when it is not a plain https address (the players could not open it).
+func _update_feedback_hint() -> void:
+	var url := _campaign.feedback_url if _campaign != null else ""
+	_feedback_hint.text = "" if url == "" or Campaign.valid_feedback_url(url) else "This is not a plain https:// address (max 300 characters, no spaces) - players will not be able to open it."
+	_feedback_hint.visible = _feedback_hint.text != ""
+
+
 func _refresh_all() -> void:
 	var has_campaign := _campaign != null
 	_body.visible = has_campaign
@@ -1786,6 +1816,8 @@ func _refresh_all() -> void:
 	_campaign_name_edit.text = _campaign.campaign_name
 	_campaign_intro_edit.text = _campaign.intro
 	_sell_spin.set_value_no_signal(_campaign.sell_percent)
+	_feedback_edit.text = _campaign.feedback_url
+	_update_feedback_hint()
 	_duration_spin.set_value_no_signal(_campaign.duration_minutes)
 	_update_language_bar()
 	_potion_spin.set_value_no_signal(_campaign.consumables_per_player)
@@ -1963,49 +1995,72 @@ func _rebuild_chapter_panel() -> void:
 	)
 	_chapter_panel.add_child(title_edit)
 
-	var type_row := HBoxContainer.new()
-	_chapter_panel.add_child(type_row)
-	type_row.add_child(_label("Type:"))
-	var type_option := OptionButton.new()
-	type_option.add_item("Mission")
-	type_option.add_item("Narrative (story and questions)")
-	type_option.select(1 if chapter.is_narrative else 0)
-	type_option.item_selected.connect(func(index: int):
-		chapter.is_narrative = index == 1
+	var soon_check := CheckBox.new()
+	soon_check.text = "Not released yet (coming soon)"
+	soon_check.tooltip_text = "The chapter shows on the map as 'coming soon' and cannot be played. It needs no mission. Release a later version of the campaign that makes it playable - keep this chapter, so the save games of players move over to it."
+	soon_check.button_pressed = chapter.coming_soon
+	soon_check.toggled.connect(func(on: bool):
+		chapter.coming_soon = on
 		_mark_dirty()
 		_rebuild_chapter_panel()
 		_map_view.queue_redraw()
 	)
-	type_row.add_child(type_option)
-	if chapter.is_narrative:
-		_build_narrative_section(chapter)
-	else:
-		_chapter_panel.add_child(_label("Mission file:"))
-		var mission_row := HBoxContainer.new()
-		_chapter_panel.add_child(mission_row)
-		var files := CampaignIO.mission_files(_folder)
-		var mission_option := OptionButton.new()
-		mission_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		mission_option.add_item("(none)")
-		for file in files:
-			mission_option.add_item(file)
-		if chapter.mission_file != "" and not files.has(chapter.mission_file):
-			mission_option.add_item("%s (missing)" % chapter.mission_file)
-			mission_option.select(mission_option.item_count - 1)
-		else:
-			mission_option.select(files.find(chapter.mission_file) + 1 if chapter.mission_file != "" else 0)
-		var edit_button := _edit_mission_button(func(): return chapter.mission_file)
-		mission_option.item_selected.connect(func(index: int):
-			chapter.mission_file = files[index - 1] if index >= 1 and index <= files.size() else chapter.mission_file if index > files.size() else ""
-			edit_button.disabled = not _can_edit_mission(chapter.mission_file)
+	_chapter_panel.add_child(soon_check)
+	if chapter.coming_soon:
+		_chapter_panel.add_child(_label("Teaser shown to the players (text only, no dates):"))
+		var teaser_edit := TextEdit.new()
+		teaser_edit.custom_minimum_size = Vector2(0, 80)
+		teaser_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+		teaser_edit.text = chapter.coming_soon_text
+		teaser_edit.text_changed.connect(func():
+			chapter.coming_soon_text = teaser_edit.text
 			_mark_dirty()
 		)
-		mission_row.add_child(mission_option)
-		mission_row.add_child(_button("Add mission…", func():
-			_mission_dialog.current_dir = "user://missions"
-			_mission_dialog.popup_centered_ratio(0.6)
-		))
-		mission_row.add_child(edit_button)
+		_chapter_panel.add_child(teaser_edit)
+	else:
+		var type_row := HBoxContainer.new()
+		_chapter_panel.add_child(type_row)
+		type_row.add_child(_label("Type:"))
+		var type_option := OptionButton.new()
+		type_option.add_item("Mission")
+		type_option.add_item("Narrative (story and questions)")
+		type_option.select(1 if chapter.is_narrative else 0)
+		type_option.item_selected.connect(func(index: int):
+			chapter.is_narrative = index == 1
+			_mark_dirty()
+			_rebuild_chapter_panel()
+			_map_view.queue_redraw()
+		)
+		type_row.add_child(type_option)
+		if chapter.is_narrative:
+			_build_narrative_section(chapter)
+		else:
+			_chapter_panel.add_child(_label("Mission file:"))
+			var mission_row := HBoxContainer.new()
+			_chapter_panel.add_child(mission_row)
+			var files := CampaignIO.mission_files(_folder)
+			var mission_option := OptionButton.new()
+			mission_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			mission_option.add_item("(none)")
+			for file in files:
+				mission_option.add_item(file)
+			if chapter.mission_file != "" and not files.has(chapter.mission_file):
+				mission_option.add_item("%s (missing)" % chapter.mission_file)
+				mission_option.select(mission_option.item_count - 1)
+			else:
+				mission_option.select(files.find(chapter.mission_file) + 1 if chapter.mission_file != "" else 0)
+			var edit_button := _edit_mission_button(func(): return chapter.mission_file)
+			mission_option.item_selected.connect(func(index: int):
+				chapter.mission_file = files[index - 1] if index >= 1 and index <= files.size() else chapter.mission_file if index > files.size() else ""
+				edit_button.disabled = not _can_edit_mission(chapter.mission_file)
+				_mark_dirty()
+			)
+			mission_row.add_child(mission_option)
+			mission_row.add_child(_button("Add mission…", func():
+				_mission_dialog.current_dir = "user://missions"
+				_mission_dialog.popup_centered_ratio(0.6)
+			))
+			mission_row.add_child(edit_button)
 
 	var start_check := CheckBox.new()
 	start_check.text = "Start of the act"
@@ -2030,7 +2085,7 @@ func _rebuild_chapter_panel() -> void:
 	_chapter_panel.add_child(finale_check)
 
 	# ---- Variables (what is handed to the mission and taken back from it)
-	if not chapter.is_narrative:
+	if not chapter.is_narrative and not chapter.coming_soon:
 		_section(_chapter_panel, "Variables")
 		_build_mapping_section("Give to the mission when it starts:", chapter.mission_inputs, chapter.mission_file, false)
 		_build_mapping_section("Take over from the mission when it ends:", chapter.mission_outputs, chapter.mission_file, true)

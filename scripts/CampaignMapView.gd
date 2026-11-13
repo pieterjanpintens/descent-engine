@@ -167,8 +167,10 @@ func _draw_pin(chapter: CampaignChapter) -> void:
 		ring = START_COLOR
 	elif not read_only and chapter.is_finale:
 		ring = FINALE_COLOR
-	_draw_icon(EVENT_ICON if chapter.is_narrative else STORY_ICON, center, chapter.id == selected_id, ring, chapter.id == _hover_id)
+	_draw_icon(EVENT_ICON if chapter.is_narrative else STORY_ICON, center, chapter.id == selected_id, ring, chapter.id == _hover_id, 0.5 if chapter.coming_soon else 1.0)
 	_draw_label(center, chapter.title if chapter.title != "" else "(untitled)", ICON_HEIGHT * 0.5 + 14.0)
+	if chapter.coming_soon:
+		_draw_badge(center + Vector2(0, -ICON_HEIGHT * 0.5 - 4.0), TranslationServer.translate("SOON"), Color(0.45, 0.75, 0.95))
 	if not read_only:
 		if chapter.wait_for_all:
 			_draw_badge(center + Vector2(-ICON_HEIGHT * 0.5, -ICON_HEIGHT * 0.5 - 2.0), "ALL")
@@ -202,14 +204,14 @@ func _draw_side_quest(quest: CampaignSideQuest) -> void:
 
 
 ## A marker picture centred on `center`; a white ring behind it when selected, or `ring` (when it has any colour) for the editor's start / finale.
-func _draw_icon(path: String, center: Vector2, selected: bool, ring: Color, hovered: bool = false) -> void:
+func _draw_icon(path: String, center: Vector2, selected: bool, ring: Color, hovered: bool = false, opacity: float = 1.0) -> void:
 	if selected:
 		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, Color.WHITE, 3.0, true)
 	elif ring.a > 0.0:
 		draw_arc(center, ICON_HEIGHT * 0.58, 0.0, TAU, 40, ring, 3.0, true)
 	var picture := _icon(path)
 	var shown := picture.get_size() / 2.0 * (1.14 if hovered else 1.0)
-	draw_texture_rect(picture, Rect2(center - shown / 2.0, shown), false)
+	draw_texture_rect(picture, Rect2(center - shown / 2.0, shown), false, Color(1, 1, 1, opacity))
 
 
 ## The marker art shrunk once to twice the height it is drawn at (official art when imported, else the shipped placeholder).

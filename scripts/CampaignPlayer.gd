@@ -72,6 +72,7 @@ func _ready() -> void:
 	_library_page.back_pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
 	_library_page.begin_campaign.connect(_on_new_game_pressed)
 	_library_page.play_mission.connect(_on_play_mission_pressed)
+	_library_page.package_installed.connect(_on_library_installed)
 	_load_page = LoadPage.new()
 	_load_page.back_pressed.connect(func(): get_tree().change_scene_to_file(MENU_SCENE))
 	_load_page.resume_pressed.connect(func(folder: String, key: String): await _resume(folder, key))
@@ -316,6 +317,7 @@ func _build_play_page() -> Control:
 	)
 	_hud.options_pressed.connect(_open_options)
 	_hud.rules_pressed.connect(func(): OS.shell_open(PlayerHud.RULES_REFERENCE_URL))
+	_hud.feedback_pressed.connect(_open_feedback)
 	page.add_child(_hud)
 	return page
 
@@ -537,6 +539,7 @@ func _use(campaign: Campaign, state: CampaignState) -> void:
 	_refresh_view()
 	_show_page(_play_page)
 	_hud.set_playtest_tools(GameState.campaign_from_editor)
+	_hud.set_feedback_available(_campaign.safe_feedback_url() != "")
 
 
 func _save() -> void:
@@ -613,6 +616,15 @@ func _rebuild_side() -> void:
 	var title := _label(chapter.title)
 	title.add_theme_font_size_override("font_size", 20)
 	_side.add_child(title)
+	if chapter.coming_soon:
+		var tag := _label(tr("Coming soon"))
+		tag.modulate = Color(0.45, 0.75, 0.95)
+		_side.add_child(tag)
+		var teaser := chapter.coming_soon_text.strip_edges()
+		_side.add_child(_wrapped(teaser if teaser != "" else tr("This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept.")))
+		_add_playtest_buttons(chapter.id)
+		_add_feedback_button()
+		return
 	_side.add_child(_label(tr("Reward: ") + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
 	_add_playtest_buttons(chapter.id)
 	_add_story(chapter.story_before)
@@ -875,8 +887,43 @@ func _buy(offer: CampaignOffer) -> void:
 		_refresh_view()
 
 
+## A newer version of a campaign was installed: offer to move the save games of the older versions over (copies - the originals stay).
+func _on_library_installed(entry: Dictionary) -> void:
+	var candidates := SaveUpdater.saves_to_update(entry)
+	if candidates.is_empty():
+		return
+	_ask(tr_n("You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)", "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)", candidates.size()) % candidates.size(), func():
+		var result := SaveUpdater.update_all(candidates, entry)
+		var lines: Array[String] = []
+		var updated: Array = result["updated"]
+		var blocked: Array = result["blocked"]
+		if not updated.is_empty():
+			lines.append(tr("Moved to the new version: %s") % ", ".join(updated))
+		if not blocked.is_empty():
+			lines.append(tr("Could not be moved (they stay on the old version): %s") % "; ".join(blocked))
+		_say("
+".join(lines), tr("Save games")))
+
+
+## Opens the campaign's feedback page in the browser - only a plain https address (the campaign is data from somebody else).
+func _open_feedback() -> void:
+	if _campaign == null:
+		return
+	var url := _campaign.safe_feedback_url()
+	if url != "":
+		OS.shell_open(url)
+
+
+## A "Send feedback" button in a panel, when the campaign has a link.
+func _add_feedback_button() -> void:
+	if _campaign != null and _campaign.safe_feedback_url() != "":
+		_side.add_child(_button(tr("Send feedback…"), _open_feedback))
+
+
 func _play(chapter: CampaignChapter) -> void:
 	_detail_dialog.hide()
+	if chapter.coming_soon:
+		return
 	if chapter.is_narrative:
 		_play_narrative(chapter)
 		return
@@ -1018,11 +1065,25 @@ func _apply_result(result: Dictionary) -> void:
 	for quest in _state.visible_side_quests(_campaign):
 		if not quests_before.has(quest.id):
 			new_quests.append(quest.title)
-	if not summary["next"].is_empty():
-		lines.append("\n" + tr("Available now: %s") % ", ".join(summary["next"]))
+	var playable_next: Array[String] = []
+	var soon_chapters: Array[CampaignChapter] = []
+	var soon_titles: Array[String] = []
+	for soon in _campaign.coming_soon_chapters():
+		soon_titles.append(soon.title)
+	for next_title in summary["next"]:
+		if soon_titles.has(str(next_title)):
+			for soon in _campaign.coming_soon_chapters():
+				if soon.title == str(next_title) and not soon_chapters.has(soon):
+					soon_chapters.append(soon)
+		else:
+			playable_next.append(str(next_title))
+	if not playable_next.is_empty():
+		lines.append("\n" + tr("Available now: %s") % ", ".join(playable_next))
 	if not new_quests.is_empty():
-		lines.append(("" if not summary["next"].is_empty() else "\n") + tr_n("New side quest: %s", "New side quests: %s", new_quests.size()) % ", ".join(new_quests))
+		lines.append(("" if not playable_next.is_empty() else "\n") + tr_n("New side quest: %s", "New side quests: %s", new_quests.size()) % ", ".join(new_quests))
 	await _announce("\n".join(lines), tr("Notice"), story_after)
+	if playable_next.is_empty() and not soon_chapters.is_empty():
+		await _announce_to_be_continued(soon_chapters)
 	if summary["act_complete"] and not summary["campaign_complete"]:
 		await _announce_act()  # the next act begins
 
@@ -1056,6 +1117,29 @@ func _announce(message: String, title: String = "Notice", narrate: String = "") 
 		_speak(narrate)
 	while _notice.visible:
 		await _notice.visibility_changed
+
+
+## After a win that only leads to chapters that are announced but not made yet: "to be continued" with their teasers, the way to feedback
+## and a reminder that the progress is kept and moves to the new version.
+func _announce_to_be_continued(chapters: Array[CampaignChapter]) -> void:
+	var parts: Array[String] = []
+	for chapter in chapters:
+		var teaser := chapter.coming_soon_text.strip_edges()
+		parts.append("%s%s" % [chapter.title, (" - " + teaser) if teaser != "" else ""])
+	var text := tr("To be continued…") + "\n\n" + "\n".join(parts) + "\n\n" + tr("Your progress is saved. When a new version of this campaign comes out, install it and update your save game.")
+	var feedback_button: Button = null
+	if _campaign.safe_feedback_url() != "":
+		feedback_button = _notice.add_button(tr("Send feedback…"), false, "feedback")
+		_notice.custom_action.connect(_on_notice_custom_action)
+	await _announce(text, tr("To be continued"))
+	if feedback_button != null:
+		_notice.custom_action.disconnect(_on_notice_custom_action)
+		feedback_button.queue_free()
+
+
+func _on_notice_custom_action(action: StringName) -> void:
+	if action == &"feedback":
+		_open_feedback()
 
 
 ## The popup that opens an act: its name as the title, its introduction as the text (nothing when the act has no introduction).

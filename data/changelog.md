@@ -1,4 +1,9 @@
-﻿## v0.0.72 - 2026-11-12
+﻿## v0.0.73 - 2026-11-13
+- Campaigns can now be released episode by episode: a chapter can be marked "coming soon". Players see it on the map with a short teaser text, cannot play it yet, and get a "To be continued" notice after the last playable chapter. When a new version of the campaign comes out, their save games can be moved over to it.
+- Campaigns can have a feedback link: a "Send feedback" item in the Gear menu (and in the "to be continued" notice) opens it in the browser.
+- After installing a newer version of a campaign from the New game page, the game offers to move your save games of the older version over.
+
+## v0.0.72 - 2026-11-12
 - The mission Player's board is lit from above, so tiles and props stand out better against a darker table.
 
 ## v0.0.71 - 2026-11-12

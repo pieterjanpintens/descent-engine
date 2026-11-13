@@ -9,6 +9,8 @@ extends Control
 signal back_pressed
 signal begin_campaign(folder: String)
 signal play_mission(path: String)
+## A catalog entry was downloaded and installed (the registry entry); the owner may offer to move save games of older versions over.
+signal package_installed(entry: Dictionary)
 
 const BACKGROUND := "res://models/ui/bg_rock.jpg"
 const GRADIENT := "res://models/ui/bg_gradient_blue.jpg"  ## multiplied over the rock: blue on the left, the plain rock on the right
@@ -537,6 +539,9 @@ func _on_action_pressed(item: Dictionary, button: BaseButton) -> void:
 		return
 	_status.text = tr("Installed \"%s\".") % item["title"]
 	refresh()
+	var entry := CommunityLibrary.find(str(item["entry"]["id"]), str(item["entry"]["version"]))
+	if not entry.is_empty():
+		package_installed.emit(entry)
 	for candidate in _items:
 		if candidate.get("source", "") == "installed" and candidate.get("id", "") == item["entry"]["id"] and candidate.get("version", "") == item["entry"]["version"]:
 			_open_detail(candidate)  # the same page, now with Begin campaign
