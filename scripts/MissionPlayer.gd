@@ -281,7 +281,10 @@ func _ready() -> void:
 	# the difficulty chosen on the embark screen (a campaign game keeps its own, a single mission uses the player setting; a resumed save restores its own below)
 	_runtime.set_difficulty(GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty)
 	_runtime.dialog = dialog
-	_runtime.monsters_changed.connect(func(): monster_display.refresh_monsters(_runtime.monsters))
+	_runtime.monsters_changed.connect(func():
+		monster_display.refresh_monsters(_runtime.monsters)
+		hud.monster_sidebar.set_monsters(_runtime.monsters)
+	)
 	_runtime.monster_defeated.connect(_on_monster_defeated)
 	_runtime.monsters_woke.connect(_on_monsters_woke)
 	_runtime.loot_collected.connect(_on_loot_collected)
@@ -290,6 +293,7 @@ func _ready() -> void:
 	interaction_dock.mission_runtime = _runtime
 	_setup_feat_tracker()
 	interaction_dock.monster_display = monster_display
+	interaction_dock.monster_sidebar = hud.monster_sidebar
 	if resume_save == null:
 		for variable_name in GameState.campaign_mission_inputs:
 			_runtime.preset_variable(variable_name, GameState.campaign_mission_inputs[variable_name])
@@ -912,7 +916,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_set_monster_display_visible(not monster_display.visible)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and not monster_display.visible and _runtime != null \
 			and (los_mode == null or not los_mode.active) and not dialog.visible:
-		interaction_dock.show_description_at(event.position)
+		# a click on a monster card on the side opens its manage dialog, like clicking the monster in the monster view
+		var card_monster := hud.monster_sidebar.monster_at(event.position)
+		if card_monster != null:
+			monster_manage_dialog.open(card_monster, _runtime)
+		else:
+			interaction_dock.show_description_at(event.position)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and monster_display.visible and _runtime != null:
 		# Clicking a monster in the monster view opens its manage dialog (damage/heal,
 		# conditions) - changes outside combat, see MonsterManageDialog.
@@ -1024,6 +1033,7 @@ func _set_game_language(code: String) -> void:
 	_last_objective_text = ", ".join(_runtime.get_current_objective_descriptions(true))  # (not a new objective: no log entry)
 	_refresh_objective_label()
 	monster_display.refresh_monsters(_runtime.monsters)
+	hud.monster_sidebar.set_monsters(_runtime.monsters)
 
 
 ## The difficulty picked on the embark screen is remembered: in the campaign save of a campaign game (its next mission suggests it) and always
@@ -1567,6 +1577,7 @@ func _run_tactics_step() -> void:
 		return
 	var chosen: RuntimeMonster = eligible.pick_random()
 	chosen.prepared_tactic = randi() % chosen.tactics.size()
+	_runtime.monsters_changed.emit()  # its card on the side lights up
 	var hero_name := HeroCatalog.slot_name(player_roster.pick_random()) if not player_roster.is_empty() else tr("a hero")
 	var chosen_tactic := chosen.current_tactic()
 	var make_hint := func() -> String:
@@ -1582,6 +1593,7 @@ func _run_tactics_step() -> void:
 func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 	var tactic := monster.current_tactic()
 	monster.prepared_tactic = -1  # used up, whatever happens next
+	_runtime.monsters_changed.emit()  # its card is calm again
 	var slot := _runtime.choose_target(monster, player_roster, player_weapons)
 	if slot < 0:
 		return

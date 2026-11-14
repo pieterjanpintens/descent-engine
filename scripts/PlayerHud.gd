@@ -92,6 +92,8 @@ const MARGIN := 12.0
 const ACTIVE_SCALE := 0.15
 
 var _view_buttons: Control  ## the top-right Quest/Threat icons
+## The monsters on the board as cards under those icons (map view only), fed by MissionPlayer.
+var monster_sidebar: MonsterSidebar
 var _quest_button: Button
 var _threat_button: Button
 var _gear_button: Button
@@ -105,6 +107,9 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # only the actual buttons below should catch clicks
 	_build_top_right()
+	monster_sidebar = MonsterSidebar.new()
+	add_child(monster_sidebar)
+	monster_sidebar.place(MARGIN + ICON_SIZE + 18.0)
 	_build_bottom_left()
 
 
@@ -114,6 +119,8 @@ func _ready() -> void:
 func set_view_buttons_visible(shown: bool) -> void:
 	if _view_buttons != null:
 		_view_buttons.visible = shown
+	if monster_sidebar != null:
+		monster_sidebar.set_allowed(shown)
 
 
 ## Save is only safe to CLICK while genuinely in Player phase - resume
@@ -155,6 +162,8 @@ func _build_top_right() -> void:
 ## Marks which view is showing: its icon grows by ACTIVE_SCALE, the other one shrinks by the same amount (scaled around the
 ## icon's centre, so the layout does not move). Called by MissionPlayer whenever the map / monster view switches.
 func set_active_view(monsters_shown: bool, animate: bool = true) -> void:
+	if monster_sidebar != null:
+		monster_sidebar.set_map_view(not monsters_shown)
 	_scale_icon(_threat_button, 1.0 + ACTIVE_SCALE if monsters_shown else 1.0 - ACTIVE_SCALE, animate)
 	_scale_icon(_quest_button, 1.0 - ACTIVE_SCALE if monsters_shown else 1.0 + ACTIVE_SCALE, animate)
 

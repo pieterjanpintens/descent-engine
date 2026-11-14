@@ -2,6 +2,7 @@
 - Mission triggers can react to a hero being wounded: pick "A hero is wounded" as the event of a trigger in the Triggers editor ("A monster is defeated" is in the list too).
 - New variable `party_wounds`: all heroes' wounds added up, usable in any condition (for example to wake sneaky monsters once the party is in bad shape).
 - The AI help, dictation, spell check and character colours are now in every text the players read: the campaign editor's story boxes (before and after a mission, chapters and side quests), the campaign and act introductions, place descriptions, the "coming soon" teaser and a monster template's defeat text.
+- The map view of a mission now lists the monsters on the board as cards on the right, like the original game: the monster, its colour chip, its health and its level. With more than five monsters the list turns round, one step every few seconds. The cards work like the monsters in the monster view: drop a hero on one to attack it, click one to manage it. A monster that is about to do a special tactic is highlighted.
 
 ## v0.0.73 - 2026-11-13
 - Campaigns can now be released episode by episode: a chapter can be marked "coming soon". Players see it on the map with a short teaser text, cannot play it yet, and get a "To be continued" notice after the last playable chapter. When a new version of the campaign comes out, their save games can be moved over to it.

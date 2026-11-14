@@ -70,6 +70,14 @@ const MAP: Dictionary = {
 	# The campaign map's pins (2026-11-04): a mission chapter (the gold "!" marker of the campaign quests), a narrative chapter (the blue star
 	# badge of world events) and a side quest (the dark "!" marker). Dummy placeholders in models/ui/; resolved through
 	# OfficialAssetOverrides.texture_for() by CampaignMapView.
+	# The monster cards on the side of the Player's map view (MonsterTabCard): the game's "EnemyTab" pieces - a stone background, the frame,
+	# the chip colour bar, the level badge and the health bar. The monster's own picture is its "<Monster>_Tab" above.
+	"res://models/ui/enemytab_bg.png": "EnemyTab_BG",
+	"res://models/ui/enemytab_frame.png": "EnemyTab_Frame",
+	"res://models/ui/enemytab_chip.png": "EnemyTab_Chip",
+	"res://models/ui/enemytab_level.png": "EnemyTab_Level",
+	"res://models/ui/enemytab_healthbar.png": "EnemyTab_Healthbar",
+	"res://models/ui/enemytab_frameunique.png": "EnemyTab_FrameUnique",
 	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",
 	"res://models/ui/map_pin_event.png": "Icon_WorldEvent",
 	"res://models/ui/map_pin_side.png": "Icon_SideQuest",

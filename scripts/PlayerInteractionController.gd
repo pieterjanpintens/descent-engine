@@ -63,6 +63,8 @@ var feat_tracker: FeatTracker
 ## Assigned by MissionPlayer._ready() (same plain-var reasoning as above).
 ## While it's visible (the M view) a drag targets its monsters, not the world.
 var monster_display: MonsterDisplay
+## The monster cards on the side of the map view (PlayerHud.monster_sidebar): dropping a hero on one attacks that monster, like in the monster view.
+var monster_sidebar: MonsterSidebar
 
 ## {hero slot index: Array[Weapon]}, set by MissionPlayer after embark.
 var hero_weapons: Dictionary = {}
@@ -412,6 +414,15 @@ func _monster_view_active() -> bool:
 func _update_hover_highlight(screen_pos: Vector2) -> void:
 	if _monster_view_active():
 		return
+	if monster_sidebar != null:
+		# while a hero is dragged over a monster card that card is the target (and nothing under it lights up)
+		var over_card: RuntimeMonster = monster_sidebar.monster_at(screen_pos) if _dragging else null
+		monster_sidebar.set_hovered(over_card)
+		if over_card != null:
+			if _hovered_entry != null:
+				_hovered_entry = null
+				_rebuild_highlight()
+			return
 	var entry := _interactable_at(screen_pos)
 	if entry == _hovered_entry:
 		return
@@ -432,8 +443,11 @@ func _end_drag(screen_pos: Vector2) -> void:
 	var hero_slot: int = _roster[_drag_dock_position]
 	var hero_name := HeroCatalog.slot_name(hero_slot)
 	var monster_view := _monster_view_active()
-	var entry: InteractableEntry = null if monster_view else _interactable_at(screen_pos)
-	var monster: RuntimeMonster = monster_display.monster_at(screen_pos) if monster_view else null
+	var card_monster: RuntimeMonster = null if monster_view or monster_sidebar == null else monster_sidebar.monster_at(screen_pos)
+	var entry: InteractableEntry = null if monster_view or card_monster != null else _interactable_at(screen_pos)
+	var monster: RuntimeMonster = monster_display.monster_at(screen_pos) if monster_view else card_monster
+	if monster_sidebar != null:
+		monster_sidebar.set_hovered(null)
 
 	_dragging = false
 	_drag_dock_position = -1
@@ -442,7 +456,7 @@ func _end_drag(screen_pos: Vector2) -> void:
 	_hovered_entry = null
 	_rebuild_highlight()
 
-	if monster_view:
+	if monster_view or card_monster != null:
 		if monster == null:
 			print("%s: drag released on no monster" % hero_name)
 			return
