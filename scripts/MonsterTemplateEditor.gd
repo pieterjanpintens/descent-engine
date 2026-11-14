@@ -203,6 +203,13 @@ func _ready() -> void:
 	_defeat_edit = TextEdit.new()
 	_defeat_edit.custom_minimum_size.y = 64
 	_defeat_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	var no_characters: Array[NarratorCharacter] = []
+	NarrationHighlight.apply(_defeat_edit, no_characters)
+	AiAssist.attach(_defeat_edit, func() -> String:
+		var monster_name: String = _working.template_name if _working != null else ""
+		return "Writing: the text shown to the table when the monster \"%s\" is defeated. {name} stands for the monster's name." % monster_name
+	, no_characters)  # only visible when AI help is switched on in Options
+	SpeechDictation.attach(_defeat_edit, no_characters)  # only visible when voice is set up (Options > Voice)
 	_defeat_edit.focus_exited.connect(func():
 		if _suppress or _working == null or _working.defeat_text == _defeat_edit.text:
 			return

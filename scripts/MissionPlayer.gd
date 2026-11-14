@@ -313,6 +313,7 @@ func _ready() -> void:
 		_runtime.brooch_spawned = resume_save.brooch_spawned
 		_runtime.hero_times_targeted = resume_save.hero_times_targeted.duplicate()
 		_runtime.hero_wounds = resume_save.hero_wounds.duplicate()
+		_runtime.sync_wound_count()
 		_runtime.hero_injuries = resume_save.hero_injuries.duplicate()
 		_runtime.part_trigger_counts = resume_save.part_trigger_counts.duplicate()
 		_runtime.affliction_bonus_round = resume_save.affliction_bonus_round
@@ -2023,7 +2024,7 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 		await dialog.ask_ok(make_text, true, false, "Defeated")
 		# the monster's own "when defeated" effects (e.g. captain_dead = true), then the objectives are checked - "defeat X" objectives
 		await _runtime.apply_effects(gone.defeat_effects, "")
-		var ended := await _runtime.fire_event("monster_defeated")
+		var ended := await _runtime.fire_event(MissionRuntime.EVENT_MONSTER_DEFEATED)
 		await _on_objectives_progressed()
 		if ended != null:
 			await _handle_game_over(ended)
@@ -2071,6 +2072,11 @@ func _apply_wound(slot: int) -> void:
 		return wound_text
 	await dialog.ask_ok(make_text, true, false, "Wound")
 	await _horn_of_courage(slot)
+	# triggers can react to a wound ("when a hero is wounded"; the hero's name is handed on for a Test's prompt), then the objectives are checked
+	var ended := await _runtime.fire_event(MissionRuntime.EVENT_HERO_WOUNDED, hero_name)
+	await _on_objectives_progressed()
+	if ended != null:
+		await _handle_game_over(ended)
 
 
 ## Horn of Courage: after a hero is wounded another hero receives a random (advanced) benefit; on the "+" side the wearer gets one too.

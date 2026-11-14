@@ -227,7 +227,7 @@ func _ready() -> void:
 	)
 	general.add_child(_campaign_name_edit)
 	general.add_child(_label("Introduction:"))
-	_campaign_intro_edit = _text_edit(80)
+	_campaign_intro_edit = _text_edit(80, _plain_context(func(): return "Writing: the introduction of the whole campaign, read to the players when a new game starts."))
 	_campaign_intro_edit.text_changed.connect(func():
 		if _suppress or _campaign == null:
 			return
@@ -428,7 +428,10 @@ func _ready() -> void:
 	)
 	left.add_child(_act_name_edit)
 	left.add_child(_label("Introduction:"))
-	_act_intro_edit = _text_edit(80)
+	_act_intro_edit = _text_edit(80, _plain_context(func():
+		var act := _current_act()
+		return "Writing: the introduction of the act \"%s\", read to the players when the act begins." % (act.act_name if act != null else "")
+	))
 	_act_intro_edit.text_changed.connect(func():
 		var act := _current_act()
 		if _suppress or act == null:
@@ -1347,7 +1350,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 
 	_section(_chapter_panel, "Before mission")
 	_chapter_panel.add_child(_sub_heading("Story:"))
-	var before_edit := _text_edit(80)
+	var before_edit := _text_edit(80, _story_context(quest.title, "Side quest", func(): return quest.story_before, func(): return quest.story_after))
 	before_edit.text = quest.story_before
 	before_edit.text_changed.connect(func():
 		quest.story_before = before_edit.text
@@ -1357,7 +1360,7 @@ func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
 
 	_section(_chapter_panel, "After mission")
 	_chapter_panel.add_child(_sub_heading("Story:"))
-	var after_edit := _text_edit(80)
+	var after_edit := _text_edit(80, _story_context(quest.title, "Side quest", func(): return quest.story_before, func(): return quest.story_after))
 	after_edit.text = quest.story_after
 	after_edit.text_changed.connect(func():
 		quest.story_after = after_edit.text
@@ -1440,7 +1443,7 @@ func _build_place_panel(act: CampaignAct, place: CampaignPlace) -> void:
 	)
 	_chapter_panel.add_child(title_edit)
 	_chapter_panel.add_child(_label("Description:"))
-	var description_edit := _text_edit(60)
+	var description_edit := _text_edit(60, _plain_context(func(): return "Writing: the description of the place \"%s\" on the map (what the players see when they visit it)." % place.title))
 	description_edit.text = place.description
 	description_edit.text_changed.connect(func():
 		place.description = description_edit.text
@@ -2008,9 +2011,7 @@ func _rebuild_chapter_panel() -> void:
 	_chapter_panel.add_child(soon_check)
 	if chapter.coming_soon:
 		_chapter_panel.add_child(_label("Teaser shown to the players (text only, no dates):"))
-		var teaser_edit := TextEdit.new()
-		teaser_edit.custom_minimum_size = Vector2(0, 80)
-		teaser_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+		var teaser_edit := _text_edit(80, _plain_context(func(): return "Writing: a short teaser for the chapter \"%s\", which is announced but not playable yet. Text only: no dates, do not give away the story." % chapter.title))
 		teaser_edit.text = chapter.coming_soon_text
 		teaser_edit.text_changed.connect(func():
 			chapter.coming_soon_text = teaser_edit.text
@@ -2138,7 +2139,7 @@ func _rebuild_chapter_panel() -> void:
 	# ---- Before mission
 	_section(_chapter_panel, "Before mission")
 	_chapter_panel.add_child(_sub_heading("Story:"))
-	var before_edit := _text_edit(80)
+	var before_edit := _text_edit(80, _story_context(chapter.title, "Chapter", func(): return chapter.story_before, func(): return chapter.story_after))
 	before_edit.text = chapter.story_before
 	before_edit.text_changed.connect(func():
 		chapter.story_before = before_edit.text
@@ -2149,7 +2150,7 @@ func _rebuild_chapter_panel() -> void:
 	# ---- After mission
 	_section(_chapter_panel, "After mission")
 	_chapter_panel.add_child(_sub_heading("Story:"))
-	var after_edit := _text_edit(80)
+	var after_edit := _text_edit(80, _story_context(chapter.title, "Chapter", func(): return chapter.story_before, func(): return chapter.story_after))
 	after_edit.text = chapter.story_after
 	after_edit.text_changed.connect(func():
 		chapter.story_after = after_edit.text
@@ -2449,11 +2450,52 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	return button
 
 
-func _text_edit(height: float) -> TextEdit:
+## A multi-line text box. With a `context` (a Callable that says where the text sits, handed to the AI as background) it is a story box:
+## [Character] colours, spell check, the optional AI help and dictation, like the boxes of the story window.
+func _text_edit(height: float, context: Callable = Callable()) -> TextEdit:
 	var edit := TextEdit.new()
 	edit.custom_minimum_size.y = height
 	edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	if context.is_valid():
+		var speakers: Array[NarratorCharacter] = []
+		if _campaign != null:
+			speakers = _campaign.characters
+		NarrationHighlight.apply(edit, speakers)
+		AiAssist.attach(edit, context, speakers)  # only visible when AI help is switched on in Options
+		SpeechDictation.attach(edit, speakers)  # only visible when voice is set up (Options > Voice)
 	return edit
+
+
+## Background for the AI help of a text that is not tied to a chapter: the campaign and one extra line about what is being written.
+func _plain_context(about: Callable) -> Callable:
+	return func() -> String:
+		var lines: Array[String] = []
+		if _campaign != null:
+			lines.append("Campaign: " + _campaign.campaign_name)
+			if _campaign.intro != "":
+				lines.append("Campaign introduction: " + _campaign.intro.left(600))
+		lines.append(str(about.call()))
+		return "
+".join(lines)
+
+
+## Background for the AI help of a chapter's or side quest's story boxes: the campaign, the chapter, and the other story text around it.
+func _story_context(title: String, kind: String, before: Callable, after: Callable) -> Callable:
+	return func() -> String:
+		var lines: Array[String] = []
+		if _campaign != null:
+			lines.append("Campaign: " + _campaign.campaign_name)
+			if _campaign.intro != "":
+				lines.append("Campaign introduction: " + _campaign.intro.left(600))
+		lines.append("%s: %s" % [kind, title])
+		var story_before: String = before.call()
+		var story_after: String = after.call()
+		if story_before != "":
+			lines.append("Story shown before the mission: " + story_before.left(800))
+		if story_after != "":
+			lines.append("Story shown after the mission: " + story_after.left(800))
+		return "
+".join(lines)
 
 
 func _say(message: String) -> void:

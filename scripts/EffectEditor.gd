@@ -120,7 +120,7 @@ func _declared_type_of(variable_name: String) -> int:
 			if variable.name == variable_name:
 				return variable.type
 		return -1
-	if ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map"].has(variable_name):
+	if ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map", "party_wounds"].has(variable_name):
 		return MissionVariable.Type.INT
 	for variable in mission.custom_variables:
 		if variable.name == variable_name:
@@ -161,7 +161,7 @@ func _known_variable_names() -> Array[String]:
 		for variable in campaign_variables:
 			campaign_names.append(variable.name)
 		return campaign_names
-	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map", "party_wounds"]
 	for variable in mission.custom_variables:
 		names.append(variable.name)
 	return names
@@ -198,7 +198,7 @@ func _known_int_variable_names() -> Array[String]:
 			if variable.type == MissionVariable.Type.INT:
 				campaign_names.append(variable.name)
 		return campaign_names
-	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map"]
+	var names: Array[String] = ["round_number", "player_count", "affliction_damage", "difficulty", "monsters_on_the_map", "party_wounds"]
 	for variable in mission.custom_variables:
 		if variable.type == MissionVariable.Type.INT:
 			names.append(variable.name)

@@ -1,4 +1,9 @@
-﻿## v0.0.73 - 2026-11-13
+﻿## v0.0.74 - 2026-11-14
+- Mission triggers can react to a hero being wounded: pick "A hero is wounded" as the event of a trigger in the Triggers editor ("A monster is defeated" is in the list too).
+- New variable `party_wounds`: all heroes' wounds added up, usable in any condition (for example to wake sneaky monsters once the party is in bad shape).
+- The AI help, dictation, spell check and character colours are now in every text the players read: the campaign editor's story boxes (before and after a mission, chapters and side quests), the campaign and act introductions, place descriptions, the "coming soon" teaser and a monster template's defeat text.
+
+## v0.0.73 - 2026-11-13
 - Campaigns can now be released episode by episode: a chapter can be marked "coming soon". Players see it on the map with a short teaser text, cannot play it yet, and get a "To be continued" notice after the last playable chapter. When a new version of the campaign comes out, their save games can be moved over to it.
 - Campaigns can have a feedback link: a "Send feedback" item in the Gear menu (and in the "to be continued" notice) opens it in the browser.
 - After installing a newer version of a campaign from the New game page, the game offers to move your save games of the older version over.

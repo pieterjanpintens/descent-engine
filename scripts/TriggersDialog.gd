@@ -146,7 +146,7 @@ func _build_trigger_block(trigger: MissionTrigger) -> Control:
 	if trigger.event_id != "" and not event_ids.has(trigger.event_id):
 		event_ids.append(trigger.event_id)
 	for event_id in event_ids:
-		event_option.add_item(event_id)
+		event_option.add_item(_event_text(event_id))
 	event_option.select(event_ids.find(trigger.event_id))
 	event_option.item_selected.connect(func(index: int):
 		_commit_field("Edit trigger event", func(): trigger.event_id = event_ids[index])
@@ -165,7 +165,7 @@ func _build_trigger_block(trigger: MissionTrigger) -> Control:
 		if current != "" and not or_ids.has(current):
 			or_ids.append(current)
 		for or_id in or_ids:
-			or_option.add_item(or_id)
+			or_option.add_item(_event_text(or_id))
 		or_option.select(or_ids.find(current))
 		or_option.item_selected.connect(func(index: int):
 			_commit_field("Edit trigger event", func(): trigger.extra_event_ids[extra_index] = or_ids[index])
@@ -296,11 +296,20 @@ func _on_add_trigger_pressed() -> void:
 ## trigger can listen for.
 func _known_event_ids() -> Array[String]:
 	var ids: Array[String] = []
+	for built_in in MissionRuntime.BUILTIN_EVENTS:  # the game's own events first
+		ids.append(built_in)
 	for entry in _mission.interactables:
 		for action in entry.actions:
 			if action.action_id != "" and not ids.has(action.action_id):
 				ids.append(action.action_id)
 	return ids
+
+
+## What the event picker shows: a built-in event in words, a prop action's id as it is.
+func _event_text(event_id: String) -> String:
+	if MissionRuntime.BUILTIN_EVENTS.has(event_id):
+		return str(MissionRuntime.BUILTIN_EVENTS[event_id])
+	return event_id
 
 
 func _label(text: String) -> Label:

@@ -24,12 +24,21 @@ extends RefCounted
 ## must be called with 'await'") on any call site that's missed, so this
 ## is self-checking, not a silent-breakage risk.
 
+## Events the game itself fires (besides a prop action's id): a trigger can listen to them. `BUILTIN_EVENTS` = id -> the text the Triggers editor shows.
+const EVENT_MONSTER_DEFEATED := "monster_defeated"
+const EVENT_HERO_WOUNDED := "hero_wounded"
+const BUILTIN_EVENTS := {
+	EVENT_HERO_WOUNDED: "A hero is wounded",
+	EVENT_MONSTER_DEFEATED: "A monster is defeated",
+}
+
 const BUILTIN_TYPES := {
 	"round_number": MissionVariable.Type.INT,
 	"player_count": MissionVariable.Type.INT,
 	"affliction_damage": MissionVariable.Type.INT,
 	"difficulty": MissionVariable.Type.INT,  ## 1-4 (Difficulty), read-only: the player chooses it
 	"monsters_on_the_map": MissionVariable.Type.INT,  ## how many monsters are on the board right now, read-only (kept in step with `monsters`)
+	"party_wounds": MissionVariable.Type.INT,  ## the wounds of all heroes together, read-only (kept in step with `hero_wounds`); a hero is lost at 3 wounds
 }
 
 ## Built-ins an Effect MAY write (the rest are runtime-owned). `affliction_damage`
@@ -82,6 +91,7 @@ func _init(p_mission: MissionData) -> void:
 	_variables["affliction_damage"] = DEFAULT_AFFLICTION_DAMAGE
 	_variables["difficulty"] = Difficulty.DEFAULT
 	_variables["monsters_on_the_map"] = 0
+	_variables["party_wounds"] = 0
 	monsters_changed.connect(_sync_monster_count)  # every spawn, defeat, restore and clear goes through this signal
 	for variable in mission.custom_variables:
 		var coerced: Variant = _coerce(variable.default_value, variable.type)
@@ -141,6 +151,14 @@ func _sync_monster_count() -> void:
 	_variables["monsters_on_the_map"] = monsters.size()
 
 
+## The built-in `party_wounds`: every hero's wounds added up. Call it after `hero_wounds` was replaced wholesale (a resumed save).
+func sync_wound_count() -> void:
+	var total := 0
+	for slot in hero_wounds:
+		total += int(hero_wounds[slot])
+	_variables["party_wounds"] = total
+
+
 func get_variables_state() -> Dictionary:
 	return _variables.duplicate()
 
@@ -148,6 +166,7 @@ func get_variables_state() -> Dictionary:
 func load_variables_state(state: Dictionary) -> void:
 	_variables = state.duplicate()
 	_sync_monster_count()
+	sync_wound_count()
 
 
 ## Puts saved variable values onto a mission that may have been edited since (a debug snapshot, see MissionProgress): a
@@ -169,6 +188,7 @@ func restore_variables_checked(state: Dictionary) -> Array[String]:
 			continue
 		_variables[variable_name] = coerced
 	_sync_monster_count()
+	sync_wound_count()
 	return report
 
 
@@ -930,6 +950,7 @@ func wound_count(slot: int) -> int:
 ## wound loses the game).
 func wound_hero(slot: int) -> int:
 	hero_wounds[slot] = wound_count(slot) + 1
+	sync_wound_count()
 	return int(hero_wounds[slot])
 
 
