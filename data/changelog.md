@@ -1,4 +1,7 @@
-﻿## v0.0.74 - 2026-11-14
+﻿## v0.0.75 - 2026-11-14
+- The monster list on the side of the map view now scrolls with the mouse wheel (while the pointer is over it) instead of turning round by itself.
+
+## v0.0.74 - 2026-11-14
 - Mission triggers can react to a hero being wounded: pick "A hero is wounded" as the event of a trigger in the Triggers editor ("A monster is defeated" is in the list too).
 - New variable `party_wounds`: all heroes' wounds added up, usable in any condition (for example to wake sneaky monsters once the party is in bad shape).
 - The AI help, dictation, spell check and character colours are now in every text the players read: the campaign editor's story boxes (before and after a mission, chapters and side quests), the campaign and act introductions, place descriptions, the "coming soon" teaser and a monster template's defeat text.
