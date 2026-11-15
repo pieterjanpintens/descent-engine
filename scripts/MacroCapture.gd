@@ -383,7 +383,7 @@ func _param_for_field(field: Dictionary, param_id: String, label: String) -> Mac
 
 
 static func loot_is_empty(loot: Effect) -> bool:
-	return loot.loot_materials.is_empty() and loot.loot_cards.is_empty() and loot.loot_recipes.is_empty() and loot.loot_usable.is_empty()
+	return loot.loot_is_empty()
 
 
 func _declared(name: String) -> MissionVariable:

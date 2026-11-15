@@ -294,6 +294,26 @@ var message: String:
 @export var loot_cards: Array[String] = []
 ## Recipe ids (RecipeData) the party learns.
 @export var loot_recipes: Array[String] = []
+## RANDOM RECIPES (new 2026-11-15) - besides the fixed loot_recipes the chest can hand out recipes drawn at random when it is opened, taking the
+## party's inventory into account (CampaignState.draw_random_recipes()): never one the party owns or that has nothing left to make, never one
+## already dropped earlier in this mission. `random_recipe_count` is a formula like the random spawn's (difficulty, player_count, round_number,
+## the mission's INT variables); BLANK = no random recipes. Which ones: tier weights (index 0 = tier 1, like a recipe shop's), a gold value band
+## (0 = no limit) and a kind filter. `random_recipe_fit` leans the draw toward what the party can use (upgrades of owned cards, the weapon types of
+## the heroes in the party, recipes whose materials it already holds). With nothing to draw the chest gives some gold instead (when on).
+enum RecipeKind { ALL, WEAPON, WEAPON_PART, ARMOR, CONSUMABLE, TRINKET }
+enum RecipeFit { OFF, MILD, STRONG }
+@export var random_recipe_count: String = ""
+@export var random_recipe_tier_weights: Array[int] = [50, 30, 15, 4, 1]
+@export var random_recipe_min_price: int = 0
+@export var random_recipe_max_price: int = 0
+@export var random_recipe_kind: RecipeKind = RecipeKind.ALL
+@export var random_recipe_fit: RecipeFit = RecipeFit.MILD
+@export var random_recipe_gold_fallback: bool = true
+## True when this LOOT effect gives nothing at all (no gold, materials, cards, recipes, usable items or random recipes).
+func loot_is_empty() -> bool:
+	return loot_materials.is_empty() and loot_cards.is_empty() and loot_recipes.is_empty() and loot_usable.is_empty() and random_recipe_count.strip_edges() == ""
+
+
 ## Consumable ids (ConsumableData) the party can use during THIS mission only: not added to the inventory, the popup tells the table to put
 ## them in their play area. Repeats are counted.
 @export var loot_usable: Array[String] = []

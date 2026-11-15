@@ -65,7 +65,7 @@ func problem(values: Dictionary) -> String:
 			continue
 		if param.kind == MacroParam.Kind.LOOT:
 			var loot := value as Effect
-			if loot == null or (loot.loot_materials.is_empty() and loot.loot_cards.is_empty() and loot.loot_recipes.is_empty() and loot.loot_usable.is_empty()):
+			if loot == null or loot.loot_is_empty():
 				return "Fill in '%s' first." % param.label
 		elif param.kind == MacroParam.Kind.MONSTERS:
 			var pool := value as Effect

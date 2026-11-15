@@ -85,6 +85,18 @@ func _move_in_array(array: Array, item, delta: int) -> bool:
 
 
 ## The names the "how many" formula of a random spawn can use (the level formula's names, without "level": no single monster is meant).
+## The mission's characters / name for the text boxes; there is no mission when the macro manager edits a recipe's loot.
+func _characters() -> Array[NarratorCharacter]:
+	var list: Array[NarratorCharacter] = []
+	if mission != null:
+		list = mission.characters
+	return list
+
+
+func _mission_name() -> String:
+	return mission.mission_name if mission != null else ""
+
+
 func _random_count_names() -> Array[String]:
 	var names: Array[String] = []
 	for variable_name in LevelFormula.variables(mission):
@@ -449,8 +461,8 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	## message_variables list (new 2026-09-19, $1/$2/... placeholders) gets
 	## its own nested editor, same "doesn't fit one row, open a small
 	## Window" reasoning as "Edit Test…"/"Conditions…" above.
-	var message_edit := ProseEdit.build(effect.message, "Message shown to the table, e.g. \"$1 gave you the key.\"", Vector2(480, 130), mission.characters,
-		func(): return "Text for the board game Descent: Legends of the Dark. This is a message popup shown to the players during a mission (placeholders like $1 are replaced by variable values - keep them). Mission: %s." % mission.mission_name,
+	var message_edit := ProseEdit.build(effect.message, "Message shown to the table, e.g. \"$1 gave you the key.\"", Vector2(480, 130), _characters(),
+		func(): return "Text for the board game Descent: Legends of the Dark. This is a message popup shown to the players during a mission (placeholders like $1 are replaced by variable values - keep them). Mission: %s." % _mission_name(),
 		func(new_text: String): _commit_field("Edit effect message", func(): effect.message = new_text))
 	row.add_child(message_edit)
 
@@ -1696,6 +1708,8 @@ func _loot_summary(effect: Effect) -> String:
 		parts.append(RecipeData.card_label(card_id))
 	if not effect.loot_recipes.is_empty():
 		parts.append("%d recipe(s)" % effect.loot_recipes.size())
+	if effect.random_recipe_count.strip_edges() != "":
+		parts.append("random recipes: %s" % effect.random_recipe_count)
 	if not effect.loot_usable.is_empty():
 		parts.append("usable: " + ConsumableData.list_text(effect.loot_usable))
 	return ", ".join(parts)
@@ -1720,6 +1734,103 @@ func monsters_summary(effect: Effect) -> String:
 	if shared != null:
 		return "Group: %s" % shared.display_name()
 	return "" if effect.spawn_monsters.is_empty() else "%d monster(s)" % effect.spawn_monsters.size()
+
+
+## The "Random recipes" block of the Loot editor: how many (a formula, blank = none), which kind, the chance per tier, a gold value band and how
+## strongly the draw leans toward what the party can use (CampaignState.draw_random_recipes()).
+func _add_random_recipe_section(box: VBoxContainer, effect: Effect, on_refresh: Callable) -> void:
+	box.add_child(HSeparator.new())
+	var heading := _label("Random recipes (drawn when the loot is found; the party's inventory is taken into account):")
+	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	heading.custom_minimum_size.x = 480
+	box.add_child(heading)
+
+	var count_row := HBoxContainer.new()
+	count_row.add_child(_label("How many:"))
+	var count_edit := LineEdit.new()
+	count_edit.custom_minimum_size.x = 150
+	count_edit.placeholder_text = "none"
+	count_edit.text = effect.random_recipe_count
+	count_edit.tooltip_text = "How many recipes are drawn: a number or a formula, e.g. 1 or difficulty - 1. You can use: %s. Blank = none, at most 10." % ", ".join(_random_count_names())
+	var check_count := func():
+		var problem := LevelFormula.check(count_edit.text, _random_count_names()) if count_edit.text.strip_edges() != "" else ""
+		count_edit.modulate = Color.WHITE if problem == "" else Color(1.0, 0.55, 0.45)
+		if problem != "":
+			count_edit.tooltip_text = problem
+	check_count.call()
+	var commit_count := func(_new_text: String = ""):
+		if count_edit.text != effect.random_recipe_count:
+			var typed := count_edit.text
+			_commit_field("Edit random recipe count", func(): effect.random_recipe_count = typed)
+			on_refresh.call()
+		check_count.call()
+	count_edit.text_submitted.connect(commit_count)
+	count_edit.focus_exited.connect(commit_count)
+	count_row.add_child(count_edit)
+	box.add_child(count_row)
+
+	var kind_row := HBoxContainer.new()
+	kind_row.add_child(_label("Kind:"))
+	var kind_option := OptionButton.new()
+	for kind_name in ["All", "Weapon", "Weapon part", "Armor", "Consumable", "Trinket"]:
+		kind_option.add_item(kind_name)
+	kind_option.select(int(effect.random_recipe_kind))
+	kind_option.item_selected.connect(func(index: int): _commit_field("Edit random recipe kind", func(): effect.random_recipe_kind = index as Effect.RecipeKind))
+	kind_row.add_child(kind_option)
+	box.add_child(kind_row)
+
+	var tier_box := HFlowContainer.new()
+	tier_box.add_child(_label("Chance per tier (relative, 0 = never):"))
+	var tiers := maxi(RecipeData.highest_tier(), effect.random_recipe_tier_weights.size())
+	for tier in range(1, tiers + 1):
+		var tier_spin := SpinBox.new()
+		tier_spin.min_value = 0
+		tier_spin.max_value = 1000
+		tier_spin.prefix = "T%d " % tier
+		tier_spin.value = effect.random_recipe_tier_weights[tier - 1] if tier <= effect.random_recipe_tier_weights.size() else 0
+		tier_spin.value_changed.connect(func(value: float):
+			_commit_field("Edit random recipe tier", func():
+				while effect.random_recipe_tier_weights.size() < tiers:
+					effect.random_recipe_tier_weights.append(0)
+				effect.random_recipe_tier_weights[tier - 1] = int(value)
+			)
+		)
+		tier_box.add_child(tier_spin)
+	box.add_child(tier_box)
+
+	var price_row := HBoxContainer.new()
+	price_row.add_child(_label("Value in gold, from:"))
+	var min_spin := SpinBox.new()
+	min_spin.min_value = 0
+	min_spin.max_value = 9999
+	min_spin.value = effect.random_recipe_min_price
+	min_spin.value_changed.connect(func(value: float): _commit_field("Edit random recipe price", func(): effect.random_recipe_min_price = int(value)))
+	price_row.add_child(min_spin)
+	price_row.add_child(_label("to (0 = no limit):"))
+	var max_spin := SpinBox.new()
+	max_spin.min_value = 0
+	max_spin.max_value = 9999
+	max_spin.value = effect.random_recipe_max_price
+	max_spin.value_changed.connect(func(value: float): _commit_field("Edit random recipe price", func(): effect.random_recipe_max_price = int(value)))
+	price_row.add_child(max_spin)
+	box.add_child(price_row)
+
+	var fit_row := HBoxContainer.new()
+	fit_row.add_child(_label("Fit to the party:"))
+	var fit_option := OptionButton.new()
+	for fit_name in ["Off", "Mild", "Strong"]:
+		fit_option.add_item(fit_name)
+	fit_option.select(int(effect.random_recipe_fit))
+	fit_option.tooltip_text = "Leans the draw toward upgrades of cards the party owns, the weapon types its heroes use and recipes whose materials it already holds."
+	fit_option.item_selected.connect(func(index: int): _commit_field("Edit random recipe fit", func(): effect.random_recipe_fit = index as Effect.RecipeFit))
+	fit_row.add_child(fit_option)
+	box.add_child(fit_row)
+
+	var fallback_check := CheckBox.new()
+	fallback_check.text = "Nothing left to draw: give some gold instead"
+	fallback_check.button_pressed = effect.random_recipe_gold_fallback
+	fallback_check.toggled.connect(func(on: bool): _commit_field("Edit random recipe fallback", func(): effect.random_recipe_gold_fallback = on))
+	box.add_child(fallback_check)
 
 
 func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
@@ -1759,8 +1870,8 @@ func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 	box.add_child(title_edit)
 
 	box.add_child(_label("Text shown above the list (optional):"))
-	var text_edit := ProseEdit.build(effect.loot_text, "You find a rusty key under the bones.", Vector2(0, 100), mission.characters,
-		func(): return "Text for the board game Descent: Legends of the Dark. This is a line shown above the list of loot (gold, materials, cards) the party finds, e.g. in a chest. Mission: %s." % mission.mission_name,
+	var text_edit := ProseEdit.build(effect.loot_text, "You find a rusty key under the bones.", Vector2(0, 100), _characters(),
+		func(): return "Text for the board game Descent: Legends of the Dark. This is a line shown above the list of loot (gold, materials, cards) the party finds, e.g. in a chest. Mission: %s." % _mission_name(),
 		func(new_text: String): _commit_field("Edit loot text", func(): effect.loot_text = new_text))
 	box.add_child(text_edit)
 
@@ -1788,6 +1899,7 @@ func _open_loot_editor(effect: Effect, on_refresh: Callable) -> void:
 		, false, true, {"cards": cards, "recipes": recipes, "usable": usable})
 	)
 	box.add_child(materials_button)
+	_add_random_recipe_section(box, effect, on_refresh)
 
 	var done := Button.new()
 	done.text = "Done"

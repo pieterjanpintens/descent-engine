@@ -74,7 +74,7 @@ func params() -> Array[MacroParam]:
 
 func problem(values: Dictionary) -> String:
 	var loot := values.get("loot") as Effect
-	if loot == null or (loot.loot_materials.is_empty() and loot.loot_cards.is_empty() and loot.loot_recipes.is_empty() and loot.loot_usable.is_empty()):
+	if loot == null or loot.loot_is_empty():
 		return "Put something in the chest first (Loot…)."
 	return ""
 

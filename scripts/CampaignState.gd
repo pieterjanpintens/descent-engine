@@ -411,9 +411,13 @@ func _take_loot(summary: Dictionary, loot: Dictionary) -> void:
 			continue
 		if key.begins_with(LootMaterials.RECIPE_PREFIX):
 			var recipe_id := key.trim_prefix(LootMaterials.RECIPE_PREFIX)
-			if not owned_recipes.has(recipe_id):
-				owned_recipes.append(recipe_id)
 			var recipe := RecipeData.find(recipe_id)
+			if not recipe.is_empty() and recipe["direct"]:
+				# a base armor / trinket: like in the shop it is the card itself, nothing to forge
+				if not owns_card(str(recipe["card"])):
+					_add_card(str(recipe["card"]))
+			elif not owned_recipes.has(recipe_id):
+				owned_recipes.append(recipe_id)
 			_note_item(summary, tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else recipe_id))
 			continue
 		if material_name == LootMaterials.GOLD:
@@ -579,6 +583,107 @@ func _recipe_weights(place: CampaignPlace, pool: Array[String]) -> Dictionary:
 		var tier := RecipeData.tier(RecipeData.find(id))
 		weights[id] = float(place.tier_weight(tier)) / float(per_tier[tier])
 	return weights
+
+
+## Whether `recipe` passes a Loot effect's kind filter (Effect.RecipeKind).
+static func recipe_matches_kind(recipe: Dictionary, kind: int) -> bool:
+	if kind == Effect.RecipeKind.ALL:
+		return true
+	var card_kind := RecipeData.card_kind(str(recipe["card"]))
+	match kind:
+		Effect.RecipeKind.WEAPON:
+			return card_kind == "weapon" or card_kind == "rune"
+		Effect.RecipeKind.WEAPON_PART:
+			return card_kind == "B" or card_kind == "C"
+		Effect.RecipeKind.ARMOR:
+			return card_kind == "armor"
+		Effect.RecipeKind.CONSUMABLE:
+			return card_kind == "consumable"
+		Effect.RecipeKind.TRINKET:
+			return card_kind == "trinket"
+	return false
+
+
+## The recipes of a Loot effect's "random recipes" block drawn now: {"ids": Array[String], "fallback_gold": int}. `count` is how many are wanted,
+## `exclude` recipe ids that may not be drawn (already dropped in this mission), `roster` the HeroCatalog slots in the party (empty = all six).
+## Only recipes the party can still use are in the pool (not owned, something left to make); the tier weights decide how likely each tier is (shared
+## by its recipes, like a shop), the price band and kind filter narrow it, and `random_recipe_fit` leans the draw toward upgrades of owned cards,
+## the weapon types the party's heroes use and recipes whose materials the party already holds. Drawn without repeats. When the pool runs dry the
+## missing ones become gold (`fallback_gold`: half the average value of what the filters would allow, 0 when the effect has the fallback off).
+func draw_random_recipes(effect: Effect, count: int, exclude: Array, roster: Array[int]) -> Dictionary:
+	var result := {"ids": [] as Array[String], "fallback_gold": 0}
+	if count <= 0:
+		return result
+	var heroes: Array[int] = roster
+	if heroes.is_empty():
+		for slot in HeroCatalog.SLOT_COUNT:
+			heroes.append(slot)
+	var types: Array[String] = []
+	for slot in heroes:
+		for weapon_index in 2:
+			var weapon_type := WeaponCatalog.type_of(slot, weapon_index)
+			if weapon_type != "" and not types.has(weapon_type):
+				types.append(weapon_type)
+	var tier_count := {}
+	var pool: Array[Dictionary] = []
+	var band_prices: Array[int] = []  # every recipe the filters allow, owned or not, for the gold fallback
+	for recipe in RecipeData.all():
+		var tier := RecipeData.tier(recipe)
+		var weight := maxi(effect.random_recipe_tier_weights[tier - 1], 0) if tier >= 1 and tier <= effect.random_recipe_tier_weights.size() else 0
+		if weight <= 0 or not recipe_matches_kind(recipe, effect.random_recipe_kind) or _is_brooch_recipe(recipe):
+			continue
+		var price := int(recipe["price"])
+		if price < effect.random_recipe_min_price or (effect.random_recipe_max_price > 0 and price > effect.random_recipe_max_price):
+			continue
+		band_prices.append(price)
+		var id := str(recipe["id"])
+		if owned_recipes.has(id) or exclude.has(id) or not recipe_target_open(recipe):
+			continue
+		pool.append(recipe)
+		tier_count[tier] = int(tier_count.get(tier, 0)) + 1
+	var boost := 1.0 + (0.5 if effect.random_recipe_fit == Effect.RecipeFit.MILD else 1.0 if effect.random_recipe_fit == Effect.RecipeFit.STRONG else 0.0)
+	var picked: Array[String] = []
+	while picked.size() < count and not pool.is_empty():
+		var weights: Array[float] = []
+		var total := 0.0
+		for recipe in pool:
+			var tier := RecipeData.tier(recipe)
+			var weight := float(effect.random_recipe_tier_weights[tier - 1]) / float(tier_count[tier])
+			if boost > 1.0:
+				var factor := 1.0
+				var card := str(recipe["card"])
+				if recipe["upgrade"]:
+					factor += boost - 1.0  # an upgrade of a card the party owns: useful at once
+				if types.has(WeaponData.weapon_type_of_part(card)):
+					factor += boost - 1.0
+				var needed := 0
+				var held := 0
+				for material in recipe["ingredients"]:
+					needed += int(recipe["ingredients"][material])
+					held += mini(int(materials.get(material, 0)), int(recipe["ingredients"][material]))
+				if needed > 0:
+					factor += (boost - 1.0) * float(held) / float(needed)
+				weight *= factor
+			weights.append(weight)
+			total += weight
+		var roll := randf() * total
+		var chosen := pool.size() - 1
+		for i in pool.size():
+			roll -= weights[i]
+			if roll <= 0.0:
+				chosen = i
+				break
+		var taken: Dictionary = pool[chosen]
+		picked.append(str(taken["id"]))
+		pool.remove_at(chosen)
+		tier_count[RecipeData.tier(taken)] = int(tier_count[RecipeData.tier(taken)]) - 1
+	result["ids"] = picked
+	if picked.size() < count and effect.random_recipe_gold_fallback and not band_prices.is_empty():
+		var sum := 0
+		for price in band_prices:
+			sum += price
+		result["fallback_gold"] = (count - picked.size()) * (sum / band_prices.size() / 2)
+	return result
 
 
 ## The Brooch's "+" is earned by the counter, never bought or forged; the Brooch itself is only sold when the campaign defines its monster.

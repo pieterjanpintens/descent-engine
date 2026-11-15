@@ -275,7 +275,7 @@ func _value_text(field: Dictionary) -> String:
 	if field["kind"] == MacroCapture.FieldKind.LOOT:
 		var loot := field["value"] as Effect
 		var gold := int(loot.loot_materials.get(LootMaterials.GOLD, 0))
-		return tr("%d gold, %d other") % [gold, loot.loot_materials.size() - (1 if gold > 0 else 0) + loot.loot_cards.size() + loot.loot_recipes.size()]
+		return tr("%d gold, %d other") % [gold, loot.loot_materials.size() - (1 if gold > 0 else 0) + loot.loot_cards.size() + loot.loot_recipes.size() + (1 if loot.random_recipe_count.strip_edges() != "" else 0)]
 	if field["kind"] == MacroCapture.FieldKind.ATTRIBUTE:
 		return PlayerAttribute.attribute_name(int(field["value"]))
 	return str(field["value"])

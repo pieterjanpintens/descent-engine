@@ -1,4 +1,8 @@
-﻿## v0.0.76 - 2026-11-14
+﻿## v0.0.77 - 2026-11-15
+- The **Loot** effect can hand out **random recipes**: in its Loot window set how many (a number or a formula, blank = none), the kind (All / Weapon / Weapon part / Armor / Consumable / Trinket), the chance per tier, a gold value band and how strongly the draw leans toward what the party can use ("Fit to the party"). It takes the campaign's inventory into account: never a recipe the party already has or has nothing left to make, never one already found earlier in the mission, and - when fitting is on - upgrades of owned cards, the weapon types of the heroes in play and recipes whose materials the party already holds come up more often. When nothing is left to draw the chest gives some gold instead (can be switched off).
+- Fixed: the Loot window of a macro (Mission > Macros…) crashed because there was no mission, and a macro whose loot only had random recipes said "Fill in loot first" and could not be applied.
+
+## v0.0.76 - 2026-11-14
 - Two new effects for mission authors: **If / Else** (when the conditions hold run the "Then" effects, otherwise the "Else" ones) and **Repeat** (run effects several times, with an optional counter variable and an optional stop condition). They can be nested in each other and in tests and questions.
 - An optional objective can now appear only when conditions hold: in its window under "Appears only when". Until then the players do not see it and it cannot be completed.
 - A prop action can be limited to certain heroes: in the Actions editor tick the heroes it is for (none ticked = everyone). Other heroes are not offered it, and the prop does not light up for them when it has nothing else for them.

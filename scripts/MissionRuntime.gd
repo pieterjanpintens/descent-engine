@@ -1268,7 +1268,16 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 ## Effect.Type.LOOT: the gold, materials, cards and recipes go into `collected_loot` (cards and recipes under the keys
 ## "card:<id>" / "recipe:<id>", count 1) and the table is told what was found.
 func _apply_loot(effect: Effect) -> void:
-	var found := add_loot(effect.loot_materials, effect.loot_cards, effect.loot_recipes)
+	var materials: Dictionary = effect.loot_materials
+	var recipes: Array = effect.loot_recipes
+	if effect.random_recipe_count.strip_edges() != "":
+		var drawn := draw_loot_recipes(effect)
+		recipes = recipes.duplicate()
+		recipes.append_array(drawn["ids"])
+		if int(drawn["fallback_gold"]) > 0:
+			materials = materials.duplicate()
+			materials[LootMaterials.GOLD] = int(materials.get(LootMaterials.GOLD, 0)) + int(drawn["fallback_gold"])
+	var found := add_loot(materials, effect.loot_cards, recipes)
 	var usable := ConsumableData.usable_notice(effect.loot_usable)
 	if not effect.loot_usable.is_empty():
 		items_gained.emit(0, effect.loot_usable.size(), [])
@@ -1285,6 +1294,38 @@ func _apply_loot(effect: Effect) -> void:
 		var heading := effect.loot_title if effect.loot_title != "" else "Loot"  # same ask_ok popup a defeated monster's loot is announced with
 		await dialog.ask_ok("
 ".join(lines), true, false, heading, null, null, true)
+
+
+## The party's save game (a campaign mission; set by MissionPlayer) and the heroes in play, for the random recipes of a Loot effect. Without a
+## campaign there is no inventory: the draw then runs against an empty one (nothing owned, so no upgrades).
+var recipe_state: CampaignState = null
+var party_roster: Array[int] = []
+
+
+## How many random recipes a Loot effect asks for now: its formula over difficulty, player_count, round_number and the mission's INT variables
+## (blank = none, never more than 10). A broken formula gives 0 and warns.
+func random_recipe_count(effect: Effect) -> int:
+	if effect.random_recipe_count.strip_edges() == "":
+		return 0
+	var values := {}
+	for variable_name in LevelFormula.variables(mission):
+		if variable_name != "level":
+			values[variable_name] = int(_variables.get(variable_name, 0))
+	var result := LevelFormula.evaluate_count(effect.random_recipe_count, values)
+	if not result["ok"]:
+		push_warning("Random recipe count '%s': %s" % [effect.random_recipe_count, result["error"]])
+	return mini(int(result["count"]), 10)
+
+
+## The random recipes a Loot effect hands out now: {ids, fallback_gold}, see CampaignState.draw_random_recipes(). Recipes dropped earlier in this
+## mission (or fixed in this effect) are never drawn again.
+func draw_loot_recipes(effect: Effect) -> Dictionary:
+	var exclude: Array = effect.loot_recipes.duplicate()
+	for key in collected_loot:
+		if str(key).begins_with(LootMaterials.RECIPE_PREFIX):
+			exclude.append(str(key).trim_prefix(LootMaterials.RECIPE_PREFIX))
+	var state := recipe_state if recipe_state != null else CampaignState.new()
+	return state.draw_random_recipes(effect, random_recipe_count(effect), exclude, party_roster)
 
 
 ## Adds loot to the party's collected loot; returns it as text ("2x Herbs, 10 gold, Armor: Duskplate").

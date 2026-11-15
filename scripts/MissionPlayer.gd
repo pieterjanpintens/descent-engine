@@ -292,6 +292,8 @@ func _ready() -> void:
 	_runtime.skull_kill.connect(_on_skull_kill)
 	interaction_dock.mission_runtime = _runtime
 	_setup_feat_tracker()
+	_runtime.recipe_state = _campaign_state  # null outside a campaign: random recipes then ignore the inventory
+	_runtime.party_roster = player_roster
 	interaction_dock.monster_display = monster_display
 	interaction_dock.monster_sidebar = hud.monster_sidebar
 	if resume_save == null:
