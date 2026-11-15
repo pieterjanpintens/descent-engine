@@ -69,6 +69,11 @@ var description: String:
 ## DAG node, just a flat side-check attached to one.
 @export var optional_objectives: Array[MissionObjective] = []
 
+## Optional objectives only (new 2026-11-15): the objective is only SHOWN to the table, and can only be completed, while ALL of these hold
+## (implicit AND, empty = from the moment its node is active). Re-checked all the time, so a condition that stops holding hides it again -
+## unless it is already achieved, which stays listed with its tick. See MissionRuntime.optional_is_available().
+@export var appear_conditions: Array[Condition] = []
+
 ## Runtime bookkeeping - mirrors MissionTrigger.already_fired. Sits on the
 ## resource itself (mutated in place by MissionRuntime) rather than a
 ## separate shadow-state structure, same reasoning as MissionTrigger's own

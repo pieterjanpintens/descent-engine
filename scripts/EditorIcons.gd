@@ -21,6 +21,8 @@ const ICONS := {
 		+ '<path d="M12 13 L10.8 15.4 L13.2 15.4 Z" fill="#202020"/><path d="M10.2 17 V20 M12 17 V20 M13.8 17 V20" stroke="#202020" stroke-width="1"/>',
 	"los_blocker": '<path d="M1.8 12 C5.8 5 18.2 5 22.2 12 C18.2 19 5.8 19 1.8 12 Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>'
 		+ '<circle cx="12" cy="12" r="3.2" fill="white"/><path d="M4 20.5 L20 3.5" stroke="#ff6a55" stroke-width="2.4" stroke-linecap="round"/>',
+	"highlight_area": '<rect x="3" y="3" width="8" height="8" rx="1" fill="#2fd9c0" stroke="#202020" stroke-width="1"/><rect x="13" y="13" width="8" height="8" rx="1" fill="#2fd9c0" stroke="#202020" stroke-width="1"/>'
+		+ '<rect x="13" y="3" width="8" height="8" rx="1" fill="none" stroke="white" stroke-width="1.2" stroke-dasharray="2 1.6"/><rect x="3" y="13" width="8" height="8" rx="1" fill="none" stroke="white" stroke-width="1.2" stroke-dasharray="2 1.6"/>',
 }
 
 

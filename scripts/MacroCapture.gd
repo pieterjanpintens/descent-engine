@@ -201,6 +201,7 @@ func _discover_effects(part: String, list: Array, path: String) -> void:
 		var effect := list[index] as Effect
 		var at := "%s/%d" % [path, index]
 		_discover_conditions(part, effect.conditions, at + "/conditions")
+		_discover_conditions(part, effect.branch_conditions, at + "/branch_conditions")
 		match effect.type:
 			Effect.Type.SET_VARIABLE:
 				var label := "Value for %s" % effect.variable_name

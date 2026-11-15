@@ -1,4 +1,11 @@
-﻿## v0.0.75 - 2026-11-14
+﻿## v0.0.76 - 2026-11-14
+- Two new effects for mission authors: **If / Else** (when the conditions hold run the "Then" effects, otherwise the "Else" ones) and **Repeat** (run effects several times, with an optional counter variable and an optional stop condition). They can be nested in each other and in tests and questions.
+- An optional objective can now appear only when conditions hold: in its window under "Appears only when". Until then the players do not see it and it cannot be completed.
+- A prop action can be limited to certain heroes: in the Actions editor tick the heroes it is for (none ticked = everyone). Other heroes are not offered it, and the prop does not light up for them when it has nothing else for them.
+- New **Highlight Area** effect: draw floor squares in the mission editor (Palette > Misc > Highlight Area), then let an effect light them up for the table - for example a tree's "Climb" action whose successful Test highlights the squares where the hero lands, with a message such as "{hero} reaches the branches" (blank = "<hero>: place your figure on one of the highlighted squares."). The squares stay lit until the table confirms.
+- The Problems list now warns about a condition with no variable chosen (it can never be true, so the action, trigger, effect or objective it guards never happens), and about Highlight Area effects without a usable area.
+
+## v0.0.75 - 2026-11-14
 - The monster list on the side of the map view now scrolls with the mouse wheel (while the pointer is over it) instead of turning round by itself.
 
 ## v0.0.74 - 2026-11-14

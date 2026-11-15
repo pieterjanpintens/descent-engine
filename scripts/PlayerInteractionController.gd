@@ -423,7 +423,7 @@ func _update_hover_highlight(screen_pos: Vector2) -> void:
 				_hovered_entry = null
 				_rebuild_highlight()
 			return
-	var entry := _interactable_at(screen_pos)
+	var entry := _interactable_at(screen_pos, _roster[_drag_dock_position] if _dragging and _drag_dock_position >= 0 else -1)
 	if entry == _hovered_entry:
 		return
 	_hovered_entry = entry
@@ -444,7 +444,7 @@ func _end_drag(screen_pos: Vector2) -> void:
 	var hero_name := HeroCatalog.slot_name(hero_slot)
 	var monster_view := _monster_view_active()
 	var card_monster: RuntimeMonster = null if monster_view or monster_sidebar == null else monster_sidebar.monster_at(screen_pos)
-	var entry: InteractableEntry = null if monster_view or card_monster != null else _interactable_at(screen_pos)
+	var entry: InteractableEntry = null if monster_view or card_monster != null else _interactable_at(screen_pos, hero_slot)
 	var monster: RuntimeMonster = monster_display.monster_at(screen_pos) if monster_view else card_monster
 	if monster_sidebar != null:
 		monster_sidebar.set_hovered(null)
@@ -741,7 +741,7 @@ func _fire_tracked(action: PropAction, hero_name: String, entry: InteractableEnt
 func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 	if mission_runtime == null:
 		return
-	var actions := mission_runtime.available_actions(entry)
+	var actions := mission_runtime.available_actions(entry, HeroCatalog.HERO_NAMES.find(hero_name))
 	if actions.is_empty():
 		return
 	var label := entry.player_name()
@@ -817,11 +817,11 @@ func _offer_actions(hero_name: String, entry: InteractableEntry) -> void:
 ## `conditions` currently hold (see _resolve_action()) - an entry whose
 ## every action is conditionally unavailable right now reads the same as
 ## having no actions at all.
-func _interactable_at(screen_pos: Vector2) -> InteractableEntry:
+func _interactable_at(screen_pos: Vector2, hero_slot: int = -1) -> InteractableEntry:
 	var entry := _prop_at(screen_pos)
 	if entry == null or not entry.props.get("interactible", true):
 		return null
-	if _resolve_action(entry) == null:
+	if _resolve_action(entry, hero_slot) == null:
 		return null
 	return entry
 
@@ -872,11 +872,11 @@ func _prop_at(screen_pos: Vector2) -> InteractableEntry:
 ## game has actually started - see mission_runtime's own doc) rather than
 ## conditions silently gating nothing. Returns null for a null entry so
 ## _interactable_at() doesn't need to null-check separately first.
-func _resolve_action(entry: InteractableEntry) -> PropAction:
+func _resolve_action(entry: InteractableEntry, hero_slot: int = -1) -> PropAction:
 	if entry == null or entry.actions.is_empty():
 		return null
 	if mission_runtime != null:
-		return mission_runtime.first_available_action(entry)
+		return mission_runtime.first_available_action(entry, hero_slot)
 	return entry.actions[0]
 
 

@@ -639,7 +639,23 @@ func _open_optional_editor(parent_objective: MissionObjective, optional: Mission
 	_optional_editor_container.add_child(desc_edit)
 
 	_optional_editor_container.add_child(HSeparator.new())
-	_optional_editor_container.add_child(_label("Conditions (implicit AND):"))
+	var appear_label := _label("Appears only when (implicit AND, empty = shown from the start; hidden again if it stops holding, unless already achieved):")
+	appear_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	appear_label.custom_minimum_size.x = 400
+	_optional_editor_container.add_child(appear_label)
+	for appear_condition in optional.appear_conditions:
+		_optional_editor_container.add_child(_editor.build_condition_row(optional.appear_conditions, appear_condition, func(): _open_optional_editor(parent_objective, optional)))
+	var add_appear_button := Button.new()
+	add_appear_button.text = "Add Appear Condition"
+	add_appear_button.pressed.connect(func():
+		var appear_condition := Condition.new()
+		_commit_field("Add appear condition", func(): optional.appear_conditions.append(appear_condition))
+		_open_optional_editor(parent_objective, optional)
+	)
+	_optional_editor_container.add_child(add_appear_button)
+
+	_optional_editor_container.add_child(HSeparator.new())
+	_optional_editor_container.add_child(_label("Conditions to achieve it (implicit AND):"))
 	for condition in optional.conditions:
 		_optional_editor_container.add_child(_editor.build_condition_row(optional.conditions, condition, func(): _open_optional_editor(parent_objective, optional)))
 	var add_condition_button := Button.new()

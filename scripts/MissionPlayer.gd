@@ -897,6 +897,36 @@ No free spawn tile for: %s - place them next to the others." % ", ".join(unplace
 	holder.queue_free()
 
 
+## HIGHLIGHT_AREA: lights up the squares of a highlight area on the map and tells the table what to do (normally: place a figure on one of them).
+## The dialog does not dim the screen so the table can still look around; the squares go out again when it is confirmed. The app does not track
+## where the figure ends up - like everything about positions, the table does that.
+func _run_highlight(request: Dictionary) -> void:
+	var area := mission.find_node_by_id(str(request["area_id"])) as HighlightArea
+	if area == null or area.cells.is_empty():
+		push_warning("HIGHLIGHT_AREA references a highlight area that is missing or has no squares ('%s') - skipped" % request["area_id"])
+		return
+	if DebugSession.skipping():
+		debug_panel.toast(tr("%d square(s) highlighted.") % area.cells.size())
+		return
+	if monster_display.visible:
+		_set_monster_display_visible(false)  # the squares are on the map
+	layered_map.show_spots(area.cells)
+	if PlayerSettings.auto_camera_to_spawns:
+		var corners: Array[Vector3] = []
+		for cell in area.cells:
+			corners.append_array(layered_map.get_tile_square_world_corners(cell))
+		var centroid := Vector3.ZERO
+		for corner in corners:
+			centroid += corner
+		centroid /= corners.size()
+		var radius := 0.0
+		for corner in corners:
+			radius = maxf(radius, corner.distance_to(centroid))
+		camera.jump_to(centroid, maxf(SPAWN_VIEW_MIN_DISTANCE, radius * SPAWN_VIEW_RADIUS_MULTIPLIER))
+	await dialog.ask_ok(func() -> String: return _runtime.highlight_text(request), false, false, "Placement")
+	layered_map.clear_spots()
+
+
 ## TEMPORARY - "M" toggles the monster display mockup on/off so it can
 ## actually be seen in a running Player, since no real combat trigger
 ## exists yet to switch views on its own (see MonsterDisplay.gd's own doc).
@@ -1839,6 +1869,8 @@ func _advance_to(checkpoint: RoundCheckpoint.Checkpoint) -> bool:
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
 		await _run_monster_spawn(spawn_request)
+	for highlight_request in _runtime.drain_pending_highlights():
+		await _run_highlight(highlight_request)
 	_runtime.check_wake_conditions()  # a surprised group whose wake conditions now hold wakes up
 	if objective == null:
 		return true
@@ -2174,3 +2206,5 @@ func _on_objectives_progressed() -> void:
 		_apply_object_move(move)
 	for spawn_request in _runtime.drain_pending_monster_spawns():
 		await _run_monster_spawn(spawn_request)
+	for highlight_request in _runtime.drain_pending_highlights():
+		await _run_highlight(highlight_request)

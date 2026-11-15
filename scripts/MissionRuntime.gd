@@ -285,9 +285,9 @@ func evaluate_conditions(conditions: Array[Condition]) -> bool:
 ## means anything. PlayerInteractionController uses this to decide both
 ## whether a prop is currently interactable at all, and which action
 ## actually fires on drop.
-func first_available_action(entry: InteractableEntry) -> PropAction:
+func first_available_action(entry: InteractableEntry, hero_slot: int = -1) -> PropAction:
 	for action in entry.actions:
-		if evaluate_conditions(action.conditions) and not (action.single_shot and action.already_used):
+		if action.allows_hero(hero_slot) and evaluate_conditions(action.conditions) and not (action.single_shot and action.already_used):
 			return action
 	if log_evaluations:
 		print("MissionRuntime.first_available_action: '%s' (%d action(s) authored) - none currently available" % [entry.reference_name if entry.reference_name != "" else entry.mesh_item_name, entry.actions.size()])
@@ -304,10 +304,10 @@ func first_available_action(entry: InteractableEntry) -> PropAction:
 ## picker is meant to still SHOW it, just disabled (see PropAction's own
 ## doc), so the player can see it's been used rather than have it silently
 ## vanish. Order matches entry.actions' own declared order.
-func available_actions(entry: InteractableEntry) -> Array[PropAction]:
+func available_actions(entry: InteractableEntry, hero_slot: int = -1) -> Array[PropAction]:
 	var result: Array[PropAction] = []
 	for action in entry.actions:
-		if evaluate_conditions(action.conditions):
+		if action.allows_hero(hero_slot) and evaluate_conditions(action.conditions):
 			result.append(action)
 	return result
 
@@ -347,6 +347,9 @@ var _pending_object_moves: Array[Dictionary] = []
 ## drain_pending_monster_spawns(). Keys: "spawn_id" (String), "monsters"
 ## (Array[String] of monster folders, in spawn-tile order).
 var _pending_monster_spawns: Array[Dictionary] = []
+## HIGHLIGHT_AREA effects waiting for MissionPlayer (drain_pending_highlights()). Keys: "area_id", "hero" (the acting hero's name, may be ""),
+## "message" and "variables" (the effect's text and its $N variable names, see highlight_text()).
+var _pending_highlights: Array[Dictionary] = []
 
 ## How many attacks each hero slot has made against monsters (slot -> count),
 ## counted by resolve_attack() - what the Suppress target rule follows. Saved
@@ -1198,6 +1201,12 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 	if effect.type == Effect.Type.ASK_QUESTION:
 		await _run_question(effect, hero_name)
 		return
+	if effect.type == Effect.Type.IF_ELSE:
+		await _run_if_else(effect, hero_name)
+		return
+	if effect.type == Effect.Type.REPEAT:
+		await _run_repeat(effect, hero_name)
+		return
 	if effect.type == Effect.Type.SPAWN_MONSTERS:
 		# a monster with conditions (e.g. player_count >= 4) only spawns when they hold now; the others take the tiles in order
 		var qualifying: Array[MonsterTemplate] = []
@@ -1227,6 +1236,10 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 				continue
 			targets.append(candidate)
 		wake_monsters(targets, "effect")
+		return
+	if effect.type == Effect.Type.HIGHLIGHT_AREA:
+		if effect.target_object_id != "":
+			_pending_highlights.append({"area_id": effect.target_object_id, "hero": hero_name, "message": effect.message, "variables": effect.message_variables.duplicate()})
 		return
 	if effect.type == Effect.Type.LOOT:
 		await _apply_loot(effect)
@@ -1404,6 +1417,44 @@ func _run_question(effect: Effect, hero_name: String) -> void:
 		await apply_effects(effect.fail_effects, hero_name)
 
 
+## Effect.Type.IF_ELSE: the "then" effects (pass_effects) when every branch condition holds right now, else the "else" effects (fail_effects).
+## The conditions are read when the effect fires, so an earlier effect of the same list can change the outcome.
+func _run_if_else(effect: Effect, hero_name: String) -> void:
+	if evaluate_conditions(effect.branch_conditions):
+		await apply_effects(effect.pass_effects, hero_name)
+	else:
+		await apply_effects(effect.fail_effects, hero_name)
+
+
+## How many times a REPEAT effect runs: its formula (blank = 1) over difficulty, player_count, round_number and the mission's INT variables,
+## a whole number from 0 to Effect.MAX_REPEATS. A broken formula gives 0 (and warns) so a typo can never freeze a mission.
+func repeat_count(effect: Effect) -> int:
+	var values := {}
+	for variable_name in LevelFormula.variables(mission):
+		if variable_name != "level":
+			values[variable_name] = int(_variables.get(variable_name, 0))
+	var result := LevelFormula.evaluate_count(effect.repeat_count, values)
+	if not result["ok"]:
+		push_warning("Repeat count '%s': %s" % [effect.repeat_count, result["error"]])
+	return mini(int(result["count"]), Effect.MAX_REPEATS)
+
+
+## Effect.Type.REPEAT: runs pass_effects repeat_count() times. The counter variable (declared INT, optional) is 1, 2, 3... for the run in progress and
+## keeps its last value afterwards; branch conditions, when set, are checked before every run and end the loop the first time they fail.
+func _run_repeat(effect: Effect, hero_name: String) -> void:
+	var times := repeat_count(effect)
+	var counter := effect.loop_variable_name
+	if counter != "" and (_declared_type(counter) != MissionVariable.Type.INT or (BUILTIN_TYPES.has(counter) and not WRITABLE_BUILTINS.has(counter))):
+		push_warning("Repeat counter '%s' must be a declared INT variable the mission may write - not used" % counter)
+		counter = ""
+	for index in times:
+		if not evaluate_conditions(effect.branch_conditions):
+			break
+		if counter != "":
+			_variables[counter] = index + 1
+		await apply_effects(effect.pass_effects, hero_name)
+
+
 ## The extra successes the Lucky Charm of the hero called `hero_name` adds to a test (0 when the hero does not wear one).
 func _lucky_bonus(hero_name: String) -> int:
 	if hero_name == "":
@@ -1579,6 +1630,26 @@ func drain_pending_object_shows() -> Array[String]:
 	return shows
 
 
+## Clears and returns the HIGHLIGHT_AREA effects queued since the last drain - MissionPlayer runs each via _run_highlight().
+func drain_pending_highlights() -> Array[Dictionary]:
+	var requests := _pending_highlights
+	_pending_highlights = []
+	return requests
+
+
+## The text the table reads for a queued highlight request: the effect's own message (variables filled in, `{hero}` = the acting hero), or a
+## default sentence. Built on demand so the quest log can keep it in every language.
+func highlight_text(request: Dictionary) -> String:
+	var hero: String = str(request.get("hero", ""))
+	var template: String = str(request.get("message", ""))
+	if template.strip_edges() == "":
+		template = TranslationServer.translate("{hero}: place your figure on one of the highlighted squares.") if hero != "" 				else TranslationServer.translate("Place your figure on one of the highlighted squares.")
+	var variables: Array[String] = []
+	for name in request.get("variables", []):
+		variables.append(str(name))
+	return _format_message(template, variables).replace("{hero}", hero)
+
+
 ## Clears and returns the SPAWN_MONSTERS effects queued since the last drain (new 2026-09-19) - MissionPlayer runs each via _run_monster_spawn().
 func drain_pending_monster_spawns() -> Array[Dictionary]:
 	var spawns := _pending_monster_spawns
@@ -1698,7 +1769,7 @@ func _check_current_objectives(hero_name: String = "") -> MissionObjective:
 
 		for node in sorted:
 			for optional in node.optional_objectives:
-				if not optional.already_achieved and evaluate_conditions(optional.conditions):
+				if not optional.already_achieved and optional_is_available(optional) and evaluate_conditions(optional.conditions):
 					await apply_effects(optional.effects, hero_name)
 					optional.already_achieved = true
 					if optional.description != "":
@@ -1727,14 +1798,27 @@ func drain_pending_optional_completions() -> Array[MissionObjective]:
 	return completed
 
 
-## The optional objectives of the nodes that are current right now (the ones with a description): [{"objective", "text", "achieved"}].
-## An optional objective is only possible while its node is current, so once the story moves on it disappears from here.
+## Whether an optional objective has appeared: its "appear" conditions (MissionObjective.appear_conditions, none = always) hold right now. An already
+## achieved one counts as available so it stays on the list with its tick.
+func optional_is_available(optional: MissionObjective) -> bool:
+	if optional.already_achieved or optional.appear_conditions.is_empty():
+		return true
+	var logging := log_evaluations
+	log_evaluations = false  # the label asks this often
+	var holds := evaluate_conditions(optional.appear_conditions)
+	log_evaluations = logging
+	return holds
+
+
+## The optional objectives of the nodes that are current right now (the ones with a description) that have appeared:
+## [{"objective", "text", "achieved"}]. An optional objective is only possible while its node is current, so once the story moves on it
+## disappears from here.
 func get_current_optional_objectives() -> Array[Dictionary]:
 	var found: Array[Dictionary] = []
 	for group in _current_groups:
 		for node in group:
 			for optional in node.optional_objectives:
-				if optional.description != "":
+				if optional.description != "" and optional_is_available(optional):
 					found.append({"objective": optional, "text": objective_text(optional), "achieved": optional.already_achieved})
 	return found
 

@@ -122,6 +122,8 @@ func offered_languages() -> Array[String]:
 
 ## Virtual line-of-sight walls (see LosBlocker): entities that can sit in a group/stage, so they only count once revealed.
 @export var los_blockers: Array[LosBlocker] = []
+## Squares an effect can light up for the table (see HighlightArea): where a hero lands after climbing a tree, say.
+@export var highlight_areas: Array[HighlightArea] = []
 
 ## The ROOTS of a DAG of MissionObjective nodes - not necessarily WIN/LOSE
 ## leaves themselves, see MissionObjective's own doc for the full design
@@ -320,7 +322,20 @@ func find_node_by_id(id: String) -> OutlineNode:
 	for start in player_starts:
 		if start.id == id:
 			return start
+	for area in highlight_areas:
+		if area.id == id:
+			return area
 	return null
+
+
+## How many Highlight Area effects (anywhere, incl. branches and monsters' "when defeated" effects) point at the area - what is left dangling
+## when the area is deleted.
+func highlight_use_count(area_id: String) -> int:
+	var count := 0
+	for effect in all_effects():
+		if effect.type == Effect.Type.HIGHLIGHT_AREA and effect.target_object_id == area_id:
+			count += 1
+	return count
 
 
 ## Finds a MissionObjective anywhere in the DAG by its own `id` - used by

@@ -154,7 +154,7 @@ func _build_tool_buttons() -> void:
 	_rotate_button.pressed.connect(func(): creator_controller.rotate_selection())
 	var separator := VSeparator.new()
 	add_child(separator)
-	for signal_name in ["draw_mode_changed", "move_mode_changed", "spawn_paint_mode_changed", "monster_spawn_paint_mode_changed", "los_blocker_paint_mode_changed"]:
+	for signal_name in ["draw_mode_changed", "move_mode_changed", "spawn_paint_mode_changed", "monster_spawn_paint_mode_changed", "los_blocker_paint_mode_changed", "highlight_paint_mode_changed"]:
 		creator_controller.connect(signal_name, func(_enabled: bool): _update_tool_buttons())
 	_update_tool_buttons()
 
@@ -305,7 +305,7 @@ func _signature() -> int:
 	for spawn in mission.monster_spawns:
 		spawn_cells += spawn.cells.size()
 	return hash([mission.floor_placements.size(), mission.underlay_placements.size(), mission.interactables.size(), mission.monster_spawns.size(),
-		spawn_cells, mission.all_start_cells().hash(), mission.los_blockers.size(), mission.max_players, mission.objectives.size(), mission.custom_variables.size()])
+		spawn_cells, mission.all_start_cells().hash(), mission.los_blockers.size(), mission.highlight_areas.size(), mission.max_players, mission.objectives.size(), mission.custom_variables.size()])
 
 
 func _watch() -> void:

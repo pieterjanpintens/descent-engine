@@ -66,6 +66,15 @@ var _blocker_overlay_mesh: ImmediateMesh
 const LOS_BLOCKER_COLOR := Color(0.55, 0.3, 0.95, 0.5)
 var _blocker_lines: MeshInstance3D
 var _blocker_lines_mesh: ImmediateMesh
+## Teal overlay for MissionData.highlight_areas in the Creator (squares an effect can light up for the table).
+var _highlight_overlay: MeshInstance3D
+var _highlight_overlay_mesh: ImmediateMesh
+const HIGHLIGHT_COLOR := Color(0.1, 0.85, 0.75, 0.5)
+## What the Player lights up while a Highlight Area effect waits for the table: gold squares that pulse (see show_spots()).
+var _spot_node: MeshInstance3D
+var _spot_mesh: ImmediateMesh
+var _spot_tween: Tween
+const SPOT_COLOR := Color(1.0, 0.82, 0.2, 0.6)
 ## The Player's wall outline is drawn like charcoal: near-black, a wobbly path, uneven thickness and a second thinner grainy pass.
 const BLOCKER_LINE_COLOR := Color(0.03, 0.025, 0.02, 0.96)
 ## A faint pale smudge drawn under the stroke so black still reads on a dark floor (like charcoal dust).
@@ -104,6 +113,8 @@ func _ready() -> void:
 	_setup_monster_overlay()
 	_blocker_overlay_mesh = ImmediateMesh.new()
 	_blocker_overlay = _make_overlay_node(_blocker_overlay_mesh)
+	_highlight_overlay_mesh = ImmediateMesh.new()
+	_highlight_overlay = _make_overlay_node(_highlight_overlay_mesh)
 	mission_objects_changed.connect(_sync_editor_hidden)
 
 
@@ -136,6 +147,78 @@ func refresh_blocker_overlay() -> void:
 	_blocker_overlay_mesh.surface_end()
 	_blocker_overlay.global_transform = Transform3D.IDENTITY
 	_blocker_overlay.visible = true
+
+
+## Id of the highlight area the Creator is drawing into (drawn more opaque), see CreatorController.active_highlight_area_id.
+var highlight_overlay_active_id: String = ""
+
+
+## The teal highlight-area squares in the Creator: every area, visible in its stage or not (the author edits hidden stages too).
+func refresh_highlight_overlay() -> void:
+	if _highlight_overlay == null:
+		return
+	_highlight_overlay_mesh.clear_surfaces()
+	var any := false
+	for area in mission.highlight_areas:
+		if not area.cells.is_empty() and not is_editor_hidden(area):
+			any = true
+			break
+	if not any:
+		_highlight_overlay.visible = false
+		return
+	_highlight_overlay_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for area in mission.highlight_areas:
+		if is_editor_hidden(area):
+			continue
+		var color := HIGHLIGHT_COLOR
+		color.a = 0.7 if area.id == highlight_overlay_active_id else 0.4
+		for cell in area.cells:
+			var corners := get_tile_square_world_corners(cell)
+			for v in [corners[0], corners[1], corners[2], corners[0], corners[2], corners[3]]:
+				_highlight_overlay_mesh.surface_set_color(color)
+				_highlight_overlay_mesh.surface_add_vertex(v)
+	_highlight_overlay_mesh.surface_end()
+	_highlight_overlay.global_transform = Transform3D.IDENTITY
+	_highlight_overlay.visible = true
+
+
+## The Player lights up these tile squares (a Highlight Area effect): gold squares that pulse gently until clear_spots(). Several calls
+## replace each other.
+func show_spots(cells: Array[Vector3i]) -> void:
+	clear_spots()
+	if cells.is_empty():
+		return
+	if _spot_node == null:
+		_spot_mesh = ImmediateMesh.new()
+		_spot_node = _make_overlay_node(_spot_mesh)
+	_spot_mesh.clear_surfaces()
+	_spot_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for cell in cells:
+		var corners := get_tile_square_world_corners(cell)
+		# a little inset so neighbouring squares read as separate spots
+		var centre := (corners[0] + corners[2]) * 0.5
+		var inset: Array[Vector3] = []
+		for corner in corners:
+			inset.append(centre + (corner - centre) * 0.92)
+		for v in [inset[0], inset[1], inset[2], inset[0], inset[2], inset[3]]:
+			_spot_mesh.surface_set_color(SPOT_COLOR)
+			_spot_mesh.surface_add_vertex(v)
+	_spot_mesh.surface_end()
+	_spot_node.global_transform = Transform3D.IDENTITY
+	_spot_node.visible = true
+	var material := _spot_node.material_override as StandardMaterial3D
+	material.albedo_color = Color(1, 1, 1, 1)
+	_spot_tween = create_tween().set_loops()
+	_spot_tween.tween_property(material, "albedo_color:a", 0.45, 0.7).set_trans(Tween.TRANS_SINE)
+	_spot_tween.tween_property(material, "albedo_color:a", 1.0, 0.7).set_trans(Tween.TRANS_SINE)
+
+
+func clear_spots() -> void:
+	if _spot_tween != null:
+		_spot_tween.kill()
+		_spot_tween = null
+	if _spot_node != null:
+		_spot_node.visible = false
 
 
 ## The Player's view of the LOS blockers: a fine line along the outer edge of each blocked area (adjacent squares merge into one outline),
@@ -868,7 +951,7 @@ func _hidden_ids() -> Dictionary:
 	var ids: Dictionary = {}
 	if editor_hidden_groups.is_empty() or mission == null:
 		return ids
-	for list: Array in [mission.floor_placements, mission.underlay_placements, mission.interactables, mission.monster_spawns, mission.los_blockers, mission.player_starts]:
+	for list: Array in [mission.floor_placements, mission.underlay_placements, mission.interactables, mission.monster_spawns, mission.los_blockers, mission.player_starts, mission.highlight_areas]:
 		for node: OutlineNode in list:
 			if is_editor_hidden(node):
 				ids[node.id] = true
@@ -898,6 +981,7 @@ func _repaint_for_editor_hidden() -> void:
 		refresh_monster_spawn_overlay()
 	if _blocker_overlay != null:
 		refresh_blocker_overlay()
+	refresh_highlight_overlay()
 	refresh_start_overlay()
 
 
@@ -942,6 +1026,7 @@ func apply_mission(mission_to_apply: MissionData, respect_visibility: bool = fal
 	# Virtual LOS walls: the Creator draws them all as a fill; the Player shows a fine outline of the ones in force.
 	if _blocker_overlay != null and not respect_visibility:
 		refresh_blocker_overlay()
+		refresh_highlight_overlay()
 	elif respect_visibility:
 		refresh_blocker_lines()
 

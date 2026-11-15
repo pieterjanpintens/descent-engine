@@ -67,7 +67,27 @@ enum Type {
 	ASK_QUESTION,
 	SWITCH_TABLE,
 	SPAWN_RANDOM_MONSTERS,
+	IF_ELSE,
+	REPEAT,
+	HIGHLIGHT_AREA,
 }
+
+## HIGHLIGHT_AREA (appended, 2026-11-15): lights up the squares of a HighlightArea drawn in the editor (`target_object_id`) on the map and tells the
+## table what to do with them - `message` is the text (blank = "<hero>: place your figure on one of the highlighted squares."; `{hero}` is the
+## acting hero, `$1`.. take `message_variables` like Show Message). The squares stay lit until the table confirms. "Climb the tree: on a success you
+## land on one of the highlighted squares" = a Test whose pass effects hold this one. Nothing is tracked afterwards - the table moves the figure.
+
+## IF_ELSE (appended, 2026-11-15): when ALL `branch_conditions` hold (empty = always) the effects of `pass_effects` ("then") run, otherwise the
+## effects of `fail_effects` ("else"; may be empty). Not to be mixed up with `conditions` below, which decides whether the effect is applied
+## at all. Either list can hold any effect, including another If/Else, a Repeat or a Test. See MissionRuntime._run_if_else().
+## REPEAT (appended, 2026-11-15) is a "for": the effects of `pass_effects` run `repeat_count` times (a formula like a random spawn's count -
+## difficulty, player_count, round_number, the mission's INT variables - blank = 1, at most MAX_REPEATS). `loop_variable_name` (optional, a
+## declared INT variable) is set to 1, 2, 3... before each run so the body can use it. When `branch_conditions` are set they are checked before
+## every run and the loop stops at the first time they do not hold (a "while" with a limit). See MissionRuntime._run_repeat().
+const MAX_REPEATS := 20
+@export var branch_conditions: Array[Condition] = []
+@export var repeat_count: String = "1"
+@export var loop_variable_name: String = ""
 
 ## SPAWN_RANDOM_MONSTERS (appended, 2026-11-08) spawns a RANDOM selection of monsters at the MonsterSpawn `target_object_id` - a steady stream of
 ## enemies so the players cannot stand still and heal up ("move on or die"). How many is `random_spawn_count` (a formula, see below); WHICH comes

@@ -47,6 +47,7 @@ var _misc_container: VBoxContainer
 var _player_start_button: Button
 var _monster_spawn_target_button: Button  ## the "Monster Spawn" heading: makes the active spawn what Draw draws into
 var _blocker_target_button: Button  ## the "LOS Blocker" heading, same idea
+var _highlight_target_button: Button  ## the "Highlight Area" heading, same idea
 var _last_misc_target: int = CreatorController.DrawTarget.PLAYER_START  ## what Draw means again when the Misc tab is opened
 
 
@@ -99,6 +100,8 @@ func tutorial_target(id: String) -> Control:
 			return _monster_spawn_target_button
 		"palette_los_blocker":
 			return _blocker_target_button
+		"palette_highlight_area":
+			return _highlight_target_button
 	return null
 
 
@@ -114,6 +117,7 @@ func _on_side_panel_tab_changed(tab_index: int) -> void:
 		creator_controller.set_spawn_paint_mode(false)
 		creator_controller.set_monster_spawn_paint_mode(false)
 		creator_controller.set_los_blocker_paint_mode(false)
+		creator_controller.set_highlight_paint_mode(false)
 
 
 func _build_ui() -> void:
@@ -190,6 +194,8 @@ func _build_ui() -> void:
 	_misc_container.add_child(_monster_spawn_target_button)
 	_blocker_target_button = _target_button("LOS Blocker", "los_blocker", "Start a NEW LOS blocker: squares that block line of sight like an infinitely high wall (e.g. to stop shots across open space). Put it in a stage group to keep it secret until that stage is revealed. To change an existing one, select it and press Draw.", CreatorController.DrawTarget.LOS_BLOCKER)
 	_misc_container.add_child(_blocker_target_button)
+	_highlight_target_button = _target_button("Highlight Area", "highlight_area", "Start a NEW highlight area: floor squares a Highlight Area effect lights up for the table (e.g. where a hero lands after climbing a tree). To change an existing one, select it and press Draw.", CreatorController.DrawTarget.HIGHLIGHT_AREA)
+	_misc_container.add_child(_highlight_target_button)
 
 
 ## Picking a layer or a mesh (below) is a clear "I want to paint" signal -
@@ -270,6 +276,10 @@ func _begin_target(target: CreatorController.DrawTarget) -> void:
 			var blocker := creator_controller._find_los_blocker(creator_controller.active_los_blocker_id)
 			if blocker == null or not blocker.cells.is_empty():
 				creator_controller.create_los_blocker()
+		CreatorController.DrawTarget.HIGHLIGHT_AREA:
+			var area := creator_controller._find_highlight_area(creator_controller.active_highlight_area_id)
+			if area == null or not area.cells.is_empty():
+				creator_controller.create_highlight_area()
 	creator_controller.start_drawing(target)
 
 
@@ -279,6 +289,7 @@ func _on_draw_target_changed(target: int) -> void:
 	_player_start_button.set_pressed_no_signal(target == CreatorController.DrawTarget.PLAYER_START)
 	_monster_spawn_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.MONSTER_SPAWN)
 	_blocker_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.LOS_BLOCKER)
+	_highlight_target_button.set_pressed_no_signal(target == CreatorController.DrawTarget.HIGHLIGHT_AREA)
 
 
 var _mesh_grid_rebuild_queued: bool = false

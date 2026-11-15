@@ -63,4 +63,11 @@ var description: String:
 	set(value):
 		LText.put(description_texts, value)
 @export var conditions: Array[Condition] = []  ## implicit AND - whether this action is currently offered
+## Only these heroes (HeroCatalog slots) are offered this action; empty = every hero. For abilities of one hero, e.g. Syrus's bird setting a
+## barricade on fire. Checked together with `conditions`, against the hero who initiates the interaction.
+@export var heroes: Array[int] = []
+
+
+func allows_hero(hero_slot: int) -> bool:
+	return heroes.is_empty() or hero_slot < 0 or heroes.has(hero_slot)
 @export var effects: Array[Effect] = []

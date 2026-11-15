@@ -57,9 +57,10 @@ func _commit_field(label: String, mutate: Callable) -> void:
 ## Closes the small nested editors (Edit Test, Conditions, Variables, Monsters, Loot) - they hold effects of the old
 ## mission, so they must go when an undo/redo replaces the mission under them.
 func hide_nested() -> void:
-	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor, _defeat_editor, _surprise_editor, _question_editor]:
+	for window: Window in [_test_editor, _effect_conditions_editor, _message_variables_editor, _spawn_monsters_editor, _loot_editor, _defeat_editor, _surprise_editor, _question_editor, _branch_editor]:
 		if window != null:
 			window.hide()
+	_branch_stack.clear()
 
 
 ## Swaps `item` with its neighbor `delta` slots away (-1 = up/earlier,
@@ -353,7 +354,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Spawn Random Monsters", Effect.Type.SPAWN_RANDOM_MONSTERS], ["Loot", Effect.Type.LOOT],
-			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["Switch Table", Effect.Type.SWITCH_TABLE]]:
+			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["If / Else", Effect.Type.IF_ELSE], ["Repeat", Effect.Type.REPEAT], ["Switch Table", Effect.Type.SWITCH_TABLE], ["Highlight Area", Effect.Type.HIGHLIGHT_AREA]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -460,6 +461,26 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	question_button.pressed.connect(func(): _open_question_editor(effect))
 	row.add_child(question_button)
 
+	## IF_ELSE / REPEAT: the condition, the "then" / "else" lists and the loop settings live in their own small Window.
+	var branch_button := Button.new()
+	var refresh_branch_button := func():
+		if not is_instance_valid(branch_button):  # the row was rebuilt or its window now shows another effect
+			return
+		var then_count := effect.pass_effects.size()
+		if effect.type == Effect.Type.REPEAT:
+			branch_button.text = "Repeat %s×…" % (effect.repeat_count if effect.repeat_count.strip_edges() != "" else "1")
+			branch_button.tooltip_text = "Run %d effect(s) several times, optionally with a counter variable" % then_count
+		else:
+			branch_button.text = "If / Else… (%d / %d)" % [then_count, effect.fail_effects.size()]
+			branch_button.tooltip_text = "When the conditions hold the first list of effects runs, otherwise the second"
+	refresh_branch_button.call()
+	branch_button.pressed.connect(func():
+		# opened from a row inside the branch window itself = a nested If / Repeat: keep the way back
+		var nested := _branch_editor != null and _branch_editor.visible and _branch_editor.is_ancestor_of(branch_button)
+		_open_branch_editor(effect, refresh_branch_button, BranchOpen.NESTED if nested else BranchOpen.FRESH)
+	)
+	row.add_child(branch_button)
+
 	var message_variables_button := Button.new()
 	message_variables_button.text = "Variables…"
 	message_variables_button.tooltip_text = "The variables $1, $2, ... refer to in the message text"
@@ -544,6 +565,23 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 			_commit_field("Edit effect monster spawn", func(): effect.target_object_id = spawn_ids[index])
 	)
 	row.add_child(spawn_option)
+
+	## HIGHLIGHT_AREA - which HighlightArea (drawn in the editor with the Palette's Misc tab) lights up; the message edit above is its text
+	## (blank = "<hero>: place your figure on one of the highlighted squares.", {hero} = the acting hero).
+	var highlight_option := OptionButton.new()
+	var highlight_ids: Array[String] = []
+	for highlight_index in mission.highlight_areas.size():
+		var candidate_area: HighlightArea = mission.highlight_areas[highlight_index]
+		var area_label := candidate_area.reference_name if candidate_area.reference_name != "" else "Highlight Area %d" % (highlight_index + 1)
+		highlight_option.add_item("%s (%d squares)" % [area_label, candidate_area.cells.size()])
+		highlight_ids.append(candidate_area.id)
+	highlight_option.select(highlight_ids.find(effect.target_object_id))
+	highlight_option.tooltip_text = "The squares to light up on the map. Draw them with the Palette's Misc tab > Highlight Area."
+	highlight_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < highlight_ids.size():
+			_commit_field("Edit effect highlight area", func(): effect.target_object_id = highlight_ids[index])
+	)
+	row.add_child(highlight_option)
 
 	var spawn_monsters_button := Button.new()
 	spawn_monsters_button.tooltip_text = "Which monsters spawn, in tile order (first = tile 1): this effect's own list, or a named group several effects can share"
@@ -632,15 +670,18 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		surprise_button.visible = spawns_monsters
 		random_count_box.visible = type == Effect.Type.SPAWN_RANDOM_MONSTERS
 		wake_option.visible = type == Effect.Type.WAKE_MONSTERS
+		highlight_option.visible = type == Effect.Type.HIGHLIGHT_AREA
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
 		value_editor.visible = type == Effect.Type.SET_VARIABLE
 		group_option.visible = type == Effect.Type.SHOW_STAGE
 		table_option.visible = type == Effect.Type.SWITCH_TABLE
 		object_option.visible = type == Effect.Type.REMOVE_OBJECT or type == Effect.Type.MOVE_OBJECT or type == Effect.Type.SHOW_OBJECT or type == Effect.Type.HIDE_OBJECT
 		test_button.visible = type == Effect.Type.RUN_TEST
-		message_edit.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION
-		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION
+		message_edit.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION or type == Effect.Type.HIGHLIGHT_AREA
+		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION or type == Effect.Type.HIGHLIGHT_AREA
 		question_button.visible = type == Effect.Type.ASK_QUESTION
+		branch_button.visible = type == Effect.Type.IF_ELSE or type == Effect.Type.REPEAT
+		refresh_branch_button.call()
 		move_cell_box.visible = type == Effect.Type.MOVE_OBJECT
 		math_box.visible = type == Effect.Type.MATH
 	update_visibility.call()
@@ -1410,6 +1451,153 @@ func _open_question_editor(effect: Effect) -> void:
 
 	if not _question_editor.visible:
 		_question_editor.popup_centered_clamped(Vector2i(560, 420), 0.9)
+
+
+## ---- Nested "If / Else" and "Repeat" editor ----
+## One small Window for both control-flow effects (like the Test editor, a nested one replaces the content of the open window).
+var _branch_editor: Window
+var _branch_editor_container: VBoxContainer
+var _branch_stack: Array = []  ## the outer If / Repeat effects when a nested one is open: [{effect, after}]
+var _branch_effect: Effect
+var _branch_after: Callable
+
+enum BranchOpen { FRESH, NESTED, REFRESH }
+
+
+## `mode`: FRESH = opened from a row outside the window (clears the way back), NESTED = from a row inside it (the effect shown now becomes the
+## way back), REFRESH = the same effect again after an edit.
+func _open_branch_editor(effect: Effect, after: Callable = Callable(), mode: int = BranchOpen.FRESH) -> void:
+	if mode == BranchOpen.FRESH:
+		_branch_stack.clear()
+	elif mode == BranchOpen.NESTED and _branch_effect != null:
+		_branch_stack.append({"effect": _branch_effect, "after": _branch_after})
+	_branch_effect = effect
+	_branch_after = after
+	if _branch_editor == null:
+		_branch_editor = Window.new()
+		_branch_editor.close_requested.connect(_branch_editor.hide)
+		_branch_editor.visible = false
+		host.add_child(_branch_editor)
+		var scroll := ScrollContainer.new()
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 8
+		scroll.offset_top = 8
+		scroll.offset_right = -8
+		scroll.offset_bottom = -8
+		_branch_editor.add_child(scroll)
+		_branch_editor_container = VBoxContainer.new()
+		_branch_editor_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(_branch_editor_container)
+
+	for child in _branch_editor_container.get_children():
+		_branch_editor_container.remove_child(child)
+		child.queue_free()
+	var is_repeat := effect.type == Effect.Type.REPEAT
+	_branch_editor.title = "Repeat" if is_repeat else "If / Else"
+	var refresh := func():
+		if after.is_valid():
+			after.call()
+		_open_branch_editor(effect, after, BranchOpen.REFRESH)
+	var box := _branch_editor_container
+
+	if not _branch_stack.is_empty():
+		var back_button := Button.new()
+		back_button.text = "◀ Back to the outer %s" % ("Repeat" if _branch_stack.back()["effect"].type == Effect.Type.REPEAT else "If / Else")
+		back_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		back_button.pressed.connect(func():
+			var outer: Dictionary = _branch_stack.pop_back()
+			if after.is_valid():
+				after.call()
+			_open_branch_editor(outer["effect"], outer["after"], BranchOpen.REFRESH)
+		)
+		box.add_child(back_button)
+
+	if is_repeat:
+		box.add_child(_wrapped_label("The effects below run several times, one after the other. Use the counter in their conditions, math or messages.", 520))
+		var count_row := HBoxContainer.new()
+		box.add_child(count_row)
+		count_row.add_child(_label("How many times:"))
+		var count_edit := LineEdit.new()
+		count_edit.custom_minimum_size.x = 160
+		count_edit.placeholder_text = "1"
+		count_edit.text = effect.repeat_count
+		count_edit.tooltip_text = "A number or a formula, e.g. player_count or 1 + difficulty. You can use: %s. Blank = 1, at most %d." % [", ".join(_random_count_names()), Effect.MAX_REPEATS]
+		var check_count := func():
+			var problem := LevelFormula.check(count_edit.text, _random_count_names())
+			count_edit.modulate = Color.WHITE if problem == "" else Color(1.0, 0.55, 0.45)
+			if problem != "":
+				count_edit.tooltip_text = problem
+		check_count.call()
+		var commit_count := func(_new_text: String = ""):
+			if count_edit.text != effect.repeat_count:
+				var typed := count_edit.text
+				_commit_field("Edit repeat count", func(): effect.repeat_count = typed)
+				if after.is_valid():
+					after.call()
+			check_count.call()
+		count_edit.text_submitted.connect(commit_count)
+		count_edit.focus_exited.connect(commit_count)
+		count_row.add_child(count_edit)
+
+		var counter_row := HBoxContainer.new()
+		box.add_child(counter_row)
+		counter_row.add_child(_label("Counter variable (1, 2, 3…):"))
+		var counter_option := OptionButton.new()
+		counter_option.add_item("(none)")
+		var counter_names: Array[String] = []
+		for int_name in _known_int_variable_names():
+			if not MissionRuntime.BUILTIN_TYPES.has(int_name) or MissionRuntime.WRITABLE_BUILTINS.has(int_name):  # the runtime owns the other built-ins
+				counter_names.append(int_name)
+		for counter_name in counter_names:
+			counter_option.add_item(counter_name)
+		counter_option.add_item(NEW_VARIABLE_ENTRY)
+		counter_option.select(counter_names.find(effect.loop_variable_name) + 1 if effect.loop_variable_name != "" else 0)
+		counter_option.item_selected.connect(func(index: int):
+			if index == counter_names.size() + 1:
+				ask_new_variable(MissionVariable.Type.INT, func(created: String):
+					_commit_field("Edit repeat counter", func(): effect.loop_variable_name = created)
+					refresh.call()
+				)
+				counter_option.select(counter_names.find(effect.loop_variable_name) + 1 if effect.loop_variable_name != "" else 0)
+				return
+			var new_name := counter_names[index - 1] if index > 0 else ""
+			_commit_field("Edit repeat counter", func(): effect.loop_variable_name = new_name)
+		)
+		counter_row.add_child(counter_option)
+		box.add_child(HSeparator.new())
+
+	box.add_child(_wrapped_label("Only while these hold (empty = no check):" if is_repeat else "If all of these hold (empty = always true):", 520))
+	for condition in effect.branch_conditions:
+		box.add_child(build_condition_row(effect.branch_conditions, condition, refresh))
+	var add_condition_button := Button.new()
+	add_condition_button.text = "+ Add condition"
+	add_condition_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	add_condition_button.pressed.connect(func():
+		var condition := Condition.new()
+		_commit_field("Add condition", func(): effect.branch_conditions.append(condition))
+		refresh.call()
+	)
+	box.add_child(add_condition_button)
+
+	var branches: Array = [["Do:", effect.pass_effects, "Add effect"]] if is_repeat else [["Then:", effect.pass_effects, "Add effect to Then"], ["Else:", effect.fail_effects, "Add effect to Else"]]
+	for branch in branches:
+		var effects_list: Array[Effect] = branch[1]
+		box.add_child(HSeparator.new())
+		box.add_child(_label(branch[0]))
+		for branch_effect in effects_list:
+			box.add_child(build_effect_row(effects_list, branch_effect, refresh))
+		var add_button := Button.new()
+		add_button.text = branch[2]
+		add_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		add_button.pressed.connect(func():
+			var new_effect := Effect.new()
+			_commit_field("Add effect", func(): effects_list.append(new_effect))
+			refresh.call()
+		)
+		box.add_child(add_button)
+
+	if not _branch_editor.visible:
+		_branch_editor.popup_centered_clamped(Vector2i(600, 520), 0.9)
 
 
 ## ---- Nested "make this spawn a surprise" dialog ----

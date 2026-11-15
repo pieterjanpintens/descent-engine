@@ -190,6 +190,8 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	_run_checks_per_table(mission, pieces, creatures, result)
 	_check_objectives(mission, result)
 	_check_spawn_targets(mission, result)
+	_check_blank_conditions(mission, result)
+	_check_highlight_targets(mission, result)
 	_check_macros(mission, result)
 	_check_table_targets(mission, result)
 	_check_start_visibility(mission, result)
@@ -326,6 +328,64 @@ static func _check_macros(mission: MissionData, result: Dictionary) -> void:
 				_add(result, "warning", "unknown_macro", -1, "'%s' has a macro ('%s') that this editor does not know. What it generated still works as normal data." % [name, applied.macro_id])
 			elif not macro.fits(node):
 				_add(result, "warning", "macro_misfit", -1, "The macro '%s' on '%s' does not fit this object (it was changed into something else?). What it generated still works; remove the macro record or regenerate on a fitting object." % [macro.title(), name])
+
+
+## A Highlight Area effect needs a highlight area that exists and has squares, else it lights up nothing.
+static func _check_highlight_targets(mission: MissionData, result: Dictionary) -> void:
+	var areas := {}
+	for area in mission.highlight_areas:
+		areas[area.id] = area
+	for effect in mission.all_effects():
+		if effect.type != Effect.Type.HIGHLIGHT_AREA:
+			continue
+		if effect.target_object_id == "":
+			_add(result, "error", "no_highlight_area", -1, "A Highlight Area effect has no area chosen, so it lights up nothing. Open the effect and pick one (draw areas with the Palette's Misc tab).")
+		elif not areas.has(effect.target_object_id):
+			_add(result, "error", "missing_highlight_area", -1, "A Highlight Area effect points at an area that no longer exists (deleted?), so it lights up nothing. Open the effect and pick another.")
+		elif (areas[effect.target_object_id] as HighlightArea).cells.is_empty():
+			_add(result, "warning", "empty_highlight_area", -1, "A Highlight Area effect points at an area with no squares drawn yet, so it lights up nothing.")
+
+
+## A condition with no variable chosen (what "Add condition" creates) can never hold, so whatever it guards - an action, a trigger, an
+## effect, an objective - silently never happens. Every place a condition can hang is listed here, with a name for the message.
+static func _check_blank_conditions(mission: MissionData, result: Dictionary) -> void:
+	var piece_of: Dictionary = {}  # InteractableEntry id -> index in result["pieces"], so the problem can jump to the prop
+	var pieces: Array = result["pieces"]
+	for index in pieces.size():
+		piece_of[str(pieces[index].get("node_id", ""))] = index
+	var trigger_number := 1
+	for trigger in mission.triggers:
+		_flag_blank(result, trigger.conditions, "Trigger %d" % trigger_number, -1)
+		trigger_number += 1
+	for entry in mission.interactables:
+		var prop_name: String = entry.reference_name if entry.reference_name != "" else entry.mesh_item_name
+		for action in entry.actions:
+			var label := "The action \"%s\" of \"%s\"" % [action.action_name if action.action_name != "" else action.action_id, prop_name]
+			_flag_blank(result, action.conditions, label, int(piece_of.get(entry.id, -1)))
+	var visited: Dictionary = {}
+	var queue: Array[MissionObjective] = mission.objectives.duplicate()
+	while not queue.is_empty():
+		var node: MissionObjective = queue.pop_front()
+		if visited.has(node):
+			continue
+		visited[node] = true
+		_flag_blank(result, node.conditions, "The objective %s" % _objective_label(node), -1)
+		_flag_blank(result, node.appear_conditions, "The optional objective %s (appears only when)" % _objective_label(node), -1)
+		queue.append_array(node.children)
+		queue.append_array(node.optional_objectives)
+	for effect in mission.all_effects():
+		var what := "An effect" if effect.type == Effect.Type.SET_VARIABLE else "An effect (%s)" % Effect.Type.keys()[effect.type].capitalize().replace("_", " ")
+		_flag_blank(result, effect.conditions, what, -1)
+		_flag_blank(result, effect.branch_conditions, what, -1)
+	for template in mission.collect_monster_templates():
+		_flag_blank(result, template.conditions, "The spawn conditions of monster \"%s\"" % template.full_name(), -1)
+
+
+static func _flag_blank(result: Dictionary, conditions: Array, label: String, piece: int) -> void:
+	for condition: Condition in conditions:
+		if condition.variable_name == "":
+			_add(result, "warning", "blank_condition", piece, "%s has a condition with no variable chosen. It can never be true, so what it guards never happens. Open it and pick a variable, or remove the condition." % label)
+			return  # one message per list is enough
 
 
 ## A Spawn Monsters effect needs a monster spawn area that exists (deleting an area leaves the effects that used it pointing at nothing, so

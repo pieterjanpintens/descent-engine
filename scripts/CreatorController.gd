@@ -119,6 +119,8 @@ signal spawn_paint_mode_changed(enabled: bool)
 signal monster_spawn_paint_mode_changed(enabled: bool)
 signal los_blocker_paint_mode_changed(enabled: bool)
 signal active_los_blocker_changed(id: String)
+signal highlight_paint_mode_changed(enabled: bool)
+signal active_highlight_area_changed(id: String)
 signal active_monster_spawn_changed(id: String)
 
 ## Same idea for move_mode (M key, or set_move_mode() - new 2026-09-18) -
@@ -235,11 +237,16 @@ var active_monster_spawn_id: String = ""
 ## Draws the squares of the ACTIVE LosBlocker (virtual line-of-sight walls, e.g. to stop shots across open space). Shares the spawn tools'
 ## hover/ghost; mutually exclusive with draw/spawn/monster spawn/move like they are. Set from the Palette's Misc tab (no hotkey).
 var los_blocker_paint_mode: bool = false
+## Draws the squares of the ACTIVE HighlightArea (floor squares a Highlight Area effect lights up for the table). Same sharing and exclusivity as the
+## LOS blocker tool; set from the Palette's Misc tab.
+var highlight_paint_mode: bool = false
+## Which HighlightArea the tool draws into, see set_active_highlight_area().
+var active_highlight_area_id: String = ""
 
 ## What the Draw tool (the toolbar's Draw button / the D key) draws: a mesh from the Palette, Player Start squares, the active monster spawn's
 ## tiles or the active LOS blocker's squares. Each of those is still its own paint mode underneath (so the Player Start hotkey P etc. keep
 ## working); this only remembers which one "Draw" means. Turning any of them on sets it. Tool state, not undo-tracked.
-enum DrawTarget { MESH, PLAYER_START, MONSTER_SPAWN, LOS_BLOCKER }
+enum DrawTarget { MESH, PLAYER_START, MONSTER_SPAWN, LOS_BLOCKER, HIGHLIGHT_AREA }
 var draw_target: DrawTarget = DrawTarget.MESH
 signal draw_target_changed(target: int)
 ## Which LosBlocker the tool draws into, see set_active_los_blocker().
@@ -329,6 +336,7 @@ func _ready() -> void:
 	layered_map.set_spawn_overlay_visible(true)
 	layered_map.refresh_monster_spawn_overlay()
 	layered_map.refresh_blocker_overlay()
+	layered_map.refresh_highlight_overlay()
 	_setup_done = true
 
 
@@ -788,6 +796,7 @@ func set_draw_mode(enabled: bool) -> void:
 		set_move_mode(false)
 		set_monster_spawn_paint_mode(false)
 		set_los_blocker_paint_mode(false)
+		set_highlight_paint_mode(false)
 	print("Draw mode: %s" % ("ON" if draw_mode else "OFF"))
 	draw_mode_changed.emit(draw_mode)
 
@@ -799,6 +808,7 @@ func select_mode() -> void:
 	set_spawn_paint_mode(false)
 	set_monster_spawn_paint_mode(false)
 	set_los_blocker_paint_mode(false)
+	set_highlight_paint_mode(false)
 
 
 func _note_draw_target(target: DrawTarget) -> void:
@@ -809,7 +819,7 @@ func _note_draw_target(target: DrawTarget) -> void:
 
 ## True while any of the drawing tools is on (mesh, Player Start, monster spawn tiles, LOS blocker squares).
 func is_drawing() -> bool:
-	return draw_mode or spawn_paint_mode or monster_spawn_paint_mode or los_blocker_paint_mode
+	return draw_mode or spawn_paint_mode or monster_spawn_paint_mode or los_blocker_paint_mode or highlight_paint_mode
 
 
 ## Chooses what Draw draws. While drawing it switches the running tool to the new target; otherwise it only remembers it (the Draw button / D
@@ -830,6 +840,8 @@ func start_drawing(target: DrawTarget) -> void:
 			set_monster_spawn_paint_mode(true)
 		DrawTarget.LOS_BLOCKER:
 			set_los_blocker_paint_mode(true)
+		DrawTarget.HIGHLIGHT_AREA:
+			set_highlight_paint_mode(true)
 		_:
 			set_draw_mode(true)
 
@@ -872,6 +884,7 @@ func set_spawn_paint_mode(enabled: bool) -> void:
 		set_move_mode(false)
 		set_monster_spawn_paint_mode(false)
 		set_los_blocker_paint_mode(false)
+		set_highlight_paint_mode(false)
 	spawn_paint_mode_changed.emit(spawn_paint_mode)
 
 
@@ -885,6 +898,7 @@ func set_monster_spawn_paint_mode(enabled: bool) -> void:
 		set_move_mode(false)
 		set_spawn_paint_mode(false)
 		set_los_blocker_paint_mode(false)
+		set_highlight_paint_mode(false)
 	monster_spawn_paint_mode_changed.emit(monster_spawn_paint_mode)
 
 
@@ -898,7 +912,22 @@ func set_los_blocker_paint_mode(enabled: bool) -> void:
 		set_move_mode(false)
 		set_spawn_paint_mode(false)
 		set_monster_spawn_paint_mode(false)
+		set_highlight_paint_mode(false)
 	los_blocker_paint_mode_changed.emit(los_blocker_paint_mode)
+
+
+func set_highlight_paint_mode(enabled: bool) -> void:
+	if highlight_paint_mode == enabled:
+		return
+	highlight_paint_mode = enabled
+	if highlight_paint_mode:
+		_note_draw_target(DrawTarget.HIGHLIGHT_AREA)
+		set_draw_mode(false)
+		set_move_mode(false)
+		set_spawn_paint_mode(false)
+		set_monster_spawn_paint_mode(false)
+		set_los_blocker_paint_mode(false)
+	highlight_paint_mode_changed.emit(highlight_paint_mode)
 
 
 ## See move_mode's own doc above - mutually exclusive with draw_mode/
@@ -916,6 +945,7 @@ func set_move_mode(enabled: bool) -> void:
 		set_spawn_paint_mode(false)
 		set_monster_spawn_paint_mode(false)
 		set_los_blocker_paint_mode(false)
+		set_highlight_paint_mode(false)
 	else:
 		_cancel_move_drag()
 	print("Move mode: %s" % ("ON" if move_mode else "OFF"))
@@ -1177,6 +1207,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_monster_spawn_cell_at_cursor()
 			elif los_blocker_paint_mode:
 				_toggle_los_blocker_cell_at_cursor()
+			elif highlight_paint_mode:
+				_toggle_highlight_cell_at_cursor()
 			elif move_mode:
 				_start_move_drag()
 			elif not draw_mode:
@@ -1202,7 +1234,7 @@ func _process(_delta: float) -> void:
 	_update_grid_overlay()
 	_update_origin_overlay()
 	_update_occupancy_overlay()
-	if spawn_paint_mode or monster_spawn_paint_mode or los_blocker_paint_mode:
+	if spawn_paint_mode or monster_spawn_paint_mode or los_blocker_paint_mode or highlight_paint_mode:
 		_update_spawn_hover()
 		_update_spawn_ghost()
 	else:
@@ -1264,6 +1296,8 @@ func _update_spawn_ghost() -> void:
 			ghost_tint = layered_map.monster_spawn_color_for_id(active_monster_spawn_id)
 		elif los_blocker_paint_mode:
 			ghost_tint = LayeredMap.LOS_BLOCKER_COLOR
+		elif highlight_paint_mode:
+			ghost_tint = LayeredMap.HIGHLIGHT_COLOR
 		_spawn_ghost_mesh.surface_set_color(ghost_tint)
 		_spawn_ghost_mesh.surface_add_vertex(v)
 	_spawn_ghost_mesh.surface_end()
@@ -1392,6 +1426,56 @@ func set_active_los_blocker(id: String) -> void:
 	layered_map.blocker_overlay_active_id = id
 	layered_map.refresh_blocker_overlay()
 	active_los_blocker_changed.emit(id)
+
+
+## Toggles the hovered tile square in/out of the ACTIVE HighlightArea (one undo step per click); with no active area one is created first so the
+## first click just works. Areas may overlap like blockers do.
+func _toggle_highlight_cell_at_cursor() -> void:
+	if not _spawn_has_hover:
+		return
+	var tile_square := FootprintRegistry.fine_cell_to_tile_square(_spawn_hovered_cell)
+	if _find_highlight_area(active_highlight_area_id) == null:
+		create_highlight_area()
+	var target := _find_highlight_area(active_highlight_area_id)
+	operation_history.record("Toggle highlight square", func():
+		var index := target.cells.find(tile_square)
+		if index == -1:
+			target.cells.append(tile_square)
+		else:
+			target.cells.remove_at(index)
+	)
+	layered_map.refresh_highlight_overlay()
+	layered_map.notify_objects_changed()
+
+
+func _find_highlight_area(id: String) -> HighlightArea:
+	for area in layered_map.mission.highlight_areas:
+		if area.id == id:
+			return area
+	return null
+
+
+## Creates an empty HighlightArea (in the current working group, so it lands in the stage being built) and makes it the active one. One undo step.
+func create_highlight_area() -> String:
+	var area := HighlightArea.new()
+	operation_history.record("New highlight area", func():
+		area.id = layered_map.mission.allocate_object_id()
+		area.parent_id = working_group_id
+		layered_map.mission.highlight_areas.append(area)
+	)
+	layered_map.notify_objects_changed()
+	set_active_highlight_area(area.id)
+	return area.id
+
+
+## Which HighlightArea the tool draws into (selecting one in the outline tree, or a new one). Tool state, not undo-tracked.
+func set_active_highlight_area(id: String) -> void:
+	if active_highlight_area_id == id:
+		return
+	active_highlight_area_id = id
+	layered_map.highlight_overlay_active_id = id
+	layered_map.refresh_highlight_overlay()
+	active_highlight_area_changed.emit(id)
 
 
 ## Only meaningful WHILE dragging (_move_dragging_id != "") - move mode
@@ -2023,6 +2107,9 @@ func pieces_in_screen_rect(rect: Rect2) -> Array[String]:
 	for start in mission.player_starts:
 		if not layered_map.is_editor_hidden(start) and _squares_in_rect(start.cells, rect):
 			found.append(start.id)
+	for area in mission.highlight_areas:
+		if not layered_map.is_editor_hidden(area) and _squares_in_rect(area.cells, rect):
+			found.append(area.id)
 	return found
 
 
@@ -2098,6 +2185,7 @@ func _delete_selection_now() -> void:
 	var spawns: Array[MonsterSpawn] = []
 	var blockers: Array[LosBlocker] = []
 	var starts: Array[PlayerStart] = []
+	var highlights: Array[HighlightArea] = []
 	for id in selected_ids:
 		var node := layered_map.mission.find_node_by_id(id)
 		if node is InteractableEntry:
@@ -2110,7 +2198,9 @@ func _delete_selection_now() -> void:
 			blockers.append(node as LosBlocker)
 		elif node is PlayerStart:
 			starts.append(node as PlayerStart)
-	if props.is_empty() and tiles.is_empty() and spawns.is_empty() and blockers.is_empty() and starts.is_empty():
+		elif node is HighlightArea:
+			highlights.append(node as HighlightArea)
+	if props.is_empty() and tiles.is_empty() and spawns.is_empty() and blockers.is_empty() and starts.is_empty() and highlights.is_empty():
 		return
 	operation_history.record("Delete selection", func():
 		for spawn in spawns:
@@ -2119,6 +2209,8 @@ func _delete_selection_now() -> void:
 			layered_map.mission.los_blockers.erase(blocker)
 		for start in starts:
 			layered_map.mission.player_starts.erase(start)
+		for area in highlights:
+			layered_map.mission.highlight_areas.erase(area)
 		var floors_changed := false
 		var underlays_changed := false
 		for entry in props:
@@ -2147,6 +2239,11 @@ func _delete_selection_now() -> void:
 	for start in starts:
 		if active_player_start_id == start.id:
 			set_active_player_start("")
+	for area in highlights:
+		if active_highlight_area_id == area.id:
+			set_active_highlight_area("")
+	if not highlights.is_empty():
+		layered_map.refresh_highlight_overlay()
 	if not starts.is_empty():
 		layered_map.refresh_start_overlay()
 	if not spawns.is_empty():
@@ -2240,6 +2337,12 @@ func _overlay_entity_at(fine_cell: Vector3i) -> Dictionary:
 		for cell in start.cells:
 			if cell.x == square.x and cell.z == square.z:
 				return {"kind": "player_start", "id": start.id}
+	for area in layered_map.mission.highlight_areas:
+		if layered_map.is_editor_hidden(area):
+			continue
+		for cell in area.cells:
+			if cell.x == square.x and cell.z == square.z:
+				return {"kind": "highlight_area", "id": area.id}
 	return {"kind": "", "id": ""}
 
 

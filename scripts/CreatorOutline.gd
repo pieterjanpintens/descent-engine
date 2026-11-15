@@ -73,8 +73,8 @@ extends Tree
 ## tab is active) - this script still needs to keep that state consistent
 ## whenever ITS OWN group-CRUD actions could orphan it.
 
-enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER, PLAYER_START }
-enum _ContextAction { START_HERE, NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN, NEW_TABLE, DELETE_START }
+enum SelectionType { ROOT, OBJECT, GROUP, TILE, MONSTER_SPAWN, LOS_BLOCKER, PLAYER_START, HIGHLIGHT_AREA }
+enum _ContextAction { START_HERE, NEW_GROUP, NEW_SUBGROUP, RENAME_GROUP, DELETE_GROUP, DELETE_BLOCKER, DELETE_SPAWN, NEW_TABLE, DELETE_START, DELETE_HIGHLIGHT }
 
 signal selection_changed(items: Array)  # Array[Dictionary], each the same {type, id[, grid]} metadata dict every TreeItem carries (see set_metadata() calls below)
 
@@ -194,6 +194,9 @@ func _migrate_missing_ids() -> void:
 	for start in mission.player_starts:
 		if start.id == "":
 			start.id = mission.allocate_object_id()
+	for area in mission.highlight_areas:
+		if area.id == "":
+			area.id = mission.allocate_object_id()
 
 
 func _rebuild_tree() -> void:
@@ -289,6 +292,15 @@ func _rebuild_tree() -> void:
 		start_item.set_metadata(0, {"type": SelectionType.PLAYER_START, "id": start.id})
 		_dim_if_hidden(start_item, start)
 		_id_to_item[start.id] = start_item
+
+	for area_index in mission.highlight_areas.size():
+		var area: HighlightArea = mission.highlight_areas[area_index]
+		var area_parent: TreeItem = _id_to_item.get(area.parent_id, root_item)
+		var area_item := create_item(area_parent)
+		area_item.set_text(0, area.reference_name if area.reference_name != "" else "Highlight Area %d (%d squares)" % [area_index + 1, area.cells.size()])
+		area_item.set_metadata(0, {"type": SelectionType.HIGHLIGHT_AREA, "id": area.id})
+		_dim_if_hidden(area_item, area)
+		_id_to_item[area.id] = area_item
 
 	# Re-select whatever was selected before this rebuild - ALL of it, not
 	# just one item. Floor/underlay edits already fire mission_objects_changed
@@ -554,6 +566,22 @@ func _emit_selection_changed(jump_camera: bool, deliberate := false) -> void:  #
 					if jump_camera:
 						creator_controller.jump_to_cell(fine_start, layered_map.floor_grid)
 					return
+		SelectionType.HIGHLIGHT_AREA:
+			var area := _find_highlight_by_id(id)
+			if area != null:
+				creator_controller.set_active_highlight_area(area.id)
+				if (jump_camera or deliberate) and not creator_controller.is_drawing():
+					creator_controller.set_draw_target(CreatorController.DrawTarget.HIGHLIGHT_AREA)
+				if not area.cells.is_empty():
+					var first_spot := area.cells[0]
+					var spot_origin := FootprintRegistry.tile_square_to_fine_far_corner(first_spot)
+					var spot_offsets: Array[Vector3i] = []
+					for cell in area.cells:
+						spot_offsets.append(cell - first_spot)
+					creator_controller.highlight_footprint(spot_origin, FootprintRegistry.expand_footprint(spot_offsets), layered_map.floor_grid)
+					if jump_camera:
+						creator_controller.jump_to_cell(spot_origin, layered_map.floor_grid)
+					return
 		SelectionType.PLAYER_START:
 			var start := _find_start_by_id(id)
 			if start != null:
@@ -695,6 +723,13 @@ func _find_blocker_by_id(id: String) -> LosBlocker:
 	return null
 
 
+func _find_highlight_by_id(id: String) -> HighlightArea:
+	for area in layered_map.mission.highlight_areas:
+		if area.id == id:
+			return area
+	return null
+
+
 func _find_start_by_id(id: String) -> PlayerStart:
 	for start in layered_map.mission.player_starts:
 		if start.id == id:
@@ -806,6 +841,10 @@ func _populate_context_menu(type: SelectionType) -> void:
 			_add_move_to_submenu()
 			_context_menu.add_separator()
 			_context_menu.add_item("Delete Player Start", _ContextAction.DELETE_START)
+		SelectionType.HIGHLIGHT_AREA:
+			_add_move_to_submenu()
+			_context_menu.add_separator()
+			_context_menu.add_item("Delete Highlight Area", _ContextAction.DELETE_HIGHLIGHT)
 
 
 func _add_move_to_submenu() -> void:
@@ -875,6 +914,8 @@ func _on_context_menu_id_pressed(id: int) -> void:
 			_delete_spawn(_context_target_id)
 		_ContextAction.DELETE_START:
 			_delete_start(_context_target_id)
+		_ContextAction.DELETE_HIGHLIGHT:
+			_delete_highlight(_context_target_id)
 
 
 func _create_group(parent_id: String) -> void:
@@ -949,6 +990,9 @@ func _delete_group_now(group_id: String) -> void:
 		for start in mission.player_starts:
 			if start.parent_id == group_id:
 				start.parent_id = group.parent_id
+		for area in mission.highlight_areas:
+			if area.parent_id == group_id:
+				area.parent_id = group.parent_id
 		mission.groups.erase(group)
 	)
 	layered_map.notify_objects_changed()
@@ -973,6 +1017,31 @@ func _delete_blocker(blocker_id: String) -> void:
 	if creator_controller.active_los_blocker_id == blocker_id:
 		creator_controller.set_active_los_blocker("")
 	creator_controller.layered_map.refresh_blocker_overlay()
+	layered_map.notify_objects_changed()
+
+
+## Deletes a highlight area (data only). A Highlight Area effect that pointed at it keeps the stale id and lights up nothing (the Problems list says so).
+func _delete_highlight(area_id: String) -> void:
+	var area := _find_highlight_by_id(area_id)
+	if area == null:
+		return
+	var uses := layered_map.mission.highlight_use_count(area_id)
+	if uses > 0:
+		creator_controller.confirm_then("%d Highlight Area effect(s) use this area. Delete it anyway? They will light up nothing." % uses, func(): _delete_highlight_now(area_id))
+		return
+	_delete_highlight_now(area_id)
+
+
+func _delete_highlight_now(area_id: String) -> void:
+	var area := _find_highlight_by_id(area_id)
+	if area == null:
+		return
+	operation_history.record("Delete highlight area", func():
+		layered_map.mission.highlight_areas.erase(area)
+	)
+	if creator_controller.active_highlight_area_id == area_id:
+		creator_controller.set_active_highlight_area("")
+	layered_map.refresh_highlight_overlay()
 	layered_map.notify_objects_changed()
 
 
@@ -1029,6 +1098,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 	var spawn: MonsterSpawn = null
 	var los_blocker: LosBlocker = null
 	var player_start: PlayerStart = null
+	var highlight_area: HighlightArea = null
 	match _context_target_type:
 		SelectionType.GROUP:
 			group = _find_group_by_id(_context_target_id)
@@ -1042,9 +1112,11 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			los_blocker = _find_blocker_by_id(_context_target_id)
 		SelectionType.PLAYER_START:
 			player_start = _find_start_by_id(_context_target_id)
+		SelectionType.HIGHLIGHT_AREA:
+			highlight_area = _find_highlight_by_id(_context_target_id)
 		_:
 			return
-	if group == null and entry == null and placement == null and spawn == null and los_blocker == null and player_start == null:
+	if group == null and entry == null and placement == null and spawn == null and los_blocker == null and player_start == null and highlight_area == null:
 		return
 
 	operation_history.record("Move to group", func():
@@ -1060,5 +1132,7 @@ func _on_move_to_menu_id_pressed(id: int) -> void:
 			los_blocker.parent_id = new_parent_id
 		elif player_start != null:
 			player_start.parent_id = new_parent_id
+		elif highlight_area != null:
+			highlight_area.parent_id = new_parent_id
 	)
 	layered_map.notify_objects_changed()

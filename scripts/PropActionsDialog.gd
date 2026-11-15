@@ -198,6 +198,26 @@ func _build_action_block(action: PropAction) -> Control:
 	)
 	box.add_child(auto_apply_check)
 
+	# Only offered to the ticked heroes (none ticked = every hero), e.g. Syrus's bird setting a barricade on fire.
+	var heroes_label := Label.new()
+	heroes_label.text = "Only for these heroes (none ticked = every hero):"
+	box.add_child(heroes_label)
+	var heroes_row := HFlowContainer.new()
+	box.add_child(heroes_row)
+	for slot in HeroCatalog.SLOT_COUNT:
+		var hero_check := CheckBox.new()
+		hero_check.text = HeroCatalog.slot_name(slot)
+		hero_check.button_pressed = action.heroes.has(slot)
+		hero_check.toggled.connect(func(pressed: bool):
+			_commit_field("Edit action heroes", func():
+				if pressed and not action.heroes.has(slot):
+					action.heroes.append(slot)
+				elif not pressed:
+					action.heroes.erase(slot)
+			)
+		)
+		heroes_row.add_child(hero_check)
+
 	box.add_child(HSeparator.new())
 	var conditions_label := Label.new()
 	conditions_label.text = "Conditions (implicit AND - when is this action offered to players):"

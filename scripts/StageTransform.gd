@@ -43,6 +43,7 @@ static func collect(mission: MissionData, ids: Array[String]) -> Dictionary:
 	var spawns: Array[MonsterSpawn] = []
 	var blockers: Array[LosBlocker] = []
 	var starts: Array[PlayerStart] = []
+	var highlights: Array[HighlightArea] = []
 	for placement in mission.floor_placements:
 		if direct.has(placement.id) or group_ids.has(placement.parent_id):
 			floors.append(placement)
@@ -61,7 +62,10 @@ static func collect(mission: MissionData, ids: Array[String]) -> Dictionary:
 	for start in mission.player_starts:
 		if direct.has(start.id) or group_ids.has(start.parent_id):
 			starts.append(start)
-	return {"floors": floors, "underlays": underlays, "props": props, "spawns": spawns, "blockers": blockers, "starts": starts, "has_group": has_group}
+	for area in mission.highlight_areas:
+		if direct.has(area.id) or group_ids.has(area.parent_id):
+			highlights.append(area)
+	return {"floors": floors, "underlays": underlays, "props": props, "spawns": spawns, "blockers": blockers, "starts": starts, "highlights": highlights, "has_group": has_group}
 
 
 ## The fine cells of the floor tiles and hazards of a group (subgroups included), or of its props when it has no floor - for the selection outline.
@@ -97,7 +101,8 @@ static func plan(layered_map: LayeredMap, ids: Array[String], turn: bool, delta:
 	var spawns: Array[MonsterSpawn] = members["spawns"]
 	var blockers: Array[LosBlocker] = members["blockers"]
 	var starts: Array[PlayerStart] = members["starts"]
-	if pieces.is_empty() and spawns.is_empty() and blockers.is_empty() and starts.is_empty():
+	var highlights: Array[HighlightArea] = members["highlights"]
+	if pieces.is_empty() and spawns.is_empty() and blockers.is_empty() and starts.is_empty() and highlights.is_empty():
 		return {}
 
 	# the box around everything that moves, in fine cells: [min_x, max_x, min_z, max_z] (empty until something is added)
@@ -114,6 +119,11 @@ static func plan(layered_map: LayeredMap, ids: Array[String], turn: bool, delta:
 	for start in starts:
 		for cell in start.cells:
 			_grow(box, (cell.x - 1) * cpt, cell.x * cpt - 1, (cell.z - 1) * cpt, cell.z * cpt - 1)
+	for area in highlights:
+		for cell in area.cells:
+			_grow(box, (cell.x - 1) * cpt, cell.x * cpt - 1, (cell.z - 1) * cpt, cell.z * cpt - 1)
+	if box.is_empty():
+		return {}
 	var min_x := box[0]
 	var max_x := box[1]
 	var min_z := box[2]
@@ -157,7 +167,7 @@ static func plan(layered_map: LayeredMap, ids: Array[String], turn: bool, delta:
 
 	if not turn and delta == Vector2i.ZERO:
 		return {}
-	return {"pieces": pieces, "spawns": spawns, "blockers": blockers, "starts": starts, "turn": turn, "delta": delta, "pivot": pivot}
+	return {"pieces": pieces, "spawns": spawns, "blockers": blockers, "starts": starts, "highlights": highlights, "turn": turn, "delta": delta, "pivot": pivot}
 
 
 ## Puts a plan() in place. The caller wraps this in an undo step.
@@ -213,8 +223,15 @@ static func apply(layered_map: LayeredMap, plan: Dictionary) -> void:
 		for index in start.cells.size():
 			start.cells[index] = _move_square(start.cells[index], turn, delta, pivot)
 
+	var highlights: Array = plan["highlights"]
+	for area: HighlightArea in highlights:
+		for index in area.cells.size():
+			area.cells[index] = _move_square(area.cells[index], turn, delta, pivot)
+
 	if not starts.is_empty():
 		layered_map.refresh_start_overlay()
+	if not highlights.is_empty():
+		layered_map.refresh_highlight_overlay()
 	if not (plan["spawns"] as Array).is_empty():
 		layered_map.refresh_monster_spawn_overlay()
 	if not (plan["blockers"] as Array).is_empty():
