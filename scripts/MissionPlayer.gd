@@ -355,6 +355,15 @@ func _ready() -> void:
 		los_mode.set_active(not los_mode.active)
 		return los_mode.active
 
+	# Position tracking (a campaign option): tokens for every hero and monster, dragged by the table.
+	if _runtime.track_positions:
+		position_board = PositionBoard.new()
+		position_board.layered_map = layered_map
+		position_board.mission = mission
+		position_board.runtime = _runtime
+		position_board.blocked_provider = func() -> bool: return los_mode.active or monster_display.visible
+		layered_map.add_child(position_board)
+
 	# Typed commands ("attack green bandit") - the stand-in for voice control,
 	# see VoiceCommandParser/PlayerCommandRunner.
 	_command_runner = PlayerCommandRunner.new()
@@ -603,14 +612,20 @@ func _brew_basket_boons() -> void:
 		await dialog.ask_ok(make_basket, true, false, "Brew Basket", null, null, true)
 
 
-func _show_spawn_area_and_confirm() -> void:
+func _show_spawn_area_and_confirm(new_table: bool = false) -> void:
 	var start_cells := mission.player_start_cells_of(mission.active_table_id)
+	if position_board != null:
+		# tracking positions: the heroes get a token on the start squares, which the table adjusts to where it puts the figures
+		position_board.place_heroes_on(player_roster, start_cells, new_table)
 	if start_cells.is_empty() or DebugSession.skipping():
 		return
 	layered_map.set_spawn_overlay_cells(start_cells)
 	layered_map.set_spawn_overlay_visible(true)
 	_frame_camera_on_spawn_area()
-	await dialog.ask_ok("Place your player figures in the highlighted area, then confirm.", false)
+	if position_board != null:
+		await dialog.ask_ok(tr("Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."), false)
+	else:
+		await dialog.ask_ok("Place your player figures in the highlighted area, then confirm.", false)
 	layered_map.set_spawn_overlay_visible(false)
 
 
@@ -1281,7 +1296,7 @@ func _switch_table(table_id: String) -> void:
 	await _announce_pieces(new_pieces, table_name)
 	for group_id in mission.find_starting_group_ids():
 		await show_stage(group_id)
-	await _show_spawn_area_and_confirm()
+	await _show_spawn_area_and_confirm(true)
 	_refresh_objective_label()
 
 
@@ -1488,6 +1503,8 @@ func _enter_player_phase() -> void:
 ## The big "Player Phase" / "Monster Phase" announcement (PhaseBanner).
 var phase_banner: PhaseBanner
 var monster_manage_dialog: MonsterManageDialog
+## The hero and monster tokens of a campaign that tracks positions (null otherwise).
+var position_board: PositionBoard
 
 const PLAYER_PHASE_COLOR := Color(0.75, 0.88, 1.0)
 const MONSTER_PHASE_COLOR := Color(0.95, 0.3, 0.25)
@@ -1523,6 +1540,10 @@ func _on_end_phase_button_pressed() -> void:
 ## moment one of those calls reports the game has ended.
 func _run_darkness_and_loop() -> void:
 	end_phase_button.disabled = true
+
+	# Tracking positions: before the monsters act, the table makes sure every hero token stands where its figure stands.
+	if position_board != null and not DebugSession.skipping():
+		await dialog.ask_ok(tr("Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."), false)
 
 	if not await _advance_to(RoundCheckpoint.Checkpoint.AFTER_PLAYER_PHASE):
 		return
