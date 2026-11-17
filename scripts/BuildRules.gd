@@ -72,15 +72,35 @@ static func bridge_foot_cells(cells: Array) -> Array[Vector3i]:
 	return _end_posts(cells, 1)
 
 
-## Fine cells (x, height, z) a figure or a piece placed ON a bridge may use: every square of it at its own height and one unit up (the deck,
-## where the editor puts a token or a spawn tile on it). `pieces` = validator pieces.
-static func bridge_standing_cells(pieces: Array) -> Dictionary:
+## Fine cells (x, height, z) a figure or a piece placed ON terrain may use: every square of a bridge at its own height and one unit up (the
+## deck, where the editor puts a token or a spawn tile on it - a door on the middle of a bridge), the high end of a stair at its own height
+## and one up (a door at the top of a stair), and the spaces of a statue at their walking height and one up. `pieces` = validator pieces
+## (with "fine_origin").
+static func standing_cells(pieces: Array) -> Dictionary:
 	var cells: Dictionary = {}
+	var cpt := FootprintRegistry.CELLS_PER_TILE
 	for piece: Dictionary in pieces:
-		if piece["layer"] == "prop" and is_bridge(piece["mesh"]):
+		if piece["layer"] != "prop":
+			continue
+		if is_bridge(piece["mesh"]):
 			for cell: Vector3i in piece["cells"]:
 				cells[Vector3i(cell.x, piece["height"], cell.z)] = true
 				cells[Vector3i(cell.x, int(piece["height"]) + BRIDGE_RISE, cell.z)] = true
+		var origin: Vector3i = piece.get("fine_origin", Vector3i.ZERO)
+		if piece["mesh"] == "stair":
+			# the whole squares of the high end (stair_high_end() gives only its outermost row of fine cells)
+			for cell: Vector3i in stair_high_end(Vector3i(origin.x, piece["height"], origin.z), piece["cells"]):
+				var square := Vector2i(floori(float(cell.x) / cpt), floori(float(cell.z) / cpt))
+				for dx in cpt:
+					for dz in cpt:
+						cells[Vector3i(square.x * cpt + dx, piece["height"], square.y * cpt + dz)] = true
+						cells[Vector3i(square.x * cpt + dx, int(piece["height"]) + 1, square.y * cpt + dz)] = true
+		var raised := raised_squares(piece["mesh"], Vector3i(origin.x, piece["height"], origin.z), piece["cells"])
+		for square: Vector3i in raised:
+			for dx in cpt:
+				for dz in cpt:
+					cells[Vector3i(square.x * cpt + dx, square.y, square.z * cpt + dz)] = true
+					cells[Vector3i(square.x * cpt + dx, square.y + 1, square.z * cpt + dz)] = true
 	return cells
 
 
@@ -134,21 +154,71 @@ const PIECE_HEIGHTS := {
 	# the props from the game's own models (OriginalPropsLibrary): measured model height / 3.6
 	"altar": 0.83, "bell": 2.78, "bloodshrine": 2.1, "bookshelf": 1.6, "dragonarch": 5.17, "dragonhead": 2.4, "fire": 0.8, "statue": 3.58, "statue2": 3.6, "bridge": 1.0,
 }
-const SEE_THROUGH := ["big-ladder", "small-ladder"]
-## Props whose sight rule is decided by hand instead of by their height (given by the author 2026-10-25): the gate (its original model is lower than a figure, the rule stays), the bookshelf, the blood shrine and the statue
-## block line of sight, the bell only in its middle squares (see POSTED / sight_offsets); the altar, fire, dragon head and dragon arch never do.
-const SIGHT_RULE := {"gate": true, "bookshelf": true, "bloodshrine": true, "statue": true, "statue2": true, "bell": true, "altar": false, "fire": false, "dragonhead": false, "dragonarch": false}
+## What blocks line of sight follows the game's own rules (its glossary, "Terrain and Line of Sight"): doors (our gate), trees, shelves (our
+## bookshelf), the two pillars of an archway and the dragon statue (our dragon arch and dragon head - which of the two the game means is not
+## known, so both block). Pillars do NOT block when they stand on the lines between spaces, which ours always do. Everything else - barricades,
+## cauldrons, chests, gates (our fence), lecterns, staircases, tables, wells, bells, shrines, statues, ladders, bridges, underlays - does not.
+const SIGHT_BLOCKING := ["gate", "tree", "bookshelf", "archway", "dragonarch", "dragonhead"]
+
+## STATUES (the user, 2026-11-17): a statue is 2x3 squares and about 3 levels tall, and some of its squares are spaces figures and tokens can
+## stand on ("spaces on terrain" in the game's rules; its interaction "Climb the statue" puts a hero on one). Per statue: [column, row, level]
+## in the statue's own frame (statue2 has two spaces at level 1; statue one at level 1, two at level 2 and one on top of the tall back at level 3) - row 0 is the tall back (the row farthest from the origin along the long side) .. row 2 the front, column 0 is
+## the far side from the origin along the short side. A space of level L has its surface just under level L (RAISED_SURFACE levels above the
+## statue's base), so like a stair step it is reached from less than a level below and leads to less than a level above.
+const RAISED_SPACES := {"statue2": [[1, 1, 1], [1, 2, 1]], "statue": [[1, 1, 1], [0, 1, 2], [0, 2, 2], [0, 0, 3]]}
+const RAISED_SURFACE := {1: 0.93, 2: 1.89, 3: 2.84}
 
 
 static func piece_height(mesh: String) -> float:
 	return float(PIECE_HEIGHTS.get(mesh, 0.0))
 
 
-## Whether a piece blocks the line of sight of a standing figure (see PIECE_HEIGHTS).
+## Whether a piece blocks line of sight (the game's rules, see SIGHT_BLOCKING).
 static func blocks_sight(mesh: String) -> bool:
-	if SIGHT_RULE.has(mesh):
-		return SIGHT_RULE[mesh]
-	return piece_height(mesh) > FIGURE_HEIGHT and not SEE_THROUGH.has(mesh)
+	return SIGHT_BLOCKING.has(mesh)
+
+
+## The spaces of a PLACED statue figures can stand on: Array of {"square": Vector2i (square x, z), "level": 1..3}; empty for other pieces.
+## `origin` is the piece's origin cell and `cells` its absolute fine cells (any rotation).
+static func raised_spaces(mesh: String, origin: Vector3i, cells: Array) -> Array[Dictionary]:
+	var spaces: Array[Dictionary] = []
+	if not RAISED_SPACES.has(mesh) or cells.is_empty():
+		return spaces
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var xs: Dictionary = {}
+	var zs: Dictionary = {}
+	for cell: Vector3i in cells:
+		xs[floori(float(cell.x) / cpt)] = true
+		zs[floori(float(cell.z) / cpt)] = true
+	# order the squares along each axis by their distance from the origin (nearest first): that is independent of the rotation
+	var by_distance := func(values: Array, at: float) -> Array:
+		values.sort_custom(func(a, b): return absf(float(a * cpt) + float(cpt) / 2.0 - at) < absf(float(b * cpt) + float(cpt) / 2.0 - at))
+		return values
+	var x_order: Array = by_distance.call(xs.keys(), float(origin.x) + 0.5)
+	var z_order: Array = by_distance.call(zs.keys(), float(origin.z) + 0.5)
+	var along_z := z_order.size() >= x_order.size()
+	var long_order: Array = z_order if along_z else x_order
+	var short_order: Array = x_order if along_z else z_order
+	for space: Array in RAISED_SPACES[mesh]:
+		var row := long_order.size() - 1 - int(space[1])
+		var column := short_order.size() - 1 - int(space[0])
+		if row < 0 or column < 0:
+			continue
+		var long_value: int = long_order[row]
+		var short_value: int = short_order[column]
+		var square := Vector2i(short_value, long_value) if along_z else Vector2i(long_value, short_value)
+		spaces.append({"square": square, "level": int(space[2])})
+	return spaces
+
+
+## The squares (x, height, z) where a figure on the spaces of a placed statue stands for walking: level L is kept at base + L - 1 (its surface
+## is just under base + L), like a stair square. -> {Vector3i: level}
+static func raised_squares(mesh: String, origin: Vector3i, cells: Array) -> Dictionary:
+	var squares: Dictionary = {}
+	for space: Dictionary in raised_spaces(mesh, origin, cells):
+		var square: Vector2i = space["square"]
+		squares[Vector3i(square.x, origin.y + int(space["level"]) - 1, square.y)] = int(space["level"])
+	return squares
 
 
 ## The fine-cell offsets (unrotated, same space as support_offsets) of the part of a piece that blocks sight: all of it for a blocking piece
@@ -159,13 +229,6 @@ static func sight_offsets(mesh: String) -> Array[Vector3i]:
 		return none
 	if mesh == "archway":
 		return solid_offsets(mesh)
-	if mesh == "bell":
-		var posts := solid_offsets(mesh)
-		var middle: Array[Vector3i] = []
-		for offset in FootprintRegistry.get_footprint(mesh):
-			if not posts.has(offset):
-				middle.append(offset)
-		return middle
 	return FootprintRegistry.get_footprint(mesh)
 
 
@@ -175,16 +238,9 @@ static func sight_cells_from_footprint(mesh: String, cells: Array[Vector3i]) -> 
 	if not blocks_sight(mesh):
 		var none: Array[Vector3i] = []
 		return none
-	if not POSTED.has(mesh) or cells.is_empty():
+	if mesh != "archway" or cells.is_empty():
 		return cells
-	var posts := _end_posts(cells)
-	if mesh == "archway":
-		return posts
-	var middle: Array[Vector3i] = []  # the bell: the middle squares block sight
-	for cell in cells:
-		if not posts.has(cell):
-			middle.append(cell)
-	return middle
+	return _end_posts(cells)
 
 
 ## The solid part of a PLACED piece (absolute fine cells): all of it, none for the PASSABLE ones, the two end posts of an archway or bell.
@@ -284,8 +340,7 @@ static func describe() -> String:
 		"The heroes need start squares: at least one, and one for every hero that may play (the map's maximum number of players, 1 to 6).",
 		"Pieces other than floors stand on a floor at their own height - except pillars, stairs, the archway and the fence, which may stand on the bare ground at height 0.",
 		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
-		"Sight: two squares see each other when a line can be drawn from ANY corner of one to ANY corner of the other without being stopped (a line grazing the edge of a piece passes, but not between two pieces that touch). The line runs at figure height (2 units) above each figure's own floor, so a piece blocks only if its top is above that line: trees, tall and medium pillars, gates and an archway's two end posts block (the archway's two middle squares are open); fences (see-through), wells, mini pillars, stairs, furniture and ladders do not.",
-		"A medium pillar (2.2) therefore blocks figures standing on its floor but not someone standing 1 unit up; a tall pillar (3.8) still blocks from 1 up but not from a floor at height 2 (what is left above it is less than a figure). You can look up or down at any distance, but never through a floor: a figure directly under or over a floor tile is not visible, and you can't look down through the floor you stand on.",
+		"Sight (the game's rules): two squares see each other when a line can be drawn from ANY corner of one to ANY corner of the other without being stopped (a line grazing the edge of a piece passes, but not between two pieces that touch). Heights do not matter: look at the map as if every tile were on one level. A line is stopped by a square holding blocking terrain - trees, gates (doors), bookshelves, the dragon arch and dragon head, and an archway's two end posts (its two middle squares are open) - and by leaving the map (it may only run over spaces: floors, underlays and stairs at any height). Pillars never block (they stand on the lines between squares), nor do fences, statues, bells, shrines, furniture, stairs, ladders or bridges.",
 		"The bridge (2 wide, 6 long: xxyyxx along its length) is walkable: its two outer squares at each end (x) are ramps whose outermost square must rest on floor at the bridge's own height (or on the bare ground at height 0), so it spans a gap of up to 4 squares, and its two middle squares (y) are a deck 1 unit higher that may span hazards or open space. For walking it is two stairs placed against each other (high ends touching in the middle): figures walk and stand on all six squares at the bridge's own height. It connects the floors at its two ends; nobody fits under it.",
 		"Floors at different heights only connect through a stair (its high end touches the upper floor) or a ladder: a small ladder climbs 1 unit, a big ladder 1 or 2; the upper floor must touch the ladder's square.",
 	])

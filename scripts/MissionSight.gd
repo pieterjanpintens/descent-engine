@@ -47,7 +47,13 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 		if BuildRules.is_bridge(entry.mesh_item_name):
 			for cell in cells_of(entry):
 				_add_floor_cell(floors, entry.origin_cell.y, cell)
-	var sight := SightLine.context_from(blockers, floors)
+	# spaces on terrain a line of sight may pass over (stairs and a statue's spaces have no floor tile under them)
+	var spaces: Dictionary = {}
+	for entry in props:
+		if entry.mesh_item_name == "stair" or BuildRules.RAISED_SPACES.has(entry.mesh_item_name):
+			for cell in cells_of(entry):
+				spaces[Vector2i(cell.x, cell.z)] = true
+	var sight := SightLine.context_from(blockers, floors, spaces)
 	var squares: Dictionary = {}
 	for square: Vector3i in sight["squares"]:
 		squares[square] = true
@@ -153,6 +159,13 @@ static func step_links(props: Array[InteractableEntry], squares: Dictionary) -> 
 					var upper := Vector3i(side.x, base + BuildRules.BRIDGE_RISE, side.y)
 					if not own_squares.has(side) and squares.has(lower) and squares.has(upper):
 						links.append([lower, upper, "stair"])
+		# a statue's space leads up to the squares around it one level higher (less than a level above its surface), like a stair step
+		var raised := BuildRules.raised_squares(mesh, entry.origin_cell, cells)
+		for lower: Vector3i in raised:
+			for step: Vector2i in STEPS_8:
+				var upper := Vector3i(lower.x + step.x, lower.y + 1, lower.z + step.y)
+				if squares.has(lower) and squares.has(upper):
+					links.append([lower, upper, "stair"])
 		var climbs := BuildRules.climb_rises(mesh)
 		if not climbs.is_empty():
 			var own: Dictionary = {}

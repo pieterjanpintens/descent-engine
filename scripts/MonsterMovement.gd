@@ -81,8 +81,17 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 				var stair_square := _square_of(cell, base)
 				squares[stair_square] = true
 				stairs[stair_square] = true
+		# a statue's spaces are walked on like stair squares (level 1 at its base height, which is then not solid there)
+		var raised := BuildRules.raised_squares(mesh, entry.origin_cell, cells)
+		var open: Dictionary = {}
+		for raised_square: Vector3i in raised:
+			squares[raised_square] = true
+			stairs[raised_square] = true
+			if raised_square.y == base:
+				open[Vector2i(raised_square.x, raised_square.z)] = true
 		for cell in BuildRules.solid_cells_from_footprint(mesh, cells):
-			solid_fine[Vector3i(cell.x, base, cell.z)] = true
+			if not open.has(Vector2i(floori(float(cell.x) / FootprintRegistry.CELLS_PER_TILE), floori(float(cell.z) / FootprintRegistry.CELLS_PER_TILE))):
+				solid_fine[Vector3i(cell.x, base, cell.z)] = true
 		if BuildRules.CEILING_RISES.has(mesh):
 			for cell in cells:
 				_add_ceiling(ceilings, Vector2i(cell.x, cell.z), base + int(BuildRules.CEILING_RISES[mesh]))
@@ -107,6 +116,11 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 	for covered: Vector3i in solid_count:
 		if int(solid_count[covered]) * 2 >= cpt * cpt:
 			blocked[covered] = true
+			# a piece standing on top of a stair, a bridge or a statue space (a door at the top of a stair, on the middle of a bridge) is placed
+			# one level up in the editor: it blocks the stair square under it
+			var under := covered - Vector3i(0, 1, 0)
+			if not squares.has(covered) and stairs.has(under):
+				blocked[under] = true
 
 	# hazards show where no floor tile lies over the hazard card
 	var floor_fine: Dictionary = {}
@@ -339,8 +353,7 @@ static func _square_steps(ctx: Dictionary, from: Vector3i) -> Array:
 		if board["squares"].has(level):
 			if not _open(ctx, level):
 				continue
-			if step.x != 0 and step.y != 0 and not _open(ctx, Vector3i(from.x + step.x, from.y, from.z)) and not _open(ctx, Vector3i(from.x, from.y, from.z + step.y)):
-				continue  # not diagonally between two blocked squares
+			# the game's rule: figures can move diagonally between two spaces that contain 3D terrain
 			steps.append({"to": level, "cost": _step_cost(board, from)})
 			continue
 		# no floor at this height there: step off the edge onto the highest floor below

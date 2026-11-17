@@ -105,16 +105,33 @@ static func validate(plan: Variant, options: Dictionary = {}) -> Dictionary:
 ## The checks every map goes through, whether it came from a plan or from a loaded mission. `pieces` are normalised (see validate()) and
 ## carry a `label` the messages use; `creatures` = [{label, kind, creature}]; `heroes` = the most heroes that may play (max players).
 static func _run_checks(pieces: Array[Dictionary], creatures: Array[Dictionary], heroes: int, result: Dictionary, options: Dictionary = {}) -> void:
+	# a statue's lowest spaces (level 1) are walked on, not solid
+	for piece in pieces:
+		if piece["layer"] == "prop" and BuildRules.RAISED_SPACES.has(piece["mesh"]):
+			var origin: Vector3i = piece["fine_origin"]
+			var open: Dictionary = {}
+			for square: Vector3i in BuildRules.raised_squares(piece["mesh"], Vector3i(origin.x, piece["height"], origin.z), piece["cells"]):
+				if square.y == int(piece["height"]):
+					open[Vector2i(square.x, square.z)] = true
+			var solid: Array[Vector3i] = []
+			for cell: Vector3i in piece["solid_cells"]:
+				if not open.has(Vector2i(floori(float(cell.x) / FootprintRegistry.CELLS_PER_TILE), floori(float(cell.z) / FootprintRegistry.CELLS_PER_TILE))):
+					solid.append(cell)
+			piece["solid_cells"] = solid
 	var floor_cells := _cells_of(pieces, "floor")
+	# underlays (hazard cards) are ground to stand on too: props and figures may be put on them (they do not join the walkable floor:
+	# water under a bridge is not a separate area anyone has to reach)
+	var ground := floor_cells.duplicate()
+	ground.merge(_cells_of(pieces, "underlay"))
 	_check_overlaps(pieces, result)
 	_check_anchors(pieces, result)
 	_check_pillar_corners(pieces, result)
-	var standing := _check_props_on_floor(pieces, floor_cells, result)
+	var standing := _check_props_on_floor(pieces, ground, result)
 	var support := _support_map(pieces, standing)
 	_check_floor_support(pieces, support, result)
 	if options.get("require_start", true):
 		_check_start_squares(creatures, heroes, result)
-	_check_creatures(creatures, pieces, floor_cells, result)
+	_check_creatures(creatures, pieces, ground, result)
 	_check_connected(pieces, floor_cells, standing, result)
 	_check_limits(pieces, result, options.get("used", {}))
 	_check_names(pieces, result)
@@ -760,9 +777,9 @@ static func _inside(inner: Dictionary, outer: Dictionary) -> bool:
 ## can hold anything up or help anyone climb).
 static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> Dictionary:
 	var standing: Dictionary = {}
-	# a piece may also stand on a bridge (a token on its deck)
+	# a piece may also stand on a bridge (a token on its deck) or on a statue's spaces
 	var on_floor: Dictionary = floor_cells.duplicate()
-	on_floor.merge(BuildRules.bridge_standing_cells(pieces))
+	on_floor.merge(BuildRules.standing_cells(pieces))
 	for piece in pieces:
 		if piece["layer"] != "prop":
 			continue
@@ -889,8 +906,8 @@ static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Diction
 				if not ceilings.has(column):
 					ceilings[column] = []
 				ceilings[column].append(piece["height"] + int(BuildRules.CEILING_RISES[piece["mesh"]]))
-	# a figure may stand on a bridge at its own height or on its deck one unit up (where the editor puts a spawn tile on it)
-	floors.merge(BuildRules.bridge_standing_cells(pieces))
+	# a figure may stand on a bridge at its own height or on its deck one unit up (where the editor puts a spawn tile on it), and on a statue's spaces
+	floors.merge(BuildRules.standing_cells(pieces))
 	var taken: Dictionary = {}  # (square x, height, square z) -> label, to warn about two creatures on one square
 	for entry in creatures:
 		(result["starts"] if entry["kind"] == "start" else result["spawns"]).append(entry["creature"])

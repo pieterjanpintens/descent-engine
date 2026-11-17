@@ -127,7 +127,7 @@ static func flat_centre(map: LayeredMap, anchor: Vector3i, size: int) -> Vector3
 	return (low[0] + high[2]) * 0.5
 
 
-## For every square of a painted, revealed stair or bridge (two stairs against each other): the height of the mesh's top surface over the
+## For every square of a painted, revealed stair or bridge (two stairs against each other), and every space of a statue: the height of the mesh's top surface over the
 ## middle of the square (a ray straight down through its triangles, highest hit). Shared with the line-of-sight tool.
 static func stair_tops(map: LayeredMap, mission: MissionData) -> Dictionary:
 	var tops: Dictionary = {}
@@ -164,6 +164,17 @@ static func stair_tops(map: LayeredMap, mission: MissionData) -> Dictionary:
 					best = maxf(best, (hit as Vector3).y)
 			if best > -INF:
 				tops[square] = best + 0.02
+	# a statue's spaces: on its ledges (BuildRules.RAISED_SURFACE levels above its base)
+	for entry in mission.interactables:
+		if not BuildRules.RAISED_SPACES.has(entry.mesh_item_name) or map.held_back.has(entry) or not mission.is_effectively_visible(entry):
+			continue
+		var base: int = entry.origin_cell.y
+		var raised := BuildRules.raised_squares(entry.mesh_item_name, entry.origin_cell, MissionSight.cells_of(entry))
+		for square: Vector3i in raised:
+			var low := map.get_tile_square_world_corners(Vector3i(square.x + 1, base, square.z + 1))[0].y
+			var high := map.get_tile_square_world_corners(Vector3i(square.x + 1, base + 1, square.z + 1))[0].y
+			var level: int = raised[square]
+			tops[square] = low + float(BuildRules.RAISED_SURFACE[level]) * (high - low) + 0.02
 	return tops
 
 

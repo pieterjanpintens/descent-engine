@@ -6,7 +6,10 @@ extends RefCounted
 ## BuildRules constants), so the Player's line-of-sight tool can use exactly the same code as the plan validator. Experimental, branch
 ## experiment/ai-map-generation.
 ##
-## What stops a line (BuildRules decides what blocks sight; this only applies it):
+## Since 2026-11-17 the GAME'S rule is used (FLAT): heights are ignored, a blocking piece stops a line at any height and a line may only run
+## over spaces (floors, underlays, stairs, a statue's spaces - leaving the map stops it). With FLAT off, the older 3D rule below applies.
+##
+## What stops a line in the 3D rule (BuildRules decides what blocks sight; this only applies it):
 ##  - a blocking PIECE (tree, tall / medium pillar, gate, an archway's end posts) when the line passes through it at a height below its top
 ##    and above the floor it stands on. The line runs at figure height (BuildRules.FIGURE_HEIGHT) above the floors of the two squares, so
 ##    from a platform you see over low pieces, and a tall piece blocks a view from any height up to its top;
@@ -18,6 +21,10 @@ extends RefCounted
 
 const EYE_HEIGHT := float(BuildRules.FIGURE_HEIGHT)
 const EPS := 1e-6
+## The game's rule for sight between levels (its glossary, "Line of Sight and Elevation"): imagine all map tiles on the same level - heights
+## do not matter, a blocking piece blocks whatever its height, floors do not hide anything, and a line may not leave the map (it may only run
+## over spaces, at any height). False = the older 3D rule (eye heights, opaque floors, piece heights).
+const FLAT := true
 
 ## Which points of the two squares a sight line may start / end at (the Player's tool takes it from the Options setting PlayerSettings.sight_rule):
 ## CORNER_TO_CORNER = the Descent 2 rule (any corner of one square to any corner of the other, 16 lines - loose),
@@ -55,12 +62,20 @@ static func prepare(result: Dictionary) -> Dictionary:
 		for cell: Vector3i in piece["cells"]:
 			floors[height][Vector2i(cell.x, cell.z)] = true
 	# a bridge counts as floor at its own height over all its squares (two stairs against each other, like MissionSight.build())
+	var spaces: Dictionary = {}
 	for piece: Dictionary in result["pieces"]:
-		if piece["layer"] != "prop" or not BuildRules.is_bridge(piece["mesh"]):
+		if piece["layer"] == "underlay":
+			for cell: Vector3i in piece["cells"]:
+				spaces[Vector2i(cell.x, cell.z)] = true
+		if piece["layer"] != "prop":
 			continue
-		for cell: Vector3i in piece["cells"]:
-			_add_floor(floors, piece["height"], cell)
-	return context_from(blockers, floors)
+		if BuildRules.is_bridge(piece["mesh"]):
+			for cell: Vector3i in piece["cells"]:
+				_add_floor(floors, piece["height"], cell)
+		elif piece["mesh"] == "stair" or BuildRules.RAISED_SPACES.has(piece["mesh"]):
+			for cell: Vector3i in piece["cells"]:
+				spaces[Vector2i(cell.x, cell.z)] = true
+	return context_from(blockers, floors, spaces)
 
 
 static func _add_floor(floors: Dictionary, height: int, cell: Vector3i) -> void:
@@ -71,7 +86,7 @@ static func _add_floor(floors: Dictionary, height: int, cell: Vector3i) -> void:
 
 ## The context from its two raw parts: `blockers` (Vector2i fine cell -> Array of Vector2(base height, top height)) and `floors` (height ->
 ## {Vector2i fine cell: true}). The squares (x, height, z in game units) are the ones with a complete floor.
-static func context_from(blockers: Dictionary, floors: Dictionary) -> Dictionary:
+static func context_from(blockers: Dictionary, floors: Dictionary, spaces: Dictionary = {}) -> Dictionary:
 	var counts: Dictionary = {}  # Vector3i (square x, height, square z) -> fine cells with floor
 	var cpt := FootprintRegistry.CELLS_PER_TILE
 	for height: int in floors:
@@ -82,7 +97,12 @@ static func context_from(blockers: Dictionary, floors: Dictionary) -> Dictionary
 	for square: Vector3i in counts:
 		if counts[square] == cpt * cpt:
 			squares.append(square)
-	return {"blockers": blockers, "floors": floors, "squares": squares}
+	# every column with a space at any height: a line of sight may only run over these (the game's rules: the map's edges stop it)
+	var columns: Dictionary = spaces.duplicate()
+	for height: int in floors:
+		for cell: Vector2i in floors[height]:
+			columns[cell] = true
+	return {"blockers": blockers, "floors": floors, "squares": squares, "columns": columns}
 
 
 ## Whether the square `from_square` (x, z in game units) on a floor at `from_height` sees `to_square` on a floor at `to_height`.
@@ -157,8 +177,10 @@ static func _corners(square: Vector2i) -> Array[Vector2]:
 static func _clear(context: Dictionary, p0: Vector2, a: float, p1: Vector2, b: float) -> bool:
 	var cpt := FootprintRegistry.CELLS_PER_TILE
 	var d := p1 - p0
-	# 1. opaque floors: the line crosses the plane of a floor at height f (strictly between the two eye heights) at one point
-	if absf(b - a) > EPS:
+	var flat: bool = FLAT and context.has("columns")
+	# 1. opaque floors: the line crosses the plane of a floor at height f (strictly between the two eye heights) at one point. Not with the
+	# game's rule (FLAT): between levels the map is looked at as if all tiles were on one level.
+	if not flat and absf(b - a) > EPS:
 		var lowest := minf(a, b)
 		var highest := maxf(a, b)
 		for height: int in context["floors"]:
@@ -196,7 +218,7 @@ static func _clear(context: Dictionary, p0: Vector2, a: float, p1: Vector2, b: f
 		var all_block := true
 		for cx in xs:
 			for cz in zs:
-				if not _blocks(context["blockers"], Vector2i(cx, cz), line_height):
+				if not _stops(context, Vector2i(cx, cz), line_height, flat):
 					all_block = false
 		if all_block:
 			return false
@@ -209,6 +231,14 @@ static func _cells_at(value: float) -> Array[int]:
 	if absf(value - float(nearest)) < EPS:
 		return [nearest - 1, nearest]
 	return [floori(value)]
+
+
+## Whether the line is stopped over fine cell `cell`. With the game's flat rule: by a blocking piece at any height, or where there is no
+## space at all (off the map's edge, over a hole); otherwise by a blocking piece the line passes through below its top.
+static func _stops(context: Dictionary, cell: Vector2i, line_height: float, flat: bool) -> bool:
+	if not flat:
+		return _blocks(context["blockers"], cell, line_height)
+	return context["blockers"].has(cell) or not context["columns"].has(cell)
 
 
 static func _blocks(blockers: Dictionary, cell: Vector2i, line_height: float) -> bool:

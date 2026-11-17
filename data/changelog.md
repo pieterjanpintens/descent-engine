@@ -1,4 +1,10 @@
-﻿## v0.0.81 - 2026-11-17
+﻿## v0.0.82 - 2026-11-17
+- Line of sight now follows the game's rules: heights don't matter (look at the map as if every tile were on one level), a line may not leave the map, and only doors, trees, bookshelves, the dragon arch and head and an archway's two pillars block it. Pillars, statues, bells, shrines, fences, furniture, stairs and bridges no longer block.
+- Statues have spaces you can stand on, like the real pieces: figures, tokens and monster spawns may be placed on their ledges, and when the app moves the monsters they climb them like steps.
+- Monsters may move diagonally between two squares with terrain in them, as the game allows.
+- The Problems list accepts props and figures on underlays, and a door on the top of a stair or on a bridge (it also blocks the way there when the app moves the monsters).
+
+## v0.0.81 - 2026-11-17
 - A bridge now works like two stairs placed against each other: figures walk and stand on all six squares, monsters cross it when the app moves them, tokens stand on the bridge itself, and line of sight and range count across it. A hazard under the bridge does not affect figures on it.
 - The mission editor's Problems list no longer calls a correctly built bridge floating: only the outermost square at each end has to rest on floor, so a bridge can cross a gap of up to 4 squares (this also removes the "separate floor groups" error it caused). Tokens and monster spawns on top of a bridge are fine.
 - The Problems list warns when a pillar touches the corner of a floor tile: tiles only have cut-outs for pillars along their edges. Pillars in existing missions were moved off tile corners where possible.
