@@ -54,14 +54,12 @@ static func prepare(result: Dictionary) -> Dictionary:
 			floors[height] = {}
 		for cell: Vector3i in piece["cells"]:
 			floors[height][Vector2i(cell.x, cell.z)] = true
-	# a bridge counts as floor for sight: its ramp ends at its own height, its middle deck one unit higher
+	# a bridge counts as floor at its own height over all its squares (two stairs against each other, like MissionSight.build())
 	for piece: Dictionary in result["pieces"]:
 		if piece["layer"] != "prop" or not BuildRules.is_bridge(piece["mesh"]):
 			continue
-		for cell: Vector3i in BuildRules.bridge_end_cells(piece["cells"]):
+		for cell: Vector3i in piece["cells"]:
 			_add_floor(floors, piece["height"], cell)
-		for cell: Vector3i in BuildRules.bridge_middle_cells(piece["cells"]):
-			_add_floor(floors, int(piece["height"]) + BuildRules.BRIDGE_RISE, cell)
 	return context_from(blockers, floors)
 
 

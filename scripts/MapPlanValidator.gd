@@ -108,6 +108,7 @@ static func _run_checks(pieces: Array[Dictionary], creatures: Array[Dictionary],
 	var floor_cells := _cells_of(pieces, "floor")
 	_check_overlaps(pieces, result)
 	_check_anchors(pieces, result)
+	_check_pillar_corners(pieces, result)
 	var standing := _check_props_on_floor(pieces, floor_cells, result)
 	var support := _support_map(pieces, standing)
 	_check_floor_support(pieces, support, result)
@@ -681,6 +682,57 @@ static func _check_overlaps(pieces: Array[Dictionary], result: Dictionary) -> vo
 ## True when every cell of `inner` is also a cell of `outer` (at the same height).
 ## The board grid holds ONE piece per anchor cell and layer (floor / hazard / prop). A piece's anchor is a corner point of the area it covers, so
 ## two pieces that touch side by side can share one when their rotations put the anchors on the same corner - the editor can't hold both.
+## Floor tiles only have cut-outs for pillars along their EDGES, not at their inner or outer corners: a pillar should not touch a tile's corner
+## at any height it reaches (only a WARNING: it does not fit snugly there, but it can still stand) (the floor it stands on up to the highest floor it can hold).
+static func _check_pillar_corners(pieces: Array[Dictionary], result: Dictionary) -> void:
+	var owners: Dictionary = {}  # floor cell (x, height, z) -> index of the floor piece
+	for i in pieces.size():
+		if pieces[i]["layer"] == "floor":
+			for cell in pieces[i]["cells"]:
+				owners[Vector3i(cell.x, pieces[i]["height"], cell.z)] = i
+	for i in pieces.size():
+		var piece := pieces[i]
+		if piece["layer"] != "prop" or not FootprintRegistry.allows_fine_placement(piece["mesh"]):
+			continue
+		var cells: Array[Vector3i] = []
+		for cell in piece["cells"]:
+			cells.append(Vector3i(cell.x, piece["height"], cell.z))
+		var hit: Dictionary = pillar_tile_corner(cells, BuildRules.support_rises(piece["mesh"]), owners)
+		if not hit.is_empty():
+			var tile: Dictionary = pieces[int(hit["owner"])]
+			_add(result, "warning", "pillar_on_tile_corner", i, "%s touches the %s corner of %s - floor tiles only have cut-outs for pillars along their edges, not at their corners." % [piece["label"], "inner" if int(hit["count"]) == 3 else "outer", tile["label"]])
+
+
+## The pillar covering the four fine `cells` (at its own height) and reaching `rises` above it: the first floor tile whose corner it touches,
+## as {"owner" (the tile's key in `owners`: fine cell -> any id), "height", "count" (1 outer corner, 3 inner corner, 2 two diagonal
+## squares)}; empty when it only meets tiles along their edges (or stands on top of one). Shared with tools that move pillars.
+static func pillar_tile_corner(cells: Array[Vector3i], rises: Array, owners: Dictionary) -> Dictionary:
+	if cells.is_empty():
+		return {}
+	var base: int = cells[0].y
+	var top := base
+	for rise in rises:
+		top = maxi(top, base + int(rise))
+	for height in range(base, top + 1):
+		var by_owner: Dictionary = {}  # owner -> Array of the cells it has here
+		for cell in cells:
+			var key := Vector3i(cell.x, height, cell.z)
+			if owners.has(key):
+				var owner: Variant = owners[key]
+				if not by_owner.has(owner):
+					by_owner[owner] = []
+				by_owner[owner].append(key)
+		for owner: Variant in by_owner:
+			var mine: Array = by_owner[owner]
+			var count := mine.size()
+			if count == 2 and (mine[0].x == mine[1].x or mine[0].z == mine[1].z):
+				continue  # along an edge: there is a cut-out
+			if count == 4:
+				continue  # standing on it (or holding it from below)
+			return {"owner": owner, "height": height, "count": count}
+	return {}
+
+
 static func _check_anchors(pieces: Array[Dictionary], result: Dictionary) -> void:
 	var seen: Dictionary = {}  # "layer origin" -> piece
 	for piece in pieces:
@@ -708,6 +760,9 @@ static func _inside(inner: Dictionary, outer: Dictionary) -> bool:
 ## can hold anything up or help anyone climb).
 static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> Dictionary:
 	var standing: Dictionary = {}
+	# a piece may also stand on a bridge (a token on its deck)
+	var on_floor: Dictionary = floor_cells.duplicate()
+	on_floor.merge(BuildRules.bridge_standing_cells(pieces))
 	for piece in pieces:
 		if piece["layer"] != "prop":
 			continue
@@ -715,21 +770,21 @@ static func _check_props_on_floor(pieces: Array[Dictionary], floor_cells: Dictio
 			standing[piece["index"]] = true  # pillars, stairs, archways and fences may stand on the bare ground
 			continue
 		if BuildRules.is_bridge(piece["mesh"]):
-			# only the two ramp ends need floor (at height 0 the bare ground will do); the deck in between may span anything
+			# only the outermost square at each end needs floor (at height 0 the bare ground will do); the rest may span anything
 			var loose := 0
 			if piece["height"] > 0:
-				for cell in BuildRules.bridge_end_cells(piece["cells"]):
+				for cell in BuildRules.bridge_foot_cells(piece["cells"]):
 					if not floor_cells.has(Vector3i(cell.x, piece["height"], cell.z)):
 						loose += 1
 			if loose > 0:
 				_add(result, "error", "floating_prop", piece["index"],
-					"%s: %d cells of its two ramp ends (the outer 2 squares at each end) have no floor under them at height %d - the ends of a bridge must rest on floor (or on the ground at height 0); only the middle may span open space." % [piece["label"], loose, piece["height"]])
+					"%s: the outermost square at %s has no floor under it at height %d - each end of a bridge must rest on floor (or on the ground at height 0); the rest may span open space." % [piece["label"], "one end" if loose <= FootprintRegistry.CELLS_PER_TILE * 2 else "both ends", piece["height"]])
 			else:
 				standing[piece["index"]] = true
 			continue
 		var missing := 0
 		for cell in piece["cells"]:
-			if not floor_cells.has(Vector3i(cell.x, piece["height"], cell.z)):
+			if not on_floor.has(Vector3i(cell.x, piece["height"], cell.z)):
 				missing += 1
 		if missing > 0:
 			_add(result, "error", "floating_prop", piece["index"],
@@ -811,12 +866,13 @@ static func _creatures_from_plan(plan: Dictionary, result: Dictionary) -> Array[
 static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Dictionary], floor_cells: Dictionary, result: Dictionary) -> void:
 	var blocked: Dictionary = {}  # (x, height, z) -> label of the piece that blocks walking there
 	var ceilings: Dictionary = {}  # Vector2i fine column -> Array[int] heights of solid things (floors above, archway tops)
-	# the middle of a bridge is a walkable deck BRIDGE_RISE up: a figure may stand on it, and it is a ceiling for anyone below
+	# a bridge is two stairs placed against each other: a figure stands on any of its squares at the bridge's own height (the steps do not
+	# count), and it is a ceiling for anyone below it
 	var floors: Dictionary = floor_cells.duplicate()
 	for piece in pieces:
 		if piece["layer"] == "prop" and BuildRules.is_bridge(piece["mesh"]):
-			for cell in BuildRules.bridge_middle_cells(piece["cells"]):
-				floors[Vector3i(cell.x, piece["height"] + BuildRules.BRIDGE_RISE, cell.z)] = true
+			for cell in piece["cells"]:
+				floors[Vector3i(cell.x, piece["height"], cell.z)] = true
 	for key: Vector3i in floors:
 		var column := Vector2i(key.x, key.z)
 		if not ceilings.has(column):
@@ -833,6 +889,8 @@ static func _check_creatures(creatures: Array[Dictionary], pieces: Array[Diction
 				if not ceilings.has(column):
 					ceilings[column] = []
 				ceilings[column].append(piece["height"] + int(BuildRules.CEILING_RISES[piece["mesh"]]))
+	# a figure may stand on a bridge at its own height or on its deck one unit up (where the editor puts a spawn tile on it)
+	floors.merge(BuildRules.bridge_standing_cells(pieces))
 	var taken: Dictionary = {}  # (square x, height, square z) -> label, to warn about two creatures on one square
 	for entry in creatures:
 		(result["starts"] if entry["kind"] == "start" else result["spawns"]).append(entry["creature"])

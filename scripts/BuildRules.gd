@@ -51,6 +51,8 @@ const REMOVABLE := ["gate", "fence", "barricade"]
 ## The BRIDGE (2 wide x 6 long, author 2026-10-25): xxyyxx - the two outer squares of each end (x) are ramps that must rest on floor at the
 ## bridge's own height (or on the bare ground at height 0); the two middle squares (y) are a walkable deck BRIDGE_RISE units higher, which may
 ## span hazards or open space. Walkable, never solid; under the deck there is only BRIDGE_RISE units of headroom, so no figure fits there.
+## For walking, standing and sight it is two STAIRS placed against each other, high ends touching in the middle: all six squares count as
+## walked at the bridge's own height (the height of its steps does not matter, like on a stair; MissionSight / MonsterMovement / SightLine).
 const BRIDGE_RISE := 1
 const BRIDGE_END_SQUARES := 2
 
@@ -62,6 +64,24 @@ static func is_bridge(mesh: String) -> bool:
 ## The ramp cells at both ends of a PLACED bridge (absolute fine cells).
 static func bridge_end_cells(cells: Array) -> Array[Vector3i]:
 	return _end_posts(cells, BRIDGE_END_SQUARES)
+
+
+## The outermost square row at each end of a PLACED bridge: what has to rest on floor (the rest of a ramp may hang over the gap, like the
+## low end of a stair is the only part that needs floor).
+static func bridge_foot_cells(cells: Array) -> Array[Vector3i]:
+	return _end_posts(cells, 1)
+
+
+## Fine cells (x, height, z) a figure or a piece placed ON a bridge may use: every square of it at its own height and one unit up (the deck,
+## where the editor puts a token or a spawn tile on it). `pieces` = validator pieces.
+static func bridge_standing_cells(pieces: Array) -> Dictionary:
+	var cells: Dictionary = {}
+	for piece: Dictionary in pieces:
+		if piece["layer"] == "prop" and is_bridge(piece["mesh"]):
+			for cell: Vector3i in piece["cells"]:
+				cells[Vector3i(cell.x, piece["height"], cell.z)] = true
+				cells[Vector3i(cell.x, int(piece["height"]) + BRIDGE_RISE, cell.z)] = true
+	return cells
 
 
 ## The deck cells in the middle of a PLACED bridge.
@@ -256,6 +276,7 @@ static func describe() -> String:
 		"- mini pillar: floors 1 unit above the floor it stands on.",
 		"- medium pillar: floors 1 or 2 units above.",
 		"- tall pillar: floors 1, 2 or 3 units above.",
+		"Pillars stand where four squares meet (their position always ends in .5). Floor tiles have cut-outs for them only along their edges, so a pillar should not touch an inner or outer corner of a floor tile, at any height it reaches (the floor it stands on up to the highest floor it can hold).",
 		"- stair (2x3): the high 2x1 end holds a floor 1 unit above; the low end is where you climb on.",
 		"- archway: the top holds a floor 3 units above (a gate holds nothing up).",
 		"Bridges and overhangs are allowed: floors may lie over other floors if they are supported and have that much room.",
@@ -265,6 +286,6 @@ static func describe() -> String:
 		"Most pieces are solid: no figure can stand in them or walk through them (pillars, trees, tables, chests, carts, barricades, wells, pots, ladders...). Exceptions you can pass: stairs and the tokens (exploration, interact, umbra). Gates and fences are solid too, but they remove themselves when a figure interacts with them (so they act as doors) and barricades are typically destroyed, so nothing is ever walled off for good. The archway is 1x4: its two end squares are solid, the two middle squares are the passage.",
 		"Sight: two squares see each other when a line can be drawn from ANY corner of one to ANY corner of the other without being stopped (a line grazing the edge of a piece passes, but not between two pieces that touch). The line runs at figure height (2 units) above each figure's own floor, so a piece blocks only if its top is above that line: trees, tall and medium pillars, gates and an archway's two end posts block (the archway's two middle squares are open); fences (see-through), wells, mini pillars, stairs, furniture and ladders do not.",
 		"A medium pillar (2.2) therefore blocks figures standing on its floor but not someone standing 1 unit up; a tall pillar (3.8) still blocks from 1 up but not from a floor at height 2 (what is left above it is less than a figure). You can look up or down at any distance, but never through a floor: a figure directly under or over a floor tile is not visible, and you can't look down through the floor you stand on.",
-		"The bridge (2 wide, 6 long: xxyyxx along its length) is walkable: its two outer squares at each end (x) are ramps that must rest on floor at the bridge's own height (or on the bare ground at height 0), and its two middle squares (y) are a deck 1 unit higher that may span hazards or open space. It connects the floors at its two ends; nobody fits under the deck (only 1 unit of headroom).",
+		"The bridge (2 wide, 6 long: xxyyxx along its length) is walkable: its two outer squares at each end (x) are ramps whose outermost square must rest on floor at the bridge's own height (or on the bare ground at height 0), so it spans a gap of up to 4 squares, and its two middle squares (y) are a deck 1 unit higher that may span hazards or open space. For walking it is two stairs placed against each other (high ends touching in the middle): figures walk and stand on all six squares at the bridge's own height. It connects the floors at its two ends; nobody fits under it.",
 		"Floors at different heights only connect through a stair (its high end touches the upper floor) or a ladder: a small ladder climbs 1 unit, a big ladder 1 or 2; the upper floor must touch the ladder's square.",
 	])

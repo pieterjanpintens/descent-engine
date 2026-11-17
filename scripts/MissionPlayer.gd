@@ -909,7 +909,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		placed_centers.append(center)
 		if _runtime.track_positions:
 			# the spawn tile is 1-based and the far corner of a large base; positions are 0-based lowest corners
-			_runtime.set_monster_position(monster, Vector3i(anchor.x - size_tiles, anchor.y, anchor.z - size_tiles))
+			_runtime.set_monster_position(monster, MonsterMovement.settle(MonsterMovement.build_board(mission, layered_map.held_back), Vector3i(anchor.x - size_tiles, anchor.y, anchor.z - size_tiles)))
 		holder.place_stand(center / holder.scale.x, info, i, MonsterChip.color(monster.chip))
 
 	if not placed_centers.is_empty():

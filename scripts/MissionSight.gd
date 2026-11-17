@@ -40,16 +40,13 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 					if not blockers.has(fine):
 						blockers[fine] = []
 					blockers[fine].append(Vector2(-1000.0, 1000.0))
-	# A bridge is walkable: its two ramp ends count as floor at its own height (also where they rest on the bare ground) and its middle
-	# deck as floor one unit higher, so ranges and sight cross a gap by it and a figure can stand on the deck.
+	# A bridge is two stairs placed against each other, high ends touching in the middle: like a stair it is walked at its own height
+	# (the height of its steps does not matter), so all of its squares count as floor at its own height (also over a gap or a hazard).
+	# Ranges and sight cross a gap by it, a figure can stand on it, and it blocks views through it from below like any floor.
 	for entry in props:
 		if BuildRules.is_bridge(entry.mesh_item_name):
-			var bridge_cells := cells_of(entry)
-			var bridge_base: int = entry.origin_cell.y
-			for cell in BuildRules.bridge_end_cells(bridge_cells):
-				_add_floor_cell(floors, bridge_base, cell)
-			for cell in BuildRules.bridge_middle_cells(bridge_cells):
-				_add_floor_cell(floors, bridge_base + BuildRules.BRIDGE_RISE, cell)
+			for cell in cells_of(entry):
+				_add_floor_cell(floors, entry.origin_cell.y, cell)
 	var sight := SightLine.context_from(blockers, floors)
 	var squares: Dictionary = {}
 	for square: Vector3i in sight["squares"]:
@@ -141,6 +138,21 @@ static func step_links(props: Array[InteractableEntry], squares: Dictionary) -> 
 						var upper := Vector3i(square.x + offset.x, base + rise, square.y + offset.y)
 						if squares.has(lower) and squares.has(upper):
 							links.append([lower, upper, "stair"])
+		if BuildRules.is_bridge(mesh):
+			# its middle is the high end of both stairs: it links to a floor one unit up beside it (not to its own squares)
+			var own_squares: Dictionary = {}
+			for cell in cells:
+				own_squares[Vector2i(floori(float(cell.x) / cpt), floori(float(cell.z) / cpt))] = true
+			var middle: Dictionary = {}
+			for cell in BuildRules.bridge_middle_cells(cells):
+				middle[Vector2i(floori(float(cell.x) / cpt), floori(float(cell.z) / cpt))] = true
+			for square: Vector2i in middle:
+				var lower := Vector3i(square.x, base, square.y)
+				for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var side: Vector2i = square + offset
+					var upper := Vector3i(side.x, base + BuildRules.BRIDGE_RISE, side.y)
+					if not own_squares.has(side) and squares.has(lower) and squares.has(upper):
+						links.append([lower, upper, "stair"])
 		var climbs := BuildRules.climb_rises(mesh)
 		if not climbs.is_empty():
 			var own: Dictionary = {}

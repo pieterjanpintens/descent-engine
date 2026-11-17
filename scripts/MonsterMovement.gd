@@ -75,10 +75,11 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 		var mesh := entry.mesh_item_name
 		var base: int = entry.origin_cell.y
 		var cells := MissionSight.cells_of(entry)
-		if mesh == "stair":
+		if mesh == "stair" or BuildRules.is_bridge(mesh):
+			# a stair is walked on, also when it stands on bare ground; a bridge is two stairs placed against each other
 			for cell in cells:
 				var stair_square := _square_of(cell, base)
-				squares[stair_square] = true  # a stair is walked on, also when it stands on bare ground
+				squares[stair_square] = true
 				stairs[stair_square] = true
 		for cell in BuildRules.solid_cells_from_footprint(mesh, cells):
 			solid_fine[Vector3i(cell.x, base, cell.z)] = true
@@ -127,6 +128,8 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 			continue
 		var kind: int = hazard_origins[origin]
 		var hazard_square := _square_of(fine, fine.y)
+		if stairs.has(hazard_square):
+			continue  # on a stair or a bridge over the hazard card a figure is not in it
 		if kind != Hazard.NONE and squares.has(hazard_square) and kind > int(hazard.get(hazard_square, Hazard.NONE)):
 			hazard[hazard_square] = kind
 
@@ -227,6 +230,14 @@ static func is_flying(monster: RuntimeMonster) -> bool:
 
 static func _need(size: int) -> int:
 	return BuildRules.CENTAUR_HEIGHT if size > 1 else BuildRules.FIGURE_HEIGHT
+
+
+## A square as the board knows it: a spawn tile drawn on a bridge's deck (one unit up) becomes the bridge square under it.
+static func settle(board: Dictionary, square: Vector3i) -> Vector3i:
+	var below := square - Vector3i(0, 1, 0)
+	if not board["squares"].has(square) and board["stairs"].has(below):
+		return below
+	return square
 
 
 ## One square: floor, no solid piece, no hero.

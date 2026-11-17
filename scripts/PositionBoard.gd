@@ -127,21 +127,24 @@ static func flat_centre(map: LayeredMap, anchor: Vector3i, size: int) -> Vector3
 	return (low[0] + high[2]) * 0.5
 
 
-## For every square of a painted, revealed stair: the height of the stair mesh's top surface over the middle of the square (a ray straight
-## down through the stair's triangles, highest hit). Shared with the line-of-sight tool.
+## For every square of a painted, revealed stair or bridge (two stairs against each other): the height of the mesh's top surface over the
+## middle of the square (a ray straight down through its triangles, highest hit). Shared with the line-of-sight tool.
 static func stair_tops(map: LayeredMap, mission: MissionData) -> Dictionary:
 	var tops: Dictionary = {}
 	var grid := map.prop_grid
 	if grid.mesh_library == null:
 		return tops
-	var id := map.find_item_id(grid, "stair")
-	if id < 0 or grid.mesh_library.get_item_mesh(id) == null:
-		return tops
-	var faces := grid.mesh_library.get_item_mesh(id).get_faces()
-	var mesh_transform := grid.mesh_library.get_item_mesh_transform(id)
+	var meshes: Dictionary = {}  # item id -> [faces, mesh transform]
+	for mesh_name in ["stair", "bridge"]:
+		var item := map.find_item_id(grid, mesh_name)
+		if item >= 0 and grid.mesh_library.get_item_mesh(item) != null:
+			meshes[item] = [grid.mesh_library.get_item_mesh(item).get_faces(), grid.mesh_library.get_item_mesh_transform(item)]
 	for entry in mission.interactables:
-		if entry.mesh_item_name != "stair" or grid.get_cell_item(entry.origin_cell) != id:
+		var id := grid.get_cell_item(entry.origin_cell)
+		if not (entry.mesh_item_name == "stair" or BuildRules.is_bridge(entry.mesh_item_name)) or not meshes.has(id):
 			continue
+		var faces: PackedVector3Array = meshes[id][0]
+		var mesh_transform: Transform3D = meshes[id][1]
 		if map.held_back.has(entry) or not mission.is_effectively_visible(entry):
 			continue
 		var placed := grid.global_transform * Transform3D(grid.get_cell_item_basis(entry.origin_cell), grid.map_to_local(entry.origin_cell)) * mesh_transform
