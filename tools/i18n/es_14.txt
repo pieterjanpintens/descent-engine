@@ -49,3 +49,9 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 923|Desactivado: movéis los monstruos vosotros mismos, como en el juego original. Activado: antes de cada fase de monstruos mostráis a la app dónde están los héroes (arrastrando sus fichas en el mapa) y la app mueve cada monstruo y os muestra adónde va. Podéis cambiarlo antes de cada misión.
 924|Activado: antes de cada fase de monstruos mostráis a la app dónde están los héroes y la app mueve cada monstruo. Desactivado: movéis los monstruos vosotros mismos, como en el juego original.
 925|La app mueve a los monstruos
+926|%s no puede desplazarse
+927|%s no está junto a %s
+928|%s está ahora junto a %s
+929|%s se desplaza %s: mueve su figura a su ficha
+930|lejos de %s
+931|hacia %s

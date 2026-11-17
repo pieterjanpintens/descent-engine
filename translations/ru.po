@@ -2646,6 +2646,24 @@ msgstr "Вкл.: перед каждой фазой монстров вы пок
 msgid "The app moves the monsters"
 msgstr "Приложение двигает монстров"
 
+msgid "%s cannot shift"
+msgstr "%s не может сместиться"
+
+msgid "%s is not next to %s"
+msgstr "%s не стоит рядом с целью: %s"
+
+msgid "%s is now next to %s"
+msgstr "%s теперь стоит рядом с целью: %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s смещается %s - поставьте его фигурку на его жетон"
+
+msgid "away from %s"
+msgstr "прочь от цели: %s"
+
+msgid "toward %s"
+msgstr "к цели: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

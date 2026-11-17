@@ -65,6 +65,8 @@ var feat_tracker: FeatTracker
 var monster_display: MonsterDisplay
 ## The monster cards on the side of the map view (PlayerHud.monster_sidebar): dropping a hero on one attacks that monster, like in the monster view.
 var monster_sidebar: MonsterSidebar
+## Position tracking: the hero and monster tokens on the map (null otherwise). Dropping a hero on a monster token attacks that monster.
+var position_board: PositionBoard
 
 ## {hero slot index: Array[Weapon]}, set by MissionPlayer after embark.
 var hero_weapons: Dictionary = {}
@@ -423,6 +425,15 @@ func _update_hover_highlight(screen_pos: Vector2) -> void:
 				_hovered_entry = null
 				_rebuild_highlight()
 			return
+	if position_board != null:
+		# a dragged hero over a monster token: that monster is the target
+		var over_token: RuntimeMonster = position_board.monster_at(screen_pos) if _dragging else null
+		position_board.set_target(over_token)
+		if over_token != null:
+			if _hovered_entry != null:
+				_hovered_entry = null
+				_rebuild_highlight()
+			return
 	var entry := _interactable_at(screen_pos, _roster[_drag_dock_position] if _dragging and _drag_dock_position >= 0 else -1)
 	if entry == _hovered_entry:
 		return
@@ -444,6 +455,9 @@ func _end_drag(screen_pos: Vector2) -> void:
 	var hero_name := HeroCatalog.slot_name(hero_slot)
 	var monster_view := _monster_view_active()
 	var card_monster: RuntimeMonster = null if monster_view or monster_sidebar == null else monster_sidebar.monster_at(screen_pos)
+	if card_monster == null and not monster_view and position_board != null:
+		card_monster = position_board.monster_at(screen_pos)  # a monster token on the map
+		position_board.set_target(null)
 	var entry: InteractableEntry = null if monster_view or card_monster != null else _interactable_at(screen_pos, hero_slot)
 	var monster: RuntimeMonster = monster_display.monster_at(screen_pos) if monster_view else card_monster
 	if monster_sidebar != null:

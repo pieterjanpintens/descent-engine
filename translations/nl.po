@@ -2646,6 +2646,24 @@ msgstr "Aan: voor elke monsterfase tonen jullie de app waar de helden staan en d
 msgid "The app moves the monsters"
 msgstr "De app verplaatst de monsters"
 
+msgid "%s cannot shift"
+msgstr "%s kan niet verschuiven"
+
+msgid "%s is not next to %s"
+msgstr "%s staat niet naast %s"
+
+msgid "%s is now next to %s"
+msgstr "%s staat nu naast %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s verschuift %s - zet zijn figuur op zijn fiche"
+
+msgid "away from %s"
+msgstr "weg van %s"
+
+msgid "toward %s"
+msgstr "naar %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

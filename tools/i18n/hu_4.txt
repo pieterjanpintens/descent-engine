@@ -49,3 +49,9 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 923|Ki: a szörnyeket ti mozgatjátok, mint az eredeti játékban. Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a hősök (a jelzőik húzásával a térképen), és az app mozgatja a szörnyeket, és megmutatja, hová mennek. Minden küldetés előtt megváltoztathatjátok.
 924|Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a hősök, és az app mozgatja a szörnyeket. Ki: a szörnyeket ti mozgatjátok, mint az eredeti játékban.
 925|Az app mozgatja a szörnyeket
+926|%s nem tud elmozdulni
+927|%s nincs %s mellett
+928|%s most %s mellett áll
+929|%s elmozdul %s - tegyétek a figuráját a jelzőjére
+930|távolabb tőle: %s
+931|felé: %s

@@ -49,3 +49,9 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 923|Disattivato: muovete voi i mostri, come nel gioco originale. Attivato: prima di ogni fase dei mostri mostrate all'app dove si trovano gli eroi (trascinando i loro segnalini sulla mappa) e l'app muove ogni mostro e vi mostra dove va. Potete cambiarlo prima di ogni missione.
 924|Attivato: prima di ogni fase dei mostri mostrate all'app dove si trovano gli eroi e l'app muove ogni mostro. Disattivato: muovete voi i mostri, come nel gioco originale.
 925|L'app muove i mostri
+926|%s non può spostarsi
+927|%s non è accanto a %s
+928|%s ora è accanto a %s
+929|%s si sposta %s - mettete la sua miniatura sul suo segnalino
+930|lontano da %s
+931|verso %s

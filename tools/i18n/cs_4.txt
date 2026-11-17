@@ -49,3 +49,9 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 923|Vypnuto: příšery posouváte sami, jako v původní hře. Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí hrdinové (přetažením jejich žetonů na mapě), a aplikace posune každou příšeru a ukáže, kam jde. Můžete to změnit před každou misí.
 924|Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí hrdinové, a aplikace posune každou příšeru. Vypnuto: příšery posouváte sami, jako v původní hře.
 925|Aplikace posouvá příšery
+926|%s se nemůže posunout
+927|%s nestojí vedle %s
+928|%s teď stojí vedle %s
+929|%s se posune %s - postavte jeho figurku na jeho žeton
+930|pryč od %s
+931|k %s

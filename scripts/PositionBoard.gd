@@ -19,6 +19,7 @@ const TOKEN_FILL := 0.78  ## part of a square a 1-square token covers
 const LABEL_LIFT := 0.9
 const OK_COLOR := Color(0.3, 0.95, 0.4, 0.55)
 const BAD_COLOR := Color(1.0, 0.3, 0.25, 0.55)
+const TARGET_COLOR := Color(1.0, 0.8, 0.2, 0.6)
 
 const PATH_COLOR := Color(1.0, 0.55, 0.1, 0.9)
 const PATH_LIFT := 0.2
@@ -235,6 +236,35 @@ func _add_token(anchor: Vector3i, size: int, color: Color, label_text: String) -
 	label.outline_modulate = Color(0, 0, 0, 0.9)
 	_tokens.add_child(label)
 	label.global_position = centre_of(anchor, size) + Vector3(0, LABEL_LIFT, 0)
+
+
+# ---------------------------------------------------------------- a hero attacking a token
+
+## The monster whose token is under the mouse (any square of a large base), or null. For dropping a dragged hero portrait on it.
+func monster_at(screen_position: Vector2) -> RuntimeMonster:
+	if not is_visible_in_tree():
+		return null
+	var square: Variant = _square_under(screen_position)
+	if square == null:
+		return null
+	var figure := _figure_on(square)
+	return figure.get("monster") if figure.get("kind", "") == "monster" else null
+
+
+## Lights up the base of `monster` as the target of a dragged hero (null = nothing lit). Uses the drag ghost, which is idle then.
+func set_target(monster: RuntimeMonster) -> void:
+	if monster == null:
+		if _drag.is_empty():
+			_ghost.visible = false
+		return
+	var quad := QuadMesh.new()
+	var width := _square_width() * monster.size
+	quad.size = Vector2(width, width)
+	quad.orientation = PlaneMesh.FACE_Y
+	_ghost.mesh = quad
+	(_ghost.material_override as StandardMaterial3D).albedo_color = TARGET_COLOR
+	_ghost.global_position = centre_of(monster.position, monster.size) + Vector3(0, 0.05, 0)
+	_ghost.visible = true
 
 
 # ---------------------------------------------------------------- dragging

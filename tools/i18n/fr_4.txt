@@ -49,3 +49,9 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 923|Désactivé : vous déplacez vous-mêmes les monstres, comme dans le jeu original. Activé : avant chaque phase des monstres, vous montrez à l'app où se trouvent les héros (en faisant glisser leurs jetons sur la carte) et l'app déplace chaque monstre et vous montre où il va. Vous pouvez le changer avant chaque mission.
 924|Activé : avant chaque phase des monstres, vous montrez à l'app où se trouvent les héros et l'app déplace chaque monstre. Désactivé : vous déplacez vous-mêmes les monstres, comme dans le jeu original.
 925|L'app déplace les monstres
+926|%s ne peut pas se décaler
+927|%s n'est pas à côté de %s
+928|%s est maintenant à côté de %s
+929|%s se décale %s - placez sa figurine sur son jeton
+930|à l'écart de %s
+931|vers %s

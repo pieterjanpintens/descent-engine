@@ -49,3 +49,9 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 923|Wyłączone: sami przesuwacie potwory, jak w oryginalnej grze. Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie stoją bohaterowie (przeciągając ich znaczniki na mapie), a aplikacja przesuwa każdego potwora i pokazuje, dokąd idzie. Można to zmienić przed każdą misją.
 924|Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie stoją bohaterowie, a aplikacja przesuwa każdego potwora. Wyłączone: sami przesuwacie potwory, jak w oryginalnej grze.
 925|Aplikacja przesuwa potwory
+926|%s nie może się przesunąć
+927|%s nie stoi obok: %s
+928|%s stoi teraz obok: %s
+929|%s przesuwa się %s - postawcie jego figurkę na jego znaczniku
+930|od: %s
+931|w stronę: %s

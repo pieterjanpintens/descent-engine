@@ -2646,6 +2646,24 @@ msgstr "Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie s
 msgid "The app moves the monsters"
 msgstr "Aplikacja przesuwa potwory"
 
+msgid "%s cannot shift"
+msgstr "%s nie może się przesunąć"
+
+msgid "%s is not next to %s"
+msgstr "%s nie stoi obok: %s"
+
+msgid "%s is now next to %s"
+msgstr "%s stoi teraz obok: %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s przesuwa się %s - postawcie jego figurkę na jego znaczniku"
+
+msgid "away from %s"
+msgstr "od: %s"
+
+msgid "toward %s"
+msgstr "w stronę: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

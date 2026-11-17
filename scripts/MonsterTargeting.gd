@@ -14,7 +14,7 @@ const _LOWEST := -(1 << 30)
 ## each hero brought), "attacks_made" (slot -> attacks the hero made),
 ## "times_targeted" (slot -> times monsters targeted the hero), "wounds" (slot ->
 ## wound count), and - only when positions are tracked - "distances" (slot -> steps
-## from the monster; the NEAREST rule and the last fallback use it) and "prefer" (slots
+## from the monster; the NEAREST rule uses it) and "prefer" (slots
 ## that win a tie, e.g. heroes standing next to a barricade). `rng` is optional (tests pass a seeded one). Returns the chosen hero
 ## slot, or -1 if the roster is empty. Rules are tried in order and the first one
 ## that finds a hero wins; if none does (e.g. Retaliate before anyone has attacked)
@@ -34,10 +34,9 @@ static func choose_target(monster: RuntimeMonster, roster: Array[int], context: 
 			chosen = picked
 			break
 	if chosen == -1:
-		# nothing decided: the nearest hero when positions are tracked, else a random one
-		chosen = _nearest(roster, rng, context)
-	if chosen == -1:
-		chosen = _random(roster, rng, context.get("prefer", []))
+		# nothing decided: a random hero (when positions are tracked, `roster` is already only the heroes it can attack this
+		# activation, so the attacks spread over the party; a template that should gang up uses the Nearest or Focus rule)
+		chosen = _random(roster, rng)
 	# Shadowstone Bracers: a hero the monster is "less likely to target" - half the time the pick moves to another hero.
 	if monster.shadowed_heroes.has(chosen) and roster.size() > 1:
 		var roll := rng.randf() if rng != null else randf()

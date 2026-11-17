@@ -2646,6 +2646,24 @@ msgstr "Activé : avant chaque phase des monstres, vous montrez à l'app où se 
 msgid "The app moves the monsters"
 msgstr "L'app déplace les monstres"
 
+msgid "%s cannot shift"
+msgstr "%s ne peut pas se décaler"
+
+msgid "%s is not next to %s"
+msgstr "%s n'est pas à côté de %s"
+
+msgid "%s is now next to %s"
+msgstr "%s est maintenant à côté de %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s se décale %s - placez sa figurine sur son jeton"
+
+msgid "away from %s"
+msgstr "à l'écart de %s"
+
+msgid "toward %s"
+msgstr "vers %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

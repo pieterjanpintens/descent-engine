@@ -1,4 +1,10 @@
-﻿## v0.0.78 - 2026-11-17
+﻿## v0.0.79 - 2026-11-17
+- When the app moves the monsters: defense abilities that shift a monster now move it on the map too - the bandit's Smokebomb (2 away from the hero), Shadowstep (3 away), Sound the Alarm, the wolves' shift toward the hero (and whether the wolf now stands next to the hero), and the shifting bosses. The attack result says who moved; move the figures to their tokens.
+- Drag a hero onto a monster's token on the map to attack it.
+- Monsters no longer all go for the nearest hero: without a target rule in their template they pick at random among the heroes they can attack this turn. Give a template the Nearest or Focus rule to make it gang up.
+- Water now follows the game's rule: the extra movement point is paid to move out of a water space.
+
+## v0.0.78 - 2026-11-17
 - New way to play a campaign: **the app moves the monsters**. Switch it on when you start a campaign (setup page, "Monster movement") or before any campaign mission (embark screen). Every hero and monster gets a token on the map; before each monster phase you drag the hero tokens to where the figures stand, and the app works out each monster's turn: it picks its target, shows the way it walks as a dotted orange line with a moving arrow and the square where it stops, and tells you whom it attacks. Monsters walk around holes, take stairs and ladders, avoid spikes, poison and embers unless there is no other way, ranged monsters keep their distance, large monsters need room for their whole base, and a figure next to a fire hits harder while one next to a barricade takes more damage. Confused monsters do their confused action by themselves (retreat, wander, head for a gate, tree or pillar, lash out at another monster...). Off (the default) the game plays as before.
 - Tokens on a stair stand on the step, and clicking a step picks it - also in the line-of-sight tool, whose numbers now sit on the steps.
 - Translations of the newest texts in all languages.

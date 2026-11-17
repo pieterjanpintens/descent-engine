@@ -367,6 +367,7 @@ func _ready() -> void:
 		position_board.runtime = _runtime
 		position_board.blocked_provider = func() -> bool: return los_mode.active or monster_display.visible
 		layered_map.add_child(position_board)
+		interaction_dock.position_board = position_board  # a hero dropped on a monster token attacks it
 
 	# Typed commands ("attack green bandit") - the stand-in for voice control,
 	# see VoiceCommandParser/PlayerCommandRunner.

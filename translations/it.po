@@ -2646,6 +2646,24 @@ msgstr "Attivato: prima di ogni fase dei mostri mostrate all'app dove si trovano
 msgid "The app moves the monsters"
 msgstr "L'app muove i mostri"
 
+msgid "%s cannot shift"
+msgstr "%s non può spostarsi"
+
+msgid "%s is not next to %s"
+msgstr "%s non è accanto a %s"
+
+msgid "%s is now next to %s"
+msgstr "%s ora è accanto a %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s si sposta %s - mettete la sua miniatura sul suo segnalino"
+
+msgid "away from %s"
+msgstr "lontano da %s"
+
+msgid "toward %s"
+msgstr "verso %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d per %d giocatore)"

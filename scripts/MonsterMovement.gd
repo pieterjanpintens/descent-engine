@@ -267,8 +267,9 @@ static func _is_bad(hazard: int) -> bool:
 	return hazard == Hazard.SPIKES or hazard == Hazard.POISON or hazard == Hazard.EMBER
 
 
-static func _enter_cost(board: Dictionary, square: Vector3i) -> int:
-	return WATER_COST if int(board["hazard"].get(square, Hazard.NONE)) == Hazard.WATER else 1
+## What one step out of `from` costs: moving OUT of a water space costs one extra point (the game's rule), everything else 1.
+static func _step_cost(board: Dictionary, from: Vector3i) -> int:
+	return WATER_COST if int(board["hazard"].get(from, Hazard.NONE)) == Hazard.WATER else 1
 
 
 ## A figure on `anchor` touches a hero (also diagonally, at most one level apart).
@@ -301,7 +302,7 @@ static func _square_steps(ctx: Dictionary, from: Vector3i) -> Array:
 				continue
 			if step.x != 0 and step.y != 0 and not _open(ctx, Vector3i(from.x + step.x, from.y, from.z)) and not _open(ctx, Vector3i(from.x, from.y, from.z + step.y)):
 				continue  # not diagonally between two blocked squares
-			steps.append({"to": level, "cost": _enter_cost(board, level)})
+			steps.append({"to": level, "cost": _step_cost(board, from)})
 			continue
 		# no floor at this height there: step off the edge onto the highest floor below
 		var landing := -1
@@ -310,11 +311,11 @@ static func _square_steps(ctx: Dictionary, from: Vector3i) -> Array:
 				landing = height
 		if landing >= 0:
 			var below := Vector3i(level.x, landing, level.z)
-			steps.append({"to": below, "cost": _enter_cost(board, below)})
+			steps.append({"to": below, "cost": _step_cost(board, from)})
 	for link: Dictionary in board["links"].get(from, []):
 		var to: Vector3i = link["to"]
 		if _open(ctx, to):
-			steps.append({"to": to, "cost": maxi(int(link["cost"]), _enter_cost(board, to))})
+			steps.append({"to": to, "cost": maxi(int(link["cost"]), _step_cost(board, from))})
 	return steps
 
 
@@ -494,6 +495,46 @@ static func confused_move(board: Dictionary, monster: RuntimeMonster, position: 
 				index -= 1
 			if index > 0:
 				_fill(result, ctx, route, index, 1)
+	return result
+
+
+## A SHIFT (the game's keyword): an ordinary move of up to `points` movement points (water and ladders cost what they always cost), but
+## never cut short by being next to a hero. It moves as far from (`away`) or as close to the `target` squares as it can, never into
+## spikes, poison or ember and never ending on another figure. Returns {"path", "end"}; end == position when it stays put.
+static func shift(board: Dictionary, position: Vector3i, size: int, points: int, target: Array[Vector3i], away: bool, heroes: Dictionary, others: Array) -> Dictionary:
+	var start_path: Array[Vector3i] = [position]
+	var result := {"path": start_path, "end": position}
+	if points <= 0 or target.is_empty():
+		return result
+	var hero_squares: Dictionary = {}
+	for slot: int in heroes:
+		hero_squares[heroes[slot]] = slot
+	var monster_squares: Dictionary = {}
+	for other: Dictionary in others:
+		for square in block(other["square"], int(other.get("size", 1))):
+			monster_squares[square] = true
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares}
+	var within := _reach(ctx, position, points, false, true)
+	var distance := {}
+	for square in target:
+		var from_here := MissionSight.routes({"squares": board["squares"]}, square)
+		for key: Vector3i in from_here:
+			distance[key] = mini(int(distance.get(key, FAR)), int(from_here[key]))
+	var best := position
+	var best_score: Array = [_steps_to(distance, position, size) * (1 if away else -1), 0]
+	for spot: Vector3i in within:
+		if spot == position or not _can_stop(ctx, spot):
+			continue
+		var score: Array = [_steps_to(distance, spot, size) * (1 if away else -1), -int(within[spot]["cost"])]
+		if _beats(score, best_score):
+			best = spot
+			best_score = score
+	if best != position:
+		var path: Array[Vector3i] = []
+		for step: Dictionary in _route(within, best):
+			path.append(step["pos"])
+		result["path"] = path
+		result["end"] = best
 	return result
 
 

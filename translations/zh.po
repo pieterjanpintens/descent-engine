@@ -2646,6 +2646,24 @@ msgstr "开启：每个怪物阶段之前，你们告诉应用英雄站在哪里
 msgid "The app moves the monsters"
 msgstr "由应用移动怪物"
 
+msgid "%s cannot shift"
+msgstr "%s 无法移位"
+
+msgid "%s is not next to %s"
+msgstr "%s 不在 %s 旁边"
+
+msgid "%s is now next to %s"
+msgstr "%s 现在在 %s 旁边"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s %s移位——请把它的模型移到它的标记处"
+
+msgid "away from %s"
+msgstr "远离 %s"
+
+msgid "toward %s"
+msgstr "朝 %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"

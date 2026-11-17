@@ -49,3 +49,9 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 923|Desligado: vocês movem os monstros, como no jogo original. Ligado: antes de cada fase dos monstros vocês mostram ao app onde estão os heróis (arrastando seus marcadores no mapa) e o app move cada monstro e mostra para onde ele vai. Vocês podem mudar isso antes de cada missão.
 924|Ligado: antes de cada fase dos monstros vocês mostram ao app onde estão os heróis e o app move cada monstro. Desligado: vocês movem os monstros, como no jogo original.
 925|O app move os monstros
+926|%s não pode se deslocar
+927|%s não está ao lado de %s
+928|%s agora está ao lado de %s
+929|%s se desloca %s - coloquem a miniatura dele no marcador dele
+930|para longe de %s
+931|em direção a %s

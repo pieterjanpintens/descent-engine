@@ -750,7 +750,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	else:
 		monsters_changed.emit()  # the M view shows HP
 	if ability_on:
-		defense_lines.append_array(DefenseRules.after_attack(self, monster))
+		defense_lines.append_array(DefenseRules.after_attack(self, monster, hero_slot))
 	result["defense_lines"] = defense_lines
 	return result
 

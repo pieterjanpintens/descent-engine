@@ -2646,6 +2646,24 @@ msgstr "Ligado: antes de cada fase dos monstros vocês mostram ao app onde estã
 msgid "The app moves the monsters"
 msgstr "O app move os monstros"
 
+msgid "%s cannot shift"
+msgstr "%s não pode se deslocar"
+
+msgid "%s is not next to %s"
+msgstr "%s não está ao lado de %s"
+
+msgid "%s is now next to %s"
+msgstr "%s agora está ao lado de %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s se desloca %s - coloquem a miniatura dele no marcador dele"
+
+msgid "away from %s"
+msgstr "para longe de %s"
+
+msgid "toward %s"
+msgstr "em direção a %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jogador)"

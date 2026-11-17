@@ -49,3 +49,9 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 923|Uit: jullie verplaatsen de monsters zelf, zoals in het originele spel. Aan: voor elke monsterfase tonen jullie de app waar de helden staan (sleep hun fiches op de kaart) en de app verplaatst elk monster en toont waar het heen gaat. Je kunt het voor elke missie veranderen.
 924|Aan: voor elke monsterfase tonen jullie de app waar de helden staan en de app verplaatst elk monster. Uit: jullie verplaatsen de monsters zelf, zoals in het originele spel.
 925|De app verplaatst de monsters
+926|%s kan niet verschuiven
+927|%s staat niet naast %s
+928|%s staat nu naast %s
+929|%s verschuift %s - zet zijn figuur op zijn fiche
+930|weg van %s
+931|naar %s

@@ -2646,6 +2646,24 @@ msgstr "Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a 
 msgid "The app moves the monsters"
 msgstr "Az app mozgatja a szörnyeket"
 
+msgid "%s cannot shift"
+msgstr "%s nem tud elmozdulni"
+
+msgid "%s is not next to %s"
+msgstr "%s nincs %s mellett"
+
+msgid "%s is now next to %s"
+msgstr "%s most %s mellett áll"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s elmozdul %s - tegyétek a figuráját a jelzőjére"
+
+msgid "away from %s"
+msgstr "távolabb tőle: %s"
+
+msgid "toward %s"
+msgstr "felé: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

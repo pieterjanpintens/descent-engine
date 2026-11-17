@@ -2646,6 +2646,24 @@ msgstr "Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí h
 msgid "The app moves the monsters"
 msgstr "Aplikace posouvá příšery"
 
+msgid "%s cannot shift"
+msgstr "%s se nemůže posunout"
+
+msgid "%s is not next to %s"
+msgstr "%s nestojí vedle %s"
+
+msgid "%s is now next to %s"
+msgstr "%s teď stojí vedle %s"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s se posune %s - postavte jeho figurku na jeho žeton"
+
+msgid "away from %s"
+msgstr "pryč od %s"
+
+msgid "toward %s"
+msgstr "k %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

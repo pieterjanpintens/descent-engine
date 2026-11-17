@@ -49,3 +49,9 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 923|Aus: Ihr bewegt die Monster selbst, wie im Originalspiel. An: Vor jeder Monsterphase zeigt ihr der App, wo die Helden stehen (zieht ihre Marker auf der Karte), und die App bewegt jedes Monster und zeigt euch, wohin es geht. Ihr könnt es vor jeder Mission ändern.
 924|An: Vor jeder Monsterphase zeigt ihr der App, wo die Helden stehen, und die App bewegt jedes Monster. Aus: Ihr bewegt die Monster selbst, wie im Originalspiel.
 925|Die App bewegt die Monster
+926|%s kann sich nicht verschieben
+927|%s steht nicht neben %s
+928|%s steht jetzt neben %s
+929|%s verschiebt sich %s - stellt seine Figur auf seinen Marker
+930|weg von %s
+931|auf %s zu

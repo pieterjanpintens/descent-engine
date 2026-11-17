@@ -22,9 +22,24 @@ extends RefCounted
 ##   once                effects that happen ONCE, the first time the monster is attacked (RuntimeMonster.defense_ability_fired):
 ##                       defense_permanent N, random_enemy / random_other (who), include_self, damage N (adds to that enemy's
 ##                       next activation), heal_pct N, afflict
+##   shift               POSITION TRACKING only: figures that shift after the attack, in order - Array of {who: "self" | "nearest_other"
+##                       (the other monster nearest to this one) | "farthest_other", to: "away" (from the attacking hero) | "toward"
+##                       (the hero) | "toward_self" (this monster) | "away_if_adjacent" (away when next to the hero, else toward), n}.
+##                       A shift = a move of n points that being next to a hero does not cut short (MonsterMovement.shift()).
+##   adjacent_note       POSITION TRACKING only: after the shifts, say whether it now stands next to the attacking hero (the ability's
+##                       text tells the table what that means)
 
 const RULES := {
-	"ENEMY_DEFEND_BANDIT_SHADOWALK": {"defense_after": 1},
+	"ENEMY_DEFEND_BANDIT": {"shift": [{"who": "self", "to": "away", "n": 2}]},
+	"ENEMY_DEFEND_BANDIT_BARONIAL": {"shift": [{"who": "self", "to": "away", "n": 1}, {"who": "nearest_other", "to": "toward", "n": 2}]},
+	"ENEMY_DEFEND_BANDIT_SHADOWALK": {"defense_after": 1, "shift": [{"who": "self", "to": "away", "n": 3}]},
+	"ENEMY_DEFEND_BOSS_HOARY_FOX": {"retaliate": true, "shift": [{"who": "self", "to": "away_if_adjacent", "n": 1}]},
+	"ENEMY_DEFEND_BOSS_NAZGESH": {"shift": [{"who": "farthest_other", "to": "toward_self", "n": 2}]},
+	"ENEMY_DEFEND_BOSS_XAIN": {"shift": [{"who": "self", "to": "away", "n": 1}, {"who": "nearest_other", "to": "toward", "n": 1}]},
+	"ENEMY_DEFEND_WOLF": {"shift": [{"who": "self", "to": "toward", "n": 1}], "adjacent_note": true},
+	"ENEMY_DEFEND_WOLF_BARONIAL": {"shift": [{"who": "self", "to": "toward", "n": 1}], "adjacent_note": true},
+	"ENEMY_DEFEND_WOLF_ELDERBONE": {"shift": [{"who": "self", "to": "toward", "n": 1}], "adjacent_note": true},
+	"ENEMY_DEFEND_WOLF_RED_EYED": {"shift": [{"who": "self", "to": "toward", "n": 1}], "adjacent_note": true},
 	"ENEMY_DEFEND_GOLEM": {"immune": ["AFFLICTED"], "defense_after": 1},
 	"ENEMY_DEFEND_GOLEM_BARONIAL": {"immune": ["AFFLICTED"], "defense_after": 1, "defense_other": 1},
 	"ENEMY_DEFEND_GOLEM_RUNEBOUND": {"immune_all": true, "defense_after": 1},
@@ -111,10 +126,12 @@ static func blocks_damage(monster: RuntimeMonster, attack_types: Array[int]) -> 
 
 ## What happens right AFTER an attack on `monster` (it may already be defeated and out of `runtime.monsters`). Returns
 ## the lines for the outcome, e.g. "Resilience: defense +1 until the end of the round".
-static func after_attack(runtime: MissionRuntime, monster: RuntimeMonster) -> Array[String]:
+static func after_attack(runtime: MissionRuntime, monster: RuntimeMonster, hero_slot: int = -1) -> Array[String]:
 	var lines: Array[String] = []
 	var alive := runtime.monsters.has(monster)
 	for rule in rules_of(monster):
+		if alive and rule.has("shift"):
+			lines.append_array(_shifts(runtime, monster, hero_slot, rule))
 		if alive:
 			if rule.has("defense_after"):
 				monster.defense_round_bonus += int(rule["defense_after"])
@@ -173,6 +190,91 @@ static func _once(runtime: MissionRuntime, monster: RuntimeMonster, once: Dictio
 			parts.append(TranslationServer.translate("adds %d damage to its next activation") % int(once["damage"]))
 		lines.append("%s %s" % [target.display_name(), ", ".join(parts)])
 	return lines
+
+
+## Position tracking: the figures a defense ability shifts after an attack by hero `hero_slot`. Nothing happens (the text stays for the table)
+## when positions are not tracked or the hero / monster is not on the board.
+static func _shifts(runtime: MissionRuntime, monster: RuntimeMonster, hero_slot: int, rule: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	if not runtime.track_positions or not monster.placed or not runtime.hero_positions.has(hero_slot):
+		return lines
+	var hero_square: Vector3i = runtime.hero_positions[hero_slot]
+	var hero_target: Array[Vector3i] = [hero_square]
+	var hero_name := HeroCatalog.slot_name(hero_slot)
+	for step: Dictionary in rule["shift"]:
+		var board := MonsterMovement.build_board(runtime.mission)
+		var mover: RuntimeMonster = monster
+		match str(step["who"]):
+			"nearest_other", "farthest_other":
+				mover = _other_by_distance(runtime, monster, board, str(step["who"]) == "farthest_other")
+		if mover == null or not mover.placed:
+			continue
+		var target: Array[Vector3i] = hero_target
+		var away := false
+		match str(step["to"]):
+			"away":
+				away = true
+			"toward_self":
+				target = MonsterMovement.block(monster.position, monster.size)
+			"away_if_adjacent":
+				away = _adjacent(mover, hero_square)
+		var others: Array = []
+		for other in runtime.monsters:
+			if other != mover and other.placed:
+				others.append({"square": other.position, "size": other.size})
+		var moved := MonsterMovement.shift(board, mover.position, mover.size, int(step["n"]), target, away, runtime.hero_positions, others)
+		var end: Vector3i = moved["end"]
+		if end == mover.position:
+			lines.append(TranslationServer.translate("%s cannot shift") % mover.display_name())
+			continue
+		runtime.set_monster_position(mover, end)
+		var where := ""
+		if away:
+			where = TranslationServer.translate("away from %s") % hero_name
+		elif str(step["to"]) == "toward_self":
+			where = TranslationServer.translate("toward %s") % monster.display_name()
+		else:
+			where = TranslationServer.translate("toward %s") % hero_name
+		lines.append(TranslationServer.translate("%s shifts %s - move its figure to its token") % [mover.display_name(), where])
+	if rule.get("adjacent_note", false):
+		if _adjacent(monster, hero_square):
+			lines.append(TranslationServer.translate("%s is now next to %s") % [monster.display_name(), hero_name])
+		else:
+			lines.append(TranslationServer.translate("%s is not next to %s") % [monster.display_name(), hero_name])
+	return lines
+
+
+## Whether `monster` touches `square` (also diagonally, at most one level apart).
+static func _adjacent(monster: RuntimeMonster, square: Vector3i) -> bool:
+	for own in MonsterMovement.block(monster.position, monster.size):
+		if absi(own.x - square.x) <= 1 and absi(own.z - square.z) <= 1 and absi(own.y - square.y) <= 1:
+			return true
+	return false
+
+
+## The placed other monster nearest to (or farthest from) `monster`, walking over the floor.
+static func _other_by_distance(runtime: MissionRuntime, monster: RuntimeMonster, board: Dictionary, farthest: bool) -> RuntimeMonster:
+	var others: Array = []
+	for other in runtime.monsters:
+		if other != monster and other.placed:
+			others.append(other)
+	if others.is_empty():
+		return null
+	if not farthest:
+		return MonsterMovement.nearest_monster(board, monster.position, monster.size, others)
+	var distance := {}
+	for square in MonsterMovement.block(monster.position, monster.size):
+		var from_here := MissionSight.routes({"squares": board["squares"]}, square)
+		for key: Vector3i in from_here:
+			distance[key] = mini(int(distance.get(key, MonsterMovement.FAR)), int(from_here[key]))
+	var chosen: RuntimeMonster = null
+	var most := -1
+	for other: RuntimeMonster in others:
+		var steps := MonsterMovement._steps_to(distance, other.position, other.size)
+		if steps > most:
+			most = steps
+			chosen = other
+	return chosen
 
 
 static func _others(runtime: MissionRuntime, monster: RuntimeMonster) -> Array[RuntimeMonster]:

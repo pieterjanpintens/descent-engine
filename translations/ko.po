@@ -2646,6 +2646,24 @@ msgstr "켜기: 매 몬스터 단계 전에 영웅들이 어디에 있는지 앱
 msgid "The app moves the monsters"
 msgstr "앱이 몬스터를 움직임"
 
+msgid "%s cannot shift"
+msgstr "%s은(는) 이동할 수 없습니다"
+
+msgid "%s is not next to %s"
+msgstr "%s은(는) %s 옆에 있지 않습니다"
+
+msgid "%s is now next to %s"
+msgstr "%s은(는) 이제 %s 옆에 있습니다"
+
+msgid "%s shifts %s - move its figure to its token"
+msgstr "%s이(가) %s 이동합니다 - 피규어를 토큰 위치로 옮기세요"
+
+msgid "away from %s"
+msgstr "%s에게서 멀어지게"
+
+msgid "toward %s"
+msgstr "%s 쪽으로"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"
