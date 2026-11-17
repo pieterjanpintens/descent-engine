@@ -1,0 +1,47 @@
+876|Zvýrazněná pole: %d.
+877|%s útočí na %s (zranění %d).
+878|%s útočí na %s!
+879|%s útočí na %s!%s\nZranění %d - %s
+880|%s je zmatený!\n%s
+881|%s je poražen! Odstraňte ho z desky.
+882|%s se pohne a útočí na %s!
+883|%s se pohybuje k %s (v tomto kole nemůže útočit).
+884|%s se pohybuje k %s.
+885|%s zůstává, kde je.
+886|%s šlápne na hroty: %d zranění.
+887|%s utrpí %d zranění.
+888|%s prochází žhavými uhlíky: %s.
+889|%s prochází jedem: Oslabený.
+890|\n(+%d: oheň / barikáda)
+891|\nZranění %d - %s
+892|\nPosuňte figurku podél oranžové čáry na označené pole.
+893|\nCestou:
+894|Hrdina je zraněn
+895|Příšera je poražena
+896|Již brzy
+897|Nepodařilo se přesunout (zůstávají u staré verze): %s
+898|Ladění: tuto příšeru ihned porazit (bez hodu, bez efektů zbraně)
+899|Porazit (ladění)
+900|uhlíky (Odsouzený, Sužovaný)
+901|Oheň / barikáda: +%d zranění
+902|Udeří na %s: %d zranění.
+903|Posuňte figurku podél oranžové čáry na označené pole.
+904|Přesunuto do nové verze: %s
+905|Postavte svou figurku na jedno ze zvýrazněných polí.
+906|Postavte figurky svých hrdinů do zvýrazněné oblasti, na pole jejich žetonů. Přetažením žetonu ho přesunete, pak potvrďte.
+907|Rozmístění
+908|jed (Oslabený)
+909|Uložené hry
+910|Poslat zpětnou vazbu
+911|Poslat zpětnou vazbu…
+912|BRZY
+913|hroty (%d zranění)
+914|kampaň se nepodařilo otevřít
+915|aktualizovanou kopii se nepodařilo uložit
+916|Tato kapitola ještě není hotová. Nová verze kampaně ji zpřístupní - váš postup zůstane zachován.
+917|Pokračování příště
+918|Pokračování příště…
+919|Kde jsou hrdinové? Přetáhněte žeton každého hrdiny na pole, kde stojí jeho figurka, a pak potvrďte.
+920|Váš postup je uložen. Až vyjde nová verze této kampaně, nainstalujte ji a aktualizujte svou uloženou hru.
+921|{hero}: postavte svou figurku na jedno ze zvýrazněných polí.
+P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní do nové verze? (Vytvoří se kopie; originál zůstane beze změny.)|Máte %d uložené hry ze starších verzí této kampaně. Přesunout je nyní do nové verze? (Vytvoří se kopie; originály zůstanou beze změny.)|Máte %d uložených her ze starších verzí této kampaně. Přesunout je nyní do nové verze? (Vytvoří se kopie; originály zůstanou beze změny.)

@@ -2496,6 +2496,144 @@ msgstr "Úspěchy nahoře se plní. Když je jeden dokončen, další odemčený
 msgid "The feat order cannot be changed in this campaign."
 msgstr "Pořadí úspěchů nelze v této kampani měnit."
 
+msgid "%d square(s) highlighted."
+msgstr "Zvýrazněná pole: %d."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s útočí na %s (zranění %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s útočí na %s!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s útočí na %s!%s\nZranění %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s je zmatený!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s je poražen! Odstraňte ho z desky."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s se pohne a útočí na %s!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s se pohybuje k %s (v tomto kole nemůže útočit)."
+
+msgid "%s moves towards %s."
+msgstr "%s se pohybuje k %s."
+
+msgid "%s stays where it is."
+msgstr "%s zůstává, kde je."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s šlápne na hroty: %d zranění."
+
+msgid "%s takes %d damage."
+msgstr "%s utrpí %d zranění."
+
+msgid "%s walks through embers: %s."
+msgstr "%s prochází žhavými uhlíky: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s prochází jedem: Oslabený."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: oheň / barikáda)"
+
+msgid "\nDamage %d - %s"
+msgstr "\nZranění %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\nPosuňte figurku podél oranžové čáry na označené pole."
+
+msgid "\nOn the way: "
+msgstr "\nCestou: "
+
+msgid "A hero is wounded"
+msgstr "Hrdina je zraněn"
+
+msgid "A monster is defeated"
+msgstr "Příšera je poražena"
+
+msgid "Coming soon"
+msgstr "Již brzy"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "Nepodařilo se přesunout (zůstávají u staré verze): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "Ladění: tuto příšeru ihned porazit (bez hodu, bez efektů zbraně)"
+
+msgid "Defeat (debug)"
+msgstr "Porazit (ladění)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "uhlíky (Odsouzený, Sužovaný)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "Oheň / barikáda: +%d zranění"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "Udeří na %s: %d zranění."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "Posuňte figurku podél oranžové čáry na označené pole."
+
+msgid "Moved to the new version: %s"
+msgstr "Přesunuto do nové verze: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "Postavte svou figurku na jedno ze zvýrazněných polí."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "Postavte figurky svých hrdinů do zvýrazněné oblasti, na pole jejich žetonů. Přetažením žetonu ho přesunete, pak potvrďte."
+
+msgid "Placement"
+msgstr "Rozmístění"
+
+msgid "poison (Enfeebled)"
+msgstr "jed (Oslabený)"
+
+msgid "Save games"
+msgstr "Uložené hry"
+
+msgid "Send feedback"
+msgstr "Poslat zpětnou vazbu"
+
+msgid "Send feedback…"
+msgstr "Poslat zpětnou vazbu…"
+
+msgid "SOON"
+msgstr "BRZY"
+
+msgid "spikes (%d damage)"
+msgstr "hroty (%d zranění)"
+
+msgid "the campaign could not be opened"
+msgstr "kampaň se nepodařilo otevřít"
+
+msgid "the updated copy could not be saved"
+msgstr "aktualizovanou kopii se nepodařilo uložit"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "Tato kapitola ještě není hotová. Nová verze kampaně ji zpřístupní - váš postup zůstane zachován."
+
+msgid "To be continued"
+msgstr "Pokračování příště"
+
+msgid "To be continued…"
+msgstr "Pokračování příště…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "Kde jsou hrdinové? Přetáhněte žeton každého hrdiny na pole, kde stojí jeho figurka, a pak potvrďte."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "Váš postup je uložen. Až vyjde nová verze této kampaně, nainstalujte ji a aktualizujte svou uloženou hru."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: postavte svou figurku na jedno ze zvýrazněných polí."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"
@@ -2525,3 +2663,9 @@ msgid_plural "New side quests: %s"
 msgstr[0] "Nová vedlejší úloha: %s"
 msgstr[1] "Nové vedlejší úlohy: %s"
 msgstr[2] "Nových vedlejších úloh: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní do nové verze? (Vytvoří se kopie; originál zůstane beze změny.)"
+msgstr[1] "Máte %d uložené hry ze starších verzí této kampaně. Přesunout je nyní do nové verze? (Vytvoří se kopie; originály zůstanou beze změny.)"
+msgstr[2] "Máte %d uložených her ze starších verzí této kampaně. Přesunout je nyní do nové verze? (Vytvoří se kopie; originály zůstanou beze změny.)"

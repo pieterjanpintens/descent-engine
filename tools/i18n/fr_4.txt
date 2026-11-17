@@ -1,0 +1,47 @@
+876|%d case(s) mise(s) en évidence.
+877|%s attaque %s (dégâts %d).
+878|%s attaque %s !
+879|%s attaque %s !%s\nDégâts %d - %s
+880|%s est confus !\n%s
+881|%s est vaincu ! Retirez-le du plateau.
+882|%s se déplace et attaque %s !
+883|%s se déplace vers %s (il ne peut pas attaquer ce round).
+884|%s se déplace vers %s.
+885|%s reste où il est.
+886|%s marche sur des pointes : %d dégâts.
+887|%s subit %d dégâts.
+888|%s traverse les braises : %s.
+889|%s traverse le poison : Affaibli.
+890|\n(+%d : feu / barricade)
+891|\nDégâts %d - %s
+892|\nDéplacez la figurine le long de la ligne orange jusqu'à la case marquée.
+893|\nEn chemin :
+894|Un héros est blessé
+895|Un monstre est vaincu
+896|Bientôt
+897|N'ont pas pu être transférées (elles restent sur l'ancienne version) : %s
+898|Débogage : vaincre ce monstre tout de suite (sans jet ni effets d'arme)
+899|Vaincre (débogage)
+900|braises (Damné, Accablé)
+901|Feu / barricade : +%d dégâts
+902|Il frappe %s : %d dégâts.
+903|Déplacez la figurine le long de la ligne orange jusqu'à la case marquée.
+904|Transférée vers la nouvelle version : %s
+905|Placez votre figurine sur l'une des cases mises en évidence.
+906|Placez les figurines de vos héros dans la zone mise en évidence, sur les cases de leurs jetons. Faites glisser un jeton pour le déplacer, puis confirmez.
+907|Placement
+908|poison (Affaibli)
+909|Sauvegardes
+910|Envoyer un commentaire
+911|Envoyer un commentaire…
+912|BIENTÔT
+913|pointes (%d dégâts)
+914|la campagne n'a pas pu être ouverte
+915|la copie mise à jour n'a pas pu être enregistrée
+916|Ce chapitre n'est pas encore prêt. Une nouvelle version de la campagne le rendra jouable - votre progression est conservée.
+917|À suivre
+918|À suivre…
+919|Où sont les héros ? Faites glisser le jeton de chaque héros sur la case où se trouve sa figurine, puis confirmez.
+920|Votre progression est enregistrée. Quand une nouvelle version de cette campagne sortira, installez-la et mettez à jour votre sauvegarde.
+921|{hero} : placez votre figurine sur l'une des cases mises en évidence.
+P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transférer maintenant vers la nouvelle version ? (Une copie est créée ; l'original reste tel quel.)|Vous avez %d sauvegardes d'anciennes versions de cette campagne. Les transférer maintenant vers la nouvelle version ? (Des copies sont créées ; les originaux restent tels quels.)

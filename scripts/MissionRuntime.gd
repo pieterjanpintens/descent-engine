@@ -939,6 +939,9 @@ func pick_confused_action(monster: RuntimeMonster) -> MonsterAction:
 	var possible: Array[MonsterAction] = []
 	var total_weight := 0
 	for action in pool:
+		# tracking positions: the app moves the monster itself, so an author's own (free-text) action is left out
+		if track_positions and action.builtin_kind() == "":
+			continue
 		if is_action_possible(action):
 			possible.append(action)
 			total_weight += maxi(action.weight, 1)
@@ -2023,3 +2026,52 @@ func load_hero_positions(state: Dictionary) -> void:
 		var spot: Array = state[slot]
 		if spot.size() == 3:
 			hero_positions[int(slot)] = Vector3i(int(spot[0]), int(spot[1]), int(spot[2]))
+
+
+## The heroes of `roster` that stand on the board: {slot: square}.
+func placed_heroes(roster: Array[int]) -> Dictionary:
+	var placed: Dictionary = {}
+	for slot in roster:
+		if hero_positions.has(slot):
+			placed[slot] = hero_positions[slot]
+	return placed
+
+
+## What `monster` does in its activation (MonsterMovement.plan()) on `board`, against the placed heroes of `roster`. Changes nothing;
+## record_targeted() when the activation is carried out.
+func plan_activation(monster: RuntimeMonster, board: Dictionary, roster: Array[int], hero_weapons: Dictionary, rng: RandomNumberGenerator = null) -> Dictionary:
+	var others: Array = []
+	for other in monsters:
+		if other != monster and other.placed:
+			others.append({"square": other.position, "size": other.size})
+	return MonsterMovement.plan(board, monster, monster.position, monster.size, placed_heroes(roster), others, targeting_context(hero_weapons), rng)
+
+
+## The context MonsterTargeting.choose_target() reads.
+func targeting_context(hero_weapons: Dictionary) -> Dictionary:
+	return {"weapons": hero_weapons, "attacks_made": hero_attacks_made, "times_targeted": hero_times_targeted, "wounds": hero_wounds}
+
+
+## Counts a hero as targeted (the Focus / Spread target rules read it).
+func record_targeted(slot: int) -> void:
+	if slot >= 0:
+		hero_times_targeted[slot] = int(hero_times_targeted.get(slot, 0)) + 1
+
+
+## A monster walks into a hazard (MonsterMovement.Hazard): spikes = SPIKE_DAMAGE damage, poison = Enfeebled, ember = Doomed and Afflicted.
+## Returns {"text": what happened (empty for water), "defeated": bool}.
+func apply_hazard(monster: RuntimeMonster, hazard: int) -> Dictionary:
+	match hazard:
+		MonsterMovement.Hazard.SPIKES:
+			var hit := damage_monster(monster, MonsterMovement.SPIKE_DAMAGE)
+			return {"text": tr("%s steps on spikes: %d damage.") % [monster.display_name(), MonsterMovement.SPIKE_DAMAGE], "defeated": hit["defeated"]}
+		MonsterMovement.Hazard.POISON:
+			var got := add_condition(monster, MonsterCondition.Kind.ENFEEBLED)
+			return {"text": tr("%s walks through poison: Enfeebled.") % monster.display_name() if got else "", "defeated": false}
+		MonsterMovement.Hazard.EMBER:
+			var names: Array[String] = []
+			for kind in [MonsterCondition.Kind.DOOMED, MonsterCondition.Kind.AFFLICTED]:
+				if add_condition(monster, kind):
+					names.append(MonsterCondition.display_name(kind))
+			return {"text": tr("%s walks through embers: %s.") % [monster.display_name(), ", ".join(names)] if not names.is_empty() else "", "defeated": false}
+	return {"text": "", "defeated": false}

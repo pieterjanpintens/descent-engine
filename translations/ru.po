@@ -2496,6 +2496,144 @@ msgstr "Достижения вверху выполняются сейчас. �
 msgid "The feat order cannot be changed in this campaign."
 msgstr "Порядок достижений нельзя менять в этой кампании."
 
+msgid "%d square(s) highlighted."
+msgstr "Подсвечено клеток: %d."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s атакует: %s (урон %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s атакует: %s!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s атакует: %s!%s\nУрон %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s в замешательстве!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s побеждён! Уберите его с поля."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s передвигается и атакует: %s!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s движется к цели: %s (в этом раунде не может атаковать)."
+
+msgid "%s moves towards %s."
+msgstr "%s движется к цели: %s."
+
+msgid "%s stays where it is."
+msgstr "%s остаётся на месте."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s наступает на шипы: урон %d."
+
+msgid "%s takes %d damage."
+msgstr "%s получает урон %d."
+
+msgid "%s walks through embers: %s."
+msgstr "%s проходит через угли: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s проходит через яд: Ослаблен."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: огонь / баррикада)"
+
+msgid "\nDamage %d - %s"
+msgstr "\nУрон %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\nПередвиньте фигурку вдоль оранжевой линии на отмеченную клетку."
+
+msgid "\nOn the way: "
+msgstr "\nПо пути: "
+
+msgid "A hero is wounded"
+msgstr "Герой ранен"
+
+msgid "A monster is defeated"
+msgstr "Монстр побеждён"
+
+msgid "Coming soon"
+msgstr "Скоро"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "Не удалось перенести (остаются на старой версии): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "Отладка: сразу победить этого монстра (без броска и эффектов оружия)"
+
+msgid "Defeat (debug)"
+msgstr "Победить (отладка)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "угли (Обречён, Сокрушён)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "Огонь / баррикада: +%d урона"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "Он бьёт цель: %s, урон %d."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "Передвиньте фигурку вдоль оранжевой линии на отмеченную клетку."
+
+msgid "Moved to the new version: %s"
+msgstr "Перенесено на новую версию: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "Поставьте свою фигурку на одну из подсвеченных клеток."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "Поставьте фигурки героев в подсвеченную область, на клетки их жетонов. Перетащите жетон, чтобы передвинуть его, затем подтвердите."
+
+msgid "Placement"
+msgstr "Расстановка"
+
+msgid "poison (Enfeebled)"
+msgstr "яд (Ослаблен)"
+
+msgid "Save games"
+msgstr "Сохранения"
+
+msgid "Send feedback"
+msgstr "Отправить отзыв"
+
+msgid "Send feedback…"
+msgstr "Отправить отзыв…"
+
+msgid "SOON"
+msgstr "СКОРО"
+
+msgid "spikes (%d damage)"
+msgstr "шипы (урон %d)"
+
+msgid "the campaign could not be opened"
+msgstr "не удалось открыть кампанию"
+
+msgid "the updated copy could not be saved"
+msgstr "не удалось сохранить обновлённую копию"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "Эта глава ещё не готова. Новая версия кампании сделает её доступной - ваш прогресс сохранится."
+
+msgid "To be continued"
+msgstr "Продолжение следует"
+
+msgid "To be continued…"
+msgstr "Продолжение следует…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "Где герои? Перетащите жетон каждого героя на клетку, где стоит его фигурка, затем подтвердите."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "Ваш прогресс сохранён. Когда выйдет новая версия этой кампании, установите её и обновите своё сохранение."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: поставьте свою фигурку на одну из подсвеченных клеток."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"
@@ -2525,3 +2663,9 @@ msgid_plural "New side quests: %s"
 msgstr[0] "Новый побочный сценарий: %s"
 msgstr[1] "Новых побочных сценария: %s"
 msgstr[2] "Новых побочных сценариев: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "У вас %d сохранение из старой версии этой кампании. Перенести его на новую версию сейчас? (Создаётся копия; оригинал остаётся без изменений.)"
+msgstr[1] "У вас %d сохранения из старых версий этой кампании. Перенести их на новую версию сейчас? (Создаются копии; оригиналы остаются без изменений.)"
+msgstr[2] "У вас %d сохранений из старых версий этой кампании. Перенести их на новую версию сейчас? (Создаются копии; оригиналы остаются без изменений.)"

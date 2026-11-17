@@ -2496,6 +2496,144 @@ msgstr "Osiągnięcia na górze są w toku. Gdy jedno zostanie ukończone, nast�
 msgid "The feat order cannot be changed in this campaign."
 msgstr "Kolejności osiągnięć nie można zmienić w tej kampanii."
 
+msgid "%d square(s) highlighted."
+msgstr "Podświetlone pola: %d."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s atakuje: %s (obrażenia %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s atakuje: %s!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s atakuje: %s!%s\nObrażenia %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s jest zdezorientowany!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s został pokonany! Zdejmij go z planszy."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s rusza się i atakuje: %s!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s rusza w stronę: %s (w tej rundzie nie może zaatakować)."
+
+msgid "%s moves towards %s."
+msgstr "%s rusza w stronę: %s."
+
+msgid "%s stays where it is."
+msgstr "%s zostaje na miejscu."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s wchodzi na kolce: %d obrażeń."
+
+msgid "%s takes %d damage."
+msgstr "%s otrzymuje %d obrażeń."
+
+msgid "%s walks through embers: %s."
+msgstr "%s przechodzi przez żar: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s przechodzi przez truciznę: Wycieńczenie."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: ogień / barykada)"
+
+msgid "\nDamage %d - %s"
+msgstr "\nObrażenia %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\nPrzesuń figurkę wzdłuż pomarańczowej linii na zaznaczone pole."
+
+msgid "\nOn the way: "
+msgstr "\nPo drodze: "
+
+msgid "A hero is wounded"
+msgstr "Bohater zostaje zraniony"
+
+msgid "A monster is defeated"
+msgstr "Potwór zostaje pokonany"
+
+msgid "Coming soon"
+msgstr "Wkrótce"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "Nie udało się przenieść (zostają przy starej wersji): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "Debug: pokonaj tego potwora od razu (bez rzutu, bez efektów broni)"
+
+msgid "Defeat (debug)"
+msgstr "Pokonaj (debug)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "żar (Zguba, Cierpienie)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "Ogień / barykada: +%d obrażeń"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "Uderza w: %s, %d obrażeń."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "Przesuń figurkę wzdłuż pomarańczowej linii na zaznaczone pole."
+
+msgid "Moved to the new version: %s"
+msgstr "Przeniesiono do nowej wersji: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "Postaw swoją figurkę na jednym z podświetlonych pól."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "Postawcie figurki bohaterów w podświetlonym obszarze, na polach ich znaczników. Przeciągnijcie znacznik, aby go przesunąć, a potem potwierdźcie."
+
+msgid "Placement"
+msgstr "Rozstawienie"
+
+msgid "poison (Enfeebled)"
+msgstr "trucizna (Wycieńczenie)"
+
+msgid "Save games"
+msgstr "Zapisane gry"
+
+msgid "Send feedback"
+msgstr "Wyślij opinię"
+
+msgid "Send feedback…"
+msgstr "Wyślij opinię…"
+
+msgid "SOON"
+msgstr "WKRÓTCE"
+
+msgid "spikes (%d damage)"
+msgstr "kolce (%d obrażeń)"
+
+msgid "the campaign could not be opened"
+msgstr "nie udało się otworzyć kampanii"
+
+msgid "the updated copy could not be saved"
+msgstr "nie udało się zapisać zaktualizowanej kopii"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "Ten rozdział nie jest jeszcze gotowy. Nowa wersja kampanii pozwoli go rozegrać - wasz postęp zostaje zachowany."
+
+msgid "To be continued"
+msgstr "Ciąg dalszy nastąpi"
+
+msgid "To be continued…"
+msgstr "Ciąg dalszy nastąpi…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "Gdzie są bohaterowie? Przeciągnijcie znacznik każdego bohatera na pole, na którym stoi jego figurka, a potem potwierdźcie."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "Wasz postęp jest zapisany. Gdy ukaże się nowa wersja tej kampanii, zainstalujcie ją i zaktualizujcie zapis gry."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: postaw swoją figurkę na jednym z podświetlonych pól."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"
@@ -2525,3 +2663,9 @@ msgid_plural "New side quests: %s"
 msgstr[0] "Nowa misja poboczna: %s"
 msgstr[1] "Nowe misje poboczne: %s"
 msgstr[2] "Nowych misji pobocznych: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do nowej wersji? (Zostanie zrobiona kopia; oryginał pozostaje bez zmian.)"
+msgstr[1] "Masz %d zapisy gry ze starszych wersji tej kampanii. Przenieść je teraz do nowej wersji? (Zostaną zrobione kopie; oryginały pozostają bez zmian.)"
+msgstr[2] "Masz %d zapisów gry ze starszych wersji tej kampanii. Przenieść je teraz do nowej wersji? (Zostaną zrobione kopie; oryginały pozostają bez zmian.)"

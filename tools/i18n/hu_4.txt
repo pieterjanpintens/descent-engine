@@ -1,0 +1,47 @@
+876|Kiemelt mezők: %d.
+877|%s támad: %s (sebzés %d).
+878|%s támad: %s!
+879|%s támad: %s!%s\nSebzés %d - %s
+880|%s össze van zavarodva!\n%s
+881|%s legyőzve! Vedd le a tábláról.
+882|%s mozog és támad: %s!
+883|%s elindul felé: %s (ebben a körben nem tud támadni).
+884|%s elindul felé: %s.
+885|%s marad, ahol van.
+886|%s tüskékre lép: %d sebzés.
+887|%s %d sebzést szenved.
+888|%s átgázol a parázson: %s.
+889|%s átgázol a méregen: Legyengült.
+890|\n(+%d: tűz / barikád)
+891|\nSebzés %d - %s
+892|\nVidd a figurát a narancssárga vonal mentén a megjelölt mezőre.
+893|\nÚtközben:
+894|Egy hős megsebesül
+895|Egy szörny legyőzve
+896|Hamarosan
+897|Nem sikerült áthelyezni (a régi verzión maradnak): %s
+898|Hibakeresés: a szörny azonnali legyőzése (dobás és fegyverhatások nélkül)
+899|Legyőzés (hibakeresés)
+900|parázs (Kárhozott, Gyötört)
+901|Tűz / barikád: +%d sebzés
+902|Lecsap rá: %s, %d sebzés.
+903|Vidd a figurát a narancssárga vonal mentén a megjelölt mezőre.
+904|Áthelyezve az új verzióra: %s
+905|Tedd a figurádat az egyik kiemelt mezőre.
+906|Tegyétek a hősök figuráit a kiemelt területre, a jelzőik mezőire. Egy jelzőt húzással mozgathattok, aztán erősítsétek meg.
+907|Elhelyezés
+908|méreg (Legyengült)
+909|Mentések
+910|Visszajelzés küldése
+911|Visszajelzés küldése…
+912|HAMAROSAN
+913|tüskék (%d sebzés)
+914|a kampányt nem sikerült megnyitni
+915|a frissített másolatot nem sikerült menteni
+916|Ez a fejezet még nincs kész. A kampány egy új verziója játszhatóvá teszi - az előrehaladásotok megmarad.
+917|Folytatása következik
+918|Folytatása következik…
+919|Hol vannak a hősök? Húzzátok minden hős jelzőjét arra a mezőre, ahol a figurája áll, aztán erősítsétek meg.
+920|Az előrehaladásotok el van mentve. Ha megjelenik a kampány új verziója, telepítsétek, és frissítsétek a mentést.
+921|{hero}: tedd a figurádat az egyik kiemelt mezőre.
+P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most az új verzióra? (Másolat készül; az eredeti változatlan marad.)|%d mentésetek van a kampány régebbi verzióiból. Áthelyezitek most őket az új verzióra? (Másolatok készülnek; az eredetiek változatlanok maradnak.)

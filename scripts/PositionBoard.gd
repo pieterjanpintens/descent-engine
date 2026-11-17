@@ -20,8 +20,24 @@ const LABEL_LIFT := 0.9
 const OK_COLOR := Color(0.3, 0.95, 0.4, 0.55)
 const BAD_COLOR := Color(1.0, 0.3, 0.25, 0.55)
 
+const PATH_COLOR := Color(1.0, 0.55, 0.1, 0.9)
+const PATH_LIFT := 0.2
+const DOT_RADIUS := 0.06    ## of a square
+const DOT_SPACING := 0.28   ## of a square, between two dots
+const ARROW_SPEED := 3.0    ## squares per second the arrow head travels along the line
+const ARROW_SIZE := 0.6     ## of a square
+const CURVE_STEPS := 10     ## pieces per step of the path
+## An arrow head travels along the line and stays at the end (false = it sits at the end at once).
+const ANIMATE_PATH := true
+
 var _tokens: Node3D
 var _ghost: MeshInstance3D
+var _path: Node3D
+var _dots: MultiMeshInstance3D
+var _path_curve: Array[Vector3] = []
+var _path_length := 0.0
+var _arrow: MeshInstance3D
+var _arrow_at := 0.0  ## how far along the curve the arrow head is
 var _board: Dictionary = {}
 ## The figure being dragged: {"kind": "hero" | "monster", "slot", "monster", "size"}; empty when none.
 var _drag: Dictionary = {}
@@ -39,6 +55,8 @@ func _ready() -> void:
 	ghost_material.no_depth_test = true
 	_ghost.material_override = ghost_material
 	add_child(_ghost)
+	_path = Node3D.new()
+	add_child(_path)
 	runtime.positions_changed.connect(refresh)
 	runtime.monsters_changed.connect(refresh)
 	refresh()
@@ -224,3 +242,143 @@ func _square_under(screen_position: Vector2) -> Variant:
 			best = square
 			best_distance = distance
 	return best
+
+
+# ---------------------------------------------------------------- a monster's path
+
+## Shows where a monster of `size` walks: a smooth dotted line through `path` (its positions, the start first) and the square it ends on.
+## An arrow head travels along the line (ANIMATE_PATH) and stays at the end.
+func show_path(path: Array[Vector3i], size: int) -> void:
+	clear_path()
+	if path.is_empty():
+		return
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.no_depth_test = true
+	material.albedo_color = PATH_COLOR
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if path.size() > 1:
+		var points: Array[Vector3] = []
+		for anchor in path:
+			points.append(centre_of(anchor, size) + Vector3(0, PATH_LIFT, 0))
+		_path_curve = _smooth(points)
+		_path_length = 0.0
+		for i in range(1, _path_curve.size()):
+			_path_length += _path_curve[i - 1].distance_to(_path_curve[i])
+		var dot := SphereMesh.new()
+		dot.radius = _square_width() * DOT_RADIUS
+		dot.height = dot.radius * 2.0
+		dot.radial_segments = 8
+		dot.rings = 4
+		dot.material = material
+		var spacing := _square_width() * DOT_SPACING
+		var multimesh := MultiMesh.new()
+		multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		multimesh.mesh = dot
+		multimesh.instance_count = maxi(int(_path_length / spacing), 1)
+		_dots = MultiMeshInstance3D.new()
+		_dots.multimesh = multimesh
+		_path.add_child(_dots)
+		_place_dots()
+		_arrow = MeshInstance3D.new()
+		_arrow.mesh = _arrow_mesh(_square_width() * ARROW_SIZE)
+		_arrow.material_override = material
+		_path.add_child(_arrow)
+		_arrow_at = 0.0 if ANIMATE_PATH else _path_length
+		_place_arrow()
+	var end := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	var width := _square_width() * size
+	quad.size = Vector2(width, width)
+	quad.orientation = PlaneMesh.FACE_Y
+	end.mesh = quad
+	var end_material := material.duplicate() as StandardMaterial3D
+	end_material.albedo_color = Color(PATH_COLOR.r, PATH_COLOR.g, PATH_COLOR.b, 0.45)
+	end.material_override = end_material
+	_path.add_child(end)
+	end.global_position = centre_of(path[path.size() - 1], size) + Vector3(0, 0.06, 0)
+
+
+func clear_path() -> void:
+	for child in _path.get_children():
+		_path.remove_child(child)
+		child.free()
+	_dots = null
+	_arrow = null
+	_path_curve = []
+
+
+func _process(delta: float) -> void:
+	if _arrow != null and _arrow_at < _path_length:
+		_arrow_at = minf(_arrow_at + delta * ARROW_SPEED * _square_width(), _path_length)
+		_place_arrow()
+
+
+## The arrow head on the curve at _arrow_at, pointing the way the line goes.
+func _place_arrow() -> void:
+	var at := _point_at(_arrow_at)
+	var ahead := _point_at(minf(_arrow_at + 0.05, _path_length))
+	var behind := _point_at(maxf(_arrow_at - 0.05, 0.0))
+	var direction := ahead - behind
+	direction.y = 0.0
+	if direction.length() < 0.0001:
+		direction = Vector3.FORWARD
+	_arrow.global_transform = Transform3D(Basis.looking_at(direction.normalized(), Vector3.UP), at)
+
+
+## A flat triangle lying on the floor, its point towards -Z.
+static func _arrow_mesh(length: float) -> ArrayMesh:
+	var vertices := PackedVector3Array([Vector3(0, 0, -length * 0.7), Vector3(-length * 0.3, 0, length * 0.3), Vector3(length * 0.3, 0, length * 0.3)])
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
+
+
+## Puts the dots at equal distances along the curve.
+func _place_dots() -> void:
+	var multimesh := _dots.multimesh
+	var spacing := _square_width() * DOT_SPACING
+	var local_to := _path.global_transform.affine_inverse()
+	for i in multimesh.instance_count:
+		var at := _point_at(i * spacing)
+		multimesh.set_instance_transform(i, Transform3D(Basis(), local_to * at))
+
+
+## The point `distance` along the curve.
+func _point_at(distance: float) -> Vector3:
+	var left := distance
+	for i in range(1, _path_curve.size()):
+		var piece := _path_curve[i - 1].distance_to(_path_curve[i])
+		if left <= piece and piece > 0.0:
+			return _path_curve[i - 1].lerp(_path_curve[i], left / piece)
+		left -= piece
+	return _path_curve[_path_curve.size() - 1]
+
+
+## A smooth line through `points` (Catmull-Rom), as many short pieces.
+static func _smooth(points: Array[Vector3]) -> Array[Vector3]:
+	var curve: Array[Vector3] = []
+	for i in range(points.size() - 1):
+		var p0 := points[maxi(i - 1, 0)]
+		var p1 := points[i]
+		var p2 := points[i + 1]
+		var p3 := points[mini(i + 2, points.size() - 1)]
+		for step in CURVE_STEPS:
+			var t := float(step) / CURVE_STEPS
+			var t2 := t * t
+			var t3 := t2 * t
+			curve.append(0.5 * ((2.0 * p1) + (p2 - p0) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (3.0 * p1 - p0 - 3.0 * p2 + p3) * t3))
+	curve.append(points[points.size() - 1])
+	return curve
+
+
+## The middle of a path, for the camera.
+func path_centre(path: Array[Vector3i], size: int) -> Vector3:
+	var total := Vector3.ZERO
+	for anchor in path:
+		total += centre_of(anchor, size)
+	return total / maxi(path.size(), 1)

@@ -66,6 +66,9 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 	var solid_fine: Dictionary = {}  # Vector3i fine cell (x, height, z) -> true
 	var barricades: Dictionary = {}
 	var fires: Dictionary = {}
+	var gates: Dictionary = {}
+	var trees: Dictionary = {}
+	var pillars: Dictionary = {}
 	for entry in props:
 		var mesh := entry.mesh_item_name
 		var base: int = entry.origin_cell.y
@@ -86,6 +89,10 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 		elif mesh == FIRE_MESH:
 			for cell in cells:
 				fires[_square_of(cell, base)] = true
+		var heads_for: Variant = gates if mesh == "gate" else (trees if mesh == "tree" else (pillars if ["tall", "medium", "mini"].has(mesh) else null))
+		if heads_for != null:
+			for cell in cells:
+				(heads_for as Dictionary)[_square_of(cell, base)] = true
 
 	# a square is blocked when solid pieces cover at least half of it (a pillar on the corner between four squares leaves them free)
 	var cpt := FootprintRegistry.CELLS_PER_TILE
@@ -146,6 +153,7 @@ static func build_board(mission: MissionData, held_back: Dictionary = {}) -> Dic
 	return {
 		"sight": sight, "squares": squares, "blocked": blocked, "room": room, "stairs": stairs, "hazard": hazard,
 		"links": links, "columns": columns, "near_barricade": _around(barricades), "near_fire": _around(fires),
+		"near_gate": _around(gates), "near_tree": _around(trees), "near_pillar": _around(pillars),
 	}
 
 
@@ -402,6 +410,108 @@ static func _attack_positions(ctx: Dictionary, hero_square: Vector3i, attack_ran
 			for dz in size:
 				positions[Vector3i(square.x - dx, square.y, square.z - dz)] = true
 	return positions
+
+
+## The heroes (slots) a figure on `position` can attack WITHOUT moving (a second attack after the first, Bloodlust...).
+static func attackable_from(board: Dictionary, monster: RuntimeMonster, position: Vector3i, size: int, heroes: Dictionary) -> Array[int]:
+	var ranged := monster.effective_attack_range() > 0
+	var attack_range := monster.effective_attack_range() if ranged else (REACH_RANGE if monster.attack_reach else MELEE_RANGE)
+	var ctx := {"board": board, "size": size}
+	var slots: Array[int] = []
+	for slot: int in heroes:
+		var distance := MissionSight.routes({"squares": board["squares"]}, heroes[slot])
+		if _attack_positions(ctx, heroes[slot], attack_range, distance).has(position):
+			slots.append(slot)
+	return slots
+
+
+# ---------------------------------------------------------------- confused moves
+
+## Where a Confused monster goes for a built-in action (MonsterAction.builtin_kind()), in ONE move of up to its speed; it never walks
+## into spikes, poison or ember. "retreat" = as far from the heroes as it can, "wander" = a random square, "lunge" = towards the nearest
+## hero (no attack), "gate" / "tree" / "cover" = towards the nearest gate / tree / pillar. Returns {"path", "end", "events", "note"};
+## any other kind stays put.
+static func confused_move(board: Dictionary, monster: RuntimeMonster, position: Vector3i, size: int, heroes: Dictionary, others: Array, kind: String, rng: RandomNumberGenerator = null) -> Dictionary:
+	var start_path: Array[Vector3i] = [position]
+	var result := {"path": start_path, "end": position, "moves": 0, "events": [], "note": ""}
+	var hero_squares: Dictionary = {}
+	for slot: int in heroes:
+		hero_squares[heroes[slot]] = slot
+	var monster_squares: Dictionary = {}
+	for other: Dictionary in others:
+		for square in block(other["square"], int(other.get("size", 1))):
+			monster_squares[square] = true
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares}
+	var points := _action_points(ctx, position, maxi(monster.effective_speed(), 0))
+	if points <= 0:
+		result["note"] = "it has no speed"
+		return result
+	var within := _reach(ctx, position, points, false, true)
+	var stops: Array[Vector3i] = []
+	for spot: Vector3i in within:
+		if spot != position and _can_stop(ctx, spot):
+			stops.append(spot)
+	match kind:
+		"retreat":
+			var distance_of: Dictionary = {}
+			for slot: int in heroes:
+				distance_of[slot] = MissionSight.routes({"squares": board["squares"]}, heroes[slot])
+			var best := position
+			var best_score: Array = [_distance_to_heroes(distance_of, position, size), 0]
+			for spot in stops:
+				var score: Array = [_distance_to_heroes(distance_of, spot, size), -int(within[spot]["cost"])]
+				if _beats(score, best_score):
+					best = spot
+					best_score = score
+			if best != position:
+				_fill(result, ctx, _route(within, best), _route(within, best).size() - 1, 1)
+		"wander":
+			if not stops.is_empty():
+				var spot := _pick(stops, rng)
+				_fill(result, ctx, _route(within, spot), _route(within, spot).size() - 1, 1)
+		"lunge", "gate", "tree", "cover":
+			var goal: Dictionary = _around(hero_squares) if kind == "lunge" else board.get({"gate": "near_gate", "tree": "near_tree", "cover": "near_pillar"}[kind], {})
+			if _any_in(block(position, size), goal):
+				result["note"] = "it is already there"
+				return result
+			var far := _reach(ctx, position, FAR, false, false)
+			var target := position
+			var lowest := FAR
+			for spot: Vector3i in far:
+				if spot != position and _can_stop(ctx, spot) and _any_in(block(spot, size), goal) and int(far[spot]["cost"]) < lowest:
+					lowest = int(far[spot]["cost"])
+					target = spot
+			if target == position:
+				result["note"] = "it cannot get there"
+				return result
+			var route := _route(far, target)
+			var index := 0
+			var left := points
+			while index < route.size() - 1 and int(route[index + 1]["cost"]) <= left:
+				index += 1
+				left -= int(route[index]["cost"])
+			while index > 0 and not _can_stop(ctx, route[index]["pos"]):
+				index -= 1
+			if index > 0:
+				_fill(result, ctx, route, index, 1)
+	return result
+
+
+## The other monster nearest to a figure of `size` on `position` (steps over the floor), or null. `others`: Array of RuntimeMonster.
+static func nearest_monster(board: Dictionary, position: Vector3i, size: int, others: Array) -> RuntimeMonster:
+	var distance := {}
+	for square in block(position, size):
+		var from_here := MissionSight.routes({"squares": board["squares"]}, square)
+		for key: Vector3i in from_here:
+			distance[key] = mini(int(distance.get(key, FAR)), int(from_here[key]))
+	var nearest: RuntimeMonster = null
+	var fewest := FAR
+	for other: RuntimeMonster in others:
+		var steps := _steps_to(distance, other.position, other.size)
+		if steps < fewest:
+			fewest = steps
+			nearest = other
+	return nearest
 
 
 # ---------------------------------------------------------------- one activation

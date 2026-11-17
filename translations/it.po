@@ -2496,6 +2496,144 @@ msgstr "I traguardi in alto sono quelli in corso. Quando uno è completato, il s
 msgid "The feat order cannot be changed in this campaign."
 msgstr "L'ordine dei traguardi non può essere cambiato in questa campagna."
 
+msgid "%d square(s) highlighted."
+msgstr "%d casella/e evidenziata/e."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s attacca %s (danni %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s attacca %s!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s attacca %s!%s\nDanni %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s è confuso!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s è sconfitto! Toglilo dal tabellone."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s si muove e attacca %s!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s si muove verso %s (non può attaccare in questo round)."
+
+msgid "%s moves towards %s."
+msgstr "%s si muove verso %s."
+
+msgid "%s stays where it is."
+msgstr "%s resta dov'è."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s calpesta delle punte: %d danni."
+
+msgid "%s takes %d damage."
+msgstr "%s subisce %d danni."
+
+msgid "%s walks through embers: %s."
+msgstr "%s attraversa le braci: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s attraversa il veleno: Indebolito."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: fuoco / barricata)"
+
+msgid "\nDamage %d - %s"
+msgstr "\nDanni %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\nMuovi la miniatura lungo la linea arancione fino alla casella segnata."
+
+msgid "\nOn the way: "
+msgstr "\nLungo il percorso: "
+
+msgid "A hero is wounded"
+msgstr "Un eroe viene ferito"
+
+msgid "A monster is defeated"
+msgstr "Un mostro viene sconfitto"
+
+msgid "Coming soon"
+msgstr "Prossimamente"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "Non è stato possibile spostarli (restano sulla vecchia versione): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "Debug: sconfiggi subito questo mostro (nessun tiro, nessun effetto d'arma)"
+
+msgid "Defeat (debug)"
+msgstr "Sconfiggi (debug)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "braci (Oppresso, Afflitto)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "Fuoco / barricata: +%d danni"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "Colpisce %s: %d danni."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "Muovi la miniatura lungo la linea arancione fino alla casella segnata."
+
+msgid "Moved to the new version: %s"
+msgstr "Spostato alla nuova versione: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "Metti la tua miniatura su una delle caselle evidenziate."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "Mettete le miniature dei vostri eroi nell'area evidenziata, sulle caselle dei loro segnalini. Trascinate un segnalino per spostarlo, poi confermate."
+
+msgid "Placement"
+msgstr "Posizionamento"
+
+msgid "poison (Enfeebled)"
+msgstr "veleno (Indebolito)"
+
+msgid "Save games"
+msgstr "Salvataggi"
+
+msgid "Send feedback"
+msgstr "Invia un commento"
+
+msgid "Send feedback…"
+msgstr "Invia un commento…"
+
+msgid "SOON"
+msgstr "PRESTO"
+
+msgid "spikes (%d damage)"
+msgstr "punte (%d danni)"
+
+msgid "the campaign could not be opened"
+msgstr "non è stato possibile aprire la campagna"
+
+msgid "the updated copy could not be saved"
+msgstr "non è stato possibile salvare la copia aggiornata"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "Questo capitolo non è ancora pronto. Una nuova versione della campagna lo renderà giocabile - i vostri progressi vengono conservati."
+
+msgid "To be continued"
+msgstr "Continua"
+
+msgid "To be continued…"
+msgstr "Continua…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "Dove sono gli eroi? Trascinate il segnalino di ogni eroe sulla casella in cui si trova la sua miniatura, poi confermate."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "I vostri progressi sono salvati. Quando uscirà una nuova versione di questa campagna, installatela e aggiornate il vostro salvataggio."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: metti la tua miniatura su una delle caselle evidenziate."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d per %d giocatore)"
@@ -2520,3 +2658,8 @@ msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] "Nuova impresa secondaria: %s"
 msgstr[1] "Nuove imprese secondarie: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo ora alla nuova versione? (Viene creata una copia; l'originale resta com'è.)"
+msgstr[1] "Hai %d salvataggi di versioni precedenti di questa campagna. Spostarli ora alla nuova versione? (Vengono create delle copie; gli originali restano come sono.)"

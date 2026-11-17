@@ -873,8 +873,55 @@
 873|The list is empty.
 874|Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something.
 875|The feat order cannot be changed in this campaign.
+876|%d square(s) highlighted.
+877|%s attacks %s (damage %d).
+878|%s attacks %s!
+879|%s attacks %s!%s\nDamage %d - %s
+880|%s is confused!\n%s
+881|%s is defeated! Remove it from the board.
+882|%s moves and attacks %s!
+883|%s moves towards %s (it cannot attack this round).
+884|%s moves towards %s.
+885|%s stays where it is.
+886|%s steps on spikes: %d damage.
+887|%s takes %d damage.
+888|%s walks through embers: %s.
+889|%s walks through poison: Enfeebled.
+890|\n(+%d: fire / barricade)
+891|\nDamage %d - %s
+892|\nMove the figure along the orange line to the marked square.
+893|\nOn the way: 
+894|A hero is wounded
+895|A monster is defeated
+896|Coming soon
+897|Could not be moved (they stay on the old version): %s
+898|Debug: defeat this monster at once (no roll, no weapon effects)
+899|Defeat (debug)
+900|embers (Doomed, Afflicted)
+901|Fire / barricade: +%d damage
+902|It lashes out at %s: %d damage.
+903|Move the figure along the orange line to the marked square.
+904|Moved to the new version: %s
+905|Place your figure on one of the highlighted squares.
+906|Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm.
+907|Placement
+908|poison (Enfeebled)
+909|Save games
+910|Send feedback
+911|Send feedback…
+912|SOON
+913|spikes (%d damage)
+914|the campaign could not be opened
+915|the updated copy could not be saved
+916|This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept.
+917|To be continued
+918|To be continued…
+919|Where are the heroes? Drag each hero token to the square its figure stands on, then confirm.
+920|Your progress is saved. When a new version of this campaign comes out, install it and update your save game.
+921|{hero}: place your figure on one of the highlighted squares.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage
 P4|Lucky Charm: %d extra success is added to %s's result.|Lucky Charm: %d extra successes are added to %s's result.
 P5|New side quest: %s|New side quests: %s
+P6|You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)|You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)

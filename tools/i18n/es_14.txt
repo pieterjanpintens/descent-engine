@@ -1,0 +1,47 @@
+876|%d casilla(s) resaltada(s).
+877|%s ataca a %s (daño %d).
+878|¡%s ataca a %s!
+879|¡%s ataca a %s!%s\nDaño %d - %s
+880|¡%s está confundido!\n%s
+881|¡%s ha sido derrotado! Retíralo del tablero.
+882|¡%s se mueve y ataca a %s!
+883|%s se mueve hacia %s (no puede atacar esta ronda).
+884|%s se mueve hacia %s.
+885|%s se queda donde está.
+886|%s pisa unos pinchos: %d de daño.
+887|%s sufre %d de daño.
+888|%s atraviesa las brasas: %s.
+889|%s atraviesa el veneno: Debilitado.
+890|\n(+%d: fuego / barricada)
+891|\nDaño %d - %s
+892|\nMueve la figura por la línea naranja hasta la casilla marcada.
+893|\nPor el camino:
+894|Un héroe es herido
+895|Un monstruo es derrotado
+896|Próximamente
+897|No se pudieron trasladar (se quedan en la versión antigua): %s
+898|Depuración: derrota a este monstruo al instante (sin tirada ni efectos de arma)
+899|Derrotar (depuración)
+900|brasas (Condenado, Afligido)
+901|Fuego / barricada: +%d de daño
+902|Ataca a %s: %d de daño.
+903|Mueve la figura por la línea naranja hasta la casilla marcada.
+904|Trasladado a la nueva versión: %s
+905|Coloca tu figura en una de las casillas resaltadas.
+906|Coloca las figuras de tus héroes en la zona resaltada, sobre las casillas de sus fichas. Arrastra una ficha para moverla y luego confirma.
+907|Colocación
+908|veneno (Debilitado)
+909|Partidas guardadas
+910|Enviar comentarios
+911|Enviar comentarios…
+912|PRONTO
+913|pinchos (%d de daño)
+914|no se pudo abrir la campaña
+915|no se pudo guardar la copia actualizada
+916|Este capítulo aún no está listo. Una nueva versión de la campaña lo hará jugable; tu progreso se conserva.
+917|Continuará
+918|Continuará…
+919|¿Dónde están los héroes? Arrastra la ficha de cada héroe a la casilla en la que está su figura y luego confirma.
+920|Tu progreso está guardado. Cuando salga una nueva versión de esta campaña, instálala y actualiza tu partida guardada.
+921|{hero}: coloca tu figura en una de las casillas resaltadas.
+P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasladarla ahora a la nueva versión? (Se hace una copia; el original queda como está.)|Tienes %d partidas guardadas de versiones anteriores de esta campaña. ¿Trasladarlas ahora a la nueva versión? (Se hacen copias; los originales quedan como están.)

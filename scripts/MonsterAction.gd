@@ -33,6 +33,15 @@ var text: String:
 @export_range(0, 99) var min_monsters: int = 0
 ## Relative chance among the possible actions (1 = normal).
 @export_range(1, 99) var weight: int = 1
+## Which built-in action this is ("retreat", "stare", "gate", "tree", "wander", "friendly_fire", "lunge", "cover"; "" = written by an
+## author). When positions are tracked the app carries the built-in ones out itself and skips the others.
+@export var builtin: String = ""
+
+## The English names of the built-in actions, for lists filled before `builtin` existed.
+const BUILTIN_BY_NAME := {
+	"retreat": "retreat", "what was i doing?": "stare", "guard the gate": "gate", "towards the tree": "tree", "wander": "wander",
+	"friendly fire": "friendly_fire", "lunge, no bite": "lunge", "take cover": "cover",
+}
 
 
 func _init(p_name: String = "", p_text: String = "", p_required_object: String = "", p_min_monsters: int = 0) -> void:
@@ -49,12 +58,13 @@ func shown_text(monster: RuntimeMonster) -> String:
 
 ## Plain-data form for SaveGame (RuntimeMonster.to_dict()).
 func to_dict() -> Dictionary:
-	return {"name": action_name, "text": text, "required_object": required_object, "min_monsters": min_monsters, "weight": weight}
+	return {"name": action_name, "text": text, "required_object": required_object, "min_monsters": min_monsters, "weight": weight, "builtin": builtin}
 
 
 static func from_dict(d: Dictionary) -> MonsterAction:
 	var action := MonsterAction.new(str(d.get("name", "")), str(d.get("text", "")), str(d.get("required_object", "")), int(d.get("min_monsters", 0)))
 	action.weight = int(d.get("weight", 1))
+	action.builtin = str(d.get("builtin", ""))
 	return action
 
 
@@ -74,9 +84,22 @@ static func copies(list: Array[MonsterAction]) -> Array[MonsterAction]:
 	return result
 
 
+## Which built-in action this is ("" = an author's own): the `builtin` field, else recognised by its English name.
+func builtin_kind() -> String:
+	if builtin != "":
+		return builtin
+	for text_value in [action_name_texts.get("en", ""), action_name]:
+		var key := str(text_value).strip_edges().to_lower()
+		if BUILTIN_BY_NAME.has(key):
+			return BUILTIN_BY_NAME[key]
+	return ""
+
+
 ## The nothing-happens action: also the last resort when no action of a monster is possible.
 static func stand_and_stare() -> MonsterAction:
-	return MonsterAction.new("What was I doing?", "The monster just stands and stares... It does nothing at all.")
+	var action := MonsterAction.new("What was I doing?", "The monster just stands and stares... It does nothing at all.")
+	action.builtin = "stare"
+	return action
 
 
 ## The built-in set used when a base template has no actions of its own (also what the
@@ -92,4 +115,7 @@ static func defaults() -> Array[MonsterAction]:
 		MonsterAction.new(TranslationServer.translate("Lunge, no bite"), TranslationServer.translate("Move up to {speed} tiles towards the nearest hero - but do not attack.")),
 		MonsterAction.new(TranslationServer.translate("Take cover"), TranslationServer.translate("Move up to {speed} tiles to the nearest pillar and hide behind it."), "tall,mini,medium"),
 	]
+	var kinds := ["retreat", "stare", "gate", "tree", "wander", "friendly_fire", "lunge", "cover"]
+	for i in list.size():
+		list[i].builtin = kinds[i]
 	return list

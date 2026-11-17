@@ -1,0 +1,47 @@
+876|%d vak(ken) gemarkeerd.
+877|%s valt %s aan (schade %d).
+878|%s valt %s aan!
+879|%s valt %s aan!%s\nSchade %d - %s
+880|%s is verward!\n%s
+881|%s is verslagen! Haal hem van het bord.
+882|%s verplaatst zich en valt %s aan!
+883|%s verplaatst zich naar %s (kan deze ronde niet aanvallen).
+884|%s verplaatst zich naar %s.
+885|%s blijft staan waar hij staat.
+886|%s stapt op spijkers: %d schade.
+887|%s krijgt %d schade.
+888|%s loopt door gloeiende sintels: %s.
+889|%s loopt door gif: Verzwakt.
+890|\n(+%d: vuur / barricade)
+891|\nSchade %d - %s
+892|\nVerplaats de figuur langs de oranje lijn naar het gemarkeerde vak.
+893|\nOnderweg:
+894|Een held raakt gewond
+895|Een monster wordt verslagen
+896|Binnenkort
+897|Konden niet worden overgezet (ze blijven op de oude versie): %s
+898|Debug: versla dit monster meteen (geen worp, geen wapeneffecten)
+899|Verslaan (debug)
+900|sintels (Gedoemd, Gekweld)
+901|Vuur / barricade: +%d schade
+902|Hij haalt uit naar %s: %d schade.
+903|Verplaats de figuur langs de oranje lijn naar het gemarkeerde vak.
+904|Overgezet naar de nieuwe versie: %s
+905|Zet je figuur op een van de gemarkeerde vakken.
+906|Zet de figuren van je helden in het gemarkeerde gebied, op de vakken van hun fiches. Sleep een fiche om het te verplaatsen en bevestig dan.
+907|Plaatsing
+908|gif (Verzwakt)
+909|Opgeslagen spellen
+910|Feedback sturen
+911|Feedback sturen…
+912|BINNENKORT
+913|spijkers (%d schade)
+914|de campagne kon niet worden geopend
+915|de bijgewerkte kopie kon niet worden opgeslagen
+916|Dit hoofdstuk is nog niet klaar. Een nieuwe versie van de campagne maakt het speelbaar - je voortgang blijft bewaard.
+917|Wordt vervolgd
+918|Wordt vervolgd…
+919|Waar staan de helden? Sleep het fiche van elke held naar het vak waar zijn figuur staat en bevestig dan.
+920|Je voortgang is opgeslagen. Komt er een nieuwe versie van deze campagne uit, installeer die dan en werk je opgeslagen spel bij.
+921|{hero}: zet je figuur op een van de gemarkeerde vakken.
+P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar de nieuwe versie overzetten? (Er wordt een kopie gemaakt; het origineel blijft zoals het is.)|Je hebt %d opgeslagen spellen van oudere versies van deze campagne. Nu naar de nieuwe versie overzetten? (Er worden kopieën gemaakt; de originelen blijven zoals ze zijn.)

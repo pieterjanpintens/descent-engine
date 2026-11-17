@@ -1,0 +1,47 @@
+876|Podświetlone pola: %d.
+877|%s atakuje: %s (obrażenia %d).
+878|%s atakuje: %s!
+879|%s atakuje: %s!%s\nObrażenia %d - %s
+880|%s jest zdezorientowany!\n%s
+881|%s został pokonany! Zdejmij go z planszy.
+882|%s rusza się i atakuje: %s!
+883|%s rusza w stronę: %s (w tej rundzie nie może zaatakować).
+884|%s rusza w stronę: %s.
+885|%s zostaje na miejscu.
+886|%s wchodzi na kolce: %d obrażeń.
+887|%s otrzymuje %d obrażeń.
+888|%s przechodzi przez żar: %s.
+889|%s przechodzi przez truciznę: Wycieńczenie.
+890|\n(+%d: ogień / barykada)
+891|\nObrażenia %d - %s
+892|\nPrzesuń figurkę wzdłuż pomarańczowej linii na zaznaczone pole.
+893|\nPo drodze:
+894|Bohater zostaje zraniony
+895|Potwór zostaje pokonany
+896|Wkrótce
+897|Nie udało się przenieść (zostają przy starej wersji): %s
+898|Debug: pokonaj tego potwora od razu (bez rzutu, bez efektów broni)
+899|Pokonaj (debug)
+900|żar (Zguba, Cierpienie)
+901|Ogień / barykada: +%d obrażeń
+902|Uderza w: %s, %d obrażeń.
+903|Przesuń figurkę wzdłuż pomarańczowej linii na zaznaczone pole.
+904|Przeniesiono do nowej wersji: %s
+905|Postaw swoją figurkę na jednym z podświetlonych pól.
+906|Postawcie figurki bohaterów w podświetlonym obszarze, na polach ich znaczników. Przeciągnijcie znacznik, aby go przesunąć, a potem potwierdźcie.
+907|Rozstawienie
+908|trucizna (Wycieńczenie)
+909|Zapisane gry
+910|Wyślij opinię
+911|Wyślij opinię…
+912|WKRÓTCE
+913|kolce (%d obrażeń)
+914|nie udało się otworzyć kampanii
+915|nie udało się zapisać zaktualizowanej kopii
+916|Ten rozdział nie jest jeszcze gotowy. Nowa wersja kampanii pozwoli go rozegrać - wasz postęp zostaje zachowany.
+917|Ciąg dalszy nastąpi
+918|Ciąg dalszy nastąpi…
+919|Gdzie są bohaterowie? Przeciągnijcie znacznik każdego bohatera na pole, na którym stoi jego figurka, a potem potwierdźcie.
+920|Wasz postęp jest zapisany. Gdy ukaże się nowa wersja tej kampanii, zainstalujcie ją i zaktualizujcie zapis gry.
+921|{hero}: postaw swoją figurkę na jednym z podświetlonych pól.
+P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do nowej wersji? (Zostanie zrobiona kopia; oryginał pozostaje bez zmian.)|Masz %d zapisy gry ze starszych wersji tej kampanii. Przenieść je teraz do nowej wersji? (Zostaną zrobione kopie; oryginały pozostają bez zmian.)|Masz %d zapisów gry ze starszych wersji tej kampanii. Przenieść je teraz do nowej wersji? (Zostaną zrobione kopie; oryginały pozostają bez zmian.)

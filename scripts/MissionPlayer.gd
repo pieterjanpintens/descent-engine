@@ -1714,10 +1714,16 @@ func _who(monster: RuntimeMonster) -> String:
 func _monster_attack(monster: RuntimeMonster) -> void:
 	var who := _who(monster)
 	if monster.conditions.has(MonsterCondition.Kind.CONFUSED):
-		await _monster_action(monster, who)
+		if _tracks_turn(monster):
+			await _tracked_confused(monster, who)
+		else:
+			await _monster_action(monster, who)
 		return
 	if monster.current_tactic() != null:
 		await _monster_tactic(monster, who)
+		return
+	if _tracks_turn(monster):
+		await _tracked_monster_turn(monster, who)
 		return
 	var range_text := _range_text_for(monster.effective_attack_range(), monster.attack_reach)
 	# What the monster's activation abilities do by themselves (ActivationRules), once per activation.
@@ -1762,6 +1768,221 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 			if await dialog.ask_yes_no(tr("Did %s deal damage to %s?") % [monster.display_name(), hero_name]):
 				continue
 		return
+
+
+# ---------------------------------------------------------------- position tracking: the app moves the monster
+
+## True when `monster` takes its turn through the movement engine: positions are tracked, it stands on the board and a hero does too.
+func _tracks_turn(monster: RuntimeMonster) -> bool:
+	return position_board != null and monster.placed and not _runtime.placed_heroes(player_roster).is_empty()
+
+
+## One monster's turn when positions are tracked (MonsterMovement.plan()): the app picks the target, shows the way on the map (orange line,
+## the square it ends on), the table moves the figure and presses Continue; then the hazards it walked through take effect and, when it
+## attacks, the table resolves the attack as usual. A second attack (Bloodlust, attack again on damage) only goes to a hero it can attack
+## from where it stands. Interrupt works as for an attack; afterwards the turn is planned again (the heroes may have moved).
+func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
+	var activation_lines := ActivationRules.start_of_activation(_runtime, monster)
+	var plan: Dictionary = {}
+	while true:
+		var board := MonsterMovement.build_board(mission, layered_map.held_back)
+		plan = _runtime.plan_activation(monster, board, player_roster, player_weapons)
+		var path: Array[Vector3i] = plan["path"]
+		position_board.show_path(path, monster.size)
+		_frame_path(path, monster.size)
+		var cfg := MonsterDisplay.preview_data(monster.folder)
+		cfg["text"] = _tracked_text(monster, who, plan, activation_lines)
+		var answer := await _tracked_dialog(monster, cfg)
+		if answer < 0:
+			return
+		if answer == 0:
+			break
+
+	var target: int = plan["target"]
+	var end: Vector3i = plan["end"]
+	if end != monster.position:
+		_runtime.set_monster_position(monster, end)
+	# the hazards it walked through, in order
+	var hazard_lines: Array[String] = []
+	for event: Dictionary in plan["events"]:
+		var outcome := _runtime.apply_hazard(monster, int(event["hazard"]))
+		if str(outcome["text"]) != "":
+			hazard_lines.append(str(outcome["text"]))
+		if outcome["defeated"]:
+			var lines := hazard_lines.duplicate()
+			var fallen := tr("%s is defeated! Remove it from the board.") % monster.display_name()
+			await dialog.ask_ok("\n".join(lines) + "\n\n" + fallen, true, false, "Monster attack")
+			return
+	if not hazard_lines.is_empty():
+		journal.add("Monster attack", ["\n".join(hazard_lines)])
+	if not plan["attack"]:
+		if target >= 0 and int(plan["moves"]) > 0:
+			var goal_name := HeroCatalog.slot_name(target)
+			journal.add("Monster attack", [func() -> String: return tr("%s moves towards %s.") % [_who(monster), goal_name]])
+		return
+	_runtime.record_targeted(target)
+	var hero_name := HeroCatalog.slot_name(target)
+	var damage := monster.effective_attack_power() + int(plan["damage_bonus"]) + monster.next_activation_damage
+	journal.add("Monster attack", [func() -> String: return tr("%s attacks %s (damage %d).") % [_who(monster), hero_name, damage]])
+	monster.next_activation_damage = 0  # used up by this activation
+	await _follow_up_attacks(monster, who, target)
+
+
+## Points the camera at a monster's path, a bit beyond it, so the path sits in the lower half of the screen under the dialog.
+func _frame_path(path: Array[Vector3i], size: int) -> void:
+	if PlayerSettings.auto_camera_to_spawns:
+		camera.jump_to(position_board.path_centre(path, size) + Vector3(0, 0, -4.0), 14.0)
+
+
+## Shows a tracked turn's dialog (no dim, so the path on the map stays visible). Returns 0 = carry it out, 1 = the players interrupted
+## and the turn must be planned again, -1 = the turn is over (the monster was defeated, or wounded a hero, during the interrupt).
+func _tracked_dialog(monster: RuntimeMonster, cfg: Dictionary) -> int:
+	cfg["dim"] = false
+	var choice: int = await dialog.ask_monster_attack(cfg)
+	position_board.clear_path()
+	if choice != 1:
+		return 0
+	var wounds_before := _total_wounds()
+	await _interrupt(monster)
+	if not _runtime.monsters.has(monster):
+		journal.add("Monster attack", [func() -> String: return tr("%s was defeated during an interrupt before it could %s.") % [_who(monster), tr("act")]])
+		return -1
+	if _total_wounds() > wounds_before:
+		journal.add("Monster attack", [func() -> String: return tr("%s wounded a hero - its turn is over.") % _who(monster)])
+		return -1
+	return 1
+
+
+## A Confused monster when positions are tracked: one of the built-in actions (an author's own ones are left out), carried out by the
+## app - it moves where the action says (MonsterMovement.confused_move()) or, for Friendly fire, hits the nearest other monster.
+func _tracked_confused(monster: RuntimeMonster, who: String) -> void:
+	var action := _runtime.pick_confused_action(monster)
+	var kind := action.builtin_kind()
+	var plan: Dictionary = {}
+	var victim: RuntimeMonster = null
+	var damage := monster.effective_attack_power()
+	while true:
+		var board := MonsterMovement.build_board(mission, layered_map.held_back)
+		var others: Array = []
+		var other_monsters: Array = []
+		for other in _runtime.monsters:
+			if other != monster and other.placed:
+				others.append({"square": other.position, "size": other.size})
+				other_monsters.append(other)
+		plan = MonsterMovement.confused_move(board, monster, monster.position, monster.size, _runtime.placed_heroes(player_roster), others, kind)
+		victim = MonsterMovement.nearest_monster(board, monster.position, monster.size, other_monsters) if kind == "friendly_fire" else null
+		var path: Array[Vector3i] = plan["path"]
+		position_board.show_path(path, monster.size)
+		_frame_path(path, monster.size)
+		var text := tr("%s is confused!\n%s") % [who, action.action_name]
+		if victim != null:
+			text += "\n" + tr("It lashes out at %s: %d damage.") % [_who(victim), damage]
+		elif int(plan["moves"]) > 0:
+			text += "\n" + tr("Move the figure along the orange line to the marked square.")
+		elif kind == "stare":
+			text += "\n" + action.shown_text(monster)
+		else:
+			text += "\n" + tr("%s stays where it is.") % monster.display_name()
+		var cfg := MonsterDisplay.preview_data(monster.folder)
+		cfg["text"] = text
+		var answer := await _tracked_dialog(monster, cfg)
+		if answer < 0:
+			return
+		if answer == 0:
+			break
+	var end: Vector3i = plan["end"]
+	if end != monster.position:
+		_runtime.set_monster_position(monster, end)
+	var action_name := action.action_name
+	journal.add("Monster action", [func() -> String: return tr("%s is confused: %s.") % [_who(monster), action_name]])
+	if victim != null and _runtime.monsters.has(victim):
+		var victim_who := _who(victim)
+		var hit := _runtime.damage_monster(victim, damage)
+		if hit["defeated"]:
+			await dialog.ask_ok(tr("%s is defeated! Remove it from the board.") % victim.display_name(), true, false, "Monster action")
+		else:
+			journal.add("Monster action", [func() -> String: return tr("%s takes %d damage.") % [victim_who, damage]])
+
+
+## After the first attack of a tracked turn: Bloodlust (a second, different hero) and "attack again on damage" - only heroes the monster can
+## attack from where it stands now.
+func _follow_up_attacks(monster: RuntimeMonster, who: String, first_target: int) -> void:
+	var last := first_target
+	for attack_number in range(2, MAX_ATTACKS_PER_TURN + 1):
+		var board := MonsterMovement.build_board(mission, layered_map.held_back)
+		var heroes := _runtime.placed_heroes(player_roster)
+		var options: Array[int] = []
+		if attack_number == 2 and ActivationRules.has_second_attack(monster):
+			options = MonsterMovement.attackable_from(board, monster, monster.position, monster.size, heroes)
+			options.erase(last)
+		if options.is_empty():
+			if not monster.has_attack_behavior(MonsterAbility.Behavior.ATTACK_AGAIN_ON_DAMAGE):
+				return
+			if not await dialog.ask_yes_no(tr("Did %s deal damage to %s?") % [monster.display_name(), HeroCatalog.slot_name(last)]):
+				return
+			options = MonsterMovement.attackable_from(board, monster, monster.position, monster.size, heroes)
+			if options.is_empty():
+				return
+		var slot := MonsterTargeting.choose_target(monster, options, _runtime.targeting_context(player_weapons))
+		if slot < 0:
+			return
+		_runtime.record_targeted(slot)
+		var target_square: Array[Vector3i] = [heroes[slot]]
+		var bonus := MonsterMovement.damage_bonus(board, MonsterMovement.block(monster.position, monster.size), target_square)
+		var hero_name := HeroCatalog.slot_name(slot)
+		var damage := monster.effective_attack_power() + bonus
+		var text := tr("%s attacks %s!%s\nDamage %d - %s") % [who, hero_name, "  " + tr("(attacks again)"), damage, _range_text_for(monster.effective_attack_range(), monster.attack_reach)]
+		if bonus > 0:
+			text += tr("\n(+%d: fire / barricade)") % bonus
+		var cfg := MonsterDisplay.preview_data(monster.folder)
+		cfg["text"] = text
+		cfg["dim"] = false
+		if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("attack %s") % hero_name):
+			return
+		journal.add("Monster attack", [func() -> String: return tr("%s attacks %s (damage %d).") % [_who(monster), hero_name, damage]])
+		last = slot
+
+
+## The text of a tracked monster turn's dialog.
+func _tracked_text(monster: RuntimeMonster, who: String, plan: Dictionary, activation_lines: Array) -> String:
+	var target: int = plan["target"]
+	var moved := int(plan["moves"]) > 0
+	var text := ""
+	if plan["attack"]:
+		var hero_name := HeroCatalog.slot_name(target)
+		text = (tr("%s moves and attacks %s!") if moved else tr("%s attacks %s!")) % [who, hero_name]
+		var damage := monster.effective_attack_power() + int(plan["damage_bonus"])
+		text += tr("\nDamage %d - %s") % [damage, _range_text_for(monster.effective_attack_range(), monster.attack_reach)]
+		if int(plan["damage_bonus"]) > 0:
+			text += tr("\n(+%d: fire / barricade)") % int(plan["damage_bonus"])
+		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
+			text += tr("\n(Enfeebled: damage reduced from %d)") % monster.attack_power
+		if monster.next_activation_damage > 0:
+			text += tr("\n(+%d damage from a defense ability this activation)") % monster.next_activation_damage
+		for ability in monster.attack_abilities:
+			var shown := ability.shown_text(monster.display_name(), hero_name, monster.level) if ability.game_key != "" else ability.ability_name
+			text += "\n" + (shown if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [shown, MonsterAbility.behavior_name(ability.behavior).to_lower()])
+	elif moved:
+		text = tr("%s moves towards %s (it cannot attack this round).") % [who, HeroCatalog.slot_name(target)]
+	else:
+		text = tr("%s stays where it is.") % who
+	if moved:
+		text += tr("\nMove the figure along the orange line to the marked square.")
+	if not activation_lines.is_empty():
+		text += tr("\nActivation: ") + "; ".join(activation_lines)
+	var hazards: Array[String] = []
+	for event: Dictionary in plan["events"]:
+		match int(event["hazard"]):
+			MonsterMovement.Hazard.SPIKES:
+				hazards.append(tr("spikes (%d damage)") % MonsterMovement.SPIKE_DAMAGE)
+			MonsterMovement.Hazard.POISON:
+				hazards.append(tr("poison (Enfeebled)"))
+			MonsterMovement.Hazard.EMBER:
+				hazards.append(tr("embers (Doomed, Afflicted)"))
+	if not hazards.is_empty():
+		text += tr("\nOn the way: ") + ", ".join(hazards)
+	return text
+
 
 
 ## A Confused monster does not attack: it takes an alternative action (MonsterAction,

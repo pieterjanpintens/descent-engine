@@ -626,8 +626,16 @@ func _attack(hero_slot: int, monster: RuntimeMonster, weapon_text: String, prese
 	var attack_modifiers := plan.modifiers()
 	if debug_kill:
 		attack_modifiers["debug_damage"] = 10000  # a normal attack (feats, loot, defeat effects, part effects...) that cannot fail to kill
+	# Tracking positions: a hero next to a fire, or a monster next to a barricade, adds 1 damage each.
+	var position_bonus := _position_bonus(hero_slot, monster)
+	if position_bonus > 0:
+		attack_modifiers["bonus_damage"] = int(attack_modifiers.get("bonus_damage", 0)) + position_bonus
 	var r := mission_runtime.resolve_attack(monster, successes, weapon, conditions, hero_slot, attack_modifiers)
 	await runner.finish(plan, r)
+	if position_bonus > 0:
+		var lines: Array = r.get("part_lines", [])
+		lines.append(tr("Fire / barricade: +%d damage") % position_bonus)
+		r["part_lines"] = lines
 	if feat_tracker != null:
 		feat_tracker.end_action()
 		feat_tracker.on_attack(hero_slot, weapon_index, weapon, monster, feat_pre, r)
@@ -930,3 +938,13 @@ func _add_highlight_quad(cell: Vector3i) -> void:
 	for v in [a, b, c, a, c, d]:
 		_highlight_overlay_mesh.surface_set_color(highlight_color)
 		_highlight_overlay_mesh.surface_add_vertex(v)
+
+
+## Position tracking: the fire / barricade damage bonus of hero `slot` attacking `monster` (MonsterMovement.damage_bonus()); 0 when positions
+## are not tracked or one of them is not on the board.
+func _position_bonus(slot: int, monster: RuntimeMonster) -> int:
+	if mission_runtime == null or not mission_runtime.track_positions or not monster.placed or not mission_runtime.hero_positions.has(slot):
+		return 0
+	var board := MonsterMovement.build_board(mission_runtime.mission, layered_map.held_back)
+	var attacker: Array[Vector3i] = [mission_runtime.hero_positions[slot]]
+	return MonsterMovement.damage_bonus(board, attacker, MonsterMovement.block(monster.position, monster.size))

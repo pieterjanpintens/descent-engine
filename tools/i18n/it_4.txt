@@ -1,0 +1,47 @@
+876|%d casella/e evidenziata/e.
+877|%s attacca %s (danni %d).
+878|%s attacca %s!
+879|%s attacca %s!%s\nDanni %d - %s
+880|%s è confuso!\n%s
+881|%s è sconfitto! Toglilo dal tabellone.
+882|%s si muove e attacca %s!
+883|%s si muove verso %s (non può attaccare in questo round).
+884|%s si muove verso %s.
+885|%s resta dov'è.
+886|%s calpesta delle punte: %d danni.
+887|%s subisce %d danni.
+888|%s attraversa le braci: %s.
+889|%s attraversa il veleno: Indebolito.
+890|\n(+%d: fuoco / barricata)
+891|\nDanni %d - %s
+892|\nMuovi la miniatura lungo la linea arancione fino alla casella segnata.
+893|\nLungo il percorso:
+894|Un eroe viene ferito
+895|Un mostro viene sconfitto
+896|Prossimamente
+897|Non è stato possibile spostarli (restano sulla vecchia versione): %s
+898|Debug: sconfiggi subito questo mostro (nessun tiro, nessun effetto d'arma)
+899|Sconfiggi (debug)
+900|braci (Oppresso, Afflitto)
+901|Fuoco / barricata: +%d danni
+902|Colpisce %s: %d danni.
+903|Muovi la miniatura lungo la linea arancione fino alla casella segnata.
+904|Spostato alla nuova versione: %s
+905|Metti la tua miniatura su una delle caselle evidenziate.
+906|Mettete le miniature dei vostri eroi nell'area evidenziata, sulle caselle dei loro segnalini. Trascinate un segnalino per spostarlo, poi confermate.
+907|Posizionamento
+908|veleno (Indebolito)
+909|Salvataggi
+910|Invia un commento
+911|Invia un commento…
+912|PRESTO
+913|punte (%d danni)
+914|non è stato possibile aprire la campagna
+915|non è stato possibile salvare la copia aggiornata
+916|Questo capitolo non è ancora pronto. Una nuova versione della campagna lo renderà giocabile - i vostri progressi vengono conservati.
+917|Continua
+918|Continua…
+919|Dove sono gli eroi? Trascinate il segnalino di ogni eroe sulla casella in cui si trova la sua miniatura, poi confermate.
+920|I vostri progressi sono salvati. Quando uscirà una nuova versione di questa campagna, installatela e aggiornate il vostro salvataggio.
+921|{hero}: metti la tua miniatura su una delle caselle evidenziate.
+P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo ora alla nuova versione? (Viene creata una copia; l'originale resta com'è.)|Hai %d salvataggi di versioni precedenti di questa campagna. Spostarli ora alla nuova versione? (Vengono create delle copie; gli originali restano come sono.)

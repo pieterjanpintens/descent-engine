@@ -1,0 +1,47 @@
+876|%d espaço(s) destacado(s).
+877|%s ataca %s (dano %d).
+878|%s ataca %s!
+879|%s ataca %s!%s\nDano %d - %s
+880|%s está confuso!\n%s
+881|%s foi derrotado! Retire-o do tabuleiro.
+882|%s se move e ataca %s!
+883|%s se move em direção a %s (não pode atacar nesta rodada).
+884|%s se move em direção a %s.
+885|%s fica onde está.
+886|%s pisa em espinhos: %d de dano.
+887|%s sofre %d de dano.
+888|%s atravessa as brasas: %s.
+889|%s atravessa o veneno: Febril.
+890|\n(+%d: fogo / barricada)
+891|\nDano %d - %s
+892|\nMova a miniatura pela linha laranja até o espaço marcado.
+893|\nNo caminho:
+894|Um herói é ferido
+895|Um monstro é derrotado
+896|Em breve
+897|Não foi possível transferir (continuam na versão antiga): %s
+898|Depuração: derrotar este monstro imediatamente (sem rolagem, sem efeitos de arma)
+899|Derrotar (depuração)
+900|brasas (Condenado, Atormentado)
+901|Fogo / barricada: +%d de dano
+902|Ele ataca %s: %d de dano.
+903|Mova a miniatura pela linha laranja até o espaço marcado.
+904|Transferido para a nova versão: %s
+905|Coloque sua miniatura em um dos espaços destacados.
+906|Coloquem as miniaturas dos heróis na área destacada, nos espaços de seus marcadores. Arrastem um marcador para movê-lo e depois confirmem.
+907|Posicionamento
+908|veneno (Febril)
+909|Jogos salvos
+910|Enviar comentários
+911|Enviar comentários…
+912|EM BREVE
+913|espinhos (%d de dano)
+914|não foi possível abrir a campanha
+915|não foi possível salvar a cópia atualizada
+916|Este capítulo ainda não está pronto. Uma nova versão da campanha o tornará jogável - seu progresso é mantido.
+917|Continua
+918|Continua…
+919|Onde estão os heróis? Arrastem o marcador de cada herói para o espaço onde está a miniatura dele e depois confirmem.
+920|Seu progresso está salvo. Quando sair uma nova versão desta campanha, instale-a e atualize seu jogo salvo.
+921|{hero}: coloque sua miniatura em um dos espaços destacados.
+P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo agora para a nova versão? (É feita uma cópia; o original fica como está.)|Você tem %d jogos salvos de versões anteriores desta campanha. Transferi-los agora para a nova versão? (São feitas cópias; os originais ficam como estão.)

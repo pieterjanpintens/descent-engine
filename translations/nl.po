@@ -2496,6 +2496,144 @@ msgstr "De prestaties bovenaan zijn in uitvoering. Als er een voltooid is, begin
 msgid "The feat order cannot be changed in this campaign."
 msgstr "De volgorde van prestaties kan in deze campagne niet worden gewijzigd."
 
+msgid "%d square(s) highlighted."
+msgstr "%d vak(ken) gemarkeerd."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s valt %s aan (schade %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s valt %s aan!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s valt %s aan!%s\nSchade %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s is verward!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s is verslagen! Haal hem van het bord."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s verplaatst zich en valt %s aan!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s verplaatst zich naar %s (kan deze ronde niet aanvallen)."
+
+msgid "%s moves towards %s."
+msgstr "%s verplaatst zich naar %s."
+
+msgid "%s stays where it is."
+msgstr "%s blijft staan waar hij staat."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s stapt op spijkers: %d schade."
+
+msgid "%s takes %d damage."
+msgstr "%s krijgt %d schade."
+
+msgid "%s walks through embers: %s."
+msgstr "%s loopt door gloeiende sintels: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s loopt door gif: Verzwakt."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: vuur / barricade)"
+
+msgid "\nDamage %d - %s"
+msgstr "\nSchade %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\nVerplaats de figuur langs de oranje lijn naar het gemarkeerde vak."
+
+msgid "\nOn the way: "
+msgstr "\nOnderweg: "
+
+msgid "A hero is wounded"
+msgstr "Een held raakt gewond"
+
+msgid "A monster is defeated"
+msgstr "Een monster wordt verslagen"
+
+msgid "Coming soon"
+msgstr "Binnenkort"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "Konden niet worden overgezet (ze blijven op de oude versie): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "Debug: versla dit monster meteen (geen worp, geen wapeneffecten)"
+
+msgid "Defeat (debug)"
+msgstr "Verslaan (debug)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "sintels (Gedoemd, Gekweld)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "Vuur / barricade: +%d schade"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "Hij haalt uit naar %s: %d schade."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "Verplaats de figuur langs de oranje lijn naar het gemarkeerde vak."
+
+msgid "Moved to the new version: %s"
+msgstr "Overgezet naar de nieuwe versie: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "Zet je figuur op een van de gemarkeerde vakken."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "Zet de figuren van je helden in het gemarkeerde gebied, op de vakken van hun fiches. Sleep een fiche om het te verplaatsen en bevestig dan."
+
+msgid "Placement"
+msgstr "Plaatsing"
+
+msgid "poison (Enfeebled)"
+msgstr "gif (Verzwakt)"
+
+msgid "Save games"
+msgstr "Opgeslagen spellen"
+
+msgid "Send feedback"
+msgstr "Feedback sturen"
+
+msgid "Send feedback…"
+msgstr "Feedback sturen…"
+
+msgid "SOON"
+msgstr "BINNENKORT"
+
+msgid "spikes (%d damage)"
+msgstr "spijkers (%d schade)"
+
+msgid "the campaign could not be opened"
+msgstr "de campagne kon niet worden geopend"
+
+msgid "the updated copy could not be saved"
+msgstr "de bijgewerkte kopie kon niet worden opgeslagen"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "Dit hoofdstuk is nog niet klaar. Een nieuwe versie van de campagne maakt het speelbaar - je voortgang blijft bewaard."
+
+msgid "To be continued"
+msgstr "Wordt vervolgd"
+
+msgid "To be continued…"
+msgstr "Wordt vervolgd…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "Waar staan de helden? Sleep het fiche van elke held naar het vak waar zijn figuur staat en bevestig dan."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "Je voortgang is opgeslagen. Komt er een nieuwe versie van deze campagne uit, installeer die dan en werk je opgeslagen spel bij."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: zet je figuur op een van de gemarkeerde vakken."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"
@@ -2520,3 +2658,8 @@ msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] "Nieuwe zijmissie: %s"
 msgstr[1] "Nieuwe zijmissies: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar de nieuwe versie overzetten? (Er wordt een kopie gemaakt; het origineel blijft zoals het is.)"
+msgstr[1] "Je hebt %d opgeslagen spellen van oudere versies van deze campagne. Nu naar de nieuwe versie overzetten? (Er worden kopieën gemaakt; de originelen blijven zoals ze zijn.)"

@@ -2496,6 +2496,144 @@ msgstr "A felül lévő teljesítményeken dolgoznak a hősök. Ha egy befejező
 msgid "The feat order cannot be changed in this campaign."
 msgstr "A teljesítmények sorrendje ebben a kampányban nem módosítható."
 
+msgid "%d square(s) highlighted."
+msgstr "Kiemelt mezők: %d."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s támad: %s (sebzés %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s támad: %s!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s támad: %s!%s\nSebzés %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s össze van zavarodva!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s legyőzve! Vedd le a tábláról."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s mozog és támad: %s!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s elindul felé: %s (ebben a körben nem tud támadni)."
+
+msgid "%s moves towards %s."
+msgstr "%s elindul felé: %s."
+
+msgid "%s stays where it is."
+msgstr "%s marad, ahol van."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s tüskékre lép: %d sebzés."
+
+msgid "%s takes %d damage."
+msgstr "%s %d sebzést szenved."
+
+msgid "%s walks through embers: %s."
+msgstr "%s átgázol a parázson: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s átgázol a méregen: Legyengült."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: tűz / barikád)"
+
+msgid "\nDamage %d - %s"
+msgstr "\nSebzés %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\nVidd a figurát a narancssárga vonal mentén a megjelölt mezőre."
+
+msgid "\nOn the way: "
+msgstr "\nÚtközben: "
+
+msgid "A hero is wounded"
+msgstr "Egy hős megsebesül"
+
+msgid "A monster is defeated"
+msgstr "Egy szörny legyőzve"
+
+msgid "Coming soon"
+msgstr "Hamarosan"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "Nem sikerült áthelyezni (a régi verzión maradnak): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "Hibakeresés: a szörny azonnali legyőzése (dobás és fegyverhatások nélkül)"
+
+msgid "Defeat (debug)"
+msgstr "Legyőzés (hibakeresés)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "parázs (Kárhozott, Gyötört)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "Tűz / barikád: +%d sebzés"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "Lecsap rá: %s, %d sebzés."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "Vidd a figurát a narancssárga vonal mentén a megjelölt mezőre."
+
+msgid "Moved to the new version: %s"
+msgstr "Áthelyezve az új verzióra: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "Tedd a figurádat az egyik kiemelt mezőre."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "Tegyétek a hősök figuráit a kiemelt területre, a jelzőik mezőire. Egy jelzőt húzással mozgathattok, aztán erősítsétek meg."
+
+msgid "Placement"
+msgstr "Elhelyezés"
+
+msgid "poison (Enfeebled)"
+msgstr "méreg (Legyengült)"
+
+msgid "Save games"
+msgstr "Mentések"
+
+msgid "Send feedback"
+msgstr "Visszajelzés küldése"
+
+msgid "Send feedback…"
+msgstr "Visszajelzés küldése…"
+
+msgid "SOON"
+msgstr "HAMAROSAN"
+
+msgid "spikes (%d damage)"
+msgstr "tüskék (%d sebzés)"
+
+msgid "the campaign could not be opened"
+msgstr "a kampányt nem sikerült megnyitni"
+
+msgid "the updated copy could not be saved"
+msgstr "a frissített másolatot nem sikerült menteni"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "Ez a fejezet még nincs kész. A kampány egy új verziója játszhatóvá teszi - az előrehaladásotok megmarad."
+
+msgid "To be continued"
+msgstr "Folytatása következik"
+
+msgid "To be continued…"
+msgstr "Folytatása következik…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "Hol vannak a hősök? Húzzátok minden hős jelzőjét arra a mezőre, ahol a figurája áll, aztán erősítsétek meg."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "Az előrehaladásotok el van mentve. Ha megjelenik a kampány új verziója, telepítsétek, és frissítsétek a mentést."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: tedd a figurádat az egyik kiemelt mezőre."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"
@@ -2520,3 +2658,8 @@ msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] "Új mellékküldetés: %s"
 msgstr[1] "Új mellékküldetések: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most az új verzióra? (Másolat készül; az eredeti változatlan marad.)"
+msgstr[1] "%d mentésetek van a kampány régebbi verzióiból. Áthelyezitek most őket az új verzióra? (Másolatok készülnek; az eredetiek változatlanok maradnak.)"

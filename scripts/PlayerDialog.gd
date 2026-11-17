@@ -254,7 +254,7 @@ func _set_modal(dim: bool) -> void:
 ## "interrupt").
 func ask_monster_attack(cfg: Dictionary) -> int:
 	_set_images(null, null)
-	_set_modal(true)
+	_set_modal(cfg.get("dim", true))
 	var meshes: Array = cfg.get("monster_flat_meshes", [])
 	if not meshes.is_empty():
 		var paths: Array[String] = []

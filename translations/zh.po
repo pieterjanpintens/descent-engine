@@ -2496,6 +2496,144 @@ msgstr "排在最上面的功绩正在进行。完成一个后，列表中下一
 msgid "The feat order cannot be changed in this campaign."
 msgstr "此战役中不能更改功绩顺序。"
 
+msgid "%d square(s) highlighted."
+msgstr "已高亮 %d 个格子。"
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s 攻击 %s（伤害 %d）。"
+
+msgid "%s attacks %s!"
+msgstr "%s 攻击 %s！"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s 攻击 %s！%s\n伤害 %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s 陷入混乱！\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s 被击败了！请将其从桌面上移除。"
+
+msgid "%s moves and attacks %s!"
+msgstr "%s 移动并攻击 %s！"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s 向 %s 移动（本轮无法攻击）。"
+
+msgid "%s moves towards %s."
+msgstr "%s 向 %s 移动。"
+
+msgid "%s stays where it is."
+msgstr "%s 留在原地。"
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s 踩到尖刺：%d 点伤害。"
+
+msgid "%s takes %d damage."
+msgstr "%s 受到 %d 点伤害。"
+
+msgid "%s walks through embers: %s."
+msgstr "%s 穿过余烬：%s。"
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s 穿过毒液：孱弱。"
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n（+%d：火焰 / 路障）"
+
+msgid "\nDamage %d - %s"
+msgstr "\n伤害 %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\n沿橙色线将模型移动到标记的格子。"
+
+msgid "\nOn the way: "
+msgstr "\n途中： "
+
+msgid "A hero is wounded"
+msgstr "一名英雄受伤"
+
+msgid "A monster is defeated"
+msgstr "一个怪物被击败"
+
+msgid "Coming soon"
+msgstr "即将推出"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "无法迁移（保留在旧版本上）：%s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "调试：立即击败这个怪物（不掷骰，没有武器效果）"
+
+msgid "Defeat (debug)"
+msgstr "击败（调试）"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "余烬（灭亡、苦痛）"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "火焰 / 路障：+%d 伤害"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "它猛击 %s：%d 点伤害。"
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "沿橙色线将模型移动到标记的格子。"
+
+msgid "Moved to the new version: %s"
+msgstr "已迁移到新版本：%s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "将你的模型放在一个高亮的格子上。"
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "将英雄模型放在高亮区域内，放在他们标记所在的格子上。拖动标记可以移动它，然后确认。"
+
+msgid "Placement"
+msgstr "放置"
+
+msgid "poison (Enfeebled)"
+msgstr "毒液（孱弱）"
+
+msgid "Save games"
+msgstr "存档"
+
+msgid "Send feedback"
+msgstr "发送反馈"
+
+msgid "Send feedback…"
+msgstr "发送反馈…"
+
+msgid "SOON"
+msgstr "即将推出"
+
+msgid "spikes (%d damage)"
+msgstr "尖刺（%d 点伤害）"
+
+msgid "the campaign could not be opened"
+msgstr "无法打开战役"
+
+msgid "the updated copy could not be saved"
+msgstr "无法保存更新后的副本"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "本章尚未完成。战役的新版本将使其可以游玩——你的进度会被保留。"
+
+msgid "To be continued"
+msgstr "未完待续"
+
+msgid "To be continued…"
+msgstr "未完待续…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "英雄们在哪里？将每位英雄的标记拖到其模型所在的格子上，然后确认。"
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "你的进度已保存。战役推出新版本时，请安装它并更新你的存档。"
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}：将你的模型放在一个高亮的格子上。"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"
@@ -2515,3 +2653,7 @@ msgstr[0] "好运护符：%d 个额外成功被加到 %s 的结果上。"
 msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] "新的支线任务：%s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "你有 %d 个此战役旧版本的存档。现在将其迁移到新版本吗？（会创建副本；原存档保持不变。）"

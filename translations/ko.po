@@ -2496,6 +2496,144 @@ msgstr "맨 위의 업적이 진행 중입니다. 하나를 완료하면 목록�
 msgid "The feat order cannot be changed in this campaign."
 msgstr "이 캠페인에서는 업적 순서를 바꿀 수 없습니다."
 
+msgid "%d square(s) highlighted."
+msgstr "강조된 칸: %d개."
+
+msgid "%s attacks %s (damage %d)."
+msgstr "%s이(가) %s을(를) 공격합니다 (피해 %d)."
+
+msgid "%s attacks %s!"
+msgstr "%s이(가) %s을(를) 공격합니다!"
+
+msgid "%s attacks %s!%s\nDamage %d - %s"
+msgstr "%s이(가) %s을(를) 공격합니다!%s\n피해 %d - %s"
+
+msgid "%s is confused!\n%s"
+msgstr "%s이(가) 혼란에 빠졌습니다!\n%s"
+
+msgid "%s is defeated! Remove it from the board."
+msgstr "%s이(가) 쓰러졌습니다! 판에서 치우세요."
+
+msgid "%s moves and attacks %s!"
+msgstr "%s이(가) 이동하여 %s을(를) 공격합니다!"
+
+msgid "%s moves towards %s (it cannot attack this round)."
+msgstr "%s이(가) %s 쪽으로 이동합니다 (이번 라운드에는 공격할 수 없습니다)."
+
+msgid "%s moves towards %s."
+msgstr "%s이(가) %s 쪽으로 이동합니다."
+
+msgid "%s stays where it is."
+msgstr "%s은(는) 제자리에 머뭅니다."
+
+msgid "%s steps on spikes: %d damage."
+msgstr "%s이(가) 가시를 밟습니다: 피해 %d."
+
+msgid "%s takes %d damage."
+msgstr "%s이(가) 피해 %d을(를) 받습니다."
+
+msgid "%s walks through embers: %s."
+msgstr "%s이(가) 잉걸불을 지나갑니다: %s."
+
+msgid "%s walks through poison: Enfeebled."
+msgstr "%s이(가) 독을 지나갑니다: 약화."
+
+msgid "\n(+%d: fire / barricade)"
+msgstr "\n(+%d: 불 / 바리케이드)"
+
+msgid "\nDamage %d - %s"
+msgstr "\n피해 %d - %s"
+
+msgid "\nMove the figure along the orange line to the marked square."
+msgstr "\n주황색 선을 따라 표시된 칸으로 피규어를 옮기세요."
+
+msgid "\nOn the way: "
+msgstr "\n가는 길에: "
+
+msgid "A hero is wounded"
+msgstr "영웅이 부상을 입음"
+
+msgid "A monster is defeated"
+msgstr "몬스터가 쓰러짐"
+
+msgid "Coming soon"
+msgstr "곧 공개"
+
+msgid "Could not be moved (they stay on the old version): %s"
+msgstr "옮기지 못했습니다 (이전 버전에 남습니다): %s"
+
+msgid "Debug: defeat this monster at once (no roll, no weapon effects)"
+msgstr "디버그: 이 몬스터를 즉시 쓰러뜨립니다 (굴림 없음, 무기 효과 없음)"
+
+msgid "Defeat (debug)"
+msgstr "쓰러뜨리기 (디버그)"
+
+msgid "embers (Doomed, Afflicted)"
+msgstr "잉걸불 (파멸, 고통)"
+
+msgid "Fire / barricade: +%d damage"
+msgstr "불 / 바리케이드: 피해 +%d"
+
+msgid "It lashes out at %s: %d damage."
+msgstr "%s을(를) 후려칩니다: 피해 %d."
+
+msgid "Move the figure along the orange line to the marked square."
+msgstr "주황색 선을 따라 표시된 칸으로 피규어를 옮기세요."
+
+msgid "Moved to the new version: %s"
+msgstr "새 버전으로 옮겼습니다: %s"
+
+msgid "Place your figure on one of the highlighted squares."
+msgstr "강조된 칸 중 하나에 피규어를 놓으세요."
+
+msgid "Place your hero figures in the highlighted area, on the squares of their tokens. Drag a token to move it, then confirm."
+msgstr "영웅 피규어를 강조된 구역의 토큰 칸에 놓으세요. 토큰을 끌어서 옮긴 다음 확인하세요."
+
+msgid "Placement"
+msgstr "배치"
+
+msgid "poison (Enfeebled)"
+msgstr "독 (약화)"
+
+msgid "Save games"
+msgstr "저장 게임"
+
+msgid "Send feedback"
+msgstr "의견 보내기"
+
+msgid "Send feedback…"
+msgstr "의견 보내기…"
+
+msgid "SOON"
+msgstr "곧 공개"
+
+msgid "spikes (%d damage)"
+msgstr "가시 (피해 %d)"
+
+msgid "the campaign could not be opened"
+msgstr "캠페인을 열 수 없습니다"
+
+msgid "the updated copy could not be saved"
+msgstr "업데이트된 사본을 저장할 수 없습니다"
+
+msgid "This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."
+msgstr "이 챕터는 아직 준비되지 않았습니다. 캠페인의 새 버전에서 플레이할 수 있게 됩니다 - 진행 상황은 유지됩니다."
+
+msgid "To be continued"
+msgstr "다음 편에 계속"
+
+msgid "To be continued…"
+msgstr "다음 편에 계속…"
+
+msgid "Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."
+msgstr "영웅들은 어디에 있습니까? 각 영웅의 토큰을 그 피규어가 서 있는 칸으로 끌어 놓은 다음 확인하세요."
+
+msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
+msgstr "진행 상황이 저장되었습니다. 이 캠페인의 새 버전이 나오면 설치하고 저장 게임을 업데이트하세요."
+
+msgid "{hero}: place your figure on one of the highlighted squares."
+msgstr "{hero}: 강조된 칸 중 하나에 피규어를 놓으세요."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"
@@ -2515,3 +2653,7 @@ msgstr[0] "행운의 부적: 추가 성공 %d개가 %s의 결과에 더해집니
 msgid "New side quest: %s"
 msgid_plural "New side quests: %s"
 msgstr[0] "새 보조 퀘스트: %s"
+
+msgid "You have %d save game of an older version of this campaign. Move it to the new version now? (A copy is made; the original stays as it is.)"
+msgid_plural "You have %d save games of older versions of this campaign. Move them to the new version now? (Copies are made; the originals stay as they are.)"
+msgstr[0] "이 캠페인의 이전 버전 저장 게임이 %d개 있습니다. 지금 새 버전으로 옮기시겠습니까? (사본이 만들어지며 원본은 그대로 남습니다.)"

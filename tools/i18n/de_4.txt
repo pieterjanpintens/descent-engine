@@ -1,0 +1,47 @@
+876|%d Feld(er) markiert.
+877|%s greift %s an (Schaden %d).
+878|%s greift %s an!
+879|%s greift %s an!%s\nSchaden %d - %s
+880|%s ist verwirrt!\n%s
+881|%s wurde besiegt! Entferne es vom Spielplan.
+882|%s bewegt sich und greift %s an!
+883|%s bewegt sich auf %s zu (es kann in dieser Runde nicht angreifen).
+884|%s bewegt sich auf %s zu.
+885|%s bleibt, wo es ist.
+886|%s tritt auf Stacheln: %d Schaden.
+887|%s erleidet %d Schaden.
+888|%s geht durch Glut: %s.
+889|%s geht durch Gift: Entkräftet.
+890|\n(+%d: Feuer / Barrikade)
+891|\nSchaden %d - %s
+892|\nBewege die Figur entlang der orangefarbenen Linie auf das markierte Feld.
+893|\nUnterwegs:
+894|Ein Held wird verwundet
+895|Ein Monster wird besiegt
+896|Demnächst
+897|Konnten nicht übertragen werden (sie bleiben bei der alten Version): %s
+898|Debug: dieses Monster sofort besiegen (kein Wurf, keine Waffeneffekte)
+899|Besiegen (Debug)
+900|Glut (Verdammt, Zermürbt)
+901|Feuer / Barrikade: +%d Schaden
+902|Es schlägt nach %s: %d Schaden.
+903|Bewege die Figur entlang der orangefarbenen Linie auf das markierte Feld.
+904|Auf die neue Version übertragen: %s
+905|Stelle deine Figur auf eines der markierten Felder.
+906|Stellt die Figuren eurer Helden in den markierten Bereich, auf die Felder ihrer Marker. Zieht einen Marker, um ihn zu verschieben, und bestätigt dann.
+907|Platzierung
+908|Gift (Entkräftet)
+909|Spielstände
+910|Feedback senden
+911|Feedback senden…
+912|BALD
+913|Stacheln (%d Schaden)
+914|die Kampagne konnte nicht geöffnet werden
+915|die aktualisierte Kopie konnte nicht gespeichert werden
+916|Dieses Kapitel ist noch nicht fertig. Eine neue Version der Kampagne macht es spielbar - euer Fortschritt bleibt erhalten.
+917|Fortsetzung folgt
+918|Fortsetzung folgt…
+919|Wo stehen die Helden? Zieht den Marker jedes Helden auf das Feld, auf dem seine Figur steht, und bestätigt dann.
+920|Euer Fortschritt ist gespeichert. Wenn eine neue Version dieser Kampagne erscheint, installiert sie und aktualisiert euren Spielstand.
+921|{hero}: Stelle deine Figur auf eines der markierten Felder.
+P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die neue Version übertragen? (Es wird eine Kopie erstellt; das Original bleibt unverändert.)|Ihr habt %d Spielstände älterer Versionen dieser Kampagne. Jetzt auf die neue Version übertragen? (Es werden Kopien erstellt; die Originale bleiben unverändert.)
