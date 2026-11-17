@@ -280,6 +280,8 @@ func _ready() -> void:
 	_runtime.sync_builtins(current_round, player_roster.size())
 	# the difficulty chosen on the embark screen (a campaign game keeps its own, a single mission uses the player setting; a resumed save restores its own below)
 	_runtime.set_difficulty(GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty)
+	# position tracking is a campaign option; single missions never track positions
+	_runtime.track_positions = GameState.campaign_folder != "" and GameState.campaign_track_positions
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func():
 		monster_display.refresh_monsters(_runtime.monsters)
@@ -313,6 +315,8 @@ func _ready() -> void:
 		_runtime.collected_loot = resume_save.collected_loot.duplicate()
 		_runtime.wound_health_override = resume_save.wound_health_override
 		_runtime.restore_monsters(resume_save.monsters)
+		_runtime.track_positions = resume_save.track_positions
+		_runtime.load_hero_positions(resume_save.hero_positions)
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
 		_runtime.hero_attacks_round = resume_save.hero_attacks_round.duplicate()
 		_runtime.hero_interactions_round = resume_save.hero_interactions_round.duplicate()
@@ -501,6 +505,8 @@ func _build_save(snapshot: bool) -> SaveGame:
 	for monster in _runtime.monsters:
 		monster_dicts.append(monster.to_dict())
 	save.monsters = monster_dicts
+	save.track_positions = _runtime.track_positions
+	save.hero_positions = _runtime.hero_positions_state()
 	save.hero_attacks_made = _runtime.hero_attacks_made.duplicate()
 	save.hero_attacks_round = _runtime.hero_attacks_round.duplicate()
 	save.hero_interactions_round = _runtime.hero_interactions_round.duplicate()
@@ -878,6 +884,9 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		var max_corners := layered_map.get_tile_square_world_corners(anchor)
 		var center := (min_corners[0] + max_corners[2]) * 0.5
 		placed_centers.append(center)
+		if _runtime.track_positions:
+			# the spawn tile is 1-based and the far corner of a large base; positions are 0-based lowest corners
+			_runtime.set_monster_position(monster, Vector3i(anchor.x - size_tiles, anchor.y, anchor.z - size_tiles))
 		holder.place_stand(center / holder.scale.x, info, i, MonsterChip.color(monster.chip))
 
 	if not placed_centers.is_empty():

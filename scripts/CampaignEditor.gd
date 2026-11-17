@@ -92,6 +92,7 @@ var _problem_lines: Array[String] = []
 var _materials_dialog: LootDialog
 var _potion_spin: SpinBox
 var _feats_spin: SpinBox
+var _track_check: CheckBox
 var _feat_change_option: OptionButton
 var _feat_change_spin: SpinBox
 var _feat_change_unit: Label
@@ -354,6 +355,17 @@ func _ready() -> void:
 	)
 	_feats_spin = feats_spin
 	feats_row.add_child(feats_spin)
+	var track_check := CheckBox.new()
+	track_check.text = "Track positions (the app moves the monsters)"
+	track_check.button_pressed = _campaign.track_positions if _campaign != null else false
+	track_check.tooltip_text = "A different way to play: the table tells the app where the heroes stand and the app moves every monster itself. Off = the original game, the table moves the monsters."
+	track_check.toggled.connect(func(on: bool):
+		if _campaign != null:
+			_campaign.track_positions = on
+			_mark_dirty()
+	)
+	_track_check = track_check
+	general.add_child(track_check)
 	_build_feat_change_row(general)
 	var brooch_row := HBoxContainer.new()
 	general.add_child(brooch_row)
@@ -1825,6 +1837,7 @@ func _refresh_all() -> void:
 	_update_language_bar()
 	_potion_spin.set_value_no_signal(_campaign.consumables_per_player)
 	_feats_spin.set_value_no_signal(_campaign.parallel_feats)
+	_track_check.set_pressed_no_signal(_campaign.track_positions)
 	_refresh_feat_change_ui()
 	_refresh_brooch_row()
 	_cover_label.text = "Book cover: %s (trimmed to 2:3)" % (_campaign.cover_image if _campaign.cover_image != "" else "none - a dummy is shown")

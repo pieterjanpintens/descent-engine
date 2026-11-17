@@ -945,6 +945,7 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 	GameState.campaign_save = CampaignIO.save_key(_state.save_name)
 	GameState.campaign_chapter_id = id
 	GameState.campaign_difficulty = Difficulty.clamped(_state.difficulty)
+	GameState.campaign_track_positions = _campaign.track_positions
 	var values := _state.variable_values(_campaign)
 	GameState.campaign_mission_inputs = {}
 	for input in inputs:

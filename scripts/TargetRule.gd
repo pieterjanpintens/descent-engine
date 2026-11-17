@@ -19,6 +19,7 @@ enum Kind {
 	CASTER,     ## a hero with a magic-damage weapon
 	FINISH,     ## the most wounded hero
 	FRESH,      ## the least wounded hero
+	NEAREST,    ## the hero the fewest steps away (only when positions are tracked; otherwise the next rule decides)
 }
 
 @export var kind: Kind = Kind.RANDOM
@@ -55,6 +56,8 @@ static func description(kind: int) -> String:
 			return "The most wounded hero (ties: random; if nobody is wounded, the next rule decides)."
 		Kind.FRESH:
 			return "The least wounded hero (ties: random)."
+		Kind.NEAREST:
+			return "The hero the fewest steps away (ties: random). Only in a campaign that tracks positions; otherwise the next rule decides."
 	return ""
 
 

@@ -23,6 +23,8 @@ var campaign_save: String = ""
 var campaign_mission_inputs: Dictionary = {}
 ## The difficulty (1-4, Difficulty) of the campaign game the mission is played in; a mission outside a campaign uses PlayerSettings.mission_difficulty.
 var campaign_difficulty: int = 2
+## The campaign tracks positions (Campaign.track_positions): the mission moves the monsters itself.
+var campaign_track_positions: bool = false
 ## Which page the campaign screen opens on when no save game is given: "new" (pick a campaign book) or "load".
 var campaign_screen: String = "new"
 var campaign_chapter_id: String = ""
@@ -77,5 +79,6 @@ func clear_campaign() -> void:
 	campaign_save = ""
 	campaign_mission_inputs = {}
 	campaign_difficulty = Difficulty.DEFAULT
+	campaign_track_positions = false
 	campaign_chapter_id = ""
 	campaign_result = {}

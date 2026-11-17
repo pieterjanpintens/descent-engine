@@ -373,6 +373,11 @@ var hero_times_targeted: Dictionary = {}
 ## (third) wound loses the game (MissionPlayer). Saved with the game.
 const HERO_WOUND_LIMIT := 3
 var hero_wounds: Dictionary = {}
+## POSITION TRACKING (a campaign option, Campaign.track_positions): the app knows where the heroes stand and moves the monsters itself.
+## `hero_positions`: hero slot -> square (x, height, z, 0-based game units); a hero not in it has not been put on the board yet. The
+## monsters keep their own square (RuntimeMonster.position). Saved with the mission save.
+var track_positions: bool = false
+var hero_positions: Dictionary = {}
 ## hero slot -> the name of the injury card the hero holds (see Injuries). Saved with the game.
 var hero_injuries: Dictionary = {}
 
@@ -430,6 +435,8 @@ var monsters: Array[RuntimeMonster] = []
 var _next_monster_number: int = 1
 var _next_spawn_batch: int = 1
 signal monsters_changed
+## A hero or monster changed square (position tracking).
+signal positions_changed
 ## Unaware monsters woke up (the whole group at once): (the monsters, why: "attack", "status", "conditions" or "effect"). MissionPlayer tells the table.
 signal monsters_woke(woken: Array, reason: String)
 ## A monster was defeated and removed (every way of defeating one ends in release_monster()).
@@ -598,6 +605,7 @@ func register_monster(template: MonsterTemplate) -> RuntimeMonster:
 	created.attack_abilities = resolved["attack_abilities"]
 	created.defense_abilities = resolved["defense_abilities"]
 	created.target_rules = resolved["target_rules"]
+	created.size = 2 if MonsterDisplay.size_units(folder) >= 2.0 else 1
 	created.confused_actions = resolved["confused_actions"]
 	created.loot = resolved["loot"]
 	created.defeat_text = resolved["defeat_text"]
@@ -1966,3 +1974,52 @@ func _zero_value(type: MissionVariable.Type) -> Variant:
 		MissionVariable.Type.STRING:
 			return ""
 	return null
+
+# ---------------------------------------------------------------- position tracking
+
+## Puts hero `slot` on `square` (or takes it off the board with a null square).
+func set_hero_position(slot: int, square: Variant) -> void:
+	if square == null:
+		hero_positions.erase(slot)
+	else:
+		hero_positions[slot] = square
+	positions_changed.emit()
+
+
+## Puts `monster` on `square` (the corner of its base with the lowest x and z).
+func set_monster_position(monster: RuntimeMonster, square: Vector3i) -> void:
+	monster.position = square
+	monster.placed = true
+	positions_changed.emit()
+
+
+## The squares every figure on the board covers, except `skip` (a hero slot or a RuntimeMonster): {square: true}. For checking a drop.
+func occupied_squares(skip: Variant = null) -> Dictionary:
+	var taken: Dictionary = {}
+	for slot: int in hero_positions:
+		if typeof(skip) == TYPE_INT and int(skip) == slot:
+			continue
+		taken[hero_positions[slot]] = true
+	for monster in monsters:
+		if (skip is RuntimeMonster and monster == skip) or not monster.placed:
+			continue
+		for square in MonsterMovement.block(monster.position, monster.size):
+			taken[square] = true
+	return taken
+
+
+## hero_positions as a plain dictionary for a save (slot -> [x, height, z]).
+func hero_positions_state() -> Dictionary:
+	var state: Dictionary = {}
+	for slot: int in hero_positions:
+		var square: Vector3i = hero_positions[slot]
+		state[slot] = [square.x, square.y, square.z]
+	return state
+
+
+func load_hero_positions(state: Dictionary) -> void:
+	hero_positions.clear()
+	for slot in state:
+		var spot: Array = state[slot]
+		if spot.size() == 3:
+			hero_positions[int(slot)] = Vector3i(int(spot[0]), int(spot[1]), int(spot[2]))

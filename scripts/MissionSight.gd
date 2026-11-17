@@ -10,7 +10,7 @@ extends RefCounted
 ## Only pieces that are revealed (MissionData.is_effectively_visible) and not held back by a running stage reveal count.
 
 
-## {"sight": SightLine context, "squares": {Vector3i (x, height, z): true}, "links": Array of [Vector3i, Vector3i] (a stair or ladder step)}.
+## {"sight": SightLine context, "squares": {Vector3i (x, height, z): true}, "links": Array of [Vector3i lower, Vector3i upper, String "stair" | "ladder"]}.
 static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionary:
 	var floors: Dictionary = {}
 	_collect_floor(mission, held_back, mission.floor_placements, mission.floor_occupied_cells, floors)
@@ -22,7 +22,7 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 			continue
 		props.append(entry)
 		var base: int = entry.origin_cell.y
-		var cells := _cells_of(entry)
+		var cells := cells_of(entry)
 		for cell in BuildRules.sight_cells_from_footprint(entry.mesh_item_name, cells):
 			var key := Vector2i(cell.x, cell.z)
 			if not blockers.has(key):
@@ -44,7 +44,7 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 	# deck as floor one unit higher, so ranges and sight cross a gap by it and a figure can stand on the deck.
 	for entry in props:
 		if BuildRules.is_bridge(entry.mesh_item_name):
-			var bridge_cells := _cells_of(entry)
+			var bridge_cells := cells_of(entry)
 			var bridge_base: int = entry.origin_cell.y
 			for cell in BuildRules.bridge_end_cells(bridge_cells):
 				_add_floor_cell(floors, bridge_base, cell)
@@ -54,7 +54,7 @@ static func build(mission: MissionData, held_back: Dictionary = {}) -> Dictionar
 	var squares: Dictionary = {}
 	for square: Vector3i in sight["squares"]:
 		squares[square] = true
-	return {"sight": sight, "squares": squares, "links": _links(props, squares)}
+	return {"sight": sight, "squares": squares, "links": step_links(props, squares)}
 
 
 ## The 8 neighbours of a column: moving diagonally costs one step like any other.
@@ -114,7 +114,7 @@ static func _collect_floor(mission: MissionData, held_back: Dictionary, placemen
 
 
 ## A placed prop's absolute fine cells.
-static func _cells_of(entry: InteractableEntry) -> Array[Vector3i]:
+static func cells_of(entry: InteractableEntry) -> Array[Vector3i]:
 	var cells: Array[Vector3i] = []
 	for offset in entry.footprint:
 		cells.append(entry.origin_cell + offset)
@@ -123,13 +123,13 @@ static func _cells_of(entry: InteractableEntry) -> Array[Vector3i]:
 
 ## The steps stairs and ladders add. A stair links each square of its high end to the floor one unit up that it holds or touches; a ladder
 ## links the floor squares touching it to the floor squares touching it `rise` units up.
-static func _links(props: Array[InteractableEntry], squares: Dictionary) -> Array:
+static func step_links(props: Array[InteractableEntry], squares: Dictionary) -> Array:
 	var links: Array = []
 	var cpt := FootprintRegistry.CELLS_PER_TILE
 	for entry in props:
 		var mesh := entry.mesh_item_name
 		var base: int = entry.origin_cell.y
-		var cells := _cells_of(entry)
+		var cells := cells_of(entry)
 		if mesh == "stair":
 			var seen: Dictionary = {}
 			for cell in BuildRules.stair_high_end(entry.origin_cell, cells):
@@ -140,7 +140,7 @@ static func _links(props: Array[InteractableEntry], squares: Dictionary) -> Arra
 					for offset in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 						var upper := Vector3i(square.x + offset.x, base + rise, square.y + offset.y)
 						if squares.has(lower) and squares.has(upper):
-							links.append([lower, upper])
+							links.append([lower, upper, "stair"])
 		var climbs := BuildRules.climb_rises(mesh)
 		if not climbs.is_empty():
 			var own: Dictionary = {}
@@ -158,5 +158,5 @@ static func _links(props: Array[InteractableEntry], squares: Dictionary) -> Arra
 						var lower := Vector3i(below.x, base, below.y)
 						var upper := Vector3i(above.x, base + rise, above.y)
 						if squares.has(lower) and squares.has(upper):
-							links.append([lower, upper])
+							links.append([lower, upper, "ladder"])
 	return links

@@ -97,6 +97,11 @@ var wake_on_status: bool = true
 var spawn_batch: int = 0
 var spawn_group_id: String = ""
 var spawn_area_id: String = ""
+## POSITION TRACKING only (MissionRuntime.track_positions): where it stands - the square (x, height, z, 0-based game units) of its base's
+## corner with the lowest x and z - and how many squares its base is wide (1, or 2 for a large monster). `placed` = false: not on the board yet.
+var position: Vector3i = Vector3i.ZERO
+var placed: bool = false
+var size: int = 1
 
 
 ## The defense as it is NOW: `defense` minus this round's reduction, never below 0.
@@ -208,6 +213,7 @@ func to_dict() -> Dictionary:
 		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text, "defeat_effects": defeat_effects.duplicate(), "prepared_tactic": prepared_tactic, "tactics": _to_dicts(tactics),
 			"unaware": unaware, "wake_conditions": wake_conditions.duplicate(), "wake_on_attack": wake_on_attack, "wake_on_status": wake_on_status,
 			"spawn_batch": spawn_batch, "spawn_group_id": spawn_group_id, "spawn_area_id": spawn_area_id,
+			"position": [position.x, position.y, position.z], "placed": placed, "size": size,
 	}
 
 
@@ -280,6 +286,11 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 	m.spawn_batch = int(d.get("spawn_batch", 0))
 	m.spawn_group_id = str(d.get("spawn_group_id", ""))
 	m.spawn_area_id = str(d.get("spawn_area_id", ""))
+	var spot: Array = d.get("position", [0, 0, 0])
+	if spot.size() == 3:
+		m.position = Vector3i(int(spot[0]), int(spot[1]), int(spot[2]))
+	m.placed = bool(d.get("placed", false))
+	m.size = maxi(int(d.get("size", 1)), 1)
 	return m
 
 
