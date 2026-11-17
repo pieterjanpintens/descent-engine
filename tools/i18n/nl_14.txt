@@ -55,3 +55,8 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 929|%s verschuift %s - zet zijn figuur op zijn fiche
 930|weg van %s
 931|naar %s
+932|%s kan niet worden teruggeduwd.
+933|%s wordt %d vak(ken) teruggeduwd - zet de figuur op het fiche.
+934|%s gaat %d vak(ken) weg van %s.
+935|%s: %s!\nDoelwit %s - Schade %d - %s
+936|Welke held heeft de meeste vermoeidheid? (Gelijk: kies er een.)

@@ -2664,6 +2664,21 @@ msgstr "遠離 %s"
 msgid "toward %s"
 msgstr "朝 %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s 無法被擊退。"
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s 被擊退 %d 格——請把模型移到它的標記處。"
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s 後退 %d 格，遠離 %s。"
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s：%s！\n目標 %s - 傷害 %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "哪位英雄的疲勞最多？（平手時任選一位。）"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

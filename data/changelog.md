@@ -1,4 +1,8 @@
-﻿## v0.0.79 - 2026-11-17
+﻿## v0.0.80 - 2026-11-17
+- Pillars now stand where four squares meet, like the real pieces (the floor tiles have small cut-outs at their corners for them): in the mission editor a pillar snaps to the nearest square corner and moves in whole squares. Existing missions were updated once - please check pillars that stand on the edge of a raised floor.
+- When the app moves the monsters, tactics move the monster too: the Harbinger's Prey on the Weak leaps next to the hero with the most fatigue (the app asks who that is), and the Mercenary's Thrust pushes its target back. Flying monsters (Fae, Harbinger Vanguard) fly over terrain, height differences and hazards.
+
+## v0.0.79 - 2026-11-17
 - When the app moves the monsters: defense abilities that shift a monster now move it on the map too - the bandit's Smokebomb (2 away from the hero), Shadowstep (3 away), Sound the Alarm, the wolves' shift toward the hero (and whether the wolf now stands next to the hero), and the shifting bosses. The attack result says who moved; move the figures to their tokens.
 - Drag a hero onto a monster's token on the map to attack it.
 - Monsters no longer all go for the nearest hero: without a target rule in their template they pick at random among the heroes they can attack this turn. Give a template the Nearest or Focus rule to make it gang up.

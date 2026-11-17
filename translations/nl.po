@@ -2664,6 +2664,21 @@ msgstr "weg van %s"
 msgid "toward %s"
 msgstr "naar %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s kan niet worden teruggeduwd."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s wordt %d vak(ken) teruggeduwd - zet de figuur op het fiche."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s gaat %d vak(ken) weg van %s."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: %s!\nDoelwit %s - Schade %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "Welke held heeft de meeste vermoeidheid? (Gelijk: kies er een.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

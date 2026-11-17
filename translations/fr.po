@@ -2664,6 +2664,21 @@ msgstr "à l'écart de %s"
 msgid "toward %s"
 msgstr "vers %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s ne peut pas être repoussé."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s est repoussé de %d case(s) - placez la figurine sur son jeton."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s s'éloigne de %d case(s) de %s."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s : %s !\nCible %s - Dégâts %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "Quel héros a le plus de fatigue ? (En cas d'égalité, choisissez-en un.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

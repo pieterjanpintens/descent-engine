@@ -2664,6 +2664,21 @@ msgstr "прочь от цели: %s"
 msgid "toward %s"
 msgstr "к цели: %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s нельзя оттолкнуть."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s отброшен на %d клет. - поставьте фигурку на её жетон."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s отходит на %d клет. от цели: %s."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: %s!\nЦель %s - Урон %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "У какого героя больше всего усталости? (При равенстве выберите одного.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

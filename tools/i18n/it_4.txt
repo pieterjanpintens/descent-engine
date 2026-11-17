@@ -55,3 +55,8 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 929|%s si sposta %s - mettete la sua miniatura sul suo segnalino
 930|lontano da %s
 931|verso %s
+932|%s non può essere respinto.
+933|%s viene respinto di %d casella/e - mettete la miniatura sul suo segnalino.
+934|%s si allontana di %d casella/e da %s.
+935|%s: %s!\nBersaglio %s - Danni %d - %s
+936|Quale eroe ha più fatica? (In caso di parità sceglietene uno.)

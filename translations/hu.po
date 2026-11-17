@@ -2664,6 +2664,21 @@ msgstr "távolabb tőle: %s"
 msgid "toward %s"
 msgstr "felé: %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s nem lökhető hátra."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s %d mezőt hátralökődik - tegyétek a figurát a jelzőjére."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s %d mezőt távolodik tőle: %s."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: %s!\nCélpont %s - Sebzés %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "Melyik hősnek van a legtöbb kimerültsége? (Egyenlőség esetén válasszatok egyet.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

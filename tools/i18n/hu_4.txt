@@ -55,3 +55,8 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 929|%s elmozdul %s - tegyétek a figuráját a jelzőjére
 930|távolabb tőle: %s
 931|felé: %s
+932|%s nem lökhető hátra.
+933|%s %d mezőt hátralökődik - tegyétek a figurát a jelzőjére.
+934|%s %d mezőt távolodik tőle: %s.
+935|%s: %s!\nCélpont %s - Sebzés %d - %s
+936|Melyik hősnek van a legtöbb kimerültsége? (Egyenlőség esetén válasszatok egyet.)

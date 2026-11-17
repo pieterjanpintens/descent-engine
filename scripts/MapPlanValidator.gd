@@ -544,10 +544,13 @@ static func _read_piece(entry: Variant, index: int, result: Dictionary) -> Dicti
 	if absf(fx) > MAX_COORDINATE or absf(fz) > MAX_COORDINATE:
 		_add(result, "error", "out_of_range", index, "Piece %d (\"%s\"): position %s, %s is outside -%d..%d." % [index, mesh, String.num(fx), String.num(fz), MAX_COORDINATE, MAX_COORDINATE])
 		return {}
-	# whole numbers, except the pillars which also sit on half units
-	var step := 0.5 if FootprintRegistry.allows_fine_placement(mesh) else 1.0
-	if not _is_multiple(fx, step) or not _is_multiple(fz, step):
-		_add(result, "error", "bad_position", index, "Piece %d (\"%s\"): position %s, %s must be %s." % [index, mesh, String.num(fx), String.num(fz), "a multiple of 0.5" if step == 0.5 else "a whole number"])
+	# whole numbers, except the pillars: they stand where four squares meet, so their position (the near corner of what they cover)
+	# always ends in .5
+	var pillar := FootprintRegistry.allows_fine_placement(mesh)
+	var ok_x := _is_multiple(fx - 0.5, 1.0) if pillar else _is_multiple(fx, 1.0)
+	var ok_z := _is_multiple(fz - 0.5, 1.0) if pillar else _is_multiple(fz, 1.0)
+	if not ok_x or not ok_z:
+		_add(result, "error", "bad_position", index, "Piece %d (\"%s\"): position %s, %s must be %s." % [index, mesh, String.num(fx), String.num(fz), "a whole number plus 0.5 (pillars stand where four squares meet)" if pillar else "a whole number"])
 		return {}
 	var turns := _quarter_turns(entry.get("rotation", 0))
 	if turns == -1:
@@ -878,16 +881,22 @@ static func _check_creature(creature: Dictionary, label: String, floor_cells: Di
 			if taken.has(square):
 				_add(result, "warning", "creature_overlap", -1, "%s shares the square %d, %d with %s." % [label, square.x, square.z, taken[square]])
 			taken[square] = label
+			# a square is blocked when solid pieces cover at least half of it (a pillar on the corner between four squares leaves them free)
+			var blocked_cells := 0
+			var square_blocker := ""
 			for dx in cpt:
 				for dz in cpt:
 					var cell := Vector3i(square.x * cpt + dx, height, square.z * cpt + dz)
 					if not floor_cells.has(cell):
 						off_floor = true
 					if blocked.has(cell):
-						blocker = blocked[cell]
+						blocked_cells += 1
+						square_blocker = blocked[cell]
 					for above: int in ceilings.get(Vector2i(cell.x, cell.z), []):
 						if above > height:
 							room = mini(room, above - height)
+			if blocked_cells * 2 >= cpt * cpt:
+				blocker = square_blocker
 	var where := "(%d, %d, height %d)" % [creature["x"], creature["z"], height]
 	if off_floor:
 		_add(result, "error", "creature_off_floor", -1, "%s %s is not on floor at height %d." % [label, where, height])

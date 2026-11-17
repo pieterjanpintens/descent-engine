@@ -2664,6 +2664,21 @@ msgstr "lejos de %s"
 msgid "toward %s"
 msgstr "hacia %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s no puede ser empujado."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s es empujado %d casilla(s) hacia atrás: mueve la figura a su ficha."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s se aleja %d casilla(s) de %s."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: ¡%s!\nObjetivo %s - Daño %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "¿Qué héroe tiene más fatiga? (En caso de empate, elegid uno)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

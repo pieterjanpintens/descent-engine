@@ -2039,12 +2039,12 @@ func placed_heroes(roster: Array[int]) -> Dictionary:
 
 ## What `monster` does in its activation (MonsterMovement.plan()) on `board`, against the placed heroes of `roster`. Changes nothing;
 ## record_targeted() when the activation is carried out.
-func plan_activation(monster: RuntimeMonster, board: Dictionary, roster: Array[int], hero_weapons: Dictionary, rng: RandomNumberGenerator = null) -> Dictionary:
+func plan_activation(monster: RuntimeMonster, board: Dictionary, roster: Array[int], hero_weapons: Dictionary, rng: RandomNumberGenerator = null, stats: Dictionary = {}) -> Dictionary:
 	var others: Array = []
 	for other in monsters:
 		if other != monster and other.placed:
 			others.append({"square": other.position, "size": other.size})
-	return MonsterMovement.plan(board, monster, monster.position, monster.size, placed_heroes(roster), others, targeting_context(hero_weapons), rng)
+	return MonsterMovement.plan(board, monster, monster.position, monster.size, placed_heroes(roster), others, targeting_context(hero_weapons), rng, stats)
 
 
 ## The context MonsterTargeting.choose_target() reads.

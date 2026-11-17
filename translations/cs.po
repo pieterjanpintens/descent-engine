@@ -2664,6 +2664,21 @@ msgstr "pryč od %s"
 msgid "toward %s"
 msgstr "k %s"
 
+msgid "%s cannot be pushed back."
+msgstr "%s nemůže být odstrčen."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s je odstrčen o %d pole - postavte figurku na její žeton."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s se vzdálí o %d pole od %s."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: %s!\nCíl %s - Zranění %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "Který hrdina má nejvíc únavy? (Při shodě vyberte jednoho.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

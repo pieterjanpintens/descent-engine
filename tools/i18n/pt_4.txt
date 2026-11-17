@@ -55,3 +55,8 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 929|%s se desloca %s - coloquem a miniatura dele no marcador dele
 930|para longe de %s
 931|em direção a %s
+932|%s não pode ser empurrado.
+933|%s é empurrado %d espaço(s) para trás - coloquem a miniatura no marcador.
+934|%s se afasta %d espaço(s) de %s.
+935|%s: %s!\nAlvo %s - Dano %d - %s
+936|Qual herói tem mais fadiga? (Em caso de empate, escolham um.)

@@ -55,3 +55,8 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 929|%s przesuwa się %s - postawcie jego figurkę na jego znaczniku
 930|od: %s
 931|w stronę: %s
+932|Nie można odepchnąć: %s.
+933|%s zostaje odepchnięty o %d pole/pola - postawcie figurkę na znaczniku.
+934|%s oddala się o %d pole/pola od: %s.
+935|%s: %s!\nCel %s - Obrażenia %d - %s
+936|Który bohater ma najwięcej zmęczenia? (Przy remisie wybierzcie jednego.)

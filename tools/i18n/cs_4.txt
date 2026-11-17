@@ -55,3 +55,8 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 929|%s se posune %s - postavte jeho figurku na jeho žeton
 930|pryč od %s
 931|k %s
+932|%s nemůže být odstrčen.
+933|%s je odstrčen o %d pole - postavte figurku na její žeton.
+934|%s se vzdálí o %d pole od %s.
+935|%s: %s!\nCíl %s - Zranění %d - %s
+936|Který hrdina má nejvíc únavy? (Při shodě vyberte jednoho.)

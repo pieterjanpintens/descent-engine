@@ -676,6 +676,9 @@ func _apply_object_move(move: Dictionary) -> void:
 	var target := FootprintRegistry.tile_square_to_fine_far_corner(move["cell"])
 	var origin: Vector3i = node.get("origin_cell")
 	var mesh_name: String = str(node.get("mesh_item_name"))
+	if FootprintRegistry.allows_fine_placement(mesh_name):
+		# a pillar goes to the far corner of the target square (pillars stand where four squares meet)
+		target = FootprintRegistry.pillar_origin_at_corner(mesh_name, target)
 	var grid: GridMap = layered_map.prop_grid
 	if node is TilePlacement:
 		grid = layered_map.floor_grid if (node as TilePlacement).layer == TilePlacement.Layer.FLOOR else layered_map.underlay_grid
@@ -1734,7 +1737,10 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 			await _monster_action(monster, who)
 		return
 	if monster.current_tactic() != null:
-		await _monster_tactic(monster, who)
+		if _tracks_turn(monster):
+			await _tracked_tactic(monster, who)
+		else:
+			await _monster_tactic(monster, who)
 		return
 	if _tracks_turn(monster):
 		await _tracked_monster_turn(monster, who)
@@ -1813,22 +1819,8 @@ func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
 			break
 
 	var target: int = plan["target"]
-	var end: Vector3i = plan["end"]
-	if end != monster.position:
-		_runtime.set_monster_position(monster, end)
-	# the hazards it walked through, in order
-	var hazard_lines: Array[String] = []
-	for event: Dictionary in plan["events"]:
-		var outcome := _runtime.apply_hazard(monster, int(event["hazard"]))
-		if str(outcome["text"]) != "":
-			hazard_lines.append(str(outcome["text"]))
-		if outcome["defeated"]:
-			var lines := hazard_lines.duplicate()
-			var fallen := tr("%s is defeated! Remove it from the board.") % monster.display_name()
-			await dialog.ask_ok("\n".join(lines) + "\n\n" + fallen, true, false, "Monster attack")
-			return
-	if not hazard_lines.is_empty():
-		journal.add("Monster attack", ["\n".join(hazard_lines)])
+	if not await _carry_out_move(monster, plan):  # moves the token, applies the hazards it walked through
+		return
 	if not plan["attack"]:
 		if target >= 0 and int(plan["moves"]) > 0:
 			var goal_name := HeroCatalog.slot_name(target)
@@ -1916,6 +1908,136 @@ func _tracked_confused(monster: RuntimeMonster, who: String) -> void:
 			await dialog.ask_ok(tr("%s is defeated! Remove it from the board.") % victim.display_name(), true, false, "Monster action")
 		else:
 			journal.add("Monster action", [func() -> String: return tr("%s takes %d damage.") % [victim_who, damage]])
+
+
+## A prepared tactic when positions are tracked: the monster moves with the tactic's own speed and range (MonsterMovement.plan() with
+## `stats`) and does the tactic to the hero it reaches. Tactics that move figures are carried out: "Prey on the Weak" (Harbinger) LEAPS -
+## the table says which hero has the most fatigue and the monster lands next to that hero, who is the target; "Thrust" (Mercenary) pushes
+## the target 1 space away (2 when the mercenary moved). Other tactic texts stay for the table, as without tracking.
+func _tracked_tactic(monster: RuntimeMonster, who: String) -> void:
+	var tactic := monster.current_tactic()
+	monster.prepared_tactic = -1  # used up, whatever happens next
+	_runtime.monsters_changed.emit()
+	var key := tactic.activation_key
+	var stats := {"speed": tactic.speed, "range": tactic.attack_range, "reach": false}
+	var leap_hero := -1
+	if key.contains("PREY_ON_THE_WEAK"):
+		leap_hero = await _ask_most_fatigue()
+	var plan: Dictionary = {}
+	while true:
+		var board := MonsterMovement.build_board(mission, layered_map.held_back)
+		plan = {}
+		if leap_hero >= 0 and _runtime.hero_positions.has(leap_hero):
+			var hero_square: Vector3i = _runtime.hero_positions[leap_hero]
+			var spot: Variant = MonsterMovement.leap_spot(board, monster.position, monster.size, hero_square, _runtime.occupied_squares(monster))
+			if spot != null:
+				var leap_path: Array[Vector3i] = [monster.position, spot]
+				var target_square: Array[Vector3i] = [hero_square]
+				plan = {"target": leap_hero, "attack": true, "path": leap_path, "end": spot, "moves": 1, "events": [],
+					"damage_bonus": MonsterMovement.damage_bonus(board, MonsterMovement.block(spot, monster.size), target_square)}
+		if plan.is_empty():
+			plan = _runtime.plan_activation(monster, board, player_roster, player_weapons, null, stats)
+		var path: Array[Vector3i] = plan["path"]
+		position_board.show_path(path, monster.size)
+		_frame_path(path, monster.size)
+		var target: int = plan["target"]
+		var hero_name := HeroCatalog.slot_name(target) if target >= 0 else tr("a hero")
+		var text := ""
+		if plan["attack"]:
+			var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0) + int(plan["damage_bonus"])
+			text = tr("%s: %s!\nTarget %s - Damage %d - %s") % [who, tactic.tactic_name, hero_name, damage, _range_text_for(tactic.attack_range, false)]
+			var activation := tactic.activation_text(monster.display_name(), hero_name)
+			if activation != "":
+				text += "\n\n" + activation
+		else:
+			text = tr("%s moves towards %s (it cannot attack this round).") % [who, hero_name]
+		if int(plan["moves"]) > 0:
+			text += tr("\nMove the figure along the orange line to the marked square.")
+		var cfg := MonsterDisplay.preview_data(monster.folder)
+		cfg["text"] = text
+		var answer := await _tracked_dialog(monster, cfg)
+		if answer < 0:
+			return
+		if answer == 0:
+			break
+	if not await _carry_out_move(monster, plan):
+		return
+	if not plan["attack"]:
+		return
+	var victim: int = plan["target"]
+	_runtime.record_targeted(victim)
+	var victim_name := HeroCatalog.slot_name(victim)
+	var tactic_name := tactic.tactic_name
+	journal.add("Monster tactic", [func() -> String: return tr("%s performs %s against %s.") % [_who(monster), tactic_name, victim_name]])
+	if key.contains("MERCENARY_THRUST"):
+		await dialog.ask_ok(_push_hero(victim, monster, 2 if int(plan["moves"]) > 0 else 1), true, false, "Monster tactic")
+	if tactic.has_test():
+		var passed := await dialog.ask_yes_no(tr("Did %s pass the test?") % victim_name)
+		var result := tactic.pass_text(monster.display_name(), victim_name) if passed else tactic.fail_text(monster.display_name(), victim_name)
+		if result != "":
+			var tactic_result := result
+			await dialog.ask_ok(func() -> String: return tactic_result, true, false, "Tactic")
+
+
+## Moves the monster's token to the plan's end and applies the hazards it walked through. False when that defeated it.
+func _carry_out_move(monster: RuntimeMonster, plan: Dictionary) -> bool:
+	var end: Vector3i = plan["end"]
+	if end != monster.position:
+		_runtime.set_monster_position(monster, end)
+	var hazard_lines: Array[String] = []
+	for event: Dictionary in plan["events"]:
+		var outcome := _runtime.apply_hazard(monster, int(event["hazard"]))
+		if str(outcome["text"]) != "":
+			hazard_lines.append(str(outcome["text"]))
+		if outcome["defeated"]:
+			var fallen := tr("%s is defeated! Remove it from the board.") % monster.display_name()
+			await dialog.ask_ok("\n".join(hazard_lines) + "\n\n" + fallen, true, false, "Monster attack")
+			return false
+	if not hazard_lines.is_empty():
+		journal.add("Monster attack", ["\n".join(hazard_lines)])
+	return true
+
+
+## "The hero with the most fatigue" (Prey on the Weak): the app does not track fatigue, so the table says. -1 when no hero is on the board.
+func _ask_most_fatigue() -> int:
+	var heroes: Array[int] = []
+	for slot in player_roster:
+		if _runtime.hero_positions.has(slot):
+			heroes.append(slot)
+	if heroes.size() <= 1:
+		return heroes[0] if not heroes.is_empty() else -1
+	var names: Array[String] = []
+	for slot in heroes:
+		names.append(HeroCatalog.slot_name(slot))
+	var picked := await dialog.ask_choice(tr("Which hero has the most fatigue? (A tie: pick one.)"), names, [], false)
+	return heroes[picked] if picked >= 0 else heroes[0]
+
+
+## Pushes hero `slot` up to `spaces` away from `monster` (a forced move: never into spikes, poison or ember, never onto a figure; other
+## heroes may be passed, monsters not). Moves the token and returns the line for the table.
+func _push_hero(slot: int, monster: RuntimeMonster, spaces: int) -> String:
+	var hero_name := HeroCatalog.slot_name(slot)
+	if not _runtime.hero_positions.has(slot):
+		return tr("%s moves %d space(s) away from %s.") % [hero_name, spaces, monster.display_name()]
+	var board := MonsterMovement.build_board(mission, layered_map.held_back)
+	var blockers: Dictionary = {}  # the monsters: a hero cannot move into them
+	var index := 0
+	for other in _runtime.monsters:
+		if other.placed:
+			for square in MonsterMovement.block(other.position, other.size):
+				blockers[index] = square
+				index += 1
+	var others: Array = []  # the other heroes: passed, not stopped on
+	for other_slot: int in _runtime.hero_positions:
+		if other_slot != slot:
+			others.append({"square": _runtime.hero_positions[other_slot], "size": 1})
+	var away_from := MonsterMovement.block(monster.position, monster.size)
+	var moved := MonsterMovement.shift(board, _runtime.hero_positions[slot], 1, spaces, away_from, true, blockers, others)
+	var end: Vector3i = moved["end"]
+	if end == _runtime.hero_positions[slot]:
+		return tr("%s cannot be pushed back.") % hero_name
+	_runtime.set_hero_position(slot, end)
+	return tr("%s is pushed back %d space(s) - move the figure to its token.") % [hero_name, (moved["path"] as Array).size() - 1]
 
 
 ## After the first attack of a tracked turn: Bloodlust (a second, different hero) and "attack again on damage" - only heroes the monster can

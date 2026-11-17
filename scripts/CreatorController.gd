@@ -1520,7 +1520,9 @@ func _update_move_hover() -> void:
 	var local_point: Vector3 = grid.to_local(hit)
 	_move_hovered_cell = grid.local_to_map(local_point)
 	_move_hovered_cell.y = current_level
-	if not FootprintRegistry.allows_fine_placement(_move_drag_mesh_name):
+	if FootprintRegistry.allows_fine_placement(_move_drag_mesh_name):
+		_move_hovered_cell = FootprintRegistry.pillar_origin_at_corner(_move_drag_mesh_name, FootprintRegistry.nearest_square_corner(local_point, grid.cell_size, current_level))
+	else:
 		_move_hovered_cell = _snap_to_tile_square_far_corner(_move_hovered_cell)
 	_move_has_hover = true
 
@@ -1645,9 +1647,11 @@ func _update_hover() -> void:
 	# pillars - GridMap's own fine-cell resolution is twice as fine as a
 	# real physical placement, and painting a floor tile/prop at a
 	# half-tile offset isn't a real placement (see
-	# FootprintRegistry.allows_fine_placement()). Pillars keep the raw
-	# raycast result - they genuinely place at tile-square intersections.
-	if not FootprintRegistry.allows_fine_placement(_current_mesh_name()):
+	# FootprintRegistry.allows_fine_placement()). Pillars snap to the square
+	# corner nearest the mouse - they stand where four squares meet.
+	if FootprintRegistry.allows_fine_placement(_current_mesh_name()):
+		_hovered_cell = FootprintRegistry.pillar_origin_at_corner(_current_mesh_name(), FootprintRegistry.nearest_square_corner(local_point, grid.cell_size, current_level))
+	else:
 		_hovered_cell = _snap_to_tile_square_far_corner(_hovered_cell)
 	_has_hover = true
 
@@ -1786,22 +1790,27 @@ func _update_grid_overlay() -> void:
 
 	var grid := _target_grid()
 	var r := grid_overlay_radius
-	var step := 1 if FootprintRegistry.allows_fine_placement(_current_mesh_name()) else FootprintRegistry.CELLS_PER_TILE
+	var step := FootprintRegistry.CELLS_PER_TILE
+	# the lines run along the square edges; a pillar's spot is a corner of them (its covered cells start half a square before it)
+	var anchor := _hovered_cell
+	if FootprintRegistry.allows_fine_placement(_current_mesh_name()):
+		var low := FootprintRegistry.footprint_min(FootprintRegistry.get_footprint(_current_mesh_name()))
+		anchor = Vector3i(_hovered_cell.x + low.x + step / 2, current_level, _hovered_cell.z + low.y + step / 2)
 
 	_grid_overlay_mesh.clear_surfaces()
 	_grid_overlay_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
 
 	for i in range(-r, r + 1):
-		var x := _hovered_cell.x + i * step
-		var p1: Vector3 = grid.map_to_local(Vector3i(x, current_level, _hovered_cell.z - r * step))
-		var p2: Vector3 = grid.map_to_local(Vector3i(x, current_level, _hovered_cell.z + r * step))
+		var x := anchor.x + i * step
+		var p1: Vector3 = grid.map_to_local(Vector3i(x, current_level, anchor.z - r * step))
+		var p2: Vector3 = grid.map_to_local(Vector3i(x, current_level, anchor.z + r * step))
 		_grid_overlay_mesh.surface_add_vertex(p1)
 		_grid_overlay_mesh.surface_add_vertex(p2)
 
 	for j in range(-r, r + 1):
-		var z := _hovered_cell.z + j * step
-		var p1: Vector3 = grid.map_to_local(Vector3i(_hovered_cell.x - r * step, current_level, z))
-		var p2: Vector3 = grid.map_to_local(Vector3i(_hovered_cell.x + r * step, current_level, z))
+		var z := anchor.z + j * step
+		var p1: Vector3 = grid.map_to_local(Vector3i(anchor.x - r * step, current_level, z))
+		var p2: Vector3 = grid.map_to_local(Vector3i(anchor.x + r * step, current_level, z))
 		_grid_overlay_mesh.surface_add_vertex(p1)
 		_grid_overlay_mesh.surface_add_vertex(p2)
 

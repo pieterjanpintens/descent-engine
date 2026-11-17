@@ -929,6 +929,11 @@
 929|%s shifts %s - move its figure to its token
 930|away from %s
 931|toward %s
+932|%s cannot be pushed back.
+933|%s is pushed back %d space(s) - move the figure to its token.
+934|%s moves %d space(s) away from %s.
+935|%s: %s!\nTarget %s - Damage %d - %s
+936|Which hero has the most fatigue? (A tie: pick one.)
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

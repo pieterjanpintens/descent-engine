@@ -2664,6 +2664,21 @@ msgstr "weg von %s"
 msgid "toward %s"
 msgstr "auf %s zu"
 
+msgid "%s cannot be pushed back."
+msgstr "%s kann nicht zurückgestoßen werden."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s wird %d Feld(er) zurückgestoßen - stellt die Figur auf ihren Marker."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s bewegt sich %d Feld(er) von %s weg."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: %s!\nZiel %s - Schaden %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "Welcher Held hat die meiste Erschöpfung? (Bei Gleichstand wählt einen.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d für %d Spieler)"

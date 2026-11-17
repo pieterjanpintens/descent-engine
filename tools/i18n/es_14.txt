@@ -55,3 +55,8 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 929|%s se desplaza %s: mueve su figura a su ficha
 930|lejos de %s
 931|hacia %s
+932|%s no puede ser empujado.
+933|%s es empujado %d casilla(s) hacia atrás: mueve la figura a su ficha.
+934|%s se aleja %d casilla(s) de %s.
+935|%s: ¡%s!\nObjetivo %s - Daño %d - %s
+936|¿Qué héroe tiene más fatiga? (En caso de empate, elegid uno).

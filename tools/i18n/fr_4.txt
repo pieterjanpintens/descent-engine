@@ -55,3 +55,8 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 929|%s se décale %s - placez sa figurine sur son jeton
 930|à l'écart de %s
 931|vers %s
+932|%s ne peut pas être repoussé.
+933|%s est repoussé de %d case(s) - placez la figurine sur son jeton.
+934|%s s'éloigne de %d case(s) de %s.
+935|%s : %s !\nCible %s - Dégâts %d - %s
+936|Quel héros a le plus de fatigue ? (En cas d'égalité, choisissez-en un.)

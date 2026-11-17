@@ -39,6 +39,8 @@ const LARGE_SIZE := 2
 const BARRICADE_MESH := "barricade"
 const FIRE_MESH := "fire"
 const FAR := 1 << 20
+## Activation abilities that make a monster FLY: while moving it ignores elevation, terrain and underlays and cannot be impeded.
+const FLYING_KEYS := ["ENEMY_ACTIVATION_FAE_BASIC", "ENEMY_ACTIVATION_HARBINGER_VANGUARD"]
 
 
 # ---------------------------------------------------------------- the board
@@ -215,6 +217,14 @@ static func _any_in(squares: Array[Vector3i], lookup: Dictionary) -> bool:
 	return false
 
 
+## The monster flies (one of FLYING_KEYS among its activation abilities).
+static func is_flying(monster: RuntimeMonster) -> bool:
+	for ability in monster.attack_abilities:
+		if FLYING_KEYS.has(ability.game_key):
+			return true
+	return false
+
+
 static func _need(size: int) -> int:
 	return BuildRules.CENTAUR_HEIGHT if size > 1 else BuildRules.FIGURE_HEIGHT
 
@@ -228,6 +238,11 @@ static func _open(ctx: Dictionary, square: Vector3i) -> bool:
 ## The figure may be on `anchor` while moving (other monsters do not stop it).
 static func _can_pass(ctx: Dictionary, anchor: Vector3i) -> bool:
 	var board: Dictionary = ctx["board"]
+	if ctx.get("flying", false):
+		for square in block(anchor, ctx["size"]):
+			if not board["squares"].has(square) or ctx["hero_squares"].has(square):
+				return false
+		return true
 	var need := _need(ctx["size"])
 	var size: int = ctx["size"]
 	var on_stairs := 0
@@ -256,6 +271,8 @@ static func _can_stop(ctx: Dictionary, anchor: Vector3i) -> bool:
 
 ## The worst hazard under a figure on `anchor`.
 static func _hazard_at(ctx: Dictionary, anchor: Vector3i) -> int:
+	if ctx.get("flying", false):
+		return Hazard.NONE  # a flying monster ignores the underlays
 	var hazards: Dictionary = ctx["board"]["hazard"]
 	var worst: int = Hazard.NONE
 	for square in block(anchor, ctx["size"]):
@@ -285,6 +302,8 @@ static func _next_to_hero(ctx: Dictionary, anchor: Vector3i) -> bool:
 static func _action_points(ctx: Dictionary, anchor: Vector3i, speed: int) -> int:
 	if speed <= 0:
 		return 0
+	if ctx.get("flying", false):
+		return speed  # cannot be impeded
 	return mini(speed, IMPEDED_POINTS) if _next_to_hero(ctx, anchor) else speed
 
 
@@ -295,6 +314,15 @@ static func _action_points(ctx: Dictionary, anchor: Vector3i, speed: int) -> int
 static func _square_steps(ctx: Dictionary, from: Vector3i) -> Array:
 	var board: Dictionary = ctx["board"]
 	var steps: Array = []
+	if ctx.get("flying", false):
+		# flying: to any floor of the eight columns around, at any height (elevation and terrain do not matter), 1 point each
+		for step: Vector2i in MissionSight.STEPS_8:
+			var column := Vector2i(from.x + step.x, from.z + step.y)
+			for height: int in board["columns"].get(column, []):
+				var to := Vector3i(column.x, height, column.y)
+				if not ctx["hero_squares"].has(to):
+					steps.append({"to": to, "cost": 1})
+		return steps
 	for step: Vector2i in MissionSight.STEPS_8:
 		var level := Vector3i(from.x + step.x, from.y, from.z + step.y)
 		if board["squares"].has(level):
@@ -442,7 +470,7 @@ static func confused_move(board: Dictionary, monster: RuntimeMonster, position: 
 	for other: Dictionary in others:
 		for square in block(other["square"], int(other.get("size", 1))):
 			monster_squares[square] = true
-	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares}
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster)}
 	var points := _action_points(ctx, position, maxi(monster.effective_speed(), 0))
 	if points <= 0:
 		result["note"] = "it has no speed"
@@ -538,6 +566,24 @@ static func shift(board: Dictionary, position: Vector3i, size: int, points: int,
 	return result
 
 
+## LEAP (Harbinger "Prey on the Weak"): the free position touching `hero_square` (also diagonally, at most one level apart) nearest to
+## where the monster stands now; null when there is none.
+static func leap_spot(board: Dictionary, position: Vector3i, size: int, hero_square: Vector3i, occupied: Dictionary) -> Variant:
+	var best: Variant = null
+	var best_distance := INF
+	for dx in range(-size, 2):
+		for dz in range(-size, 2):
+			for dy in range(-1, 2):
+				var anchor := Vector3i(hero_square.x + dx, hero_square.y + dy, hero_square.z + dz)
+				if block(anchor, size).has(hero_square) or not can_place(board, anchor, size, occupied):
+					continue
+				var distance := Vector3(anchor - position).length()
+				if distance < best_distance:
+					best_distance = distance
+					best = anchor
+	return best
+
+
 ## The other monster nearest to a figure of `size` on `position` (steps over the floor), or null. `others`: Array of RuntimeMonster.
 static func nearest_monster(board: Dictionary, position: Vector3i, size: int, others: Array) -> RuntimeMonster:
 	var distance := {}
@@ -563,7 +609,8 @@ static func nearest_monster(board: Dictionary, position: Vector3i, size: int, ot
 ## Returns {"target" (hero slot, -1 none), "attack" (bool), "path" (Array[Vector3i] of positions, the start first), "end", "moves"
 ## (move actions used: 0, 1 or 2), "events" (Array of {"square", "hazard"}: the hazards it walks into, in order), "damage_bonus"
 ## (fire / barricade, when it attacks), "note" (why it does nothing, for the log)}.
-static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i, size: int, heroes: Dictionary, others: Array, context: Dictionary = {}, rng: RandomNumberGenerator = null) -> Dictionary:
+## `stats` overrides the monster's own numbers for a tactic: {"speed", "range" (0 = melee), "reach"}.
+static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i, size: int, heroes: Dictionary, others: Array, context: Dictionary = {}, rng: RandomNumberGenerator = null, stats: Dictionary = {}) -> Dictionary:
 	var start_path: Array[Vector3i] = [position]
 	var result := {"target": -1, "attack": false, "path": start_path, "end": position, "moves": 0, "events": [], "damage_bonus": 0, "note": ""}
 	if heroes.is_empty():
@@ -576,11 +623,12 @@ static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i,
 	for other: Dictionary in others:
 		for square in block(other["square"], int(other.get("size", 1))):
 			monster_squares[square] = true
-	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares}
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster)}
 
-	var speed := maxi(monster.effective_speed(), 0)
-	var ranged := monster.effective_attack_range() > 0
-	var attack_range := monster.effective_attack_range() if ranged else (REACH_RANGE if monster.attack_reach else MELEE_RANGE)
+	var speed := maxi(int(stats.get("speed", monster.effective_speed())), 0)
+	var own_range := int(stats.get("range", monster.effective_attack_range()))
+	var ranged := own_range > 0
+	var attack_range := own_range if ranged else (REACH_RANGE if bool(stats.get("reach", monster.attack_reach)) else MELEE_RANGE)
 	var points := _action_points(ctx, position, speed)
 	var move_safe := _reach(ctx, position, points, false, true)
 	var move_any := _reach(ctx, position, points, true, true)

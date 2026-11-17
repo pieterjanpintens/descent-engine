@@ -2664,6 +2664,21 @@ msgstr "%s에게서 멀어지게"
 msgid "toward %s"
 msgstr "%s 쪽으로"
 
+msgid "%s cannot be pushed back."
+msgstr "%s은(는) 밀려나지 않습니다."
+
+msgid "%s is pushed back %d space(s) - move the figure to its token."
+msgstr "%s이(가) %d칸 밀려납니다 - 피규어를 토큰 위치로 옮기세요."
+
+msgid "%s moves %d space(s) away from %s."
+msgstr "%s이(가) %d칸 %s에게서 멀어집니다."
+
+msgid "%s: %s!\nTarget %s - Damage %d - %s"
+msgstr "%s: %s!\n대상 %s - 피해 %d - %s"
+
+msgid "Which hero has the most fatigue? (A tie: pick one.)"
+msgstr "피로가 가장 많은 영웅은 누구입니까? (동률이면 한 명을 고르세요.)"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

@@ -735,13 +735,9 @@ func fine_cell_to_tile_square(fine_cell: Vector3i) -> Vector3i:
 ## direction: an ALREADY-KNOWN tile-square index (e.g. authored by a
 ## designer as a plain integer coordinate, like Effect.Type.MOVE_OBJECT's
 ## target_cell) that needs converting to a real GridMap origin_cell, not a
-## raw raycast hover needing to be rounded down. Only meaningful for
-## non-pillar meshes (see allows_fine_placement()) - a pillar's real
-## origin_cell can legitimately sit at any of a tile-square's sub-cell
-## corners, which a bare tile-square index can't disambiguate; callers
-## authoring a pillar's coordinate this way will land it at this tile
-## square's far corner specifically, not wherever else within it a pillar
-## could otherwise be fine-placed.
+## raw raycast hover needing to be rounded down. For a pillar the result is
+## the far CORNER of the square (pillar_origin_at_corner() turns it into the
+## pillar's origin) - pillars stand where four squares meet.
 func tile_square_to_fine_far_corner(tile_square: Vector3i) -> Vector3i:
 	return Vector3i(
 		tile_square.x * CELLS_PER_TILE,
@@ -917,11 +913,12 @@ func get_layer(mesh_item_name: String) -> String:
 	return "prop"
 
 
-## Meshes allowed to sit at fine-cell (half-tile-square) resolution instead
-## of being snapped to the tile-square grid every other layer uses -
-## currently just the pillars, which the game genuinely places at
-## tile-square INTERSECTIONS (where 4 tile-squares meet), not centered on
-## one. That's the actual reason CELLS_PER_TILE subdivides GridMap's
+## The PILLARS: they stand where four tile squares meet (the floor tiles
+## have small cut-outs at the square corners for them), so they move in
+## WHOLE squares on a grid shifted half a square - see
+## pillar_origin_at_corner() / on_square_corner(). (Before 2026-11-17 they
+## could be put on any fine cell, i.e. also in the middle of a square or of
+## an edge - wrong.) That's the actual reason CELLS_PER_TILE subdivides GridMap's
 ## cell_size below the tile-square scale in the first place - everything
 ## else painting at that same fine resolution was always incidental, not
 ## intended, which is what let floor tiles/props end up at
@@ -936,6 +933,41 @@ const FINE_PLACEMENT_MESH_NAMES: Dictionary = {
 
 func allows_fine_placement(mesh_item_name: String) -> bool:
 	return FINE_PLACEMENT_MESH_NAMES.has(mesh_item_name)
+
+
+## The smallest x and z (as x, y of a Vector2i) of a footprint's offsets.
+func footprint_min(footprint: Array[Vector3i]) -> Vector2i:
+	if footprint.is_empty():
+		return Vector2i.ZERO
+	var low := Vector2i(footprint[0].x, footprint[0].z)
+	for offset in footprint:
+		low = Vector2i(mini(low.x, offset.x), mini(low.y, offset.z))
+	return low
+
+
+## The square corner nearest `local_point` (a point in a grid's own local space, fine cells of `cell_size`), as a fine coordinate on
+## level `level` (x and z are multiples of CELLS_PER_TILE).
+func nearest_square_corner(local_point: Vector3, cell_size: Vector3, level: int) -> Vector3i:
+	return Vector3i(
+		roundi(local_point.x / (cell_size.x * CELLS_PER_TILE)) * CELLS_PER_TILE,
+		level,
+		roundi(local_point.z / (cell_size.z * CELLS_PER_TILE)) * CELLS_PER_TILE,
+	)
+
+
+## The UNROTATED origin that centres a pillar of `mesh_name` on the square corner `corner` (from nearest_square_corner()); a rotated pillar
+## is placed through origin_shift_1x1() as usual, which keeps it on the same spot.
+func pillar_origin_at_corner(mesh_name: String, corner: Vector3i) -> Vector3i:
+	var low := footprint_min(get_footprint(mesh_name))
+	var half := CELLS_PER_TILE / 2
+	return Vector3i(corner.x - half - low.x, corner.y, corner.z - half - low.y)
+
+
+## True when a pillar with this origin and (rotated) footprint stands on a square corner.
+func on_square_corner(fine_origin: Vector3i, footprint: Array[Vector3i]) -> bool:
+	var low := footprint_min(footprint)
+	var half := CELLS_PER_TILE / 2
+	return posmod(fine_origin.x + low.x, CELLS_PER_TILE) == half and posmod(fine_origin.z + low.y, CELLS_PER_TILE) == half
 
 
 ## Tile faces are named like "7a" / "12b" - one or more digits followed by
