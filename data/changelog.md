@@ -1,4 +1,9 @@
-﻿## v0.0.77 - 2026-11-15
+﻿## v0.0.78 - 2026-11-17
+- New way to play a campaign: **the app moves the monsters**. Switch it on when you start a campaign (setup page, "Monster movement") or before any campaign mission (embark screen). Every hero and monster gets a token on the map; before each monster phase you drag the hero tokens to where the figures stand, and the app works out each monster's turn: it picks its target, shows the way it walks as a dotted orange line with a moving arrow and the square where it stops, and tells you whom it attacks. Monsters walk around holes, take stairs and ladders, avoid spikes, poison and embers unless there is no other way, ranged monsters keep their distance, large monsters need room for their whole base, and a figure next to a fire hits harder while one next to a barricade takes more damage. Confused monsters do their confused action by themselves (retreat, wander, head for a gate, tree or pillar, lash out at another monster...). Off (the default) the game plays as before.
+- Tokens on a stair stand on the step, and clicking a step picks it - also in the line-of-sight tool, whose numbers now sit on the steps.
+- Translations of the newest texts in all languages.
+
+## v0.0.77 - 2026-11-15
 - The **Loot** effect can hand out **random recipes**: in its Loot window set how many (a number or a formula, blank = none), the kind (All / Weapon / Weapon part / Armor / Consumable / Trinket), the chance per tier, a gold value band and how strongly the draw leans toward what the party can use ("Fit to the party"). It takes the campaign's inventory into account: never a recipe the party already has or has nothing left to make, never one already found earlier in the mission, and - when fitting is on - upgrades of owned cards, the weapon types of the heroes in play and recipes whose materials the party already holds come up more often. When nothing is left to draw the chest gives some gold instead (can be switched off).
 - Fixed: the Loot window of a macro (Mission > Macros…) crashed because there was no mission, and a macro whose loot only had random recipes said "Fill in loot first" and could not be applied.
 
