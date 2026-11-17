@@ -45,3 +45,7 @@
 920|Váš postup je uložen. Až vyjde nová verze této kampaně, nainstalujte ji a aktualizujte svou uloženou hru.
 921|{hero}: postavte svou figurku na jedno ze zvýrazněných polí.
 P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní do nové verze? (Vytvoří se kopie; originál zůstane beze změny.)|Máte %d uložené hry ze starších verzí této kampaně. Přesunout je nyní do nové verze? (Vytvoří se kopie; originály zůstanou beze změny.)|Máte %d uložených her ze starších verzí této kampaně. Přesunout je nyní do nové verze? (Vytvoří se kopie; originály zůstanou beze změny.)
+922|Pohyb příšer
+923|Vypnuto: příšery posouváte sami, jako v původní hře. Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí hrdinové (přetažením jejich žetonů na mapě), a aplikace posune každou příšeru a ukáže, kam jde. Můžete to změnit před každou misí.
+924|Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí hrdinové, a aplikace posune každou příšeru. Vypnuto: příšery posouváte sami, jako v původní hře.
+925|Aplikace posouvá příšery

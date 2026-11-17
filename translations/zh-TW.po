@@ -2634,6 +2634,18 @@ msgstr "你的進度已儲存。戰役推出新版本時，請安裝它並更新
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}：將你的模型放在一個標示的格子上。"
 
+msgid "Monster movement"
+msgstr "怪物移動"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "關閉：像原版遊戲一樣，由你們自己移動怪物。開啟：每個怪物階段之前，你們告訴應用程式英雄站在哪裡（在地圖上拖曳他們的標記），應用程式會移動每個怪物並顯示它要去哪裡。每次任務前都可以變更。"
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "開啟：每個怪物階段之前，你們告訴應用程式英雄站在哪裡，應用程式會移動每個怪物。關閉：像原版遊戲一樣，由你們自己移動怪物。"
+
+msgid "The app moves the monsters"
+msgstr "由應用程式移動怪物"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

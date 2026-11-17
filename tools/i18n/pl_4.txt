@@ -45,3 +45,7 @@
 920|Wasz postęp jest zapisany. Gdy ukaże się nowa wersja tej kampanii, zainstalujcie ją i zaktualizujcie zapis gry.
 921|{hero}: postaw swoją figurkę na jednym z podświetlonych pól.
 P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do nowej wersji? (Zostanie zrobiona kopia; oryginał pozostaje bez zmian.)|Masz %d zapisy gry ze starszych wersji tej kampanii. Przenieść je teraz do nowej wersji? (Zostaną zrobione kopie; oryginały pozostają bez zmian.)|Masz %d zapisów gry ze starszych wersji tej kampanii. Przenieść je teraz do nowej wersji? (Zostaną zrobione kopie; oryginały pozostają bez zmian.)
+922|Ruch potworów
+923|Wyłączone: sami przesuwacie potwory, jak w oryginalnej grze. Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie stoją bohaterowie (przeciągając ich znaczniki na mapie), a aplikacja przesuwa każdego potwora i pokazuje, dokąd idzie. Można to zmienić przed każdą misją.
+924|Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie stoją bohaterowie, a aplikacja przesuwa każdego potwora. Wyłączone: sami przesuwacie potwory, jak w oryginalnej grze.
+925|Aplikacja przesuwa potwory

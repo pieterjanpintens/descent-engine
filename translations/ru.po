@@ -2634,6 +2634,18 @@ msgstr "Ваш прогресс сохранён. Когда выйдет нов
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}: поставьте свою фигурку на одну из подсвеченных клеток."
 
+msgid "Monster movement"
+msgstr "Движение монстров"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "Выкл.: вы двигаете монстров сами, как в оригинальной игре. Вкл.: перед каждой фазой монстров вы показываете приложению, где стоят герои (перетаскивая их жетоны на карте), а приложение двигает каждого монстра и показывает, куда он идёт. Это можно изменить перед каждой миссией."
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "Вкл.: перед каждой фазой монстров вы показываете приложению, где стоят герои, а приложение двигает каждого монстра. Выкл.: вы двигаете монстров сами, как в оригинальной игре."
+
+msgid "The app moves the monsters"
+msgstr "Приложение двигает монстров"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

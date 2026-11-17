@@ -45,3 +45,7 @@
 920|Euer Fortschritt ist gespeichert. Wenn eine neue Version dieser Kampagne erscheint, installiert sie und aktualisiert euren Spielstand.
 921|{hero}: Stelle deine Figur auf eines der markierten Felder.
 P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die neue Version übertragen? (Es wird eine Kopie erstellt; das Original bleibt unverändert.)|Ihr habt %d Spielstände älterer Versionen dieser Kampagne. Jetzt auf die neue Version übertragen? (Es werden Kopien erstellt; die Originale bleiben unverändert.)
+922|Bewegung der Monster
+923|Aus: Ihr bewegt die Monster selbst, wie im Originalspiel. An: Vor jeder Monsterphase zeigt ihr der App, wo die Helden stehen (zieht ihre Marker auf der Karte), und die App bewegt jedes Monster und zeigt euch, wohin es geht. Ihr könnt es vor jeder Mission ändern.
+924|An: Vor jeder Monsterphase zeigt ihr der App, wo die Helden stehen, und die App bewegt jedes Monster. Aus: Ihr bewegt die Monster selbst, wie im Originalspiel.
+925|Die App bewegt die Monster

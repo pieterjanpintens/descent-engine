@@ -17,6 +17,9 @@ extends Resource
 ## The difficulty of this playthrough (1-4, Difficulty): chosen when it was started, changeable in Options. Missions played in it spawn
 ## their monsters at a shifted level, and conditions can read it as the variable `difficulty`. A save from before it existed is Adventurer (2).
 @export var difficulty: int = Difficulty.DEFAULT
+## POSITION TRACKING (a different way to play, off by default, chosen on the setup page when the game starts): the table tells the app where the
+## heroes stand and the app moves every monster itself (MonsterMovement). Single missions never track positions.
+@export var track_positions: bool = false
 @export var current_act: int = 0
 ## Ids of the chapters the party has won.
 @export var completed_chapters: Array[String] = []

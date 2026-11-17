@@ -45,3 +45,7 @@
 920|Tu progreso está guardado. Cuando salga una nueva versión de esta campaña, instálala y actualiza tu partida guardada.
 921|{hero}: coloca tu figura en una de las casillas resaltadas.
 P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasladarla ahora a la nueva versión? (Se hace una copia; el original queda como está.)|Tienes %d partidas guardadas de versiones anteriores de esta campaña. ¿Trasladarlas ahora a la nueva versión? (Se hacen copias; los originales quedan como están.)
+922|Movimiento de los monstruos
+923|Desactivado: movéis los monstruos vosotros mismos, como en el juego original. Activado: antes de cada fase de monstruos mostráis a la app dónde están los héroes (arrastrando sus fichas en el mapa) y la app mueve cada monstruo y os muestra adónde va. Podéis cambiarlo antes de cada misión.
+924|Activado: antes de cada fase de monstruos mostráis a la app dónde están los héroes y la app mueve cada monstruo. Desactivado: movéis los monstruos vosotros mismos, como en el juego original.
+925|La app mueve a los monstruos

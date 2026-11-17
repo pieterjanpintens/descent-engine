@@ -63,9 +63,6 @@ var intro: String:
 ## How many feats a hero may have ACTIVE (equipped, being worked on) at the same time. The game allows exactly one; a campaign may allow more. Feats
 ## themselves (HeroData.feats_of()) complete and pay skill points (SkillTree.points_per_feat); equipping them is not built yet.
 @export var parallel_feats: int = 1
-## POSITION TRACKING (a different way to play, off by default): the app knows where every hero and monster stands on the board and moves the
-## monsters itself (MonsterMovement). Only a campaign can switch it on; single missions never track positions.
-@export var track_positions: bool = false
 ## What it costs to CHANGE a hero's feat list on the campaign map: moving entries (the active feats pushed out of the first `parallel_feats` places lose
 ## their progress). ONE payment per rearrangement, however many entries it moves. During a mission the list
 ## cannot be changed at all (when a feat is completed the next in the list starts by itself). `feat_change_amount` = the gold a rearrangement costs, or how many

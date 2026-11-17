@@ -64,6 +64,11 @@ var _loadout_rows: VBoxContainer
 ## The difficulty (1-4, Difficulty) the party plays at: set before ask_roster(), read back after it.
 var difficulty: int = Difficulty.DEFAULT
 var _difficulty_picker: OptionButton
+## Position tracking (CampaignState.track_positions), changeable here like the difficulty. Only offered for a campaign mission
+## (`offer_track_positions`); set both before ask_roster() and read `track_positions` back after it.
+var track_positions: bool = false
+var offer_track_positions: bool = false
+var _track_check: CheckBox
 var _min_players: int = 1
 var _max_players: int = HeroCatalog.SLOT_COUNT
 
@@ -189,6 +194,12 @@ func _build_ui() -> void:
 		_difficulty_picker.tooltip_text = Difficulty.description(difficulty))
 	difficulty_row.add_child(_difficulty_picker)
 	vbox.add_child(difficulty_row)
+	_track_check = CheckBox.new()
+	_track_check.text = "The app moves the monsters"
+	_track_check.tooltip_text = "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+	_track_check.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_track_check.toggled.connect(func(on: bool): track_positions = on)
+	vbox.add_child(_track_check)
 
 	_start_button = Button.new()
 	_start_button.text = "Start"
@@ -399,6 +410,8 @@ func ask_roster(mission: MissionData) -> Array[int]:
 	difficulty = Difficulty.clamped(difficulty)
 	_difficulty_picker.select(_difficulty_picker.get_item_index(difficulty))
 	_difficulty_picker.tooltip_text = Difficulty.description(difficulty)
+	_track_check.visible = offer_track_positions
+	_track_check.set_pressed_no_signal(track_positions)
 
 	visible = true
 	await _closed

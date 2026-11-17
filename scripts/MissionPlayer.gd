@@ -264,8 +264,12 @@ func _ready() -> void:
 				if embark_campaign != null:
 					embark_dialog.consumables_per_player = embark_campaign.consumables_per_player
 		embark_dialog.difficulty = GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty
+		embark_dialog.offer_track_positions = GameState.campaign_folder != ""
+		embark_dialog.track_positions = GameState.campaign_track_positions
 		player_roster = await embark_dialog.ask_roster(mission)
 		_store_difficulty(embark_dialog.difficulty)  # the one place to change it: at embark time, not during the mission
+		if GameState.campaign_folder != "":
+			_store_track_positions(embark_dialog.track_positions)  # the same for monster movement
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
 		player_trinkets = embark_dialog.chosen_trinkets.duplicate(true)
 		_set_ground_decor_visible(true)
@@ -1105,6 +1109,15 @@ func _store_difficulty(value: int) -> void:
 	if PlayerSettings.mission_difficulty != value:
 		PlayerSettings.mission_difficulty = value
 		PlayerSettings.save_settings()
+
+
+## Position tracking chosen at embark time: kept in the campaign save, so the next mission starts with it.
+func _store_track_positions(on: bool) -> void:
+	GameState.campaign_track_positions = on
+	var campaign_state := _live_campaign_state()
+	if campaign_state != null and campaign_state.track_positions != on:
+		campaign_state.track_positions = on
+		CampaignIO.save_state(campaign_state)
 
 
 ## The phase label sits right under the objective label, however many lines that has (the optional objectives made it longer than the fixed slot

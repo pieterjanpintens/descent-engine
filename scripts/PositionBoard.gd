@@ -39,6 +39,9 @@ var _path_length := 0.0
 var _arrow: MeshInstance3D
 var _arrow_at := 0.0  ## how far along the curve the arrow head is
 var _board: Dictionary = {}
+## Stair squares -> the world height of the stair's surface over the middle of that square (read from the stair mesh), so a figure
+## on a stair stands on the step and a click on a step picks that square.
+var _stair_tops: Dictionary = {}
 ## The figure being dragged: {"kind": "hero" | "monster", "slot", "monster", "size"}; empty when none.
 var _drag: Dictionary = {}
 var _drag_square: Variant = null
@@ -64,6 +67,7 @@ func _ready() -> void:
 
 ## Rebuilds every token from the runtime's positions.
 func refresh() -> void:
+	_update_board()
 	for child in _tokens.get_children():
 		_tokens.remove_child(child)
 		child.free()
@@ -79,7 +83,7 @@ func refresh() -> void:
 func place_heroes_on(roster: Array[int], cells: Array[Vector3i], replace: bool = false) -> void:
 	if replace:
 		runtime.hero_positions.clear()
-	_board = MonsterMovement.build_board(mission, layered_map.held_back)
+	_update_board()
 	var free: Array[Vector3i] = []
 	for cell in cells:
 		free.append(Vector3i(cell.x - 1, cell.y, cell.z - 1))
@@ -94,11 +98,109 @@ func place_heroes_on(roster: Array[int], cells: Array[Vector3i], replace: bool =
 	runtime.positions_changed.emit()
 
 
-## The middle of a figure of `size` on `anchor`, in world space, on top of the floor.
+## The middle of a figure of `size` on `anchor`, in world space, on top of the floor (on a stair: on the step).
 func centre_of(anchor: Vector3i, size: int) -> Vector3:
-	var low := layered_map.get_tile_square_world_corners(Vector3i(anchor.x + 1, anchor.y, anchor.z + 1))
-	var high := layered_map.get_tile_square_world_corners(Vector3i(anchor.x + size, anchor.y, anchor.z + size))
+	var centre := _flat_centre(anchor, size)
+	var top := -INF
+	for square in MonsterMovement.block(anchor, size):
+		if _stair_tops.has(square):
+			top = maxf(top, float(_stair_tops[square]))
+	if top > -INF:
+		centre.y = top
+	return centre
+
+
+func _flat_centre(anchor: Vector3i, size: int) -> Vector3:
+	return flat_centre(layered_map, anchor, size)
+
+
+func _update_board() -> void:
+	_board = MonsterMovement.build_board(mission, layered_map.held_back)
+	_stair_tops = stair_tops(layered_map, mission)
+
+
+## The middle of a figure of `size` on `anchor` on the floor (stairs not taken into account).
+static func flat_centre(map: LayeredMap, anchor: Vector3i, size: int) -> Vector3:
+	var low := map.get_tile_square_world_corners(Vector3i(anchor.x + 1, anchor.y, anchor.z + 1))
+	var high := map.get_tile_square_world_corners(Vector3i(anchor.x + size, anchor.y, anchor.z + size))
 	return (low[0] + high[2]) * 0.5
+
+
+## For every square of a painted, revealed stair: the height of the stair mesh's top surface over the middle of the square (a ray straight
+## down through the stair's triangles, highest hit). Shared with the line-of-sight tool.
+static func stair_tops(map: LayeredMap, mission: MissionData) -> Dictionary:
+	var tops: Dictionary = {}
+	var grid := map.prop_grid
+	if grid.mesh_library == null:
+		return tops
+	var id := map.find_item_id(grid, "stair")
+	if id < 0 or grid.mesh_library.get_item_mesh(id) == null:
+		return tops
+	var faces := grid.mesh_library.get_item_mesh(id).get_faces()
+	var mesh_transform := grid.mesh_library.get_item_mesh_transform(id)
+	for entry in mission.interactables:
+		if entry.mesh_item_name != "stair" or grid.get_cell_item(entry.origin_cell) != id:
+			continue
+		if map.held_back.has(entry) or not mission.is_effectively_visible(entry):
+			continue
+		var placed := grid.global_transform * Transform3D(grid.get_cell_item_basis(entry.origin_cell), grid.map_to_local(entry.origin_cell)) * mesh_transform
+		var world := PackedVector3Array()
+		world.resize(faces.size())
+		for i in faces.size():
+			world[i] = placed * faces[i]
+		for cell in MissionSight.cells_of(entry):
+			var square := MonsterMovement._square_of(cell, entry.origin_cell.y)
+			if tops.has(square):
+				continue
+			var from := flat_centre(map, square, 1) + Vector3(0, 100, 0)
+			var best := -INF
+			for i in range(0, world.size() - 2, 3):
+				var hit: Variant = Geometry3D.ray_intersects_triangle(from, Vector3.DOWN, world[i], world[i + 1], world[i + 2])
+				if hit != null:
+					best = maxf(best, (hit as Vector3).y)
+			if best > -INF:
+				tops[square] = best + 0.02
+	return tops
+
+
+## The square (x, height, z, 0-based) under the mouse: on whichever level the ray meets first, a stair square on its step (`tops` from
+## stair_tops()); only squares in `squares` or `tops` count. Null when there is none. Shared with the line-of-sight tool.
+static func square_under(map: LayeredMap, camera: Camera3D, screen_position: Vector2, squares: Dictionary, tops: Dictionary) -> Variant:
+	var origin := camera.project_ray_origin(screen_position)
+	var direction := camera.project_ray_normal(screen_position)
+	var heights: Dictionary = {}
+	for square: Vector3i in squares:
+		heights[square.y] = true
+	var best: Variant = null
+	var best_distance := INF
+	for height: int in heights:
+		var plane_y := map.get_tile_square_world_corners(Vector3i(1, height, 1))[0].y
+		var hit: Variant = Plane(Vector3.UP, plane_y).intersects_ray(origin, direction)
+		if hit == null:
+			continue
+		var square := column_of(map, hit, height)
+		var distance := origin.distance_to(hit)
+		# a stair square is picked on its step (below), not on the floor plane under the stair
+		if squares.has(square) and not tops.has(square) and distance < best_distance:
+			best = square
+			best_distance = distance
+	for square: Vector3i in tops:
+		var hit: Variant = Plane(Vector3.UP, float(tops[square])).intersects_ray(origin, direction)
+		if hit == null or column_of(map, hit, square.y) != square:
+			continue
+		var distance := origin.distance_to(hit)
+		if distance < best_distance:
+			best = square
+			best_distance = distance
+	return best
+
+
+## The square (at `height`) whose column holds world point `point`.
+static func column_of(map: LayeredMap, point: Vector3, height: int) -> Vector3i:
+	var grid := map.floor_grid
+	var fine := grid.local_to_map(grid.to_local(point))
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	return Vector3i(floori(float(fine.x) / cpt), height, floori(float(fine.z) / cpt))
 
 
 func _square_width() -> float:
@@ -144,7 +246,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.pressed and _drag.is_empty():
 			if blocked_provider.is_valid() and blocked_provider.call():
 				return
-			_board = MonsterMovement.build_board(mission, layered_map.held_back)
+			_update_board()
 			var square: Variant = _square_under(event.position)
 			if square == null:
 				return
@@ -215,33 +317,12 @@ func _drop() -> void:
 	_ghost.visible = false
 
 
-## The floor square (x, height, z, 0-based) under the mouse, on whichever level the ray meets first; null when there is none.
+## The square under the mouse (stair squares on their step); null when there is none.
 func _square_under(screen_position: Vector2) -> Variant:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:
 		return null
-	var squares: Dictionary = _board.get("squares", {})
-	var grid := layered_map.floor_grid
-	var origin := camera.project_ray_origin(screen_position)
-	var direction := camera.project_ray_normal(screen_position)
-	var heights: Dictionary = {}
-	for square: Vector3i in squares:
-		heights[square.y] = true
-	var best: Variant = null
-	var best_distance := INF
-	for height: int in heights:
-		var plane_y := layered_map.get_tile_square_world_corners(Vector3i(1, height, 1))[0].y
-		var hit: Variant = Plane(Vector3.UP, plane_y).intersects_ray(origin, direction)
-		if hit == null:
-			continue
-		var fine := grid.local_to_map(grid.to_local(hit))
-		var cpt := FootprintRegistry.CELLS_PER_TILE
-		var square := Vector3i(floori(float(fine.x) / cpt), height, floori(float(fine.z) / cpt))
-		var distance := origin.distance_to(hit)
-		if squares.has(square) and distance < best_distance:
-			best = square
-			best_distance = distance
-	return best
+	return square_under(layered_map, camera, screen_position, _board.get("squares", {}), _stair_tops)
 
 
 # ---------------------------------------------------------------- a monster's path

@@ -2634,6 +2634,18 @@ msgstr "진행 상황이 저장되었습니다. 이 캠페인의 새 버전이 �
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}: 강조된 칸 중 하나에 피규어를 놓으세요."
 
+msgid "Monster movement"
+msgstr "몬스터 이동"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "끄기: 원작 게임처럼 몬스터를 직접 움직입니다. 켜기: 매 몬스터 단계 전에 영웅들이 어디에 있는지 앱에 알려 주면(지도에서 토큰을 끌어서), 앱이 각 몬스터를 움직이고 어디로 가는지 보여 줍니다. 매 임무 전에 바꿀 수 있습니다."
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "켜기: 매 몬스터 단계 전에 영웅들이 어디에 있는지 앱에 알려 주면 앱이 각 몬스터를 움직입니다. 끄기: 원작 게임처럼 몬스터를 직접 움직입니다."
+
+msgid "The app moves the monsters"
+msgstr "앱이 몬스터를 움직임"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

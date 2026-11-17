@@ -919,6 +919,10 @@
 919|Where are the heroes? Drag each hero token to the square its figure stands on, then confirm.
 920|Your progress is saved. When a new version of this campaign comes out, install it and update your save game.
 921|{hero}: place your figure on one of the highlighted squares.
+922|Monster movement
+923|Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission.
+924|On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game.
+925|The app moves the monsters
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

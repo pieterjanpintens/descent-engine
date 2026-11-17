@@ -6,7 +6,7 @@ extends Control
 ## (more can follow): a section is `_section(column, title, width, hint)` plus its controls, in the left or the right column, and whatever it chooses goes into `confirmed`.
 ## Now: the language (chosen here and fixed for the whole game), the name of the save game, and - only when narration is installed - the voice of each hero.
 
-signal confirmed(save_name: String, hero_voices: Dictionary, language: String, difficulty: int)
+signal confirmed(save_name: String, hero_voices: Dictionary, language: String, difficulty: int, track_positions: bool)
 signal cancelled
 
 const BACKGROUND := "res://models/ui/bg_detail.jpg"
@@ -15,6 +15,7 @@ const LEFT_WIDTH := 440.0   ## the first column (save game name, later more sett
 const RIGHT_WIDTH := 580.0  ## the second column (hero voices)
 
 var _language: String = "en"
+var _track_check: CheckBox
 var _difficulty: int = PlayerSettings.mission_difficulty  ## the one the player chose last, in any game
 var _name_taken: Callable  ## (name: String) -> bool, supplied by the player: a save game with that name exists
 var _name_edit: LineEdit
@@ -109,6 +110,12 @@ func setup(campaign_name: String, suggestion: String, name_taken: Callable, lang
 	column.add_child(difficulty_picker)
 	column.add_child(difficulty_hint)
 
+	# ---- Position tracking: a different way to play, off by default ----
+	_section(column, "Monster movement", LEFT_WIDTH, "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission.")
+	_track_check = CheckBox.new()
+	_track_check.text = "The app moves the monsters"
+	column.add_child(_track_check)
+
 	# ---- Save game name ----
 	_section(column, "Save game", LEFT_WIDTH, "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough.")
 	_name_edit = LineEdit.new()
@@ -201,4 +208,4 @@ func _on_start_pressed() -> void:
 	_check_name()
 	if _start_button.disabled:
 		return
-	confirmed.emit(_name_edit.text.strip_edges(), _picker.answer() if _picker != null else {}, _language, _difficulty)
+	confirmed.emit(_name_edit.text.strip_edges(), _picker.answer() if _picker != null else {}, _language, _difficulty, _track_check.button_pressed)

@@ -2634,6 +2634,18 @@ msgstr "Váš postup je uložen. Až vyjde nová verze této kampaně, nainstalu
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}: postavte svou figurku na jedno ze zvýrazněných polí."
 
+msgid "Monster movement"
+msgstr "Pohyb příšer"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "Vypnuto: příšery posouváte sami, jako v původní hře. Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí hrdinové (přetažením jejich žetonů na mapě), a aplikace posune každou příšeru a ukáže, kam jde. Můžete to změnit před každou misí."
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "Zapnuto: před každou fází příšer ukážete aplikaci, kde stojí hrdinové, a aplikace posune každou příšeru. Vypnuto: příšery posouváte sami, jako v původní hře."
+
+msgid "The app moves the monsters"
+msgstr "Aplikace posouvá příšery"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

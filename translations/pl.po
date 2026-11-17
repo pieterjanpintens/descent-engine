@@ -2634,6 +2634,18 @@ msgstr "Wasz postęp jest zapisany. Gdy ukaże się nowa wersja tej kampanii, za
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}: postaw swoją figurkę na jednym z podświetlonych pól."
 
+msgid "Monster movement"
+msgstr "Ruch potworów"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "Wyłączone: sami przesuwacie potwory, jak w oryginalnej grze. Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie stoją bohaterowie (przeciągając ich znaczniki na mapie), a aplikacja przesuwa każdego potwora i pokazuje, dokąd idzie. Można to zmienić przed każdą misją."
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "Włączone: przed każdą fazą potworów pokazujecie aplikacji, gdzie stoją bohaterowie, a aplikacja przesuwa każdego potwora. Wyłączone: sami przesuwacie potwory, jak w oryginalnej grze."
+
+msgid "The app moves the monsters"
+msgstr "Aplikacja przesuwa potwory"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

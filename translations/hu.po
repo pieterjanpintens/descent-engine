@@ -2634,6 +2634,18 @@ msgstr "Az előrehaladásotok el van mentve. Ha megjelenik a kampány új verzi�
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}: tedd a figurádat az egyik kiemelt mezőre."
 
+msgid "Monster movement"
+msgstr "A szörnyek mozgása"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "Ki: a szörnyeket ti mozgatjátok, mint az eredeti játékban. Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a hősök (a jelzőik húzásával a térképen), és az app mozgatja a szörnyeket, és megmutatja, hová mennek. Minden küldetés előtt megváltoztathatjátok."
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a hősök, és az app mozgatja a szörnyeket. Ki: a szörnyeket ti mozgatjátok, mint az eredeti játékban."
+
+msgid "The app moves the monsters"
+msgstr "Az app mozgatja a szörnyeket"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

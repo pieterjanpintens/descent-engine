@@ -45,3 +45,7 @@
 920|I vostri progressi sono salvati. Quando uscirà una nuova versione di questa campagna, installatela e aggiornate il vostro salvataggio.
 921|{hero}: metti la tua miniatura su una delle caselle evidenziate.
 P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo ora alla nuova versione? (Viene creata una copia; l'originale resta com'è.)|Hai %d salvataggi di versioni precedenti di questa campagna. Spostarli ora alla nuova versione? (Vengono create delle copie; gli originali restano come sono.)
+922|Movimento dei mostri
+923|Disattivato: muovete voi i mostri, come nel gioco originale. Attivato: prima di ogni fase dei mostri mostrate all'app dove si trovano gli eroi (trascinando i loro segnalini sulla mappa) e l'app muove ogni mostro e vi mostra dove va. Potete cambiarlo prima di ogni missione.
+924|Attivato: prima di ogni fase dei mostri mostrate all'app dove si trovano gli eroi e l'app muove ogni mostro. Disattivato: muovete voi i mostri, come nel gioco originale.
+925|L'app muove i mostri

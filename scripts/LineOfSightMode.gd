@@ -16,6 +16,8 @@ var mission: MissionData
 var active: bool = false
 
 var _labels: Array[Node3D] = []
+## Stair squares -> the height of the step (PositionBoard.stair_tops()): clicks pick the step, numbers sit on it.
+var _stair_tops: Dictionary = {}
 
 
 func set_active(on: bool) -> void:
@@ -34,36 +36,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	SightLine.mode = PlayerSettings.sight_rule
 	var data := MissionSight.build(mission, layered_map.held_back)
-	var start: Variant = _square_under_cursor(camera, event.position, data["squares"])
+	_stair_tops = PositionBoard.stair_tops(layered_map, mission)
+	var start: Variant = PositionBoard.square_under(layered_map, camera, event.position, data["squares"], _stair_tops)
 	if start == null:
 		return
 	get_viewport().set_input_as_handled()
 	_show(start, data)
-
-
-## The floor square (x, height, z) under the mouse, on whichever level the ray meets first; null when it is none.
-func _square_under_cursor(camera: Camera3D, screen_position: Vector2, squares: Dictionary) -> Variant:
-	var grid := layered_map.floor_grid
-	var origin := camera.project_ray_origin(screen_position)
-	var direction := camera.project_ray_normal(screen_position)
-	var heights: Dictionary = {}
-	for square: Vector3i in squares:
-		heights[square.y] = true
-	var best: Variant = null
-	var best_distance := INF
-	for height: int in heights:
-		var plane := Plane(Vector3.UP, _plane_y(height))
-		var hit: Variant = plane.intersects_ray(origin, direction)
-		if hit == null:
-			continue
-		var fine := grid.local_to_map(grid.to_local(hit))
-		var cpt := FootprintRegistry.CELLS_PER_TILE
-		var square := Vector3i(floori(float(fine.x) / cpt), height, floori(float(fine.z) / cpt))
-		var distance := origin.distance_to(hit)
-		if squares.has(square) and distance < best_distance:
-			best = square
-			best_distance = distance
-	return best
 
 
 ## World y of the walking surface at a height (a level) - the labels sit just above it.
@@ -95,6 +73,8 @@ func _add_label(square: Vector3i, distance: int) -> void:
 	label.rotation_degrees.x = -90
 	add_child(label)
 	label.global_position = (corners[0] + corners[2]) * 0.5
+	if _stair_tops.has(square):
+		label.global_position.y = float(_stair_tops[square])  # on the step
 	_labels.append(label)
 
 

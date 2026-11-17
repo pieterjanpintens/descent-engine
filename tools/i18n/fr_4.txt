@@ -45,3 +45,7 @@
 920|Votre progression est enregistrée. Quand une nouvelle version de cette campagne sortira, installez-la et mettez à jour votre sauvegarde.
 921|{hero} : placez votre figurine sur l'une des cases mises en évidence.
 P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transférer maintenant vers la nouvelle version ? (Une copie est créée ; l'original reste tel quel.)|Vous avez %d sauvegardes d'anciennes versions de cette campagne. Les transférer maintenant vers la nouvelle version ? (Des copies sont créées ; les originaux restent tels quels.)
+922|Déplacement des monstres
+923|Désactivé : vous déplacez vous-mêmes les monstres, comme dans le jeu original. Activé : avant chaque phase des monstres, vous montrez à l'app où se trouvent les héros (en faisant glisser leurs jetons sur la carte) et l'app déplace chaque monstre et vous montre où il va. Vous pouvez le changer avant chaque mission.
+924|Activé : avant chaque phase des monstres, vous montrez à l'app où se trouvent les héros et l'app déplace chaque monstre. Désactivé : vous déplacez vous-mêmes les monstres, comme dans le jeu original.
+925|L'app déplace les monstres

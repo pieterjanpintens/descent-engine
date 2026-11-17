@@ -278,10 +278,11 @@ func _close_setup_page() -> void:
 		_setup_page = null
 
 
-func _on_setup_confirmed(save_name: String, hero_voices: Dictionary, language: String, difficulty: int) -> void:
+func _on_setup_confirmed(save_name: String, hero_voices: Dictionary, language: String, difficulty: int, track_positions: bool) -> void:
 	_close_setup_page()
 	if _begin(_folder, save_name, language):
 		_state.difficulty = Difficulty.clamped(difficulty)
+		_state.track_positions = track_positions
 		if PlayerSettings.mission_difficulty != _state.difficulty:  # the next game and single missions suggest this one
 			PlayerSettings.mission_difficulty = _state.difficulty
 			PlayerSettings.save_settings()
@@ -945,7 +946,7 @@ func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariab
 	GameState.campaign_save = CampaignIO.save_key(_state.save_name)
 	GameState.campaign_chapter_id = id
 	GameState.campaign_difficulty = Difficulty.clamped(_state.difficulty)
-	GameState.campaign_track_positions = _campaign.track_positions
+	GameState.campaign_track_positions = _state.track_positions
 	var values := _state.variable_values(_campaign)
 	GameState.campaign_mission_inputs = {}
 	for input in inputs:

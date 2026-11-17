@@ -2634,6 +2634,18 @@ msgstr "Je voortgang is opgeslagen. Komt er een nieuwe versie van deze campagne 
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr "{hero}: zet je figuur op een van de gemarkeerde vakken."
 
+msgid "Monster movement"
+msgstr "Bewegen van de monsters"
+
+msgid "Off: you move the monsters yourselves, as in the original game. On: before each monster phase you show the app where the heroes stand (drag their tokens on the map) and the app moves every monster and shows you where it goes. You can change it before each mission."
+msgstr "Uit: jullie verplaatsen de monsters zelf, zoals in het originele spel. Aan: voor elke monsterfase tonen jullie de app waar de helden staan (sleep hun fiches op de kaart) en de app verplaatst elk monster en toont waar het heen gaat. Je kunt het voor elke missie veranderen."
+
+msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
+msgstr "Aan: voor elke monsterfase tonen jullie de app waar de helden staan en de app verplaatst elk monster. Uit: jullie verplaatsen de monsters zelf, zoals in het originele spel."
+
+msgid "The app moves the monsters"
+msgstr "De app verplaatst de monsters"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

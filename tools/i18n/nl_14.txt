@@ -45,3 +45,7 @@
 920|Je voortgang is opgeslagen. Komt er een nieuwe versie van deze campagne uit, installeer die dan en werk je opgeslagen spel bij.
 921|{hero}: zet je figuur op een van de gemarkeerde vakken.
 P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar de nieuwe versie overzetten? (Er wordt een kopie gemaakt; het origineel blijft zoals het is.)|Je hebt %d opgeslagen spellen van oudere versies van deze campagne. Nu naar de nieuwe versie overzetten? (Er worden kopieën gemaakt; de originelen blijven zoals ze zijn.)
+922|Bewegen van de monsters
+923|Uit: jullie verplaatsen de monsters zelf, zoals in het originele spel. Aan: voor elke monsterfase tonen jullie de app waar de helden staan (sleep hun fiches op de kaart) en de app verplaatst elk monster en toont waar het heen gaat. Je kunt het voor elke missie veranderen.
+924|Aan: voor elke monsterfase tonen jullie de app waar de helden staan en de app verplaatst elk monster. Uit: jullie verplaatsen de monsters zelf, zoals in het originele spel.
+925|De app verplaatst de monsters

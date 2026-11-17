@@ -45,3 +45,7 @@
 920|Az előrehaladásotok el van mentve. Ha megjelenik a kampány új verziója, telepítsétek, és frissítsétek a mentést.
 921|{hero}: tedd a figurádat az egyik kiemelt mezőre.
 P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most az új verzióra? (Másolat készül; az eredeti változatlan marad.)|%d mentésetek van a kampány régebbi verzióiból. Áthelyezitek most őket az új verzióra? (Másolatok készülnek; az eredetiek változatlanok maradnak.)
+922|A szörnyek mozgása
+923|Ki: a szörnyeket ti mozgatjátok, mint az eredeti játékban. Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a hősök (a jelzőik húzásával a térképen), és az app mozgatja a szörnyeket, és megmutatja, hová mennek. Minden küldetés előtt megváltoztathatjátok.
+924|Be: minden szörnyfázis előtt megmutatjátok az appnak, hol állnak a hősök, és az app mozgatja a szörnyeket. Ki: a szörnyeket ti mozgatjátok, mint az eredeti játékban.
+925|Az app mozgatja a szörnyeket
