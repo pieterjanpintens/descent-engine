@@ -60,3 +60,8 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 934|%s oddala się o %d pole/pola od: %s.
 935|%s: %s!\nCel %s - Obrażenia %d - %s
 936|Który bohater ma najwięcej zmęczenia? (Przy remisie wybierzcie jednego.)
+937|Większe niż duży stół (%d x %d cm).
+938|Zmieści się na dużym stole (%d x %d cm).
+939|Zmieści się na średnim stole (%d x %d cm).
+940|Zmieści się na małym stole (%d x %d cm).
+941|Potrzebny stół: około %d x %d cm (%d x %d pól).

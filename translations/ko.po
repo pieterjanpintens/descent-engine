@@ -2679,6 +2679,21 @@ msgstr "%s: %s!\n대상 %s - 피해 %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "피로가 가장 많은 영웅은 누구입니까? (동률이면 한 명을 고르세요.)"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "큰 테이블보다 큽니다 (%d x %d cm)."
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "큰 테이블에 맞습니다 (%d x %d cm)."
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "중간 테이블에 맞습니다 (%d x %d cm)."
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "작은 테이블에 맞습니다 (%d x %d cm)."
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "필요한 테이블: 약 %d x %d cm (%d x %d칸)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

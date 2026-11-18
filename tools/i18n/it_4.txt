@@ -60,3 +60,8 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 934|%s si allontana di %d casella/e da %s.
 935|%s: %s!\nBersaglio %s - Danni %d - %s
 936|Quale eroe ha più fatica? (In caso di parità sceglietene uno.)
+937|Più grande di un tavolo grande (%d x %d cm).
+938|Sta su un tavolo grande (%d x %d cm).
+939|Sta su un tavolo medio (%d x %d cm).
+940|Sta su un tavolo piccolo (%d x %d cm).
+941|Tavolo necessario: circa %d x %d cm (%d x %d caselle).

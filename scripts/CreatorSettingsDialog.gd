@@ -17,11 +17,17 @@ var _copies_spin: SpinBox
 var _interval_spin: SpinBox
 var _checkpoint_copies_spin: SpinBox
 var _checkpoint_interval_spin: SpinBox
+var _table_check: CheckBox
+var _preset_option: OptionButton
+var _width_spin: SpinBox
+var _depth_spin: SpinBox
+var _square_spin: SpinBox
 
 
 func _ready() -> void:
-	title = "Autosave Settings"
-	size = Vector2i(400, 300)
+	title = "Editor Settings"
+	size = Vector2i(440, 540)
+	unresizable = true
 	close_requested.connect(hide)
 	visible = false
 
@@ -62,6 +68,36 @@ func _ready() -> void:
 	_checkpoint_copies_spin = _add_spin_row(root, "Copies to keep:")
 	_checkpoint_interval_spin = _add_spin_row(root, "Save every (minutes):")
 
+	root.add_child(HSeparator.new())
+
+	# the real table (TableAreaOverlay): how big the table you play on is, and one tile square on it
+	var table_label := Label.new()
+	table_label.text = "Table size (shown around the map in the editor):"
+	root.add_child(table_label)
+	_table_check = CheckBox.new()
+	_table_check.text = "Show the table area (View > Table Area)"
+	root.add_child(_table_check)
+	var preset_row := HBoxContainer.new()
+	root.add_child(preset_row)
+	var preset_label := Label.new()
+	preset_label.text = "Table:"
+	preset_row.add_child(preset_label)
+	_preset_option = OptionButton.new()
+	for preset: Array in CreatorSettings.TABLE_PRESETS:
+		_preset_option.add_item("%s (%d x %d cm)" % [preset[0], preset[1], preset[2]])
+	_preset_option.add_item("Custom")
+	_preset_option.item_selected.connect(_on_preset_selected)
+	preset_row.add_child(_preset_option)
+	_width_spin = _add_spin_row(root, "Width (cm):")
+	_depth_spin = _add_spin_row(root, "Depth (cm):")
+	for spin: SpinBox in [_width_spin, _depth_spin]:
+		spin.max_value = 1000
+		spin.value_changed.connect(func(_v: float): _sync_preset())
+	_square_spin = _add_spin_row(root, "One tile square on the table (cm):")
+	_square_spin.min_value = 0.5
+	_square_spin.max_value = 20
+	_square_spin.step = 0.1
+
 	var save_button := Button.new()
 	save_button.text = "Save"
 	save_button.pressed.connect(_on_save_pressed)
@@ -90,7 +126,29 @@ func open() -> void:
 	_interval_spin.value = CreatorSettings.save_interval_minutes
 	_checkpoint_copies_spin.value = CreatorSettings.checkpoint_copies
 	_checkpoint_interval_spin.value = CreatorSettings.checkpoint_interval_minutes
-	popup_centered()
+	_table_check.button_pressed = CreatorSettings.table_overlay
+	_width_spin.set_value_no_signal(CreatorSettings.table_width_cm)
+	_depth_spin.set_value_no_signal(CreatorSettings.table_depth_cm)
+	_square_spin.value = CreatorSettings.square_cm
+	_sync_preset()
+	popup_centered_clamped(size, 0.9)
+
+
+## Picking a preset fills in its width and depth.
+func _on_preset_selected(index: int) -> void:
+	if index < CreatorSettings.TABLE_PRESETS.size():
+		_width_spin.set_value_no_signal(CreatorSettings.TABLE_PRESETS[index][1])
+		_depth_spin.set_value_no_signal(CreatorSettings.TABLE_PRESETS[index][2])
+
+
+## The preset picker shows the preset the width and depth match, else Custom.
+func _sync_preset() -> void:
+	var index := CreatorSettings.TABLE_PRESETS.size()
+	for i in CreatorSettings.TABLE_PRESETS.size():
+		var preset: Array = CreatorSettings.TABLE_PRESETS[i]
+		if is_equal_approx(_width_spin.value, preset[1]) and is_equal_approx(_depth_spin.value, preset[2]):
+			index = i
+	_preset_option.select(index)
 
 
 func _on_save_pressed() -> void:
@@ -100,5 +158,9 @@ func _on_save_pressed() -> void:
 	CreatorSettings.save_interval_minutes = int(_interval_spin.value)
 	CreatorSettings.checkpoint_copies = int(_checkpoint_copies_spin.value)
 	CreatorSettings.checkpoint_interval_minutes = int(_checkpoint_interval_spin.value)
+	CreatorSettings.table_overlay = _table_check.button_pressed
+	CreatorSettings.table_width_cm = _width_spin.value
+	CreatorSettings.table_depth_cm = _depth_spin.value
+	CreatorSettings.square_cm = _square_spin.value
 	CreatorSettings.save_settings()
 	hide()

@@ -2679,6 +2679,21 @@ msgstr "%s: %s!\nCélpont %s - Sebzés %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Melyik hősnek van a legtöbb kimerültsége? (Egyenlőség esetén válasszatok egyet.)"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "Nagyobb, mint egy nagy asztal (%d x %d cm)."
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "Elfér egy nagy asztalon (%d x %d cm)."
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "Elfér egy közepes asztalon (%d x %d cm)."
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "Elfér egy kis asztalon (%d x %d cm)."
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "Szükséges asztal: kb. %d x %d cm (%d x %d mező)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

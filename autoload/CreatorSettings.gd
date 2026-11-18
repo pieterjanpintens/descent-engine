@@ -46,6 +46,28 @@ var save_interval_minutes: int = 1
 var checkpoint_copies: int = 2
 var checkpoint_interval_minutes: int = 15
 
+## The real table (TableAreaOverlay, View > Table Area): its size in cm and how big one tile square is on it. TABLE_PRESETS are the
+## suggested sizes ([name, width, depth]); any other size can be typed in the Settings dialog.
+const TABLE_PRESETS := [["Large", 175.0, 95.0], ["Medium", 120.0, 90.0], ["Small", 120.0, 75.0]]
+const _TABLE_SECTION := "table"
+var table_overlay: bool = true
+var table_width_cm: float = 175.0
+var table_depth_cm: float = 95.0
+## One tile square of the floor tiles on the table, in cm (3.2, measured by the author on the real tiles).
+var square_cm: float = 3.2
+
+
+## The smallest preset table ([name, width, depth]) a board of `squares` (long side, short side) fits on; empty when none does.
+func smallest_table_for(squares: Vector2i) -> Array:
+	var long_cm := squares.x * square_cm
+	var short_cm := squares.y * square_cm
+	var best: Array = []
+	for preset: Array in TABLE_PRESETS:
+		if long_cm <= maxf(preset[1], preset[2]) + 0.01 and short_cm <= minf(preset[1], preset[2]) + 0.01:
+			if best.is_empty() or float(preset[1]) * float(preset[2]) < float(best[1]) * float(best[2]):
+				best = preset
+	return best
+
 
 func _ready() -> void:
 	load_settings()
@@ -64,6 +86,10 @@ func load_settings() -> void:
 	save_interval_minutes = config.get_value(_SECTION, "save_interval_minutes", save_interval_minutes)
 	checkpoint_copies = config.get_value(_SECTION, "checkpoint_copies", checkpoint_copies)
 	checkpoint_interval_minutes = config.get_value(_SECTION, "checkpoint_interval_minutes", checkpoint_interval_minutes)
+	table_overlay = config.get_value(_TABLE_SECTION, "show", table_overlay)
+	table_width_cm = float(config.get_value(_TABLE_SECTION, "width_cm", table_width_cm))
+	table_depth_cm = float(config.get_value(_TABLE_SECTION, "depth_cm", table_depth_cm))
+	square_cm = float(config.get_value(_TABLE_SECTION, "square_cm", square_cm))
 
 
 ## Called by CreatorSettingsDialog.gd's Save button. Emits settings_changed
@@ -77,6 +103,10 @@ func save_settings() -> void:
 	config.set_value(_SECTION, "save_interval_minutes", save_interval_minutes)
 	config.set_value(_SECTION, "checkpoint_copies", checkpoint_copies)
 	config.set_value(_SECTION, "checkpoint_interval_minutes", checkpoint_interval_minutes)
+	config.set_value(_TABLE_SECTION, "show", table_overlay)
+	config.set_value(_TABLE_SECTION, "width_cm", table_width_cm)
+	config.set_value(_TABLE_SECTION, "depth_cm", table_depth_cm)
+	config.set_value(_TABLE_SECTION, "square_cm", square_cm)
 
 	var dir := SETTINGS_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):

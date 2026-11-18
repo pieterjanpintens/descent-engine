@@ -60,3 +60,8 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 934|%s %d mezőt távolodik tőle: %s.
 935|%s: %s!\nCélpont %s - Sebzés %d - %s
 936|Melyik hősnek van a legtöbb kimerültsége? (Egyenlőség esetén válasszatok egyet.)
+937|Nagyobb, mint egy nagy asztal (%d x %d cm).
+938|Elfér egy nagy asztalon (%d x %d cm).
+939|Elfér egy közepes asztalon (%d x %d cm).
+940|Elfér egy kis asztalon (%d x %d cm).
+941|Szükséges asztal: kb. %d x %d cm (%d x %d mező).

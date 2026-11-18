@@ -60,3 +60,8 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 934|%s gaat %d vak(ken) weg van %s.
 935|%s: %s!\nDoelwit %s - Schade %d - %s
 936|Welke held heeft de meeste vermoeidheid? (Gelijk: kies er een.)
+937|Groter dan een grote tafel (%d x %d cm).
+938|Past op een grote tafel (%d x %d cm).
+939|Past op een middelgrote tafel (%d x %d cm).
+940|Past op een kleine tafel (%d x %d cm).
+941|Benodigde tafel: ongeveer %d x %d cm (%d x %d vakjes).

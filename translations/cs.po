@@ -2679,6 +2679,21 @@ msgstr "%s: %s!\nCíl %s - Zranění %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Který hrdina má nejvíc únavy? (Při shodě vyberte jednoho.)"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "Větší než velký stůl (%d x %d cm)."
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "Vejde se na velký stůl (%d x %d cm)."
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "Vejde se na střední stůl (%d x %d cm)."
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "Vejde se na malý stůl (%d x %d cm)."
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "Potřebný stůl: asi %d x %d cm (%d x %d polí)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

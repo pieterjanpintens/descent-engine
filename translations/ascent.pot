@@ -421,7 +421,7 @@ msgstr ""
 msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
 msgstr ""
 
-#: EmbarkDialog.gd:505
+#: EmbarkDialog.gd:533
 msgid "%s: %s\nFixed parts: %s"
 msgstr ""
 
@@ -837,7 +837,7 @@ msgstr ""
 msgid "Aquos (water)"
 msgstr ""
 
-#: EmbarkDialog.gd:276 InventoryDialog.gd:80
+#: EmbarkDialog.gd:286 InventoryDialog.gd:80
 msgid "Armor"
 msgstr ""
 
@@ -849,7 +849,7 @@ msgstr ""
 msgid "Armor: "
 msgstr ""
 
-#: EmbarkDialog.gd:266
+#: EmbarkDialog.gd:276
 msgid "Armor…"
 msgstr ""
 
@@ -903,6 +903,10 @@ msgstr ""
 
 #: LibraryPage.gd:514
 msgid "Begin Campaign"
+msgstr ""
+
+#: EmbarkDialog.gd:416
+msgid "Bigger than a large table (%d x %d cm)."
 msgstr ""
 
 #: extra
@@ -1053,15 +1057,15 @@ msgstr ""
 msgid "Choose the game folder…"
 msgstr ""
 
-#: EmbarkDialog.gd:225
+#: EmbarkDialog.gd:235
 msgid "Choose two weapons per hero (and optional attachments)"
 msgstr ""
 
-#: EmbarkDialog.gd:132
+#: EmbarkDialog.gd:134
 msgid "Choose your party"
 msgstr ""
 
-#: CampaignPlayer.gd:93 CombatView.gd:1002 EmbarkDialog.gd:277
+#: CampaignPlayer.gd:93 CombatView.gd:1002 EmbarkDialog.gd:287
 msgid "Close"
 msgstr ""
 
@@ -1105,11 +1109,11 @@ msgstr ""
 msgid "Confused"
 msgstr ""
 
-#: EmbarkDialog.gd:321 InventoryDialog.gd:82
+#: EmbarkDialog.gd:331 InventoryDialog.gd:82
 msgid "Consumables"
 msgstr ""
 
-#: EmbarkDialog.gd:256
+#: EmbarkDialog.gd:266
 msgid "Consumables…"
 msgstr ""
 
@@ -1333,7 +1337,7 @@ msgstr ""
 msgid "Didn't catch which option"
 msgstr ""
 
-#: CampaignSetupPage.gd:97 EmbarkDialog.gd:187
+#: CampaignSetupPage.gd:97 EmbarkDialog.gd:189
 msgid "Difficulty"
 msgstr ""
 
@@ -1385,7 +1389,7 @@ msgstr ""
 msgid "each enemy suffers %d damage (trigger %d)"
 msgstr ""
 
-#: EmbarkDialog.gd:347
+#: EmbarkDialog.gd:357
 msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
 msgstr ""
 
@@ -1455,6 +1459,18 @@ msgstr ""
 
 #: MissionPlayer.gd:810
 msgid "first"
+msgstr ""
+
+#: EmbarkDialog.gd:417
+msgid "Fits a large table (%d x %d cm)."
+msgstr ""
+
+#: EmbarkDialog.gd:417
+msgid "Fits a medium table (%d x %d cm)."
+msgstr ""
+
+#: EmbarkDialog.gd:417
+msgid "Fits a small table (%d x %d cm)."
 msgstr ""
 
 #: TargetRule.gd:66
@@ -1673,7 +1689,7 @@ msgstr ""
 msgid "Horn of Courage - %s was wounded."
 msgstr ""
 
-#: EmbarkDialog.gd:309
+#: EmbarkDialog.gd:319
 msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
 msgstr ""
 
@@ -2257,7 +2273,7 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
-#: EmbarkDialog.gd:199
+#: EmbarkDialog.gd:201
 msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
 msgstr ""
 
@@ -2309,7 +2325,7 @@ msgstr ""
 msgid "Owned"
 msgstr ""
 
-#: EmbarkDialog.gd:536
+#: EmbarkDialog.gd:564
 msgid "Part %s: none"
 msgstr ""
 
@@ -2589,7 +2605,7 @@ msgstr ""
 msgid "rune"
 msgstr ""
 
-#: EmbarkDialog.gd:500 RecipeData.gd:104
+#: EmbarkDialog.gd:528 RecipeData.gd:104
 msgid "Rune: "
 msgstr ""
 
@@ -2665,7 +2681,7 @@ msgstr ""
 msgid "Show voice hints"
 msgstr ""
 
-#: EmbarkDialog.gd:707
+#: EmbarkDialog.gd:735
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr ""
 
@@ -2749,7 +2765,7 @@ msgstr ""
 msgid "staff"
 msgstr ""
 
-#: EmbarkDialog.gd:205 EmbarkDialog.gd:248
+#: EmbarkDialog.gd:215 EmbarkDialog.gd:258
 msgid "Start"
 msgstr ""
 
@@ -2787,6 +2803,10 @@ msgstr ""
 
 #: MissionPlayer.gd:1303
 msgid "Table"
+msgstr ""
+
+#: EmbarkDialog.gd:413
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr ""
 
 #: MissionPlayer.gd:1697 MissionPlayer.gd:1979
@@ -2885,11 +2905,11 @@ msgstr ""
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr ""
 
-#: CampaignSetupPage.gd:116 EmbarkDialog.gd:198
+#: CampaignSetupPage.gd:116 EmbarkDialog.gd:200
 msgid "The app moves the monsters"
 msgstr ""
 
-#: EmbarkDialog.gd:267
+#: EmbarkDialog.gd:277
 msgid "The armor the party owns"
 msgstr ""
 
@@ -3029,7 +3049,7 @@ msgstr ""
 msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
 msgstr ""
 
-#: EmbarkDialog.gd:362
+#: EmbarkDialog.gd:372
 msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
 msgstr ""
 
@@ -3037,7 +3057,7 @@ msgstr ""
 msgid "The party has to try this chapter again."
 msgstr ""
 
-#: EmbarkDialog.gd:304
+#: EmbarkDialog.gd:314
 msgid "The party owns no armor yet."
 msgstr ""
 
@@ -3049,7 +3069,7 @@ msgstr ""
 msgid "The phase can't be ended right now."
 msgstr ""
 
-#: EmbarkDialog.gd:257
+#: EmbarkDialog.gd:267
 msgid "The potions the party has crafted - available in every mission"
 msgstr ""
 
@@ -3085,7 +3105,7 @@ msgstr ""
 msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
 msgstr ""
 
-#: EmbarkDialog.gd:579
+#: EmbarkDialog.gd:607
 msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
 msgstr ""
 
@@ -3217,7 +3237,7 @@ msgstr ""
 msgid "trigger %d: %d damage to every enemy"
 msgstr ""
 
-#: EmbarkDialog.gd:571
+#: EmbarkDialog.gd:599
 msgid "Trinket"
 msgstr ""
 
@@ -3285,7 +3305,7 @@ msgstr ""
 msgid "Upgrade: "
 msgstr ""
 
-#: EmbarkDialog.gd:598
+#: EmbarkDialog.gd:626
 msgid "Upgraded (+). In a campaign this follows the party's upgrades."
 msgstr ""
 
@@ -3301,7 +3321,7 @@ msgstr ""
 msgid "Use the original game props in the map"
 msgstr ""
 
-#: EmbarkDialog.gd:598
+#: EmbarkDialog.gd:626
 msgid "Use the upgraded (+) side of this trinket."
 msgstr ""
 
@@ -3437,7 +3457,7 @@ msgstr ""
 msgid "weapon"
 msgstr ""
 
-#: EmbarkDialog.gd:498
+#: EmbarkDialog.gd:526
 msgid "Weapon %d (%s)"
 msgstr ""
 
@@ -3569,7 +3589,7 @@ msgstr ""
 msgid "☠ Defeated"
 msgstr ""
 
-#: EmbarkDialog.gd:346
+#: EmbarkDialog.gd:356
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] ""

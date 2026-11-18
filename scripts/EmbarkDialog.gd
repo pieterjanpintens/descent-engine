@@ -69,6 +69,8 @@ var _difficulty_picker: OptionButton
 var track_positions: bool = false
 var offer_track_positions: bool = false
 var _track_check: CheckBox
+## How much table the mission needs ("Table needed: about 81 x 102 cm ...").
+var _table_label: Label
 var _min_players: int = 1
 var _max_players: int = HeroCatalog.SLOT_COUNT
 
@@ -200,6 +202,14 @@ func _build_ui() -> void:
 	_track_check.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_track_check.toggled.connect(func(on: bool): track_positions = on)
 	vbox.add_child(_track_check)
+
+	_table_label = Label.new()
+	_table_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_table_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_table_label.custom_minimum_size.x = 320
+	_table_label.add_theme_font_size_override("font_size", 13)
+	_table_label.modulate = Color(0.8, 0.85, 0.9)
+	vbox.add_child(_table_label)
 
 	_start_button = Button.new()
 	_start_button.text = "Start"
@@ -392,6 +402,22 @@ func _on_start_pressed() -> void:
 ## INDICES in slot order (e.g. [0, 2, 5] if slots 1/3/6 got picked), not
 ## just a count, since which character maps to which player number matters
 ## just as much as how many are playing (see class doc). Reads
+## The table space a mission needs, for the party page: its biggest board in cm (CreatorSettings.square_cm per tile square) and the
+## smallest suggested table it fits on. "" for an empty mission.
+static func table_text(mission: MissionData) -> String:
+	if mission == null:
+		return ""
+	var squares := mission.board_size()
+	if squares == Vector2i.ZERO:
+		return ""
+	var text := TranslationServer.translate("Table needed: about %d x %d cm (%d x %d squares).") % [roundi(squares.x * CreatorSettings.square_cm), roundi(squares.y * CreatorSettings.square_cm), squares.x, squares.y]
+	var preset: Array = CreatorSettings.smallest_table_for(squares)
+	if preset.is_empty():
+		return text + " " + TranslationServer.translate("Bigger than a large table (%d x %d cm).") % [CreatorSettings.TABLE_PRESETS[0][1], CreatorSettings.TABLE_PRESETS[0][2]]
+	var fits := {"Large": "Fits a large table (%d x %d cm).", "Medium": "Fits a medium table (%d x %d cm).", "Small": "Fits a small table (%d x %d cm)."}
+	return text + " " + TranslationServer.translate(fits[preset[0]]) % [preset[1], preset[2]]
+
+
 ## min_players/max_players from `mission` (null = unrestricted, full
 ## HeroCatalog range).
 func ask_roster(mission: MissionData) -> Array[int]:
@@ -412,6 +438,8 @@ func ask_roster(mission: MissionData) -> Array[int]:
 	_difficulty_picker.tooltip_text = Difficulty.description(difficulty)
 	_track_check.visible = offer_track_positions
 	_track_check.set_pressed_no_signal(track_positions)
+	_table_label.text = table_text(mission)
+	_table_label.visible = _table_label.text != ""
 
 	visible = true
 	await _closed

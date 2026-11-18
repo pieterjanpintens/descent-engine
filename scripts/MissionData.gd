@@ -191,6 +191,59 @@ func initial_table_id() -> String:
 
 
 ## The extra Tables of this mission (the main table is implicit).
+## The smallest tile-square rectangle (1-based, inclusive: [low, high], y = 0) around every floor, underlay and prop of the Table
+## `table_id` ("" = the main table); null when that Table has none. What the board takes up on the real table (TableAreaOverlay, embark).
+func table_bounds(table_id: String) -> Variant:
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var low := Vector3i(1 << 20, 0, 1 << 20)
+	var high := Vector3i(-(1 << 20), 0, -(1 << 20))
+	var found := false
+	var cells_by_origin := {}
+	for source in [floor_occupied_cells, underlay_occupied_cells]:
+		for fine: Vector3i in source:
+			var origin: Vector3i = source[fine]
+			if not cells_by_origin.has(origin):
+				cells_by_origin[origin] = []
+			cells_by_origin[origin].append(fine)
+	var nodes: Array = []
+	nodes.append_array(floor_placements)
+	nodes.append_array(underlay_placements)
+	nodes.append_array(interactables)
+	for node: OutlineNode in nodes:
+		if table_of(node) != table_id:
+			continue
+		var cells: Array = []
+		if node is InteractableEntry:
+			for offset in (node as InteractableEntry).footprint:
+				cells.append((node as InteractableEntry).origin_cell + offset)
+		else:
+			cells = cells_by_origin.get((node as TilePlacement).origin_cell, [])
+		for cell: Vector3i in cells:
+			var square := Vector3i(floori(float(cell.x) / cpt) + 1, 0, floori(float(cell.z) / cpt) + 1)
+			low = Vector3i(mini(low.x, square.x), 0, mini(low.z, square.z))
+			high = Vector3i(maxi(high.x, square.x), 0, maxi(high.z, square.z))
+			found = true
+	return [low, high] if found else null
+
+
+## The size in tile squares of the biggest board the mission needs on the real table (each Table is set up on its own, so the largest of
+## them): Vector2i(long side, short side); (0, 0) for an empty mission.
+func board_size() -> Vector2i:
+	var best := Vector2i.ZERO
+	var ids: Array[String] = [""]
+	for table in tables():
+		ids.append(table.id)
+	for id in ids:
+		var bounds: Variant = table_bounds(id)
+		if bounds == null:
+			continue
+		var size: Vector3i = (bounds[1] as Vector3i) - (bounds[0] as Vector3i) + Vector3i.ONE
+		var this := Vector2i(maxi(size.x, size.z), mini(size.x, size.z))
+		if this.x * this.y > best.x * best.y:
+			best = this
+	return best
+
+
 func tables() -> Array[MissionTable]:
 	var result: Array[MissionTable] = []
 	for group in groups:

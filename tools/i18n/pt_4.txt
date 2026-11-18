@@ -60,3 +60,8 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 934|%s se afasta %d espaço(s) de %s.
 935|%s: %s!\nAlvo %s - Dano %d - %s
 936|Qual herói tem mais fadiga? (Em caso de empate, escolham um.)
+937|Maior que uma mesa grande (%d x %d cm).
+938|Cabe em uma mesa grande (%d x %d cm).
+939|Cabe em uma mesa média (%d x %d cm).
+940|Cabe em uma mesa pequena (%d x %d cm).
+941|Mesa necessária: cerca de %d x %d cm (%d x %d espaços).

@@ -60,3 +60,8 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 934|%s s'éloigne de %d case(s) de %s.
 935|%s : %s !\nCible %s - Dégâts %d - %s
 936|Quel héros a le plus de fatigue ? (En cas d'égalité, choisissez-en un.)
+937|Plus grand qu'une grande table (%d x %d cm).
+938|Tient sur une grande table (%d x %d cm).
+939|Tient sur une table moyenne (%d x %d cm).
+940|Tient sur une petite table (%d x %d cm).
+941|Table nécessaire : environ %d x %d cm (%d x %d cases).

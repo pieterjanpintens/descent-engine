@@ -60,3 +60,8 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 934|%s se vzdálí o %d pole od %s.
 935|%s: %s!\nCíl %s - Zranění %d - %s
 936|Který hrdina má nejvíc únavy? (Při shodě vyberte jednoho.)
+937|Větší než velký stůl (%d x %d cm).
+938|Vejde se na velký stůl (%d x %d cm).
+939|Vejde se na střední stůl (%d x %d cm).
+940|Vejde se na malý stůl (%d x %d cm).
+941|Potřebný stůl: asi %d x %d cm (%d x %d polí).

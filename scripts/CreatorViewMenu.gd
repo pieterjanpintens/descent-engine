@@ -14,11 +14,12 @@ extends PopupMenu
 
 @export var creator_controller: CreatorController
 
-enum _ViewAction { OCCUPANCY_OVERLAY, TILE_LABELS, GRID }
+enum _ViewAction { OCCUPANCY_OVERLAY, TILE_LABELS, GRID, TABLE_AREA }
 
 var _occupancy_item_index: int
 var _tile_labels_item_index: int
 var _grid_item_index: int
+var _table_item_index: int
 
 
 func _ready() -> void:
@@ -30,6 +31,16 @@ func _ready() -> void:
 	_occupancy_item_index = get_item_index(_ViewAction.OCCUPANCY_OVERLAY)
 	add_check_item("Tile Name Labels (N)", _ViewAction.TILE_LABELS)
 	_tile_labels_item_index = get_item_index(_ViewAction.TILE_LABELS)
+
+	# the real table's outline around the map (TableAreaOverlay; its size is set in File > Settings)
+	add_check_item("Table Area", _ViewAction.TABLE_AREA)
+	_table_item_index = get_item_index(_ViewAction.TABLE_AREA)
+	set_item_checked(_table_item_index, CreatorSettings.table_overlay)
+	CreatorSettings.settings_changed.connect(func(): set_item_checked(_table_item_index, CreatorSettings.table_overlay))
+	var overlay := TableAreaOverlay.new()
+	overlay.layered_map = creator_controller.layered_map
+	overlay.creator_controller = creator_controller
+	creator_controller.layered_map.add_child.call_deferred(overlay)
 
 	id_pressed.connect(_on_id_pressed)
 	creator_controller.occupancy_overlay_changed.connect(_on_occupancy_overlay_changed)
@@ -47,6 +58,9 @@ func _on_id_pressed(id: int) -> void:
 			creator_controller.set_occupancy_overlay(not creator_controller.show_occupancy_overlay)
 		_ViewAction.TILE_LABELS:
 			creator_controller.set_tile_labels(not creator_controller.show_tile_labels)
+		_ViewAction.TABLE_AREA:
+			CreatorSettings.table_overlay = not CreatorSettings.table_overlay
+			CreatorSettings.save_settings()
 
 
 func _on_occupancy_overlay_changed(enabled: bool) -> void:

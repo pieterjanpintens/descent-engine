@@ -2679,6 +2679,21 @@ msgstr "%s: %s!\nDoelwit %s - Schade %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Welke held heeft de meeste vermoeidheid? (Gelijk: kies er een.)"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "Groter dan een grote tafel (%d x %d cm)."
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "Past op een grote tafel (%d x %d cm)."
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "Past op een middelgrote tafel (%d x %d cm)."
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "Past op een kleine tafel (%d x %d cm)."
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "Benodigde tafel: ongeveer %d x %d cm (%d x %d vakjes)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

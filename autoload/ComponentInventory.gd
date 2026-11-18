@@ -32,6 +32,7 @@ const MESH_TO_GROUP: Dictionary = {
 	"16a": "tile_16", "16b": "tile_16",
 	"17a": "tile_17", "17b": "tile_17",
 	"18a": "tile_18", "18b": "tile_18",
+	"19a": "tile_19", "19b": "tile_19",
 	"20a": "tile_20", "20b": "tile_20",
 	"21a": "tile_21", "21b": "tile_21",
 	# Underlay hazard cards are double-sided too, just like the tile faces
@@ -64,6 +65,7 @@ const MAX_COUNTS: Dictionary = {
 	"tile_16": 1,
 	"tile_17": 1,
 	"tile_18": 1,
+	"tile_19": 1,
 	"tile_20": 1,
 	"tile_21": 1,
 	"card_water_spikes": 4,

@@ -934,6 +934,11 @@
 934|%s moves %d space(s) away from %s.
 935|%s: %s!\nTarget %s - Damage %d - %s
 936|Which hero has the most fatigue? (A tie: pick one.)
+937|Bigger than a large table (%d x %d cm).
+938|Fits a large table (%d x %d cm).
+939|Fits a medium table (%d x %d cm).
+940|Fits a small table (%d x %d cm).
+941|Table needed: about %d x %d cm (%d x %d squares).
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

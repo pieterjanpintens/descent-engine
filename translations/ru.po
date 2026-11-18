@@ -2679,6 +2679,21 @@ msgstr "%s: %s!\nЦель %s - Урон %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "У какого героя больше всего усталости? (При равенстве выберите одного.)"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "Больше большого стола (%d x %d см)."
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "Помещается на большом столе (%d x %d см)."
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "Помещается на среднем столе (%d x %d см)."
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "Помещается на маленьком столе (%d x %d см)."
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "Нужен стол: примерно %d x %d см (%d x %d клеток)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

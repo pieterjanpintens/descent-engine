@@ -1,4 +1,9 @@
-﻿## v0.0.82 - 2026-11-17
+﻿## v0.0.83 - 2026-11-18
+- The mission editor can show your real table around the map (View > Table Area): pick a Large (175 x 95 cm), Medium (120 x 90 cm), Small (120 x 75 cm) or your own table size in File > Settings. The outline turns red when the map does not fit, and a label gives both sizes in cm.
+- Before a mission starts, the party screen tells you how much table you need and which table size it fits on.
+- Tile 19 can now only be placed once, like every other tile.
+
+## v0.0.82 - 2026-11-17
 - Line of sight now follows the game's rules: heights don't matter (look at the map as if every tile were on one level), a line may not leave the map, and only doors, trees, bookshelves, the dragon arch and head and an archway's two pillars block it. Pillars, statues, bells, shrines, fences, furniture, stairs and bridges no longer block.
 - Statues have spaces you can stand on, like the real pieces: figures, tokens and monster spawns may be placed on their ledges, and when the app moves the monsters they climb them like steps.
 - Monsters may move diagonally between two squares with terrain in them, as the game allows.

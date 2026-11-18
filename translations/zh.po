@@ -2679,6 +2679,21 @@ msgstr "%s：%s！\n目标 %s - 伤害 %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "哪位英雄的疲劳最多？（平局时任选一位。）"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "比大桌子还大（%d x %d 厘米）。"
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "可放在大桌子上（%d x %d 厘米）。"
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "可放在中等桌子上（%d x %d 厘米）。"
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "可放在小桌子上（%d x %d 厘米）。"
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "所需桌面：约 %d x %d 厘米（%d x %d 格）。"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"

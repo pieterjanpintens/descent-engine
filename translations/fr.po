@@ -2679,6 +2679,21 @@ msgstr "%s : %s !\nCible %s - Dégâts %d - %s"
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Quel héros a le plus de fatigue ? (En cas d'égalité, choisissez-en un.)"
 
+msgid "Bigger than a large table (%d x %d cm)."
+msgstr "Plus grand qu'une grande table (%d x %d cm)."
+
+msgid "Fits a large table (%d x %d cm)."
+msgstr "Tient sur une grande table (%d x %d cm)."
+
+msgid "Fits a medium table (%d x %d cm)."
+msgstr "Tient sur une table moyenne (%d x %d cm)."
+
+msgid "Fits a small table (%d x %d cm)."
+msgstr "Tient sur une petite table (%d x %d cm)."
+
+msgid "Table needed: about %d x %d cm (%d x %d squares)."
+msgstr "Table nécessaire : environ %d x %d cm (%d x %d cases)."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

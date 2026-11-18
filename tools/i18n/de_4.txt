@@ -60,3 +60,8 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 934|%s bewegt sich %d Feld(er) von %s weg.
 935|%s: %s!\nZiel %s - Schaden %d - %s
 936|Welcher Held hat die meiste Erschöpfung? (Bei Gleichstand wählt einen.)
+937|Größer als ein großer Tisch (%d x %d cm).
+938|Passt auf einen großen Tisch (%d x %d cm).
+939|Passt auf einen mittleren Tisch (%d x %d cm).
+940|Passt auf einen kleinen Tisch (%d x %d cm).
+941|Benötigter Tisch: etwa %d x %d cm (%d x %d Felder).
