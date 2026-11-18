@@ -1,4 +1,7 @@
-﻿## v0.0.83 - 2026-11-18
+﻿## v0.0.84 - 2026-11-18
+- Mission editor: the Play menu has a new switch, "The app moves the monsters", to test a mission with monster movement (also with Fast start: monsters get their tokens when they spawn).
+
+## v0.0.83 - 2026-11-18
 - The mission editor can show your real table around the map (View > Table Area): pick a Large (175 x 95 cm), Medium (120 x 90 cm), Small (120 x 75 cm) or your own table size in File > Settings. The outline turns red when the map does not fit, and a label gives both sizes in cm.
 - Before a mission starts, the party screen tells you how much table you need and which table size it fits on.
 - Tile 19 can now only be placed once, like every other tile.

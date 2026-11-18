@@ -264,12 +264,14 @@ func _ready() -> void:
 				if embark_campaign != null:
 					embark_dialog.consumables_per_player = embark_campaign.consumables_per_player
 		embark_dialog.difficulty = GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty
-		embark_dialog.offer_track_positions = GameState.campaign_folder != ""
-		embark_dialog.track_positions = GameState.campaign_track_positions
+		embark_dialog.offer_track_positions = GameState.campaign_folder != "" or DebugSession.active()
+		embark_dialog.track_positions = DebugSession.track() if DebugSession.active() and GameState.campaign_folder == "" else GameState.campaign_track_positions
 		player_roster = await embark_dialog.ask_roster(mission)
 		_store_difficulty(embark_dialog.difficulty)  # the one place to change it: at embark time, not during the mission
 		if GameState.campaign_folder != "":
 			_store_track_positions(embark_dialog.track_positions)  # the same for monster movement
+		elif DebugSession.active():
+			DebugSession.set_track(embark_dialog.track_positions)  # playing from the mission editor: the Play menu's switch
 		player_weapons = await embark_dialog.ask_loadouts(player_roster)
 		player_trinkets = embark_dialog.chosen_trinkets.duplicate(true)
 		_set_ground_decor_visible(true)
@@ -284,8 +286,8 @@ func _ready() -> void:
 	_runtime.sync_builtins(current_round, player_roster.size())
 	# the difficulty chosen on the embark screen (a campaign game keeps its own, a single mission uses the player setting; a resumed save restores its own below)
 	_runtime.set_difficulty(GameState.campaign_difficulty if GameState.campaign_folder != "" else PlayerSettings.mission_difficulty)
-	# position tracking is a campaign option; single missions never track positions
-	_runtime.track_positions = GameState.campaign_folder != "" and GameState.campaign_track_positions
+	# position tracking is a campaign option (single missions never track positions) - and a switch of the Play menu when playing from the editor
+	_runtime.track_positions = (GameState.campaign_folder != "" and GameState.campaign_track_positions) or (GameState.campaign_folder == "" and DebugSession.active() and DebugSession.track())
 	_runtime.dialog = dialog
 	_runtime.monsters_changed.connect(func():
 		monster_display.refresh_monsters(_runtime.monsters)
@@ -320,6 +322,8 @@ func _ready() -> void:
 		_runtime.wound_health_override = resume_save.wound_health_override
 		_runtime.restore_monsters(resume_save.monsters)
 		_runtime.track_positions = resume_save.track_positions
+		if DebugSession.active() and GameState.campaign_folder == "":
+			_runtime.track_positions = DebugSession.track()  # the Play menu's switch also counts for a snapshot
 		_runtime.load_hero_positions(resume_save.hero_positions)
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
 		_runtime.hero_attacks_round = resume_save.hero_attacks_round.duplicate()
@@ -368,6 +372,9 @@ func _ready() -> void:
 		position_board.blocked_provider = func() -> bool: return los_mode.active or monster_display.visible
 		layered_map.add_child(position_board)
 		interaction_dock.position_board = position_board  # a hero dropped on a monster token attacks it
+		if resume_save != null and _runtime.hero_positions.is_empty():
+			# a snapshot taken without tracking: the heroes start on the start squares (drag them to where the figures are)
+			position_board.place_heroes_on(player_roster, mission.player_start_cells_of(mission.active_table_id))
 
 	# Typed commands ("attack green bandit") - the stand-in for voice control,
 	# see VoiceCommandParser/PlayerCommandRunner.
@@ -822,6 +829,18 @@ func _on_skull_kill(monster: RuntimeMonster, slot: int) -> void:
 	await dialog.ask_ok(make_text, true, false, "Undying Skull")  # (this also writes it to the quest log)
 
 
+## Position tracking: each spawned monster gets the square of its spawn tile (in order, like the figures are placed). The spawn tile is
+## 1-based and the far corner of a large base; positions are 0-based lowest corners.
+func _set_spawn_positions(spawned: Array[RuntimeMonster], spawn: MonsterSpawn) -> void:
+	if not _runtime.track_positions or spawn == null:
+		return
+	var board := MonsterMovement.build_board(mission, layered_map.held_back)
+	for i in mini(spawned.size(), spawn.cells.size()):
+		var size_tiles := int(round(MonsterDisplay.find_monster(spawned[i].folder).get("size_units", 1.0)))
+		var anchor := spawn.cells[i]
+		_runtime.set_monster_position(spawned[i], MonsterMovement.settle(board, Vector3i(anchor.x - size_tiles, anchor.y, anchor.z - size_tiles)))
+
+
 func _run_monster_spawn(request: Dictionary) -> void:
 	var spawn := mission.find_node_by_id(request["spawn_id"]) as MonsterSpawn
 	if spawn == null:
@@ -855,6 +874,7 @@ func _run_monster_spawn(request: Dictionary) -> void:
 	if spawned.is_empty() and no_chip.is_empty() and no_base.is_empty():
 		return
 
+	_set_spawn_positions(spawned, spawn)  # the tokens, also when a fast debug start skips the dialogs below
 	if DebugSession.skipping():
 		var skipped := tr("%d monster(s) spawned.") % spawned.size()
 		if not no_chip.is_empty() or not no_base.is_empty():
@@ -907,9 +927,6 @@ func _run_monster_spawn(request: Dictionary) -> void:
 		var max_corners := layered_map.get_tile_square_world_corners(anchor)
 		var center := (min_corners[0] + max_corners[2]) * 0.5
 		placed_centers.append(center)
-		if _runtime.track_positions:
-			# the spawn tile is 1-based and the far corner of a large base; positions are 0-based lowest corners
-			_runtime.set_monster_position(monster, MonsterMovement.settle(MonsterMovement.build_board(mission, layered_map.held_back), Vector3i(anchor.x - size_tiles, anchor.y, anchor.z - size_tiles)))
 		holder.place_stand(center / holder.scale.x, info, i, MonsterChip.color(monster.chip))
 
 	if not placed_centers.is_empty():

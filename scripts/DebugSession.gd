@@ -17,6 +17,8 @@ const SLOTS: Array[String] = ["quick", "auto", "1", "2", "3", "4", "5"]
 
 static var _fast_loaded := false
 static var _fast := true
+static var _track_loaded := false
+static var _track := false
 
 
 static func active() -> bool:
@@ -46,6 +48,27 @@ static func set_fast(on: bool) -> void:
 	var config := ConfigFile.new()
 	config.load(SETTINGS_FILE)
 	config.set_value("debug", "fast_start", on)
+	config.save(SETTINGS_FILE)
+
+
+## "The app moves the monsters" while playing from the mission editor (the position-tracking mode a campaign game can choose, see
+## MonsterMovement): the Play menu's check item, also offered on the embark screen of a debug session. Off by default.
+static func track() -> bool:
+	if not _track_loaded:
+		_track_loaded = true
+		var config := ConfigFile.new()
+		if config.load(SETTINGS_FILE) == OK:
+			_track = bool(config.get_value("debug", "track_positions", false))
+	return _track
+
+
+static func set_track(on: bool) -> void:
+	_track = on
+	_track_loaded = true
+	DirAccess.make_dir_recursive_absolute(ROOT)
+	var config := ConfigFile.new()
+	config.load(SETTINGS_FILE)
+	config.set_value("debug", "track_positions", on)
 	config.save(SETTINGS_FILE)
 
 

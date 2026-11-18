@@ -13,7 +13,7 @@ extends PopupMenu
 
 ## Explicit ids: an item added without one gets its INDEX as id, which collided with FAST_START (the submenu item has
 ## index 1), so the check mark was set on the submenu entry instead of the check item.
-enum Action { PLAY = 0, FAST_START = 1, FORGET_PARTY = 2, SNAPSHOTS = 10 }
+enum Action { PLAY = 0, FAST_START = 1, FORGET_PARTY = 2, TRACK = 3, SNAPSHOTS = 10 }
 
 var _snapshots: PopupMenu
 
@@ -26,6 +26,7 @@ func _ready() -> void:
 	add_submenu_node_item("Play from snapshot", _snapshots, Action.SNAPSHOTS)
 	add_separator()
 	add_check_item("Fast start (skip setup dialogs and banners)", Action.FAST_START)
+	add_check_item("The app moves the monsters", Action.TRACK)
 	add_item("Forget the remembered party", Action.FORGET_PARTY)
 	id_pressed.connect(_on_id_pressed)
 	_snapshots.index_pressed.connect(_on_snapshot_chosen)
@@ -34,6 +35,7 @@ func _ready() -> void:
 
 func _refresh() -> void:
 	set_item_checked(get_item_index(Action.FAST_START), DebugSession.fast())
+	set_item_checked(get_item_index(Action.TRACK), DebugSession.track())
 	_snapshots.clear()
 	var key := _key()
 	for slot in DebugSession.SLOTS:
@@ -51,6 +53,8 @@ func _on_id_pressed(id: int) -> void:
 			save_load.start_play("")
 		Action.FAST_START:
 			DebugSession.set_fast(not DebugSession.fast())
+		Action.TRACK:
+			DebugSession.set_track(not DebugSession.track())
 		Action.FORGET_PARTY:
 			DebugSession.forget_party()
 
