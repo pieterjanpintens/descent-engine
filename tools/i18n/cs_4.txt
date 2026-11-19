@@ -65,3 +65,29 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 939|Vejde se na střední stůl (%d x %d cm).
 940|Vejde se na malý stůl (%d x %d cm).
 941|Potřebný stůl: asi %d x %d cm (%d x %d polí).
+942|Adresa
+943|Telefon s Androidem a aplikací Ascent Camera může fotografovat stůl. Spusťte fotoaparát v aplikaci a zadejte adresu a párovací kód, které zobrazuje (stejná síť jako tento počítač).
+944|Připojeno k %s (Ascent Camera %s).
+945|Připojování k fotoaparátu...
+946|Fotoaparát na adrese %s není dostupný. Je fotoaparát v aplikaci spuštěný a telefon ve stejné síti jako tento počítač?
+947|Fotku nelze uložit.
+948|Požadavek nelze odeslat fotoaparátu.
+949|Zadejte adresu, kterou zobrazuje aplikace, například 192.168.0.19:8765.
+950|Zadejte párovací kód, který zobrazuje aplikace.
+951|Otevřít celou fotku
+952|Párovací kód
+953|Fotka %d x %d pixelů, pořízená za %.1f s.
+954|Na této adrese něco odpovědělo, ale není to aplikace Ascent Camera.
+955|Fotoaparát nad stolem
+956|Pořídit zkušební fotku
+957|Pořizování fotky...
+958|Vyzkoušet připojení
+959|Fotoaparát odpověděl chybou (%d).
+960|Fotoaparát neodpověděl včas. Je fotoaparát v aplikaci spuštěný a telefon ve stejné síti jako tento počítač?
+961|Fotoaparát je ještě zaneprázdněn předchozím požadavkem.
+962|Fotoaparát ještě pořizuje jinou fotku. Zkuste to za chvíli znovu.
+963|Fotoaparát odmítl párovací kód. Zadejte kód, který zobrazuje aplikace.
+964|Fotoaparát poslal příliš velkou fotku.
+965|Fotoaparát poslal něco, co není fotka.
+966|Připojení k fotoaparátu selhalo.
+967|Tato verze aplikace Ascent Camera nepasuje k této verzi Ascent. Aktualizujte obě.

@@ -28,6 +28,7 @@ const _COMMUNITY := "community"
 const _UPDATES := "updates"
 const _AI := "ai"
 const _LANGUAGE := "language"
+const _CAMERA := "camera"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -87,6 +88,11 @@ var ai_model: String = "claude-sonnet-5-5"
 ## Claude sign-in, nothing is paid per request here). `ai_claude_path` = where that program is ("" = look for it).
 var ai_provider: String = "api"
 var ai_claude_path: String = ""
+
+## The table camera: a phone running the Ascent Camera app (TableCamera, Options > Table camera). The address the app shows
+## ("192.168.0.19:8765") and its pairing code; both empty = no camera.
+var table_camera_address: String = ""
+var table_camera_code: String = ""
 ## The languages the player wants to read, best first (campaigns and missions are shown in the first one they have; a campaign game
 ## asks which one when it starts). Starts as English only. See LText / CampaignInfo.LANGUAGES.
 var preferred_languages: Array[String] = _default_languages()
@@ -171,6 +177,8 @@ func load_settings() -> void:
 	ai_model = config.get_value(_AI, "model", ai_model)
 	ai_provider = config.get_value(_AI, "provider", ai_provider)
 	ai_claude_path = config.get_value(_AI, "claude_path", ai_claude_path)
+	table_camera_address = str(config.get_value(_CAMERA, "address", table_camera_address))
+	table_camera_code = str(config.get_value(_CAMERA, "code", table_camera_code))
 	var saved_languages := LText.clean_codes(config.get_value(_LANGUAGE, "preferred", []))
 	# Older versions guessed the OS language and stored that guess as if it were a choice: those lists are dropped once (back to English).
 	if int(config.get_value(_LANGUAGE, "defaults_version", 0)) < LANGUAGE_DEFAULTS_VERSION:
@@ -204,6 +212,8 @@ func save_settings() -> void:
 	config.set_value(_AI, "model", ai_model)
 	config.set_value(_AI, "provider", ai_provider)
 	config.set_value(_AI, "claude_path", ai_claude_path)
+	config.set_value(_CAMERA, "address", table_camera_address)
+	config.set_value(_CAMERA, "code", table_camera_code)
 	config.set_value(_LANGUAGE, "preferred", preferred_languages)
 	config.set_value(_LANGUAGE, "defaults_version", LANGUAGE_DEFAULTS_VERSION)
 

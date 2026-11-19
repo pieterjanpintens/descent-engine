@@ -65,3 +65,29 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 939|Elfér egy közepes asztalon (%d x %d cm).
 940|Elfér egy kis asztalon (%d x %d cm).
 941|Szükséges asztal: kb. %d x %d cm (%d x %d mező).
+942|Cím
+943|Egy androidos telefon az Ascent Camera alkalmazással lefényképezheti az asztalt. Indítsd el a kamerát az alkalmazásban, és írd be a címet és a párosítási kódot, amit mutat (ugyanazon a hálózaton, mint ez a számítógép).
+944|Kapcsolódva: %s (Ascent Camera %s).
+945|Kapcsolódás a kamerához...
+946|A kamera nem érhető el ezen a címen: %s. Elindult a kamera az alkalmazásban, és a telefon ugyanazon a hálózaton van, mint ez a számítógép?
+947|A fényképet nem sikerült menteni.
+948|A kérést nem sikerült elküldeni a kamerának.
+949|Írd be a címet, amit az alkalmazás mutat, például 192.168.0.19:8765.
+950|Írd be a párosítási kódot, amit az alkalmazás mutat.
+951|Teljes fénykép megnyitása
+952|Párosítási kód
+953|%d x %d képpontos fénykép, %.1f másodperc alatt készült.
+954|Ezen a címen valami válaszolt, de nem az Ascent Camera alkalmazás.
+955|Asztali kamera
+956|Próbafénykép készítése
+957|Fénykép készítése...
+958|Kapcsolat ellenőrzése
+959|A kamera hibával válaszolt (%d).
+960|A kamera nem válaszolt időben. Elindult a kamera az alkalmazásban, és a telefon ugyanazon a hálózaton van, mint ez a számítógép?
+961|A kamera még az előző kéréssel foglalkozik.
+962|A kamera még egy másik fényképet készít. Próbáld újra egy pillanat múlva.
+963|A kamera elutasította a párosítási kódot. Írd be a kódot, amit az alkalmazás mutat.
+964|A kamera túl nagy fényképet küldött.
+965|A kamera olyasmit küldött, ami nem fénykép.
+966|A kapcsolat a kamerával nem sikerült.
+967|Az Ascent Camera alkalmazás ezen verziója nem illik az Ascent ezen verziójához. Frissítsd mindkettőt.

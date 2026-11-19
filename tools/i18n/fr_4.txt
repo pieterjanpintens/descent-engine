@@ -65,3 +65,29 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 939|Tient sur une table moyenne (%d x %d cm).
 940|Tient sur une petite table (%d x %d cm).
 941|Table nécessaire : environ %d x %d cm (%d x %d cases).
+942|Adresse
+943|Un téléphone Android avec l'application Ascent Camera peut photographier la table. Démarrez la caméra dans l'application et saisissez l'adresse et le code d'appairage qu'elle affiche (même réseau que cet ordinateur).
+944|Connecté à %s (Ascent Camera %s).
+945|Connexion à la caméra...
+946|Impossible de joindre la caméra à %s. La caméra est-elle démarrée dans l'application, et le téléphone est-il sur le même réseau que cet ordinateur ?
+947|Impossible d'enregistrer la photo.
+948|Impossible d'envoyer la demande à la caméra.
+949|Saisissez l'adresse affichée par l'application, par exemple 192.168.0.19:8765.
+950|Saisissez le code d'appairage affiché par l'application.
+951|Ouvrir la photo complète
+952|Code d'appairage
+953|Photo de %d x %d pixels, prise en %.1f secondes.
+954|Quelque chose a répondu à cette adresse, mais ce n'est pas l'application Ascent Camera.
+955|Caméra de table
+956|Prendre une photo de test
+957|Prise de la photo...
+958|Tester la connexion
+959|La caméra a répondu par une erreur (%d).
+960|La caméra n'a pas répondu à temps. La caméra est-elle démarrée dans l'application, et le téléphone est-il sur le même réseau que cet ordinateur ?
+961|La caméra est encore occupée par la demande précédente.
+962|La caméra prend encore une autre photo. Réessayez dans un instant.
+963|La caméra a refusé le code d'appairage. Saisissez le code affiché par l'application.
+964|La caméra a envoyé une photo trop grande.
+965|La caméra a envoyé quelque chose qui n'est pas une photo.
+966|La connexion à la caméra a échoué.
+967|Cette version de l'application Ascent Camera ne correspond pas à cette version d'Ascent. Mettez les deux à jour.

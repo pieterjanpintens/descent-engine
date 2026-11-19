@@ -27,6 +27,8 @@ MonsterDisplay tr
 InteractionLabels
 LineOfSightMode
 VoiceSettingsDialog
+TableCameraPanel
+TableCamera tr
 VoiceListener tr
 LanguageListEditor
 UpdateDialog

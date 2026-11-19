@@ -65,3 +65,29 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 939|Past op een middelgrote tafel (%d x %d cm).
 940|Past op een kleine tafel (%d x %d cm).
 941|Benodigde tafel: ongeveer %d x %d cm (%d x %d vakjes).
+942|Adres
+943|Een Android-telefoon met de app Ascent Camera kan de tafel fotograferen. Start de camera in de app en vul het adres en de koppelcode in die de app toont (zelfde netwerk als deze computer).
+944|Verbonden met %s (Ascent Camera %s).
+945|Verbinden met de camera...
+946|Kan de camera op %s niet bereiken. Is de camera gestart in de app en zit de telefoon op hetzelfde netwerk als deze computer?
+947|Kan de foto niet opslaan.
+948|Kan het verzoek niet naar de camera sturen.
+949|Vul het adres in dat de app toont, bijvoorbeeld 192.168.0.19:8765.
+950|Vul de koppelcode in die de app toont.
+951|Volledige foto openen
+952|Koppelcode
+953|Foto van %d x %d pixels, genomen in %.1f seconden.
+954|Er antwoordde iets op dat adres, maar het is niet de app Ascent Camera.
+955|Tafelcamera
+956|Testfoto maken
+957|Foto maken...
+958|Verbinding testen
+959|De camera antwoordde met een fout (%d).
+960|De camera antwoordde niet op tijd. Is de camera gestart in de app en zit de telefoon op hetzelfde netwerk als deze computer?
+961|De camera is nog bezig met het vorige verzoek.
+962|De camera maakt nog een andere foto. Probeer het zo opnieuw.
+963|De camera weigerde de koppelcode. Vul de code in die de app toont.
+964|De camera stuurde een te grote foto.
+965|De camera stuurde iets dat geen foto is.
+966|De verbinding met de camera mislukte.
+967|Deze versie van de app Ascent Camera past niet bij deze versie van Ascent. Werk beide bij.

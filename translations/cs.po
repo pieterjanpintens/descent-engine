@@ -2694,6 +2694,84 @@ msgstr "Vejde se na malý stůl (%d x %d cm)."
 msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr "Potřebný stůl: asi %d x %d cm (%d x %d polí)."
 
+msgid "Address"
+msgstr "Adresa"
+
+msgid "An Android phone with the Ascent Camera app can photograph the table. Start the camera in the app and type in the address and pairing code it shows (same network as this computer)."
+msgstr "Telefon s Androidem a aplikací Ascent Camera může fotografovat stůl. Spusťte fotoaparát v aplikaci a zadejte adresu a párovací kód, které zobrazuje (stejná síť jako tento počítač)."
+
+msgid "Connected to %s (Ascent Camera %s)."
+msgstr "Připojeno k %s (Ascent Camera %s)."
+
+msgid "Connecting to the camera..."
+msgstr "Připojování k fotoaparátu..."
+
+msgid "Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "Fotoaparát na adrese %s není dostupný. Je fotoaparát v aplikaci spuštěný a telefon ve stejné síti jako tento počítač?"
+
+msgid "Could not save the photo."
+msgstr "Fotku nelze uložit."
+
+msgid "Could not send the request to the camera."
+msgstr "Požadavek nelze odeslat fotoaparátu."
+
+msgid "Fill in the address the app shows, for example 192.168.0.19:8765."
+msgstr "Zadejte adresu, kterou zobrazuje aplikace, například 192.168.0.19:8765."
+
+msgid "Fill in the pairing code the app shows."
+msgstr "Zadejte párovací kód, který zobrazuje aplikace."
+
+msgid "Open the full photo"
+msgstr "Otevřít celou fotku"
+
+msgid "Pairing code"
+msgstr "Párovací kód"
+
+msgid "Photo of %d x %d pixels, taken in %.1f seconds."
+msgstr "Fotka %d x %d pixelů, pořízená za %.1f s."
+
+msgid "Something answered at that address, but it is not the Ascent Camera app."
+msgstr "Na této adrese něco odpovědělo, ale není to aplikace Ascent Camera."
+
+msgid "Table camera"
+msgstr "Fotoaparát nad stolem"
+
+msgid "Take a test photo"
+msgstr "Pořídit zkušební fotku"
+
+msgid "Taking a photo..."
+msgstr "Pořizování fotky..."
+
+msgid "Test the connection"
+msgstr "Vyzkoušet připojení"
+
+msgid "The camera answered with an error (%d)."
+msgstr "Fotoaparát odpověděl chybou (%d)."
+
+msgid "The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "Fotoaparát neodpověděl včas. Je fotoaparát v aplikaci spuštěný a telefon ve stejné síti jako tento počítač?"
+
+msgid "The camera is still busy with the previous request."
+msgstr "Fotoaparát je ještě zaneprázdněn předchozím požadavkem."
+
+msgid "The camera is still taking another photo. Try again in a moment."
+msgstr "Fotoaparát ještě pořizuje jinou fotku. Zkuste to za chvíli znovu."
+
+msgid "The camera refused the pairing code. Type the code the app shows."
+msgstr "Fotoaparát odmítl párovací kód. Zadejte kód, který zobrazuje aplikace."
+
+msgid "The camera sent a photo that is too big."
+msgstr "Fotoaparát poslal příliš velkou fotku."
+
+msgid "The camera sent something that is not a photo."
+msgstr "Fotoaparát poslal něco, co není fotka."
+
+msgid "The connection to the camera failed."
+msgstr "Připojení k fotoaparátu selhalo."
+
+msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
+msgstr "Tato verze aplikace Ascent Camera nepasuje k této verzi Ascent. Aktualizujte obě."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

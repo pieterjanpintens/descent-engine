@@ -65,3 +65,29 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 939|Zmieści się na średnim stole (%d x %d cm).
 940|Zmieści się na małym stole (%d x %d cm).
 941|Potrzebny stół: około %d x %d cm (%d x %d pól).
+942|Adres
+943|Telefon z Androidem i aplikacją Ascent Camera może fotografować stół. Uruchom aparat w aplikacji i wpisz adres oraz kod parowania, które pokazuje (ta sama sieć co ten komputer).
+944|Połączono z %s (Ascent Camera %s).
+945|Łączenie z aparatem...
+946|Nie można połączyć się z aparatem pod adresem %s. Czy aparat jest uruchomiony w aplikacji, a telefon jest w tej samej sieci co ten komputer?
+947|Nie można zapisać zdjęcia.
+948|Nie można wysłać żądania do aparatu.
+949|Wpisz adres pokazywany przez aplikację, na przykład 192.168.0.19:8765.
+950|Wpisz kod parowania pokazywany przez aplikację.
+951|Otwórz pełne zdjęcie
+952|Kod parowania
+953|Zdjęcie %d x %d pikseli, zrobione w %.1f s.
+954|Pod tym adresem coś odpowiedziało, ale to nie jest aplikacja Ascent Camera.
+955|Aparat nad stołem
+956|Zrób zdjęcie testowe
+957|Robienie zdjęcia...
+958|Sprawdź połączenie
+959|Aparat odpowiedział błędem (%d).
+960|Aparat nie odpowiedział na czas. Czy aparat jest uruchomiony w aplikacji, a telefon jest w tej samej sieci co ten komputer?
+961|Aparat jest jeszcze zajęty poprzednim żądaniem.
+962|Aparat robi jeszcze inne zdjęcie. Spróbuj ponownie za chwilę.
+963|Aparat odrzucił kod parowania. Wpisz kod pokazywany przez aplikację.
+964|Aparat wysłał za duże zdjęcie.
+965|Aparat wysłał coś, co nie jest zdjęciem.
+966|Połączenie z aparatem nie powiodło się.
+967|Ta wersja aplikacji Ascent Camera nie pasuje do tej wersji Ascent. Zaktualizuj obie.

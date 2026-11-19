@@ -136,6 +136,8 @@ func _build() -> void:
 	body.add_child(tabs)
 	var general := _tab(tabs, "General")
 	var voice := _tab(tabs, "Voice")
+	# the phone that photographs the table (TableCamera): also reachable from a mission, to check the framing
+	_tab(tabs, "Table camera").add_child(TableCameraPanel.new())
 	var menu_only: bool = main_menu and not live
 	var ai: VBoxContainer = _tab(tabs, "AI") if menu_only else null
 	var assets: VBoxContainer = _tab(tabs, "Game assets") if menu_only else null

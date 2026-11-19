@@ -2694,6 +2694,84 @@ msgstr "Elfér egy kis asztalon (%d x %d cm)."
 msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr "Szükséges asztal: kb. %d x %d cm (%d x %d mező)."
 
+msgid "Address"
+msgstr "Cím"
+
+msgid "An Android phone with the Ascent Camera app can photograph the table. Start the camera in the app and type in the address and pairing code it shows (same network as this computer)."
+msgstr "Egy androidos telefon az Ascent Camera alkalmazással lefényképezheti az asztalt. Indítsd el a kamerát az alkalmazásban, és írd be a címet és a párosítási kódot, amit mutat (ugyanazon a hálózaton, mint ez a számítógép)."
+
+msgid "Connected to %s (Ascent Camera %s)."
+msgstr "Kapcsolódva: %s (Ascent Camera %s)."
+
+msgid "Connecting to the camera..."
+msgstr "Kapcsolódás a kamerához..."
+
+msgid "Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "A kamera nem érhető el ezen a címen: %s. Elindult a kamera az alkalmazásban, és a telefon ugyanazon a hálózaton van, mint ez a számítógép?"
+
+msgid "Could not save the photo."
+msgstr "A fényképet nem sikerült menteni."
+
+msgid "Could not send the request to the camera."
+msgstr "A kérést nem sikerült elküldeni a kamerának."
+
+msgid "Fill in the address the app shows, for example 192.168.0.19:8765."
+msgstr "Írd be a címet, amit az alkalmazás mutat, például 192.168.0.19:8765."
+
+msgid "Fill in the pairing code the app shows."
+msgstr "Írd be a párosítási kódot, amit az alkalmazás mutat."
+
+msgid "Open the full photo"
+msgstr "Teljes fénykép megnyitása"
+
+msgid "Pairing code"
+msgstr "Párosítási kód"
+
+msgid "Photo of %d x %d pixels, taken in %.1f seconds."
+msgstr "%d x %d képpontos fénykép, %.1f másodperc alatt készült."
+
+msgid "Something answered at that address, but it is not the Ascent Camera app."
+msgstr "Ezen a címen valami válaszolt, de nem az Ascent Camera alkalmazás."
+
+msgid "Table camera"
+msgstr "Asztali kamera"
+
+msgid "Take a test photo"
+msgstr "Próbafénykép készítése"
+
+msgid "Taking a photo..."
+msgstr "Fénykép készítése..."
+
+msgid "Test the connection"
+msgstr "Kapcsolat ellenőrzése"
+
+msgid "The camera answered with an error (%d)."
+msgstr "A kamera hibával válaszolt (%d)."
+
+msgid "The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "A kamera nem válaszolt időben. Elindult a kamera az alkalmazásban, és a telefon ugyanazon a hálózaton van, mint ez a számítógép?"
+
+msgid "The camera is still busy with the previous request."
+msgstr "A kamera még az előző kéréssel foglalkozik."
+
+msgid "The camera is still taking another photo. Try again in a moment."
+msgstr "A kamera még egy másik fényképet készít. Próbáld újra egy pillanat múlva."
+
+msgid "The camera refused the pairing code. Type the code the app shows."
+msgstr "A kamera elutasította a párosítási kódot. Írd be a kódot, amit az alkalmazás mutat."
+
+msgid "The camera sent a photo that is too big."
+msgstr "A kamera túl nagy fényképet küldött."
+
+msgid "The camera sent something that is not a photo."
+msgstr "A kamera olyasmit küldött, ami nem fénykép."
+
+msgid "The connection to the camera failed."
+msgstr "A kapcsolat a kamerával nem sikerült."
+
+msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
+msgstr "Az Ascent Camera alkalmazás ezen verziója nem illik az Ascent ezen verziójához. Frissítsd mindkettőt."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

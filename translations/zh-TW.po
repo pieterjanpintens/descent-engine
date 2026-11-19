@@ -2694,6 +2694,84 @@ msgstr "可放在小桌子上（%d x %d 公分）。"
 msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr "所需桌面：約 %d x %d 公分（%d x %d 格）。"
 
+msgid "Address"
+msgstr "地址"
+
+msgid "An Android phone with the Ascent Camera app can photograph the table. Start the camera in the app and type in the address and pairing code it shows (same network as this computer)."
+msgstr "安裝了 Ascent Camera 應用程式的 Android 手機可以拍攝桌面。在應用程式中啟動相機，然後輸入它顯示的地址和配對碼（與這台電腦在同一網路）。"
+
+msgid "Connected to %s (Ascent Camera %s)."
+msgstr "已連線到 %s（Ascent Camera %s）。"
+
+msgid "Connecting to the camera..."
+msgstr "正在連線相機..."
+
+msgid "Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "無法連線到 %s 的相機。應用程式中的相機已啟動嗎？手機和這台電腦在同一網路嗎？"
+
+msgid "Could not save the photo."
+msgstr "無法儲存照片。"
+
+msgid "Could not send the request to the camera."
+msgstr "無法向相機傳送請求。"
+
+msgid "Fill in the address the app shows, for example 192.168.0.19:8765."
+msgstr "輸入應用程式顯示的地址，例如 192.168.0.19:8765。"
+
+msgid "Fill in the pairing code the app shows."
+msgstr "輸入應用程式顯示的配對碼。"
+
+msgid "Open the full photo"
+msgstr "開啟完整照片"
+
+msgid "Pairing code"
+msgstr "配對碼"
+
+msgid "Photo of %d x %d pixels, taken in %.1f seconds."
+msgstr "%d x %d 像素的照片，用時 %.1f 秒。"
+
+msgid "Something answered at that address, but it is not the Ascent Camera app."
+msgstr "該地址有回應，但不是 Ascent Camera 應用程式。"
+
+msgid "Table camera"
+msgstr "桌面相機"
+
+msgid "Take a test photo"
+msgstr "拍一張測試照片"
+
+msgid "Taking a photo..."
+msgstr "正在拍照..."
+
+msgid "Test the connection"
+msgstr "測試連線"
+
+msgid "The camera answered with an error (%d)."
+msgstr "相機回傳了錯誤（%d）。"
+
+msgid "The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "相機沒有及時回應。應用程式中的相機已啟動嗎？手機和這台電腦在同一網路嗎？"
+
+msgid "The camera is still busy with the previous request."
+msgstr "相機仍在處理上一個請求。"
+
+msgid "The camera is still taking another photo. Try again in a moment."
+msgstr "相機仍在拍攝另一張照片。請稍後再試。"
+
+msgid "The camera refused the pairing code. Type the code the app shows."
+msgstr "相機拒絕了配對碼。請輸入應用程式顯示的配對碼。"
+
+msgid "The camera sent a photo that is too big."
+msgstr "相機傳送的照片太大。"
+
+msgid "The camera sent something that is not a photo."
+msgstr "相機傳送的不是照片。"
+
+msgid "The connection to the camera failed."
+msgstr "與相機的連線失敗。"
+
+msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
+msgstr "此版本的 Ascent Camera 應用程式與此版本的 Ascent 不相符。請同時更新兩者。"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

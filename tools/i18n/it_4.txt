@@ -65,3 +65,29 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 939|Sta su un tavolo medio (%d x %d cm).
 940|Sta su un tavolo piccolo (%d x %d cm).
 941|Tavolo necessario: circa %d x %d cm (%d x %d caselle).
+942|Indirizzo
+943|Un telefono Android con l'app Ascent Camera può fotografare il tavolo. Avvia la fotocamera nell'app e inserisci l'indirizzo e il codice di abbinamento che mostra (stessa rete di questo computer).
+944|Connesso a %s (Ascent Camera %s).
+945|Connessione alla fotocamera...
+946|Impossibile raggiungere la fotocamera a %s. La fotocamera è avviata nell'app e il telefono è sulla stessa rete di questo computer?
+947|Impossibile salvare la foto.
+948|Impossibile inviare la richiesta alla fotocamera.
+949|Inserisci l'indirizzo mostrato dall'app, per esempio 192.168.0.19:8765.
+950|Inserisci il codice di abbinamento mostrato dall'app.
+951|Apri la foto completa
+952|Codice di abbinamento
+953|Foto di %d x %d pixel, scattata in %.1f secondi.
+954|Qualcosa ha risposto a quell'indirizzo, ma non è l'app Ascent Camera.
+955|Fotocamera del tavolo
+956|Scatta una foto di prova
+957|Scatto della foto...
+958|Prova la connessione
+959|La fotocamera ha risposto con un errore (%d).
+960|La fotocamera non ha risposto in tempo. La fotocamera è avviata nell'app e il telefono è sulla stessa rete di questo computer?
+961|La fotocamera è ancora occupata con la richiesta precedente.
+962|La fotocamera sta ancora scattando un'altra foto. Riprova tra un momento.
+963|La fotocamera ha rifiutato il codice di abbinamento. Inserisci il codice mostrato dall'app.
+964|La fotocamera ha inviato una foto troppo grande.
+965|La fotocamera ha inviato qualcosa che non è una foto.
+966|La connessione alla fotocamera non è riuscita.
+967|Questa versione dell'app Ascent Camera non è compatibile con questa versione di Ascent. Aggiornale entrambe.

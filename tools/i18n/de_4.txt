@@ -65,3 +65,29 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 939|Passt auf einen mittleren Tisch (%d x %d cm).
 940|Passt auf einen kleinen Tisch (%d x %d cm).
 941|Benötigter Tisch: etwa %d x %d cm (%d x %d Felder).
+942|Adresse
+943|Ein Android-Handy mit der App Ascent Camera kann den Tisch fotografieren. Starte die Kamera in der App und gib die Adresse und den Kopplungscode ein, die sie anzeigt (gleiches Netzwerk wie dieser Computer).
+944|Verbunden mit %s (Ascent Camera %s).
+945|Verbindung zur Kamera wird hergestellt...
+946|Die Kamera unter %s ist nicht erreichbar. Ist die Kamera in der App gestartet und das Handy im selben Netzwerk wie dieser Computer?
+947|Das Foto konnte nicht gespeichert werden.
+948|Die Anfrage konnte nicht an die Kamera gesendet werden.
+949|Gib die Adresse ein, die die App anzeigt, zum Beispiel 192.168.0.19:8765.
+950|Gib den Kopplungscode ein, den die App anzeigt.
+951|Ganzes Foto öffnen
+952|Kopplungscode
+953|Foto mit %d x %d Pixeln, aufgenommen in %.1f Sekunden.
+954|Unter dieser Adresse hat etwas geantwortet, aber es ist nicht die App Ascent Camera.
+955|Tischkamera
+956|Testfoto aufnehmen
+957|Foto wird aufgenommen...
+958|Verbindung testen
+959|Die Kamera hat mit einem Fehler geantwortet (%d).
+960|Die Kamera hat nicht rechtzeitig geantwortet. Ist die Kamera in der App gestartet und das Handy im selben Netzwerk wie dieser Computer?
+961|Die Kamera ist noch mit der vorigen Anfrage beschäftigt.
+962|Die Kamera nimmt noch ein anderes Foto auf. Versuche es gleich noch einmal.
+963|Die Kamera hat den Kopplungscode abgelehnt. Gib den Code ein, den die App anzeigt.
+964|Die Kamera hat ein zu großes Foto gesendet.
+965|Die Kamera hat etwas gesendet, das kein Foto ist.
+966|Die Verbindung zur Kamera ist fehlgeschlagen.
+967|Diese Version der App Ascent Camera passt nicht zu dieser Version von Ascent. Aktualisiere beide.

@@ -939,6 +939,32 @@
 939|Fits a medium table (%d x %d cm).
 940|Fits a small table (%d x %d cm).
 941|Table needed: about %d x %d cm (%d x %d squares).
+942|Address
+943|An Android phone with the Ascent Camera app can photograph the table. Start the camera in the app and type in the address and pairing code it shows (same network as this computer).
+944|Connected to %s (Ascent Camera %s).
+945|Connecting to the camera...
+946|Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?
+947|Could not save the photo.
+948|Could not send the request to the camera.
+949|Fill in the address the app shows, for example 192.168.0.19:8765.
+950|Fill in the pairing code the app shows.
+951|Open the full photo
+952|Pairing code
+953|Photo of %d x %d pixels, taken in %.1f seconds.
+954|Something answered at that address, but it is not the Ascent Camera app.
+955|Table camera
+956|Take a test photo
+957|Taking a photo...
+958|Test the connection
+959|The camera answered with an error (%d).
+960|The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?
+961|The camera is still busy with the previous request.
+962|The camera is still taking another photo. Try again in a moment.
+963|The camera refused the pairing code. Type the code the app shows.
+964|The camera sent a photo that is too big.
+965|The camera sent something that is not a photo.
+966|The connection to the camera failed.
+967|This version of the Ascent Camera app does not fit this version of Ascent. Update both.
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

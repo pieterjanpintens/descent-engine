@@ -2694,6 +2694,84 @@ msgstr "Zmieści się na małym stole (%d x %d cm)."
 msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr "Potrzebny stół: około %d x %d cm (%d x %d pól)."
 
+msgid "Address"
+msgstr "Adres"
+
+msgid "An Android phone with the Ascent Camera app can photograph the table. Start the camera in the app and type in the address and pairing code it shows (same network as this computer)."
+msgstr "Telefon z Androidem i aplikacją Ascent Camera może fotografować stół. Uruchom aparat w aplikacji i wpisz adres oraz kod parowania, które pokazuje (ta sama sieć co ten komputer)."
+
+msgid "Connected to %s (Ascent Camera %s)."
+msgstr "Połączono z %s (Ascent Camera %s)."
+
+msgid "Connecting to the camera..."
+msgstr "Łączenie z aparatem..."
+
+msgid "Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "Nie można połączyć się z aparatem pod adresem %s. Czy aparat jest uruchomiony w aplikacji, a telefon jest w tej samej sieci co ten komputer?"
+
+msgid "Could not save the photo."
+msgstr "Nie można zapisać zdjęcia."
+
+msgid "Could not send the request to the camera."
+msgstr "Nie można wysłać żądania do aparatu."
+
+msgid "Fill in the address the app shows, for example 192.168.0.19:8765."
+msgstr "Wpisz adres pokazywany przez aplikację, na przykład 192.168.0.19:8765."
+
+msgid "Fill in the pairing code the app shows."
+msgstr "Wpisz kod parowania pokazywany przez aplikację."
+
+msgid "Open the full photo"
+msgstr "Otwórz pełne zdjęcie"
+
+msgid "Pairing code"
+msgstr "Kod parowania"
+
+msgid "Photo of %d x %d pixels, taken in %.1f seconds."
+msgstr "Zdjęcie %d x %d pikseli, zrobione w %.1f s."
+
+msgid "Something answered at that address, but it is not the Ascent Camera app."
+msgstr "Pod tym adresem coś odpowiedziało, ale to nie jest aplikacja Ascent Camera."
+
+msgid "Table camera"
+msgstr "Aparat nad stołem"
+
+msgid "Take a test photo"
+msgstr "Zrób zdjęcie testowe"
+
+msgid "Taking a photo..."
+msgstr "Robienie zdjęcia..."
+
+msgid "Test the connection"
+msgstr "Sprawdź połączenie"
+
+msgid "The camera answered with an error (%d)."
+msgstr "Aparat odpowiedział błędem (%d)."
+
+msgid "The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "Aparat nie odpowiedział na czas. Czy aparat jest uruchomiony w aplikacji, a telefon jest w tej samej sieci co ten komputer?"
+
+msgid "The camera is still busy with the previous request."
+msgstr "Aparat jest jeszcze zajęty poprzednim żądaniem."
+
+msgid "The camera is still taking another photo. Try again in a moment."
+msgstr "Aparat robi jeszcze inne zdjęcie. Spróbuj ponownie za chwilę."
+
+msgid "The camera refused the pairing code. Type the code the app shows."
+msgstr "Aparat odrzucił kod parowania. Wpisz kod pokazywany przez aplikację."
+
+msgid "The camera sent a photo that is too big."
+msgstr "Aparat wysłał za duże zdjęcie."
+
+msgid "The camera sent something that is not a photo."
+msgstr "Aparat wysłał coś, co nie jest zdjęciem."
+
+msgid "The connection to the camera failed."
+msgstr "Połączenie z aparatem nie powiodło się."
+
+msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
+msgstr "Ta wersja aplikacji Ascent Camera nie pasuje do tej wersji Ascent. Zaktualizuj obie."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

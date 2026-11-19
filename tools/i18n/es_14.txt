@@ -65,3 +65,29 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 939|Cabe en una mesa mediana (%d x %d cm).
 940|Cabe en una mesa pequeña (%d x %d cm).
 941|Mesa necesaria: unos %d x %d cm (%d x %d casillas).
+942|Dirección
+943|Un teléfono Android con la app Ascent Camera puede fotografiar la mesa. Inicia la cámara en la app y escribe la dirección y el código de emparejamiento que muestra (en la misma red que este ordenador).
+944|Conectado a %s (Ascent Camera %s).
+945|Conectando con la cámara...
+946|No se pudo conectar con la cámara en %s. ¿Está la cámara iniciada en la app y el teléfono en la misma red que este ordenador?
+947|No se pudo guardar la foto.
+948|No se pudo enviar la petición a la cámara.
+949|Escribe la dirección que muestra la app, por ejemplo 192.168.0.19:8765.
+950|Escribe el código de emparejamiento que muestra la app.
+951|Abrir la foto completa
+952|Código de emparejamiento
+953|Foto de %d x %d píxeles, tomada en %.1f segundos.
+954|Algo respondió en esa dirección, pero no es la app Ascent Camera.
+955|Cámara de mesa
+956|Hacer una foto de prueba
+957|Haciendo una foto...
+958|Probar la conexión
+959|La cámara respondió con un error (%d).
+960|La cámara no respondió a tiempo. ¿Está la cámara iniciada en la app y el teléfono en la misma red que este ordenador?
+961|La cámara sigue ocupada con la petición anterior.
+962|La cámara sigue haciendo otra foto. Inténtalo de nuevo en un momento.
+963|La cámara rechazó el código de emparejamiento. Escribe el código que muestra la app.
+964|La cámara envió una foto demasiado grande.
+965|La cámara envió algo que no es una foto.
+966|La conexión con la cámara falló.
+967|Esta versión de la app Ascent Camera no es compatible con esta versión de Ascent. Actualiza ambas.

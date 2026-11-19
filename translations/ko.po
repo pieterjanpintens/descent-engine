@@ -2694,6 +2694,84 @@ msgstr "작은 테이블에 맞습니다 (%d x %d cm)."
 msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr "필요한 테이블: 약 %d x %d cm (%d x %d칸)."
 
+msgid "Address"
+msgstr "주소"
+
+msgid "An Android phone with the Ascent Camera app can photograph the table. Start the camera in the app and type in the address and pairing code it shows (same network as this computer)."
+msgstr "Ascent Camera 앱이 설치된 Android 휴대폰으로 테이블을 촬영할 수 있습니다. 앱에서 카메라를 시작하고 앱에 표시된 주소와 페어링 코드를 입력하세요 (이 컴퓨터와 같은 네트워크)."
+
+msgid "Connected to %s (Ascent Camera %s)."
+msgstr "%s에 연결됨 (Ascent Camera %s)."
+
+msgid "Connecting to the camera..."
+msgstr "카메라에 연결하는 중..."
+
+msgid "Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "%s의 카메라에 연결할 수 없습니다. 앱에서 카메라를 시작했고 휴대폰이 이 컴퓨터와 같은 네트워크에 있나요?"
+
+msgid "Could not save the photo."
+msgstr "사진을 저장할 수 없습니다."
+
+msgid "Could not send the request to the camera."
+msgstr "카메라에 요청을 보낼 수 없습니다."
+
+msgid "Fill in the address the app shows, for example 192.168.0.19:8765."
+msgstr "앱에 표시된 주소를 입력하세요. 예: 192.168.0.19:8765."
+
+msgid "Fill in the pairing code the app shows."
+msgstr "앱에 표시된 페어링 코드를 입력하세요."
+
+msgid "Open the full photo"
+msgstr "전체 사진 열기"
+
+msgid "Pairing code"
+msgstr "페어링 코드"
+
+msgid "Photo of %d x %d pixels, taken in %.1f seconds."
+msgstr "%d x %d 픽셀 사진, %.1f초 만에 촬영됨."
+
+msgid "Something answered at that address, but it is not the Ascent Camera app."
+msgstr "그 주소에서 응답이 왔지만 Ascent Camera 앱이 아닙니다."
+
+msgid "Table camera"
+msgstr "테이블 카메라"
+
+msgid "Take a test photo"
+msgstr "테스트 사진 찍기"
+
+msgid "Taking a photo..."
+msgstr "사진 찍는 중..."
+
+msgid "Test the connection"
+msgstr "연결 테스트"
+
+msgid "The camera answered with an error (%d)."
+msgstr "카메라가 오류로 응답했습니다 (%d)."
+
+msgid "The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?"
+msgstr "카메라가 제때 응답하지 않았습니다. 앱에서 카메라를 시작했고 휴대폰이 이 컴퓨터와 같은 네트워크에 있나요?"
+
+msgid "The camera is still busy with the previous request."
+msgstr "카메라가 아직 이전 요청을 처리 중입니다."
+
+msgid "The camera is still taking another photo. Try again in a moment."
+msgstr "카메라가 아직 다른 사진을 찍는 중입니다. 잠시 후 다시 시도하세요."
+
+msgid "The camera refused the pairing code. Type the code the app shows."
+msgstr "카메라가 페어링 코드를 거부했습니다. 앱에 표시된 코드를 입력하세요."
+
+msgid "The camera sent a photo that is too big."
+msgstr "카메라가 너무 큰 사진을 보냈습니다."
+
+msgid "The camera sent something that is not a photo."
+msgstr "카메라가 사진이 아닌 것을 보냈습니다."
+
+msgid "The connection to the camera failed."
+msgstr "카메라 연결에 실패했습니다."
+
+msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
+msgstr "이 버전의 Ascent Camera 앱은 이 버전의 Ascent와 맞지 않습니다. 둘 다 업데이트하세요."
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"
