@@ -2889,6 +2889,21 @@ msgstr "Middelgroot"
 msgid "Small"
 msgstr "Klein"
 
+msgid "Not sure about: %s."
+msgstr "Niet zeker over: %s."
+
+msgid "Taking a photo of the new area..."
+msgstr "Foto maken van het nieuwe gebied..."
+
+msgid "Taking a photo of the table..."
+msgstr "Foto maken van de tafel..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "De camera heeft de heldenfiches gezet waar hij de figuren ziet. Controleer ze, sleep elk fiche dat fout staat en bevestig."
+
+msgid "The table camera could not take a photo: %s"
+msgstr "De tafelcamera kon geen foto maken: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

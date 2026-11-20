@@ -2889,6 +2889,21 @@ msgstr "Střední"
 msgid "Small"
 msgstr "Malý"
 
+msgid "Not sure about: %s."
+msgstr "Nejistota u: %s."
+
+msgid "Taking a photo of the new area..."
+msgstr "Pořizování fotky nové oblasti..."
+
+msgid "Taking a photo of the table..."
+msgstr "Pořizování fotky stolu..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "Fotoaparát položil žetony hrdinů tam, kde vidí figurky. Zkontrolujte je, přetáhněte každý špatný žeton a potvrďte."
+
+msgid "The table camera could not take a photo: %s"
+msgstr "Fotoaparát nad stolem nemohl pořídit fotku: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

@@ -130,3 +130,8 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1004|Duży
 1005|Średni
 1006|Mały
+1007|Nie jestem pewien: %s.
+1008|Robienie zdjęcia nowego obszaru...
+1009|Robienie zdjęcia stołu...
+1010|Aparat ustawił żetony bohaterów tam, gdzie widzi figurki. Sprawdź je, przeciągnij każdy źle ustawiony żeton i potwierdź.
+1011|Aparat nad stołem nie mógł zrobić zdjęcia: %s

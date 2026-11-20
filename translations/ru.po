@@ -2889,6 +2889,21 @@ msgstr "Средний"
 msgid "Small"
 msgstr "Маленький"
 
+msgid "Not sure about: %s."
+msgstr "Нет уверенности: %s."
+
+msgid "Taking a photo of the new area..."
+msgstr "Съёмка новой области..."
+
+msgid "Taking a photo of the table..."
+msgstr "Съёмка стола..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "Камера поставила жетоны героев туда, где видит фигурки. Проверьте их, перетащите неверные жетоны и подтвердите."
+
+msgid "The table camera could not take a photo: %s"
+msgstr "Камера над столом не смогла сделать фото: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

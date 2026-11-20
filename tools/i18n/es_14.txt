@@ -130,3 +130,8 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1004|Grande
 1005|Mediana
 1006|Pequeña
+1007|No estoy seguro de: %s.
+1008|Haciendo una foto de la nueva zona...
+1009|Haciendo una foto de la mesa...
+1010|La cámara ha puesto las fichas de héroe donde ve las figuras. Revísalas, arrastra cualquier ficha que esté mal y confirma.
+1011|La cámara de mesa no pudo hacer una foto: %s

@@ -130,3 +130,8 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 1004|Groot
 1005|Middelgroot
 1006|Klein
+1007|Niet zeker over: %s.
+1008|Foto maken van het nieuwe gebied...
+1009|Foto maken van de tafel...
+1010|De camera heeft de heldenfiches gezet waar hij de figuren ziet. Controleer ze, sleep elk fiche dat fout staat en bevestig.
+1011|De tafelcamera kon geen foto maken: %s

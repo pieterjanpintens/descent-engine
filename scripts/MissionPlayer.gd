@@ -54,6 +54,10 @@ var _table_camera: TableCamera
 var _camera_calibrations: Dictionary = {}
 var _calibration_dialog: CameraCalibrationDialog
 var _setup_sheet: TableSetupSheet
+## The marker-free hero finder per Table (FigureTracker), made from that Table's calibration; memory only.
+var _trackers: Dictionary = {}
+## The photo of this round's "Where are the heroes?" step, learned from once the player confirms.
+var _camera_photo: Image
 ## Which HeroCatalog slot each player number maps to, in player-number order
 ## - set once by EmbarkDialog at the start of _ready(), see that class and
 ## PlayerInteractionController.set_roster(). Player count is just this
@@ -1216,6 +1220,7 @@ func show_stage(group_id: String) -> void:
 	group.visible = true
 	_runtime.world_log.append(MissionProgress.reveal_entry(group))
 	await _announce_pieces(_stage_pieces(before), group.reference_name)
+	await _camera_new_squares()
 
 
 ## Tells the table which physical pieces to place, one page per level and kind, revealing them on the map as each page is read (used by a stage
@@ -1334,6 +1339,72 @@ func _show_table_setup(automatic: bool) -> void:
 	await _setup_sheet.open_sheet(mission, fov)
 
 
+## The squares the placed monsters stand on (a large monster's four), for the table camera.
+func _monster_squares() -> Array:
+	var squares: Array = []
+	for monster in _runtime.monsters:
+		if monster.placed:
+			squares.append_array(MonsterMovement.block(monster.position, monster.size))
+	return squares
+
+
+## The "Where are the heroes?" step with a calibrated table camera: takes a photo, finds the heroes (FigureTracker) and moves their
+## tokens there. Returns the text of the step's dialog (the plain one without a camera, or when the photo fails).
+func _camera_suggestion() -> String:
+	var plain := tr("Where are the heroes? Drag each hero token to the square its figure stands on, then confirm.")
+	_camera_photo = null
+	var tracker: FigureTracker = _trackers.get(mission.active_table_id)
+	if tracker == null or not tracker.is_ready() or not TableCamera.is_configured() or _table_camera == null:
+		return plain
+	var before := phase_label.text
+	phase_label.text = tr("Taking a photo of the table...")
+	var answer := await _table_camera.take_photo()
+	phase_label.text = before
+	if not answer["ok"]:
+		return tr("The table camera could not take a photo: %s") % answer["error"] + "\n" + plain
+	_camera_photo = answer["image"]
+	var squares: Dictionary = MissionSight.build(mission, layered_map.held_back)["squares"]
+	var last := {}
+	for slot in player_roster:
+		if _runtime.hero_positions.has(slot):
+			last[slot] = _runtime.hero_positions[slot]
+	var found := tracker.propose(_camera_photo, squares, last, _monster_squares())
+	var unsure: Array[String] = []
+	for slot in found:
+		var guess: Dictionary = found[slot]
+		if guess["found"] and guess["square"] != _runtime.hero_positions.get(slot):
+			_runtime.set_hero_position(slot, guess["square"])
+		if not guess["sure"]:
+			unsure.append(HeroCatalog.slot_name(slot))
+	var text := tr("The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm.")
+	if not unsure.is_empty():
+		text += "\n" + tr("Not sure about: %s.") % ", ".join(unsure)
+	return text
+
+
+## The player confirmed the hero tokens: the camera learns from this round's photo (the empty squares and every hero's look).
+func _camera_confirmed() -> void:
+	var tracker: FigureTracker = _trackers.get(mission.active_table_id)
+	if tracker == null or _camera_photo == null:
+		return
+	var squares: Dictionary = MissionSight.build(mission, layered_map.held_back)["squares"]
+	tracker.learn(_camera_photo, squares, _runtime.hero_positions.duplicate(), _monster_squares())
+	_camera_photo = null
+
+
+## A stage was just built: the camera photographs it before anybody walks in, so it knows what its squares look like empty.
+func _camera_new_squares() -> void:
+	var tracker: FigureTracker = _trackers.get(mission.active_table_id)
+	if tracker == null or not tracker.is_ready() or not TableCamera.is_configured() or _table_camera == null or DebugSession.skipping():
+		return
+	var before := phase_label.text
+	phase_label.text = tr("Taking a photo of the new area...")
+	var answer := await _table_camera.take_photo()
+	phase_label.text = before
+	if answer["ok"]:
+		tracker.add_new_squares(answer["image"], MissionSight.build(mission, layered_map.held_back)["squares"])
+
+
 ## The Gear menu's "Table camera": takes a photo with the table camera and lets the player calibrate it on the board as it is on
 ## the table now (CameraCalibrationDialog). The result is kept for the active Table.
 func _open_table_camera() -> void:
@@ -1356,6 +1427,11 @@ func _open_table_camera() -> void:
 	var result := await _calibration_dialog.run(squares, _table_camera, existing, null, cards)
 	if result != null:
 		_camera_calibrations[mission.active_table_id] = result.to_dict()
+		# the calibration photo is the first picture of the board: what the squares nobody stands on look like (the heroes' looks are
+		# learned at the first confirmed "Where are the heroes?", when their figures surely stand on their tokens' squares)
+		var tracker := FigureTracker.new(result)
+		tracker.learn(_calibration_dialog.photo, squares, _runtime.hero_positions.duplicate(), _monster_squares(), false)
+		_trackers[mission.active_table_id] = tracker
 
 
 func _switch_table(table_id: String) -> void:
@@ -1631,7 +1707,9 @@ func _run_darkness_and_loop() -> void:
 
 	# Tracking positions: before the monsters act, the table makes sure every hero token stands where its figure stands.
 	if position_board != null and not DebugSession.skipping():
-		await dialog.ask_ok(tr("Where are the heroes? Drag each hero token to the square its figure stands on, then confirm."), false)
+		var text := await _camera_suggestion()
+		await dialog.ask_ok(text, false)
+		_camera_confirmed()
 
 	if not await _advance_to(RoundCheckpoint.Checkpoint.AFTER_PLAYER_PHASE):
 		return

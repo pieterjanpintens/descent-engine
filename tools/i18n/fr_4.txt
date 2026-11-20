@@ -130,3 +130,8 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 1004|Grande
 1005|Moyenne
 1006|Petite
+1007|Pas sûr pour : %s.
+1008|Prise d'une photo de la nouvelle zone...
+1009|Prise d'une photo de la table...
+1010|La caméra a placé les jetons des héros là où elle voit les figurines. Vérifiez-les, déplacez tout jeton mal placé, puis confirmez.
+1011|La caméra de table n'a pas pu prendre de photo : %s

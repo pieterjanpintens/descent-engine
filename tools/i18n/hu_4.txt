@@ -130,3 +130,8 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 1004|Nagy
 1005|Közepes
 1006|Kicsi
+1007|Nem biztos: %s.
+1008|Fénykép készítése az új területről...
+1009|Fénykép készítése az asztalról...
+1010|A kamera oda tette a hősjelzőket, ahol a figurákat látja. Ellenőrizd őket, húzd a helyére a rossz jelzőket, majd erősítsd meg.
+1011|Az asztali kamera nem tudott fényképet készíteni: %s

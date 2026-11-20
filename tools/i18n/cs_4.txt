@@ -130,3 +130,8 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 1004|Velký
 1005|Střední
 1006|Malý
+1007|Nejistota u: %s.
+1008|Pořizování fotky nové oblasti...
+1009|Pořizování fotky stolu...
+1010|Fotoaparát položil žetony hrdinů tam, kde vidí figurky. Zkontrolujte je, přetáhněte každý špatný žeton a potvrďte.
+1011|Fotoaparát nad stolem nemohl pořídit fotku: %s

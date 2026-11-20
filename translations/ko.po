@@ -2889,6 +2889,21 @@ msgstr "중간 테이블"
 msgid "Small"
 msgstr "작은 테이블"
 
+msgid "Not sure about: %s."
+msgstr "확실하지 않음: %s."
+
+msgid "Taking a photo of the new area..."
+msgstr "새 구역 사진 찍는 중..."
+
+msgid "Taking a photo of the table..."
+msgstr "테이블 사진 찍는 중..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "카메라가 피규어가 보이는 곳에 영웅 토큰을 놓았습니다. 확인하고 잘못된 토큰은 끌어 옮긴 뒤 확인을 누르세요."
+
+msgid "The table camera could not take a photo: %s"
+msgstr "테이블 카메라가 사진을 찍지 못했습니다: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

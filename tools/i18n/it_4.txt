@@ -130,3 +130,8 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 1004|Grande
 1005|Medio
 1006|Piccolo
+1007|Non sono sicuro di: %s.
+1008|Scatto di una foto della nuova area...
+1009|Scatto di una foto del tavolo...
+1010|La fotocamera ha messo i segnalini degli eroi dove vede le miniature. Controllali, trascina i segnalini sbagliati e conferma.
+1011|La fotocamera del tavolo non è riuscita a scattare una foto: %s

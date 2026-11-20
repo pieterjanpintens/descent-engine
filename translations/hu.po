@@ -2889,6 +2889,21 @@ msgstr "Közepes"
 msgid "Small"
 msgstr "Kicsi"
 
+msgid "Not sure about: %s."
+msgstr "Nem biztos: %s."
+
+msgid "Taking a photo of the new area..."
+msgstr "Fénykép készítése az új területről..."
+
+msgid "Taking a photo of the table..."
+msgstr "Fénykép készítése az asztalról..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "A kamera oda tette a hősjelzőket, ahol a figurákat látja. Ellenőrizd őket, húzd a helyére a rossz jelzőket, majd erősítsd meg."
+
+msgid "The table camera could not take a photo: %s"
+msgstr "Az asztali kamera nem tudott fényképet készíteni: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

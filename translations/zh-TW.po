@@ -2889,6 +2889,21 @@ msgstr "中"
 msgid "Small"
 msgstr "小"
 
+msgid "Not sure about: %s."
+msgstr "不確定：%s。"
+
+msgid "Taking a photo of the new area..."
+msgstr "正在拍攝新區域..."
+
+msgid "Taking a photo of the table..."
+msgstr "正在拍攝桌面..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "相機已把英雄標記放到它看到模型的位置。請檢查，拖曳任何放錯的標記，然後確認。"
+
+msgid "The table camera could not take a photo: %s"
+msgstr "桌面相機無法拍照：%s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

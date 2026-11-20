@@ -2889,6 +2889,21 @@ msgstr "Medio"
 msgid "Small"
 msgstr "Piccolo"
 
+msgid "Not sure about: %s."
+msgstr "Non sono sicuro di: %s."
+
+msgid "Taking a photo of the new area..."
+msgstr "Scatto di una foto della nuova area..."
+
+msgid "Taking a photo of the table..."
+msgstr "Scatto di una foto del tavolo..."
+
+msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
+msgstr "La fotocamera ha messo i segnalini degli eroi dove vede le miniature. Controllali, trascina i segnalini sbagliati e conferma."
+
+msgid "The table camera could not take a photo: %s"
+msgstr "La fotocamera del tavolo non è riuscita a scattare una foto: %s"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d per %d giocatore)"

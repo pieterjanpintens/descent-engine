@@ -34,6 +34,8 @@ var _status: Label
 var _use_button: Button
 var _photo_button: Button
 var _result: CameraCalibration
+## The photo the calibration was made on (the empty board for FigureTracker).
+var photo: Image
 
 
 func _ready() -> void:
@@ -165,6 +167,7 @@ func _take_photo() -> void:
 
 
 func _set_photo(image: Image) -> void:
+	photo = image
 	_photo.image_size = Vector2(image.get_width(), image.get_height())
 	_photo.texture = ImageTexture.create_from_image(image)
 	_on_points_changed()
