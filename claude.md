@@ -7342,6 +7342,13 @@ Play mode doesn't inherit Creator-only tooling (this was a real bug that got fix
 Autoloads registered in Project Settings: `FootprintRegistry`, `GameState`,
 `ComponentInventory`.
 
+**App icon (2026-11-20)**: `icon.png` (512 px) and `icon.ico` (16-256 px) at the project root are the Ascent Camera Android
+app's launcher "A" (`ascent-camera/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png`) on its `bg_window` colour
+#16112E, in a rounded square. Used by `config/icon` (window / Linux / dock), `config/windows_native_icon`, the Windows
+export preset (`application/icon` + console wrapper; `icon.ico` is in that preset's include filter) and the macOS preset
+(`application/icon` = the png; Godot makes the icns). The old Godot `icon.svg` is gone. Checked: a local Windows export
+carries the icon in the exe; the macOS and Linux exports were not built.
+
 **Root-level source scenes** (`floors.tscn`, `pilars.tscn`, `stair.tscn`) — not part
 of the app itself and not referenced by any other scene or by Project Settings.
 These are the source scenes used to build/populate the shared `MeshLibrary` that all

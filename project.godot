@@ -13,7 +13,8 @@ config_version=5
 config/name="Descent-Engine"
 run/main_scene="uid://b4b20wrtuq1a6"
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
+config/windows_native_icon="res://icon.ico"
 
 [audio]
 
