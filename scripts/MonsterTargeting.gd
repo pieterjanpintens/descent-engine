@@ -23,8 +23,11 @@ static func choose_target(monster: RuntimeMonster, roster: Array[int], context: 
 	if roster.is_empty():
 		return -1
 	var chosen := -1
+	# a Monster Target effect (the mission's author asked for it) comes first
+	if monster.forced_target_rule != null:
+		chosen = _apply(monster.forced_target_rule, monster, roster, context, rng)
 	# Duelist (defense ability): the last hero who attacked it first.
-	if monster.defense_ability_off == 0 and DefenseRules.retaliates(monster) and roster.has(monster.last_attacker):
+	if chosen == -1 and monster.defense_ability_off == 0 and DefenseRules.retaliates(monster) and roster.has(monster.last_attacker):
 		chosen = monster.last_attacker
 	for rule in monster.target_rules:
 		if chosen != -1:

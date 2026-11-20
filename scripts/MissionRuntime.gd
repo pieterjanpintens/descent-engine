@@ -755,6 +755,41 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	return result
 
 
+## The live monsters an effect's "which monsters" filter allows (Effect.spawn_group_id / target_object_id / monster_folder): any, one monster
+## group, one spawn area or one type. An id left over from another effect type (a prop for Remove Object...) is no filter; only a real group /
+## spawn area is.
+func monsters_matching(effect: Effect) -> Array[RuntimeMonster]:
+	var group_id := effect.spawn_group_id if mission.find_monster_group(effect.spawn_group_id) != null else ""
+	var area_id := ""
+	for area in mission.monster_spawns:
+		if group_id == "" and area.id == effect.target_object_id:
+			area_id = area.id
+	var found: Array[RuntimeMonster] = []
+	for monster in monsters:
+		if monster.hitpoints <= 0:
+			continue
+		if group_id != "" and monster.spawn_group_id != group_id:
+			continue
+		if area_id != "" and monster.spawn_area_id != area_id:
+			continue
+		if effect.monster_folder != "" and monster.folder != effect.monster_folder:
+			continue
+		found.append(monster)
+	return found
+
+
+## Effect.Type.MONSTER_TARGET: the matching monsters get the effect's rule in front of their own (or lose it again when the kind is -1).
+func _set_monster_target(effect: Effect) -> void:
+	for monster in monsters_matching(effect):
+		if effect.target_rule_kind < 0:
+			monster.forced_target_rule = null
+		else:
+			var rule := TargetRule.new()
+			rule.kind = effect.target_rule_kind as TargetRule.Kind
+			rule.hero_slot = effect.target_hero_slot
+			monster.forced_target_rule = rule
+
+
 ## How many monsters a CONDITION_MONSTERS / DAMAGE_MONSTERS effect hits: -1 = all (blank formula), else its formula (like random_spawn_count()).
 func monster_effect_count(effect: Effect) -> int:
 	if effect.monster_count.strip_edges() == "":
@@ -774,22 +809,8 @@ func monster_effect_count(effect: Effect) -> int:
 func _apply_to_monsters(effect: Effect) -> PackedStringArray:
 	var damage := effect.type == Effect.Type.DAMAGE_MONSTERS
 	var kind := effect.monster_condition
-	# an id left over from another effect type (a prop for Remove Object...) is no filter; only a real group / spawn area is
-	var group_id := effect.spawn_group_id if mission.find_monster_group(effect.spawn_group_id) != null else ""
-	var area_id := ""
-	for area in mission.monster_spawns:
-		if group_id == "" and area.id == effect.target_object_id:
-			area_id = area.id
 	var candidates: Array[RuntimeMonster] = []
-	for monster in monsters:
-		if monster.hitpoints <= 0:
-			continue
-		if group_id != "" and monster.spawn_group_id != group_id:
-			continue
-		if area_id != "" and monster.spawn_area_id != area_id:
-			continue
-		if effect.monster_folder != "" and monster.folder != effect.monster_folder:
-			continue
+	for monster in monsters_matching(effect):
 		if not damage and (monster.is_condition_immune(kind) or monster.conditions.has(kind)):
 			continue
 		candidates.append(monster)
@@ -1319,6 +1340,9 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		return
 	if effect.type == Effect.Type.CONDITION_MONSTERS or effect.type == Effect.Type.DAMAGE_MONSTERS:
 		await _apply_to_monsters(effect)
+		return
+	if effect.type == Effect.Type.MONSTER_TARGET:
+		_set_monster_target(effect)
 		return
 	if effect.type == Effect.Type.HIGHLIGHT_AREA:
 		if effect.target_object_id != "":

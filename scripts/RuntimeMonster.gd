@@ -48,6 +48,8 @@ var attack_reach: bool = false
 var attack_abilities: Array[MonsterAbility] = []
 var defense_abilities: Array[MonsterAbility] = []
 var target_rules: Array[TargetRule] = []
+## Set by a Monster Target effect (Effect.Type.MONSTER_TARGET): tried before `target_rules` (null = none).
+var forced_target_rule: TargetRule = null
 ## Labels from its templates ("Large", "Uthuk", ...) that weapon part abilities ask about, see MonsterArchetype.tags.
 var tags: Array[String] = []
 ## Defense taken off until the end of this round by weapon part abilities (cleared when the monster phase ends,
@@ -210,7 +212,7 @@ func to_dict() -> Dictionary:
 		"speed_round_bonus": speed_round_bonus, "next_activation_damage": next_activation_damage, "defense_ability_fired": defense_ability_fired, "shadowed_heroes": shadowed_heroes.duplicate(),
 		"attack_power": attack_power, "attack_range": attack_range, "attack_reach": attack_reach,
 		"attack_abilities": _to_dicts(attack_abilities), "defense_abilities": _to_dicts(defense_abilities),
-		"target_rules": _to_dicts(target_rules), "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text, "defeat_effects": defeat_effects.duplicate(), "prepared_tactic": prepared_tactic, "tactics": _to_dicts(tactics),
+		"target_rules": _to_dicts(target_rules), "forced_target_rule": forced_target_rule.to_dict() if forced_target_rule != null else {}, "confused_actions": _to_dicts(confused_actions), "loot": _to_dicts(loot), "defeat_text": defeat_text, "defeat_effects": defeat_effects.duplicate(), "prepared_tactic": prepared_tactic, "tactics": _to_dicts(tactics),
 			"unaware": unaware, "wake_conditions": wake_conditions.duplicate(), "wake_on_attack": wake_on_attack, "wake_on_status": wake_on_status,
 			"spawn_batch": spawn_batch, "spawn_group_id": spawn_group_id, "spawn_area_id": spawn_area_id,
 			"position": [position.x, position.y, position.z], "placed": placed, "size": size,
@@ -266,6 +268,9 @@ static func from_dict(d: Dictionary) -> RuntimeMonster:
 		m.defense_abilities.append(MonsterAbility.from_dict(entry))
 	for entry in d.get("target_rules", []):
 		m.target_rules.append(TargetRule.from_dict(entry))
+	var forced: Dictionary = d.get("forced_target_rule", {})
+	if not forced.is_empty():
+		m.forced_target_rule = TargetRule.from_dict(forced)
 	for entry in d.get("confused_actions", []):
 		m.confused_actions.append(MonsterAction.from_dict(entry))
 	for entry in d.get("loot", []):

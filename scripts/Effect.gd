@@ -72,7 +72,15 @@ enum Type {
 	HIGHLIGHT_AREA,
 	CONDITION_MONSTERS,
 	DAMAGE_MONSTERS,
+	MONSTER_TARGET,
 }
+
+## MONSTER_TARGET (appended, 2026-11-20): changes who the monsters on the board go for - every live monster matching the "which monsters"
+## filter below (any / group / spawn area / type) gets `target_rule_kind` (a TargetRule.Kind; FIXED_HERO uses `target_hero_slot`) as a rule tried
+## BEFORE its own target rules ("all the wolves go for Brynn"); when that rule finds nobody its own rules decide. -1 = back to their own rules.
+## Monsters spawned later keep their template's rules. Nothing is shown to the table. See MissionRuntime._set_monster_target().
+@export var target_rule_kind: int = TargetRule.Kind.FIXED_HERO
+@export var target_hero_slot: int = 0
 
 ## CONDITION_MONSTERS (appended, 2026-11-20): puts `monster_condition` (MonsterCondition.Kind) on `monster_count` monsters ("ring the bell: 4
 ## monsters become Enfeebled"). DAMAGE_MONSTERS (appended, same day): `monster_damage` direct damage (no defense roll, weakness or resistance -

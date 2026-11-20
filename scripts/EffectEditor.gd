@@ -367,7 +367,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Spawn Random Monsters", Effect.Type.SPAWN_RANDOM_MONSTERS], ["Loot", Effect.Type.LOOT],
 			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["If / Else", Effect.Type.IF_ELSE], ["Repeat", Effect.Type.REPEAT], ["Switch Table", Effect.Type.SWITCH_TABLE], ["Highlight Area", Effect.Type.HIGHLIGHT_AREA],
-			["Condition on Monsters", Effect.Type.CONDITION_MONSTERS], ["Damage Monsters", Effect.Type.DAMAGE_MONSTERS]]:
+			["Condition on Monsters", Effect.Type.CONDITION_MONSTERS], ["Damage Monsters", Effect.Type.DAMAGE_MONSTERS], ["Monster Target", Effect.Type.MONSTER_TARGET]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -692,7 +692,35 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	)
 	damage_box.add_child(damage_spin)
 	monster_box.add_child(damage_box)
-	monster_box.add_child(_label("Monsters:"))
+	## MONSTER_TARGET - the rule put in front of their own target rules (FIXED_HERO: which hero), or back to their own rules.
+	var rule_box := HBoxContainer.new()
+	rule_box.add_child(_label("Go for:"))
+	var rule_option := OptionButton.new()
+	rule_option.add_item("Their own rules again", 1000)
+	for rule_kind in TargetRule.Kind.values():
+		rule_option.add_item(TargetRule.kind_name(rule_kind), rule_kind)
+		rule_option.set_item_tooltip(rule_option.item_count - 1, TargetRule.description(rule_kind))
+	rule_option.select(rule_option.get_item_index(1000 if effect.target_rule_kind < 0 else effect.target_rule_kind))
+	rule_option.tooltip_text = "Tried before the monsters' own target rules; when it finds nobody their own rules decide. Only the monsters on the board now."
+	rule_box.add_child(rule_option)
+	var hero_option := OptionButton.new()
+	for hero_slot in HeroCatalog.SLOT_COUNT:
+		hero_option.add_item(HeroCatalog.slot_name(hero_slot), hero_slot)
+	hero_option.select(clampi(effect.target_hero_slot, 0, HeroCatalog.SLOT_COUNT - 1))
+	hero_option.visible = effect.target_rule_kind == TargetRule.Kind.FIXED_HERO
+	hero_option.item_selected.connect(func(index: int):
+		_commit_field("Edit target hero", func(): effect.target_hero_slot = index)
+	)
+	rule_box.add_child(hero_option)
+	rule_option.item_selected.connect(func(index: int):
+		var picked := rule_option.get_item_id(index)
+		var new_kind := -1 if picked == 1000 else picked
+		_commit_field("Edit target rule", func(): effect.target_rule_kind = new_kind)
+		hero_option.visible = new_kind == TargetRule.Kind.FIXED_HERO
+	)
+	monster_box.add_child(rule_box)
+	var count_label := _label("Monsters:")
+	monster_box.add_child(count_label)
 	var monster_count_edit := LineEdit.new()
 	monster_count_edit.custom_minimum_size.x = 110
 	monster_count_edit.placeholder_text = "all"
@@ -756,9 +784,12 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		spawn_monsters_button.visible = spawns_monsters
 		surprise_button.visible = spawns_monsters
 		random_count_box.visible = type == Effect.Type.SPAWN_RANDOM_MONSTERS
-		monster_box.visible = type == Effect.Type.CONDITION_MONSTERS or type == Effect.Type.DAMAGE_MONSTERS
+		monster_box.visible = type == Effect.Type.CONDITION_MONSTERS or type == Effect.Type.DAMAGE_MONSTERS or type == Effect.Type.MONSTER_TARGET
 		condition_option.visible = type == Effect.Type.CONDITION_MONSTERS
 		damage_box.visible = type == Effect.Type.DAMAGE_MONSTERS
+		rule_box.visible = type == Effect.Type.MONSTER_TARGET
+		count_label.visible = type != Effect.Type.MONSTER_TARGET
+		monster_count_edit.visible = type != Effect.Type.MONSTER_TARGET
 		wake_option.visible = type == Effect.Type.WAKE_MONSTERS
 		highlight_option.visible = type == Effect.Type.HIGHLIGHT_AREA
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH
