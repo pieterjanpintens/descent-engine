@@ -2069,6 +2069,8 @@ func _tracked_tactic(monster: RuntimeMonster, who: String) -> void:
 	_runtime.monsters_changed.emit()
 	var key := tactic.activation_key
 	var stats := {"speed": tactic.speed, "range": tactic.attack_range, "reach": false}
+	if MonsterMovement.tactic_unimpeded(key):
+		stats["unimpeded"] = true
 	var leap_hero := -1
 	if key.contains("PREY_ON_THE_WEAK"):
 		leap_hero = await _ask_most_fatigue()

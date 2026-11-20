@@ -43,6 +43,17 @@ const FIRE_MESH := "fire"
 const FAR := 1 << 20
 ## Activation abilities that make a monster FLY: while moving it ignores elevation, terrain and underlays and cannot be impeded.
 const FLYING_KEYS := ["ENEMY_ACTIVATION_FAE_BASIC", "ENEMY_ACTIVATION_HARBINGER_VANGUARD"]
+## Tactics (activation key part) during which the monster cannot be impeded: the Wight's Blade Sweep. The dragons' Trample can't be
+## impeded either, but no dragon has a figure.
+const UNIMPEDED_TACTICS := ["WIGHT_TACTIC_BLADE_SWEEP"]
+
+
+## The tactic with this activation key moves without being impeded (pass {"unimpeded": true} in plan()'s stats).
+static func tactic_unimpeded(activation_key: String) -> bool:
+	for part: String in UNIMPEDED_TACTICS:
+		if activation_key.contains(part):
+			return true
+	return false
 
 
 # ---------------------------------------------------------------- the board
@@ -334,7 +345,7 @@ static func _impeded_at(ctx: Dictionary, anchor: Vector3i) -> bool:
 static func _action_points(ctx: Dictionary, anchor: Vector3i, speed: int) -> int:
 	if speed <= 0:
 		return 0
-	if ctx.get("flying", false):
+	if ctx.get("flying", false) or not ctx.get("impede", true):
 		return speed  # cannot be impeded
 	return mini(speed, IMPEDED_POINTS) if _next_to_hero(ctx, anchor) else speed
 
@@ -657,7 +668,7 @@ static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i,
 	for other: Dictionary in others:
 		for square in block(other["square"], int(other.get("size", 1))):
 			monster_squares[square] = true
-	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster), "impede": true}
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster), "impede": not bool(stats.get("unimpeded", false))}
 
 	var speed := maxi(int(stats.get("speed", monster.effective_speed())), 0)
 	var own_range := int(stats.get("range", monster.effective_attack_range()))
