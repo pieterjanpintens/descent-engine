@@ -2772,6 +2772,36 @@ msgstr "카메라 연결에 실패했습니다."
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "이 버전의 Ascent Camera 앱은 이 버전의 Ascent와 맞지 않습니다. 둘 다 업데이트하세요."
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "그려진 격자가 높은 바닥을 포함해 모든 곳에서 타일 위에 놓이는지 확인하세요. 모서리를 끌어 고칠 수 있습니다."
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "사진에서 주황색 영역의 %d번 모서리를 클릭하세요."
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "사진에서 주황색 영역의 모서리를 1부터 4까지 순서대로 클릭하세요. 모서리를 끌어 고칠 수 있습니다."
+
+msgid "New photo"
+msgstr "새 사진"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "먼저 테이블 카메라를 설정하세요: 옵션 > 테이블 카메라."
+
+msgid "Start over"
+msgstr "다시 시작"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "보드에 아직 보정할 수 있는 2 x 2 이상의 바닥 칸 영역이 없습니다."
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "이 모서리들로는 쓸 수 있는 모양이 되지 않습니다. 다시 시작해서 1, 2, 3, 4 순서로 클릭하세요."
+
+msgid "Turn the map"
+msgstr "지도 돌리기"
+
+msgid "Use this calibration"
+msgstr "이 보정 사용"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

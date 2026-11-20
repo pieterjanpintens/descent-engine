@@ -91,3 +91,13 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 965|Die Kamera hat etwas gesendet, das kein Foto ist.
 966|Die Verbindung zur Kamera ist fehlgeschlagen.
 967|Diese Version der App Ascent Camera passt nicht zu dieser Version von Ascent. Aktualisiere beide.
+968|Prüfe, dass das gezeichnete Raster überall auf den Platten liegt, auch auf erhöhten Böden. Ziehe eine Ecke, um sie zu korrigieren.
+969|Klicke auf Ecke %d des orangefarbenen Bereichs auf dem Foto.
+970|Klicke auf die Ecken des orangefarbenen Bereichs auf dem Foto, in der Reihenfolge 1 bis 4. Ziehe eine Ecke, um sie zu korrigieren.
+971|Neues Foto
+972|Richte zuerst die Tischkamera ein: Optionen > Tischkamera.
+973|Neu anfangen
+974|Auf dem Spielplan gibt es noch keinen Bereich von mindestens 2 x 2 Bodenfeldern zum Kalibrieren.
+975|Diese Ecken ergeben keine brauchbare Form. Fang neu an und klicke sie in der Reihenfolge 1, 2, 3, 4 an.
+976|Karte drehen
+977|Diese Kalibrierung verwenden

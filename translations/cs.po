@@ -2772,6 +2772,36 @@ msgstr "Připojení k fotoaparátu selhalo."
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "Tato verze aplikace Ascent Camera nepasuje k této verzi Ascent. Aktualizujte obě."
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "Zkontrolujte, že nakreslená mřížka všude leží na dílcích, i na zvýšených podlahách. Roh opravíte přetažením."
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "Klikněte na roh %d oranžové oblasti na fotce."
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "Klikněte na rohy oranžové oblasti na fotce, v pořadí 1 až 4. Roh opravíte přetažením."
+
+msgid "New photo"
+msgstr "Nová fotka"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "Nejprve nastavte fotoaparát nad stolem: Možnosti > Fotoaparát nad stolem."
+
+msgid "Start over"
+msgstr "Začít znovu"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "Na herním plánu zatím není oblast alespoň 2 x 2 políček podlahy, na které by šlo kalibrovat."
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "Tyto rohy netvoří použitelný tvar. Začněte znovu a klikněte na ně v pořadí 1, 2, 3, 4."
+
+msgid "Turn the map"
+msgstr "Otočit mapu"
+
+msgid "Use this calibration"
+msgstr "Použít tuto kalibraci"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

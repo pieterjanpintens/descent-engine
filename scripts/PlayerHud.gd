@@ -70,6 +70,8 @@ var toggle_line_of_sight: Callable
 var save_requested: Callable
 ## DebugPanel.toggle - the Gear menu's "Debug" item, only in a debug session (see DebugSession).
 var open_debug: Callable
+## The Gear menu's "Table camera": calibrating the table camera (MissionPlayer._open_table_camera()).
+var open_table_camera: Callable
 
 ## The official rulebook PDF, hosted by Fantasy Flight Games themselves -
 ## opened in the system browser (OS.shell_open()) by "Rules Reference", not
@@ -82,7 +84,7 @@ const RULES_REFERENCE_URL := "https://images-cdn.fantasyflightgames.com/filer_pu
 const THREAT_ICON_PATH := "res://models/hud_threat.png"
 const QUEST_ICON_PATH := "res://models/hud_quest.png"
 
-const GEAR_ITEMS: Array[String] = ["Line of Sight", "Options", "Rules Reference", "Save"]
+const GEAR_ITEMS: Array[String] = ["Line of Sight", "Table camera", "Options", "Rules Reference", "Save"]
 const PARTY_ITEMS: Array[String] = ["Quest Log", "Campaign Log", "Feats", "Heroes", "Inventory"]
 
 const ICON_SIZE := 64.0
@@ -297,6 +299,12 @@ func _build_popup_menu(items: Array[String]) -> VBoxContainer:
 				)
 			"Options":
 				btn.pressed.connect(_on_options_pressed)
+			"Table camera":
+				btn.pressed.connect(func():
+					_gear_menu.visible = false
+					if open_table_camera.is_valid():
+						open_table_camera.call()
+				)
 			"Rules Reference":
 				btn.pressed.connect(_on_rules_reference_pressed)
 			"Quest Log":

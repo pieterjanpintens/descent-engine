@@ -48,6 +48,11 @@ var mission: MissionData
 var current_round: int = 1
 var current_checkpoint: RoundCheckpoint.Checkpoint = RoundCheckpoint.Checkpoint.NONE
 var _runtime: MissionRuntime
+## The table camera (TableCamera) and how it sees each Table: Table id ("" = main) -> CameraCalibration.to_dict(). A Table is set up
+## on its own, so each has its own calibration; kept in the save game.
+var _table_camera: TableCamera
+var _camera_calibrations: Dictionary = {}
+var _calibration_dialog: CameraCalibrationDialog
 ## Which HeroCatalog slot each player number maps to, in player-number order
 ## - set once by EmbarkDialog at the start of _ready(), see that class and
 ## PlayerInteractionController.set_roster(). Player count is just this
@@ -165,6 +170,7 @@ func _ready() -> void:
 		dialog.get_parent().add_child(debug_panel)
 		hud.open_debug = debug_panel.toggle
 	hud.show_map = _set_monster_display_visible.bind(false)
+	hud.open_table_camera = _open_table_camera
 	hud.show_monsters = _set_monster_display_visible.bind(true)
 	journal.round_provider = func() -> int: return current_round
 	dialog.journal = journal
@@ -325,6 +331,7 @@ func _ready() -> void:
 		if DebugSession.active() and GameState.campaign_folder == "":
 			_runtime.track_positions = DebugSession.track()  # the Play menu's switch also counts for a snapshot
 		_runtime.load_hero_positions(resume_save.hero_positions)
+		_camera_calibrations = resume_save.camera_calibrations.duplicate(true)
 		_runtime.hero_attacks_made = resume_save.hero_attacks_made.duplicate()
 		_runtime.hero_attacks_round = resume_save.hero_attacks_round.duplicate()
 		_runtime.hero_interactions_round = resume_save.hero_interactions_round.duplicate()
@@ -528,6 +535,7 @@ func _build_save(snapshot: bool) -> SaveGame:
 	save.monsters = monster_dicts
 	save.track_positions = _runtime.track_positions
 	save.hero_positions = _runtime.hero_positions_state()
+	save.camera_calibrations = _camera_calibrations.duplicate(true)
 	save.hero_attacks_made = _runtime.hero_attacks_made.duplicate()
 	save.hero_attacks_round = _runtime.hero_attacks_round.duplicate()
 	save.hero_interactions_round = _runtime.hero_interactions_round.duplicate()
@@ -1305,6 +1313,30 @@ func _stage_pieces(before: Dictionary) -> Array[Dictionary]:
 ## SWITCH_TABLE: resets the physical table to another Table (see MissionTable). The old Table's pieces go back in the box (nothing of it is painted any
 ## more), the monsters are removed (their places belonged to the old Table), then the new Table is set up page by page like a stage reveal and the
 ## heroes are placed on its start squares. Variables, objectives, loot, wounds and the round carry over. `table_id` is a MissionTable id or Effect.MAIN_TABLE.
+## The Gear menu's "Table camera": takes a photo with the table camera and lets the player calibrate it on the board as it is on
+## the table now (CameraCalibrationDialog). The result is kept for the active Table.
+func _open_table_camera() -> void:
+	if not TableCamera.is_configured():
+		await dialog.ask_ok(tr("Set up the table camera first: Options > Table camera."))
+		return
+	if dialog.visible:
+		return
+	if _table_camera == null:
+		_table_camera = TableCamera.new()
+		add_child(_table_camera)
+	if _calibration_dialog == null:
+		_calibration_dialog = CameraCalibrationDialog.new()
+		dialog.get_parent().add_child(_calibration_dialog)
+	var squares: Dictionary = MissionSight.build(mission, layered_map.held_back)["squares"]
+	var cards := CameraCalibrationDialog.hazard_cards(mission, layered_map.held_back)
+	var existing: CameraCalibration = null
+	if _camera_calibrations.has(mission.active_table_id):
+		existing = CameraCalibration.from_dict(_camera_calibrations[mission.active_table_id])
+	var result := await _calibration_dialog.run(squares, _table_camera, existing, null, cards)
+	if result != null:
+		_camera_calibrations[mission.active_table_id] = result.to_dict()
+
+
 func _switch_table(table_id: String) -> void:
 	var target := "" if table_id == Effect.MAIN_TABLE else table_id
 	if target == mission.active_table_id or (target != "" and mission.find_table(target) == null):

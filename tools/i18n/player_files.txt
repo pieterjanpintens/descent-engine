@@ -29,6 +29,7 @@ LineOfSightMode
 VoiceSettingsDialog
 TableCameraPanel
 TableCamera tr
+CameraCalibrationDialog
 VoiceListener tr
 LanguageListEditor
 UpdateDialog

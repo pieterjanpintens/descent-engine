@@ -91,3 +91,13 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 965|Aparat wysłał coś, co nie jest zdjęciem.
 966|Połączenie z aparatem nie powiodło się.
 967|Ta wersja aplikacji Ascent Camera nie pasuje do tej wersji Ascent. Zaktualizuj obie.
+968|Sprawdź, czy narysowana siatka wszędzie leży na płytkach, także na podwyższonych podłogach. Przeciągnij róg, aby go poprawić.
+969|Kliknij róg %d pomarańczowego obszaru na zdjęciu.
+970|Kliknij rogi pomarańczowego obszaru na zdjęciu, w kolejności od 1 do 4. Przeciągnij róg, aby go poprawić.
+971|Nowe zdjęcie
+972|Najpierw skonfiguruj aparat nad stołem: Opcje > Aparat nad stołem.
+973|Zacznij od nowa
+974|Na planszy nie ma jeszcze obszaru co najmniej 2 x 2 pól podłogi do kalibracji.
+975|Te rogi nie tworzą użytecznego kształtu. Zacznij od nowa i kliknij je w kolejności 1, 2, 3, 4.
+976|Obróć mapę
+977|Użyj tej kalibracji

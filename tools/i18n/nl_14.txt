@@ -91,3 +91,13 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 965|De camera stuurde iets dat geen foto is.
 966|De verbinding met de camera mislukte.
 967|Deze versie van de app Ascent Camera past niet bij deze versie van Ascent. Werk beide bij.
+968|Controleer dat het getekende raster overal op de tegels ligt, ook op verhoogde vloeren. Sleep een hoek om hem te verbeteren.
+969|Klik op hoek %d van het oranje gebied op de foto.
+970|Klik op de hoeken van het oranje gebied op de foto, in de volgorde 1 tot 4. Sleep een hoek om hem te verbeteren.
+971|Nieuwe foto
+972|Stel eerst de tafelcamera in: Opties > Tafelcamera.
+973|Opnieuw beginnen
+974|Er is op het bord nog geen gebied van minstens 2 x 2 vloervakjes om op te kalibreren.
+975|Deze hoeken vormen geen bruikbare vorm. Begin opnieuw en klik ze aan in de volgorde 1, 2, 3, 4.
+976|Kaart draaien
+977|Deze kalibratie gebruiken

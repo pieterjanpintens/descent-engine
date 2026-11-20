@@ -91,3 +91,13 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 965|La cámara envió algo que no es una foto.
 966|La conexión con la cámara falló.
 967|Esta versión de la app Ascent Camera no es compatible con esta versión de Ascent. Actualiza ambas.
+968|Comprueba que la cuadrícula dibujada coincide con las losetas en todas partes, también en los suelos elevados. Arrastra una esquina para corregirla.
+969|Haz clic en la esquina %d de la zona naranja en la foto.
+970|Haz clic en las esquinas de la zona naranja en la foto, en el orden 1 a 4. Arrastra una esquina para corregirla.
+971|Nueva foto
+972|Configura primero la cámara de mesa: Opciones > Cámara de mesa.
+973|Empezar de nuevo
+974|Todavía no hay en el tablero una zona de al menos 2 x 2 casillas de suelo para calibrar.
+975|Estas esquinas no forman una figura útil. Empieza de nuevo y haz clic en ellas en el orden 1, 2, 3, 4.
+976|Girar el mapa
+977|Usar esta calibración

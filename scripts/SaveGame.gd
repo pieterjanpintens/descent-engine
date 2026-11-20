@@ -41,6 +41,7 @@ extends Resource
 @export var hero_attacks_made: Dictionary = {}  ## MissionRuntime.hero_attacks_made (hero slot -> attacks made)
 @export var track_positions: bool = false  ## MissionRuntime.track_positions (the campaign option, kept so a resumed mission plays the same way)
 @export var hero_positions: Dictionary = {}  ## MissionRuntime.hero_positions_state()
+@export var camera_calibrations: Dictionary = {}  ## Table id ("" = main) -> CameraCalibration.to_dict() (MissionPlayer)
 @export var monsters: Array[Dictionary] = []  ## RuntimeMonster.to_dict() per live monster
 @export var current_objective_ids: Array = []  ## Array[Array[String]] - MissionObjective.id per watched candidate group
 @export var journal_entries: Array[Dictionary] = []  ## Journal.entries, verbatim

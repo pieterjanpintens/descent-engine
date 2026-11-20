@@ -2772,6 +2772,36 @@ msgstr "Не удалось соединиться с камерой."
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "Эта версия приложения Ascent Camera не подходит к этой версии Ascent. Обновите обе."
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "Проверьте, что нарисованная сетка везде лежит на плитках, в том числе на приподнятых полах. Перетащите угол, чтобы поправить его."
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "Щёлкните по углу %d оранжевой области на фото."
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "Щёлкните по углам оранжевой области на фото по порядку от 1 до 4. Перетащите угол, чтобы поправить его."
+
+msgid "New photo"
+msgstr "Новое фото"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "Сначала настройте камеру над столом: Настройки > Камера над столом."
+
+msgid "Start over"
+msgstr "Начать заново"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "На поле пока нет области хотя бы 2 x 2 клетки пола для калибровки."
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "Эти углы не образуют пригодную фигуру. Начните заново и щёлкните по ним в порядке 1, 2, 3, 4."
+
+msgid "Turn the map"
+msgstr "Повернуть карту"
+
+msgid "Use this calibration"
+msgstr "Использовать эту калибровку"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

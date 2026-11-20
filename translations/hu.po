@@ -2772,6 +2772,36 @@ msgstr "A kapcsolat a kamerával nem sikerült."
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "Az Ascent Camera alkalmazás ezen verziója nem illik az Ascent ezen verziójához. Frissítsd mindkettőt."
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "Ellenőrizd, hogy a rajzolt rács mindenhol a lapkákon fekszik, a megemelt padlókon is. Egy sarkot húzással javíthatsz."
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "Kattints a narancssárga terület %d. sarkára a fényképen."
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "Kattints a narancssárga terület sarkaira a fényképen, 1-től 4-ig sorrendben. Egy sarkot húzással javíthatsz."
+
+msgid "New photo"
+msgstr "Új fénykép"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "Előbb állítsd be az asztali kamerát: Beállítások > Asztali kamera."
+
+msgid "Start over"
+msgstr "Újrakezdés"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "A táblán még nincs legalább 2 x 2 padlómezős terület, amin kalibrálni lehetne."
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "Ezek a sarkok nem adnak használható alakot. Kezdd újra, és kattints rájuk 1, 2, 3, 4 sorrendben."
+
+msgid "Turn the map"
+msgstr "Térkép elforgatása"
+
+msgid "Use this calibration"
+msgstr "Ennek a kalibrációnak a használata"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

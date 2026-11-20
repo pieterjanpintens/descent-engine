@@ -91,3 +91,13 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 965|La fotocamera ha inviato qualcosa che non è una foto.
 966|La connessione alla fotocamera non è riuscita.
 967|Questa versione dell'app Ascent Camera non è compatibile con questa versione di Ascent. Aggiornale entrambe.
+968|Controlla che la griglia disegnata stia sulle tessere ovunque, anche sui pavimenti rialzati. Trascina un angolo per correggerlo.
+969|Fai clic sull'angolo %d dell'area arancione nella foto.
+970|Fai clic sugli angoli dell'area arancione nella foto, nell'ordine da 1 a 4. Trascina un angolo per correggerlo.
+971|Nuova foto
+972|Configura prima la fotocamera del tavolo: Opzioni > Fotocamera del tavolo.
+973|Ricomincia
+974|Sul tabellone non c'è ancora un'area di almeno 2 x 2 caselle di pavimento su cui calibrare.
+975|Questi angoli non formano una figura utilizzabile. Ricomincia e fai clic su di essi nell'ordine 1, 2, 3, 4.
+976|Ruota la mappa
+977|Usa questa calibrazione

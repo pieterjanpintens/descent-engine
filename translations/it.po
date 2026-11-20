@@ -2772,6 +2772,36 @@ msgstr "La connessione alla fotocamera non è riuscita."
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "Questa versione dell'app Ascent Camera non è compatibile con questa versione di Ascent. Aggiornale entrambe."
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "Controlla che la griglia disegnata stia sulle tessere ovunque, anche sui pavimenti rialzati. Trascina un angolo per correggerlo."
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "Fai clic sull'angolo %d dell'area arancione nella foto."
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "Fai clic sugli angoli dell'area arancione nella foto, nell'ordine da 1 a 4. Trascina un angolo per correggerlo."
+
+msgid "New photo"
+msgstr "Nuova foto"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "Configura prima la fotocamera del tavolo: Opzioni > Fotocamera del tavolo."
+
+msgid "Start over"
+msgstr "Ricomincia"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "Sul tabellone non c'è ancora un'area di almeno 2 x 2 caselle di pavimento su cui calibrare."
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "Questi angoli non formano una figura utilizzabile. Ricomincia e fai clic su di essi nell'ordine 1, 2, 3, 4."
+
+msgid "Turn the map"
+msgstr "Ruota la mappa"
+
+msgid "Use this calibration"
+msgstr "Usa questa calibrazione"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d per %d giocatore)"

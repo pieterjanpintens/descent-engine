@@ -2772,6 +2772,36 @@ msgstr "與相機的連線失敗。"
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "此版本的 Ascent Camera 應用程式與此版本的 Ascent 不相符。請同時更新兩者。"
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "檢查繪製的網格是否處處都落在板塊上，包括抬高的地面。拖曳角點可以修正。"
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "在照片上點擊橙色區域的第 %d 個角。"
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "在照片上按 1 到 4 的順序點擊橙色區域的四個角。拖曳角點可以修正。"
+
+msgid "New photo"
+msgstr "新照片"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "請先設定桌面相機：選項 > 桌面相機。"
+
+msgid "Start over"
+msgstr "重新開始"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "棋盤上還沒有至少 2 x 2 格地面的區域可用於校準。"
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "這些角點無法構成可用的形狀。請重新開始，按 1、2、3、4 的順序點擊。"
+
+msgid "Turn the map"
+msgstr "旋轉地圖"
+
+msgid "Use this calibration"
+msgstr "使用此校準"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

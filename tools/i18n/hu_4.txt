@@ -91,3 +91,13 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 965|A kamera olyasmit küldött, ami nem fénykép.
 966|A kapcsolat a kamerával nem sikerült.
 967|Az Ascent Camera alkalmazás ezen verziója nem illik az Ascent ezen verziójához. Frissítsd mindkettőt.
+968|Ellenőrizd, hogy a rajzolt rács mindenhol a lapkákon fekszik, a megemelt padlókon is. Egy sarkot húzással javíthatsz.
+969|Kattints a narancssárga terület %d. sarkára a fényképen.
+970|Kattints a narancssárga terület sarkaira a fényképen, 1-től 4-ig sorrendben. Egy sarkot húzással javíthatsz.
+971|Új fénykép
+972|Előbb állítsd be az asztali kamerát: Beállítások > Asztali kamera.
+973|Újrakezdés
+974|A táblán még nincs legalább 2 x 2 padlómezős terület, amin kalibrálni lehetne.
+975|Ezek a sarkok nem adnak használható alakot. Kezdd újra, és kattints rájuk 1, 2, 3, 4 sorrendben.
+976|Térkép elforgatása
+977|Ennek a kalibrációnak a használata

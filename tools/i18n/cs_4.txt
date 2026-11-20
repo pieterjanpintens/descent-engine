@@ -91,3 +91,13 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 965|Fotoaparát poslal něco, co není fotka.
 966|Připojení k fotoaparátu selhalo.
 967|Tato verze aplikace Ascent Camera nepasuje k této verzi Ascent. Aktualizujte obě.
+968|Zkontrolujte, že nakreslená mřížka všude leží na dílcích, i na zvýšených podlahách. Roh opravíte přetažením.
+969|Klikněte na roh %d oranžové oblasti na fotce.
+970|Klikněte na rohy oranžové oblasti na fotce, v pořadí 1 až 4. Roh opravíte přetažením.
+971|Nová fotka
+972|Nejprve nastavte fotoaparát nad stolem: Možnosti > Fotoaparát nad stolem.
+973|Začít znovu
+974|Na herním plánu zatím není oblast alespoň 2 x 2 políček podlahy, na které by šlo kalibrovat.
+975|Tyto rohy netvoří použitelný tvar. Začněte znovu a klikněte na ně v pořadí 1, 2, 3, 4.
+976|Otočit mapu
+977|Použít tuto kalibraci

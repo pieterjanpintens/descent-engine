@@ -91,3 +91,13 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 965|La caméra a envoyé quelque chose qui n'est pas une photo.
 966|La connexion à la caméra a échoué.
 967|Cette version de l'application Ascent Camera ne correspond pas à cette version d'Ascent. Mettez les deux à jour.
+968|Vérifiez que la grille dessinée repose partout sur les tuiles, aussi sur les sols surélevés. Faites glisser un coin pour le corriger.
+969|Cliquez sur le coin %d de la zone orange sur la photo.
+970|Cliquez sur les coins de la zone orange sur la photo, dans l'ordre 1 à 4. Faites glisser un coin pour le corriger.
+971|Nouvelle photo
+972|Configurez d'abord la caméra de table : Options > Caméra de table.
+973|Recommencer
+974|Il n'y a pas encore sur le plateau de zone d'au moins 2 x 2 cases de sol pour calibrer.
+975|Ces coins ne forment pas une forme utilisable. Recommencez et cliquez-les dans l'ordre 1, 2, 3, 4.
+976|Tourner la carte
+977|Utiliser cet étalonnage

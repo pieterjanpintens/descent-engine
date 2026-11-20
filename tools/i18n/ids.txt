@@ -965,6 +965,16 @@
 965|The camera sent something that is not a photo.
 966|The connection to the camera failed.
 967|This version of the Ascent Camera app does not fit this version of Ascent. Update both.
+968|Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it.
+969|Click corner %d of the orange area on the photo.
+970|Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it.
+971|New photo
+972|Set up the table camera first: Options > Table camera.
+973|Start over
+974|There is no area of at least 2 x 2 floor squares on the board to calibrate on yet.
+975|These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4.
+976|Turn the map
+977|Use this calibration
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

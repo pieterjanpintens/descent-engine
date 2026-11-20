@@ -2772,6 +2772,36 @@ msgstr "La connexion à la caméra a échoué."
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr "Cette version de l'application Ascent Camera ne correspond pas à cette version d'Ascent. Mettez les deux à jour."
 
+msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
+msgstr "Vérifiez que la grille dessinée repose partout sur les tuiles, aussi sur les sols surélevés. Faites glisser un coin pour le corriger."
+
+msgid "Click corner %d of the orange area on the photo."
+msgstr "Cliquez sur le coin %d de la zone orange sur la photo."
+
+msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
+msgstr "Cliquez sur les coins de la zone orange sur la photo, dans l'ordre 1 à 4. Faites glisser un coin pour le corriger."
+
+msgid "New photo"
+msgstr "Nouvelle photo"
+
+msgid "Set up the table camera first: Options > Table camera."
+msgstr "Configurez d'abord la caméra de table : Options > Caméra de table."
+
+msgid "Start over"
+msgstr "Recommencer"
+
+msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
+msgstr "Il n'y a pas encore sur le plateau de zone d'au moins 2 x 2 cases de sol pour calibrer."
+
+msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
+msgstr "Ces coins ne forment pas une forme utilisable. Recommencez et cliquez-les dans l'ordre 1, 2, 3, 4."
+
+msgid "Turn the map"
+msgstr "Tourner la carte"
+
+msgid "Use this calibration"
+msgstr "Utiliser cet étalonnage"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

@@ -91,3 +91,13 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 965|A câmera enviou algo que não é uma foto.
 966|A conexão com a câmera falhou.
 967|Esta versão do app Ascent Camera não combina com esta versão do Ascent. Atualize os dois.
+968|Confira se a grade desenhada fica sobre as peças em todo lugar, também nos pisos elevados. Arraste um canto para corrigi-lo.
+969|Clique no canto %d da área laranja na foto.
+970|Clique nos cantos da área laranja na foto, na ordem de 1 a 4. Arraste um canto para corrigi-lo.
+971|Nova foto
+972|Configure primeiro a câmera da mesa: Opções > Câmera da mesa.
+973|Recomeçar
+974|Ainda não há no tabuleiro uma área de pelo menos 2 x 2 espaços de piso para calibrar.
+975|Estes cantos não formam uma forma utilizável. Recomece e clique neles na ordem 1, 2, 3, 4.
+976|Girar o mapa
+977|Usar esta calibração
