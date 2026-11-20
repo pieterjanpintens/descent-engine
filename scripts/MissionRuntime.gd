@@ -774,9 +774,21 @@ func monster_effect_count(effect: Effect) -> int:
 func _apply_to_monsters(effect: Effect) -> PackedStringArray:
 	var damage := effect.type == Effect.Type.DAMAGE_MONSTERS
 	var kind := effect.monster_condition
+	# an id left over from another effect type (a prop for Remove Object...) is no filter; only a real group / spawn area is
+	var group_id := effect.spawn_group_id if mission.find_monster_group(effect.spawn_group_id) != null else ""
+	var area_id := ""
+	for area in mission.monster_spawns:
+		if group_id == "" and area.id == effect.target_object_id:
+			area_id = area.id
 	var candidates: Array[RuntimeMonster] = []
 	for monster in monsters:
 		if monster.hitpoints <= 0:
+			continue
+		if group_id != "" and monster.spawn_group_id != group_id:
+			continue
+		if area_id != "" and monster.spawn_area_id != area_id:
+			continue
+		if effect.monster_folder != "" and monster.folder != effect.monster_folder:
 			continue
 		if not damage and (monster.is_condition_immune(kind) or monster.conditions.has(kind)):
 			continue

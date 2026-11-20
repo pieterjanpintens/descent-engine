@@ -80,6 +80,10 @@ enum Type {
 ## The monsters are picked at random among the live ones (for a condition only those that can get it: not immune, not already having it);
 ## `monster_count` is a formula like a random spawn's count, BLANK = all of them. The table is told who was hit. See
 ## MissionRuntime._apply_to_monsters().
+## Which monsters can be picked (both types): every live monster, or only those of the monster group `spawn_group_id`, or only those spawned at
+## the spawn area `target_object_id`, or only those of the figure type `monster_folder` (a MonsterDisplay folder, e.g. "wolf") - one at a time,
+## like Wake Monsters' target.
+@export var monster_folder: String = ""
 @export var monster_count: String = ""
 @export var monster_condition: int = 4  # MonsterCondition.Kind.ENFEEBLED
 @export var monster_damage: int = 3

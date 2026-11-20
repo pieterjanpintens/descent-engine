@@ -640,6 +640,37 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 
 	## CONDITION_MONSTERS / DAMAGE_MONSTERS - which condition or how much damage, and how many random monsters (a formula, blank = all).
 	var monster_box := HBoxContainer.new()
+	var which_option := OptionButton.new()
+	which_option.tooltip_text = "Which monsters can be picked: all of them, one monster group, those spawned at one spawn area, or one type"
+	var which_targets: Array = [["", ""]]  # [kind, id] per entry; "" = any monster
+	which_option.add_item("Any monster")
+	for which_group in mission.monster_groups:
+		which_option.add_item("Group: %s" % which_group.display_name())
+		which_targets.append(["group", which_group.id])
+	for which_index in mission.monster_spawns.size():
+		var which_area: MonsterSpawn = mission.monster_spawns[which_index]
+		which_option.add_item("Spawned at: %s" % (which_area.reference_name if which_area.reference_name != "" else "Monster Spawn %d" % (which_index + 1)))
+		which_targets.append(["area", which_area.id])
+	for which_type: Dictionary in MonsterDisplay.REAL_MONSTERS:
+		which_option.add_item("Type: %s" % which_type["name"])
+		which_targets.append(["type", which_type["folder"]])
+	var which_selected := 0
+	for target_index in which_targets.size():
+		var target: Array = which_targets[target_index]
+		if (target[0] == "group" and target[1] == effect.spawn_group_id) \
+				or (target[0] == "area" and effect.spawn_group_id == "" and target[1] == effect.target_object_id) \
+				or (target[0] == "type" and target[1] == effect.monster_folder):
+			which_selected = target_index
+	which_option.select(which_selected)
+	which_option.item_selected.connect(func(index: int):
+		var picked: Array = which_targets[index]
+		_commit_field("Edit which monsters", func():
+			effect.spawn_group_id = picked[1] if picked[0] == "group" else ""
+			effect.target_object_id = picked[1] if picked[0] == "area" else ""
+			effect.monster_folder = picked[1] if picked[0] == "type" else ""
+		)
+	)
+	monster_box.add_child(which_option)
 	var condition_option := OptionButton.new()
 	for kind in MonsterCondition.all():
 		condition_option.add_item(MonsterCondition.display_name(kind), kind)
