@@ -2802,6 +2802,93 @@ msgstr "Térkép elforgatása"
 msgid "Use this calibration"
 msgstr "Ennek a kalibrációnak a használata"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d cm)"
+
+msgid "%d cm"
+msgstr "%d cm"
+
+msgid "Behind the table edge (cm)"
+msgstr "Az asztal széle mögött (cm)"
+
+msgid "Build the map in the middle of the table."
+msgstr "Építsd a térképet az asztal közepére."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Először a narancssárga kezdőterületet építsd meg: %d cm-re az asztal bal szélétől és %d cm-re a te széledtől. A későbbi szakaszok köré illeszkednek."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Először a narancssárga kezdőterületet építsd meg: %d cm-re az asztal jobb szélétől és %d cm-re a te széledtől. A későbbi szakaszok köré illeszkednek."
+
+msgid "Camera"
+msgstr "Kamera"
+
+msgid "Custom"
+msgstr "Egyéni"
+
+msgid "Depth (cm)"
+msgstr "Mélység (cm)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "Ebből a magasságból nem látja az egész térképet: emeld legalább %d cm-re."
+
+msgid "From this height it sees the whole map."
+msgstr "Ebből a magasságból látja az egész térképet."
+
+msgid "Height above the table (cm)"
+msgstr "Magasság az asztal felett (cm)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "Erről az oldalról nem látja az egész térképet; tedd távolabb a szél mögé."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "NEM fér el ezen az asztalon: egy része túllóg a szélén."
+
+msgid "It fits on this table."
+msgstr "Elfér ezen az asztalon."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "Tedd a kamerát az asztal bal oldali rövid oldalának közepére, az asztal hossza mentén nézve."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "Tedd a kamerát az asztal jobb oldali rövid oldalának közepére, az asztal hossza mentén nézve."
+
+msgid "Set up the table"
+msgstr "Az asztal előkészítése"
+
+msgid "Show this before every mission"
+msgstr "Megjelenítés minden küldetés előtt"
+
+msgid "Table setup"
+msgstr "Asztal előkészítése"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "Az egész térkép %d x %d cm (%d x %d mező)."
+
+msgid "This Table has no floor yet."
+msgstr "Ezen az asztalon még nincs padló."
+
+msgid "Where to start"
+msgstr "Hol kezdj"
+
+msgid "Width (cm)"
+msgstr "Szélesség (cm)"
+
+msgid "Your side"
+msgstr "A te oldalad"
+
+msgid "Your table"
+msgstr "A te asztalod"
+
+msgid "Large"
+msgstr "Nagy"
+
+msgid "Medium"
+msgstr "Közepes"
+
+msgid "Small"
+msgstr "Kicsi"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

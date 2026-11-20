@@ -40,3 +40,7 @@ bow
 crossbow
 throwing knives
 gloves
+# The table presets (CreatorSettings.TABLE_PRESETS), shown on the setup sheet
+Large
+Medium
+Small

@@ -2802,6 +2802,93 @@ msgstr "Tourner la carte"
 msgid "Use this calibration"
 msgstr "Utiliser cet étalonnage"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d cm)"
+
+msgid "%d cm"
+msgstr "%d cm"
+
+msgid "Behind the table edge (cm)"
+msgstr "Derrière le bord de la table (cm)"
+
+msgid "Build the map in the middle of the table."
+msgstr "Construisez la carte au milieu de la table."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Construisez d'abord la zone de départ orange : à %d cm du bord gauche de la table et à %d cm de votre bord. Les étapes suivantes s'y ajouteront autour."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Construisez d'abord la zone de départ orange : à %d cm du bord droit de la table et à %d cm de votre bord. Les étapes suivantes s'y ajouteront autour."
+
+msgid "Camera"
+msgstr "Caméra"
+
+msgid "Custom"
+msgstr "Personnalisée"
+
+msgid "Depth (cm)"
+msgstr "Profondeur (cm)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "De cette hauteur, elle ne voit pas toute la carte : montez-la à au moins %d cm."
+
+msgid "From this height it sees the whole map."
+msgstr "De cette hauteur, elle voit toute la carte."
+
+msgid "Height above the table (cm)"
+msgstr "Hauteur au-dessus de la table (cm)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "De ce côté, elle ne peut pas voir toute la carte ; reculez-la davantage derrière le bord."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "Elle ne tient PAS sur cette table : une partie dépassera du bord."
+
+msgid "It fits on this table."
+msgstr "Elle tient sur cette table."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "Placez la caméra au milieu du petit côté gauche de la table, orientée dans la longueur de la table."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "Placez la caméra au milieu du petit côté droit de la table, orientée dans la longueur de la table."
+
+msgid "Set up the table"
+msgstr "Préparer la table"
+
+msgid "Show this before every mission"
+msgstr "Afficher ceci avant chaque mission"
+
+msgid "Table setup"
+msgstr "Préparer la table"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "La carte entière mesure %d x %d cm (%d x %d cases)."
+
+msgid "This Table has no floor yet."
+msgstr "Cette table n'a pas encore de sol."
+
+msgid "Where to start"
+msgstr "Où commencer"
+
+msgid "Width (cm)"
+msgstr "Largeur (cm)"
+
+msgid "Your side"
+msgstr "Votre côté"
+
+msgid "Your table"
+msgstr "Votre table"
+
+msgid "Large"
+msgstr "Grande"
+
+msgid "Medium"
+msgstr "Moyenne"
+
+msgid "Small"
+msgstr "Petite"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

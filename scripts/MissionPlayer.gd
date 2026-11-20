@@ -53,6 +53,7 @@ var _runtime: MissionRuntime
 var _table_camera: TableCamera
 var _camera_calibrations: Dictionary = {}
 var _calibration_dialog: CameraCalibrationDialog
+var _setup_sheet: TableSetupSheet
 ## Which HeroCatalog slot each player number maps to, in player-number order
 ## - set once by EmbarkDialog at the start of _ready(), see that class and
 ## PlayerInteractionController.set_roster(). Player count is just this
@@ -171,6 +172,7 @@ func _ready() -> void:
 		hud.open_debug = debug_panel.toggle
 	hud.show_map = _set_monster_display_visible.bind(false)
 	hud.open_table_camera = _open_table_camera
+	hud.open_table_setup = _show_table_setup.bind(false)
 	hud.show_monsters = _set_monster_display_visible.bind(true)
 	journal.round_provider = func() -> int: return current_round
 	dialog.journal = journal
@@ -456,6 +458,7 @@ func _ready() -> void:
 		# MissionData.find_starting_group_ids(); a mission with no groups
 		# authored (or no group under its spawn cells) contributes nothing
 		# here, same as before this feature existed.
+		await _show_table_setup(true)  # where on the real table to build the start, and where the camera goes
 		for group_id in mission.find_starting_group_ids():
 			await show_stage(group_id)
 
@@ -1313,6 +1316,24 @@ func _stage_pieces(before: Dictionary) -> Array[Dictionary]:
 ## SWITCH_TABLE: resets the physical table to another Table (see MissionTable). The old Table's pieces go back in the box (nothing of it is painted any
 ## more), the monsters are removed (their places belonged to the old Table), then the new Table is set up page by page like a stage reveal and the
 ## heroes are placed on its start squares. Variables, objectives, loot, wounds and the round carry over. `table_id` is a MissionTable id or Effect.MAIN_TABLE.
+## The setup sheet (TableSetupSheet): where on the real table to build the start of the active Table, and where the table camera
+## goes. `automatic` = shown by itself before the first stage is built (skipped when the player turned that off, and in a debug fast
+## start); from the Gear menu it always opens.
+func _show_table_setup(automatic: bool) -> void:
+	if automatic and (not PlayerSettings.show_table_setup or DebugSession.skipping()):
+		return
+	if _setup_sheet == null:
+		_setup_sheet = TableSetupSheet.new()
+		dialog.get_parent().add_child(_setup_sheet)
+	var fov := Vector2.ZERO
+	if _camera_calibrations.has(mission.active_table_id):
+		var calibration := CameraCalibration.from_dict(_camera_calibrations[mission.active_table_id])
+		if calibration.valid and calibration.focal > 0.0:
+			var half := calibration.image_size * 0.5 / calibration.focal
+			fov = Vector2(minf(half.x, half.y), maxf(half.x, half.y))
+	await _setup_sheet.open_sheet(mission, fov)
+
+
 ## The Gear menu's "Table camera": takes a photo with the table camera and lets the player calibrate it on the board as it is on
 ## the table now (CameraCalibrationDialog). The result is kept for the active Table.
 func _open_table_camera() -> void:
@@ -1359,6 +1380,7 @@ func _switch_table(table_id: String) -> void:
 		layered_map.held_back[piece["node"]] = true
 	layered_map.repaint_visible_entries()
 	_rebuild_bounding_box()
+	await _show_table_setup(true)
 	await _announce_pieces(new_pieces, table_name)
 	for group_id in mission.find_starting_group_ids():
 		await show_stage(group_id)

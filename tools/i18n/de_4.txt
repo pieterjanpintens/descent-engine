@@ -101,3 +101,32 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 975|Diese Ecken ergeben keine brauchbare Form. Fang neu an und klicke sie in der Reihenfolge 1, 2, 3, 4 an.
 976|Karte drehen
 977|Diese Kalibrierung verwenden
+978| (%d x %d cm)
+979|%d cm
+980|Hinter der Tischkante (cm)
+981|Baue die Karte in der Mitte des Tisches auf.
+982|Baue zuerst den orangefarbenen Startbereich auf: %d cm von der linken Tischkante und %d cm von deiner Kante. Spätere Abschnitte passen dann darum herum.
+983|Baue zuerst den orangefarbenen Startbereich auf: %d cm von der rechten Tischkante und %d cm von deiner Kante. Spätere Abschnitte passen dann darum herum.
+984|Kamera
+985|Eigene Größe
+986|Tiefe (cm)
+987|Aus dieser Höhe sieht sie nicht die ganze Karte: stelle sie mindestens %d cm hoch.
+988|Aus dieser Höhe sieht sie die ganze Karte.
+989|Höhe über dem Tisch (cm)
+990|Von dieser Seite kann sie nicht die ganze Karte sehen; stelle sie weiter hinter die Kante.
+991|Sie passt NICHT auf diesen Tisch: ein Teil ragt über die Kante.
+992|Sie passt auf diesen Tisch.
+993|Stelle die Kamera in die Mitte der linken Schmalseite des Tisches, entlang des Tisches gerichtet.
+994|Stelle die Kamera in die Mitte der rechten Schmalseite des Tisches, entlang des Tisches gerichtet.
+995|Tisch vorbereiten
+996|Vor jeder Mission anzeigen
+997|Tisch vorbereiten
+998|Die ganze Karte ist %d x %d cm groß (%d x %d Felder).
+999|Dieser Tisch hat noch keinen Boden.
+1000|Wo anfangen
+1001|Breite (cm)
+1002|Deine Seite
+1003|Dein Tisch
+1004|Groß
+1005|Mittel
+1006|Klein

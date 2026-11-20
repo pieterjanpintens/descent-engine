@@ -101,3 +101,32 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 975|Deze hoeken vormen geen bruikbare vorm. Begin opnieuw en klik ze aan in de volgorde 1, 2, 3, 4.
 976|Kaart draaien
 977|Deze kalibratie gebruiken
+978| (%d x %d cm)
+979|%d cm
+980|Achter de tafelrand (cm)
+981|Bouw de kaart in het midden van de tafel.
+982|Bouw eerst het oranje startgebied: %d cm van de linkerrand van de tafel en %d cm van jouw rand. Latere fases passen er dan omheen.
+983|Bouw eerst het oranje startgebied: %d cm van de rechterrand van de tafel en %d cm van jouw rand. Latere fases passen er dan omheen.
+984|Camera
+985|Eigen maat
+986|Diepte (cm)
+987|Vanaf deze hoogte ziet hij niet de hele kaart: zet hem minstens %d cm hoog.
+988|Vanaf deze hoogte ziet hij de hele kaart.
+989|Hoogte boven de tafel (cm)
+990|Vanaf deze kant kan hij niet de hele kaart zien; zet hem verder achter de rand.
+991|Hij past NIET op deze tafel: een deel steekt over de rand.
+992|Hij past op deze tafel.
+993|Zet de camera in het midden van de linker korte kant van de tafel, gericht langs de tafel.
+994|Zet de camera in het midden van de rechter korte kant van de tafel, gericht langs de tafel.
+995|Tafel klaarzetten
+996|Dit voor elke missie tonen
+997|Tafel klaarzetten
+998|De hele kaart is %d x %d cm (%d x %d vakjes).
+999|Deze tafel heeft nog geen vloer.
+1000|Waar beginnen
+1001|Breedte (cm)
+1002|Jouw kant
+1003|Jouw tafel
+1004|Groot
+1005|Middelgroot
+1006|Klein

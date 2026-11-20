@@ -101,3 +101,32 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 975|Questi angoli non formano una figura utilizzabile. Ricomincia e fai clic su di essi nell'ordine 1, 2, 3, 4.
 976|Ruota la mappa
 977|Usa questa calibrazione
+978| (%d x %d cm)
+979|%d cm
+980|Dietro il bordo del tavolo (cm)
+981|Costruisci la mappa al centro del tavolo.
+982|Costruisci prima l'area di partenza arancione: a %d cm dal bordo sinistro del tavolo e a %d cm dal tuo bordo. Le fasi successive si adatteranno attorno.
+983|Costruisci prima l'area di partenza arancione: a %d cm dal bordo destro del tavolo e a %d cm dal tuo bordo. Le fasi successive si adatteranno attorno.
+984|Fotocamera
+985|Personalizzato
+986|Profondità (cm)
+987|Da questa altezza non vede tutta la mappa: alzala almeno a %d cm.
+988|Da questa altezza vede tutta la mappa.
+989|Altezza sopra il tavolo (cm)
+990|Da questo lato non può vedere tutta la mappa; mettila più indietro rispetto al bordo.
+991|NON sta su questo tavolo: una parte sporgerà dal bordo.
+992|Sta su questo tavolo.
+993|Metti la fotocamera al centro del lato corto sinistro del tavolo, rivolta lungo il tavolo.
+994|Metti la fotocamera al centro del lato corto destro del tavolo, rivolta lungo il tavolo.
+995|Prepara il tavolo
+996|Mostra prima di ogni missione
+997|Prepara il tavolo
+998|La mappa intera misura %d x %d cm (%d x %d caselle).
+999|Questo tavolo non ha ancora un pavimento.
+1000|Dove iniziare
+1001|Larghezza (cm)
+1002|Il tuo lato
+1003|Il tuo tavolo
+1004|Grande
+1005|Medio
+1006|Piccolo

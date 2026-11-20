@@ -30,6 +30,7 @@ VoiceSettingsDialog
 TableCameraPanel
 TableCamera tr
 CameraCalibrationDialog
+TableSetupSheet
 VoiceListener tr
 LanguageListEditor
 UpdateDialog

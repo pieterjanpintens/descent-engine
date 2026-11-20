@@ -29,6 +29,7 @@ const _UPDATES := "updates"
 const _AI := "ai"
 const _LANGUAGE := "language"
 const _CAMERA := "camera"
+const _TABLE := "table"
 
 var voice_enabled: bool = true
 var push_to_talk: bool = true
@@ -93,6 +94,14 @@ var ai_claude_path: String = ""
 ## ("192.168.0.19:8765") and its pairing code; both empty = no camera.
 var table_camera_address: String = ""
 var table_camera_code: String = ""
+
+## The player's real table and camera stand, for the setup sheet (TableSetupSheet): the table top in cm, the camera's height above the
+## table and how far behind the table edge it stands, and whether the sheet opens by itself before every mission.
+var table_width_cm: float = 175.0
+var table_depth_cm: float = 95.0
+var camera_height_cm: float = 60.0
+var camera_back_cm: float = 10.0
+var show_table_setup: bool = true
 ## The languages the player wants to read, best first (campaigns and missions are shown in the first one they have; a campaign game
 ## asks which one when it starts). Starts as English only. See LText / CampaignInfo.LANGUAGES.
 var preferred_languages: Array[String] = _default_languages()
@@ -179,6 +188,11 @@ func load_settings() -> void:
 	ai_claude_path = config.get_value(_AI, "claude_path", ai_claude_path)
 	table_camera_address = str(config.get_value(_CAMERA, "address", table_camera_address))
 	table_camera_code = str(config.get_value(_CAMERA, "code", table_camera_code))
+	table_width_cm = float(config.get_value(_TABLE, "width_cm", table_width_cm))
+	table_depth_cm = float(config.get_value(_TABLE, "depth_cm", table_depth_cm))
+	camera_height_cm = float(config.get_value(_TABLE, "camera_height_cm", camera_height_cm))
+	camera_back_cm = float(config.get_value(_TABLE, "camera_back_cm", camera_back_cm))
+	show_table_setup = bool(config.get_value(_TABLE, "show_setup", show_table_setup))
 	var saved_languages := LText.clean_codes(config.get_value(_LANGUAGE, "preferred", []))
 	# Older versions guessed the OS language and stored that guess as if it were a choice: those lists are dropped once (back to English).
 	if int(config.get_value(_LANGUAGE, "defaults_version", 0)) < LANGUAGE_DEFAULTS_VERSION:
@@ -214,6 +228,11 @@ func save_settings() -> void:
 	config.set_value(_AI, "claude_path", ai_claude_path)
 	config.set_value(_CAMERA, "address", table_camera_address)
 	config.set_value(_CAMERA, "code", table_camera_code)
+	config.set_value(_TABLE, "width_cm", table_width_cm)
+	config.set_value(_TABLE, "depth_cm", table_depth_cm)
+	config.set_value(_TABLE, "camera_height_cm", camera_height_cm)
+	config.set_value(_TABLE, "camera_back_cm", camera_back_cm)
+	config.set_value(_TABLE, "show_setup", show_table_setup)
 	config.set_value(_LANGUAGE, "preferred", preferred_languages)
 	config.set_value(_LANGUAGE, "defaults_version", LANGUAGE_DEFAULTS_VERSION)
 

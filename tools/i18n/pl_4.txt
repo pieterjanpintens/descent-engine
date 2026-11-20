@@ -101,3 +101,32 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 975|Te rogi nie tworzą użytecznego kształtu. Zacznij od nowa i kliknij je w kolejności 1, 2, 3, 4.
 976|Obróć mapę
 977|Użyj tej kalibracji
+978| (%d x %d cm)
+979|%d cm
+980|Za krawędzią stołu (cm)
+981|Zbuduj mapę na środku stołu.
+982|Najpierw zbuduj pomarańczowy obszar startowy: %d cm od lewej krawędzi stołu i %d cm od twojej krawędzi. Kolejne etapy zmieszczą się wokół niego.
+983|Najpierw zbuduj pomarańczowy obszar startowy: %d cm od prawej krawędzi stołu i %d cm od twojej krawędzi. Kolejne etapy zmieszczą się wokół niego.
+984|Aparat
+985|Własny
+986|Głębokość (cm)
+987|Z tej wysokości nie widzi całej mapy: podnieś go na co najmniej %d cm.
+988|Z tej wysokości widzi całą mapę.
+989|Wysokość nad stołem (cm)
+990|Z tej strony nie zobaczy całej mapy; ustaw go dalej za krawędzią.
+991|NIE mieści się na tym stole: część wystanie poza krawędź.
+992|Mieści się na tym stole.
+993|Ustaw aparat na środku lewego krótszego boku stołu, skierowany wzdłuż stołu.
+994|Ustaw aparat na środku prawego krótszego boku stołu, skierowany wzdłuż stołu.
+995|Przygotuj stół
+996|Pokazuj przed każdą misją
+997|Przygotuj stół
+998|Cała mapa ma %d x %d cm (%d x %d pól).
+999|Ten stół nie ma jeszcze podłogi.
+1000|Gdzie zacząć
+1001|Szerokość (cm)
+1002|Twoja strona
+1003|Twój stół
+1004|Duży
+1005|Średni
+1006|Mały

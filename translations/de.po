@@ -2802,6 +2802,93 @@ msgstr "Karte drehen"
 msgid "Use this calibration"
 msgstr "Diese Kalibrierung verwenden"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d cm)"
+
+msgid "%d cm"
+msgstr "%d cm"
+
+msgid "Behind the table edge (cm)"
+msgstr "Hinter der Tischkante (cm)"
+
+msgid "Build the map in the middle of the table."
+msgstr "Baue die Karte in der Mitte des Tisches auf."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Baue zuerst den orangefarbenen Startbereich auf: %d cm von der linken Tischkante und %d cm von deiner Kante. Spätere Abschnitte passen dann darum herum."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Baue zuerst den orangefarbenen Startbereich auf: %d cm von der rechten Tischkante und %d cm von deiner Kante. Spätere Abschnitte passen dann darum herum."
+
+msgid "Camera"
+msgstr "Kamera"
+
+msgid "Custom"
+msgstr "Eigene Größe"
+
+msgid "Depth (cm)"
+msgstr "Tiefe (cm)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "Aus dieser Höhe sieht sie nicht die ganze Karte: stelle sie mindestens %d cm hoch."
+
+msgid "From this height it sees the whole map."
+msgstr "Aus dieser Höhe sieht sie die ganze Karte."
+
+msgid "Height above the table (cm)"
+msgstr "Höhe über dem Tisch (cm)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "Von dieser Seite kann sie nicht die ganze Karte sehen; stelle sie weiter hinter die Kante."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "Sie passt NICHT auf diesen Tisch: ein Teil ragt über die Kante."
+
+msgid "It fits on this table."
+msgstr "Sie passt auf diesen Tisch."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "Stelle die Kamera in die Mitte der linken Schmalseite des Tisches, entlang des Tisches gerichtet."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "Stelle die Kamera in die Mitte der rechten Schmalseite des Tisches, entlang des Tisches gerichtet."
+
+msgid "Set up the table"
+msgstr "Tisch vorbereiten"
+
+msgid "Show this before every mission"
+msgstr "Vor jeder Mission anzeigen"
+
+msgid "Table setup"
+msgstr "Tisch vorbereiten"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "Die ganze Karte ist %d x %d cm groß (%d x %d Felder)."
+
+msgid "This Table has no floor yet."
+msgstr "Dieser Tisch hat noch keinen Boden."
+
+msgid "Where to start"
+msgstr "Wo anfangen"
+
+msgid "Width (cm)"
+msgstr "Breite (cm)"
+
+msgid "Your side"
+msgstr "Deine Seite"
+
+msgid "Your table"
+msgstr "Dein Tisch"
+
+msgid "Large"
+msgstr "Groß"
+
+msgid "Medium"
+msgstr "Mittel"
+
+msgid "Small"
+msgstr "Klein"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d für %d Spieler)"

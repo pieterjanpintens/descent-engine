@@ -2802,6 +2802,93 @@ msgstr "旋轉地圖"
 msgid "Use this calibration"
 msgstr "使用此校準"
 
+msgid " (%d x %d cm)"
+msgstr " （%d x %d 公分）"
+
+msgid "%d cm"
+msgstr "%d 公分"
+
+msgid "Behind the table edge (cm)"
+msgstr "相機在桌邊後方的距離（公分）"
+
+msgid "Build the map in the middle of the table."
+msgstr "在桌子中間搭建地圖。"
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "先搭建橙色的起始區域：距桌子左邊緣 %d 公分，距你這一側邊緣 %d 公分。之後的階段會圍繞它擺放。"
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "先搭建橙色的起始區域：距桌子右邊緣 %d 公分，距你這一側邊緣 %d 公分。之後的階段會圍繞它擺放。"
+
+msgid "Camera"
+msgstr "相機"
+
+msgid "Custom"
+msgstr "自訂"
+
+msgid "Depth (cm)"
+msgstr "深度（公分）"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "從這個高度看不到整張地圖：至少升高到 %d 公分。"
+
+msgid "From this height it sees the whole map."
+msgstr "從這個高度能看到整張地圖。"
+
+msgid "Height above the table (cm)"
+msgstr "高於桌面（公分）"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "從這一側看不到整張地圖；把它放到桌邊更後面。"
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "放不下這張桌子：有一部分會超出桌邊。"
+
+msgid "It fits on this table."
+msgstr "能放在這張桌子上。"
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "把相機放在桌子左側短邊的中間，沿桌子長邊方向拍攝。"
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "把相機放在桌子右側短邊的中間，沿桌子長邊方向拍攝。"
+
+msgid "Set up the table"
+msgstr "布置桌面"
+
+msgid "Show this before every mission"
+msgstr "每次任務前顯示"
+
+msgid "Table setup"
+msgstr "布置桌面"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "整張地圖為 %d x %d 公分（%d x %d 格）。"
+
+msgid "This Table has no floor yet."
+msgstr "這張桌面還沒有地面。"
+
+msgid "Where to start"
+msgstr "從哪裡開始"
+
+msgid "Width (cm)"
+msgstr "寬度（公分）"
+
+msgid "Your side"
+msgstr "你這一側"
+
+msgid "Your table"
+msgstr "你的桌子"
+
+msgid "Large"
+msgstr "大"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Small"
+msgstr "小"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

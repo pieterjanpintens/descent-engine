@@ -101,3 +101,32 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 975|Ezek a sarkok nem adnak használható alakot. Kezdd újra, és kattints rájuk 1, 2, 3, 4 sorrendben.
 976|Térkép elforgatása
 977|Ennek a kalibrációnak a használata
+978| (%d x %d cm)
+979|%d cm
+980|Az asztal széle mögött (cm)
+981|Építsd a térképet az asztal közepére.
+982|Először a narancssárga kezdőterületet építsd meg: %d cm-re az asztal bal szélétől és %d cm-re a te széledtől. A későbbi szakaszok köré illeszkednek.
+983|Először a narancssárga kezdőterületet építsd meg: %d cm-re az asztal jobb szélétől és %d cm-re a te széledtől. A későbbi szakaszok köré illeszkednek.
+984|Kamera
+985|Egyéni
+986|Mélység (cm)
+987|Ebből a magasságból nem látja az egész térképet: emeld legalább %d cm-re.
+988|Ebből a magasságból látja az egész térképet.
+989|Magasság az asztal felett (cm)
+990|Erről az oldalról nem látja az egész térképet; tedd távolabb a szél mögé.
+991|NEM fér el ezen az asztalon: egy része túllóg a szélén.
+992|Elfér ezen az asztalon.
+993|Tedd a kamerát az asztal bal oldali rövid oldalának közepére, az asztal hossza mentén nézve.
+994|Tedd a kamerát az asztal jobb oldali rövid oldalának közepére, az asztal hossza mentén nézve.
+995|Az asztal előkészítése
+996|Megjelenítés minden küldetés előtt
+997|Asztal előkészítése
+998|Az egész térkép %d x %d cm (%d x %d mező).
+999|Ezen az asztalon még nincs padló.
+1000|Hol kezdj
+1001|Szélesség (cm)
+1002|A te oldalad
+1003|A te asztalod
+1004|Nagy
+1005|Közepes
+1006|Kicsi

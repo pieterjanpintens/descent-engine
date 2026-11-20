@@ -2802,6 +2802,93 @@ msgstr "지도 돌리기"
 msgid "Use this calibration"
 msgstr "이 보정 사용"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d cm)"
+
+msgid "%d cm"
+msgstr "%d cm"
+
+msgid "Behind the table edge (cm)"
+msgstr "테이블 가장자리 뒤 거리 (cm)"
+
+msgid "Build the map in the middle of the table."
+msgstr "지도를 테이블 가운데에 만드세요."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "주황색 시작 영역을 먼저 만드세요: 테이블 왼쪽 가장자리에서 %d cm, 여러분 쪽 가장자리에서 %d cm. 이후 단계는 그 주위에 맞춰집니다."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "주황색 시작 영역을 먼저 만드세요: 테이블 오른쪽 가장자리에서 %d cm, 여러분 쪽 가장자리에서 %d cm. 이후 단계는 그 주위에 맞춰집니다."
+
+msgid "Camera"
+msgstr "카메라"
+
+msgid "Custom"
+msgstr "직접 입력"
+
+msgid "Depth (cm)"
+msgstr "깊이 (cm)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "이 높이에서는 지도 전체가 보이지 않습니다: 최소 %d cm까지 올리세요."
+
+msgid "From this height it sees the whole map."
+msgstr "이 높이에서 지도 전체가 보입니다."
+
+msgid "Height above the table (cm)"
+msgstr "테이블 위 높이 (cm)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "이쪽에서는 지도 전체를 볼 수 없습니다. 가장자리에서 더 뒤로 두세요."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "이 테이블에 맞지 않습니다: 일부가 가장자리 밖으로 나갑니다."
+
+msgid "It fits on this table."
+msgstr "이 테이블에 맞습니다."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "카메라를 테이블 왼쪽 짧은 변의 가운데에 두고 테이블 길이 방향으로 향하게 하세요."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "카메라를 테이블 오른쪽 짧은 변의 가운데에 두고 테이블 길이 방향으로 향하게 하세요."
+
+msgid "Set up the table"
+msgstr "테이블 준비"
+
+msgid "Show this before every mission"
+msgstr "매 임무 전에 표시"
+
+msgid "Table setup"
+msgstr "테이블 준비"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "지도 전체 크기는 %d x %d cm (%d x %d칸)입니다."
+
+msgid "This Table has no floor yet."
+msgstr "이 테이블에는 아직 바닥이 없습니다."
+
+msgid "Where to start"
+msgstr "시작 위치"
+
+msgid "Width (cm)"
+msgstr "너비 (cm)"
+
+msgid "Your side"
+msgstr "여러분 쪽"
+
+msgid "Your table"
+msgstr "내 테이블"
+
+msgid "Large"
+msgstr "큰 테이블"
+
+msgid "Medium"
+msgstr "중간 테이블"
+
+msgid "Small"
+msgstr "작은 테이블"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

@@ -101,3 +101,32 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 975|Ces coins ne forment pas une forme utilisable. Recommencez et cliquez-les dans l'ordre 1, 2, 3, 4.
 976|Tourner la carte
 977|Utiliser cet étalonnage
+978| (%d x %d cm)
+979|%d cm
+980|Derrière le bord de la table (cm)
+981|Construisez la carte au milieu de la table.
+982|Construisez d'abord la zone de départ orange : à %d cm du bord gauche de la table et à %d cm de votre bord. Les étapes suivantes s'y ajouteront autour.
+983|Construisez d'abord la zone de départ orange : à %d cm du bord droit de la table et à %d cm de votre bord. Les étapes suivantes s'y ajouteront autour.
+984|Caméra
+985|Personnalisée
+986|Profondeur (cm)
+987|De cette hauteur, elle ne voit pas toute la carte : montez-la à au moins %d cm.
+988|De cette hauteur, elle voit toute la carte.
+989|Hauteur au-dessus de la table (cm)
+990|De ce côté, elle ne peut pas voir toute la carte ; reculez-la davantage derrière le bord.
+991|Elle ne tient PAS sur cette table : une partie dépassera du bord.
+992|Elle tient sur cette table.
+993|Placez la caméra au milieu du petit côté gauche de la table, orientée dans la longueur de la table.
+994|Placez la caméra au milieu du petit côté droit de la table, orientée dans la longueur de la table.
+995|Préparer la table
+996|Afficher ceci avant chaque mission
+997|Préparer la table
+998|La carte entière mesure %d x %d cm (%d x %d cases).
+999|Cette table n'a pas encore de sol.
+1000|Où commencer
+1001|Largeur (cm)
+1002|Votre côté
+1003|Votre table
+1004|Grande
+1005|Moyenne
+1006|Petite

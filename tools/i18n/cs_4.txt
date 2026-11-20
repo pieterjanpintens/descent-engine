@@ -101,3 +101,32 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 975|Tyto rohy netvoří použitelný tvar. Začněte znovu a klikněte na ně v pořadí 1, 2, 3, 4.
 976|Otočit mapu
 977|Použít tuto kalibraci
+978| (%d x %d cm)
+979|%d cm
+980|Za okrajem stolu (cm)
+981|Postavte mapu doprostřed stolu.
+982|Nejprve postavte oranžovou startovní oblast: %d cm od levého okraje stolu a %d cm od vašeho okraje. Další fáze pak zapadnou kolem.
+983|Nejprve postavte oranžovou startovní oblast: %d cm od pravého okraje stolu a %d cm od vašeho okraje. Další fáze pak zapadnou kolem.
+984|Fotoaparát
+985|Vlastní
+986|Hloubka (cm)
+987|Z této výšky nevidí celou mapu: zvedněte ho alespoň na %d cm.
+988|Z této výšky vidí celou mapu.
+989|Výška nad stolem (cm)
+990|Z této strany nemůže vidět celou mapu; dejte ho dál za okraj.
+991|NEVEJDE se na tento stůl: část bude přečnívat přes okraj.
+992|Vejde se na tento stůl.
+993|Postavte fotoaparát doprostřed levé kratší strany stolu, namířený podél stolu.
+994|Postavte fotoaparát doprostřed pravé kratší strany stolu, namířený podél stolu.
+995|Připravte stůl
+996|Zobrazit před každou misí
+997|Příprava stolu
+998|Celá mapa má %d x %d cm (%d x %d polí).
+999|Tento stůl zatím nemá podlahu.
+1000|Kde začít
+1001|Šířka (cm)
+1002|Vaše strana
+1003|Váš stůl
+1004|Velký
+1005|Střední
+1006|Malý

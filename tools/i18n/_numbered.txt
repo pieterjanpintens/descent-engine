@@ -930,6 +930,35 @@
 975|These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4.
 976|Turn the map
 977|Use this calibration
+978| (%d x %d cm)
+979|%d cm
+980|Behind the table edge (cm)
+981|Build the map in the middle of the table.
+982|Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it.
+983|Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it.
+984|Camera
+985|Custom
+986|Depth (cm)
+987|From this height it does not see the whole map: raise it to at least %d cm.
+988|From this height it sees the whole map.
+989|Height above the table (cm)
+990|It cannot see the whole map from this side; put it further behind the edge.
+991|It does NOT fit on this table: some of it will hang over the edge.
+992|It fits on this table.
+993|Put the camera in the middle of the left short side of the table, pointing along the table.
+994|Put the camera in the middle of the right short side of the table, pointing along the table.
+995|Set up the table
+996|Show this before every mission
+997|Table setup
+998|The whole map is %d x %d cm (%d x %d squares).
+999|This Table has no floor yet.
+1000|Where to start
+1001|Width (cm)
+1002|Your side
+1003|Your table
+1004|Large
+1005|Medium
+1006|Small
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

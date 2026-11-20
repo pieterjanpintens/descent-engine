@@ -2802,6 +2802,93 @@ msgstr "Kaart draaien"
 msgid "Use this calibration"
 msgstr "Deze kalibratie gebruiken"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d cm)"
+
+msgid "%d cm"
+msgstr "%d cm"
+
+msgid "Behind the table edge (cm)"
+msgstr "Achter de tafelrand (cm)"
+
+msgid "Build the map in the middle of the table."
+msgstr "Bouw de kaart in het midden van de tafel."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Bouw eerst het oranje startgebied: %d cm van de linkerrand van de tafel en %d cm van jouw rand. Latere fases passen er dan omheen."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Bouw eerst het oranje startgebied: %d cm van de rechterrand van de tafel en %d cm van jouw rand. Latere fases passen er dan omheen."
+
+msgid "Camera"
+msgstr "Camera"
+
+msgid "Custom"
+msgstr "Eigen maat"
+
+msgid "Depth (cm)"
+msgstr "Diepte (cm)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "Vanaf deze hoogte ziet hij niet de hele kaart: zet hem minstens %d cm hoog."
+
+msgid "From this height it sees the whole map."
+msgstr "Vanaf deze hoogte ziet hij de hele kaart."
+
+msgid "Height above the table (cm)"
+msgstr "Hoogte boven de tafel (cm)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "Vanaf deze kant kan hij niet de hele kaart zien; zet hem verder achter de rand."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "Hij past NIET op deze tafel: een deel steekt over de rand."
+
+msgid "It fits on this table."
+msgstr "Hij past op deze tafel."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "Zet de camera in het midden van de linker korte kant van de tafel, gericht langs de tafel."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "Zet de camera in het midden van de rechter korte kant van de tafel, gericht langs de tafel."
+
+msgid "Set up the table"
+msgstr "Tafel klaarzetten"
+
+msgid "Show this before every mission"
+msgstr "Dit voor elke missie tonen"
+
+msgid "Table setup"
+msgstr "Tafel klaarzetten"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "De hele kaart is %d x %d cm (%d x %d vakjes)."
+
+msgid "This Table has no floor yet."
+msgstr "Deze tafel heeft nog geen vloer."
+
+msgid "Where to start"
+msgstr "Waar beginnen"
+
+msgid "Width (cm)"
+msgstr "Breedte (cm)"
+
+msgid "Your side"
+msgstr "Jouw kant"
+
+msgid "Your table"
+msgstr "Jouw tafel"
+
+msgid "Large"
+msgstr "Groot"
+
+msgid "Medium"
+msgstr "Middelgroot"
+
+msgid "Small"
+msgstr "Klein"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

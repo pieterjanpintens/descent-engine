@@ -2802,6 +2802,93 @@ msgstr "Otočit mapu"
 msgid "Use this calibration"
 msgstr "Použít tuto kalibraci"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d cm)"
+
+msgid "%d cm"
+msgstr "%d cm"
+
+msgid "Behind the table edge (cm)"
+msgstr "Za okrajem stolu (cm)"
+
+msgid "Build the map in the middle of the table."
+msgstr "Postavte mapu doprostřed stolu."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Nejprve postavte oranžovou startovní oblast: %d cm od levého okraje stolu a %d cm od vašeho okraje. Další fáze pak zapadnou kolem."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Nejprve postavte oranžovou startovní oblast: %d cm od pravého okraje stolu a %d cm od vašeho okraje. Další fáze pak zapadnou kolem."
+
+msgid "Camera"
+msgstr "Fotoaparát"
+
+msgid "Custom"
+msgstr "Vlastní"
+
+msgid "Depth (cm)"
+msgstr "Hloubka (cm)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "Z této výšky nevidí celou mapu: zvedněte ho alespoň na %d cm."
+
+msgid "From this height it sees the whole map."
+msgstr "Z této výšky vidí celou mapu."
+
+msgid "Height above the table (cm)"
+msgstr "Výška nad stolem (cm)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "Z této strany nemůže vidět celou mapu; dejte ho dál za okraj."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "NEVEJDE se na tento stůl: část bude přečnívat přes okraj."
+
+msgid "It fits on this table."
+msgstr "Vejde se na tento stůl."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "Postavte fotoaparát doprostřed levé kratší strany stolu, namířený podél stolu."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "Postavte fotoaparát doprostřed pravé kratší strany stolu, namířený podél stolu."
+
+msgid "Set up the table"
+msgstr "Připravte stůl"
+
+msgid "Show this before every mission"
+msgstr "Zobrazit před každou misí"
+
+msgid "Table setup"
+msgstr "Příprava stolu"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "Celá mapa má %d x %d cm (%d x %d polí)."
+
+msgid "This Table has no floor yet."
+msgstr "Tento stůl zatím nemá podlahu."
+
+msgid "Where to start"
+msgstr "Kde začít"
+
+msgid "Width (cm)"
+msgstr "Šířka (cm)"
+
+msgid "Your side"
+msgstr "Vaše strana"
+
+msgid "Your table"
+msgstr "Váš stůl"
+
+msgid "Large"
+msgstr "Velký"
+
+msgid "Medium"
+msgstr "Střední"
+
+msgid "Small"
+msgstr "Malý"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

@@ -2802,6 +2802,93 @@ msgstr "Повернуть карту"
 msgid "Use this calibration"
 msgstr "Использовать эту калибровку"
 
+msgid " (%d x %d cm)"
+msgstr " (%d x %d см)"
+
+msgid "%d cm"
+msgstr "%d см"
+
+msgid "Behind the table edge (cm)"
+msgstr "За краем стола (см)"
+
+msgid "Build the map in the middle of the table."
+msgstr "Соберите карту в середине стола."
+
+msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Сначала соберите оранжевую стартовую область: в %d см от левого края стола и в %d см от вашего края. Следующие этапы встанут вокруг неё."
+
+msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
+msgstr "Сначала соберите оранжевую стартовую область: в %d см от правого края стола и в %d см от вашего края. Следующие этапы встанут вокруг неё."
+
+msgid "Camera"
+msgstr "Камера"
+
+msgid "Custom"
+msgstr "Свой размер"
+
+msgid "Depth (cm)"
+msgstr "Глубина (см)"
+
+msgid "From this height it does not see the whole map: raise it to at least %d cm."
+msgstr "С этой высоты она не видит всю карту: поднимите её хотя бы до %d см."
+
+msgid "From this height it sees the whole map."
+msgstr "С этой высоты она видит всю карту."
+
+msgid "Height above the table (cm)"
+msgstr "Высота над столом (см)"
+
+msgid "It cannot see the whole map from this side; put it further behind the edge."
+msgstr "С этой стороны она не видит всю карту; поставьте её дальше за краем."
+
+msgid "It does NOT fit on this table: some of it will hang over the edge."
+msgstr "Карта НЕ помещается на этот стол: часть будет свисать с края."
+
+msgid "It fits on this table."
+msgstr "Карта помещается на этот стол."
+
+msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
+msgstr "Поставьте камеру посередине левой короткой стороны стола, направив вдоль стола."
+
+msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
+msgstr "Поставьте камеру посередине правой короткой стороны стола, направив вдоль стола."
+
+msgid "Set up the table"
+msgstr "Подготовка стола"
+
+msgid "Show this before every mission"
+msgstr "Показывать перед каждой миссией"
+
+msgid "Table setup"
+msgstr "Подготовка стола"
+
+msgid "The whole map is %d x %d cm (%d x %d squares)."
+msgstr "Вся карта занимает %d x %d см (%d x %d клеток)."
+
+msgid "This Table has no floor yet."
+msgstr "На этом столе ещё нет пола."
+
+msgid "Where to start"
+msgstr "Где начать"
+
+msgid "Width (cm)"
+msgstr "Ширина (см)"
+
+msgid "Your side"
+msgstr "Ваша сторона"
+
+msgid "Your table"
+msgstr "Ваш стол"
+
+msgid "Large"
+msgstr "Большой"
+
+msgid "Medium"
+msgstr "Средний"
+
+msgid "Small"
+msgstr "Маленький"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

@@ -101,3 +101,32 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 975|Estas esquinas no forman una figura útil. Empieza de nuevo y haz clic en ellas en el orden 1, 2, 3, 4.
 976|Girar el mapa
 977|Usar esta calibración
+978| (%d x %d cm)
+979|%d cm
+980|Detrás del borde de la mesa (cm)
+981|Construye el mapa en el centro de la mesa.
+982|Construye primero la zona de inicio naranja: a %d cm del borde izquierdo de la mesa y a %d cm de tu borde. Las fases posteriores encajarán alrededor.
+983|Construye primero la zona de inicio naranja: a %d cm del borde derecho de la mesa y a %d cm de tu borde. Las fases posteriores encajarán alrededor.
+984|Cámara
+985|Personalizada
+986|Fondo (cm)
+987|Desde esta altura no ve todo el mapa: súbela al menos a %d cm.
+988|Desde esta altura ve todo el mapa.
+989|Altura sobre la mesa (cm)
+990|Desde este lado no puede ver todo el mapa; colócala más detrás del borde.
+991|NO cabe en esta mesa: una parte sobresaldrá del borde.
+992|Cabe en esta mesa.
+993|Coloca la cámara en el centro del lado corto izquierdo de la mesa, apuntando a lo largo de la mesa.
+994|Coloca la cámara en el centro del lado corto derecho de la mesa, apuntando a lo largo de la mesa.
+995|Prepara la mesa
+996|Mostrar esto antes de cada misión
+997|Preparar la mesa
+998|El mapa completo mide %d x %d cm (%d x %d casillas).
+999|Esta mesa aún no tiene suelo.
+1000|Dónde empezar
+1001|Ancho (cm)
+1002|Tu lado
+1003|Tu mesa
+1004|Grande
+1005|Mediana
+1006|Pequeña

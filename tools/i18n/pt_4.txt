@@ -101,3 +101,32 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 975|Estes cantos não formam uma forma utilizável. Recomece e clique neles na ordem 1, 2, 3, 4.
 976|Girar o mapa
 977|Usar esta calibração
+978| (%d x %d cm)
+979|%d cm
+980|Atrás da borda da mesa (cm)
+981|Monte o mapa no meio da mesa.
+982|Monte primeiro a área inicial laranja: a %d cm da borda esquerda da mesa e a %d cm da sua borda. As etapas seguintes se encaixam ao redor.
+983|Monte primeiro a área inicial laranja: a %d cm da borda direita da mesa e a %d cm da sua borda. As etapas seguintes se encaixam ao redor.
+984|Câmera
+985|Personalizado
+986|Profundidade (cm)
+987|Desta altura ela não vê o mapa inteiro: suba-a para pelo menos %d cm.
+988|Desta altura ela vê o mapa inteiro.
+989|Altura acima da mesa (cm)
+990|Deste lado ela não consegue ver o mapa inteiro; coloque-a mais atrás da borda.
+991|NÃO cabe nesta mesa: uma parte vai passar da borda.
+992|Cabe nesta mesa.
+993|Coloque a câmera no meio do lado curto esquerdo da mesa, apontando ao longo da mesa.
+994|Coloque a câmera no meio do lado curto direito da mesa, apontando ao longo da mesa.
+995|Preparar a mesa
+996|Mostrar isto antes de cada missão
+997|Preparar a mesa
+998|O mapa inteiro mede %d x %d cm (%d x %d espaços).
+999|Esta mesa ainda não tem piso.
+1000|Onde começar
+1001|Largura (cm)
+1002|Seu lado
+1003|Sua mesa
+1004|Grande
+1005|Média
+1006|Pequena
