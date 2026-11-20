@@ -249,6 +249,8 @@ func _build_bottom_left() -> void:
 	# typed one, so this builds it explicitly instead of via "+".
 	var gear_items: Array[String] = ["Back to editor" if GameState.debug_session else "Back to Menu"]
 	gear_items.append_array(GEAR_ITEMS)
+	if not FeatureFlags.enabled(FeatureFlags.TABLE_CAMERA):
+		gear_items.erase("Table camera")
 	if GameState.debug_session:
 		gear_items.append("Debug")
 	_gear_menu = _build_popup_menu(gear_items)

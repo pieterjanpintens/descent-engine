@@ -46,9 +46,10 @@ static func base_url(address: String) -> String:
 	return "http://%s:%d" % [host, port]
 
 
-## True when an address and a pairing code have been filled in (says nothing about whether the phone answers).
+## True when the feature is switched on (FeatureFlags.TABLE_CAMERA) and an address and a pairing code have been filled in (says
+## nothing about whether the phone answers). Off = every camera step of a mission is skipped.
 static func is_configured() -> bool:
-	return base_url(PlayerSettings.table_camera_address) != "" and PlayerSettings.table_camera_code.strip_edges() != ""
+	return FeatureFlags.enabled(FeatureFlags.TABLE_CAMERA) and base_url(PlayerSettings.table_camera_address) != "" and PlayerSettings.table_camera_code.strip_edges() != ""
 
 
 func is_busy() -> bool:
