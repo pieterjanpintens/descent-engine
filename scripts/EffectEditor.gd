@@ -366,7 +366,8 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	for entry in [["Set Variable", Effect.Type.SET_VARIABLE], ["Show Stage", Effect.Type.SHOW_STAGE], ["Remove Object", Effect.Type.REMOVE_OBJECT],
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Spawn Random Monsters", Effect.Type.SPAWN_RANDOM_MONSTERS], ["Loot", Effect.Type.LOOT],
-			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["If / Else", Effect.Type.IF_ELSE], ["Repeat", Effect.Type.REPEAT], ["Switch Table", Effect.Type.SWITCH_TABLE], ["Highlight Area", Effect.Type.HIGHLIGHT_AREA]]:
+			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["If / Else", Effect.Type.IF_ELSE], ["Repeat", Effect.Type.REPEAT], ["Switch Table", Effect.Type.SWITCH_TABLE], ["Highlight Area", Effect.Type.HIGHLIGHT_AREA],
+			["Condition on Monsters", Effect.Type.CONDITION_MONSTERS], ["Damage Monsters", Effect.Type.DAMAGE_MONSTERS]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -637,6 +638,49 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	random_count_box.add_child(random_count_edit)
 	row.add_child(random_count_box)
 
+	## CONDITION_MONSTERS / DAMAGE_MONSTERS - which condition or how much damage, and how many random monsters (a formula, blank = all).
+	var monster_box := HBoxContainer.new()
+	var condition_option := OptionButton.new()
+	for kind in MonsterCondition.all():
+		condition_option.add_item(MonsterCondition.display_name(kind), kind)
+	condition_option.select(maxi(condition_option.get_item_index(effect.monster_condition), 0))
+	condition_option.item_selected.connect(func(index: int):
+		var picked := condition_option.get_item_id(index)
+		_commit_field("Edit monster condition", func(): effect.monster_condition = picked)
+	)
+	monster_box.add_child(condition_option)
+	var damage_box := HBoxContainer.new()
+	damage_box.add_child(_label("Damage:"))
+	var damage_spin := SpinBox.new()
+	damage_spin.min_value = 1
+	damage_spin.max_value = 999
+	damage_spin.value = effect.monster_damage
+	damage_spin.tooltip_text = "Direct damage to each monster hit: no defense roll, weakness or resistance"
+	damage_spin.value_changed.connect(func(new_value: float):
+		_commit_field("Edit monster damage", func(): effect.monster_damage = int(new_value))
+	)
+	damage_box.add_child(damage_spin)
+	monster_box.add_child(damage_box)
+	monster_box.add_child(_label("Monsters:"))
+	var monster_count_edit := LineEdit.new()
+	monster_count_edit.custom_minimum_size.x = 110
+	monster_count_edit.placeholder_text = "all"
+	monster_count_edit.text = effect.monster_count
+	monster_count_edit.tooltip_text = "How many monsters, picked at random: a number or a formula, e.g. 4 or player_count. You can use: %s. Blank = all of them. For a condition only monsters that can get it are picked." % ", ".join(_random_count_names())
+	var check_monster_count := func():
+		var problem := LevelFormula.check(monster_count_edit.text, _random_count_names())
+		monster_count_edit.modulate = Color.WHITE if problem == "" else Color(1.0, 0.55, 0.45)
+	check_monster_count.call()
+	var commit_monster_count := func(_new_text: String = ""):
+		if monster_count_edit.text != effect.monster_count:
+			var typed := monster_count_edit.text
+			_commit_field("Edit monster count", func(): effect.monster_count = typed)
+		check_monster_count.call()
+	monster_count_edit.text_submitted.connect(commit_monster_count)
+	monster_count_edit.focus_exited.connect(commit_monster_count)
+	monster_box.add_child(monster_count_edit)
+	row.add_child(monster_box)
+
 	## WAKE_MONSTERS - wakes unaware monsters (and so their groups): all of them, one monster group, or those spawned at one spawn area.
 	var wake_option := OptionButton.new()
 	var wake_targets: Array = [["", ""]]  # [kind, id] per entry; "" = every unaware monster
@@ -681,6 +725,9 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		spawn_monsters_button.visible = spawns_monsters
 		surprise_button.visible = spawns_monsters
 		random_count_box.visible = type == Effect.Type.SPAWN_RANDOM_MONSTERS
+		monster_box.visible = type == Effect.Type.CONDITION_MONSTERS or type == Effect.Type.DAMAGE_MONSTERS
+		condition_option.visible = type == Effect.Type.CONDITION_MONSTERS
+		damage_box.visible = type == Effect.Type.DAMAGE_MONSTERS
 		wake_option.visible = type == Effect.Type.WAKE_MONSTERS
 		highlight_option.visible = type == Effect.Type.HIGHLIGHT_AREA
 		var_option.visible = type == Effect.Type.SET_VARIABLE or type == Effect.Type.MATH

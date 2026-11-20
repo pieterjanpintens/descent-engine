@@ -135,3 +135,7 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 1009|Foto des Tisches wird aufgenommen...
 1010|Die Kamera hat die Heldenmarker dorthin gesetzt, wo sie die Figuren sieht. Prüfe sie, ziehe jeden falschen Marker zurecht und bestätige.
 1011|Die Tischkamera konnte kein Foto aufnehmen: %s
+1012|%s ist jetzt %s.
+1013|%s erleidet %d Schaden (noch %d Lebenspunkte).
+1014|%s erleidet %d Schaden und ist besiegt.
+1015|Monster

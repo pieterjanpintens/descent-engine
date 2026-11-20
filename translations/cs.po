@@ -2904,6 +2904,18 @@ msgstr "Fotoaparát položil žetony hrdinů tam, kde vidí figurky. Zkontrolujt
 msgid "The table camera could not take a photo: %s"
 msgstr "Fotoaparát nad stolem nemohl pořídit fotku: %s"
 
+msgid "%s is now %s."
+msgstr "%s je nyní: %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s utrpí %d zranění (zbývá %d životů)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s utrpí %d zranění a je poražen."
+
+msgid "Monsters"
+msgstr "Příšery"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

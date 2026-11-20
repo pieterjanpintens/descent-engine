@@ -135,3 +135,7 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 1009|Tirando uma foto da mesa...
 1010|A câmera colocou os marcadores dos heróis onde vê as miniaturas. Confira, arraste qualquer marcador errado e confirme.
 1011|A câmera da mesa não conseguiu tirar uma foto: %s
+1012|%s agora está %s.
+1013|%s sofre %d de dano (restam %d pontos de vida).
+1014|%s sofre %d de dano e é derrotado.
+1015|Monstros

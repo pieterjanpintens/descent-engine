@@ -135,3 +135,7 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 1009|Scatto di una foto del tavolo...
 1010|La fotocamera ha messo i segnalini degli eroi dove vede le miniature. Controllali, trascina i segnalini sbagliati e conferma.
 1011|La fotocamera del tavolo non è riuscita a scattare una foto: %s
+1012|%s ora è %s.
+1013|%s subisce %d danni (gli restano %d punti vita).
+1014|%s subisce %d danni ed è sconfitto.
+1015|Mostri

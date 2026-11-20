@@ -2904,6 +2904,18 @@ msgstr "相机已把英雄标记放到它看到模型的位置。请检查，拖
 msgid "The table camera could not take a photo: %s"
 msgstr "桌面相机无法拍照：%s"
 
+msgid "%s is now %s."
+msgstr "%s 现在处于%s状态。"
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s 受到 %d 点伤害（剩余 %d 点生命值）。"
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s 受到 %d 点伤害并被击败。"
+
+msgid "Monsters"
+msgstr "怪物"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"

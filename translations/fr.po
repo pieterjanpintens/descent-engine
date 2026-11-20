@@ -2904,6 +2904,18 @@ msgstr "La caméra a placé les jetons des héros là où elle voit les figurine
 msgid "The table camera could not take a photo: %s"
 msgstr "La caméra de table n'a pas pu prendre de photo : %s"
 
+msgid "%s is now %s."
+msgstr "%s est maintenant %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s subit %d dégâts (il lui reste %d points de vie)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s subit %d dégâts et est vaincu."
+
+msgid "Monsters"
+msgstr "Monstres"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

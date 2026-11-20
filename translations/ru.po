@@ -2904,6 +2904,18 @@ msgstr "Камера поставила жетоны героев туда, гд
 msgid "The table camera could not take a photo: %s"
 msgstr "Камера над столом не смогла сделать фото: %s"
 
+msgid "%s is now %s."
+msgstr "%s теперь: %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s получает %d урона (осталось %d здоровья)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s получает %d урона и повержен."
+
+msgid "Monsters"
+msgstr "Монстры"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

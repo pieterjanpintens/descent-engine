@@ -2904,6 +2904,18 @@ msgstr "Aparat ustawił żetony bohaterów tam, gdzie widzi figurki. Sprawdź je
 msgid "The table camera could not take a photo: %s"
 msgstr "Aparat nad stołem nie mógł zrobić zdjęcia: %s"
 
+msgid "%s is now %s."
+msgstr "%s jest teraz: %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s otrzymuje %d obrażeń (zostało %d punktów życia)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s otrzymuje %d obrażeń i zostaje pokonany."
+
+msgid "Monsters"
+msgstr "Potwory"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

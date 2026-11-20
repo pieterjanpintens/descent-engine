@@ -135,3 +135,7 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1009|Haciendo una foto de la mesa...
 1010|La cámara ha puesto las fichas de héroe donde ve las figuras. Revísalas, arrastra cualquier ficha que esté mal y confirma.
 1011|La cámara de mesa no pudo hacer una foto: %s
+1012|%s ahora está %s.
+1013|%s recibe %d de daño (le quedan %d puntos de vida).
+1014|%s recibe %d de daño y es derrotado.
+1015|Monstruos

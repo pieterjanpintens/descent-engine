@@ -135,3 +135,7 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1009|Robienie zdjęcia stołu...
 1010|Aparat ustawił żetony bohaterów tam, gdzie widzi figurki. Sprawdź je, przeciągnij każdy źle ustawiony żeton i potwierdź.
 1011|Aparat nad stołem nie mógł zrobić zdjęcia: %s
+1012|%s jest teraz: %s.
+1013|%s otrzymuje %d obrażeń (zostało %d punktów życia).
+1014|%s otrzymuje %d obrażeń i zostaje pokonany.
+1015|Potwory

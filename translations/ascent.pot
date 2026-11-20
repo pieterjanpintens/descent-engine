@@ -45,7 +45,7 @@ msgstr ""
 msgid " (XP now %d)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:383
+#: VoiceSettingsDialog.gd:384
 msgid " - not imported yet"
 msgstr ""
 
@@ -89,11 +89,11 @@ msgstr ""
 msgid "%d from the community to install."
 msgstr ""
 
-#: CampaignPlayer.gd:693 CampaignState.gd:166 MissionRuntime.gd:1106
+#: CampaignPlayer.gd:693 CampaignState.gd:166 MissionRuntime.gd:1163
 msgid "%d gold"
 msgstr ""
 
-#: MissionRuntime.gd:1032
+#: MissionRuntime.gd:1089
 msgid "%d gold (Dead Man's Compass)"
 msgstr ""
 
@@ -109,7 +109,7 @@ msgstr ""
 msgid "%d monster(s) spawned."
 msgstr ""
 
-#: MissionPlayer.gd:2490
+#: MissionPlayer.gd:2492
 msgid "%d monster(s) woke up."
 msgstr ""
 
@@ -125,7 +125,7 @@ msgstr ""
 msgid "%d x %d tiles"
 msgstr ""
 
-#: MissionPlayer.gd:1253 MissionRuntime.gd:1106 MissionRuntime.gd:1153
+#: MissionPlayer.gd:1253 MissionRuntime.gd:1163 MissionRuntime.gd:1210
 msgid "%dx %s"
 msgstr ""
 
@@ -137,7 +137,7 @@ msgstr ""
 msgid "%s %d (no table rows)"
 msgstr ""
 
-#: MissionPlayer.gd:1877 MissionPlayer.gd:2368 MonsterManageDialog.gd:123
+#: MissionPlayer.gd:1877 MissionPlayer.gd:2370 MissionRuntime.gd:802
 msgid "%s (%s chip)"
 msgstr ""
 
@@ -205,7 +205,7 @@ msgstr ""
 msgid "%s - level %d"
 msgstr ""
 
-#: PlayerHud.gd:360
+#: PlayerHud.gd:362
 msgid "%s - not yet implemented."
 msgstr ""
 
@@ -213,7 +213,7 @@ msgstr ""
 msgid "%s \"%s\" - version %s"
 msgstr ""
 
-#: MissionPlayer.gd:1981 MissionPlayer.gd:2227
+#: MissionPlayer.gd:1981 MissionPlayer.gd:2229
 msgid "%s attacks %s (damage %d)."
 msgstr ""
 
@@ -225,11 +225,11 @@ msgstr ""
 msgid "%s attacks %s - choose a weapon"
 msgstr ""
 
-#: MissionPlayer.gd:2238
+#: MissionPlayer.gd:2240
 msgid "%s attacks %s!"
 msgstr ""
 
-#: MissionPlayer.gd:2219
+#: MissionPlayer.gd:2221
 msgid "%s attacks %s!%s\nDamage %d - %s"
 msgstr ""
 
@@ -245,7 +245,7 @@ msgstr ""
 msgid "%s attacks %s\nwith the %s (damage %d)\n"
 msgstr ""
 
-#: MissionPlayer.gd:2187
+#: MissionPlayer.gd:2189
 msgid "%s cannot be pushed back."
 msgstr ""
 
@@ -253,15 +253,15 @@ msgstr ""
 msgid "%s cannot shift"
 msgstr ""
 
-#: HeroGrowthDialog.gd:438 MissionPlayer.gd:2567
+#: HeroGrowthDialog.gd:438 MissionPlayer.gd:2569
 msgid "%s completed the feat \"%s\"!"
 msgstr ""
 
-#: MissionPlayer.gd:2447
+#: MissionPlayer.gd:2449
 msgid "%s dropped something usable. %s"
 msgstr ""
 
-#: MissionPlayer.gd:2442
+#: MissionPlayer.gd:2444
 msgid "%s dropped: %s."
 msgstr ""
 
@@ -269,7 +269,7 @@ msgstr ""
 msgid "%s gains %s"
 msgstr ""
 
-#: MissionPlayer.gd:2595
+#: MissionPlayer.gd:2597
 msgid "%s has been defeated."
 msgstr ""
 
@@ -277,7 +277,7 @@ msgstr ""
 msgid "%s healed %d (%d hitpoints)."
 msgstr ""
 
-#: MissionPlayer.gd:2646 MonsterManageDialog.gd:169
+#: MissionPlayer.gd:2648 MonsterManageDialog.gd:169
 msgid "%s is %s."
 msgstr ""
 
@@ -285,15 +285,15 @@ msgstr ""
 msgid "%s is confused!\n%s"
 msgstr ""
 
-#: MissionPlayer.gd:2284
+#: MissionPlayer.gd:2286
 msgid "%s is confused!\n%s\n%s"
 msgstr ""
 
-#: MissionPlayer.gd:2052 MissionPlayer.gd:2288
+#: MissionPlayer.gd:2052 MissionPlayer.gd:2290
 msgid "%s is confused: %s."
 msgstr ""
 
-#: MissionPlayer.gd:2057 MissionPlayer.gd:2142
+#: MissionPlayer.gd:2057 MissionPlayer.gd:2144
 msgid "%s is defeated! Remove it from the board."
 msgstr ""
 
@@ -317,11 +317,15 @@ msgstr ""
 msgid "%s is not next to %s"
 msgstr ""
 
+#: MissionRuntime.gd:804
+msgid "%s is now %s."
+msgstr ""
+
 #: DefenseRules.gd:241
 msgid "%s is now next to %s"
 msgstr ""
 
-#: MissionPlayer.gd:2189
+#: MissionPlayer.gd:2191
 msgid "%s is pushed back %d space(s) - move the figure to its token."
 msgstr ""
 
@@ -329,19 +333,19 @@ msgstr ""
 msgid "%s is up to something..."
 msgstr ""
 
-#: MissionPlayer.gd:2619
+#: MissionPlayer.gd:2621
 msgid "%s lost all hitpoints. Wound %s?"
 msgstr ""
 
-#: MissionPlayer.gd:2170
+#: MissionPlayer.gd:2172
 msgid "%s moves %d space(s) away from %s."
 msgstr ""
 
-#: MissionPlayer.gd:2238
+#: MissionPlayer.gd:2240
 msgid "%s moves and attacks %s!"
 msgstr ""
 
-#: MissionPlayer.gd:2102 MissionPlayer.gd:2251
+#: MissionPlayer.gd:2104 MissionPlayer.gd:2253
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr ""
 
@@ -349,11 +353,11 @@ msgstr ""
 msgid "%s moves towards %s."
 msgstr ""
 
-#: MissionPlayer.gd:1840 MissionPlayer.gd:2120
+#: MissionPlayer.gd:1840 MissionPlayer.gd:2122
 msgid "%s performs %s against %s."
 msgstr ""
 
-#: MissionPlayer.gd:2688
+#: MissionPlayer.gd:2690
 msgid "%s receives a benefit: %s."
 msgstr ""
 
@@ -361,11 +365,11 @@ msgstr ""
 msgid "%s shifts %s - move its figure to its token"
 msgstr ""
 
-#: MissionPlayer.gd:2040 MissionPlayer.gd:2253
+#: MissionPlayer.gd:2040 MissionPlayer.gd:2255
 msgid "%s stays where it is."
 msgstr ""
 
-#: MissionRuntime.gd:2067
+#: MissionRuntime.gd:2127
 msgid "%s steps on spikes: %d damage."
 msgstr ""
 
@@ -373,12 +377,20 @@ msgstr ""
 msgid "%s suffers %d damage"
 msgstr ""
 
-#: MissionPlayer.gd:2372
+#: MissionPlayer.gd:2374
 msgid "%s takes %d affliction damage (%d hitpoints left)."
 msgstr ""
 
-#: MissionPlayer.gd:2370
+#: MissionPlayer.gd:2372
 msgid "%s takes %d affliction damage and is defeated! Remove it from the board."
+msgstr ""
+
+#: MissionRuntime.gd:808
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr ""
+
+#: MissionRuntime.gd:806
+msgid "%s takes %d damage and is defeated."
 msgstr ""
 
 #: MissionPlayer.gd:2059
@@ -397,23 +409,23 @@ msgstr ""
 msgid "%s triggered"
 msgstr ""
 
-#: MissionRuntime.gd:2076
+#: MissionRuntime.gd:2136
 msgid "%s walks through embers: %s."
 msgstr ""
 
-#: MissionRuntime.gd:2070
+#: MissionRuntime.gd:2130
 msgid "%s walks through poison: Enfeebled."
 msgstr ""
 
-#: MissionPlayer.gd:2003 MissionPlayer.gd:2302
+#: MissionPlayer.gd:2003 MissionPlayer.gd:2304
 msgid "%s was defeated during an interrupt before it could %s."
 msgstr ""
 
-#: MissionPlayer.gd:2638
+#: MissionPlayer.gd:2640
 msgid "%s was wounded a third time."
 msgstr ""
 
-#: MissionPlayer.gd:2006 MissionPlayer.gd:2305
+#: MissionPlayer.gd:2006 MissionPlayer.gd:2307
 msgid "%s wounded a hero - its turn is over."
 msgstr ""
 
@@ -421,7 +433,7 @@ msgstr ""
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr ""
 
-#: MissionPlayer.gd:2097
+#: MissionPlayer.gd:2099
 msgid "%s: %s!\nTarget %s - Damage %d - %s"
 msgstr ""
 
@@ -449,7 +461,7 @@ msgstr ""
 msgid "%s: needs %d, you have %d"
 msgstr ""
 
-#: MissionRuntime.gd:1430
+#: MissionRuntime.gd:1490
 msgid "%s: perform a %s test - how many successes?"
 msgstr ""
 
@@ -469,7 +481,7 @@ msgstr ""
 msgid "%s\n\nYou chose: %s"
 msgstr ""
 
-#: MissionPlayer.gd:1912 MissionPlayer.gd:2219
+#: MissionPlayer.gd:1912 MissionPlayer.gd:2221
 msgid "(attacks again)"
 msgstr ""
 
@@ -529,19 +541,19 @@ msgstr ""
 msgid "\n%d successes x %d weapon damage"
 msgstr ""
 
-#: MissionPlayer.gd:1918 MissionPlayer.gd:2246
+#: MissionPlayer.gd:1918 MissionPlayer.gd:2248
 msgid "\n(+%d damage from a defense ability this activation)"
 msgstr ""
 
-#: MissionPlayer.gd:2221 MissionPlayer.gd:2242
+#: MissionPlayer.gd:2223 MissionPlayer.gd:2244
 msgid "\n(+%d: fire / barricade)"
 msgstr ""
 
-#: MissionPlayer.gd:1914 MissionPlayer.gd:2244
+#: MissionPlayer.gd:1914 MissionPlayer.gd:2246
 msgid "\n(Enfeebled: damage reduced from %d)"
 msgstr ""
 
-#: MissionPlayer.gd:2648
+#: MissionPlayer.gd:2650
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr ""
 
@@ -553,15 +565,15 @@ msgstr ""
 msgid "\n\n%s is defeated! Remove it from the board."
 msgstr ""
 
-#: MissionPlayer.gd:2650
+#: MissionPlayer.gd:2652
 msgid "\n\n%s must flip their injury card (%s) to its major side."
 msgstr ""
 
-#: MissionPlayer.gd:2650
+#: MissionPlayer.gd:2652
 msgid "\n\n%s must flip their injury card to its major side."
 msgstr ""
 
-#: MissionPlayer.gd:2653
+#: MissionPlayer.gd:2655
 msgid "\n\nRemembrance Hilt: set %s's health to %d instead."
 msgstr ""
 
@@ -573,7 +585,7 @@ msgstr ""
 msgid "\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later."
 msgstr ""
 
-#: MissionPlayer.gd:2621
+#: MissionPlayer.gd:2623
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr ""
 
@@ -581,7 +593,7 @@ msgstr ""
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr ""
 
-#: MissionPlayer.gd:1916 MissionPlayer.gd:2257
+#: MissionPlayer.gd:1916 MissionPlayer.gd:2259
 msgid "\nActivation: "
 msgstr ""
 
@@ -597,7 +609,7 @@ msgstr ""
 msgid "\nConditions applied: %s"
 msgstr ""
 
-#: MissionPlayer.gd:2240
+#: MissionPlayer.gd:2242
 msgid "\nDamage %d - %s"
 msgstr ""
 
@@ -617,11 +629,11 @@ msgstr ""
 msgid "\nIn development (a draft)"
 msgstr ""
 
-#: MissionPlayer.gd:2600 PlayerInteractionController.gd:685
+#: MissionPlayer.gd:2602 PlayerInteractionController.gd:685
 msgid "\nLoot for the party: %s."
 msgstr ""
 
-#: MissionPlayer.gd:2104 MissionPlayer.gd:2255
+#: MissionPlayer.gd:2106 MissionPlayer.gd:2257
 msgid "\nMove the figure along the orange line to the marked square."
 msgstr ""
 
@@ -633,7 +645,7 @@ msgstr ""
 msgid "\nNot installed yet - open it to install."
 msgstr ""
 
-#: MissionPlayer.gd:2268
+#: MissionPlayer.gd:2270
 msgid "\nOn the way: "
 msgstr ""
 
@@ -677,11 +689,11 @@ msgstr ""
 msgid "A campaign"
 msgstr ""
 
-#: MissionPlayer.gd:2483
+#: MissionPlayer.gd:2485
 msgid "A condition was put on one of them."
 msgstr ""
 
-#: MissionPlayer.gd:1809 MissionPlayer.gd:2093
+#: MissionPlayer.gd:1809 MissionPlayer.gd:2095
 msgid "a hero"
 msgstr ""
 
@@ -741,7 +753,7 @@ msgstr ""
 msgid "a trinket upgrade"
 msgstr ""
 
-#: MissionPlayer.gd:2003 MissionPlayer.gd:2285
+#: MissionPlayer.gd:2003 MissionPlayer.gd:2287
 msgid "act"
 msgstr ""
 
@@ -773,7 +785,7 @@ msgstr ""
 msgid "Afflicted"
 msgstr ""
 
-#: MissionPlayer.gd:2374
+#: MissionPlayer.gd:2376
 msgid "Affliction"
 msgstr ""
 
@@ -877,7 +889,7 @@ msgstr ""
 msgid "Attack"
 msgstr ""
 
-#: MissionPlayer.gd:1923 MissionPlayer.gd:2225
+#: MissionPlayer.gd:1923 MissionPlayer.gd:2227
 msgid "attack %s"
 msgstr ""
 
@@ -909,7 +921,7 @@ msgstr ""
 msgid "Back to editor"
 msgstr ""
 
-#: CampaignHud.gd:148 PlayerHud.gd:250 PlayerHud.gd:294
+#: CampaignHud.gd:148 PlayerHud.gd:250 PlayerHud.gd:296
 msgid "Back to Menu"
 msgstr ""
 
@@ -1041,11 +1053,11 @@ msgstr ""
 msgid "Cautious"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:220
+#: VoiceSettingsDialog.gd:221
 msgid "Centre to centre (strict)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:218
+#: VoiceSettingsDialog.gd:219
 msgid "Centre to corner (recommended)"
 msgstr ""
 
@@ -1065,7 +1077,7 @@ msgstr ""
 msgid "Chapter \"%s\", where you are now, is not in act %d of the new version."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:241
+#: VoiceSettingsDialog.gd:242
 msgid "Check for a newer version of the app at the main menu"
 msgstr ""
 
@@ -1073,7 +1085,7 @@ msgstr ""
 msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:230
+#: VoiceSettingsDialog.gd:231
 msgid "Chest, gate, tree and well use the game's own models after Game assets > Import. Off = the props that come with the app. Takes effect the next time a map is opened."
 msgstr ""
 
@@ -1129,7 +1141,7 @@ msgstr ""
 msgid "Common"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:145
+#: VoiceSettingsDialog.gd:146
 msgid "Community"
 msgstr ""
 
@@ -1193,7 +1205,7 @@ msgstr ""
 msgid "Copies this read-only release into a new draft you can change. The release itself and its save games stay as they are."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:219
+#: VoiceSettingsDialog.gd:220
 msgid "Corner to corner (loose, Descent 2)"
 msgstr ""
 
@@ -1221,7 +1233,7 @@ msgstr ""
 msgid "Could not open the campaign '%s'."
 msgstr ""
 
-#: TableCamera.gd:119
+#: TableCamera.gd:120
 msgid "Could not reach the camera at %s. Is the camera started in the app, and is the phone on the same network as this computer?"
 msgstr ""
 
@@ -1229,7 +1241,7 @@ msgstr ""
 msgid "Could not save the photo."
 msgstr ""
 
-#: TableCamera.gd:106
+#: TableCamera.gd:107
 msgid "Could not send the request to the camera."
 msgstr ""
 
@@ -1321,11 +1333,11 @@ msgstr ""
 msgid "Defeat (debug)"
 msgstr ""
 
-#: CampaignPlayer.gd:1047 MissionPlayer.gd:2703
+#: CampaignPlayer.gd:1047 MissionPlayer.gd:2705
 msgid "Defeat."
 msgstr ""
 
-#: MissionPlayer.gd:2606 MissionRuntime.gd:993
+#: MissionPlayer.gd:2608 MissionRuntime.gd:1050
 msgid "Defeated"
 msgstr ""
 
@@ -1381,11 +1393,11 @@ msgstr ""
 msgid "Depth (cm)"
 msgstr ""
 
-#: MissionPlayer.gd:1937 MissionPlayer.gd:2206
+#: MissionPlayer.gd:1937 MissionPlayer.gd:2208
 msgid "Did %s deal damage to %s?"
 msgstr ""
 
-#: MissionPlayer.gd:1842 MissionPlayer.gd:2124
+#: MissionPlayer.gd:1842 MissionPlayer.gd:2126
 msgid "Did %s pass the test?"
 msgstr ""
 
@@ -1433,15 +1445,15 @@ msgstr ""
 msgid "Doomed"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:464
+#: VoiceSettingsDialog.gd:465
 msgid "Download %s voices (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:488
+#: VoiceSettingsDialog.gd:489
 msgid "Download extra voices - accents (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:485
+#: VoiceSettingsDialog.gd:486
 msgid "Download more voices - plain English (%s)"
 msgstr ""
 
@@ -1473,11 +1485,11 @@ msgstr ""
 msgid "Editor"
 msgstr ""
 
-#: MissionPlayer.gd:2266
+#: MissionPlayer.gd:2268
 msgid "embers (Doomed, Afflicted)"
 msgstr ""
 
-#: SetupAssistant.gd:332 VoiceSettingsDialog.gd:258
+#: SetupAssistant.gd:332 VoiceSettingsDialog.gd:259
 msgid "Enable voice"
 msgstr ""
 
@@ -1509,7 +1521,7 @@ msgstr ""
 msgid "Failed to save - see the Output panel for details."
 msgstr ""
 
-#: HeroGrowthDialog.gd:445 MissionPlayer.gd:2575
+#: HeroGrowthDialog.gd:445 MissionPlayer.gd:2577
 msgid "Feat completed"
 msgstr ""
 
@@ -1525,11 +1537,11 @@ msgstr ""
 msgid "Feats at the top are worked on. When one is completed, the next unlocked one in the list starts by itself. Changing the order may cost something."
 msgstr ""
 
-#: TableCamera.gd:92
+#: TableCamera.gd:93
 msgid "Fill in the address the app shows, for example 192.168.0.19:8765."
 msgstr ""
 
-#: TableCamera.gd:95
+#: TableCamera.gd:96
 msgid "Fill in the pairing code the app shows."
 msgstr ""
 
@@ -1625,7 +1637,7 @@ msgstr ""
 msgid "Game %04d-%02d-%02d %02d:%02d"
 msgstr ""
 
-#: SetupAssistant.gd:169 VoiceSettingsDialog.gd:143
+#: SetupAssistant.gd:169 VoiceSettingsDialog.gd:144
 msgid "Game assets"
 msgstr ""
 
@@ -1633,7 +1645,7 @@ msgstr ""
 msgid "Game found:\n%s"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:202
+#: VoiceSettingsDialog.gd:203
 msgid "Gameplay"
 msgstr ""
 
@@ -1713,11 +1725,11 @@ msgstr ""
 msgid "Heal 4"
 msgstr ""
 
-#: MissionRuntime.gd:988
+#: MissionRuntime.gd:1045
 msgid "Healthy"
 msgstr ""
 
-#: SetupAssistant.gd:267 VoiceSettingsDialog.gd:328
+#: SetupAssistant.gd:267 VoiceSettingsDialog.gd:329
 msgid "Hear the story teller"
 msgstr ""
 
@@ -1729,7 +1741,7 @@ msgstr ""
 msgid "Heard: %s"
 msgstr ""
 
-#: MissionRuntime.gd:992
+#: MissionRuntime.gd:1049
 msgid "Heavily wounded"
 msgstr ""
 
@@ -1777,11 +1789,11 @@ msgstr ""
 msgid "Hold %s to talk"
 msgstr ""
 
-#: MissionPlayer.gd:2690
+#: MissionPlayer.gd:2692
 msgid "Horn of Courage"
 msgstr ""
 
-#: MissionPlayer.gd:2686
+#: MissionPlayer.gd:2688
 msgid "Horn of Courage - %s was wounded."
 msgstr ""
 
@@ -1789,7 +1801,7 @@ msgstr ""
 msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:222
+#: VoiceSettingsDialog.gd:223
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr ""
 
@@ -1901,7 +1913,7 @@ msgstr ""
 msgid "Interrupt"
 msgstr ""
 
-#: MissionPlayer.gd:2331
+#: MissionPlayer.gd:2333
 msgid "Interrupt - the players act"
 msgstr ""
 
@@ -1941,11 +1953,11 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:162
+#: VoiceSettingsDialog.gd:163
 msgid "Language of this game"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:182
+#: VoiceSettingsDialog.gd:183
 msgid "Languages"
 msgstr ""
 
@@ -1977,15 +1989,15 @@ msgstr ""
 msgid "Level %d - "
 msgstr ""
 
-#: PlayerHud.gd:373 PlayerHud.gd:89
+#: PlayerHud.gd:375 PlayerHud.gd:89
 msgid "Line of Sight"
 msgstr ""
 
-#: PlayerHud.gd:373
+#: PlayerHud.gd:375
 msgid "Line of Sight (on)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:215
+#: VoiceSettingsDialog.gd:216
 msgid "Line of sight rule"
 msgstr ""
 
@@ -2017,15 +2029,15 @@ msgstr ""
 msgid "Looking for shared campaigns…"
 msgstr ""
 
-#: MissionPlayer.gd:2442 MissionPlayer.gd:2447 MissionRuntime.gd:1305
+#: MissionPlayer.gd:2444 MissionPlayer.gd:2449 MissionRuntime.gd:1365
 msgid "Loot"
 msgstr ""
 
-#: MissionRuntime.gd:1301
+#: MissionRuntime.gd:1361
 msgid "Loot for the party: "
 msgstr ""
 
-#: MissionRuntime.gd:1437
+#: MissionRuntime.gd:1497
 msgid "Lucky Charm"
 msgstr ""
 
@@ -2069,11 +2081,11 @@ msgstr ""
 msgid "Medium"
 msgstr ""
 
-#: MissionPlayer.gd:2278
+#: MissionPlayer.gd:2280
 msgid "melee"
 msgstr ""
 
-#: MissionRuntime.gd:1262
+#: MissionRuntime.gd:1322
 msgid "Message"
 msgstr ""
 
@@ -2133,8 +2145,12 @@ msgstr ""
 msgid "Monster Phase"
 msgstr ""
 
-#: MissionPlayer.gd:1840 MissionPlayer.gd:2120 MissionPlayer.gd:2122
+#: MissionPlayer.gd:1840 MissionPlayer.gd:2122 MissionPlayer.gd:2124
 msgid "Monster tactic"
+msgstr ""
+
+#: MissionRuntime.gd:811
+msgid "Monsters"
 msgstr ""
 
 #: MissionPlayer.gd:915
@@ -2153,7 +2169,7 @@ msgstr ""
 msgid "Monsters are two levels stronger than the author set them, and the mission may show no mercy."
 msgstr ""
 
-#: MissionPlayer.gd:2492
+#: MissionPlayer.gd:2494
 msgid "Monsters wake"
 msgstr ""
 
@@ -2173,7 +2189,7 @@ msgstr ""
 msgid "Mortos (dead)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:207
+#: VoiceSettingsDialog.gd:208
 msgid "Move camera to player and monster spawns"
 msgstr ""
 
@@ -2217,19 +2233,19 @@ msgstr ""
 msgid "Moved to v%s"
 msgstr ""
 
-#: SetupAssistant.gd:169 VoiceSettingsDialog.gd:289
+#: SetupAssistant.gd:169 VoiceSettingsDialog.gd:290
 msgid "Narration"
 msgstr ""
 
-#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:458
+#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:459
 msgid "Narration is set up."
 msgstr ""
 
-#: SetupAssistant.gd:292 VoiceSettingsDialog.gd:467
+#: SetupAssistant.gd:292 VoiceSettingsDialog.gd:468
 msgid "Narration isn't available on %s."
 msgstr ""
 
-#: SetupAssistant.gd:300 VoiceSettingsDialog.gd:475
+#: SetupAssistant.gd:300 VoiceSettingsDialog.gd:476
 msgid "Narration isn't set up yet - the story is shown as text only."
 msgstr ""
 
@@ -2257,7 +2273,7 @@ msgstr ""
 msgid "Next (or skip)"
 msgstr ""
 
-#: HeroGrowthDialog.gd:444 MissionPlayer.gd:2573
+#: HeroGrowthDialog.gd:444 MissionPlayer.gd:2575
 msgid "Next feat: %s"
 msgstr ""
 
@@ -2293,7 +2309,7 @@ msgstr ""
 msgid "No map image - choose one for this act"
 msgstr ""
 
-#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:460
+#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:461
 msgid "No narration voices for %s are installed, so the story is shown as text only."
 msgstr ""
 
@@ -2401,11 +2417,11 @@ msgstr ""
 msgid "On: before each monster phase you show the app where the heroes stand and the app moves every monster. Off: you move the monsters yourselves, as in the original game."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:242
+#: VoiceSettingsDialog.gd:243
 msgid "Only asks GitHub which version is the latest. Nothing is downloaded or installed without your click."
 msgstr ""
 
-#: MissionPlayer.gd:2505
+#: MissionPlayer.gd:2507
 msgid "Only available in a campaign."
 msgstr ""
 
@@ -2469,7 +2485,7 @@ msgstr ""
 msgid "perform %s"
 msgstr ""
 
-#: MissionRuntime.gd:1430
+#: MissionRuntime.gd:1490
 msgid "Perform a %s test - how many successes?"
 msgstr ""
 
@@ -2493,7 +2509,7 @@ msgstr ""
 msgid "Place the monsters on the map as shown."
 msgstr ""
 
-#: MissionRuntime.gd:1698
+#: MissionRuntime.gd:1758
 msgid "Place your figure on one of the highlighted squares."
 msgstr ""
 
@@ -2545,7 +2561,7 @@ msgstr ""
 msgid "Playtest:"
 msgstr ""
 
-#: MissionPlayer.gd:2264
+#: MissionPlayer.gd:2266
 msgid "poison (Enfeebled)"
 msgstr ""
 
@@ -2573,7 +2589,7 @@ msgstr ""
 msgid "Purple"
 msgstr ""
 
-#: SetupAssistant.gd:349 VoiceSettingsDialog.gd:431
+#: SetupAssistant.gd:349 VoiceSettingsDialog.gd:432
 msgid "Push to talk (hold %s)"
 msgstr ""
 
@@ -2601,7 +2617,7 @@ msgstr ""
 msgid "Random (from the name)"
 msgstr ""
 
-#: MissionPlayer.gd:2278 PlayerInteractionController.gd:731 Weapon.gd:45
+#: MissionPlayer.gd:2280 PlayerInteractionController.gd:731 Weapon.gd:45
 msgid "range %d"
 msgstr ""
 
@@ -2609,7 +2625,7 @@ msgstr ""
 msgid "Range %d"
 msgstr ""
 
-#: MissionPlayer.gd:2278
+#: MissionPlayer.gd:2280
 msgid "range %d, reach"
 msgstr ""
 
@@ -2625,7 +2641,7 @@ msgstr ""
 msgid "Read in this language later"
 msgstr ""
 
-#: SetupAssistant.gd:247 VoiceSettingsDialog.gd:294
+#: SetupAssistant.gd:247 VoiceSettingsDialog.gd:295
 msgid "Read the story aloud"
 msgstr ""
 
@@ -2709,7 +2725,7 @@ msgstr ""
 msgid "Restart now"
 msgstr ""
 
-#: MissionPlayer.gd:2336
+#: MissionPlayer.gd:2338
 msgid "Resume monster attack"
 msgstr ""
 
@@ -2789,11 +2805,11 @@ msgstr ""
 msgid "Send feedback…"
 msgstr ""
 
-#: SetupAssistant.gd:299 VoiceSettingsDialog.gd:474
+#: SetupAssistant.gd:299 VoiceSettingsDialog.gd:475
 msgid "Set up narration (downloads %s)"
 msgstr ""
 
-#: SetupAssistant.gd:297 VoiceSettingsDialog.gd:472
+#: SetupAssistant.gd:297 VoiceSettingsDialog.gd:473
 msgid "Set up narration - %s voices (downloads about %d MB)"
 msgstr ""
 
@@ -2805,7 +2821,7 @@ msgstr ""
 msgid "Set up the table camera first: Options > Table camera."
 msgstr ""
 
-#: SetupAssistant.gd:383 VoiceSettingsDialog.gd:443
+#: SetupAssistant.gd:383 VoiceSettingsDialog.gd:444
 msgid "Set up voice control (downloads %s)"
 msgstr ""
 
@@ -2833,7 +2849,7 @@ msgstr ""
 msgid "Show this before every mission"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:263
+#: VoiceSettingsDialog.gd:264
 msgid "Show voice hints"
 msgstr ""
 
@@ -2897,15 +2913,15 @@ msgstr ""
 msgid "Snapshot loaded - round %d"
 msgstr ""
 
-#: TableCamera.gd:65
+#: TableCamera.gd:66
 msgid "Something answered at that address, but it is not the Ascent Camera app."
 msgstr ""
 
-#: MissionPlayer.gd:2485
+#: MissionPlayer.gd:2487
 msgid "Something has alerted them."
 msgstr ""
 
-#: MissionPlayer.gd:2487
+#: MissionPlayer.gd:2489
 msgid "Something has woken them."
 msgstr ""
 
@@ -2921,7 +2937,7 @@ msgstr ""
 msgid "spear"
 msgstr ""
 
-#: MissionPlayer.gd:2262
+#: MissionPlayer.gd:2264
 msgid "spikes (%d damage)"
 msgstr ""
 
@@ -2957,7 +2973,7 @@ msgstr ""
 msgid "Story recipe"
 msgstr ""
 
-#: SetupAssistant.gd:257 VoiceSettingsDialog.gd:320
+#: SetupAssistant.gd:257 VoiceSettingsDialog.gd:321
 msgid "Story teller:"
 msgstr ""
 
@@ -2985,7 +3001,7 @@ msgstr ""
 msgid "Table setup"
 msgstr ""
 
-#: MissionPlayer.gd:1846 MissionPlayer.gd:2128
+#: MissionPlayer.gd:1846 MissionPlayer.gd:2130
 msgid "Tactic"
 msgstr ""
 
@@ -3097,7 +3113,7 @@ msgstr ""
 msgid "The app can read the story aloud with a voice installed on your computer. Nothing is sent anywhere. The voices are a download."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:192
+#: VoiceSettingsDialog.gd:193
 msgid "The app itself (menus and dialogs) is shown in the first language of this list that it is translated into - %s so far."
 msgstr ""
 
@@ -3117,11 +3133,11 @@ msgstr ""
 msgid "The author did not say whether they may share the pictures."
 msgstr ""
 
-#: TableCamera.gd:133
+#: TableCamera.gd:134
 msgid "The camera answered with an error (%d)."
 msgstr ""
 
-#: TableCamera.gd:117
+#: TableCamera.gd:118
 msgid "The camera did not answer in time. Is the camera started in the app, and is the phone on the same network as this computer?"
 msgstr ""
 
@@ -3129,23 +3145,23 @@ msgstr ""
 msgid "The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm."
 msgstr ""
 
-#: TableCamera.gd:89
+#: TableCamera.gd:90
 msgid "The camera is still busy with the previous request."
 msgstr ""
 
-#: TableCamera.gd:130
+#: TableCamera.gd:131
 msgid "The camera is still taking another photo. Try again in a moment."
 msgstr ""
 
-#: TableCamera.gd:128
+#: TableCamera.gd:129
 msgid "The camera refused the pairing code. Type the code the app shows."
 msgstr ""
 
-#: TableCamera.gd:121
+#: TableCamera.gd:122
 msgid "The camera sent a photo that is too big."
 msgstr ""
 
-#: TableCamera.gd:79
+#: TableCamera.gd:80
 msgid "The camera sent something that is not a photo."
 msgstr ""
 
@@ -3165,7 +3181,7 @@ msgstr ""
 msgid "The catalog address must start with https://"
 msgstr ""
 
-#: TableCamera.gd:123
+#: TableCamera.gd:124
 msgid "The connection to the camera failed."
 msgstr ""
 
@@ -3221,7 +3237,7 @@ msgstr ""
 msgid "The language this game is read, logged and narrated in. You can change it later in Options."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:186
+#: VoiceSettingsDialog.gd:187
 msgid "The languages you want to read, best first. A campaign or mission is shown in the first one it has a text for; starting a campaign game asks which language to play it in."
 msgstr ""
 
@@ -3249,7 +3265,7 @@ msgstr ""
 msgid "The mission of chapter \"%s\" is missing from the new version."
 msgstr ""
 
-#: MissionPlayer.gd:2476
+#: MissionPlayer.gd:2478
 msgid "The monsters wake up!"
 msgstr ""
 
@@ -3325,7 +3341,7 @@ msgstr ""
 msgid "The story begins."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:166
+#: VoiceSettingsDialog.gd:167
 msgid "The story, the log and the game's own terms are shown in this language. The menus and buttons of the app follow the list below."
 msgstr ""
 
@@ -3381,7 +3397,7 @@ msgstr ""
 msgid "They have not noticed the heroes: they stay where they are until something wakes them."
 msgstr ""
 
-#: MissionPlayer.gd:2481
+#: MissionPlayer.gd:2483
 msgid "They noticed the attack."
 msgstr ""
 
@@ -3429,7 +3445,7 @@ msgstr ""
 msgid "This Table has no floor yet."
 msgstr ""
 
-#: TableCamera.gd:67
+#: TableCamera.gd:68
 msgid "This version of the Ascent Camera app does not fit this version of Ascent. Update both."
 msgstr ""
 
@@ -3577,7 +3593,7 @@ msgstr ""
 msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:383
+#: VoiceSettingsDialog.gd:384
 msgid "Use the original game props in the map"
 msgstr ""
 
@@ -3617,7 +3633,7 @@ msgstr ""
 msgid "Veteran"
 msgstr ""
 
-#: CampaignPlayer.gd:1047 MissionPlayer.gd:2703
+#: CampaignPlayer.gd:1047 MissionPlayer.gd:2705
 msgid "Victory!"
 msgstr ""
 
@@ -3629,7 +3645,7 @@ msgstr ""
 msgid "Vigos (life)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:138 VoiceSettingsDialog.gd:253
+#: VoiceSettingsDialog.gd:138 VoiceSettingsDialog.gd:254
 msgid "Voice"
 msgstr ""
 
@@ -3645,11 +3661,11 @@ msgstr ""
 msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
 msgstr ""
 
-#: SetupAssistant.gd:376 VoiceSettingsDialog.gd:436
+#: SetupAssistant.gd:376 VoiceSettingsDialog.gd:437
 msgid "Voice control is set up."
 msgstr ""
 
-#: SetupAssistant.gd:384 VoiceSettingsDialog.gd:444
+#: SetupAssistant.gd:384 VoiceSettingsDialog.gd:445
 msgid "Voice isn't set up yet - typed commands still work."
 msgstr ""
 
@@ -3657,7 +3673,7 @@ msgstr ""
 msgid "voice settings (%s)"
 msgstr ""
 
-#: SetupAssistant.gd:379 VoiceSettingsDialog.gd:439
+#: SetupAssistant.gd:379 VoiceSettingsDialog.gd:440
 msgid "Voice setup isn't available on %s - typed commands still work."
 msgstr ""
 
@@ -3669,7 +3685,7 @@ msgstr ""
 msgid "voices (%s)"
 msgstr ""
 
-#: SetupAssistant.gd:230 VoiceSettingsDialog.gd:306
+#: SetupAssistant.gd:230 VoiceSettingsDialog.gd:307
 msgid "Voices for:"
 msgstr ""
 
@@ -3757,7 +3773,7 @@ msgstr ""
 msgid "Where to start"
 msgstr ""
 
-#: MissionPlayer.gd:2161
+#: MissionPlayer.gd:2163
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr ""
 
@@ -3789,11 +3805,11 @@ msgstr ""
 msgid "Won: %s."
 msgstr ""
 
-#: HeroesDialog.gd:88 MissionPlayer.gd:2655
+#: HeroesDialog.gd:88 MissionPlayer.gd:2657
 msgid "Wound"
 msgstr ""
 
-#: MissionRuntime.gd:990
+#: MissionRuntime.gd:1047
 msgid "Wounded"
 msgstr ""
 
@@ -3857,7 +3873,7 @@ msgstr ""
 msgid "Your table"
 msgstr ""
 
-#: MissionRuntime.gd:1698
+#: MissionRuntime.gd:1758
 msgid "{hero}: place your figure on one of the highlighted squares."
 msgstr ""
 
@@ -3887,7 +3903,7 @@ msgid_plural "lost %d statuses, %d damage"
 msgstr[0] ""
 msgstr[1] ""
 
-#: MissionRuntime.gd:1437
+#: MissionRuntime.gd:1497
 msgid "Lucky Charm: %d extra success is added to %s's result."
 msgid_plural "Lucky Charm: %d extra successes are added to %s's result."
 msgstr[0] ""

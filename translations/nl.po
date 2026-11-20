@@ -2904,6 +2904,18 @@ msgstr "De camera heeft de heldenfiches gezet waar hij de figuren ziet. Controle
 msgid "The table camera could not take a photo: %s"
 msgstr "De tafelcamera kon geen foto maken: %s"
 
+msgid "%s is now %s."
+msgstr "%s is nu %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s krijgt %d schade (nog %d levenspunten)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s krijgt %d schade en is verslagen."
+
+msgid "Monsters"
+msgstr "Monsters"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

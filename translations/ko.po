@@ -2904,6 +2904,18 @@ msgstr "카메라가 피규어가 보이는 곳에 영웅 토큰을 놓았습니
 msgid "The table camera could not take a photo: %s"
 msgstr "테이블 카메라가 사진을 찍지 못했습니다: %s"
 
+msgid "%s is now %s."
+msgstr "%s: 이제 %s 상태입니다."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s: %d 피해를 받습니다 (남은 체력 %d)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s: %d 피해를 받고 쓰러집니다."
+
+msgid "Monsters"
+msgstr "괴물"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

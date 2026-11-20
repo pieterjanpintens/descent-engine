@@ -2904,6 +2904,18 @@ msgstr "A kamera oda tette a hősjelzőket, ahol a figurákat látja. Ellenőriz
 msgid "The table camera could not take a photo: %s"
 msgstr "Az asztali kamera nem tudott fényképet készíteni: %s"
 
+msgid "%s is now %s."
+msgstr "%s most: %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s %d sebzést szenved (%d életpontja maradt)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s %d sebzést szenved, és legyőzték."
+
+msgid "Monsters"
+msgstr "Szörnyek"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

@@ -755,6 +755,63 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	return result
 
 
+## How many monsters a CONDITION_MONSTERS / DAMAGE_MONSTERS effect hits: -1 = all (blank formula), else its formula (like random_spawn_count()).
+func monster_effect_count(effect: Effect) -> int:
+	if effect.monster_count.strip_edges() == "":
+		return -1
+	var values := {}
+	for variable_name in LevelFormula.variables(mission):
+		if variable_name != "level":
+			values[variable_name] = int(_variables.get(variable_name, 0))
+	var result := LevelFormula.evaluate_count(effect.monster_count, values)
+	if not result["ok"]:
+		push_warning("Monster count '%s': %s" % [effect.monster_count, result["error"]])
+	return int(result["count"])
+
+
+## Effect.Type.CONDITION_MONSTERS / DAMAGE_MONSTERS: picks the monsters at random (for a condition only those that can get it), applies the
+## condition or the damage and tells the table who was hit (a defeat then follows through monster_defeated like any defeat). Returns the lines.
+func _apply_to_monsters(effect: Effect) -> PackedStringArray:
+	var damage := effect.type == Effect.Type.DAMAGE_MONSTERS
+	var kind := effect.monster_condition
+	var candidates: Array[RuntimeMonster] = []
+	for monster in monsters:
+		if monster.hitpoints <= 0:
+			continue
+		if not damage and (monster.is_condition_immune(kind) or monster.conditions.has(kind)):
+			continue
+		candidates.append(monster)
+	candidates.shuffle()
+	var count := monster_effect_count(effect)
+	if count >= 0 and candidates.size() > count:
+		candidates.resize(count)
+	var hits: Array[Dictionary] = []  # what happened, done ONCE; the text below only formats it (it runs once per log language)
+	var amount := effect.monster_damage
+	for monster in candidates:
+		var record := {"name": monster.display_name(), "chip": monster.chip}
+		if damage:
+			var hit := damage_monster(monster, amount)
+			record["defeated"] = hit["defeated"]
+			record["hitpoints"] = hit["hitpoints"]
+		elif not add_condition(monster, kind):
+			continue
+		hits.append(record)
+	var text := func() -> String:
+		var lines: Array[String] = []
+		for record: Dictionary in hits:
+			var who: String = TranslationServer.translate("%s (%s chip)") % [record["name"], MonsterChip.display_name(record["chip"])]
+			if not damage:
+				lines.append(TranslationServer.translate("%s is now %s.") % [who, MonsterCondition.display_name(kind)])
+			elif record["defeated"]:
+				lines.append(TranslationServer.translate("%s takes %d damage and is defeated.") % [who, amount])
+			else:
+				lines.append(TranslationServer.translate("%s takes %d damage (%d hitpoints left).") % [who, amount, record["hitpoints"]])
+		return "\n".join(lines)
+	if not hits.is_empty() and dialog != null:
+		await dialog.ask_ok(text, true, false, "Monsters")
+	return text.call().split("\n", false)
+
+
 ## Direct changes to a monster outside combat (MonsterManageDialog): a hero ability that
 ## damages it or applies a condition without an attack, friendly fire, corrections.
 ## `amount` hitpoints are removed - no weapon, defense roll, weakness or resistance; at 0 or
@@ -1247,6 +1304,9 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 				continue
 			targets.append(candidate)
 		wake_monsters(targets, "effect")
+		return
+	if effect.type == Effect.Type.CONDITION_MONSTERS or effect.type == Effect.Type.DAMAGE_MONSTERS:
+		await _apply_to_monsters(effect)
 		return
 	if effect.type == Effect.Type.HIGHLIGHT_AREA:
 		if effect.target_object_id != "":

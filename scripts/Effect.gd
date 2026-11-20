@@ -70,7 +70,19 @@ enum Type {
 	IF_ELSE,
 	REPEAT,
 	HIGHLIGHT_AREA,
+	CONDITION_MONSTERS,
+	DAMAGE_MONSTERS,
 }
+
+## CONDITION_MONSTERS (appended, 2026-11-20): puts `monster_condition` (MonsterCondition.Kind) on `monster_count` monsters ("ring the bell: 4
+## monsters become Enfeebled"). DAMAGE_MONSTERS (appended, same day): `monster_damage` direct damage (no defense roll, weakness or resistance -
+## like the monster manage dialog) to `monster_count` monsters; a monster at 0 hitpoints is defeated as usual (loot, defeat effects).
+## The monsters are picked at random among the live ones (for a condition only those that can get it: not immune, not already having it);
+## `monster_count` is a formula like a random spawn's count, BLANK = all of them. The table is told who was hit. See
+## MissionRuntime._apply_to_monsters().
+@export var monster_count: String = ""
+@export var monster_condition: int = 4  # MonsterCondition.Kind.ENFEEBLED
+@export var monster_damage: int = 3
 
 ## HIGHLIGHT_AREA (appended, 2026-11-15): lights up the squares of a HighlightArea drawn in the editor (`target_object_id`) on the map and tells the
 ## table what to do with them - `message` is the text (blank = "<hero>: place your figure on one of the highlighted squares."; `{hero}` is the

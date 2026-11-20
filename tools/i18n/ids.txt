@@ -1009,6 +1009,10 @@
 1009|Taking a photo of the table...
 1010|The camera has put the hero tokens where it sees the figures. Check them, drag any token that is wrong, then confirm.
 1011|The table camera could not take a photo: %s
+1012|%s is now %s.
+1013|%s takes %d damage (%d hitpoints left).
+1014|%s takes %d damage and is defeated.
+1015|Monsters
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

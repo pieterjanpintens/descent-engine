@@ -2904,6 +2904,18 @@ msgstr "La cámara ha puesto las fichas de héroe donde ve las figuras. Revísal
 msgid "The table camera could not take a photo: %s"
 msgstr "La cámara de mesa no pudo hacer una foto: %s"
 
+msgid "%s is now %s."
+msgstr "%s ahora está %s."
+
+msgid "%s takes %d damage (%d hitpoints left)."
+msgstr "%s recibe %d de daño (le quedan %d puntos de vida)."
+
+msgid "%s takes %d damage and is defeated."
+msgstr "%s recibe %d de daño y es derrotado."
+
+msgid "Monsters"
+msgstr "Monstruos"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"
