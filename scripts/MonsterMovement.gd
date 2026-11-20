@@ -13,6 +13,8 @@ extends RefCounted
 ##   reach at all (else every hero - it then gets as close as it can). A hero next to a barricade wins ties.
 ## - ATTACK POSITION: the target is within range (melee 1 = touching, also diagonally, and at most one level apart; reach 2; ranged = its
 ##   range; counted like the line-of-sight tool: one per square, diagonals one, height not counted) and in line of sight (SightLine).
+## - IMPEDED (the author, 2026-11-20): ENTERING a square next to a hero (also diagonally, at most one level apart) ends that move - the
+##   rest of its points are lost. A monster that ends its first move like that attacks with its second action when a hero is in range.
 ## - MOVING: its speed in points per move action; a move that starts next to a hero is IMPEDED (1 point). Eight directions, never
 ##   diagonally between two blocked squares. Not into squares without floor, solid pieces or heroes; other monsters may be passed, not
 ##   stopped on. Water costs 2 to enter, a ladder up 2, stairs 1, and stepping off an edge to a lower floor 1 (any height).
@@ -323,6 +325,11 @@ static func _next_to_hero(ctx: Dictionary, anchor: Vector3i) -> bool:
 	return false
 
 
+## Entering `anchor` ends the move: the figure can be impeded (not flying, not a shift) and touches a hero there.
+static func _impeded_at(ctx: Dictionary, anchor: Vector3i) -> bool:
+	return ctx.get("impede", false) and not ctx.get("flying", false) and _next_to_hero(ctx, anchor)
+
+
 ## The movement points of a move action that starts on `anchor`.
 static func _action_points(ctx: Dictionary, anchor: Vector3i, speed: int) -> int:
 	if speed <= 0:
@@ -400,7 +407,8 @@ static func _moves(ctx: Dictionary, anchor: Vector3i) -> Array:
 
 
 ## The cheapest way from `start` to every position within `budget` points: {position: {"cost", "from", "step"}}. Without `allow_bad`
-## spikes, poison and ember are never entered; with `one_move` a route ends where it enters spikes (that ends the move).
+## spikes, poison and ember are never entered; with `one_move` a route ends where it enters spikes or, when ctx["impede"], a square next to
+## a hero (both end the move).
 static func _reach(ctx: Dictionary, start: Vector3i, budget: int, allow_bad: bool, one_move: bool) -> Dictionary:
 	var best: Dictionary = {start: {"cost": 0, "from": start, "step": 0}}
 	var open: Array[Vector3i] = [start]
@@ -415,7 +423,7 @@ static func _reach(ctx: Dictionary, start: Vector3i, budget: int, allow_bad: boo
 		if done.has(current):
 			continue
 		done[current] = true
-		if one_move and current != start and _hazard_at(ctx, current) == Hazard.SPIKES:
+		if one_move and current != start and (_hazard_at(ctx, current) == Hazard.SPIKES or _impeded_at(ctx, current)):
 			continue
 		var cost_here: int = best[current]["cost"]
 		for move: Dictionary in _moves(ctx, current):
@@ -494,7 +502,7 @@ static func confused_move(board: Dictionary, monster: RuntimeMonster, position: 
 	for other: Dictionary in others:
 		for square in block(other["square"], int(other.get("size", 1))):
 			monster_squares[square] = true
-	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster)}
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster), "impede": true}
 	var points := _action_points(ctx, position, maxi(monster.effective_speed(), 0))
 	if points <= 0:
 		result["note"] = "it has no speed"
@@ -543,6 +551,8 @@ static func confused_move(board: Dictionary, monster: RuntimeMonster, position: 
 			while index < route.size() - 1 and int(route[index + 1]["cost"]) <= left:
 				index += 1
 				left -= int(route[index]["cost"])
+				if _impeded_at(ctx, route[index]["pos"]):
+					break
 			while index > 0 and not _can_stop(ctx, route[index]["pos"]):
 				index -= 1
 			if index > 0:
@@ -647,7 +657,7 @@ static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i,
 	for other: Dictionary in others:
 		for square in block(other["square"], int(other.get("size", 1))):
 			monster_squares[square] = true
-	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster)}
+	var ctx := {"board": board, "size": size, "hero_squares": hero_squares, "monster_squares": monster_squares, "flying": is_flying(monster), "impede": true}
 
 	var speed := maxi(int(stats.get("speed", monster.effective_speed())), 0)
 	var own_range := int(stats.get("range", monster.effective_attack_range()))
@@ -766,6 +776,7 @@ static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i,
 			break
 		var left := IMPEDED_POINTS if spiked else _action_points(ctx, route[index]["pos"], speed)
 		var moved := false
+		var impeded := false
 		while index < route.size() - 1 and int(route[index + 1]["cost"]) <= left:
 			index += 1
 			left -= int(route[index]["cost"])
@@ -773,9 +784,27 @@ static func plan(board: Dictionary, monster: RuntimeMonster, position: Vector3i,
 			if _hazard_at(ctx, route[index]["pos"]) == Hazard.SPIKES:
 				spiked = true
 				break
+			if _impeded_at(ctx, route[index]["pos"]):
+				impeded = true  # entering a square next to a hero ends the move
+				break
 		if not moved:
 			break
 		moves += 1
+		if action == 0 and impeded and _can_stop(ctx, route[index]["pos"]):
+			# impeded after the first move: the second action is an attack when a hero is in range now
+			var here: Vector3i = route[index]["pos"]
+			var in_range: Array[int] = []
+			for slot: int in spots_of:
+				if (spots_of[slot] as Dictionary).has(here):
+					in_range.append(slot)
+			if not in_range.is_empty():
+				var target := MonsterTargeting.choose_target(monster, in_range, targeting, rng)
+				result["target"] = target
+				result["attack"] = true
+				_fill(result, ctx, route, index, 1)
+				var target_square: Array[Vector3i] = [heroes[target]]
+				result["damage_bonus"] = damage_bonus(board, block(here, size), target_square)
+				return result
 	while index > 0 and not _can_stop(ctx, route[index]["pos"]):
 		index -= 1  # it may not end on another monster: stop one earlier
 	_fill(result, ctx, route, index, moves if index > 0 else 0)
