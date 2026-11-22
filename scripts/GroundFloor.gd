@@ -22,7 +22,12 @@ const MONSTER_TEXTURE := "res://models/floor_enemy.jpg"      ## official: EnemyG
 ## with a gamma curve in the shader: 1 = as it is, lower = brighter (it keeps the pattern, brightens the dark parts most).
 ## The shipped placeholders were already brightened in their files and are never touched. Tune these two after a look.
 const OFFICIAL_GAMMA_MAP := 0.7
-const OFFICIAL_GAMMA_MONSTER := 1.0
+const OFFICIAL_GAMMA_MONSTER := 0.85
+## The monster view's ground glows more than the map's (the original game's monster screen is a well lit floor) and its lit area is
+## much smaller (the figures there are about a third of a tile square), so the shadow fades over a shorter distance. Tune after a look.
+const MONSTER_GLOW := 0.45
+const MONSTER_FADE := 2.5
+const MONSTER_WOBBLE := 0.5
 
 ## The play area is lit, the ground around it falls into shadow: outside the rectangle the floor fades to this fraction of its
 ## brightness (1 = no shadow) over PLAY_FADE world units (a tile square is 3.2). Tune after a look.
@@ -93,13 +98,14 @@ static var _lift_shader: Shader
 
 ## Lights the play area (ground-local XZ rectangle, the same space the ground's parent uses) and lets the rest of the ground fall into
 ## shadow. Only the map ground made with `create()` understands this; an empty rect switches it off.
-static func set_play_area(ground: MeshInstance3D, area: Rect2) -> void:
+static func set_play_area(ground: MeshInstance3D, area: Rect2, fade: float = PLAY_FADE) -> void:
 	if ground == null or not ground.mesh is PlaneMesh:
 		return
 	var mat := (ground.mesh as PlaneMesh).material as ShaderMaterial
 	if mat == null:
 		return
 	mat.set_shader_parameter("area", Vector4(area.position.x, area.position.y, area.end.x, area.end.y))
+	mat.set_shader_parameter("fade", fade)
 
 
 ## `placeholder` is one of the two constants above; the original game's texture is used when it was imported.
@@ -110,7 +116,7 @@ static func create(y: float, placeholder: String = MAP_TEXTURE) -> MeshInstance3
 	var gamma := OFFICIAL_GAMMA_MAP if placeholder == MAP_TEXTURE else OFFICIAL_GAMMA_MONSTER
 	# A texture loaded from the user's imported files has no resource path; the shipped placeholder has one.
 	var imported: bool = texture != null and texture.resource_path == ""
-	if placeholder == MAP_TEXTURE or (imported and gamma < 1.0):
+	if placeholder == MAP_TEXTURE or placeholder == MONSTER_TEXTURE:
 		if _lift_shader == null:
 			_lift_shader = Shader.new()
 			_lift_shader.code = _LIFT_SHADER
@@ -122,8 +128,8 @@ static func create(y: float, placeholder: String = MAP_TEXTURE) -> MeshInstance3
 		lifted.set_shader_parameter("outside_light", PLAY_OUTSIDE_LIGHT)
 		lifted.set_shader_parameter("fade", PLAY_FADE)
 		lifted.set_shader_parameter("inside_boost", PLAY_INSIDE_BOOST)
-		lifted.set_shader_parameter("wobble", PLAY_WOBBLE)
-		lifted.set_shader_parameter("glow", PLAY_GLOW if placeholder == MAP_TEXTURE else 0.0)
+		lifted.set_shader_parameter("wobble", PLAY_WOBBLE if placeholder == MAP_TEXTURE else MONSTER_WOBBLE)
+		lifted.set_shader_parameter("glow", PLAY_GLOW if placeholder == MAP_TEXTURE else MONSTER_GLOW)
 		plane.material = lifted
 	else:
 		var mat := StandardMaterial3D.new()

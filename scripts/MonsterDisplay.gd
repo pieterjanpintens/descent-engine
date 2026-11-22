@@ -250,6 +250,15 @@ var _stands_root: Node3D
 ## M view, rebuilt by refresh_monsters(); what monster_at() tests against.
 var _stand_hits: Array = []
 
+var _ground: MeshInstance3D
+var _fog: MeshInstance3D  ## null without the game's cloud texture
+## How far the lit floor reaches past the outer monsters (world units; the stands are CELL_SPACING apart), the fog's size compared
+## with the map's, and the light on the figures. Tune after a look.
+const LIT_MARGIN := 1.2
+const FOG_SCALE := 0.15
+const KEY_LIGHT_ROTATION := Vector3(-50.0, 20.0, 0.0)
+const KEY_LIGHT_ENERGY := 0.9
+
 
 func _ready() -> void:
 	target_figure_diagonal = FIGURE_SIZE.length()
@@ -257,8 +266,18 @@ func _ready() -> void:
 	add_child(_stands_root)
 	if standalone:
 		return
-	# Same big concrete floor as the world map; the figures stand right on it.
-	add_child(GroundFloor.create(-0.01, GroundFloor.MONSTER_TEXTURE))
+	# Same big floor as the world map; the figures stand right on it. Like the map, only the area around the monsters is lit and the
+	# rest falls into shadow and fog (set in _frame_camera()).
+	_ground = GroundFloor.create(-0.01, GroundFloor.MONSTER_TEXTURE)
+	add_child(_ground)
+	_fog = PlayFog.create(FOG_SCALE)
+	if _fog != null:
+		add_child(_fog)
+	# The map's key light belongs to the map and is hidden with it; this one lights the figures from the camera's side.
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = KEY_LIGHT_ROTATION
+	light.light_energy = KEY_LIGHT_ENERGY
+	add_child(light)
 	_build_camera()
 	refresh_monsters([])
 
@@ -524,6 +543,9 @@ func _frame_camera(count: int) -> void:
 	# comment already warns about.
 	camera.set_limits(0.0, grid_width)
 	camera.jump_to(center, distance)
+	var lit_area := Rect2(0.0, 0.0, grid_width, grid_depth).grow(LIT_MARGIN)
+	GroundFloor.set_play_area(_ground, lit_area, GroundFloor.MONSTER_FADE)
+	PlayFog.set_area(_fog, lit_area)
 
 
 ## One "stand" = a base (the plastic-base stand-in) plus a figure (the real

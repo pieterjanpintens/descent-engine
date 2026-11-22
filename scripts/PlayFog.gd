@@ -50,7 +50,8 @@ static var _shader: Shader
 
 
 ## The fog plane, or null when the game's cloud texture was not imported.
-static func create() -> MeshInstance3D:
+## `scale` shrinks the whole look (cloud size, band, height) for a smaller scene - the monster view.
+static func create(scale: float = 1.0) -> MeshInstance3D:
 	var clouds := OfficialAssetOverrides.official_texture(CLOUD_NAME)
 	if clouds == null:
 		return null
@@ -60,16 +61,17 @@ static func create() -> MeshInstance3D:
 	var material := ShaderMaterial.new()
 	material.shader = _shader
 	material.set_shader_parameter("clouds", clouds)
-	material.set_shader_parameter("cloud_size", CLOUD_SIZE)
+	material.set_shader_parameter("cloud_size", CLOUD_SIZE * scale)
 	material.set_shader_parameter("strength", STRENGTH)
-	material.set_shader_parameter("inner", INNER)
-	material.set_shader_parameter("outer", OUTER)
+	material.set_shader_parameter("inner", INNER * scale)
+	material.set_shader_parameter("outer", OUTER * scale)
 	material.set_shader_parameter("tint", Vector3(TINT.r, TINT.g, TINT.b))
 	var plane := PlaneMesh.new()
 	plane.material = material
 	var fog := MeshInstance3D.new()
 	fog.mesh = plane
 	fog.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	fog.set_meta("scale", scale)
 	return fog
 
 
@@ -78,9 +80,10 @@ static func set_area(fog: MeshInstance3D, area: Rect2) -> void:
 	if fog == null:
 		return
 	var plane := fog.mesh as PlaneMesh
-	plane.size = area.size + Vector2.ONE * (2.0 * (OUTER + MARGIN))
+	var scale: float = fog.get_meta("scale", 1.0)
+	plane.size = area.size + Vector2.ONE * (2.0 * (OUTER + MARGIN) * scale)
 	var centre := area.get_center()
-	fog.position = Vector3(centre.x, HEIGHT, centre.y)
+	fog.position = Vector3(centre.x, HEIGHT * scale, centre.y)
 	var material := plane.material as ShaderMaterial
 	material.set_shader_parameter("area", Vector4(area.position.x, area.position.y, area.end.x, area.end.y))
 	material.set_shader_parameter("centre", centre)
