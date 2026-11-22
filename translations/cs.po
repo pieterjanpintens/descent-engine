@@ -2919,6 +2919,27 @@ msgstr "Příšery"
 msgid "Space for the whole map"
 msgstr "Místo pro celou mapu"
 
+msgid "success"
+msgstr "úspěch"
+
+msgid "surge"
+msgstr "nápor"
+
+msgid "damage"
+msgstr "zranění"
+
+msgid "fatigue"
+msgstr "únava"
+
+msgid "actions"
+msgstr "akce"
+
+msgid "health"
+msgstr "zdraví"
+
+msgid "advantage"
+msgstr "výhoda"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

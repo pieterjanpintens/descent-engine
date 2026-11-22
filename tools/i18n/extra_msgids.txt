@@ -44,3 +44,11 @@ gloves
 Large
 Medium
 Small
+# What the narrator says for the game's icons (GameIcons.SPOKEN)
+success
+surge
+damage
+fatigue
+actions
+health
+advantage

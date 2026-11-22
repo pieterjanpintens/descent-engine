@@ -236,7 +236,7 @@ func _voice_available(voice: Dictionary) -> bool:
 ## Piper reads one utterance per input line and writes ONE wav file for the run, so each piece goes
 ## in as a single line.
 static func _flatten(text: String) -> String:
-	var spoken := _without_asides(text)
+	var spoken := GameIcons.spoken(_without_asides(text), LogText.ui_locale_for(NarratorVoices.reading_language()))
 	return " ".join(spoken.replace("\r", " ").replace("\n", " ").replace("\t", " ").split(" ", false))
 
 

@@ -2919,6 +2919,27 @@ msgstr "Szörnyek"
 msgid "Space for the whole map"
 msgstr "Hely a teljes térképnek"
 
+msgid "success"
+msgstr "siker"
+
+msgid "surge"
+msgstr "roham"
+
+msgid "damage"
+msgstr "sebzés"
+
+msgid "fatigue"
+msgstr "fáradtság"
+
+msgid "actions"
+msgstr "akciók"
+
+msgid "health"
+msgstr "életerő"
+
+msgid "advantage"
+msgstr "előny"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

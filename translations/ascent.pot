@@ -65,7 +65,7 @@ msgstr ""
 msgid " There is no recipe left to gain."
 msgstr ""
 
-#: TableSetupSheet.gd:292 TableSetupSheet.gd:294 TableSetupSheet.gd:296
+#: TableSetupSheet.gd:294 TableSetupSheet.gd:296 TableSetupSheet.gd:298
 msgid "%d cm"
 msgstr ""
 
@@ -761,6 +761,10 @@ msgstr ""
 msgid "Act complete!"
 msgstr ""
 
+#: extra
+msgid "actions"
+msgstr ""
+
 #: HeroGrowthDialog.gd:343
 msgid "ACTIVE"
 msgstr ""
@@ -775,6 +779,10 @@ msgstr ""
 
 #: DefenseRules.gd:190
 msgid "adds %d damage to its next activation"
+msgstr ""
+
+#: extra
+msgid "advantage"
 msgstr ""
 
 #: Difficulty.gd:35
@@ -1005,7 +1013,7 @@ msgstr ""
 msgid "by %s"
 msgstr ""
 
-#: TableSetupSheet.gd:307
+#: TableSetupSheet.gd:309
 msgid "Camera"
 msgstr ""
 
@@ -1305,6 +1313,10 @@ msgstr ""
 msgid "Damage"
 msgstr ""
 
+#: extra
+msgid "damage"
+msgstr ""
+
 #: PlayerInteractionController.gd:729 Weapon.gd:41
 msgid "damage %d"
 msgstr ""
@@ -1521,6 +1533,10 @@ msgstr ""
 msgid "Failed to save - see the Output panel for details."
 msgstr ""
 
+#: extra
+msgid "fatigue"
+msgstr ""
+
 #: HeroGrowthDialog.gd:445 MissionPlayer.gd:2589
 msgid "Feat completed"
 msgstr ""
@@ -1723,6 +1739,10 @@ msgstr ""
 
 #: TrinketBenefits.gd:15
 msgid "Heal 4"
+msgstr ""
+
+#: extra
+msgid "health"
 msgstr ""
 
 #: MissionRuntime.gd:1078
@@ -2933,7 +2953,7 @@ msgstr ""
 msgid "SOON"
 msgstr ""
 
-#: TableSetupSheet.gd:283
+#: TableSetupSheet.gd:288
 msgid "Space for the whole map"
 msgstr ""
 
@@ -2983,6 +3003,14 @@ msgstr ""
 
 #: PlayerAttribute.gd:28
 msgid "Strength"
+msgstr ""
+
+#: extra
+msgid "success"
+msgstr ""
+
+#: extra
+msgid "surge"
 msgstr ""
 
 #: extra
@@ -3869,7 +3897,7 @@ msgstr ""
 msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
 msgstr ""
 
-#: TableSetupSheet.gd:299
+#: TableSetupSheet.gd:301
 msgid "Your side"
 msgstr ""
 

@@ -5,6 +5,8 @@ extends RefCounted
 ## they are private-use glyphs of its "D3 Calibri" font, wrapped in a glossary link (`<link=TERM_FATIGUE>`).
 ## The asset import copies that font to FONT_PATH (never shipped); `install()` hangs it behind the default font, so
 ## every Label, button and tooltip draws the glyphs. Without the font the cleaned texts say "[fatigue]" instead.
+## Authored texts can use the same names: "Heal 2 [health dial]", "Recover [actions]" - `apply()` turns the tag into the
+## icon when the font is there and leaves the word otherwise; `spoken()` gives the narrator a word instead.
 
 const FONT_PATH := "user://official_assets/game_icons.ttf"
 
@@ -13,7 +15,30 @@ const SCALE := 1.3
 const DROP := 0.0  # vertical shift of the icons (tried +-0.1: no visible difference at text sizes)
 const SPACING := 3  # extra pixels after each icon
 
+## Tag name (as the cleaned game texts write it, any case) -> glyph of the icon font.
+const ICONS := {
+	"success": 0xF5E8,
+	"surge": 0xF5E1,
+	"damage": 0xF5E5,
+	"fatigue": 0xF5E3,
+	"actions": 0xF5E4,
+	"health dial": 0xF5D0,
+	"advantage": 0xF5DE,
+}
+
+## What the narrator says for an icon (an app text, translated into the language read aloud).
+const SPOKEN := {
+	"success": "success",
+	"surge": "surge",
+	"damage": "damage",
+	"fatigue": "fatigue",
+	"actions": "actions",
+	"health dial": "health",
+	"advantage": "advantage",
+}
+
 static var _font: Font = null
+static var _tag_regex: RegEx = null
 static var _checked := false
 static var _installed := false
 
@@ -55,3 +80,46 @@ static func install() -> void:
 	var fallbacks: Array[Font] = base.fallbacks.duplicate()
 	fallbacks.append(_font)
 	base.fallbacks = fallbacks
+
+
+## `text` with every icon tag ("[fatigue]", "[Health Dial]") replaced by its icon - unchanged without the font.
+static func apply(text: String) -> String:
+	if not text.contains("[") or not available():
+		return text
+	return _replace_tags(text, func(tag: String) -> String: return String.chr(ICONS[tag]))
+
+
+## `text` as the narrator should read it: icon tags and icon glyphs become words in the language `locale` ("" = the
+## app's current language).
+static func spoken(text: String, locale: String = "") -> String:
+	var result := _replace_tags(text, func(tag: String) -> String: return _word(tag, locale)) if text.contains("[") else text
+	for tag: String in ICONS:
+		var glyph := String.chr(ICONS[tag])
+		if result.contains(glyph):
+			result = result.replace(glyph, " " + _word(tag, locale) + " ")
+	return result
+
+
+static func _word(tag: String, locale: String) -> String:
+	var word: String = SPOKEN[tag]
+	if locale == "":
+		return TranslationServer.translate(word)
+	var translation := TranslationServer.get_translation_object(locale)
+	if translation == null:
+		return word
+	var translated := String(translation.get_message(word))
+	return translated if translated != "" else word
+
+
+static func _replace_tags(text: String, replacement: Callable) -> String:
+	if _tag_regex == null:
+		_tag_regex = RegEx.create_from_string("\\[([A-Za-z ]+)\\]")
+	var result := ""
+	var last := 0
+	for found in _tag_regex.search_all(text):
+		var tag := found.get_string(1).strip_edges().to_lower()
+		if not ICONS.has(tag):
+			continue
+		result += text.substr(last, found.get_start() - last) + str(replacement.call(tag))
+		last = found.get_end()
+	return result + text.substr(last)

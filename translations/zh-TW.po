@@ -2919,6 +2919,27 @@ msgstr "怪物"
 msgid "Space for the whole map"
 msgstr "整張地圖所需的空間"
 
+msgid "success"
+msgstr "成功"
+
+msgid "surge"
+msgstr "激湧"
+
+msgid "damage"
+msgstr "傷害"
+
+msgid "fatigue"
+msgstr "疲勞"
+
+msgid "actions"
+msgstr "行動"
+
+msgid "health"
+msgstr "生命"
+
+msgid "advantage"
+msgstr "優勢"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家時）"

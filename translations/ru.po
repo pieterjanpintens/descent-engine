@@ -2919,6 +2919,27 @@ msgstr "Монстры"
 msgid "Space for the whole map"
 msgstr "Место для всей карты"
 
+msgid "success"
+msgstr "успех"
+
+msgid "surge"
+msgstr "всплеск"
+
+msgid "damage"
+msgstr "урон"
+
+msgid "fatigue"
+msgstr "усталость"
+
+msgid "actions"
+msgstr "действия"
+
+msgid "health"
+msgstr "здоровье"
+
+msgid "advantage"
+msgstr "преимущество"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

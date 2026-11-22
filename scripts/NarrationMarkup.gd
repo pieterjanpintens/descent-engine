@@ -23,10 +23,15 @@ static func segments(text: String, characters: Array[NarratorCharacter]) -> Arra
 	return found
 
 
-## The text without the tags of known characters - what is shown.
+## The text without the tags of known characters - what is shown. Icon tags ("[health dial]") become the game's icons
+## when its icon font was imported (GameIcons).
 static func plain(text: String, characters: Array[NarratorCharacter]) -> String:
 	if not text.contains("["):
 		return text
+	return GameIcons.apply(_untagged(text))
+
+
+static func _untagged(text: String) -> String:
 	var parts := PackedStringArray()
 	var cursor := 0
 	var regex := RegEx.new()

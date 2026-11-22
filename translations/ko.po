@@ -2919,6 +2919,27 @@ msgstr "괴물"
 msgid "Space for the whole map"
 msgstr "전체 지도에 필요한 공간"
 
+msgid "success"
+msgstr "성공"
+
+msgid "surge"
+msgstr "쇄도"
+
+msgid "damage"
+msgstr "피해"
+
+msgid "fatigue"
+msgstr "피로"
+
+msgid "actions"
+msgstr "행동"
+
+msgid "health"
+msgstr "체력"
+
+msgid "advantage"
+msgstr "이점"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

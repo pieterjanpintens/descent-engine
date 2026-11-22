@@ -2919,6 +2919,27 @@ msgstr "Monstruos"
 msgid "Space for the whole map"
 msgstr "Espacio para todo el mapa"
 
+msgid "success"
+msgstr "éxito"
+
+msgid "surge"
+msgstr "impulso"
+
+msgid "damage"
+msgstr "daño"
+
+msgid "fatigue"
+msgstr "fatiga"
+
+msgid "actions"
+msgstr "acciones"
+
+msgid "health"
+msgstr "salud"
+
+msgid "advantage"
+msgstr "ventaja"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

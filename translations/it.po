@@ -2919,6 +2919,27 @@ msgstr "Mostri"
 msgid "Space for the whole map"
 msgstr "Spazio per tutta la mappa"
 
+msgid "success"
+msgstr "successo"
+
+msgid "surge"
+msgstr "impeto"
+
+msgid "damage"
+msgstr "danni"
+
+msgid "fatigue"
+msgstr "fatica"
+
+msgid "actions"
+msgstr "azioni"
+
+msgid "health"
+msgstr "salute"
+
+msgid "advantage"
+msgstr "vantaggio"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d per %d giocatore)"

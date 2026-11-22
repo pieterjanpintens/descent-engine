@@ -140,3 +140,10 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 1014|%s subit %d dégâts et est vaincu.
 1015|Monstres
 1016|Espace pour toute la carte
+1017|succès
+1018|élan
+1019|dégâts
+1020|fatigue
+1021|actions
+1022|santé
+1023|avantage

@@ -2919,6 +2919,27 @@ msgstr "Monsters"
 msgid "Space for the whole map"
 msgstr "Ruimte voor de hele kaart"
 
+msgid "success"
+msgstr "succes"
+
+msgid "surge"
+msgstr "golf"
+
+msgid "damage"
+msgstr "schade"
+
+msgid "fatigue"
+msgstr "vermoeidheid"
+
+msgid "actions"
+msgstr "acties"
+
+msgid "health"
+msgstr "gezondheid"
+
+msgid "advantage"
+msgstr "voordeel"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d voor %d speler)"

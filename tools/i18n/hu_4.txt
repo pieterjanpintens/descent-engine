@@ -140,3 +140,10 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 1014|%s %d sebzést szenved, és legyőzték.
 1015|Szörnyek
 1016|Hely a teljes térképnek
+1017|siker
+1018|roham
+1019|sebzés
+1020|fáradtság
+1021|akciók
+1022|életerő
+1023|előny

@@ -140,3 +140,10 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1014|%s otrzymuje %d obrażeń i zostaje pokonany.
 1015|Potwory
 1016|Miejsce na całą mapę
+1017|sukces
+1018|przypływ
+1019|obrażenia
+1020|zmęczenie
+1021|akcje
+1022|zdrowie
+1023|przewaga

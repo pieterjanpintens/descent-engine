@@ -140,3 +140,10 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 1014|%s utrpí %d zranění a je poražen.
 1015|Příšery
 1016|Místo pro celou mapu
+1017|úspěch
+1018|nápor
+1019|zranění
+1020|únava
+1021|akce
+1022|zdraví
+1023|výhoda

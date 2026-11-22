@@ -2919,6 +2919,27 @@ msgstr "Potwory"
 msgid "Space for the whole map"
 msgstr "Miejsce na całą mapę"
 
+msgid "success"
+msgstr "sukces"
+
+msgid "surge"
+msgstr "przypływ"
+
+msgid "damage"
+msgstr "obrażenia"
+
+msgid "fatigue"
+msgstr "zmęczenie"
+
+msgid "actions"
+msgstr "akcje"
+
+msgid "health"
+msgstr "zdrowie"
+
+msgid "advantage"
+msgstr "przewaga"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

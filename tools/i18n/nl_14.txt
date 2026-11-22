@@ -140,3 +140,10 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 1014|%s krijgt %d schade en is verslagen.
 1015|Monsters
 1016|Ruimte voor de hele kaart
+1017|succes
+1018|golf
+1019|schade
+1020|vermoeidheid
+1021|acties
+1022|gezondheid
+1023|voordeel

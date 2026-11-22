@@ -1992,8 +1992,8 @@ func get_current_objective_descriptions(raw: bool = false) -> Array[String]:
 ## (a description without variables is shown as written - a plain "$5" in it is left alone).
 func objective_text(objective: MissionObjective) -> String:
 	if objective.description_variables.is_empty():
-		return objective.description
-	return _format_message(objective.description, objective.description_variables)
+		return GameIcons.apply(objective.description)
+	return GameIcons.apply(_format_message(objective.description, objective.description_variables))
 
 
 ## Load-time safety net for an accidentally-authored cycle - a DFS from

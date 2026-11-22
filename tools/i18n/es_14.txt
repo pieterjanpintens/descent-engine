@@ -140,3 +140,10 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1014|%s recibe %d de daño y es derrotado.
 1015|Monstruos
 1016|Espacio para todo el mapa
+1017|éxito
+1018|impulso
+1019|daño
+1020|fatiga
+1021|acciones
+1022|salud
+1023|ventaja

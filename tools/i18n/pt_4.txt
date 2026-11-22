@@ -140,3 +140,10 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 1014|%s sofre %d de dano e é derrotado.
 1015|Monstros
 1016|Espaço para o mapa inteiro
+1017|sucesso
+1018|ímpeto
+1019|dano
+1020|fadiga
+1021|ações
+1022|vida
+1023|vantagem
