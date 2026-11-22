@@ -1062,9 +1062,6 @@ msgstr "Najetím na brnění zobrazíte jeho pravidla. Brnění se nosí a vyhod
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Jak nástroj linie výhledu rozhoduje, zda se dvě pole vidí. Střed k rohu: čára od středu pole pozorovatele k libovolnému rohu cíle."
 
-msgid "HP %d · Level %d"
-msgstr "ZDR %d · Úroveň %d"
-
 msgid "Ignos"
 msgstr "Ignos"
 

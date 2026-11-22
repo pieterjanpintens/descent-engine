@@ -1062,9 +1062,6 @@ msgstr "방어구 위에 마우스를 올리면 규칙이 보입니다. 방어�
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "시선 도구가 두 칸이 서로 보이는지 판단하는 방법. 중심에서 모서리: 관찰자 칸의 가운데에서 대상의 어느 모서리로든 이은 선."
 
-msgid "HP %d · Level %d"
-msgstr "HP %d · 레벨 %d"
-
 msgid "Ignos"
 msgstr "불 원소"
 

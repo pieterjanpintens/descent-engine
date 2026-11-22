@@ -1062,9 +1062,6 @@ msgstr "Survolez une armure pour voir ses règles. L'armure se porte et se réso
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Comment l'outil de ligne de vue décide si deux cases se voient. Centre à coin : une ligne du milieu de la case de l'observateur à n'importe quel coin de la cible."
 
-msgid "HP %d · Level %d"
-msgstr "PV %d · Niveau %d"
-
 msgid "Ignos"
 msgstr "Ignos"
 

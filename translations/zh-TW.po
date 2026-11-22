@@ -1062,9 +1062,6 @@ msgstr "將滑鼠游標停在防具上查看其規則。防具在桌面上穿戴
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "視線工具如何判斷兩個格子能否互相看見。中心到角：從觀察者格子中心到目標任一個角的一條線。"
 
-msgid "HP %d · Level %d"
-msgstr "生命 %d · 等級 %d"
-
 msgid "Ignos"
 msgstr "火系元素"
 

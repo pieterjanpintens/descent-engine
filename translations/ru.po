@@ -1062,9 +1062,6 @@ msgstr "Наведите курсор на броню, чтобы увидеть
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Как инструмент линии видимости решает, видят ли друг друга две клетки. Центр к углу: линия от середины клетки наблюдателя до любого угла цели."
 
-msgid "HP %d · Level %d"
-msgstr "ОЗ %d · Уровень %d"
-
 msgid "Ignos"
 msgstr "Игнос"
 

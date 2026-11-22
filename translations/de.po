@@ -1062,9 +1062,6 @@ msgstr "Fahre über eine Rüstung, um ihre Regeln zu sehen. Rüstung wird am Tis
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Wie das Sichtlinien-Werkzeug entscheidet, ob zwei Felder einander sehen. Mitte zu Ecke: eine Linie von der Mitte des Feldes des Betrachters zu irgendeiner Ecke des Ziels."
 
-msgid "HP %d · Level %d"
-msgstr "LP %d · Stufe %d"
-
 msgid "Ignos"
 msgstr "Ignos"
 

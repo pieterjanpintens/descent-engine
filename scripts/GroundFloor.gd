@@ -25,7 +25,7 @@ const OFFICIAL_GAMMA_MAP := 0.7
 const OFFICIAL_GAMMA_MONSTER := 0.85
 ## The monster view's ground glows more than the map's (the original game's monster screen is a well lit floor) and its lit area is
 ## much smaller (the figures there are about a third of a tile square), so the shadow fades over a shorter distance. Tune after a look.
-const MONSTER_GLOW := 0.45
+const MONSTER_GLOW := 0.3
 const MONSTER_FADE := 2.5
 const MONSTER_WOBBLE := 0.5
 

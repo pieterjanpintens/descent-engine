@@ -1825,10 +1825,6 @@ msgstr ""
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr ""
 
-#: MonsterDisplay.gd:281
-msgid "HP %d · Level %d"
-msgstr ""
-
 #: extra
 msgid "Ignos"
 msgstr ""
@@ -3573,7 +3569,7 @@ msgstr ""
 msgid "Umbros (shadow)"
 msgstr ""
 
-#: MonsterDisplay.gd:283
+#: MonsterDisplay.gd:307
 msgid "Unaware"
 msgstr ""
 

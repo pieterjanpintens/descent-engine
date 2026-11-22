@@ -350,7 +350,6 @@
 350|Horn of Courage - %s was wounded.
 351|Hover an armor for its rules. Armor is worn and resolved at the table.
 352|How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target.
-353|HP %d · Level %d
 355|Ignos
 356|Ignos (fire)
 357|immune to %s

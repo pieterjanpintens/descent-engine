@@ -7,9 +7,10 @@ extends Camera3D
 ##   - A / D, the left / right arrow keys, or dragging with the right mouse button move it sideways
 ## The sideways range is limited to the monsters on show (`set_limits()`).
 
-## Looking down at the figures (radians; -0.54 = the old jump_to() angle, up 0.6 for every 1 back).
-const PITCH := -0.54
-const MIN_DISTANCE := 3.0
+## Looking down at the figures (radians): steep like the original game's monster screen (about 52 degrees). The nameplates are tilted
+## by the same angle so they face the camera.
+const PITCH := -0.9
+const MIN_DISTANCE := 2.0
 const MAX_DISTANCE := 40.0
 const ZOOM_STEP := 1.0
 const STRAFE_SPEED := 8.0  ## units per second with the keys

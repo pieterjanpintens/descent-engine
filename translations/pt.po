@@ -1062,9 +1062,6 @@ msgstr "Passe o mouse sobre uma armadura para ver suas regras. A armadura é ves
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Como a ferramenta de linha de visão decide se duas casas se veem. Centro a canto: uma linha do meio da casa do observador até qualquer canto do alvo."
 
-msgid "HP %d · Level %d"
-msgstr "PV %d · Nível %d"
-
 msgid "Ignos"
 msgstr "Ignos"
 

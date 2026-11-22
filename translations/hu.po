@@ -1062,9 +1062,6 @@ msgstr "Vidd az egeret egy páncél fölé a szabályaiért. A páncélt viselik
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Hogyan dönti el a látóvonal-eszköz, hogy két mező látja-e egymást. Középpont-sarok: egy vonal a megfigyelő mezejének közepéről a cél bármelyik sarkába."
 
-msgid "HP %d · Level %d"
-msgstr "ÉE %d · %d. szint"
-
 msgid "Ignos"
 msgstr "Ignos"
 

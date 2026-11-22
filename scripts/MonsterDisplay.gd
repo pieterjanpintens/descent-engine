@@ -55,21 +55,20 @@ const CELL_SPACING := 2.0
 const BASE_SIZE := Vector3(1.2, 0.15, 1.2)
 const FIGURE_SIZE := Vector3(0.6, 1.0, 0.6)  ## placeholder-cube size; its own diagonal is also the base target real meshes are auto-scaled to, see target_figure_diagonal below
 
-## Health bar (new 2026-09-29, "draw a health bar that shows 'progress'... in
-## the monster view it can go underneath the monster") - a small billboarded
-## quad sitting on the floor just in front of the base, baked from a
-## generated texture (dark background + a filled portion sized to the
-## hitpoints/max_hitpoints fraction) rather than two separately-positioned
-## quads - a billboard only screen-aligns its OWN rotation around its node's
-## origin, not a sibling node's world-space offset, so two independent quads
-## would drift out of alignment with each other at some camera angles in
-## this M-view's free-orbiting FreeLookCamera. One quad, one texture, always
-## correct regardless of view angle. Same "generated placeholder, not a real
-## asset" approach every other piece of this project's own art already uses.
-const HP_BAR_SIZE := Vector2(0.7, 0.09)  ## world units at size_units 1.0
-const HP_BAR_TEXTURE_SIZE := Vector2i(64, 8)
-const HP_BAR_LIFT := 0.02  ## just above floor level, in front of the base
-const HP_BAR_Z_OFFSET := 0.75  ## in front of the base (+Z), so it isn't hidden under the figure
+## Where the nameplate (MonsterNameplate) sits: the middle of the tilted plate, in front of the base and lifted so its lower
+## edge stays above the floor. Tune after a look.
+const PLATE_Z_OFFSET := 0.95
+const PLATE_LIFT := 0.38
+## The camera: distance for a single monster (more monsters add to it) and how far in front of the figures it looks.
+const CAMERA_BASE_DISTANCE := 3.2
+const CAMERA_LOOK_AHEAD := 0.35
+## The warm glow under every figure, like the original game's lit bases: an orange light just above the base and a soft glow on
+## the floor around it. Tune after a look.
+const BASE_GLOW_COLOR := Color(1.0, 0.45, 0.12)
+const BASE_GLOW_ENERGY := 1.6
+const BASE_GLOW_RANGE := 1.0
+const BASE_GLOW_FLOOR_SIZE := 2.0
+const BASE_GLOW_FLOOR_ALPHA := 0.55
 
 ## How deep to extrude the gap marker's flat quad into a real box, as a
 ## fraction of the panel's OWN height (outer-to-inner distance) rather than
@@ -256,6 +255,10 @@ var _fog: MeshInstance3D  ## null without the game's cloud texture
 ## with the map's, and the light on the figures. Tune after a look.
 const LIT_MARGIN := 1.2
 const FOG_SCALE := 0.15
+## The lit area here is small, so the fog stays at its edge (barely reaching in) and is thinner than the map's.
+const FOG_STRENGTH := 0.55
+const FOG_INNER := 0.15
+const FOG_OUTER := 0.45
 const KEY_LIGHT_ROTATION := Vector3(-50.0, 20.0, 0.0)
 const KEY_LIGHT_ENERGY := 0.9
 
@@ -270,7 +273,7 @@ func _ready() -> void:
 	# rest falls into shadow and fog (set in _frame_camera()).
 	_ground = GroundFloor.create(-0.01, GroundFloor.MONSTER_TEXTURE)
 	add_child(_ground)
-	_fog = PlayFog.create(FOG_SCALE)
+	_fog = PlayFog.create(FOG_SCALE, FOG_STRENGTH, FOG_INNER, FOG_OUTER)
 	if _fog != null:
 		add_child(_fog)
 	# The map's key light belongs to the map and is hidden with it; this one lights the figures from the camera's side.
@@ -297,16 +300,18 @@ func refresh_monsters(monsters: Array) -> void:
 		if info.is_empty():
 			continue
 		info["name"] = monster.display_name()
-		info["extra"] = tr("HP %d · Level %d") % [monster.hitpoints, monster.level]
-		if monster.unaware:
-			info["extra"] += "\n" + tr("Unaware")  # a surprised monster: skipped in the monster phase until it wakes
-		if not monster.conditions.is_empty():
-			var condition_names: Array[String] = []
-			for condition in monster.conditions:
-				condition_names.append(MonsterCondition.display_name(condition))
-			info["extra"] += "\n" + ", ".join(condition_names)
 		info["hitpoints"] = monster.hitpoints
 		info["max_hitpoints"] = monster.max_hitpoints
+		var status: Array[String] = []
+		if monster.unaware:
+			status.append(tr("Unaware"))
+		for condition in monster.conditions:
+			status.append(MonsterCondition.display_name(condition))
+		info["plate"] = {"name": monster.display_name(), "level": monster.level, "hitpoints": monster.hitpoints,
+			"max_hitpoints": monster.max_hitpoints, "defense": monster.effective_defense(),
+			"weaknesses": monster.weaknesses, "resistances": monster.resistances, "immunities": monster.immunities,
+			"known_weaknesses": monster.known_weaknesses, "known_resistances": monster.known_resistances,
+			"known_immunities": monster.known_immunities, "status": ", ".join(status)}
 		var origin := Vector3((i % GRID_COLUMNS) * CELL_SPACING, 0, (i / GRID_COLUMNS) * CELL_SPACING)
 		_build_stand(origin, info, i, MonsterChip.color(monster.chip))
 
@@ -533,7 +538,9 @@ func _frame_camera(count: int) -> void:
 	# enough here - this is a static initial framing, not something that
 	# needs a min-distance floor for a tiny grid, since FreeLookCamera
 	# navigation is right there either way).
-	var distance: float = max(grid_width, grid_depth) * 0.9 + 4.0
+	var distance: float = max(grid_width, grid_depth) * 0.9 + CAMERA_BASE_DISTANCE
+	# look a little in front of the figures, so figure and nameplate together sit in the middle of the screen
+	center.z += CAMERA_LOOK_AHEAD
 
 	# jump_to() (not a manual position + look_at()) specifically because it
 	# also updates FreeLookCamera's own internal _yaw/_pitch state - set
@@ -571,6 +578,14 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	# body proportions as well as size_units since the diagonal-based scale
 	# above no longer forces identical heights) so a genuinely bigger
 	# monster's name doesn't end up floating inside its own figure.
+	if monster.has("plate"):
+		# a registered monster in the monster view: the original game's nameplate in front of the base (level, name, health,
+		# defense, weaknesses, state) instead of a text label and a bare bar
+		_build_base_glow(origin, size_units)
+		var plate := MonsterNameplate.create(monster["plate"], MonsterViewCamera.PITCH)
+		plate.position = origin + Vector3(0, PLATE_LIFT, PLATE_Z_OFFSET * size_units)
+		_stands_root.add_child(plate)
+		return
 	var label := Label3D.new()
 	label.text = monster["name"] if not monster.has("extra") else "%s\n%s" % [monster["name"], monster["extra"]]
 	if standalone:
@@ -580,44 +595,45 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	label.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)
 
-	# Health bar, underneath the monster (per direct request) - only for a
-	# real registered monster (has both keys); the standalone spawn-placement
-	# holder's info dict (MissionPlayer._run_monster_spawn()) has neither, so
-	# this is silently skipped there - nothing to show a fraction of before
-	# combat has actually assigned hitpoints on the map.
-	if monster.has("hitpoints") and monster.has("max_hitpoints"):
-		_build_health_bar(origin, monster["hitpoints"], monster["max_hitpoints"], size_units)
+
+static var _glow_texture: Texture2D
 
 
-## A small billboarded quad on the floor just in front of the stand's base -
-## see HP_BAR_SIZE's own doc above for why this is one generated-texture quad
-## rather than two independently-positioned ones.
-func _build_health_bar(origin: Vector3, hitpoints: int, max_hitpoints: int, size_units: float) -> void:
-	if max_hitpoints <= 0:
-		return
-	var fraction := clampf(float(hitpoints) / float(max_hitpoints), 0.0, 1.0)
-	var image := Image.create(HP_BAR_TEXTURE_SIZE.x, HP_BAR_TEXTURE_SIZE.y, false, Image.FORMAT_RGBA8)
-	image.fill(Color(0.1, 0.02, 0.02, 0.9))
-	var filled_width := int(round(HP_BAR_TEXTURE_SIZE.x * fraction))
-	if filled_width > 0:
-		var bar_color := Color(0.75, 0.12, 0.1) if fraction > 0.25 else Color(0.85, 0.65, 0.1)
-		image.fill_rect(Rect2i(0, 0, filled_width, HP_BAR_TEXTURE_SIZE.y), bar_color)
-
-	var bar := MeshInstance3D.new()
+func _build_base_glow(origin: Vector3, size_units: float) -> void:
+	var light := OmniLight3D.new()
+	light.light_color = BASE_GLOW_COLOR
+	light.light_energy = BASE_GLOW_ENERGY
+	light.omni_range = BASE_GLOW_RANGE * size_units
+	light.position = origin + Vector3(0, 0.18, 0.25 * size_units)
+	_stands_root.add_child(light)
+	if _glow_texture == null:
+		var gradient := Gradient.new()
+		gradient.set_color(0, Color(1, 1, 1, 1))
+		gradient.set_color(1, Color(1, 1, 1, 0))
+		var texture := GradientTexture2D.new()
+		texture.gradient = gradient
+		texture.fill = GradientTexture2D.FILL_RADIAL
+		texture.fill_from = Vector2(0.5, 0.5)
+		texture.fill_to = Vector2(1.0, 0.5)
+		texture.width = 128
+		texture.height = 128
+		_glow_texture = texture
 	var quad := QuadMesh.new()
-	quad.size = HP_BAR_SIZE * size_units
+	quad.size = Vector2.ONE * BASE_GLOW_FLOOR_SIZE * size_units
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_texture = ImageTexture.create_from_image(image)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.albedo_texture = _glow_texture
+	material.albedo_color = Color(BASE_GLOW_COLOR, BASE_GLOW_FLOOR_ALPHA)
+	material.no_depth_test = false
 	quad.material = material
-	bar.mesh = quad
-	if standalone:
-		material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	else:
-		bar.rotation.x = MonsterViewCamera.PITCH  # faces the fixed monster-view camera (no billboard: it does not turn)
-	bar.position = origin + Vector3(0, _base_height() + HP_BAR_LIFT, HP_BAR_Z_OFFSET * size_units)
-	_stands_root.add_child(bar)
+	var glow := MeshInstance3D.new()
+	glow.mesh = quad
+	glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	glow.rotation.x = -PI * 0.5
+	glow.position = origin + Vector3(0, 0.004, 0.1 * size_units)
+	_stands_root.add_child(glow)
 
 
 func _build_placeholder_figure(origin: Vector3, index: int, size_units: float = 1.0) -> void:

@@ -50,8 +50,9 @@ static var _shader: Shader
 
 
 ## The fog plane, or null when the game's cloud texture was not imported.
-## `scale` shrinks the whole look (cloud size, band, height) for a smaller scene - the monster view.
-static func create(scale: float = 1.0) -> MeshInstance3D:
+## `scale` shrinks the whole look (cloud size, band, height) for a smaller scene - the monster view; `strength`, `inner` and `outer`
+## scale how thick the fog is and how far it reaches into the lit area and out into the dark.
+static func create(scale: float = 1.0, strength: float = 1.0, inner: float = 1.0, outer: float = 1.0) -> MeshInstance3D:
 	var clouds := OfficialAssetOverrides.official_texture(CLOUD_NAME)
 	if clouds == null:
 		return null
@@ -62,9 +63,9 @@ static func create(scale: float = 1.0) -> MeshInstance3D:
 	material.shader = _shader
 	material.set_shader_parameter("clouds", clouds)
 	material.set_shader_parameter("cloud_size", CLOUD_SIZE * scale)
-	material.set_shader_parameter("strength", STRENGTH)
-	material.set_shader_parameter("inner", INNER * scale)
-	material.set_shader_parameter("outer", OUTER * scale)
+	material.set_shader_parameter("strength", STRENGTH * strength)
+	material.set_shader_parameter("inner", INNER * scale * inner)
+	material.set_shader_parameter("outer", OUTER * scale * outer)
 	material.set_shader_parameter("tint", Vector3(TINT.r, TINT.g, TINT.b))
 	var plane := PlaneMesh.new()
 	plane.material = material

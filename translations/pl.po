@@ -1062,9 +1062,6 @@ msgstr "Najedź na pancerz, aby zobaczyć jego zasady. Pancerz nosi się i rozst
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Jak narzędzie linii widoczności decyduje, czy dwa pola się widzą. Środek do rogu: linia od środka pola obserwatora do dowolnego rogu celu."
 
-msgid "HP %d · Level %d"
-msgstr "PZ %d · Poziom %d"
-
 msgid "Ignos"
 msgstr "Ignos"
 

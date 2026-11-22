@@ -1062,9 +1062,6 @@ msgstr "Beweeg over een pantser voor de regels. Pantser wordt aan tafel gedragen
 msgid "How the line of sight tool decides whether two squares see each other. Centre to corner: a line from the middle of the viewer's square to any corner of the target."
 msgstr "Hoe de zichtlijntool bepaalt of twee tegels elkaar zien. Midden naar hoek: een lijn van het midden van de tegel van de kijker naar een willekeurige hoek van het doel."
 
-msgid "HP %d · Level %d"
-msgstr "HP %d · Niveau %d"
-
 msgid "Ignos"
 msgstr "Ignos"
 
