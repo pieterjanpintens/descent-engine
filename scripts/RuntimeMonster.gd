@@ -183,7 +183,9 @@ func current_tactic() -> MonsterTactic:
 ## What the prepared tactic does in response to a hero's attack (the game's "preemptive defense"), "" if nothing.
 func tactic_reaction_text(hero_name: String) -> String:
 	var tactic := current_tactic()
-	return tactic.reaction_text(display_name(), hero_name) if tactic != null else ""
+	if tactic == null:
+		return ""
+	return tactic.reaction_text(display_name(), hero_name, maxi(effective_attack_power() + tactic.damage_offset, 0))
 
 
 ## What the table is told about this monster's defense abilities when it is attacked: the game's text of every ability

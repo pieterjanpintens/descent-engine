@@ -36,30 +36,42 @@ var own_activation: String:
 @export var fail_key: String = ""
 @export var reaction_key: String = ""  ## what the prepared tactic does in response to a hero's attack
 @export var time_passes_key: String = ""  ## replaces the "Time passes" text while it is prepared
+## The number some game texts leave open ("tests will {1}", "terrifies {2} cards" - the data doesn't give it); 0 = not
+## set, the text then says "[number]". Only offered in the editor when one of the tactic's texts needs it.
+@export var number: int = 0
 
 
-func hint_text(monster_name: String, hero_name: String) -> String:
-	return _text(own_hint, hint_key, monster_name, hero_name)
+## `damage` = the monster's damage with this tactic (-1 = unknown), for the texts that name it.
+func hint_text(monster_name: String, hero_name: String, damage: int = -1) -> String:
+	return _text(own_hint, hint_key, monster_name, hero_name, damage)
 
 
-func activation_text(monster_name: String, hero_name: String) -> String:
-	return _text(own_activation, activation_key, monster_name, hero_name)
+func activation_text(monster_name: String, hero_name: String, damage: int = -1) -> String:
+	return _text(own_activation, activation_key, monster_name, hero_name, damage)
 
 
-func pass_text(monster_name: String, hero_name: String) -> String:
-	return _text("", pass_key, monster_name, hero_name)
+func pass_text(monster_name: String, hero_name: String, damage: int = -1) -> String:
+	return _text("", pass_key, monster_name, hero_name, damage)
 
 
-func fail_text(monster_name: String, hero_name: String) -> String:
-	return _text("", fail_key, monster_name, hero_name)
+func fail_text(monster_name: String, hero_name: String, damage: int = -1) -> String:
+	return _text("", fail_key, monster_name, hero_name, damage)
 
 
-func reaction_text(monster_name: String, hero_name: String) -> String:
-	return _text("", reaction_key, monster_name, hero_name)
+func reaction_text(monster_name: String, hero_name: String, damage: int = -1) -> String:
+	return _text("", reaction_key, monster_name, hero_name, damage)
 
 
 func time_passes_text() -> String:
 	return ItemData.text(time_passes_key) if time_passes_key != "" else ""
+
+
+## True when one of the game's texts of this tactic has a gap only `number` can fill.
+func needs_number() -> bool:
+	for key in [hint_key, activation_key, pass_key, fail_key, reaction_key]:
+		if ItemData.tactic_needs_number(key):
+			return true
+	return false
 
 
 ## True if the activation asks for a test with a pass and a fail result.
@@ -67,18 +79,18 @@ func has_test() -> bool:
 	return pass_key != "" or fail_key != ""
 
 
-func _text(own: String, key: String, monster_name: String, hero_name: String) -> String:
+func _text(own: String, key: String, monster_name: String, hero_name: String, damage: int) -> String:
 	if own.strip_edges() != "":
 		return own.replace("{name}", monster_name).replace("{hero}", hero_name)
 	if key == "":
 		return ""
-	return ItemData.fill_tactic(ItemData.text(key), monster_name, hero_name)
+	return ItemData.fill_tactic(ItemData.text(key), monster_name, hero_name, key, number, damage)
 
 
 func to_dict() -> Dictionary:
 	return {"name": tactic_name, "speed": speed, "damage_offset": damage_offset, "range": attack_range, "own_hint": own_hint,
 		"own_activation": own_activation, "hint_key": hint_key, "activation_key": activation_key, "pass_key": pass_key,
-		"fail_key": fail_key, "reaction_key": reaction_key, "time_passes_key": time_passes_key}
+		"fail_key": fail_key, "reaction_key": reaction_key, "time_passes_key": time_passes_key, "number": number}
 
 
 static func from_dict(d: Dictionary) -> MonsterTactic:
@@ -95,6 +107,7 @@ static func from_dict(d: Dictionary) -> MonsterTactic:
 	tactic.fail_key = str(d.get("fail_key", ""))
 	tactic.reaction_key = str(d.get("reaction_key", ""))
 	tactic.time_passes_key = str(d.get("time_passes_key", ""))
+	tactic.number = int(d.get("number", 0))
 	return tactic
 
 

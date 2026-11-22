@@ -182,24 +182,63 @@ static func text(key: String) -> String:
 	return _clean(str(_texts.get(key, "")))
 
 
-## A tactic's text with its {N} placeholders filled. The game uses them differently from text to text: an index written
-## "the {N}" is the monster, the lowest other index is the hero, anything else (a number the data doesn't give) "[number]".
-static func fill_tactic(text: String, monster_name: String, hero_name: String) -> String:
-	var monster_indices := {}
+## Tactic texts whose placeholders do not follow the usual rule (see fill_tactic()), checked by hand against the game's
+## English text: index -> "monster", "hero", "number" (the tactic's own number, MonsterTactic.number), "damage" (the
+## monster's tactic damage) or "" (dropped - Deep Breath ends with a {1} that is no hero).
+const TACTIC_SLOTS := {
+	"FAE_TACTIC_BUBBLE_TROUBLE_HINT": {"0": "monster", "1": "hero"},
+	"SHADE_TACTIC_DEEP_BREATH_ACTIVATION": {"0": "monster", "1": "", "2": "number"},
+	"BANDIT_TACTIC_RIPOSTE_PREEMPTIVE_DEFENSE": {"0": "monster", "1": "hero", "2": "damage"},
+	"BANDIT_TACTIC_RIPOSTE_PREEMPTIVE_DEFENSE_REACH": {"0": "monster", "1": "hero", "2": "damage"},
+	"ENEMY_ACTIVATION_ZEALOT_INCANTATION": {"0": "hero", "1": "number", "2": "monster"},
+	"GOLEM_TACTIC_TANTRUM_PREEMPTIVE": {"0": "monster", "1": "damage"},
+	"GOLEM_TACTIC_TANTRUM_PREEMPTIVE_NEAR": {"0": "monster", "1": "damage"},
+	"HARBINGER_TACTIC_ACID_BELCH_ACTIVATION": {"0": "number", "1": "monster"},
+	"SPECTER_TACTIC_AMALGAMATE_ACTIVATION_CONTINUE": {"0": "monster", "1": "number"},
+	"ENEMY_TACTIC_PARRY_TRIGGER": {"0": "monster", "1": "hero", "2": "number"},
+}
+
+
+## A tactic's text with its {N} placeholders filled. The game uses them differently from text to text: TACTIC_SLOTS
+## lists the known odd ones; otherwise an index written "the {N}" is the monster, the lowest other index is the hero and
+## anything else is a number the data doesn't give: the tactic's `number` (> 0), else "[number]". `damage` < 0 = unknown.
+static func fill_tactic(text: String, monster_name: String, hero_name: String, key: String = "", number: int = 0, damage: int = -1) -> String:
+	var number_text := str(number) if number > 0 else "[number]"
+	var values := {"monster": monster_name, "hero": hero_name, "number": number_text,
+		"damage": str(damage) if damage >= 0 else number_text, "": ""}
+	var slots: Dictionary = TACTIC_SLOTS.get(key, {})
+	if slots.is_empty():
+		slots = tactic_slots(text)
+	var result := text
+	for index: String in slots:
+		result = result.replace("{%s}" % index, values[slots[index]])
+	return result.strip_edges()
+
+
+## The usual reading of a tactic text's placeholders: index -> "monster" / "hero" / "number".
+static func tactic_slots(text: String) -> Dictionary:
+	var slots := {}
 	for found in RegEx.create_from_string("(?i)\\bthe \\{(\\d)\\}").search_all(text):
-		monster_indices[found.get_string(1)] = true
+		slots[found.get_string(1)] = "monster"
 	var others: Array[String] = []
 	for found in RegEx.create_from_string("\\{(\\d)\\}").search_all(text):
 		var index := found.get_string(1)
-		if not monster_indices.has(index) and not others.has(index):
+		if not slots.has(index) and not others.has(index):
 			others.append(index)
 	others.sort()
-	var result := text
-	for index: String in monster_indices:
-		result = result.replace("{%s}" % index, monster_name)
 	for position in others.size():
-		result = result.replace("{%s}" % others[position], hero_name if position == 0 else "[number]")
-	return result
+		slots[others[position]] = "hero" if position == 0 else "number"
+	return slots
+
+
+## True when the game's text of `key` has a placeholder only a tactic's own number can fill.
+static func tactic_needs_number(key: String) -> bool:
+	if key == "":
+		return false
+	var slots: Dictionary = TACTIC_SLOTS.get(key, {})
+	if slots.is_empty():
+		slots = tactic_slots(text(key))
+	return slots.values().has("number")
 
 
 ## One activation ability by its game key ({} when unknown or there is no export).

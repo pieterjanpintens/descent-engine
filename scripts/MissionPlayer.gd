@@ -1841,7 +1841,7 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 	var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0)
 	var range_text := _range_text_for(tactic.attack_range, false)
 	var text := tr("%s: %s!\nTarget %s - Damage %d - %s - Speed %d") % [who, tactic.tactic_name, hero_name, damage, range_text, tactic.speed]
-	var activation := tactic.activation_text(monster.display_name(), hero_name)
+	var activation := tactic.activation_text(monster.display_name(), hero_name, damage)
 	if activation != "":
 		text += "\n\n" + activation
 	var cfg := MonsterDisplay.preview_data(monster.folder)
@@ -2109,7 +2109,7 @@ func _tracked_tactic(monster: RuntimeMonster, who: String) -> void:
 		if plan["attack"]:
 			var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0) + int(plan["damage_bonus"])
 			text = tr("%s: %s!\nTarget %s - Damage %d - %s") % [who, tactic.tactic_name, hero_name, damage, _range_text_for(tactic.attack_range, false)]
-			var activation := tactic.activation_text(monster.display_name(), hero_name)
+			var activation := tactic.activation_text(monster.display_name(), hero_name, damage)
 			if activation != "":
 				text += "\n\n" + activation
 		else:

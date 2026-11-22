@@ -765,6 +765,14 @@ func _rebuild_tactic_rows() -> void:
 		top.add_child(_level_spin(tactic, "damage_offset", -99, 99))
 		top.add_child(_caption("Range"))
 		top.add_child(_level_spin(tactic, "attack_range", 0, 99))
+		if tactic.needs_number():
+			var tip := "The game's text leaves a number open here (a test's difficulty, how many cards...). 0 = not set: the text says [number]."
+			var number_caption := _caption("Number")
+			number_caption.tooltip_text = tip
+			top.add_child(number_caption)
+			var number_spin := _level_spin(tactic, "number", 0, 99)
+			number_spin.tooltip_text = tip
+			top.add_child(number_spin)
 		var remove := Button.new()
 		remove.text = "×"
 		remove.pressed.connect(func():
