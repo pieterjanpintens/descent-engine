@@ -18,12 +18,12 @@ const SHIELD := "res://models/ui/nameplate_shield.png"       ## Icon_Defense
 const DIAMOND := "res://models/ui/nameplate_weakness.png"    ## Icon_Weakness
 
 ## Layout in plate pixels. Tune after a look.
-const BADGE_RECT := Rect2(36, 2, 72, 72)
-const NAME_POS := Vector2(116, 54)
+const BADGE_RECT := Rect2(62, 2, 72, 72)
+const NAME_POS := Vector2(142, 54)
 const NAME_SIZE := 40
 const BAR_RECT := Rect2(96, 92, 452, 64)
-const HEART_RECT := Rect2(14, 72, 108, 108)
-const SHIELD_RECT := Rect2(520, 76, 92, 100)
+const HEART_RECT := Rect2(50, 72, 108, 108)
+const SHIELD_RECT := Rect2(494, 76, 92, 100)
 const NUMBER_SIZE := 40
 const DIAMOND_SIZE := 66.0
 const DIAMOND_TOP := 176.0
