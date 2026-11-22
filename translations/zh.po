@@ -2916,6 +2916,9 @@ msgstr "%s 受到 %d 点伤害并被击败。"
 msgid "Monsters"
 msgstr "怪物"
 
+msgid "Space for the whole map"
+msgstr "整张地图所需的空间"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"

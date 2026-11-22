@@ -139,3 +139,4 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 1013|%s %d sebzést szenved (%d életpontja maradt).
 1014|%s %d sebzést szenved, és legyőzték.
 1015|Szörnyek
+1016|Hely a teljes térképnek

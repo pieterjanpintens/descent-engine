@@ -2916,6 +2916,9 @@ msgstr "%s utrpí %d zranění a je poražen."
 msgid "Monsters"
 msgstr "Příšery"
 
+msgid "Space for the whole map"
+msgstr "Místo pro celou mapu"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pro %d hráče)"

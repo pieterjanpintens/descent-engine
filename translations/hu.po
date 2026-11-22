@@ -2916,6 +2916,9 @@ msgstr "%s %d sebzést szenved, és legyőzték."
 msgid "Monsters"
 msgstr "Szörnyek"
 
+msgid "Space for the whole map"
+msgstr "Hely a teljes térképnek"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

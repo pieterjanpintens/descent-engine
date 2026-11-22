@@ -1013,6 +1013,7 @@
 1013|%s takes %d damage (%d hitpoints left).
 1014|%s takes %d damage and is defeated.
 1015|Monsters
+1016|Space for the whole map
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

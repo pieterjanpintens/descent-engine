@@ -233,7 +233,7 @@ const REAL_MONSTERS := [
 ## once in `_ready()` instead.
 var target_figure_diagonal: float
 
-var camera: FreeLookCamera
+var camera: MonsterViewCamera
 
 ## Set BEFORE add_child() to use this node as a plain holder for individual
 ## stands placed via place_stand() (MissionPlayer's "place the monsters on
@@ -481,7 +481,9 @@ static func size_units(folder: String) -> float:
 ## world view already uses) for now - revisit once this stops being a
 ## "compare test meshes" mockup and becomes a real designed view.
 func _build_camera() -> void:
-	camera = FreeLookCamera.new()
+	# A fixed angle with only zoom and sideways moves (MonsterViewCamera): the names and health bars face it once
+	# instead of turning with it.
+	camera = MonsterViewCamera.new()
 	add_child(camera)
 
 	# Starts hidden (visible = false in MissionPlayer.tscn), but a node's
@@ -520,6 +522,7 @@ func _frame_camera(count: int) -> void:
 	# from stale zeros and snap the camera back to facing however it
 	# happened to be oriented at _ready(), same gotcha jump_to()'s own doc
 	# comment already warns about.
+	camera.set_limits(0.0, grid_width)
 	camera.jump_to(center, distance)
 
 
@@ -548,7 +551,10 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	# monster's name doesn't end up floating inside its own figure.
 	var label := Label3D.new()
 	label.text = monster["name"] if not monster.has("extra") else "%s\n%s" % [monster["name"], monster["extra"]]
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	if standalone:
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # on the map: the free map camera can look from anywhere
+	else:
+		label.rotation.x = MonsterViewCamera.PITCH  # faces the fixed monster-view camera (no billboard: it does not turn)
 	label.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)
 
@@ -582,9 +588,12 @@ func _build_health_bar(origin: Vector3, hitpoints: int, max_hitpoints: int, size
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_texture = ImageTexture.create_from_image(image)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	quad.material = material
 	bar.mesh = quad
+	if standalone:
+		material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	else:
+		bar.rotation.x = MonsterViewCamera.PITCH  # faces the fixed monster-view camera (no billboard: it does not turn)
 	bar.position = origin + Vector3(0, _base_height() + HP_BAR_LIFT, HP_BAR_Z_OFFSET * size_units)
 	_stands_root.add_child(bar)
 

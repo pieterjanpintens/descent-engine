@@ -139,3 +139,4 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 1013|%s subit %d dégâts (il lui reste %d points de vie).
 1014|%s subit %d dégâts et est vaincu.
 1015|Monstres
+1016|Espace pour toute la carte

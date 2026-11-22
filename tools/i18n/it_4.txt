@@ -139,3 +139,4 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 1013|%s subisce %d danni (gli restano %d punti vita).
 1014|%s subisce %d danni ed è sconfitto.
 1015|Mostri
+1016|Spazio per tutta la mappa

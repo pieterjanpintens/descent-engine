@@ -376,6 +376,11 @@ func pause_combat_view() -> void:
 		_leave_combat_view()
 
 
+## True while the full-screen combat view (weapon choice, successes, outcome) is on screen.
+func combat_view_shown() -> bool:
+	return visible and _combat != null and _combat.visible
+
+
 func _enter_combat_view(buttons: Array[Button]) -> void:
 	_scrim.visible = false
 	_panel.visible = false

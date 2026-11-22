@@ -316,6 +316,7 @@ func _ready() -> void:
 	_runtime.party_roster = player_roster
 	interaction_dock.monster_display = monster_display
 	interaction_dock.monster_sidebar = hud.monster_sidebar
+	hud.monster_sidebar.covered_provider = _map_covered
 	if resume_save == null:
 		for variable_name in GameState.campaign_mission_inputs:
 			_runtime.preset_variable(variable_name, GameState.campaign_mission_inputs[variable_name])
@@ -1337,6 +1338,17 @@ func _show_table_setup(automatic: bool) -> void:
 			var half := calibration.image_size * 0.5 / calibration.focal
 			fov = Vector2(minf(half.x, half.y), maxf(half.x, half.y))
 	await _setup_sheet.open_sheet(mission, fov)
+
+
+## True while a full-screen page covers the map (the monster cards then hide: they belong to the map view only).
+func _map_covered() -> bool:
+	if dialog.combat_view_shown():
+		return true
+	if _setup_sheet != null and _setup_sheet.visible:
+		return true
+	if _calibration_dialog != null and _calibration_dialog.visible:
+		return true
+	return embark_dialog != null and embark_dialog.visible
 
 
 ## The squares the placed monsters stand on (a large monster's four), for the table camera.

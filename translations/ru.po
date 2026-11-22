@@ -2916,6 +2916,9 @@ msgstr "%s получает %d урона и повержен."
 msgid "Monsters"
 msgstr "Монстры"
 
+msgid "Space for the whole map"
+msgstr "Место для всей карты"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d для %d игрока)"

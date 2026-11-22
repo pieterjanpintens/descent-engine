@@ -139,3 +139,4 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 1013|%s erleidet %d Schaden (noch %d Lebenspunkte).
 1014|%s erleidet %d Schaden und ist besiegt.
 1015|Monster
+1016|Platz für die ganze Karte

@@ -28,6 +28,7 @@ static func font(weight: int = 900) -> Font:
 	variation.base_font = base
 	variation.variation_opentype = {"wght": weight}
 	variation.variation_embolden = 1.1  # on top of the heaviest weight: the mockup's letters are fat
+	variation.fallbacks = [ThemeDB.fallback_font]  # glyphs Cinzel lacks (the game's rules icons...)
 	return variation
 
 

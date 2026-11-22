@@ -139,3 +139,4 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 1013|%s utrpí %d zranění (zbývá %d životů).
 1014|%s utrpí %d zranění a je poražen.
 1015|Příšery
+1016|Místo pro celou mapu

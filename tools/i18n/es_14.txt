@@ -139,3 +139,4 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1013|%s recibe %d de daño (le quedan %d puntos de vida).
 1014|%s recibe %d de daño y es derrotado.
 1015|Monstruos
+1016|Espacio para todo el mapa

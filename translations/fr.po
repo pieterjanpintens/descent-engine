@@ -2916,6 +2916,9 @@ msgstr "%s subit %d dégâts et est vaincu."
 msgid "Monsters"
 msgstr "Monstres"
 
+msgid "Space for the whole map"
+msgstr "Espace pour toute la carte"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d pour %d joueur)"

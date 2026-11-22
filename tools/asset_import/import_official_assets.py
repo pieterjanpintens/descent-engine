@@ -125,6 +125,29 @@ def read_official_names_from_gd():
     return dict(pairs)  # our_name -> official_name
 
 
+# The game's rules icons (success, surge, damage, fatigue, ...) are private-use glyphs of this font; the app hangs it
+# behind its own fonts (scripts/GameIcons.gd), so the icons show inside rules texts.
+ICON_FONT_NAME = "D3 Calibri"
+ICON_FONT_FILE = "game_icons.ttf"
+
+
+def save_icon_font(obj):
+    """Saves the game's icon font as ICON_FONT_FILE when `obj` (a Unity Font) is it. True when saved."""
+    try:
+        if (obj.peek_name() or "") != ICON_FONT_NAME:
+            return False
+        data = bytes(getattr(obj.read(), "m_FontData", b"") or b"")
+    except Exception:
+        return False
+    if not data:
+        return False
+    out_path = os.path.join(OVERRIDE_DIR, ICON_FONT_FILE)
+    with open(out_path, "wb") as f:
+        f.write(data)
+    print(f"saved {out_path}")
+    return True
+
+
 def main():
     if len(sys.argv) != 2:
         print(__doc__)
@@ -142,11 +165,17 @@ def main():
     print("Loading bundles folder (this can take a while)...")
     env = UnityPy.load(bundles_dir)
 
+    icon_font_saved = False
     for obj in env.objects:
+        if obj.type.name == "Font" and not icon_font_saved:
+            icon_font_saved = save_icon_font(obj)
+            continue
         if obj.type.name not in ("Texture2D", "Sprite"):
             continue
-        if not (wanted - found):
+        if not (wanted - found) and icon_font_saved:
             break
+        if not (wanted - found):
+            continue
         try:
             data = obj.read()
         except Exception:
@@ -169,6 +198,8 @@ def main():
             print(f"saved {out_path}")
             found.add(official)
 
+    if not icon_font_saved:
+        print(f"\nThe game's icon font ({ICON_FONT_NAME}) was not found - rules texts will show [fatigue] etc.")
     missing = wanted - found
     if missing:
         print(f"\nNot found in {bundles_dir}: {sorted(missing)}")

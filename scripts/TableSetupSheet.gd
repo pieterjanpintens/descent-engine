@@ -2,8 +2,8 @@ class_name TableSetupSheet
 extends Control
 
 ## "Set up the table": a full-screen page shown before the first stage of a mission (and of a new Table) is built, and from the Gear
-## menu. It draws the player's real table from above with the WHOLE map of the Table on it (every stage, also those not revealed yet),
-## the start area in orange with its distance to the left edge and to the player's edge, and - when a table camera is set up - where
+## menu. It draws the player's real table from above with the space the WHOLE map of the Table needs (every stage, also those not
+## revealed yet - only as a dashed rectangle, its shape would spoil them), the start area in orange with its distance to the left edge and to the player's edge, and - when a table camera is set up - where
 ## the camera stands and the part of the table it sees. The table size and the camera's height / distance behind the edge are edited
 ## right here and remembered (PlayerSettings). The plan itself is TableSetup.plan().
 ##
@@ -266,11 +266,26 @@ class _SheetView extends Control:
 			for p in camera["coverage"] as PackedVector2Array:
 				outline.append(to_view.call(p))
 			draw_colored_polygon(outline, COVERAGE_COLOR)
-		# the map and the start area
+		# the map only as the space it needs (its shape would give the unrevealed stages away), the start area in full
 		var start: Dictionary = plan["start_squares"]
+		var space := Rect2()
+		var first := true
 		for sq: Vector2i in plan["map_squares"]:
 			var box := TableSetup.square_rect(plan, sq)
-			draw_rect(Rect2(to_view.call(box.position), box.size * scale).grow(-0.4), START_COLOR if start.has(sq) else MAP_COLOR)
+			space = box if first else space.merge(box)
+			first = false
+		if not first:
+			var view_space := Rect2(to_view.call(space.position), space.size * scale)
+			draw_rect(view_space, Color(MAP_COLOR.r, MAP_COLOR.g, MAP_COLOR.b, 0.14))
+			var corners := [view_space.position, Vector2(view_space.end.x, view_space.position.y), view_space.end, Vector2(view_space.position.x, view_space.end.y)]
+			for i in 4:
+				_dashes(corners[i], corners[(i + 1) % 4], MAP_COLOR)
+		for sq: Vector2i in start:
+			var box := TableSetup.square_rect(plan, sq)
+			draw_rect(Rect2(to_view.call(box.position), box.size * scale).grow(-0.4), START_COLOR)
+		if not first:
+			var label_at := Rect2(to_view.call(space.position), space.size * scale).position + Vector2(0, -6)
+			draw_string(font, label_at, tr("Space for the whole map"), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, MAP_COLOR)
 		# distances of the start area to the left edge and to the player's edge
 		var start_rect: Rect2 = plan["start_rect"]
 		if start_rect.size != Vector2.ZERO:
@@ -307,9 +322,14 @@ class _SheetView extends Control:
 		draw_string(font, middle + Vector2(-box.x * 0.5, 5), text, HORIZONTAL_ALIGNMENT_CENTER, box.x, 13, MEASURE_COLOR)
 
 	func draw_dashes(a: Vector2, b: Vector2) -> void:
+		_dashes(a, b, MEASURE_COLOR)
+
+	func _dashes(a: Vector2, b: Vector2, color: Color) -> void:
 		var length := a.distance_to(b)
+		if length <= 0.0:
+			return
 		var direction := (b - a) / length
 		var t := 0.0
 		while t < length:
-			draw_line(a + direction * t, a + direction * minf(t + 6.0, length), MEASURE_COLOR, 2.0)
+			draw_line(a + direction * t, a + direction * minf(t + 6.0, length), color, 2.0)
 			t += 10.0

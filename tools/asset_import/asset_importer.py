@@ -21,7 +21,7 @@ import traceback
 # 2: the "Original props" step.
 # 4: the "Animated figures" step.
 # 5: the "Hero data" step.
-PROTOCOL = 5
+PROTOCOL = 6
 
 STEPS = [
     ("Textures, portraits, icons", "import_official_assets"),

@@ -338,7 +338,7 @@ static func _attachment_from_part(part: Dictionary, type_name: String) -> Weapon
 	attachment.icon_path = part["TextureAssetPath"]
 	attachment.part_slot = "B" if part["Slot"] == 1 else "C"
 	attachment.ability_name = _text(ability["KeyName"], "")
-	attachment.ability_text = _clean(_text(ability["KeyDesc"], ""))
+	attachment.ability_text = _clean(_raw(ability["KeyDesc"], ""))
 	return attachment
 
 
@@ -377,7 +377,7 @@ static func _weapon_from_part(part: Dictionary, game_weapon: Dictionary) -> Weap
 	var ability: Dictionary = _abilities.get(part["Ability"], {})
 	if not ability.is_empty():
 		weapon.ability_name = _text(ability["KeyName"], "")
-		weapon.ability_text = _clean(_text(ability["KeyDesc"], ""))
+		weapon.ability_text = _clean(_raw(ability["KeyDesc"], ""))
 	return weapon
 
 
@@ -385,22 +385,20 @@ static func _text(key: String, fallback: String) -> String:
 	return _without_glyphs(str(_texts.get(key, fallback))).strip_edges()
 
 
+## A rule text as stored, glyphs and markup still in it (for `_clean`, which keeps the icons).
+static func _raw(key: String, fallback: String) -> String:
+	return str(_texts.get(key, fallback))
+
+
 ## The game's private-use icon glyphs (an upgrade marker, a term icon) show as boxes in a normal font.
 static func _without_glyphs(text: String) -> String:
 	return RegEx.create_from_string("[\\x{E000}-\\x{F8FF}]").sub(text, "", true)
 
 
-## The game's texts carry rich-text markup: `<style=Term><link=TERM_FATIGUE></link></style>` is an icon (shown as the
-## word), `<b>..</b>` is bold. Plain text is what our labels show.
+## The game's texts carry rich-text markup: `<style=Term><link=TERM_FATIGUE></link></style>` is an icon (the game's
+## glyph, or "[fatigue]" without the imported icon font), `<b>..</b>` is bold. Plain text is what our labels show.
 static func _clean(text: String) -> String:
-	var icon := RegEx.create_from_string("<link=TERM_([A-Z_]+)>[^<]*</link>")
-	var result := icon.sub(text, "[$1]", true)
-	text = _without_glyphs(text)
-	var tags := RegEx.create_from_string("<[^>]*>")
-	result = tags.sub(result, "", true)
-	for match in RegEx.create_from_string("\\[([A-Z_]+)\\]").search_all(result):
-		result = result.replace(match.get_string(), "[%s]" % match.get_string(1).to_lower().replace("_", " "))
-	return result.strip_edges()
+	return ItemData.clean_markup(text)
 
 
 static func _load() -> void:

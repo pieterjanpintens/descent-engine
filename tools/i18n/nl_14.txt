@@ -139,3 +139,4 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 1013|%s krijgt %d schade (nog %d levenspunten).
 1014|%s krijgt %d schade en is verslagen.
 1015|Monsters
+1016|Ruimte voor de hele kaart

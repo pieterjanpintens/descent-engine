@@ -139,3 +139,4 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1013|%s otrzymuje %d obrażeń (zostało %d punktów życia).
 1014|%s otrzymuje %d obrażeń i zostaje pokonany.
 1015|Potwory
+1016|Miejsce na całą mapę

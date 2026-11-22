@@ -12,6 +12,10 @@ extends Node
 const OVERRIDE_DIR := "user://official_assets/"
 
 
+func _ready() -> void:
+	GameIcons.install()  # the game's rules icons in every text, when the import brought the font
+
+
 ## Call once at startup with the shared MeshLibrary (all four GridMaps -
 ## floor/prop/underlay - use the same one, so this only needs to run
 ## once, not per-grid). Scans EVERY item's current texture (not just ones

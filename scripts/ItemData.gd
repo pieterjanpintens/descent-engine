@@ -116,19 +116,33 @@ static func clean_markup(text: String) -> String:
 
 
 ## The game's rich-text markup as plain text: `<b>..</b>` and other tags go, a term link around words keeps the words, a
-## term link around an icon glyph becomes "[success]" (the glyphs show as boxes in a normal font).
+## term link around an icon glyph keeps the glyph when the game's icon font was imported (`GameIcons`), otherwise it
+## becomes "[success]" (the glyphs show as boxes in a normal font).
 static func _clean(text: String) -> String:
 	var icon := RegEx.create_from_string("<link=TERM_([A-Z_]+)>([^<]*)</link>")
+	var icons := GameIcons.available()
 	var result := ""
 	var last := 0
 	for found in icon.search_all(text):
-		result += text.substr(last, found.get_start() - last)
+		result += _without_glyphs(text.substr(last, found.get_start() - last))
 		var inner := _without_glyphs(found.get_string(2))
-		result += inner if inner != "" else "[%s]" % found.get_string(1).to_lower().replace("_", " ")
+		if inner == "":
+			var glyphs := _only_glyphs(found.get_string(2))
+			inner = glyphs if icons and glyphs != "" else "[%s]" % found.get_string(1).to_lower().replace("_", " ")
+		result += inner
 		last = found.get_end()
-	result += text.substr(last)
-	result = RegEx.create_from_string("<[^>]*>").sub(result, "", true)
-	return _without_glyphs(result).strip_edges()
+	result += _without_glyphs(text.substr(last))
+	# only the icons inside a term link survive; any other glyph (an upgrade marker...) was dropped above
+	return RegEx.create_from_string("<[^>]*>").sub(result, "", true).strip_edges()
+
+
+static func _only_glyphs(text: String) -> String:
+	var kept := ""
+	for i in text.length():
+		var code := text.unicode_at(i)
+		if code >= 0xE000 and code <= 0xF8FF:
+			kept += text[i]
+	return kept
 
 
 static func _without_glyphs(text: String) -> String:

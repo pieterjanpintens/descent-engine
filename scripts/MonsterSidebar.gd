@@ -117,8 +117,20 @@ func set_allowed(allowed: bool) -> void:
 	_apply_visibility()
 
 
+## Optional: returns true while a full-screen page covers the map (the combat view, the table setup sheet...); the
+## column then hides, so it only ever shows over the map itself. Set by MissionPlayer, checked every frame.
+var covered_provider: Callable
+
+
+func _process(_delta: float) -> void:
+	_apply_visibility()
+
+
 func _apply_visibility() -> void:
-	visible = _allowed and _map_view_shown and not _order.is_empty()
+	var covered := covered_provider.is_valid() and bool(covered_provider.call())
+	var shown := _allowed and _map_view_shown and not covered and not _order.is_empty()
+	if visible != shown:
+		visible = shown
 
 
 func _max_scroll() -> int:

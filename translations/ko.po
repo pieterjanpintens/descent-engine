@@ -2916,6 +2916,9 @@ msgstr "%s: %d 피해를 받고 쓰러집니다."
 msgid "Monsters"
 msgstr "괴물"
 
+msgid "Space for the whole map"
+msgstr "전체 지도에 필요한 공간"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"
