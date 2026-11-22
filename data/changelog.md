@@ -1,4 +1,9 @@
-﻿## v0.0.84 - 2026-11-18
+﻿## v0.0.85 - 2026-11-22
+- When the app moves the monsters, a monster that steps next to a hero is stopped there (impeded), as the rules say. It still attacks if it has an action left. Flying monsters and the Wight's Blade Sweep are not stopped.
+- New mission effects: put a condition on all or some monsters ("ring the bell: 4 monsters become Enfeebled"), deal damage to all or some random monsters, and make monsters go for a chosen hero or target rule ("the wolves go for Brynn"). Each can be limited to a monster group, a spawn area or a monster type.
+- The app has its own icon now.
+
+## v0.0.84 - 2026-11-18
 - Mission editor: the Play menu has a new switch, "The app moves the monsters", to test a mission with monster movement (also with Fast start: monsters get their tokens when they spawn).
 
 ## v0.0.83 - 2026-11-18
