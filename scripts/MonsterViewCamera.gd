@@ -7,12 +7,18 @@ extends Camera3D
 ##   - A / D, the left / right arrow keys, or dragging with the right mouse button move it sideways
 ## The sideways range is limited to the monsters on show (`set_limits()`).
 
-## Looking down at the figures (radians): steep like the original game's monster screen (about 52 degrees). The nameplates are tilted
-## by the same angle so they face the camera.
+## Looking down at the figures (radians): steep like the original game's monster screen (about 52 degrees) from ARC_DISTANCE on.
+## Zooming in closer moves the camera along an arc: lower and more level (CLOSE_PITCH at MIN_DISTANCE), looking at a point that
+## rises to CLOSE_LOOK_HEIGHT (the figures' middle), so close up you look the monsters in the face. The nameplates follow the
+## angle (`pitch_changed`).
 const PITCH := -0.9
-const MIN_DISTANCE := 2.0
+const CLOSE_PITCH := -0.22
+const ARC_DISTANCE := 4.0
+const CLOSE_LOOK_HEIGHT := 0.45
+const MIN_DISTANCE := 1.2
 const MAX_DISTANCE := 40.0
 const ZOOM_STEP := 1.0
+const CLOSE_ZOOM_STEP := 0.4  ## inside the arc the wheel moves in smaller steps
 const STRAFE_SPEED := 8.0  ## units per second with the keys
 const DRAG_SPEED := 0.02  ## units per pixel of right-button drag
 
@@ -21,10 +27,12 @@ var _distance := 12.0
 var _min_x := 0.0
 var _max_x := 0.0
 var _dragging := false
+var pitch := PITCH  ## the current angle (see PITCH)
+
+signal pitch_changed(pitch: float)
 
 
 func _ready() -> void:
-	rotation = Vector3(PITCH, 0.0, 0.0)
 	_apply()
 
 
@@ -46,9 +54,16 @@ func set_limits(min_x: float, max_x: float) -> void:
 
 
 func _apply() -> void:
-	rotation = Vector3(PITCH, 0.0, 0.0)
-	var back := Vector3(0.0, -sin(PITCH), cos(PITCH))  # from the target towards the camera
-	global_position = _target + back * _distance
+	# 0 = at ARC_DISTANCE or further, 1 = at MIN_DISTANCE; eased so the camera swings level only near the end (an arc)
+	var t := clampf((ARC_DISTANCE - _distance) / (ARC_DISTANCE - MIN_DISTANCE), 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	var new_pitch := lerpf(PITCH, CLOSE_PITCH, t)
+	rotation = Vector3(new_pitch, 0.0, 0.0)
+	var back := Vector3(0.0, -sin(new_pitch), cos(new_pitch))  # from the looked-at point towards the camera
+	global_position = _target + Vector3(0.0, CLOSE_LOOK_HEIGHT * t, 0.0) + back * _distance
+	if not is_equal_approx(new_pitch, pitch):
+		pitch = new_pitch
+		pitch_changed.emit(pitch)
 
 
 func _input(event: InputEvent) -> void:
@@ -58,7 +73,8 @@ func _input(event: InputEvent) -> void:
 		elif event.pressed and (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 			if get_viewport().gui_get_hovered_control() != null:
 				return  # a wheel turn over a panel belongs to that panel
-			var step := -ZOOM_STEP if event.button_index == MOUSE_BUTTON_WHEEL_UP else ZOOM_STEP
+			var size := ZOOM_STEP if _distance > ARC_DISTANCE else CLOSE_ZOOM_STEP
+			var step := -size if event.button_index == MOUSE_BUTTON_WHEEL_UP else size
 			_distance = clampf(_distance + step, MIN_DISTANCE, MAX_DISTANCE)
 			_apply()
 	elif event is InputEventMouseMotion and _dragging:

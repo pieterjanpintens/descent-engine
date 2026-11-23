@@ -509,6 +509,7 @@ func _build_camera() -> void:
 	# instead of turning with it.
 	camera = MonsterViewCamera.new()
 	add_child(camera)
+	camera.pitch_changed.connect(_on_camera_pitch_changed)
 
 	# Starts hidden (visible = false in MissionPlayer.tscn), but a node's
 	# _input()/_unhandled_input() processing is ON by default regardless of
@@ -582,7 +583,7 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 		# a registered monster in the monster view: the original game's nameplate in front of the base (level, name, health,
 		# defense, weaknesses, state) instead of a text label and a bare bar
 		_build_base_glow(origin, size_units)
-		var plate := MonsterNameplate.create(monster["plate"], MonsterViewCamera.PITCH)
+		var plate := MonsterNameplate.create(monster["plate"], camera.pitch if camera != null else MonsterViewCamera.PITCH)
 		plate.position = origin + Vector3(0, PLATE_LIFT, PLATE_Z_OFFSET * size_units)
 		_stands_root.add_child(plate)
 		return
@@ -591,9 +592,22 @@ func _build_stand(origin: Vector3, monster: Dictionary, index: int, chip_color: 
 	if standalone:
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # on the map: the free map camera can look from anywhere
 	else:
-		label.rotation.x = MonsterViewCamera.PITCH  # faces the fixed monster-view camera (no billboard: it does not turn)
+		label.rotation.x = camera.pitch if camera != null else MonsterViewCamera.PITCH  # faces the monster-view camera
+		label.add_to_group(FACING_GROUP)
 	label.position = origin + Vector3(0, _base_height() + FIGURE_SIZE.y * size_units + 0.3, 0)
 	_stands_root.add_child(label)
+
+
+## Nameplates and labels that are tilted to face the monster-view camera follow its angle while zooming.
+const FACING_GROUP := &"faces_monster_camera"
+
+
+func _on_camera_pitch_changed(new_pitch: float) -> void:
+	if _stands_root == null:
+		return
+	for node in _stands_root.find_children("*", "", true, false):
+		if node.is_in_group(FACING_GROUP):
+			(node as Node3D).rotation.x = new_pitch
 
 
 static var _glow_texture: Texture2D

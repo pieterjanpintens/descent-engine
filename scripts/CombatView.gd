@@ -88,6 +88,8 @@ const HP_BOX_SIZE := Vector2(240, 48)  ## ~2.5x the original compact heart-badge
 const DEFENSE_BOX_WIDTH := 100.0  ## the Defense badge's own width; height is pinned to HP_BOX_SIZE.y, see _build_defense_box()
 const HEADING_FONT_SIZE := 20  ## shared by "Damage Type" and "Weakness" so both bottom columns match ("use the same style for the weapon damage type, same font size")
 const PROPERTY_ICON_HEIGHT := 30.0  ## the small damage-type icon inside its bordered badge
+const BADGE_SIZE := 62.0  ## a damage-type / weakness badge: the monster view's diamond with the icon inside
+const BADGE_HALO_GROW := 7.0  ## how far the glow of a highlighted badge sticks out
 const TICK_COUNT := 8  ## the outer ring's radial tick marks, one every 45 degrees
 const TICK_RADIUS := 56.0  ## matches disc_wrap's own half-size (112/2) - the outer_ring's true edge
 const TICK_GAP := 2.0  ## small gap between the ring's edge and where a tick starts
@@ -110,8 +112,6 @@ const CHOICE_CAMERA_SCALE := 1.15  ## weapon-choice stage: a bit more headroom t
 ## themselves are left in models/icons/ (and tools/asset_import/
 ## generate_shield_icons.py kept, per the earlier "keep the script around"
 ## request) in case this look is revisited, just no longer referenced here.
-const ICON_BORDER_PADDING := Vector2(14, 14)  ## gap between the icon and its own (inner) border
-const ICON_BORDER_GAP := 7.0  ## gap between the inner and outer border, each side - widened 5 -> 9 (2026-10-01, "a small bit of whitespace (filled with black) between the inner and outer border"), then eased back slightly to 7 the same day once actually seen rendered
 const ICON_BORDER_COLOR := Color(0.72, 0.74, 0.78, 0.9)  ## gray outer ring, and the Damage Type row's own inner ring ("damage type can stay as is color wise")
 const WEAKNESS_BORDER_COLOR := Color(0.55, 0.12, 0.10)  ## dark red, same hue family as the background gradient's own monster-side end colour
 const RESISTANCE_BORDER_COLOR := Color(0.14, 0.22, 0.42)  ## dark blue, same hue family as the background gradient's own hero-side start colour
@@ -1321,103 +1321,50 @@ func _section(parent: Control, title: String, font_size: int) -> HBoxContainer:
 	return box
 
 
-## A small damage-type icon framed by a double gray border (new 2026-10-01,
-## "remove the shields, but a double gray border around the icons" -
-## replaces the earlier shield-background badge entirely, see
-## `tools/asset_import/generate_shield_icons.py`'s own doc comment for that
-## shield art's history). Used by both the Damage Type row and the combined
-## Weakness/Resistance list, so the two bottom corners stay visually
-## identical. Same concentric-ring idea as the successes picker's own
-## double ring (`disc_wrap`/`outer_ring`), just rectangular and per-icon:
-## an outer bordered box (always the neutral `ICON_BORDER_COLOR`, filled
-## black so the border reads clearly against the art behind it - "make
-## sure the color between the borders is also black so it is visible"), a
-## smaller bordered box inset inside it (also the icon's own dark backdrop,
-## black fill too so the two rings blend into one solid black field with
-## just their two border lines visible), and the icon centred on top of
-## both. `inner_border_color` (new, same round - "make weak inner border
-## dark red, resistance dark blue") lets the INNER ring alone carry the
-## weakness-vs-resistance distinction that used to live in the shield
-## art - `WEAKNESS_BORDER_COLOR`/`RESISTANCE_BORDER_COLOR` for those two
-## callers. Damage Type explicitly keeps the plain default
-## `ICON_BORDER_COLOR` gray ("damage type can stay as is color wise") -
-## it has no weakness/resistance concept of its own, so there's nothing
-## for a second colour to distinguish there; it still gets the same
-## square sizing and black-between-borders treatment as everything else,
-## only the colour was asked to stay put. (Immunity uses it too now, with
-## `IMMUNITY_BORDER_COLOR`.) **All badges render as an equal
-## SQUARE now** (new, same round -
-## "can we make all equal size (square)") - `icon`'s own box is a fixed
-## `h x h` square regardless of a given damage icon's real aspect ratio,
-## with `STRETCH_KEEP_ASPECT_CENTERED` still letterboxing the actual
-## artwork inside it undistorted - so every ring size this function builds
-## is identical across every icon, not just same-height-different-width
-## like the very first bordered pass.
-## `kind < 0` (not yet discovered) still shows the "?" icon - which
-## CATEGORY a monster has is never secret, only which damage type (same
-## rule `_icon_box()`'s own "?" already follows) - irrelevant for the
-## Damage Type row, which never passes `kind < 0` (a weapon's own damage
-## types are never secret).
-##
-## Both rings are `ConcaveBorderBox` now (new 2026-10-01, "make it arcs
-## pointing inward so that their tips come together on the corners making
-## sharp pointy corner") rather than a plain `StyleBoxFlat` rounded rect -
-## see that script's own doc for the actual arc geometry. A first pass at
-## this shape, asked for as one ("try something first we correct it") -
-## not yet seen rendered.
+## A damage-type / weakness / resistance / immunity badge, drawn like the monster view's nameplate (2026-11-23, replaced the
+## double concave borders): the game's diamond (`MonsterNameplate.DIAMOND`) with the icon inside, "?" when `kind < 0` (not
+## discovered yet). `inner_border_color` says what the entry is (WEAKNESS / RESISTANCE / IMMUNITY_BORDER_COLOR -> the
+## diamond's tint once discovered, `ICON_BORDER_COLOR` = neutral), `outer_border_color` a highlight (the attack or weapon
+## hits it): a glow behind the diamond, or - for a neutral badge such as the weapon choice - the diamond's own tint.
 func _bordered_icon_box(kind: int, tooltip: String, inner_border_color: Color = ICON_BORDER_COLOR, outer_border_color: Color = ICON_BORDER_COLOR) -> Control:
-	var h := PROPERTY_ICON_HEIGHT
-	var icon_texture := Vulnerability.icon(kind)
-	var icon_size := Vector2(h, h)
-	var inner_size := icon_size + ICON_BORDER_PADDING
-	var outer_size := inner_size + Vector2(ICON_BORDER_GAP, ICON_BORDER_GAP) * 2.0
-
+	# The monster view's diamond (MonsterNameplate): tinted by what the entry is once discovered (weakness gold, resistance red,
+	# immunity purple), white otherwise; a highlight (this attack / weapon hits it) is a glowing diamond behind it.
+	var tint := Color.WHITE
+	var category := inner_border_color != ICON_BORDER_COLOR
+	if category and kind >= 0:
+		if inner_border_color == WEAKNESS_BORDER_COLOR:
+			tint = MonsterNameplate.WEAKNESS_COLOR
+		elif inner_border_color == RESISTANCE_BORDER_COLOR:
+			tint = MonsterNameplate.RESISTANCE_COLOR
+		elif inner_border_color == IMMUNITY_BORDER_COLOR:
+			tint = MonsterNameplate.IMMUNITY_COLOR
+	var highlighted := outer_border_color != ICON_BORDER_COLOR
+	if highlighted and not category:
+		tint = outer_border_color  # the weapon-choice badges: only the highlight colour says something
 	var badge := Control.new()
-	badge.custom_minimum_size = outer_size
+	badge.custom_minimum_size = Vector2(BADGE_SIZE, BADGE_SIZE)
 	badge.tooltip_text = tooltip
-
-	# Both rings are ConcaveBorderBox now (new 2026-10-01, "make it arcs
-	# pointing inward so that their tips come together on the corners
-	# making sharp pointy corner") instead of a plain StyleBoxFlat rounded
-	# rect - see that script's own doc for the shape itself. Only the
-	# SHAPE changed here; the fill/border colour scheme from the previous
-	# round (always-gray outer, colour-coded inner) is untouched.
-	var outer_ring := ConcaveBorderBox.new()
-	outer_ring.fill_color = Color(0, 0, 0, 0.9)
-	outer_ring.border_color = outer_border_color
-	outer_ring.custom_minimum_size = outer_size
-	outer_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	outer_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_child(outer_ring)
-
-	# The inner ring doubles as the icon's own dark backdrop (the
-	# contrast fix from the previous round) - one box, not a separate
-	# backing plate plus a separate border. Its own border colour is the
-	# only thing that distinguishes a weakness entry from a resistance one
-	# now that the shield art is gone.
-	var inner_ring := ConcaveBorderBox.new()
-	inner_ring.fill_color = Color(0, 0, 0, 0.9)
-	inner_ring.border_color = inner_border_color
-	inner_ring.custom_minimum_size = inner_size
-	inner_ring.set_anchors_preset(Control.PRESET_CENTER)
-	inner_ring.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	inner_ring.grow_vertical = Control.GROW_DIRECTION_BOTH
-	inner_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_child(inner_ring)
-
-	var icon := TextureRect.new()
-	icon.texture = icon_texture
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = icon_size
-	icon.set_anchors_preset(Control.PRESET_CENTER)
-	icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	icon.grow_vertical = Control.GROW_DIRECTION_BOTH
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_child(icon)
-
+	var diamond := OfficialAssetOverrides.texture_for(MonsterNameplate.DIAMOND)
+	if highlighted and category:
+		badge.add_child(_badge_layer(diamond, BADGE_SIZE * 1.0, Color(outer_border_color, 0.85), BADGE_HALO_GROW))
+	badge.add_child(_badge_layer(diamond, BADGE_SIZE, tint, 0.0))
+	var icon := Vulnerability.icon(kind)
+	if icon != null:
+		badge.add_child(_badge_layer(icon, BADGE_SIZE, Color.WHITE, -BADGE_SIZE * MonsterNameplate.ICON_INSET))
 	return badge
 
+
+## One picture of a badge, centred in it and grown (or shrunk, negative) by `grow` pixels per side.
+func _badge_layer(texture: Texture2D, size: float, modulate_color: Color, grow: float) -> TextureRect:
+	var layer := TextureRect.new()
+	layer.texture = texture
+	layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	layer.modulate = modulate_color
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.position = Vector2(-grow, -grow)
+	layer.size = Vector2(size + grow * 2.0, size + grow * 2.0)
+	return layer
 
 func _clear(box: Control) -> void:
 	for c in box.get_children():

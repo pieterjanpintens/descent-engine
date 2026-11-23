@@ -27,10 +27,9 @@ const SHIELD_RECT := Rect2(494, 76, 92, 100)
 const NUMBER_SIZE := 40
 const DIAMOND_SIZE := 66.0
 const DIAMOND_TOP := 176.0
-## How far the icon inside a diamond stays from its edge (fraction of the diamond per side): the "?" picture is itself a
-## diamond, so it gets a bigger margin to fit inside the frame.
-const ICON_INSET := 0.2
-const UNKNOWN_INSET := 0.3
+## How far the icon inside a diamond stays from its edge (fraction of the diamond per side): the damage icons and the "?" are
+## diamonds themselves, so they need this margin to fit inside the frame.
+const ICON_INSET := 0.3
 const STATUS_TOP := 262.0
 const STATUS_SIZE := 24
 
@@ -71,6 +70,7 @@ static func create(info: Dictionary, facing_pitch: float, billboard: bool = fals
 		sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	else:
 		sprite.rotation.x = facing_pitch
+		sprite.add_to_group(MonsterDisplay.FACING_GROUP)
 	holder.add_child(sprite)
 	return holder
 
@@ -115,8 +115,7 @@ func _draw() -> void:
 		draw_texture_rect(_tex(DIAMOND), rect, false, entry["tint"])
 		var icon := _icon(entry["kind"])
 		if icon != null:
-			var inset := UNKNOWN_INSET if int(entry["kind"]) < 0 else ICON_INSET
-			draw_texture_rect(icon, rect.grow(-DIAMOND_SIZE * inset), false)
+			draw_texture_rect(icon, rect.grow(-DIAMOND_SIZE * ICON_INSET), false)
 		x += DIAMOND_SIZE + gap
 	# what state it is in
 	var status := str(_info.get("status", ""))
