@@ -1863,12 +1863,19 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 ## The monsters' turn: every live monster with an attack takes its turn in registry
 ## order (_monster_attack()).
 func _run_monster_attacks() -> void:
+	# When the app moves the monsters the camera goes from monster to monster (_frame_path()); afterwards it glides back to where it was.
+	var view_before := camera.export_view() if position_board != null and PlayerSettings.auto_camera_to_spawns else {}
 	for monster in _runtime.monsters.duplicate():
 		if _runtime.monsters.has(monster) and monster.attack_power > 0 and not monster.unaware:  # a surprised group stays put
 			var activation_marker := _feat_tracker.activation_start() if _feat_tracker != null else 0
 			await _monster_attack(monster)
 			if _feat_tracker != null:
 				_feat_tracker.activation_end(activation_marker)
+	if not view_before.is_empty() and camera.export_view() != view_before:
+		if DebugSession.skipping():
+			camera.import_view(view_before)
+		else:
+			await camera.glide_to_view(view_before, PATH_GLIDE_SECONDS).finished
 
 
 ## One monster's turn: it attacks once - more when an attack ability says so
@@ -1966,7 +1973,7 @@ func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
 		plan = _runtime.plan_activation(monster, board, player_roster, player_weapons)
 		var path: Array[Vector3i] = plan["path"]
 		position_board.show_path(path, monster.size)
-		_frame_path(path, monster.size)
+		await _frame_path(path, monster.size)
 		var cfg := _tracked_cfg(monster, plan, activation_lines)
 		var answer := await _tracked_dialog(monster, cfg)
 		if answer < 0:
@@ -1990,10 +1997,34 @@ func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
 	await _follow_up_attacks(monster, who, target)
 
 
-## Points the camera at a monster's path, a bit beyond it, so the path sits in the lower half of the screen under the dialog.
+## A monster's turn when the app moves it: the camera glides to the monster and its path, zoomed so the whole path fits, with the path's
+## middle at PATH_SCREEN_Y of the screen height - below the turn screen, which takes the top of the screen in that mode.
+const PATH_SCREEN_Y := 0.8
+const PATH_GLIDE_SECONDS := 0.6
+const PATH_VIEW_MIN := 10.0
+const PATH_VIEW_MAX := 26.0
+
+
 func _frame_path(path: Array[Vector3i], size: int) -> void:
-	if PlayerSettings.auto_camera_to_spawns:
-		camera.jump_to(position_board.path_centre(path, size) + Vector3(0, 0, -4.0), 14.0)
+	if not PlayerSettings.auto_camera_to_spawns or path.is_empty():
+		return
+	var centre := position_board.path_centre(path, size)
+	var extent := 0.0
+	for anchor in path:
+		extent = maxf(extent, centre.distance_to(position_board.centre_of(anchor, size)))
+	var view := camera.view_for(centre, clampf(PATH_VIEW_MIN + extent * 1.6, PATH_VIEW_MIN, PATH_VIEW_MAX))
+	# shift the view (the camera's angle stays) so the ray through that screen point hits the path's middle
+	var screen := get_viewport().get_visible_rect().size
+	var local_ray := camera.project_local_ray_normal(Vector2(screen.x * 0.5, screen.y * PATH_SCREEN_Y))
+	var ray := Basis.from_euler(Vector3(view["pitch"], view["yaw"], 0.0)) * local_ray
+	if ray.y < -0.01:
+		var from: Vector3 = view["position"]
+		var hit := from + ray * ((centre.y - from.y) / ray.y)
+		view["position"] = from + (centre - hit)
+	if DebugSession.skipping():
+		camera.import_view(view)
+	else:
+		await camera.glide_to_view(view, PATH_GLIDE_SECONDS).finished
 
 
 ## Shows a tracked turn's dialog (no dim, so the path on the map stays visible). Returns 0 = carry it out, 1 = the players interrupted
@@ -2035,7 +2066,7 @@ func _tracked_confused(monster: RuntimeMonster, who: String) -> void:
 		victim = MonsterMovement.nearest_monster(board, monster.position, monster.size, other_monsters) if kind == "friendly_fire" else null
 		var path: Array[Vector3i] = plan["path"]
 		position_board.show_path(path, monster.size)
-		_frame_path(path, monster.size)
+		await _frame_path(path, monster.size)
 		var lines: Array[String] = [tr("%s is confused!") % monster.display_name()]
 		if victim != null:
 			lines.append(tr("It lashes out at %s: %d damage.") % [_who(victim), damage])
@@ -2096,7 +2127,7 @@ func _tracked_tactic(monster: RuntimeMonster, who: String) -> void:
 			plan = _runtime.plan_activation(monster, board, player_roster, player_weapons, null, stats)
 		var path: Array[Vector3i] = plan["path"]
 		position_board.show_path(path, monster.size)
-		_frame_path(path, monster.size)
+		await _frame_path(path, monster.size)
 		var target: int = plan["target"]
 		var hero_name := HeroCatalog.slot_name(target) if target >= 0 else tr("a hero")
 		var lines: Array[String] = []

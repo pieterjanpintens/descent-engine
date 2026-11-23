@@ -46,6 +46,34 @@ func import_view(view: Dictionary) -> void:
 	global_position = view["position"]
 
 
+## The view jump_to(target, distance) would give, without moving the camera.
+func view_for(target: Vector3, distance: float = 12.0) -> Dictionary:
+	var from := target + Vector3(0, distance * 0.6, distance)
+	var angles := Basis.looking_at(target - from, Vector3.UP).get_euler()
+	return {"position": from, "yaw": angles.y, "pitch": angles.x}
+
+
+var _glide: Tween
+
+
+## Moves the camera smoothly to `view` (export_view() / view_for() shape) over `seconds`; await the returned tween's `finished`.
+## A new glide replaces one still running.
+func glide_to_view(view: Dictionary, seconds: float = 0.6) -> Tween:
+	if _glide != null and _glide.is_valid():
+		_glide.kill()
+	var from := export_view()
+	_glide = create_tween()
+	_glide.tween_method(func(t: float): _blend_view(from, view, t), 0.0, 1.0, seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	return _glide
+
+
+func _blend_view(a: Dictionary, b: Dictionary, t: float) -> void:
+	_yaw = lerp_angle(float(a["yaw"]), float(b["yaw"]), t)
+	_pitch = lerpf(float(a["pitch"]), float(b["pitch"]), t)
+	rotation = Vector3(_pitch, _yaw, 0)
+	global_position = (a["position"] as Vector3).lerp(b["position"], t)
+
+
 ## Repositions the camera to look at a world point (e.g. "jump to this
 ## placed tile" from CreatorPalette) - offsets back/up from the target so
 ## it's framed nicely rather than sitting exactly on top of it. Updates
