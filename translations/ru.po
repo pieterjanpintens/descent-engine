@@ -144,9 +144,6 @@ msgstr "%s атакует: %s (урон %d, %s)."
 msgid "%s attacks %s - choose a weapon"
 msgstr "%s атакует: %s - выберите оружие"
 
-msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
-msgstr "%s атакует: %s!%s\nУрон %d - %s - Скорость %d"
-
 msgid "%s attacks %s.\nWhich weapon?"
 msgstr "%s атакует: %s.\nКакое оружие?"
 
@@ -170,9 +167,6 @@ msgstr "%s исцелил %d (очков здоровья: %d)."
 
 msgid "%s is %s."
 msgstr "%s: %s."
-
-msgid "%s is confused!\n%s\n%s"
-msgstr "%s ошеломлён!\n%s\n%s"
 
 msgid "%s is confused: %s."
 msgstr "%s ошеломлён: %s."
@@ -230,9 +224,6 @@ msgstr "%s ранил героя - его ход окончен."
 
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr "Сумка с ингредиентами героя %s даёт случайный расходный предмет:"
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
-msgstr "%s: %s!\nЦель %s - Урон %d - %s - Скорость %d"
 
 msgid "%s: %s\nFixed parts: %s"
 msgstr "%s: %s\nПостоянные части: %s"
@@ -309,12 +300,6 @@ msgstr "\nСохранений этой кампании (%d) отложено �
 msgid "\n%d successes x %d weapon damage"
 msgstr "\n%d успехов x %d урона оружия"
 
-msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n(+%d урона от защитной способности при этой активации)"
-
-msgid "\n(Enfeebled: damage reduced from %d)"
-msgstr "\n(Ослаблен: урон уменьшен на %d)"
-
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr "\n\n%s получает травму «%s»: положите её карту в свою игровую зону."
 
@@ -344,9 +329,6 @@ msgstr "\n\nЭто третье ранение героя %s - игра буде
 
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr "\n\nКамень странника - каждый герой может выбрать альтернативную выгоду вместо сброса 1 истощения:"
-
-msgid "\nActivation: "
-msgstr "\nАктивация: "
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nА также немного материалов для ремесла отряду: %s."
@@ -2499,20 +2481,8 @@ msgstr "Подсвечено клеток: %d."
 msgid "%s attacks %s (damage %d)."
 msgstr "%s атакует: %s (урон %d)."
 
-msgid "%s attacks %s!"
-msgstr "%s атакует: %s!"
-
-msgid "%s attacks %s!%s\nDamage %d - %s"
-msgstr "%s атакует: %s!%s\nУрон %d - %s"
-
-msgid "%s is confused!\n%s"
-msgstr "%s в замешательстве!\n%s"
-
 msgid "%s is defeated! Remove it from the board."
 msgstr "%s побеждён! Уберите его с поля."
-
-msgid "%s moves and attacks %s!"
-msgstr "%s передвигается и атакует: %s!"
 
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr "%s движется к цели: %s (в этом раунде не может атаковать)."
@@ -2534,18 +2504,6 @@ msgstr "%s проходит через угли: %s."
 
 msgid "%s walks through poison: Enfeebled."
 msgstr "%s проходит через яд: Ослаблен."
-
-msgid "\n(+%d: fire / barricade)"
-msgstr "\n(+%d: огонь / баррикада)"
-
-msgid "\nDamage %d - %s"
-msgstr "\nУрон %d - %s"
-
-msgid "\nMove the figure along the orange line to the marked square."
-msgstr "\nПередвиньте фигурку вдоль оранжевой линии на отмеченную клетку."
-
-msgid "\nOn the way: "
-msgstr "\nПо пути: "
 
 msgid "A hero is wounded"
 msgstr "Герой ранен"
@@ -2669,9 +2627,6 @@ msgstr "%s отброшен на %d клет. - поставьте фигурк�
 
 msgid "%s moves %d space(s) away from %s."
 msgstr "%s отходит на %d клет. от цели: %s."
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s"
-msgstr "%s: %s!\nЦель %s - Урон %d - %s"
 
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "У какого героя больше всего усталости? (При равенстве выберите одного.)"
@@ -2936,6 +2891,36 @@ msgstr "здоровье"
 
 msgid "advantage"
 msgstr "преимущество"
+
+msgid "%s is confused!"
+msgstr "%s в замешательстве!"
+
+msgid "(+%d damage from a defense ability this activation)"
+msgstr "(+%d урона от защитной способности в этой активации)"
+
+msgid "(+%d: fire / barricade)"
+msgstr "(+%d: огонь / баррикада)"
+
+msgid "(Enfeebled: damage reduced from %d)"
+msgstr "(Ослаблен: урон снижен с %d)"
+
+msgid "Activation: "
+msgstr "Активация: "
+
+msgid "Move the figure along the orange line to the marked square, then it attacks."
+msgstr "Переместите фигурку по оранжевой линии на отмеченную клетку; затем она атакует."
+
+msgid "On the way: "
+msgstr "По пути: "
+
+msgid "Melee"
+msgstr "Ближний бой"
+
+msgid "Reach"
+msgstr "Досягаемость"
+
+msgid "Target:"
+msgstr "Цель:"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

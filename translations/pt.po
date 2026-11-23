@@ -144,9 +144,6 @@ msgstr "%s ataca %s (dano %d, %s)."
 msgid "%s attacks %s - choose a weapon"
 msgstr "%s ataca %s - escolha uma arma"
 
-msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
-msgstr "%s ataca %s!%s\nDano %d - %s - Deslocamento %d"
-
 msgid "%s attacks %s.\nWhich weapon?"
 msgstr "%s ataca %s.\nQual arma?"
 
@@ -170,9 +167,6 @@ msgstr "%s curou %d (%d pontos de vida)."
 
 msgid "%s is %s."
 msgstr "%s está %s."
-
-msgid "%s is confused!\n%s\n%s"
-msgstr "%s está desorientado!\n%s\n%s"
 
 msgid "%s is confused: %s."
 msgstr "%s está desorientado: %s."
@@ -230,9 +224,6 @@ msgstr "%s feriu um herói - seu turno acabou."
 
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr "O Cesto para Poções de %s fornece um consumível aleatório:"
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
-msgstr "%s: %s!\nAlvo %s - Dano %d - %s - Deslocamento %d"
 
 msgid "%s: %s\nFixed parts: %s"
 msgstr "%s: %s\nPeças fixas: %s"
@@ -309,12 +300,6 @@ msgstr "\n%d jogo(s) salvo(s) dela foram postos de lado (user://campaign_saves/_
 msgid "\n%d successes x %d weapon damage"
 msgstr "\n%d sucessos x %d de dano da arma"
 
-msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n(+%d de dano de uma habilidade de defesa nesta ativação)"
-
-msgid "\n(Enfeebled: damage reduced from %d)"
-msgstr "\n(Febril: dano reduzido em %d)"
-
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr "\n\n%s ganha o ferimento «%s»: ponha a carta dele na sua área de jogo."
 
@@ -344,9 +329,6 @@ msgstr "\n\nEste é o terceiro ferimento de %s - o jogo será perdido!"
 
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr "\n\nPedra Errante - cada herói pode escolher seu benefício alternativo em vez de descartar 1 fadiga:"
-
-msgid "\nActivation: "
-msgstr "\nAtivação: "
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nTambém alguns materiais de criação para o grupo: %s."
@@ -2499,20 +2481,8 @@ msgstr "%d espaço(s) destacado(s)."
 msgid "%s attacks %s (damage %d)."
 msgstr "%s ataca %s (dano %d)."
 
-msgid "%s attacks %s!"
-msgstr "%s ataca %s!"
-
-msgid "%s attacks %s!%s\nDamage %d - %s"
-msgstr "%s ataca %s!%s\nDano %d - %s"
-
-msgid "%s is confused!\n%s"
-msgstr "%s está confuso!\n%s"
-
 msgid "%s is defeated! Remove it from the board."
 msgstr "%s foi derrotado! Retire-o do tabuleiro."
-
-msgid "%s moves and attacks %s!"
-msgstr "%s se move e ataca %s!"
 
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr "%s se move em direção a %s (não pode atacar nesta rodada)."
@@ -2534,18 +2504,6 @@ msgstr "%s atravessa as brasas: %s."
 
 msgid "%s walks through poison: Enfeebled."
 msgstr "%s atravessa o veneno: Febril."
-
-msgid "\n(+%d: fire / barricade)"
-msgstr "\n(+%d: fogo / barricada)"
-
-msgid "\nDamage %d - %s"
-msgstr "\nDano %d - %s"
-
-msgid "\nMove the figure along the orange line to the marked square."
-msgstr "\nMova a miniatura pela linha laranja até o espaço marcado."
-
-msgid "\nOn the way: "
-msgstr "\nNo caminho: "
 
 msgid "A hero is wounded"
 msgstr "Um herói é ferido"
@@ -2669,9 +2627,6 @@ msgstr "%s é empurrado %d espaço(s) para trás - coloquem a miniatura no marca
 
 msgid "%s moves %d space(s) away from %s."
 msgstr "%s se afasta %d espaço(s) de %s."
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s"
-msgstr "%s: %s!\nAlvo %s - Dano %d - %s"
 
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Qual herói tem mais fadiga? (Em caso de empate, escolham um.)"
@@ -2936,6 +2891,36 @@ msgstr "vida"
 
 msgid "advantage"
 msgstr "vantagem"
+
+msgid "%s is confused!"
+msgstr "%s está confuso!"
+
+msgid "(+%d damage from a defense ability this activation)"
+msgstr "(+%d de dano por uma habilidade de defesa nesta ativação)"
+
+msgid "(+%d: fire / barricade)"
+msgstr "(+%d: fogo / barricada)"
+
+msgid "(Enfeebled: damage reduced from %d)"
+msgstr "(Enfraquecido: dano reduzido de %d)"
+
+msgid "Activation: "
+msgstr "Ativação: "
+
+msgid "Move the figure along the orange line to the marked square, then it attacks."
+msgstr "Mova a miniatura pela linha laranja até o espaço marcado; depois ela ataca."
+
+msgid "On the way: "
+msgstr "No caminho: "
+
+msgid "Melee"
+msgstr "Corpo a corpo"
+
+msgid "Reach"
+msgstr "Alcance"
+
+msgid "Target:"
+msgstr "Alvo:"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

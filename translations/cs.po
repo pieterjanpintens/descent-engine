@@ -144,9 +144,6 @@ msgstr "%s útočí na %s (zranění %d, %s)."
 msgid "%s attacks %s - choose a weapon"
 msgstr "%s útočí na %s - vyberte zbraň"
 
-msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
-msgstr "%s útočí na %s!%s\nZranění %d - %s - Rychlost %d"
-
 msgid "%s attacks %s.\nWhich weapon?"
 msgstr "%s útočí na %s.\nKterou zbraní?"
 
@@ -170,9 +167,6 @@ msgstr "%s se vyléčil o %d (zdraví %d)."
 
 msgid "%s is %s."
 msgstr "%s je %s."
-
-msgid "%s is confused!\n%s\n%s"
-msgstr "%s je zmatený!\n%s\n%s"
 
 msgid "%s is confused: %s."
 msgstr "%s je zmatený: %s."
@@ -230,9 +224,6 @@ msgstr "%s zranil hrdinu - jeho tah končí."
 
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr "Koš na vaření hrdiny %s poskytuje náhodný spotřebovatelný předmět:"
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
-msgstr "%s: %s!\nCíl %s - Zranění %d - %s - Rychlost %d"
 
 msgid "%s: %s\nFixed parts: %s"
 msgstr "%s: %s\nPevné části: %s"
@@ -309,12 +300,6 @@ msgstr "\n%d uložených her je odsunuto stranou (user://campaign_saves/_removed
 msgid "\n%d successes x %d weapon damage"
 msgstr "\n%d úspěchů x %d zranění zbraně"
 
-msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n(+%d zranění z obranné schopnosti při této aktivaci)"
-
-msgid "\n(Enfeebled: damage reduced from %d)"
-msgstr "\n(Oslabení: zranění sníženo z %d)"
-
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr "\n\n%s získává zranění „%s“: položte jeho kartu do své herní oblasti."
 
@@ -344,9 +329,6 @@ msgstr "\n\nToto je třetí zranění hrdiny %s - hra bude prohrána!"
 
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr "\n\nKámen poutníka - každý hrdina si může místo odhození 1 únavy vybrat svou alternativní výhodu:"
-
-msgid "\nActivation: "
-msgstr "\nAktivace: "
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nTaké nějaké řemeslné materiály pro skupinu: %s."
@@ -2499,20 +2481,8 @@ msgstr "Zvýrazněná pole: %d."
 msgid "%s attacks %s (damage %d)."
 msgstr "%s útočí na %s (zranění %d)."
 
-msgid "%s attacks %s!"
-msgstr "%s útočí na %s!"
-
-msgid "%s attacks %s!%s\nDamage %d - %s"
-msgstr "%s útočí na %s!%s\nZranění %d - %s"
-
-msgid "%s is confused!\n%s"
-msgstr "%s je zmatený!\n%s"
-
 msgid "%s is defeated! Remove it from the board."
 msgstr "%s je poražen! Odstraňte ho z desky."
-
-msgid "%s moves and attacks %s!"
-msgstr "%s se pohne a útočí na %s!"
 
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr "%s se pohybuje k %s (v tomto kole nemůže útočit)."
@@ -2534,18 +2504,6 @@ msgstr "%s prochází žhavými uhlíky: %s."
 
 msgid "%s walks through poison: Enfeebled."
 msgstr "%s prochází jedem: Oslabený."
-
-msgid "\n(+%d: fire / barricade)"
-msgstr "\n(+%d: oheň / barikáda)"
-
-msgid "\nDamage %d - %s"
-msgstr "\nZranění %d - %s"
-
-msgid "\nMove the figure along the orange line to the marked square."
-msgstr "\nPosuňte figurku podél oranžové čáry na označené pole."
-
-msgid "\nOn the way: "
-msgstr "\nCestou: "
 
 msgid "A hero is wounded"
 msgstr "Hrdina je zraněn"
@@ -2669,9 +2627,6 @@ msgstr "%s je odstrčen o %d pole - postavte figurku na její žeton."
 
 msgid "%s moves %d space(s) away from %s."
 msgstr "%s se vzdálí o %d pole od %s."
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s"
-msgstr "%s: %s!\nCíl %s - Zranění %d - %s"
 
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Který hrdina má nejvíc únavy? (Při shodě vyberte jednoho.)"
@@ -2936,6 +2891,36 @@ msgstr "zdraví"
 
 msgid "advantage"
 msgstr "výhoda"
+
+msgid "%s is confused!"
+msgstr "%s je zmatený!"
+
+msgid "(+%d damage from a defense ability this activation)"
+msgstr "(+%d zranění ze schopnosti obrany při této aktivaci)"
+
+msgid "(+%d: fire / barricade)"
+msgstr "(+%d: oheň / barikáda)"
+
+msgid "(Enfeebled: damage reduced from %d)"
+msgstr "(Oslabený: zranění sníženo z %d)"
+
+msgid "Activation: "
+msgstr "Aktivace: "
+
+msgid "Move the figure along the orange line to the marked square, then it attacks."
+msgstr "Posuň figurku po oranžové čáře na označené pole; potom zaútočí."
+
+msgid "On the way: "
+msgstr "Cestou: "
+
+msgid "Melee"
+msgstr "Na blízko"
+
+msgid "Reach"
+msgstr "Dosah"
+
+msgid "Target:"
+msgstr "Cíl:"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

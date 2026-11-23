@@ -44,7 +44,6 @@
 44|%s \"%s\" - version %s
 45|%s attacks %s (damage %d, %s).
 46|%s attacks %s - choose a weapon
-47|%s attacks %s!%s\nDamage %d - %s - Speed %d
 48|%s attacks %s.\nWhich weapon?
 49|%s attacks %s\nwith the %s (damage %d)\n
 50|%s dropped something usable. %s
@@ -53,7 +52,6 @@
 53|%s has been defeated.
 54|%s healed %d (%d hitpoints).
 55|%s is %s.
-56|%s is confused!\n%s\n%s
 57|%s is confused: %s.
 58|%s is immune
 59|%s is less likely to be its target this round
@@ -73,7 +71,6 @@
 73|%s was wounded a third time.
 74|%s wounded a hero - its turn is over.
 75|%s's Brew Basket provides a random consumable:
-76|%s: %s!\nTarget %s - Damage %d - %s - Speed %d
 77|%s: %s\nFixed parts: %s
 78|%s: defense +%d until the end of the round
 79|%s: interact with '%s'
@@ -99,8 +96,6 @@
 99|\n%d mission(s), %d picture(s), %.1f MB.
 100|\n%d save game(s) of it are moved aside (user://campaign_saves/_removed), not deleted.
 101|\n%d successes x %d weapon damage
-102|\n(+%d damage from a defense ability this activation)
-103|\n(Enfeebled: damage reduced from %d)
 104|\n\n%s gains the \"%s\" injury: put its card in your play area.
 105|\n\n%s has %d hitpoints left.
 106|\n\n%s is defeated! Remove it from the board.
@@ -111,7 +106,6 @@
 111|\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later.
 112|\n\nThis is %s's third wound - the game will be lost!
 113|\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:
-114|\nActivation: 
 115|\nAlso some crafting materials for the party: %s.
 116|\nAt the table: 
 117|\nConditions applied: %s
@@ -829,11 +823,7 @@
 875|The feat order cannot be changed in this campaign.
 876|%d square(s) highlighted.
 877|%s attacks %s (damage %d).
-878|%s attacks %s!
-879|%s attacks %s!%s\nDamage %d - %s
-880|%s is confused!\n%s
 881|%s is defeated! Remove it from the board.
-882|%s moves and attacks %s!
 883|%s moves towards %s (it cannot attack this round).
 884|%s moves towards %s.
 885|%s stays where it is.
@@ -841,10 +831,6 @@
 887|%s takes %d damage.
 888|%s walks through embers: %s.
 889|%s walks through poison: Enfeebled.
-890|\n(+%d: fire / barricade)
-891|\nDamage %d - %s
-892|\nMove the figure along the orange line to the marked square.
-893|\nOn the way: 
 894|A hero is wounded
 895|A monster is defeated
 896|Coming soon
@@ -886,7 +872,6 @@
 932|%s cannot be pushed back.
 933|%s is pushed back %d space(s) - move the figure to its token.
 934|%s moves %d space(s) away from %s.
-935|%s: %s!\nTarget %s - Damage %d - %s
 936|Which hero has the most fatigue? (A tie: pick one.)
 937|Bigger than a large table (%d x %d cm).
 938|Fits a large table (%d x %d cm).
@@ -975,6 +960,16 @@
 1021|actions
 1022|health
 1023|advantage
+1024|%s is confused!
+1025|(+%d damage from a defense ability this activation)
+1026|(+%d: fire / barricade)
+1027|(Enfeebled: damage reduced from %d)
+1028|Activation: 
+1029|Move the figure along the orange line to the marked square, then it attacks.
+1030|On the way: 
+1031|Melee
+1032|Reach
+1033|Target:
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

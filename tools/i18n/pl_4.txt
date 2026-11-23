@@ -147,3 +147,13 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1021|akcje
 1022|zdrowie
 1023|przewaga
+1024|%s jest zdezorientowany!
+1025|(+%d obrażeń ze zdolności obronnej podczas tej aktywacji)
+1026|(+%d: ogień / barykada)
+1027|(Osłabiony: obrażenia zmniejszone z %d)
+1028|Aktywacja: 
+1029|Przesuń figurkę wzdłuż pomarańczowej linii na zaznaczone pole; potem atakuje.
+1030|Po drodze: 
+1031|Wręcz
+1032|Zasięg
+1033|Cel:

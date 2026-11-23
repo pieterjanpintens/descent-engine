@@ -144,9 +144,6 @@ msgstr "%s 攻擊 %s（傷害 %d，%s）。"
 msgid "%s attacks %s - choose a weapon"
 msgstr "%s 攻擊 %s - 請選擇武器"
 
-msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
-msgstr "%s 攻擊 %s！%s\n傷害 %d - %s - 速度 %d"
-
 msgid "%s attacks %s.\nWhich weapon?"
 msgstr "%s 攻擊 %s。\n使用哪件武器？"
 
@@ -170,9 +167,6 @@ msgstr "%s 治療了 %d（生命 %d）。"
 
 msgid "%s is %s."
 msgstr "%s：%s。"
-
-msgid "%s is confused!\n%s\n%s"
-msgstr "%s 陷入困惑！\n%s\n%s"
 
 msgid "%s is confused: %s."
 msgstr "%s 陷入困惑：%s。"
@@ -230,9 +224,6 @@ msgstr "%s 使一名英雄受傷——其回合結束。"
 
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr "%s 的釀造竹籃提供一個隨機道具："
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
-msgstr "%s：%s！\n目標 %s - 傷害 %d - %s - 速度 %d"
 
 msgid "%s: %s\nFixed parts: %s"
 msgstr "%s：%s\n固定部件：%s"
@@ -309,12 +300,6 @@ msgstr "\n其中 %d 個存檔已被移到一旁（user://campaign_saves/_removed
 msgid "\n%d successes x %d weapon damage"
 msgstr "\n%d 個成功 x %d 點武器傷害"
 
-msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n（本次啟動中防禦能力額外 +%d 點傷害）"
-
-msgid "\n(Enfeebled: damage reduced from %d)"
-msgstr "\n（弱化：傷害減少 %d）"
-
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr "\n\n%s 獲得了傷勢「%s」：請將其卡牌放入你的遊戲區域。"
 
@@ -344,9 +329,6 @@ msgstr "\n\n這是 %s 的第三次受傷——遊戲將失敗！"
 
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr "\n\n漂流者之石——每名英雄可以選擇其備選好處，而不是棄掉 1 點疲勞："
-
-msgid "\nActivation: "
-msgstr "\n啟動： "
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\n另外還有一些給團隊的製作材料：%s。"
@@ -2499,20 +2481,8 @@ msgstr "已標示 %d 個格子。"
 msgid "%s attacks %s (damage %d)."
 msgstr "%s 攻擊 %s（傷害 %d）。"
 
-msgid "%s attacks %s!"
-msgstr "%s 攻擊 %s！"
-
-msgid "%s attacks %s!%s\nDamage %d - %s"
-msgstr "%s 攻擊 %s！%s\n傷害 %d - %s"
-
-msgid "%s is confused!\n%s"
-msgstr "%s 陷入混亂！\n%s"
-
 msgid "%s is defeated! Remove it from the board."
 msgstr "%s 被擊敗了！請將其從桌面上移除。"
-
-msgid "%s moves and attacks %s!"
-msgstr "%s 移動並攻擊 %s！"
 
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr "%s 向 %s 移動（本輪無法攻擊）。"
@@ -2534,18 +2504,6 @@ msgstr "%s 穿過餘燼：%s。"
 
 msgid "%s walks through poison: Enfeebled."
 msgstr "%s 穿過毒液：弱化。"
-
-msgid "\n(+%d: fire / barricade)"
-msgstr "\n（+%d：火焰 / 路障）"
-
-msgid "\nDamage %d - %s"
-msgstr "\n傷害 %d - %s"
-
-msgid "\nMove the figure along the orange line to the marked square."
-msgstr "\n沿橘色線將模型移動到標記的格子。"
-
-msgid "\nOn the way: "
-msgstr "\n途中： "
 
 msgid "A hero is wounded"
 msgstr "一名英雄受傷"
@@ -2669,9 +2627,6 @@ msgstr "%s 被擊退 %d 格——請把模型移到它的標記處。"
 
 msgid "%s moves %d space(s) away from %s."
 msgstr "%s 後退 %d 格，遠離 %s。"
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s"
-msgstr "%s：%s！\n目標 %s - 傷害 %d - %s"
 
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "哪位英雄的疲勞最多？（平手時任選一位。）"
@@ -2936,6 +2891,36 @@ msgstr "生命"
 
 msgid "advantage"
 msgstr "優勢"
+
+msgid "%s is confused!"
+msgstr "%s陷入混亂！"
+
+msgid "(+%d damage from a defense ability this activation)"
+msgstr "（本次啟動中防禦能力使傷害+%d）"
+
+msgid "(+%d: fire / barricade)"
+msgstr "（+%d：火焰/路障）"
+
+msgid "(Enfeebled: damage reduced from %d)"
+msgstr "（虛弱：傷害從%d降低）"
+
+msgid "Activation: "
+msgstr "啟動： "
+
+msgid "Move the figure along the orange line to the marked square, then it attacks."
+msgstr "沿橘色線將模型移到標記的格子；然後它會攻擊。"
+
+msgid "On the way: "
+msgstr "途中： "
+
+msgid "Melee"
+msgstr "近戰"
+
+msgid "Reach"
+msgstr "觸及"
+
+msgid "Target:"
+msgstr "目標："
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

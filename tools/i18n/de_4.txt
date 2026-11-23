@@ -147,3 +147,13 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 1021|Aktionen
 1022|Leben
 1023|Vorteil
+1024|%s ist verwirrt!
+1025|(+%d Schaden durch eine Verteidigungsfähigkeit bei dieser Aktivierung)
+1026|(+%d: Feuer / Barrikade)
+1027|(Geschwächt: Schaden verringert von %d)
+1028|Aktivierung: 
+1029|Bewege die Figur entlang der orangen Linie auf das markierte Feld; danach greift sie an.
+1030|Unterwegs: 
+1031|Nahkampf
+1032|Reichweite
+1033|Ziel:

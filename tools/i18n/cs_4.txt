@@ -147,3 +147,13 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 1021|akce
 1022|zdraví
 1023|výhoda
+1024|%s je zmatený!
+1025|(+%d zranění ze schopnosti obrany při této aktivaci)
+1026|(+%d: oheň / barikáda)
+1027|(Oslabený: zranění sníženo z %d)
+1028|Aktivace: 
+1029|Posuň figurku po oranžové čáře na označené pole; potom zaútočí.
+1030|Cestou: 
+1031|Na blízko
+1032|Dosah
+1033|Cíl:

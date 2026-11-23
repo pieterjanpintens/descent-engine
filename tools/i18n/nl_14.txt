@@ -147,3 +147,13 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 1021|acties
 1022|gezondheid
 1023|voordeel
+1024|%s is in de war!
+1025|(+%d schade door een verdedigingsvermogen bij deze activatie)
+1026|(+%d: vuur / barricade)
+1027|(Verzwakt: schade verlaagd van %d)
+1028|Activatie: 
+1029|Verplaats de figuur langs de oranje lijn naar het gemarkeerde vak; daarna valt hij aan.
+1030|Onderweg: 
+1031|Melee
+1032|Reikwijdte
+1033|Doelwit:

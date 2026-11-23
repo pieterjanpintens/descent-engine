@@ -1846,13 +1846,8 @@ func _monster_tactic(monster: RuntimeMonster, who: String) -> void:
 		return
 	var hero_name := HeroCatalog.slot_name(slot)
 	var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0)
-	var range_text := _range_text_for(tactic.attack_range, false)
-	var text := tr("%s: %s!\nTarget %s - Damage %d - %s - Speed %d") % [who, tactic.tactic_name, hero_name, damage, range_text, tactic.speed]
-	var activation := tactic.activation_text(monster.display_name(), hero_name, damage)
-	if activation != "":
-		text += "\n\n" + activation
-	var cfg := MonsterDisplay.preview_data(monster.folder)
-	cfg["text"] = text
+	var cfg := _turn_cfg(monster, tactic.tactic_name, hero_name, [tactic.activation_text(monster.display_name(), hero_name, damage)],
+		_turn_stats(monster, damage, tactic.speed, tactic.attack_range, false))
 	if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("perform %s") % tactic.tactic_name):
 		return
 	var tactic_name := tactic.tactic_name
@@ -1913,7 +1908,6 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 	if _tracks_turn(monster):
 		await _tracked_monster_turn(monster, who)
 		return
-	var range_text := _range_text_for(monster.effective_attack_range(), monster.attack_reach)
 	# What the monster's activation abilities do by themselves (ActivationRules), once per activation.
 	var activation_lines := ActivationRules.start_of_activation(_runtime, monster)
 	var excluded_slot := -1  # Bloodlust: the second attack goes to another hero
@@ -1924,21 +1918,16 @@ func _monster_attack(monster: RuntimeMonster) -> void:
 		if slot < 0:
 			return
 		var hero_name := HeroCatalog.slot_name(slot)
-		var ability_lines: Array[String] = []
-		for ability in monster.attack_abilities:
-			var shown := ability.shown_text(monster.display_name(), hero_name, monster.level) if ability.game_key != "" else ability.ability_name
-			ability_lines.append(shown if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [shown, MonsterAbility.behavior_name(ability.behavior).to_lower()])
-		var text := tr("%s attacks %s!%s\nDamage %d - %s - Speed %d") % [who, hero_name, "  " + tr("(attacks again)") if attack_number > 1 else "", monster.effective_attack_power(), range_text, monster.effective_speed()]
+		var lines: Array[String] = []
+		if attack_number > 1:
+			lines.append(tr("(attacks again)"))
 		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
-			text += tr("\n(Enfeebled: damage reduced from %d)") % monster.attack_power
+			lines.append(tr("(Enfeebled: damage reduced from %d)") % monster.attack_power)
 		if attack_number == 1 and not activation_lines.is_empty():
-			text += tr("\nActivation: ") + "; ".join(activation_lines)
+			lines.append(tr("Activation: ") + "; ".join(activation_lines))
 		if monster.next_activation_damage > 0:
-			text += tr("\n(+%d damage from a defense ability this activation)") % monster.next_activation_damage
-		if not ability_lines.is_empty():
-			text += "\n" + "\n".join(ability_lines)
-		var cfg := MonsterDisplay.preview_data(monster.folder)
-		cfg["text"] = text
+			lines.append(tr("(+%d damage from a defense ability this activation)") % monster.next_activation_damage)
+		var cfg := _attack_turn_cfg(monster, hero_name, lines, monster.effective_attack_power())
 		if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("attack %s") % hero_name):
 			return
 		var attack_damage := monster.effective_attack_power()
@@ -1978,8 +1967,7 @@ func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
 		var path: Array[Vector3i] = plan["path"]
 		position_board.show_path(path, monster.size)
 		_frame_path(path, monster.size)
-		var cfg := MonsterDisplay.preview_data(monster.folder)
-		cfg["text"] = _tracked_text(monster, who, plan, activation_lines)
+		var cfg := _tracked_cfg(monster, plan, activation_lines)
 		var answer := await _tracked_dialog(monster, cfg)
 		if answer < 0:
 			return
@@ -2048,17 +2036,16 @@ func _tracked_confused(monster: RuntimeMonster, who: String) -> void:
 		var path: Array[Vector3i] = plan["path"]
 		position_board.show_path(path, monster.size)
 		_frame_path(path, monster.size)
-		var text := tr("%s is confused!\n%s") % [who, action.action_name]
+		var lines: Array[String] = [tr("%s is confused!") % monster.display_name()]
 		if victim != null:
-			text += "\n" + tr("It lashes out at %s: %d damage.") % [_who(victim), damage]
+			lines.append(tr("It lashes out at %s: %d damage.") % [_who(victim), damage])
 		elif int(plan["moves"]) > 0:
-			text += "\n" + tr("Move the figure along the orange line to the marked square.")
+			lines.append(tr("Move the figure along the orange line to the marked square."))
 		elif kind == "stare":
-			text += "\n" + action.shown_text(monster)
+			lines.append(action.shown_text(monster))
 		else:
-			text += "\n" + tr("%s stays where it is.") % monster.display_name()
-		var cfg := MonsterDisplay.preview_data(monster.folder)
-		cfg["text"] = text
+			lines.append(tr("%s stays where it is.") % monster.display_name())
+		var cfg := _turn_cfg(monster, action.action_name, "", lines)
 		var answer := await _tracked_dialog(monster, cfg)
 		if answer < 0:
 			return
@@ -2112,19 +2099,17 @@ func _tracked_tactic(monster: RuntimeMonster, who: String) -> void:
 		_frame_path(path, monster.size)
 		var target: int = plan["target"]
 		var hero_name := HeroCatalog.slot_name(target) if target >= 0 else tr("a hero")
-		var text := ""
+		var lines: Array[String] = []
+		var shown_stats := {}
 		if plan["attack"]:
 			var damage := maxi(monster.effective_attack_power() + tactic.damage_offset, 0) + int(plan["damage_bonus"])
-			text = tr("%s: %s!\nTarget %s - Damage %d - %s") % [who, tactic.tactic_name, hero_name, damage, _range_text_for(tactic.attack_range, false)]
-			var activation := tactic.activation_text(monster.display_name(), hero_name, damage)
-			if activation != "":
-				text += "\n\n" + activation
+			lines.append(tactic.activation_text(monster.display_name(), hero_name, damage))
+			shown_stats = _turn_stats(monster, damage, tactic.speed, tactic.attack_range, false)
 		else:
-			text = tr("%s moves towards %s (it cannot attack this round).") % [who, hero_name]
+			lines.append(tr("%s moves towards %s (it cannot attack this round).") % [monster.display_name(), hero_name])
 		if int(plan["moves"]) > 0:
-			text += tr("\nMove the figure along the orange line to the marked square.")
-		var cfg := MonsterDisplay.preview_data(monster.folder)
-		cfg["text"] = text
+			lines.append(tr("Move the figure along the orange line to the marked square."))
+		var cfg := _turn_cfg(monster, tactic.tactic_name, hero_name if plan["attack"] else "", lines, shown_stats)
 		var answer := await _tracked_dialog(monster, cfg)
 		if answer < 0:
 			return
@@ -2237,11 +2222,10 @@ func _follow_up_attacks(monster: RuntimeMonster, who: String, first_target: int)
 		var bonus := MonsterMovement.damage_bonus(board, MonsterMovement.block(monster.position, monster.size), target_square)
 		var hero_name := HeroCatalog.slot_name(slot)
 		var damage := monster.effective_attack_power() + bonus
-		var text := tr("%s attacks %s!%s\nDamage %d - %s") % [who, hero_name, "  " + tr("(attacks again)"), damage, _range_text_for(monster.effective_attack_range(), monster.attack_reach)]
+		var lines: Array[String] = [tr("(attacks again)")]
 		if bonus > 0:
-			text += tr("\n(+%d: fire / barricade)") % bonus
-		var cfg := MonsterDisplay.preview_data(monster.folder)
-		cfg["text"] = text
+			lines.append(tr("(+%d: fire / barricade)") % bonus)
+		var cfg := _attack_turn_cfg(monster, hero_name, lines, damage)
 		cfg["dim"] = false
 		if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("attack %s") % hero_name):
 			return
@@ -2249,33 +2233,33 @@ func _follow_up_attacks(monster: RuntimeMonster, who: String, first_target: int)
 		last = slot
 
 
-## The text of a tracked monster turn's dialog.
-func _tracked_text(monster: RuntimeMonster, who: String, plan: Dictionary, activation_lines: Array) -> String:
+## The turn screen of a tracked monster turn.
+func _tracked_cfg(monster: RuntimeMonster, plan: Dictionary, activation_lines: Array) -> Dictionary:
 	var target: int = plan["target"]
 	var moved := int(plan["moves"]) > 0
-	var text := ""
+	var lines: Array[String] = []
+	var cfg := {}
 	if plan["attack"]:
 		var hero_name := HeroCatalog.slot_name(target)
-		text = (tr("%s moves and attacks %s!") if moved else tr("%s attacks %s!")) % [who, hero_name]
-		var damage := monster.effective_attack_power() + int(plan["damage_bonus"])
-		text += tr("\nDamage %d - %s") % [damage, _range_text_for(monster.effective_attack_range(), monster.attack_reach)]
+		if moved:
+			lines.append(tr("Move the figure along the orange line to the marked square, then it attacks."))
 		if int(plan["damage_bonus"]) > 0:
-			text += tr("\n(+%d: fire / barricade)") % int(plan["damage_bonus"])
+			lines.append(tr("(+%d: fire / barricade)") % int(plan["damage_bonus"]))
 		if monster.conditions.has(MonsterCondition.Kind.ENFEEBLED):
-			text += tr("\n(Enfeebled: damage reduced from %d)") % monster.attack_power
+			lines.append(tr("(Enfeebled: damage reduced from %d)") % monster.attack_power)
 		if monster.next_activation_damage > 0:
-			text += tr("\n(+%d damage from a defense ability this activation)") % monster.next_activation_damage
-		for ability in monster.attack_abilities:
-			var shown := ability.shown_text(monster.display_name(), hero_name, monster.level) if ability.game_key != "" else ability.ability_name
-			text += "\n" + (shown if ability.behavior == MonsterAbility.Behavior.NONE else "%s - %s" % [shown, MonsterAbility.behavior_name(ability.behavior).to_lower()])
-	elif moved:
-		text = tr("%s moves towards %s (it cannot attack this round).") % [who, HeroCatalog.slot_name(target)]
+			lines.append(tr("(+%d damage from a defense ability this activation)") % monster.next_activation_damage)
+		cfg = _attack_turn_cfg(monster, hero_name, lines, monster.effective_attack_power() + int(plan["damage_bonus"]) + monster.next_activation_damage)
 	else:
-		text = tr("%s stays where it is.") % who
-	if moved:
-		text += tr("\nMove the figure along the orange line to the marked square.")
+		if moved:
+			lines.append(tr("%s moves towards %s (it cannot attack this round).") % [monster.display_name(), HeroCatalog.slot_name(target)])
+			lines.append(tr("Move the figure along the orange line to the marked square."))
+		else:
+			lines.append(tr("%s stays where it is.") % monster.display_name())
+		cfg = _turn_cfg(monster, monster.display_name(), "", lines, _turn_stats(monster, -1))
+	var extra: Array[String] = []
 	if not activation_lines.is_empty():
-		text += tr("\nActivation: ") + "; ".join(activation_lines)
+		extra.append(tr("Activation: ") + "; ".join(activation_lines))
 	var hazards: Array[String] = []
 	for event: Dictionary in plan["events"]:
 		match int(event["hazard"]):
@@ -2286,8 +2270,63 @@ func _tracked_text(monster: RuntimeMonster, who: String, plan: Dictionary, activ
 			MonsterMovement.Hazard.EMBER:
 				hazards.append(tr("embers (Doomed, Afflicted)"))
 	if not hazards.is_empty():
-		text += tr("\nOn the way: ") + ", ".join(hazards)
-	return text
+		extra.append(tr("On the way: ") + ", ".join(hazards))
+	if not extra.is_empty():
+		var all_lines: Array[String] = []
+		if str(cfg["text"]) != "":
+			all_lines.append(str(cfg["text"]))
+		all_lines.append_array(extra)
+		cfg["text"] = "\n".join(all_lines)
+	return cfg
+
+
+## The turn screen's dictionary (MonsterTurnView): the model, the name of what the monster does, who it is, its target, the rules text
+## (lines, empty ones dropped) and the speed / range / damage stats.
+func _turn_cfg(monster: RuntimeMonster, title: String, target_name: String, lines: Array, stats: Dictionary = {}) -> Dictionary:
+	var cfg := MonsterDisplay.preview_data(monster.folder)
+	cfg["title"] = title if title != "" else monster.display_name()
+	cfg["who"] = _who(monster)
+	cfg["target"] = target_name
+	var kept: Array[String] = []
+	for line in lines:
+		if str(line).strip_edges() != "":
+			kept.append(str(line))
+	cfg["text"] = "\n".join(kept)
+	cfg["stats"] = stats
+	return cfg
+
+
+## Speed / range / damage for the turn screen; -1 = the monster's own (damage -1 leaves damage out: no attack).
+func _turn_stats(monster: RuntimeMonster, damage: int, speed: int = -1, attack_range: int = -1, reach: Variant = null) -> Dictionary:
+	var stats := {"speed": speed if speed >= 0 else monster.effective_speed(), "speed_base": monster.speed,
+		"range": attack_range if attack_range >= 0 else monster.effective_attack_range(),
+		"reach": monster.attack_reach if reach == null else bool(reach)}
+	if damage >= 0:
+		stats["damage"] = damage
+		stats["damage_base"] = monster.attack_power
+	return stats
+
+
+## An ordinary attack: the title is the monster's activation ability ("Kehli's Mistake: <rules>" -> title + rules), its rules text
+## and `lines` below it.
+func _attack_turn_cfg(monster: RuntimeMonster, hero_name: String, lines: Array[String], damage: int) -> Dictionary:
+	var title := ""
+	var rules: Array[String] = []
+	for ability in monster.attack_abilities:
+		var shown := ability.shown_text(monster.display_name(), hero_name, monster.level) if ability.game_key != "" else ability.ability_name
+		var colon := shown.find(": ")
+		if title == "" and colon > 0 and colon < 40:
+			title = shown.substr(0, colon)
+			shown = shown.substr(colon + 2)
+		elif title == "" and ability.game_key == "" and shown.length() < 40:
+			title = shown
+			shown = ""
+		if ability.behavior != MonsterAbility.Behavior.NONE:
+			shown += (" - " if shown != "" else "") + MonsterAbility.behavior_name(ability.behavior).to_lower()
+		rules.append(shown)
+	var all_lines: Array[String] = rules.duplicate()
+	all_lines.append_array(lines)
+	return _turn_cfg(monster, title, hero_name, all_lines, _turn_stats(monster, damage))
 
 
 
@@ -2301,8 +2340,7 @@ func _range_text_for(range_value: int, reach: bool) -> String:
 
 func _monster_action(monster: RuntimeMonster, who: String) -> void:
 	var action := _runtime.pick_confused_action(monster)
-	var cfg := MonsterDisplay.preview_data(monster.folder)
-	cfg["text"] = tr("%s is confused!\n%s\n%s") % [who, action.action_name, action.shown_text(monster)]
+	var cfg := _turn_cfg(monster, action.action_name, "", [tr("%s is confused!") % monster.display_name(), action.shown_text(monster)])
 	if not await _show_monster_dialog(monster, cfg, who, func() -> String: return tr("act")):
 		return
 	var action_name := action.action_name

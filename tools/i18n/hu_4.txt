@@ -147,3 +147,13 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 1021|akciók
 1022|életerő
 1023|előny
+1024|%s összezavarodott!
+1025|(+%d sebzés egy védekező képességtől ebben az aktiválásban)
+1026|(+%d: tűz / barikád)
+1027|(Legyengült: sebzés csökkentve erről: %d)
+1028|Aktiválás: 
+1029|Mozgasd a figurát a narancs vonal mentén a megjelölt mezőre; utána támad.
+1030|Útközben: 
+1031|Közelharc
+1032|Elérés
+1033|Célpont:

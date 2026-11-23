@@ -147,3 +147,13 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 1021|actions
 1022|santé
 1023|avantage
+1024|%s est confus !
+1025|(+%d dégâts grâce à une capacité de défense lors de cette activation)
+1026|(+%d : feu / barricade)
+1027|(Affaibli : dégâts réduits de %d)
+1028|Activation : 
+1029|Déplacez la figurine le long de la ligne orange jusqu'à la case marquée ; ensuite elle attaque.
+1030|En chemin : 
+1031|Mêlée
+1032|Allonge
+1033|Cible :

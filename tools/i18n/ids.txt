@@ -1021,6 +1021,16 @@
 1021|actions
 1022|health
 1023|advantage
+1024|%s is confused!
+1025|(+%d damage from a defense ability this activation)
+1026|(+%d: fire / barricade)
+1027|(Enfeebled: damage reduced from %d)
+1028|Activation: 
+1029|Move the figure along the orange line to the marked square, then it attacks.
+1030|On the way: 
+1031|Melee
+1032|Reach
+1033|Target:
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

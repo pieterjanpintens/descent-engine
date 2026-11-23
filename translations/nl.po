@@ -144,9 +144,6 @@ msgstr "%s valt %s aan (schade %d, %s)."
 msgid "%s attacks %s - choose a weapon"
 msgstr "%s valt %s aan - kies een wapen"
 
-msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
-msgstr "%s valt %s aan!%s\nSchade %d - %s - Snelheid %d"
-
 msgid "%s attacks %s.\nWhich weapon?"
 msgstr "%s valt %s aan.\nMet welk wapen?"
 
@@ -170,9 +167,6 @@ msgstr "%s herstelde %d (%d levenspunten)."
 
 msgid "%s is %s."
 msgstr "%s is %s."
-
-msgid "%s is confused!\n%s\n%s"
-msgstr "%s is verward!\n%s\n%s"
 
 msgid "%s is confused: %s."
 msgstr "%s is verward: %s."
@@ -230,9 +224,6 @@ msgstr "%s heeft een held verwond - zijn beurt is voorbij."
 
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr "De Brouwmand van %s geeft een willekeurig verbruiksvoorwerp:"
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
-msgstr "%s: %s!\nDoelwit %s - Schade %d - %s - Snelheid %d"
 
 msgid "%s: %s\nFixed parts: %s"
 msgstr "%s: %s\nVaste onderdelen: %s"
@@ -309,12 +300,6 @@ msgstr "\n%d opgeslagen spel(len) ervan zijn opzijgezet (user://campaign_saves/_
 msgid "\n%d successes x %d weapon damage"
 msgstr "\n%d successen x %d wapenschade"
 
-msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n(+%d schade door een verdedigingsvermogen in deze activatie)"
-
-msgid "\n(Enfeebled: damage reduced from %d)"
-msgstr "\n(Verzwakt: schade verlaagd van %d)"
-
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr "\n\n%s krijgt de verwonding \"%s\": leg de kaart in je speelgebied."
 
@@ -344,9 +329,6 @@ msgstr "\n\nDit is de derde wond van %s - het spel gaat verloren!"
 
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr "\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 vermoeidheid af te leggen:"
-
-msgid "\nActivation: "
-msgstr "\nActivatie: "
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nOok wat ambachtsmaterialen voor het gezelschap: %s."
@@ -2499,20 +2481,8 @@ msgstr "%d vak(ken) gemarkeerd."
 msgid "%s attacks %s (damage %d)."
 msgstr "%s valt %s aan (schade %d)."
 
-msgid "%s attacks %s!"
-msgstr "%s valt %s aan!"
-
-msgid "%s attacks %s!%s\nDamage %d - %s"
-msgstr "%s valt %s aan!%s\nSchade %d - %s"
-
-msgid "%s is confused!\n%s"
-msgstr "%s is verward!\n%s"
-
 msgid "%s is defeated! Remove it from the board."
 msgstr "%s is verslagen! Haal hem van het bord."
-
-msgid "%s moves and attacks %s!"
-msgstr "%s verplaatst zich en valt %s aan!"
 
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr "%s verplaatst zich naar %s (kan deze ronde niet aanvallen)."
@@ -2534,18 +2504,6 @@ msgstr "%s loopt door gloeiende sintels: %s."
 
 msgid "%s walks through poison: Enfeebled."
 msgstr "%s loopt door gif: Verzwakt."
-
-msgid "\n(+%d: fire / barricade)"
-msgstr "\n(+%d: vuur / barricade)"
-
-msgid "\nDamage %d - %s"
-msgstr "\nSchade %d - %s"
-
-msgid "\nMove the figure along the orange line to the marked square."
-msgstr "\nVerplaats de figuur langs de oranje lijn naar het gemarkeerde vak."
-
-msgid "\nOn the way: "
-msgstr "\nOnderweg: "
 
 msgid "A hero is wounded"
 msgstr "Een held raakt gewond"
@@ -2669,9 +2627,6 @@ msgstr "%s wordt %d vak(ken) teruggeduwd - zet de figuur op het fiche."
 
 msgid "%s moves %d space(s) away from %s."
 msgstr "%s gaat %d vak(ken) weg van %s."
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s"
-msgstr "%s: %s!\nDoelwit %s - Schade %d - %s"
 
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "Welke held heeft de meeste vermoeidheid? (Gelijk: kies er een.)"
@@ -2936,6 +2891,36 @@ msgstr "gezondheid"
 
 msgid "advantage"
 msgstr "voordeel"
+
+msgid "%s is confused!"
+msgstr "%s is in de war!"
+
+msgid "(+%d damage from a defense ability this activation)"
+msgstr "(+%d schade door een verdedigingsvermogen bij deze activatie)"
+
+msgid "(+%d: fire / barricade)"
+msgstr "(+%d: vuur / barricade)"
+
+msgid "(Enfeebled: damage reduced from %d)"
+msgstr "(Verzwakt: schade verlaagd van %d)"
+
+msgid "Activation: "
+msgstr "Activatie: "
+
+msgid "Move the figure along the orange line to the marked square, then it attacks."
+msgstr "Verplaats de figuur langs de oranje lijn naar het gemarkeerde vak; daarna valt hij aan."
+
+msgid "On the way: "
+msgstr "Onderweg: "
+
+msgid "Melee"
+msgstr "Melee"
+
+msgid "Reach"
+msgstr "Reikwijdte"
+
+msgid "Target:"
+msgstr "Doelwit:"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

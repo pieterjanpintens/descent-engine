@@ -147,3 +147,13 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1021|acciones
 1022|salud
 1023|ventaja
+1024|¡%s está confundido!
+1025|(+%d de daño por una capacidad de defensa en esta activación)
+1026|(+%d: fuego / barricada)
+1027|(Debilitado: daño reducido de %d)
+1028|Activación: 
+1029|Mueve la figura por la línea naranja hasta la casilla marcada; después ataca.
+1030|Por el camino: 
+1031|Cuerpo a cuerpo
+1032|Alcance
+1033|Objetivo:

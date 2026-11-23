@@ -147,3 +147,13 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 1021|azioni
 1022|salute
 1023|vantaggio
+1024|%s è confuso!
+1025|(+%d danni da un'abilità di difesa in questa attivazione)
+1026|(+%d: fuoco / barricata)
+1027|(Indebolito: danni ridotti da %d)
+1028|Attivazione: 
+1029|Muovi la miniatura lungo la linea arancione fino alla casella segnata; poi attacca.
+1030|Lungo il percorso: 
+1031|Mischia
+1032|Portata
+1033|Bersaglio:

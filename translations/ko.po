@@ -144,9 +144,6 @@ msgstr "%s이(가) %s을(를) 공격합니다 (피해 %d, %s)."
 msgid "%s attacks %s - choose a weapon"
 msgstr "%s이(가) %s을(를) 공격 - 무기를 고르세요"
 
-msgid "%s attacks %s!%s\nDamage %d - %s - Speed %d"
-msgstr "%s이(가) %s을(를) 공격합니다!%s\n피해 %d - %s - 속도 %d"
-
 msgid "%s attacks %s.\nWhich weapon?"
 msgstr "%s이(가) %s을(를) 공격합니다.\n어떤 무기인가요?"
 
@@ -170,9 +167,6 @@ msgstr "%s이(가) %d 회복했습니다 (체력 %d)."
 
 msgid "%s is %s."
 msgstr "%s: %s."
-
-msgid "%s is confused!\n%s\n%s"
-msgstr "%s이(가) 당혹했습니다!\n%s\n%s"
 
 msgid "%s is confused: %s."
 msgstr "%s이(가) 당혹했습니다: %s."
@@ -230,9 +224,6 @@ msgstr "%s이(가) 영웅을 다치게 했습니다 - 차례가 끝났습니다.
 
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr "%s의 조제용 바구니가 무작위 소모품을 줍니다:"
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s - Speed %d"
-msgstr "%s: %s!\n대상 %s - 피해 %d - %s - 속도 %d"
 
 msgid "%s: %s\nFixed parts: %s"
 msgstr "%s: %s\n고정 부품: %s"
@@ -309,12 +300,6 @@ msgstr "\n이 캠페인의 저장 게임 %d개는 삭제되지 않고 따로 옮
 msgid "\n%d successes x %d weapon damage"
 msgstr "\n성공 %d개 x 무기 피해 %d"
 
-msgid "\n(+%d damage from a defense ability this activation)"
-msgstr "\n(이번 활성화에서 방어 능력으로 +%d 피해)"
-
-msgid "\n(Enfeebled: damage reduced from %d)"
-msgstr "\n(약화: 피해 %d 감소)"
-
 msgid "\n\n%s gains the \"%s\" injury: put its card in your play area."
 msgstr "\n\n%s이(가) 부상 “%s”을(를) 얻었습니다: 그 카드를 자신의 플레이 영역에 두세요."
 
@@ -344,9 +329,6 @@ msgstr "\n\n%s의 세 번째 부상입니다 - 게임에서 패배합니다!"
 
 msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
 msgstr "\n\n방랑자의 돌 - 각 영웅은 피로 1을 버리는 대신 대체 이점을 선택할 수 있습니다:"
-
-msgid "\nActivation: "
-msgstr "\n활성화: "
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\n파티를 위한 제작 재료도 약간: %s."
@@ -2499,20 +2481,8 @@ msgstr "강조된 칸: %d개."
 msgid "%s attacks %s (damage %d)."
 msgstr "%s이(가) %s을(를) 공격합니다 (피해 %d)."
 
-msgid "%s attacks %s!"
-msgstr "%s이(가) %s을(를) 공격합니다!"
-
-msgid "%s attacks %s!%s\nDamage %d - %s"
-msgstr "%s이(가) %s을(를) 공격합니다!%s\n피해 %d - %s"
-
-msgid "%s is confused!\n%s"
-msgstr "%s이(가) 혼란에 빠졌습니다!\n%s"
-
 msgid "%s is defeated! Remove it from the board."
 msgstr "%s이(가) 쓰러졌습니다! 판에서 치우세요."
-
-msgid "%s moves and attacks %s!"
-msgstr "%s이(가) 이동하여 %s을(를) 공격합니다!"
 
 msgid "%s moves towards %s (it cannot attack this round)."
 msgstr "%s이(가) %s 쪽으로 이동합니다 (이번 라운드에는 공격할 수 없습니다)."
@@ -2534,18 +2504,6 @@ msgstr "%s이(가) 잉걸불을 지나갑니다: %s."
 
 msgid "%s walks through poison: Enfeebled."
 msgstr "%s이(가) 독을 지나갑니다: 약화."
-
-msgid "\n(+%d: fire / barricade)"
-msgstr "\n(+%d: 불 / 바리케이드)"
-
-msgid "\nDamage %d - %s"
-msgstr "\n피해 %d - %s"
-
-msgid "\nMove the figure along the orange line to the marked square."
-msgstr "\n주황색 선을 따라 표시된 칸으로 피규어를 옮기세요."
-
-msgid "\nOn the way: "
-msgstr "\n가는 길에: "
 
 msgid "A hero is wounded"
 msgstr "영웅이 부상을 입음"
@@ -2669,9 +2627,6 @@ msgstr "%s이(가) %d칸 밀려납니다 - 피규어를 토큰 위치로 옮기�
 
 msgid "%s moves %d space(s) away from %s."
 msgstr "%s이(가) %d칸 %s에게서 멀어집니다."
-
-msgid "%s: %s!\nTarget %s - Damage %d - %s"
-msgstr "%s: %s!\n대상 %s - 피해 %d - %s"
 
 msgid "Which hero has the most fatigue? (A tie: pick one.)"
 msgstr "피로가 가장 많은 영웅은 누구입니까? (동률이면 한 명을 고르세요.)"
@@ -2936,6 +2891,36 @@ msgstr "체력"
 
 msgid "advantage"
 msgstr "이점"
+
+msgid "%s is confused!"
+msgstr "%s(이)가 혼란에 빠졌습니다!"
+
+msgid "(+%d damage from a defense ability this activation)"
+msgstr "(이번 활성화에 방어 능력으로 피해 +%d)"
+
+msgid "(+%d: fire / barricade)"
+msgstr "(+%d: 불 / 바리케이드)"
+
+msgid "(Enfeebled: damage reduced from %d)"
+msgstr "(약화: 피해가 %d에서 감소)"
+
+msgid "Activation: "
+msgstr "활성화: "
+
+msgid "Move the figure along the orange line to the marked square, then it attacks."
+msgstr "주황색 선을 따라 표시된 칸으로 모형을 옮기세요. 그다음 공격합니다."
+
+msgid "On the way: "
+msgstr "이동 중: "
+
+msgid "Melee"
+msgstr "근접"
+
+msgid "Reach"
+msgstr "리치"
+
+msgid "Target:"
+msgstr "대상:"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

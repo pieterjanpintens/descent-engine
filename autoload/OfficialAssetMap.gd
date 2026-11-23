@@ -86,6 +86,13 @@ const MAP: Dictionary = {
 	"res://models/ui/nameplate_heart.png": "Icon_Health",
 	"res://models/ui/nameplate_shield.png": "Icon_Defense",
 	"res://models/ui/nameplate_weakness.png": "Icon_Weakness",
+	# a monster's turn screen (MonsterTurnView): speed / range / damage icons, the button, the panel frame, the line under the title
+	"res://models/ui/turn_speed.png": "Icon_Movement",
+	"res://models/ui/turn_range.png": "Icon_Range",
+	"res://models/ui/turn_damage.png": "Icon_Damage",
+	"res://models/ui/turn_button.png": "Button1",
+	"res://models/ui/turn_frame.png": "9Slice_2",
+	"res://models/ui/turn_underline.png": "Underline",
 	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",
 	"res://models/ui/map_pin_event.png": "Icon_WorldEvent",
 	"res://models/ui/map_pin_side.png": "Icon_SideQuest",

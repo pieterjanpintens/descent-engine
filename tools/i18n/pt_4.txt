@@ -147,3 +147,13 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 1021|ações
 1022|vida
 1023|vantagem
+1024|%s está confuso!
+1025|(+%d de dano por uma habilidade de defesa nesta ativação)
+1026|(+%d: fogo / barricada)
+1027|(Enfraquecido: dano reduzido de %d)
+1028|Ativação: 
+1029|Mova a miniatura pela linha laranja até o espaço marcado; depois ela ataca.
+1030|No caminho: 
+1031|Corpo a corpo
+1032|Alcance
+1033|Alvo:

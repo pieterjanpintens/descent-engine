@@ -45,7 +45,7 @@ var _button_row: HBoxContainer
 var _choice_scroll: ScrollContainer
 var _choice_list: VBoxContainer
 var _count_input: SpinBox
-var _attack_preview: CombatMeshPreview
+var _turn_view: MonsterTurnView  ## a monster's turn, full screen (ask_monster_attack())
 var _image_row: HBoxContainer
 var _left_image: TextureRect
 var _right_image: TextureRect
@@ -121,13 +121,6 @@ func _build_ui() -> void:
 		img.custom_minimum_size = Vector2(IMAGE_WIDTH, 0)
 		_image_row.add_child(img)
 
-	# The attacking monster's flat model (ask_monster_attack()) - on top of the box.
-	_attack_preview = CombatMeshPreview.new()
-	_attack_preview.custom_minimum_size = Vector2(320, 240)
-	_attack_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_attack_preview.visible = false
-	vbox.add_child(_attack_preview)
-	vbox.move_child(_attack_preview, 0)
 
 	_count_input = SpinBox.new()
 	_count_input.min_value = 0
@@ -244,36 +237,47 @@ func _set_modal(dim: bool) -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP if dim else Control.MOUSE_FILTER_IGNORE
 
 
-## A MONSTER attacks (new 2026-10-05): the normal dialog box with the monster's flat
-## model on top and `cfg["text"]` (who attacks whom, damage, range, abilities), exactly as
-## much as the real game shows. Two buttons: "Continue" (0 - the table has resolved the
-## attack itself) and "Interrupt" (1 - the players act BEFORE the monster's attack, e.g. an
-## ability that lets a hero attack first; the caller hands control back and shows this
-## dialog again afterwards if the monster survived). `cfg` also carries
-## MonsterDisplay.preview_data() for the model. Answerable by voice ("continue",
-## "interrupt").
+## A MONSTER's turn (attack, tactic or confused action): the full-screen MonsterTurnView, built after the original game's activation
+## screen (the model on the left; the name of what it does, "Target: <hero>", the rules text and the speed / range / damage icons on the
+## right). `cfg` = MonsterTurnView.configure()'s dictionary (with MonsterDisplay.preview_data() for the model). The table carries the
+## turn out itself and presses Continue (0); Interrupt (1) puts the players in charge first (the caller hands control back and shows this
+## again afterwards if the monster survived). `dim` false (the app moves the monster, its path is on the map): everything sits in the
+## top half, the backdrop is light and the map can still be moved. Answerable by voice ("continue", "interrupt").
 func ask_monster_attack(cfg: Dictionary) -> int:
-	_set_images(null, null)
-	_set_modal(cfg.get("dim", true))
-	var meshes: Array = cfg.get("monster_flat_meshes", [])
-	if not meshes.is_empty():
-		var paths: Array[String] = []
-		for path in meshes:
-			paths.append(str(path))
-		var size_units: float = cfg.get("monster_size_units", 1.0)
-		_attack_preview.show_meshes(paths, cfg.get("monster_flat_texture"), cfg.get("monster_flat_rotation", Vector3.ZERO), cfg.get("monster_flat_surface_overrides", {}), size_units, size_units, cfg.get("monster_flat_write_depth", false))
-	else:
-		_attack_preview.show_quad(cfg.get("monster_image"))
-	_attack_preview.visible = true
-	_label.text = cfg.get("text", "")
-	_count_input.visible = false
-	_set_buttons([{"text": "Continue", "result": 0}, {"text": "Interrupt", "result": 1}])
+	_ensure_turn_view()
+	_turn_view.configure(cfg)
+	var dim: bool = cfg.get("dim", true)
+	_scrim.visible = false
+	_panel.visible = false
+	mouse_filter = Control.MOUSE_FILTER_STOP if dim else Control.MOUSE_FILTER_IGNORE
+	_turn_view.set_blocking(dim)
+	_turn_view.visible = true
+	_buttons = [_turn_view.continue_button, _turn_view.interrupt_button]
+	var saved_hint := _hint_label
+	_hint_label = _turn_view.hint_label
 	_set_voice_context("choice", ["Continue", "Interrupt"])
 	visible = true
 	var result: int = await _closed
 	visible = false
-	_attack_preview.visible = false
+	_turn_view.visible = false
+	_hint_label = saved_hint
+	_panel.visible = true
+	_scrim.visible = true
 	return result
+
+
+func _ensure_turn_view() -> void:
+	if _turn_view != null:
+		return
+	_turn_view = MonsterTurnView.new()
+	add_child(_turn_view)
+	_turn_view.continue_button.pressed.connect(_on_button_pressed.bind(0))
+	_turn_view.interrupt_button.pressed.connect(_on_button_pressed.bind(1))
+
+
+## True while a monster's turn screen (ask_monster_attack()) is on screen.
+func monster_turn_shown() -> bool:
+	return visible and _turn_view != null and _turn_view.visible
 
 
 ## The full-screen combat screen (CombatView): asks for the number of
