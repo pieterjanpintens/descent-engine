@@ -209,6 +209,8 @@ func _ready() -> void:
 	inventory_dialog.state_provider = func() -> CampaignState: return _campaign_state
 	dialog.get_parent().add_child(inventory_dialog)
 	var growth_dialog := HeroGrowthDialog.new()
+	growth_dialog.full_screen = true
+	_growth_dialog = growth_dialog
 	growth_dialog.campaign_provider = func() -> Campaign: return _campaign_ref
 	growth_dialog.state_provider = func() -> CampaignState: return _campaign_state
 	growth_dialog.on_changed = func():
@@ -1341,9 +1343,14 @@ func _show_table_setup(automatic: bool) -> void:
 
 
 ## True while a full-screen page covers the map (the monster cards then hide: they belong to the map view only).
+## The Heroes / feats screen of a campaign mission (full screen; the monster cards hide while it is open).
+var _growth_dialog: HeroGrowthDialog
+
 func _map_covered() -> bool:
 	if dialog.combat_view_shown():
 		return true
+	if _growth_dialog != null and _growth_dialog.visible:
+		return true  # the full-screen Heroes / feats screen
 	if _setup_sheet != null and _setup_sheet.visible:
 		return true
 	if _calibration_dialog != null and _calibration_dialog.visible:

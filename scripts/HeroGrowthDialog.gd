@@ -15,6 +15,8 @@ var on_changed: Callable
 var manual_marking := false
 ## Assigned by the owner: true inside a mission - the feat list is then read-only (it can only be rearranged on the campaign map).
 var in_mission := false
+## true = covers the whole screen with no margin and an opaque backdrop (the mission player); set before adding it to the tree.
+var full_screen := false
 
 var _hero_id := ""
 const ACTIVE_COLOR := Color(0.95, 0.65, 0.2)
@@ -34,14 +36,14 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var scrim := ColorRect.new()
-	scrim.color = Color(0, 0, 0, 0.55)
+	scrim.color = Color(0, 0, 0, 1.0 if full_screen else 0.55)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(scrim)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 60)
+		margin.add_theme_constant_override("margin_" + side, 0 if full_screen else 60)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(margin)
 	var background := PanelContainer.new()
