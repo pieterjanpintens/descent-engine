@@ -102,7 +102,7 @@ func _ready() -> void:
 func _build_panel() -> Control:
 	# The frame (the game's 9-slice with corner ornaments, tinted) with a dark, warm gradient inside it.
 	var holder := MarginContainer.new()
-	holder.custom_minimum_size.x = 560.0
+	holder.custom_minimum_size.x = 520.0
 	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frame := NinePatchRect.new()
@@ -157,7 +157,7 @@ func _build_panel() -> Control:
 	_body = Label.new()
 	_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body.custom_minimum_size.x = 480.0  # a wrapping label needs a width to start from
+	_body.custom_minimum_size.x = 440.0  # a wrapping label needs a width to start from
 	_body.add_theme_font_size_override("font_size", 19)
 	_body.add_theme_color_override("font_color", Color(0.96, 0.93, 0.88))
 	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -210,12 +210,14 @@ func _button(text: String) -> Button:
 func configure(cfg: Dictionary) -> void:
 	_path_mode = not cfg.get("dim", true)
 	_backdrop.color = Color(0.05, 0.02, 0.015, BACKDROP_ALPHA_PATH if _path_mode else BACKDROP_ALPHA)
+	# the right edge stays clear of the monster cards along the right side of the map (MonsterSidebar)
+	var clear_right := -(MonsterSidebar.RIGHT_MARGIN + MonsterTabCard.CARD_SIZE.x + 12.0)
 	if _path_mode:
-		_place(_art, 0.0, 0.42, 0.0, 0.62)
-		_place(_column, 0.36, 0.98, 0.02, 0.62)
+		_place(_art, 0.0, 0.4, 0.0, 0.62)
+		_place(_column, 0.33, 1.0, 0.02, 0.62, clear_right)
 	else:
-		_place(_art, 0.0, 0.55, 0.0, 1.0)
-		_place(_column, 0.4, 0.98, 0.04, 0.96)
+		_place(_art, 0.0, 0.52, 0.0, 1.0)
+		_place(_column, 0.38, 1.0, 0.04, 0.96, clear_right)
 	_title.add_theme_font_size_override("font_size", 30 if _path_mode else 38)
 	_title.text = str(cfg.get("title", ""))
 	_who.text = str(cfg.get("who", ""))
@@ -237,13 +239,13 @@ func configure(cfg: Dictionary) -> void:
 		_art.show_quad(cfg.get("monster_image"))
 
 
-func _place(control: Control, left: float, right: float, top: float, bottom: float) -> void:
+func _place(control: Control, left: float, right: float, top: float, bottom: float, right_offset: float = 0.0) -> void:
 	control.anchor_left = left
 	control.anchor_right = right
 	control.anchor_top = top
 	control.anchor_bottom = bottom
 	control.offset_left = 0
-	control.offset_right = 0
+	control.offset_right = right_offset
 	control.offset_top = 0
 	control.offset_bottom = 0
 
