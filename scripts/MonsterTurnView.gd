@@ -5,8 +5,9 @@ extends Control
 ## its name over the game's ornamental line, and a panel in the colour of its chip (like the game: the colour tells the table
 ## which figure acts) with "Target: <hero>", what it does (its activation ability, tactic or confused action), the rules text and the
 ## speed / range / damage icons, then the Interrupt / Continue buttons. Shown by
-## PlayerDialog.ask_monster_attack(). With `dim` off (the app moves the monster and its path is drawn on the map) everything sits in
-## the top half of the screen and the backdrop is light, so the path stays visible below it.
+## PlayerDialog.ask_monster_attack(). With `dim` off (the app moves the monster and its path is drawn on the map) the model is left out,
+## the panel sits on the right and only that side is darkened: the camera puts the path in the free left part of the screen
+## (MissionPlayer._frame_path(), PATH_SCREEN_X / Y).
 ## The art goes through the official-asset overrides: dummy placeholders ship, the game's pieces come with the asset import.
 
 const ICON_SPEED := "res://models/ui/turn_speed.png"          ## official: Icon_Movement
@@ -26,13 +27,16 @@ const PANEL_BOTTOM := Color(0.36, 0.13, 0.04)
 
 ## Backdrop darkness: full view / with the path on the map.
 const BACKDROP_ALPHA := 0.86
-const BACKDROP_ALPHA_PATH := 0.3
+const BACKDROP_ALPHA_PATH := 0.75  ## the right side, behind the panel; it fades out towards the left, where the path is
+## Path mode: the turn screen takes the screen from here to the right edge (fraction of the width).
+const PATH_PANEL_LEFT := 0.45
 
 var continue_button: Button
 var interrupt_button: Button
 var hint_label: Label
 
 var _backdrop: ColorRect
+var _side_shade: TextureRect  ## path mode: dark on the right, clear on the left
 var _art: CombatMeshPreview
 var _column: VBoxContainer
 var _title: Label
@@ -55,6 +59,24 @@ func _ready() -> void:
 	_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_backdrop)
+	var shade := Gradient.new()
+	shade.set_color(0, Color(0.05, 0.02, 0.015, 0.0))
+	shade.set_color(1, Color(0.05, 0.02, 0.015, BACKDROP_ALPHA_PATH))
+	shade.add_point(0.45, Color(0.05, 0.02, 0.015, BACKDROP_ALPHA_PATH))
+	shade.set_offset(0, 0.0)
+	var shade_texture := GradientTexture2D.new()
+	shade_texture.gradient = shade
+	shade_texture.fill_from = Vector2(0, 0)
+	shade_texture.fill_to = Vector2(1, 0)
+	_side_shade = TextureRect.new()
+	_side_shade.texture = shade_texture
+	_side_shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_side_shade.stretch_mode = TextureRect.STRETCH_SCALE
+	_side_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_side_shade.anchor_left = PATH_PANEL_LEFT - 0.12
+	_side_shade.anchor_right = 1.0
+	_side_shade.anchor_bottom = 1.0
+	add_child(_side_shade)
 
 	_art = CombatMeshPreview.new()
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -225,12 +247,13 @@ func _button(text: String) -> Button:
 ##   text (the rules text), stats ({speed, speed_base, range, reach, damage, damage_base}, any may be missing), dim (false = path mode).
 func configure(cfg: Dictionary) -> void:
 	_path_mode = not cfg.get("dim", true)
-	_backdrop.color = Color(0.05, 0.02, 0.015, BACKDROP_ALPHA_PATH if _path_mode else BACKDROP_ALPHA)
+	_backdrop.color = Color(0.05, 0.02, 0.015, 0.0 if _path_mode else BACKDROP_ALPHA)
+	_side_shade.visible = _path_mode
+	_art.visible = not _path_mode  # the path on the map is the picture in this mode
 	# the right edge stays clear of the monster cards along the right side of the map (MonsterSidebar)
 	var clear_right := -(MonsterSidebar.RIGHT_MARGIN + MonsterTabCard.CARD_SIZE.x + 12.0)
 	if _path_mode:
-		_place(_art, 0.0, 0.4, 0.0, 0.62)
-		_place(_column, 0.33, 1.0, 0.02, 0.62, clear_right)
+		_place(_column, PATH_PANEL_LEFT, 1.0, 0.04, 0.96, clear_right)
 	else:
 		_place(_art, 0.0, 0.52, 0.0, 1.0)
 		_place(_column, 0.38, 1.0, 0.04, 0.96, clear_right)

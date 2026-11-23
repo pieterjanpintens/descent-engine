@@ -1998,11 +1998,14 @@ func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
 
 
 ## A monster's turn when the app moves it: the camera glides to the monster and its path, zoomed so the whole path fits, with the path's
-## middle at PATH_SCREEN_Y of the screen height - below the turn screen, which takes the top of the screen in that mode.
-const PATH_SCREEN_Y := 0.8
+## middle at (PATH_SCREEN_X, PATH_SCREEN_Y) of the screen - in the free left part, next to the turn screen, which sits on the right
+## in that mode (MonsterTurnView.PATH_PANEL_LEFT).
+const PATH_SCREEN_X := 0.23
+const PATH_SCREEN_Y := 0.55
 const PATH_GLIDE_SECONDS := 0.6
-const PATH_VIEW_MIN := 10.0
-const PATH_VIEW_MAX := 26.0
+const PATH_VIEW_HEIGHT := 1.2  ## looks down about 50 degrees, so props hide less of the path
+const PATH_VIEW_MIN := 7.0
+const PATH_VIEW_MAX := 18.0
 
 
 func _frame_path(path: Array[Vector3i], size: int) -> void:
@@ -2012,10 +2015,10 @@ func _frame_path(path: Array[Vector3i], size: int) -> void:
 	var extent := 0.0
 	for anchor in path:
 		extent = maxf(extent, centre.distance_to(position_board.centre_of(anchor, size)))
-	var view := camera.view_for(centre, clampf(PATH_VIEW_MIN + extent * 1.6, PATH_VIEW_MIN, PATH_VIEW_MAX))
+	var view := camera.view_for(centre, clampf(PATH_VIEW_MIN + extent * 1.2, PATH_VIEW_MIN, PATH_VIEW_MAX), PATH_VIEW_HEIGHT)  # the path has about half the screen
 	# shift the view (the camera's angle stays) so the ray through that screen point hits the path's middle
 	var screen := get_viewport().get_visible_rect().size
-	var local_ray := camera.project_local_ray_normal(Vector2(screen.x * 0.5, screen.y * PATH_SCREEN_Y))
+	var local_ray := camera.project_local_ray_normal(Vector2(screen.x * PATH_SCREEN_X, screen.y * PATH_SCREEN_Y))
 	var ray := Basis.from_euler(Vector3(view["pitch"], view["yaw"], 0.0)) * local_ray
 	if ray.y < -0.01:
 		var from: Vector3 = view["position"]

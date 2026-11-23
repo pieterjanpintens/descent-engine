@@ -46,9 +46,10 @@ func import_view(view: Dictionary) -> void:
 	global_position = view["position"]
 
 
-## The view jump_to(target, distance) would give, without moving the camera.
-func view_for(target: Vector3, distance: float = 12.0) -> Dictionary:
-	var from := target + Vector3(0, distance * 0.6, distance)
+## The view jump_to(target, distance) would give, without moving the camera. `height` = how high the camera is per unit back (0.6 =
+## jump_to()'s angle, about 31 degrees down; higher looks down more steeply).
+func view_for(target: Vector3, distance: float = 12.0, height: float = 0.6) -> Dictionary:
+	var from := target + Vector3(0, distance * height, distance)
 	var angles := Basis.looking_at(target - from, Vector3.UP).get_euler()
 	return {"position": from, "yaw": angles.y, "pitch": angles.x}
 
