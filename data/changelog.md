@@ -1,4 +1,12 @@
-﻿## v0.0.85 - 2026-11-22
+﻿## v0.0.86 - 2026-11-23
+- The monster view looks like the original game: each monster has the game's nameplate (level, name, health bar with a heart and a shield, a diamond per weakness), a warm glow under its base, a lit area with the map's shadow edge and fog, and a steeper camera.
+- Zooming in on the monsters swings the camera down until you look them in the face.
+- The combat screen shows damage types and weaknesses in the same diamonds.
+- Rule icons in texts: the game's icons (success, surge, damage, fatigue, actions, health dial, advantage) appear in rule texts, and authors can write [health dial], [actions] and the like in their own texts. The narrator reads them as words.
+- Monster tactics fill in their numbers correctly, and a template's tactic can be given the number the game data leaves out.
+- The table setup sheet only shows the space the whole map needs, not the map itself; the monster cards only show over the map.
+
+## v0.0.85 - 2026-11-22
 - When the app moves the monsters, a monster that steps next to a hero is stopped there (impeded), as the rules say. It still attacks if it has an action left. Flying monsters and the Wight's Blade Sweep are not stopped.
 - New mission effects: put a condition on all or some monsters ("ring the bell: 4 monsters become Enfeebled"), deal damage to all or some random monsters, and make monsters go for a chosen hero or target rule ("the wolves go for Brynn"). Each can be limited to a monster group, a spawn area or a monster type.
 - The app has its own icon now.
