@@ -6,7 +6,7 @@ extends Control
 ## the left edge, a health bar along the bottom and the level in a round badge. A monster type + chip colour is unique on the board, so the
 ## picture and the colour tell the table exactly which figure it is. Nothing here takes the mouse.
 
-const CARD_SIZE := Vector2(156, 81)  ## the frame's proportions (512 x 265)
+const CARD_SIZE := Vector2(128, 66)  ## the frame's proportions (512 x 265)
 const BG_PATH := "res://models/ui/enemytab_bg.png"
 const FRAME_PATH := "res://models/ui/enemytab_frame.png"
 const CHIP_PATH := "res://models/ui/enemytab_chip.png"
@@ -15,9 +15,9 @@ const HEALTH_PATH := "res://models/ui/enemytab_healthbar.png"
 const UNIQUE_FRAME_PATH := "res://models/ui/enemytab_frameunique.png"  ## the ornate frame (562 x 265) of a monster about to do its special tactic
 const UNIQUE_SCALE := 562.0 / 512.0  ## it is wider than the plain frame by this much
 
-const BAR_INSET := 13.0
-const BAR_HEIGHT := 7.0
-const BADGE_SIZE := 30.0
+const BAR_INSET := 11.0
+const BAR_HEIGHT := 6.0
+const BADGE_SIZE := 25.0
 
 var monster_id: String = ""
 
@@ -63,7 +63,7 @@ func _build() -> void:
 	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_place(_portrait, Vector2(7, 6), CARD_SIZE - Vector2(14, 14))
+	_place(_portrait, Vector2(6, 5), CARD_SIZE - Vector2(12, 12))
 	_portrait.clip_contents = true
 	add_child(_portrait)
 	var frame := _picture(FRAME_PATH, Color(0.84, 0.8, 0.76))
@@ -91,7 +91,7 @@ func _build() -> void:
 	# the health bar: a dark trough with the red bar clipped to the fraction left
 	_bar_width = CARD_SIZE.x - BAR_INSET * 2.0
 	var trough := _picture(HEALTH_PATH, Color(0.2, 0.2, 0.22, 0.9))
-	_place(trough, Vector2(BAR_INSET, CARD_SIZE.y - BAR_HEIGHT - 8.0), Vector2(_bar_width, BAR_HEIGHT))
+	_place(trough, Vector2(BAR_INSET, CARD_SIZE.y - BAR_HEIGHT - 7.0), Vector2(_bar_width, BAR_HEIGHT))
 	add_child(trough)
 	_bar_fill = Control.new()
 	_bar_fill.clip_contents = true
@@ -103,14 +103,14 @@ func _build() -> void:
 	add_child(_bar_fill)
 	# the chip colour bar sticks out over the left edge, like the game's tab
 	_chip = _picture(CHIP_PATH)
-	_place(_chip, Vector2(-5, 9), Vector2(13, CARD_SIZE.y - 24.0))
+	_place(_chip, Vector2(-4, 7), Vector2(11, CARD_SIZE.y - 20.0))
 	add_child(_chip)
 	# the level in a round badge at the bottom right
 	var badge := _picture(LEVEL_PATH)
-	_place(badge, Vector2(CARD_SIZE.x - BADGE_SIZE + 5.0, CARD_SIZE.y - BADGE_SIZE + 5.0), Vector2(BADGE_SIZE, BADGE_SIZE))
+	_place(badge, Vector2(CARD_SIZE.x - BADGE_SIZE + 4.0, CARD_SIZE.y - BADGE_SIZE + 4.0), Vector2(BADGE_SIZE, BADGE_SIZE))
 	add_child(badge)
 	_level_label = Label.new()
-	_level_label.add_theme_font_size_override("font_size", 13)
+	_level_label.add_theme_font_size_override("font_size", 11)
 	_level_label.add_theme_color_override("font_color", Color.WHITE)
 	_level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	_level_label.add_theme_constant_override("outline_size", 3)

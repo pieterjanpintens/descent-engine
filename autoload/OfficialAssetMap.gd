@@ -90,7 +90,7 @@ const MAP: Dictionary = {
 	"res://models/ui/turn_speed.png": "Icon_Movement",
 	"res://models/ui/turn_range.png": "Icon_Range",
 	"res://models/ui/turn_damage.png": "Icon_Damage",
-	"res://models/ui/turn_button.png": "Button1",
+	"res://models/ui/turn_button.png": "Button1_Small",
 	"res://models/ui/turn_frame.png": "9Slice_2",
 	"res://models/ui/turn_underline.png": "Underline",
 	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",

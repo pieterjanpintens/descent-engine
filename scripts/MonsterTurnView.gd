@@ -12,7 +12,7 @@ extends Control
 const ICON_SPEED := "res://models/ui/turn_speed.png"          ## official: Icon_Movement
 const ICON_RANGE := "res://models/ui/turn_range.png"          ## Icon_Range
 const ICON_DAMAGE := "res://models/ui/turn_damage.png"        ## Icon_Damage
-const BUTTON_ART := "res://models/ui/turn_button.png"         ## Button1 (white, 9-slice)
+const BUTTON_ART := "res://models/ui/turn_button.png"         ## Button1_Small (white, 9-slice)
 const FRAME_ART := "res://models/ui/turn_frame.png"           ## 9Slice_2 (white, 9-slice)
 const UNDERLINE_ART := "res://models/ui/turn_underline.png"   ## Underline
 
@@ -66,7 +66,7 @@ func _ready() -> void:
 	_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_column)
 
-	_title = MenuStyle.shadow_label("", 38, Color.WHITE)
+	_title = MenuStyle.shadow_label("", 30, Color.WHITE)
 	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_title.custom_minimum_size.x = 300.0
 	_column.add_child(_title)
@@ -74,19 +74,26 @@ func _ready() -> void:
 	_underline.texture = OfficialAssetOverrides.texture_for(UNDERLINE_ART)
 	_underline.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_underline.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_underline.custom_minimum_size = Vector2(260, 40)
+	_underline.custom_minimum_size = Vector2(220, 32)
 	_underline.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_column.add_child(_underline)
 
-	_column.add_child(_build_panel())
-
+	# the panel and the buttons under it share one width: Interrupt under its left edge, Continue under its right edge
+	var block := VBoxContainer.new()
+	block.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	block.add_theme_constant_override("separation", 10)
+	block.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_column.add_child(block)
+	block.add_child(_build_panel())
 	var buttons := HBoxContainer.new()
-	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons.add_theme_constant_override("separation", 120)
 	buttons.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_column.add_child(buttons)
+	block.add_child(buttons)
 	interrupt_button = _button(tr("Interrupt"))
 	buttons.add_child(interrupt_button)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	buttons.add_child(spacer)
 	continue_button = _button(tr("Continue"))
 	buttons.add_child(continue_button)
 
@@ -103,7 +110,7 @@ func _ready() -> void:
 func _build_panel() -> Control:
 	# The frame (the game's 9-slice with corner ornaments, tinted) with a dark, warm gradient inside it.
 	var holder := MarginContainer.new()
-	holder.custom_minimum_size.x = 520.0
+	holder.custom_minimum_size.x = 420.0
 	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frame := NinePatchRect.new()
@@ -138,42 +145,42 @@ func _build_panel() -> Control:
 	fill_margin.add_child(fill)
 
 	var content_margin := MarginContainer.new()
-	content_margin.add_theme_constant_override("margin_left", 34)
-	content_margin.add_theme_constant_override("margin_right", 34)
-	content_margin.add_theme_constant_override("margin_top", 26)
-	content_margin.add_theme_constant_override("margin_bottom", 22)
+	content_margin.add_theme_constant_override("margin_left", 28)
+	content_margin.add_theme_constant_override("margin_right", 28)
+	content_margin.add_theme_constant_override("margin_top", 20)
+	content_margin.add_theme_constant_override("margin_bottom", 16)
 	content_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(content_margin)
 	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 16)
+	content.add_theme_constant_override("separation", 10)
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_margin.add_child(content)
 
 	_target_row = HBoxContainer.new()
 	_target_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_target_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_target_row.add_child(MenuStyle.shadow_label(tr("Target:") + " ", 26, Color.WHITE))
-	_target_name = MenuStyle.shadow_label("", 26, GOLD)
+	_target_row.add_child(MenuStyle.shadow_label(tr("Target:") + " ", 22, Color.WHITE))
+	_target_name = MenuStyle.shadow_label("", 22, GOLD)
 	_target_row.add_child(_target_name)
 	content.add_child(_target_row)
 
-	_action = MenuStyle.shadow_label("", 22, GOLD)
+	_action = MenuStyle.shadow_label("", 18, GOLD)
 	_action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_action.custom_minimum_size.x = 440.0
+	_action.custom_minimum_size.x = 350.0
 	content.add_child(_action)
 
 	_body = Label.new()
 	_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body.custom_minimum_size.x = 440.0  # a wrapping label needs a width to start from
-	_body.add_theme_font_size_override("font_size", 19)
+	_body.custom_minimum_size.x = 350.0  # a wrapping label needs a width to start from
+	_body.add_theme_font_size_override("font_size", 16)
 	_body.add_theme_color_override("font_color", Color(0.96, 0.93, 0.88))
 	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(_body)
 
 	_stats_row = HBoxContainer.new()
 	_stats_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_stats_row.add_theme_constant_override("separation", 56)
+	_stats_row.add_theme_constant_override("separation", 40)
 	_stats_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(_stats_row)
 	_panel = holder
@@ -184,9 +191,9 @@ func _button(text: String) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(220, 64)
+	button.custom_minimum_size = Vector2(150, 46)
 	button.add_theme_font_override("font", MenuStyle.font())
-	button.add_theme_font_size_override("font_size", 24)
+	button.add_theme_font_size_override("font_size", 19)
 	button.add_theme_constant_override("outline_size", 6)
 	button.add_theme_color_override("font_outline_color", Color(0.25, 0.08, 0.0, 0.9))
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
@@ -195,10 +202,10 @@ func _button(text: String) -> Button:
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var box := StyleBoxTexture.new()
 		box.texture = art
-		box.texture_margin_left = 44
-		box.texture_margin_right = 44
-		box.texture_margin_top = 33
-		box.texture_margin_bottom = 34
+		box.texture_margin_left = 29
+		box.texture_margin_right = 29
+		box.texture_margin_top = 22
+		box.texture_margin_bottom = 23
 		match state:
 			"hover":
 				box.modulate_color = ORANGE.lightened(0.18)
@@ -227,7 +234,7 @@ func configure(cfg: Dictionary) -> void:
 	else:
 		_place(_art, 0.0, 0.52, 0.0, 1.0)
 		_place(_column, 0.38, 1.0, 0.04, 0.96, clear_right)
-	_title.add_theme_font_size_override("font_size", 30 if _path_mode else 38)
+	_title.add_theme_font_size_override("font_size", 26 if _path_mode else 30)
 	_title.text = str(cfg.get("title", ""))
 	_action.text = str(cfg.get("action", ""))
 	_action.visible = _action.text != ""
@@ -299,10 +306,10 @@ func _stat(icon_path: String, value: String, color: Color, small_text: bool = fa
 	icon.texture = OfficialAssetOverrides.texture_for(icon_path)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(62, 62)
+	icon.custom_minimum_size = Vector2(46, 46)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)
-	var label := MenuStyle.shadow_label(value, 26 if small_text else 46, color)
+	var label := MenuStyle.shadow_label(value, 20 if small_text else 34, color)
 	row.add_child(label)
 	return row
 
