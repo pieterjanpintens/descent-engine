@@ -1,4 +1,12 @@
-﻿## v0.0.86 - 2026-11-23
+﻿## v0.0.87 - 2026-11-23
+- A monster's turn has its own screen like the original game: its picture, its name, a panel in the colour of its chip with the target, what it does and its speed, range and damage, and Interrupt / Continue buttons.
+- When the app moves the monsters, the camera glides from monster to monster with the path shown next to the turn panel, and goes back to where it was afterwards.
+- Zooming in on the monster view swings the camera down until you look the monsters in the face.
+- The combat screen shows damage types and weaknesses in the game's diamonds.
+- The monster cards on the side of the map are a bit smaller.
+- The Heroes / feats screen in a mission covers the whole screen.
+
+## v0.0.86 - 2026-11-23
 - The monster view looks like the original game: each monster has the game's nameplate (level, name, health bar with a heart and a shield, a diamond per weakness), a warm glow under its base, a lit area with the map's shadow edge and fog, and a steeper camera.
 - Zooming in on the monsters swings the camera down until you look them in the face.
 - The combat screen shows damage types and weaknesses in the same diamonds.
