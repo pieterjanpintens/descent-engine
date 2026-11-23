@@ -2,8 +2,9 @@ class_name MonsterTurnView
 extends Control
 
 ## A monster's turn, built after the original game's activation screen: the monster's flat model big on the left, and on the right
-## the name of what it does (its activation ability, tactic or confused action) over the game's ornamental line, a framed panel with
-## "Target: <hero>", the rules text and the speed / range / damage icons, and the Interrupt / Continue buttons. Shown by
+## its name over the game's ornamental line, and a panel in the colour of its chip (like the game: the colour tells the table
+## which figure acts) with "Target: <hero>", what it does (its activation ability, tactic or confused action), the rules text and the
+## speed / range / damage icons, then the Interrupt / Continue buttons. Shown by
 ## PlayerDialog.ask_monster_attack(). With `dim` off (the app moves the monster and its path is drawn on the map) everything sits in
 ## the top half of the screen and the backdrop is light, so the path stays visible below it.
 ## The art goes through the official-asset overrides: dummy placeholders ship, the game's pieces come with the asset import.
@@ -16,7 +17,7 @@ const FRAME_ART := "res://models/ui/turn_frame.png"           ## 9Slice_2 (white
 const UNDERLINE_ART := "res://models/ui/turn_underline.png"   ## Underline
 
 const ORANGE := Color(0.86, 0.4, 0.07)
-const FRAME_COLOR := Color(0.78, 0.33, 0.07)
+const FRAME_COLOR := Color(0.78, 0.33, 0.07)  ## no chip colour given
 const GOLD := Color(1.0, 0.72, 0.25)
 const UP_COLOR := Color(0.35, 0.95, 0.4)    ## a stat above the monster's normal value
 const DOWN_COLOR := Color(1.0, 0.4, 0.35)   ## ...below it
@@ -35,7 +36,9 @@ var _backdrop: ColorRect
 var _art: CombatMeshPreview
 var _column: VBoxContainer
 var _title: Label
-var _who: Label
+var _action: Label
+var _frame: NinePatchRect
+var _gradient: Gradient
 var _underline: TextureRect
 var _panel: Control
 var _target_row: HBoxContainer
@@ -74,8 +77,6 @@ func _ready() -> void:
 	_underline.custom_minimum_size = Vector2(260, 40)
 	_underline.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_column.add_child(_underline)
-	_who = MenuStyle.shadow_label("", 18, Color(0.85, 0.8, 0.75), MenuStyle.SHADOW_COLOR, false)
-	_column.add_child(_who)
 
 	_column.add_child(_build_panel())
 
@@ -113,6 +114,7 @@ func _build_panel() -> Control:
 	frame.patch_margin_top = margin
 	frame.patch_margin_bottom = margin
 	frame.modulate = FRAME_COLOR
+	_frame = frame
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(frame)
 	var fill_margin := MarginContainer.new()
@@ -125,6 +127,7 @@ func _build_panel() -> Control:
 	gradient.set_color(1, PANEL_BOTTOM)
 	var gradient_texture := GradientTexture2D.new()
 	gradient_texture.gradient = gradient
+	_gradient = gradient
 	gradient_texture.fill_from = Vector2(0, 0)
 	gradient_texture.fill_to = Vector2(0, 1)
 	var fill := TextureRect.new()
@@ -153,6 +156,11 @@ func _build_panel() -> Control:
 	_target_name = MenuStyle.shadow_label("", 26, GOLD)
 	_target_row.add_child(_target_name)
 	content.add_child(_target_row)
+
+	_action = MenuStyle.shadow_label("", 22, GOLD)
+	_action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_action.custom_minimum_size.x = 440.0
+	content.add_child(_action)
 
 	_body = Label.new()
 	_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -205,7 +213,8 @@ func _button(text: String) -> Button:
 
 
 ## `cfg`: MonsterDisplay.preview_data() for the model, plus
-##   title (big heading: the activation / tactic / action name), who ("Wolf (Yellow chip)"), target (hero name, "" = no target line),
+##   title (big heading: the monster's name), chip (its chip colour: the panel's colour), target (hero name, "" = no target line),
+##   action (what it does: the activation ability / tactic / confused action name, "" = none),
 ##   text (the rules text), stats ({speed, speed_base, range, reach, damage, damage_base}, any may be missing), dim (false = path mode).
 func configure(cfg: Dictionary) -> void:
 	_path_mode = not cfg.get("dim", true)
@@ -220,8 +229,18 @@ func configure(cfg: Dictionary) -> void:
 		_place(_column, 0.38, 1.0, 0.04, 0.96, clear_right)
 	_title.add_theme_font_size_override("font_size", 30 if _path_mode else 38)
 	_title.text = str(cfg.get("title", ""))
-	_who.text = str(cfg.get("who", ""))
-	_who.visible = _who.text != "" and _who.text != _title.text
+	_action.text = str(cfg.get("action", ""))
+	_action.visible = _action.text != ""
+	# the panel in the colour of the monster's chip
+	var chip: Color = cfg.get("chip", Color(0, 0, 0, 0))
+	if chip.a > 0.0:
+		_frame.modulate = chip.lerp(Color.WHITE, 0.1)
+		_gradient.set_color(0, chip.darkened(0.9))
+		_gradient.set_color(1, chip.darkened(0.6))
+	else:
+		_frame.modulate = FRAME_COLOR
+		_gradient.set_color(0, PANEL_TOP)
+		_gradient.set_color(1, PANEL_BOTTOM)
 	var target := str(cfg.get("target", ""))
 	_target_row.visible = target != ""
 	_target_name.text = target
@@ -256,9 +275,9 @@ func _build_stats(stats: Dictionary) -> void:
 	_stats_row.visible = not stats.is_empty()
 	if stats.has("speed"):
 		_stats_row.add_child(_stat(ICON_SPEED, str(int(stats["speed"])), _delta_color(int(stats["speed"]), int(stats.get("speed_base", stats["speed"])))))
-	if stats.has("range"):
+	if stats.has("range") and (int(stats["range"]) > 0 or stats.get("reach", false)):  # melee: no range shown, like the game
 		var range_value := int(stats["range"])
-		var shown := str(range_value) if range_value > 0 else (tr("Reach") if stats.get("reach", false) else tr("Melee"))
+		var shown := str(range_value) if range_value > 0 else tr("Reach")
 		_stats_row.add_child(_stat(ICON_RANGE, shown, Color.WHITE, range_value <= 0))
 	if stats.has("damage"):
 		_stats_row.add_child(_stat(ICON_DAMAGE, str(int(stats["damage"])), _delta_color(int(stats["damage"]), int(stats.get("damage_base", stats["damage"])))))

@@ -2256,7 +2256,7 @@ func _tracked_cfg(monster: RuntimeMonster, plan: Dictionary, activation_lines: A
 			lines.append(tr("Move the figure along the orange line to the marked square."))
 		else:
 			lines.append(tr("%s stays where it is.") % monster.display_name())
-		cfg = _turn_cfg(monster, monster.display_name(), "", lines, _turn_stats(monster, -1))
+		cfg = _turn_cfg(monster, "", "", lines, _turn_stats(monster, -1))
 	var extra: Array[String] = []
 	if not activation_lines.is_empty():
 		extra.append(tr("Activation: ") + "; ".join(activation_lines))
@@ -2280,12 +2280,13 @@ func _tracked_cfg(monster: RuntimeMonster, plan: Dictionary, activation_lines: A
 	return cfg
 
 
-## The turn screen's dictionary (MonsterTurnView): the model, the name of what the monster does, who it is, its target, the rules text
-## (lines, empty ones dropped) and the speed / range / damage stats.
-func _turn_cfg(monster: RuntimeMonster, title: String, target_name: String, lines: Array, stats: Dictionary = {}) -> Dictionary:
+## The turn screen's dictionary (MonsterTurnView): the model, the monster's name, its chip colour (the panel's colour), its target, the name
+## of what it does (`action`, may be empty), the rules text (lines, empty ones dropped) and the speed / range / damage stats.
+func _turn_cfg(monster: RuntimeMonster, action: String, target_name: String, lines: Array, stats: Dictionary = {}) -> Dictionary:
 	var cfg := MonsterDisplay.preview_data(monster.folder)
-	cfg["title"] = title if title != "" else monster.display_name()
-	cfg["who"] = _who(monster)
+	cfg["title"] = monster.display_name()
+	cfg["chip"] = MonsterChip.color(monster.chip)
+	cfg["action"] = action
 	cfg["target"] = target_name
 	var kept: Array[String] = []
 	for line in lines:
@@ -2307,8 +2308,8 @@ func _turn_stats(monster: RuntimeMonster, damage: int, speed: int = -1, attack_r
 	return stats
 
 
-## An ordinary attack: the title is the monster's activation ability ("Kehli's Mistake: <rules>" -> title + rules), its rules text
-## and `lines` below it.
+## An ordinary attack: the action line is the monster's activation ability ("Sentinel: <rules>" -> "Sentinel" + the rules), its rules
+## text and `lines` below it.
 func _attack_turn_cfg(monster: RuntimeMonster, hero_name: String, lines: Array[String], damage: int) -> Dictionary:
 	var title := ""
 	var rules: Array[String] = []
