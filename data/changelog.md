@@ -1,4 +1,7 @@
-﻿## v0.0.88 - 2026-11-24
+﻿## v0.0.89 - 2026-11-24
+- When the app moves the monsters, the camera frames the most useful part of the map around the monster's path instead of empty table, while keeping the whole path in view.
+
+## v0.0.88 - 2026-11-24
 - When the app moves the monsters, the camera looks down on each monster's path from above, zoomed out so you keep an overview. Trees, doors and floors on other levels that block the view turn see-through until the camera moves or the monster's turn ends; the floor the path goes over stays solid.
 - New mission effect "Move Floor Tile": moves a floor tile by a number of squares or levels, together with the props, figures, spawn tiles and highlight squares on it - for lifts and moving platforms.
 - Fixed: moving or removing a floor tile with an effect during play no longer loses the floors of stages that were not revealed yet.
