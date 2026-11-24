@@ -1293,6 +1293,10 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		if move_id != "":
 			_pending_object_moves.append({"id": move_id, "cell": effect.target_cell})
 		return
+	if effect.type == Effect.Type.MOVE_FLOOR_TILE:
+		if effect.target_object_id != "" and effect.move_offset != Vector3i.ZERO:
+			_pending_object_moves.append({"id": effect.target_object_id, "offset": effect.move_offset})  # MissionPlayer._apply_floor_move()
+		return
 	if effect.type == Effect.Type.MATH:
 		_apply_math(effect)
 		return

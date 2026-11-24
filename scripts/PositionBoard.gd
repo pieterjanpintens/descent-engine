@@ -39,6 +39,14 @@ var _path_curve: Array[Vector3] = []
 var _path_length := 0.0
 var _arrow: MeshInstance3D
 var _arrow_at := 0.0  ## how far along the curve the arrow head is
+## See-through pieces (see_through()): {grid, cell, item, orientation, ghost} per board piece taken out of its GridMap and shown as a
+## transparent copy, and the camera place they were made for (moving the camera puts them back).
+var _see_through: Array[Dictionary] = []
+var _see_through_camera: Camera3D
+var _see_through_transform := Transform3D()
+const SEE_THROUGH_ALPHA := 0.22
+const SEE_THROUGH_LIFT := 0.35  ## the rays aim this far above the path, so the floor the path lies on is never hit
+const SEE_THROUGH_MAX_HITS := 8  ## pieces one ray may pass through
 var _board: Dictionary = {}
 ## Stair squares -> the world height of the stair's surface over the middle of that square (read from the stair mesh), so a figure
 ## on a stair stands on the step and a click on a step picks that square.
@@ -221,6 +229,11 @@ static func column_of(map: LayeredMap, point: Vector3, height: int) -> Vector3i:
 func _square_width() -> float:
 	var corners := layered_map.get_tile_square_world_corners(Vector3i(1, 0, 1))
 	return corners[0].distance_to(corners[1])
+
+
+## The width of one tile square in world units.
+func square_width() -> float:
+	return _square_width()
 
 
 func _add_token(anchor: Vector3i, size: int, color: Color, label_text: String) -> void:
@@ -426,6 +439,7 @@ func show_path(path: Array[Vector3i], size: int) -> void:
 
 
 func clear_path() -> void:
+	restore_see_through()
 	for child in _path.get_children():
 		_path.remove_child(child)
 		child.free()
@@ -435,6 +449,9 @@ func clear_path() -> void:
 
 
 func _process(delta: float) -> void:
+	if not _see_through.is_empty() and (not is_instance_valid(_see_through_camera)
+			or not _see_through_camera.global_transform.is_equal_approx(_see_through_transform)):
+		restore_see_through()  # the camera moved: everything goes back
 	if _arrow != null and _arrow_at < _path_length:
 		_arrow_at = minf(_arrow_at + delta * ARROW_SPEED * _square_width(), _path_length)
 		_place_arrow()
@@ -499,6 +516,116 @@ static func _smooth(points: Array[Vector3]) -> Array[Vector3]:
 			curve.append(0.5 * ((2.0 * p1) + (p2 - p0) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (3.0 * p1 - p0 - 3.0 * p2 + p3) * t3))
 	curve.append(points[points.size() - 1])
 	return curve
+
+
+# ---------------------------------------------------------------- seeing the path through what is in front of it
+
+## Rays from `camera` to every square of the path (a bit above it); props and floor tiles they pass through are taken out of the board's
+## GridMap and shown as a transparent copy instead. Undone by restore_see_through() - which clear_path() calls, and which happens by
+## itself as soon as the camera moves.
+func see_through(camera: Camera3D, path: Array[Vector3i], size: int) -> void:
+	restore_see_through()
+	if camera == null or path.is_empty():
+		return
+	var space := camera.get_world_3d().direct_space_state
+	var from := camera.global_position
+	var targets: Array[Vector3] = []
+	var half := _square_width() * 0.4
+	for anchor in path:
+		var centre := centre_of(anchor, size) + Vector3(0, SEE_THROUGH_LIFT, 0)
+		targets.append(centre)
+		for corner in [Vector3(-half, 0, -half), Vector3(half, 0, -half), Vector3(-half, 0, half), Vector3(half, 0, half)]:
+			targets.append(centre + corner * size)
+	var done := {}  # "grid id:cell" -> true
+	for target in targets:
+		var start := from
+		for hit_number in SEE_THROUGH_MAX_HITS:
+			var query := PhysicsRayQueryParameters3D.create(start, target)
+			query.hit_back_faces = false
+			query.hit_from_inside = false
+			var result := space.intersect_ray(query)
+			if result.is_empty():
+				break
+			var grid = result.collider
+			var direction := (target - start).normalized()
+			start = (result.position as Vector3) + direction * 0.05
+			if not (grid is GridMap) or (grid != layered_map.prop_grid and grid != layered_map.floor_grid):
+				continue
+			var inside: Vector3 = result.position - result.normal * 0.01
+			var origin := _origin_of(grid, grid.local_to_map(grid.to_local(inside)))
+			var key := "%d:%s" % [grid.get_instance_id(), origin]
+			if done.has(key):
+				continue
+			done[key] = true
+			_hide_piece(grid, origin)
+	_see_through_camera = camera
+	_see_through_transform = camera.global_transform
+
+
+## Puts every see-through piece back on its GridMap.
+func restore_see_through() -> void:
+	for piece in _see_through:
+		var grid: GridMap = piece["grid"]
+		if is_instance_valid(grid):
+			grid.set_cell_item(piece["cell"], piece["item"], piece["orientation"])
+		var ghost: Node = piece["ghost"]
+		if is_instance_valid(ghost):
+			ghost.get_parent().remove_child(ghost)
+			ghost.free()
+	_see_through.clear()
+
+
+## The cell a piece covering `cell` is painted at (GridMap only stores a piece at its origin): the occupancy dictionaries, with a fallback
+## on the column for pieces taller than a cell.
+func _origin_of(grid: GridMap, cell: Vector3i) -> Vector3i:
+	if grid.get_cell_item(cell) != GridMap.INVALID_CELL_ITEM:
+		return cell
+	if grid == layered_map.prop_grid:
+		var owners := mission.prop_owners_at(cell)
+		if owners.is_empty():
+			var best := -1000000
+			for key in mission.occupied_cells.keys():
+				if key.x == cell.x and key.z == cell.z and key.y <= cell.y and key.y > best:
+					best = key.y
+					owners = mission.prop_owners_at(key)
+		return mission.resolve_prop_priority(owners) if not owners.is_empty() else cell
+	if mission.floor_occupied_cells.has(cell):
+		return mission.floor_occupied_cells[cell]
+	return cell
+
+
+func _hide_piece(grid: GridMap, cell: Vector3i) -> void:
+	var item := grid.get_cell_item(cell)
+	if item == GridMap.INVALID_CELL_ITEM:
+		return
+	var library := grid.mesh_library
+	var mesh := library.get_item_mesh(item)
+	if mesh == null:
+		return
+	var orientation := grid.get_cell_item_orientation(cell)
+	var ghost := MeshInstance3D.new()
+	ghost.mesh = mesh
+	ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for surface in mesh.get_surface_count():
+		ghost.set_surface_override_material(surface, _ghost_material(mesh.surface_get_material(surface)))
+	grid.add_child(ghost)
+	var basis := grid.get_cell_item_basis(cell).scaled(Vector3.ONE * grid.cell_scale)
+	ghost.transform = Transform3D(basis, grid.map_to_local(cell)) * library.get_item_mesh_transform(item)
+	_see_through.append({"grid": grid, "cell": cell, "item": item, "orientation": orientation, "ghost": ghost})
+	grid.set_cell_item(cell, GridMap.INVALID_CELL_ITEM)
+
+
+static func _ghost_material(source: Material) -> Material:
+	var material: StandardMaterial3D
+	if source is StandardMaterial3D:
+		material = (source as StandardMaterial3D).duplicate() as StandardMaterial3D
+	else:
+		material = StandardMaterial3D.new()
+		material.albedo_color = Color(0.7, 0.7, 0.7)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color.a = SEE_THROUGH_ALPHA
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	return material
 
 
 ## The middle of a path, for the camera.

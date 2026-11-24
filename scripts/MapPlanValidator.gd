@@ -210,6 +210,7 @@ static func validate_mission(mission: MissionData) -> Dictionary:
 	_check_spawn_targets(mission, result)
 	_check_blank_conditions(mission, result)
 	_check_highlight_targets(mission, result)
+	_check_floor_moves(mission, result)
 	_check_macros(mission, result)
 	_check_table_targets(mission, result)
 	_check_start_visibility(mission, result)
@@ -362,6 +363,22 @@ static func _check_highlight_targets(mission: MissionData, result: Dictionary) -
 			_add(result, "error", "missing_highlight_area", -1, "A Highlight Area effect points at an area that no longer exists (deleted?), so it lights up nothing. Open the effect and pick another.")
 		elif (areas[effect.target_object_id] as HighlightArea).cells.is_empty():
 			_add(result, "warning", "empty_highlight_area", -1, "A Highlight Area effect points at an area with no squares drawn yet, so it lights up nothing.")
+
+
+## A Move Floor Tile effect needs a floor tile that exists and an offset, else nothing moves.
+static func _check_floor_moves(mission: MissionData, result: Dictionary) -> void:
+	var tiles := {}
+	for placement in mission.floor_placements:
+		tiles[placement.id] = true
+	for effect in mission.all_effects():
+		if effect.type != Effect.Type.MOVE_FLOOR_TILE:
+			continue
+		if effect.target_object_id == "":
+			_add(result, "error", "no_floor_tile", -1, "A Move Floor Tile effect has no floor tile chosen, so nothing moves. Open the effect and pick one.")
+		elif not tiles.has(effect.target_object_id):
+			_add(result, "error", "missing_floor_tile", -1, "A Move Floor Tile effect points at a floor tile that no longer exists (deleted?), so nothing moves. Open the effect and pick another.")
+		elif effect.move_offset == Vector3i.ZERO:
+			_add(result, "warning", "floor_move_zero", -1, "A Move Floor Tile effect moves its tile by 0, so nothing moves.")
 
 
 ## A condition with no variable chosen (what "Add condition" creates) can never hold, so whatever it guards - an action, a trigger, an

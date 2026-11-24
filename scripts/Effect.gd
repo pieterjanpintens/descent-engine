@@ -73,6 +73,7 @@ enum Type {
 	CONDITION_MONSTERS,
 	DAMAGE_MONSTERS,
 	MONSTER_TARGET,
+	MOVE_FLOOR_TILE,
 }
 
 ## MONSTER_TARGET (appended, 2026-11-20): changes who the monsters on the board go for - every live monster matching the "which monsters"
@@ -207,6 +208,12 @@ enum MathOperator {
 ## otherwise occupy - see tile_square_to_fine_far_corner()'s own doc for
 ## why that's a real, accepted limitation rather than a bug.
 @export var target_cell: Vector3i = Vector3i.ZERO
+
+## MOVE_FLOOR_TILE (appended, 2026-11-24): moves the floor tile `target_object_id` by `move_offset` - x / z in tile squares, y in levels
+## (a lift: y +1) - and takes along everything standing on it: props whose cells all lie on the tile at its level, tracked hero and monster
+## figures on it, monster spawn tiles and highlight squares on it. Refused (nothing moves) when the new place is taken by a floor tile or
+## a prop that does not move. See LayeredMap.move_floor_tile() / MissionPlayer._apply_floor_move().
+@export var move_offset: Vector3i = Vector3i(0, 1, 0)
 
 ## RUN_TEST only - which attribute the player rolls.
 @export var test_attribute: PlayerAttribute.Attribute = PlayerAttribute.Attribute.WILL

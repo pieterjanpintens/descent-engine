@@ -702,6 +702,78 @@ func move_node(id: String, new_origin: Vector3i) -> bool:
 	return false
 
 
+## Effect.Type.MOVE_FLOOR_TILE: moves the floor tile `id` by `offset` (x / z tile squares, y levels) together with every prop standing on it
+## (all of the prop's cells on the tile, at the tile's level); ids, groups and turns stay. Returns {} when it cannot (not a floor tile, or the
+## new place is taken by a floor tile or a prop that does not move), else {"moved": Array[OutlineNode] (the tile first), "squares":
+## Array[Vector3i] (the tile's 0-based squares BEFORE the move, y = its level - for the caller to move figures, spawn tiles... along)}.
+func move_floor_tile(id: String, offset: Vector3i) -> Dictionary:
+	var placement := mission.find_node_by_id(id) as TilePlacement
+	if placement == null or placement.layer != TilePlacement.Layer.FLOOR or offset == Vector3i.ZERO:
+		return {}
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	var fine_offset := Vector3i(offset.x * cpt, offset.y, offset.z * cpt)
+	var origin := placement.origin_cell
+	var cells: Dictionary = {}
+	for cell: Vector3i in mission.floor_occupied_cells:
+		if mission.floor_occupied_cells[cell] == origin:
+			cells[cell] = true
+	if cells.is_empty():
+		return {}
+	for cell: Vector3i in cells:
+		var target := cell + fine_offset
+		if mission.floor_occupied_cells.has(target) and mission.floor_occupied_cells[target] != origin:
+			return {}  # another floor tile is there
+	# the props standing on it
+	var riders: Array[InteractableEntry] = []
+	var rider_origins: Dictionary = {}
+	for entry in mission.interactables:
+		if entry.origin_cell.y != origin.y or entry.footprint.is_empty():
+			continue
+		var on_tile := true
+		for footprint_offset in entry.footprint:
+			if not cells.has(entry.origin_cell + footprint_offset):
+				on_tile = false
+				break
+		if on_tile:
+			riders.append(entry)
+			rider_origins[entry.origin_cell] = true
+	for entry in riders:
+		for footprint_offset in entry.footprint:
+			for owner: Vector3i in mission.prop_owners_at(entry.origin_cell + footprint_offset + fine_offset):
+				if not rider_origins.has(owner):
+					return {}  # a prop that stays is in the way
+	var squares: Array[Vector3i] = []
+	for cell: Vector3i in cells:
+		var square := Vector3i(floori(float(cell.x) / cpt), cell.y, floori(float(cell.z) / cpt))
+		if not squares.has(square):
+			squares.append(square)
+
+	# the tile: pointing the placement at its new cell BEFORE the rebuild lets the rebuild's own carry-over re-adopt it (move_node()'s trick);
+	# a tile that is not painted (not revealed yet) is kept as data by the rebuild (left_unpainted())
+	var floor_item := floor_grid.get_cell_item(origin)
+	if floor_item != GridMap.INVALID_CELL_ITEM:
+		floor_grid.set_cell_item(origin, GridMap.INVALID_CELL_ITEM)
+		floor_grid.set_cell_item(origin + fine_offset, floor_item, placement.orientation)
+	placement.origin_cell = origin + fine_offset
+	# the props: lift them all off first, so riders can take each other's cells
+	var items: Array[int] = []
+	for entry in riders:
+		items.append(prop_grid.get_cell_item(entry.origin_cell))
+		FootprintRegistry.clear_occupied(mission, entry.origin_cell, entry.footprint)
+		if items[items.size() - 1] != GridMap.INVALID_CELL_ITEM:
+			prop_grid.set_cell_item(entry.origin_cell, GridMap.INVALID_CELL_ITEM)
+	for index in riders.size():
+		var entry := riders[index]
+		entry.origin_cell += fine_offset
+		FootprintRegistry.mark_occupied(mission, entry.origin_cell, entry.footprint)
+		if items[index] != GridMap.INVALID_CELL_ITEM:
+			prop_grid.set_cell_item(entry.origin_cell, items[index], entry.orientation)
+	rebuild_floor_tiles()  # emits mission_objects_changed; it makes a NEW TilePlacement object that carries the old one's id
+	var moved: Array[OutlineNode] = [mission.find_node_by_id(id)]
+	moved.append_array(riders)
+	return {"moved": moved, "squares": squares}
+
+
 ## For callers that mutate mission.groups/mission.interactables' parent_id
 ## directly (CreatorOutline.gd's group New/Rename/Delete/Move to... - none
 ## of that touches the GridMap the way sync_prop_cell() does, so there's
@@ -730,7 +802,7 @@ func rebuild_floor_tiles(new_placement_parent_id: String = "") -> void:
 	var hidden_old: Array[TilePlacement] = []
 	for placement in mission.floor_placements:
 		old_by_cell[placement.origin_cell] = placement
-		if is_editor_hidden(placement):
+		if left_unpainted(placement):
 			hidden_old.append(placement)
 
 	mission.tiles.clear()
@@ -822,7 +894,7 @@ func rebuild_underlay_tiles(new_placement_parent_id: String = "") -> void:
 	var hidden_old: Array[TilePlacement] = []
 	for placement in mission.underlay_placements:
 		old_by_cell[placement.origin_cell] = placement
-		if is_editor_hidden(placement):
+		if left_unpainted(placement):
 			hidden_old.append(placement)
 
 	mission.underlay_placements.clear()
@@ -893,6 +965,14 @@ signal editor_hidden_changed
 
 
 ## True when `node` sits in (or below) a stage hidden with the eye.
+## True when _paint_all() leaves `node` off the grid: a stage hidden with the editor's eye, or - in the Player - a piece not revealed yet or
+## held back. A full rebuild (which scans the grid) must keep such pieces as they are, or it would drop them from the mission.
+func left_unpainted(node: OutlineNode) -> bool:
+	if is_editor_hidden(node):
+		return true
+	return _respect_visibility and (held_back.has(node) or not mission.is_effectively_visible(node))
+
+
 func is_editor_hidden(node: OutlineNode) -> bool:
 	if editor_hidden_groups.is_empty() or node == null or mission == null:
 		return false

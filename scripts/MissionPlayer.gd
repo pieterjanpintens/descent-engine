@@ -694,6 +694,9 @@ func _frame_camera_on_spawn_area() -> void:
 ## piece lands IN the target tile, exactly like placing/moving it in the
 ## Creator does, rather than swinging into a neighbouring tile.
 func _apply_object_move(move: Dictionary) -> void:
+	if move.has("offset"):
+		_apply_floor_move(move["id"], move["offset"])
+		return
 	var node := mission.find_node_by_id(move["id"])
 	if node == null:
 		push_warning("MOVE_OBJECT references an unknown object '%s' - skipped" % move["id"])
@@ -710,6 +713,45 @@ func _apply_object_move(move: Dictionary) -> void:
 	var shift := FootprintRegistry.origin_shift_1x1(mesh_name, grid.get_cell_item_basis(origin))
 	if layered_map.move_node(move["id"], target - shift):
 		_runtime.world_log.append(MissionProgress.move_entry(node))
+
+
+## MOVE_FLOOR_TILE: the tile and the props on it move (LayeredMap.move_floor_tile()); then the hero and monster figures standing on it (all
+## their squares on the tile, at its level), the monster spawn tiles and the highlight squares on it move by the same offset. Every moved
+## piece is noted in the world log (a snapshot replays them as ordinary moves).
+func _apply_floor_move(id: String, offset: Vector3i) -> void:
+	var result := layered_map.move_floor_tile(id, offset)
+	if result.is_empty():
+		push_warning("MOVE_FLOOR_TILE: floor tile '%s' could not move by %s (unknown, not a floor tile, or the place is taken) - skipped" % [id, offset])
+		return
+	for node: OutlineNode in result["moved"]:
+		_runtime.world_log.append(MissionProgress.move_entry(node))
+	var squares: Array[Vector3i] = result["squares"]
+	# tile squares (1-based x / z) of things drawn on the board
+	var one_based: Dictionary = {}
+	for square in squares:
+		one_based[Vector3i(square.x + 1, square.y, square.z + 1)] = true
+	for spawn in mission.monster_spawns:  # (the Player draws neither: nothing to refresh)
+		for index in spawn.cells.size():
+			if one_based.has(spawn.cells[index]):
+				spawn.cells[index] += offset
+	for area in mission.highlight_areas:
+		for index in area.cells.size():
+			if one_based.has(area.cells[index]):
+				area.cells[index] += offset
+	if not _runtime.track_positions:
+		return
+	var on_tile := func(anchor: Vector3i, size: int) -> bool:
+		for square in MonsterMovement.block(anchor, size):
+			if not squares.has(square):
+				return false
+		return true
+	for slot: int in _runtime.hero_positions.keys():
+		var square: Vector3i = _runtime.hero_positions[slot]
+		if on_tile.call(square, 1):
+			_runtime.set_hero_position(slot, square + offset)
+	for monster in _runtime.monsters:
+		if monster.placed and on_tile.call(monster.position, monster.size):
+			_runtime.set_monster_position(monster, monster.position + offset)
 
 
 ## SHOW_OBJECT / HIDE_OBJECT: switches a piece's `visible` flag (and notes it, see MissionRuntime.world_log).
@@ -1997,37 +2039,65 @@ func _tracked_monster_turn(monster: RuntimeMonster, who: String) -> void:
 	await _follow_up_attacks(monster, who, target)
 
 
-## A monster's turn when the app moves it: the camera glides to the monster and its path, zoomed so the whole path fits, with the path's
-## middle at (PATH_SCREEN_X, PATH_SCREEN_Y) of the screen - in the free left part, next to the turn screen, which sits on the right
-## in that mode (MonsterTurnView.PATH_PANEL_LEFT).
-const PATH_SCREEN_X := 0.23
-const PATH_SCREEN_Y := 0.55
+## A monster's turn when the app moves it: the camera glides to look straight down on the path (keeping its compass direction), zoomed
+## so the whole path fits in the free left part of the screen with its middle at (PATH_SCREEN_X, PATH_SCREEN_Y) - next to the turn
+## screen, which sits on the right in that mode (MonsterTurnView.PATH_PANEL_LEFT). Then whatever still stands between the camera and
+## the path turns see-through (PositionBoard.see_through()) until the camera moves or the turn ends.
+const PATH_SCREEN_X := 0.225
+const PATH_SCREEN_Y := 0.5
 const PATH_GLIDE_SECONDS := 0.6
-const PATH_VIEW_HEIGHT := 1.2  ## looks down about 50 degrees, so props hide less of the path
-const PATH_VIEW_MIN := 7.0
-const PATH_VIEW_MAX := 18.0
+const PATH_PITCH := -1.5  ## nearly straight down (the camera's own limit when looking around)
+const PATH_FIT_WIDTH := 0.38  ## part of the screen width the path may use
+const PATH_FIT_HEIGHT := 0.8
+const PATH_MARGIN := 0.6  ## squares around the path
+const PATH_VIEW_MIN := 6.0
+const PATH_VIEW_MAX := 45.0
 
 
-func _frame_path(path: Array[Vector3i], size: int) -> void:
-	if not PlayerSettings.auto_camera_to_spawns or path.is_empty():
-		return
-	var centre := position_board.path_centre(path, size)
-	var extent := 0.0
+## The camera view _frame_path() glides to (export_view() shape), for a screen of `screen` pixels.
+static func path_view(camera: FreeLookCamera, board: PositionBoard, path: Array[Vector3i], size: int, screen: Vector2) -> Dictionary:
+	var yaw: float = camera.export_view()["yaw"]
+	var view_basis := Basis.from_euler(Vector3(PATH_PITCH, yaw, 0.0))
+	var right := Vector3(view_basis.x.x, 0.0, view_basis.x.z).normalized()
+	var up := Vector3(view_basis.y.x, 0.0, view_basis.y.z).normalized()  # "up" on the screen, along the ground
+	# the path's box in the screen's directions
+	var half := board.square_width() * (0.5 * size + PATH_MARGIN)
+	var reference := board.path_centre(path, size)
+	var low := Vector2(INF, INF)
+	var high := Vector2(-INF, -INF)
 	for anchor in path:
-		extent = maxf(extent, centre.distance_to(position_board.centre_of(anchor, size)))
-	var view := camera.view_for(centre, clampf(PATH_VIEW_MIN + extent * 1.2, PATH_VIEW_MIN, PATH_VIEW_MAX), PATH_VIEW_HEIGHT)  # the path has about half the screen
+		var offset := board.centre_of(anchor, size) - reference
+		var at := Vector2(offset.dot(right), offset.dot(up))
+		low = Vector2(minf(low.x, at.x - half), minf(low.y, at.y - half))
+		high = Vector2(maxf(high.x, at.x + half), maxf(high.y, at.y + half))
+	var centre := reference + right * (low.x + high.x) * 0.5 + up * (low.y + high.y) * 0.5
+	var tan_half := tan(deg_to_rad(camera.fov) * 0.5)
+	var aspect := screen.x / maxf(screen.y, 1.0)
+	var distance := maxf((high.y - low.y) / (2.0 * tan_half * PATH_FIT_HEIGHT), (high.x - low.x) / (2.0 * tan_half * aspect * PATH_FIT_WIDTH))
+	distance = clampf(distance, PATH_VIEW_MIN, PATH_VIEW_MAX)
+	var view := {"position": centre + view_basis.z * distance, "yaw": yaw, "pitch": PATH_PITCH}
 	# shift the view (the camera's angle stays) so the ray through that screen point hits the path's middle
-	var screen := get_viewport().get_visible_rect().size
 	var local_ray := camera.project_local_ray_normal(Vector2(screen.x * PATH_SCREEN_X, screen.y * PATH_SCREEN_Y))
 	var ray := Basis.from_euler(Vector3(view["pitch"], view["yaw"], 0.0)) * local_ray
 	if ray.y < -0.01:
 		var from: Vector3 = view["position"]
 		var hit := from + ray * ((centre.y - from.y) / ray.y)
 		view["position"] = from + (centre - hit)
+	return view
+
+
+func _frame_path(path: Array[Vector3i], size: int) -> void:
+	if path.is_empty():
+		return
+	if not PlayerSettings.auto_camera_to_spawns:
+		position_board.see_through(camera, path, size)
+		return
+	var view := path_view(camera, position_board, path, size, get_viewport().get_visible_rect().size)
 	if DebugSession.skipping():
 		camera.import_view(view)
 	else:
 		await camera.glide_to_view(view, PATH_GLIDE_SECONDS).finished
+	position_board.see_through(camera, path, size)
 
 
 ## Shows a tracked turn's dialog (no dim, so the path on the map stays visible). Returns 0 = carry it out, 1 = the players interrupted

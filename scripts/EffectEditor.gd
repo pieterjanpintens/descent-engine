@@ -367,7 +367,8 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 			["Test", Effect.Type.RUN_TEST], ["Show Message", Effect.Type.SHOW_MESSAGE], ["Move Object", Effect.Type.MOVE_OBJECT],
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Spawn Random Monsters", Effect.Type.SPAWN_RANDOM_MONSTERS], ["Loot", Effect.Type.LOOT],
 			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["If / Else", Effect.Type.IF_ELSE], ["Repeat", Effect.Type.REPEAT], ["Switch Table", Effect.Type.SWITCH_TABLE], ["Highlight Area", Effect.Type.HIGHLIGHT_AREA],
-			["Condition on Monsters", Effect.Type.CONDITION_MONSTERS], ["Damage Monsters", Effect.Type.DAMAGE_MONSTERS], ["Monster Target", Effect.Type.MONSTER_TARGET]]:
+			["Condition on Monsters", Effect.Type.CONDITION_MONSTERS], ["Damage Monsters", Effect.Type.DAMAGE_MONSTERS], ["Monster Target", Effect.Type.MONSTER_TARGET],
+			["Move Floor Tile", Effect.Type.MOVE_FLOOR_TILE]]:
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -537,6 +538,45 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	move_y_spin.value_changed.connect(func(_v): commit_move_cell.call())
 	move_z_spin.value_changed.connect(func(_v): commit_move_cell.call())
 	row.add_child(move_cell_box)
+
+	## MOVE_FLOOR_TILE - which floor tile (floor tiles only) and how far: x / z in tile squares, y in levels (a lift: level +1). What stands
+	## on the tile goes along (Effect.move_offset's doc).
+	var floor_box := HBoxContainer.new()
+	var floor_option := OptionButton.new()
+	var floor_ids: Array[String] = []
+	for placement in mission.floor_placements:
+		var floor_label: String = placement.reference_name if placement.reference_name != "" else placement.mesh_item_name
+		floor_option.add_item("%s (%s)" % [floor_label, placement.origin_cell])
+		floor_ids.append(placement.id)
+	floor_option.select(floor_ids.find(effect.target_object_id))
+	floor_option.tooltip_text = "The floor tile that moves; the props, figures, spawn tiles and highlight squares standing on it move along"
+	floor_option.item_selected.connect(func(index: int):
+		if index >= 0 and index < floor_ids.size():
+			_commit_field("Edit effect floor tile", func(): effect.target_object_id = floor_ids[index])
+	)
+	floor_box.add_child(floor_option)
+	var offset_label := Label.new()
+	offset_label.text = "Move by"
+	floor_box.add_child(offset_label)
+	var offset_spins: Array[SpinBox] = []
+	for axis in [["X", effect.move_offset.x, "Tile squares along X"], ["Level", effect.move_offset.y, "Levels up (+) or down (-)"], ["Z", effect.move_offset.z, "Tile squares along Z"]]:
+		var axis_label := Label.new()
+		axis_label.text = axis[0]
+		floor_box.add_child(axis_label)
+		var spin := SpinBox.new()
+		spin.min_value = -99
+		spin.max_value = 99
+		spin.step = 1
+		spin.value = axis[1]
+		spin.tooltip_text = axis[2]
+		floor_box.add_child(spin)
+		offset_spins.append(spin)
+	for spin in offset_spins:
+		spin.value_changed.connect(func(_v):
+			var new_offset := Vector3i(int(offset_spins[0].value), int(offset_spins[1].value), int(offset_spins[2].value))
+			_commit_field("Edit effect floor offset", func(): effect.move_offset = new_offset)
+		)
+	row.add_child(floor_box)
 
 	## MATH - operand_a OP operand_b, written to variable_name (the SAME
 	## var_option picker above, reused - "which variable this writes" is
@@ -804,6 +844,7 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		branch_button.visible = type == Effect.Type.IF_ELSE or type == Effect.Type.REPEAT
 		refresh_branch_button.call()
 		move_cell_box.visible = type == Effect.Type.MOVE_OBJECT
+		floor_box.visible = type == Effect.Type.MOVE_FLOOR_TILE
 		math_box.visible = type == Effect.Type.MATH
 	update_visibility.call()
 	type_option.item_selected.connect(func(_index):
