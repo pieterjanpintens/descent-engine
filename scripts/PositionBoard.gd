@@ -233,6 +233,11 @@ func _square_width() -> float:
 	return corners[0].distance_to(corners[1])
 
 
+## The squares of the board as it is on the table now (0-based {square: true}, revealed floor), for framing the camera.
+func board_squares() -> Dictionary:
+	return _board.get("squares", {})
+
+
 ## The width of one tile square in world units.
 func square_width() -> float:
 	return _square_width()

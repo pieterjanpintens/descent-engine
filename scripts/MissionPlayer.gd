@@ -2052,6 +2052,8 @@ const PATH_FIT_HEIGHT := 0.8
 const PATH_MARGIN := 3.0  ## squares of surroundings around the path, for overview
 const PATH_MIN_SQUARES := 14.0  ## at least this many squares from the top to the bottom of the screen (a short path still shows its surroundings)
 const PATH_VIEW_MAX := 90.0
+const PATH_VIEW_FILL := 0.85  ## part of the screen height counted as useful view (the objective text and the portraits take the rest)
+const USEFUL_STEPS := 20  ## places tried along each screen direction when looking for the most useful view (_useful_centre())
 
 
 ## The camera view _frame_path() glides to (export_view() shape), for a screen of `screen` pixels.
@@ -2076,6 +2078,8 @@ static func path_view(camera: FreeLookCamera, board: PositionBoard, path: Array[
 	var distance := maxf((high.y - low.y) / (2.0 * tan_half * PATH_FIT_HEIGHT), (high.x - low.x) / (2.0 * tan_half * aspect * PATH_FIT_WIDTH))
 	var closest := PATH_MIN_SQUARES * board.square_width() / (2.0 * tan_half)
 	distance = clampf(distance, closest, maxf(closest, PATH_VIEW_MAX))
+	centre = _useful_centre(board, path, size, reference, right, up, Vector2(
+			distance * tan_half * aspect * 2.0 * PATH_SCREEN_X, distance * tan_half * PATH_VIEW_FILL), centre)
 	var view := {"position": centre + view_basis.z * distance, "yaw": yaw, "pitch": PATH_PITCH}
 	# shift the view (the camera's angle stays) so the ray through that screen point hits the path's middle
 	var local_ray := camera.project_local_ray_normal(Vector2(screen.x * PATH_SCREEN_X, screen.y * PATH_SCREEN_Y))
@@ -2085,6 +2089,53 @@ static func path_view(camera: FreeLookCamera, board: PositionBoard, path: Array[
 		var hit := from + ray * ((centre.y - from.y) / ray.y)
 		view["position"] = from + (centre - hit)
 	return view
+
+
+## Where the view should look: not the path's middle as such, but the spot (with the whole path still in view, a square of room around it)
+## that shows the most squares of the board in the free part of the screen - so a monster at the edge of the map does not get a view
+## that is half empty table. `half_view` = half the width / height of that free part on the ground; positions are measured along the
+## screen's `right` / `up` from `reference`. Returns `fallback` when there is no board or no room to shift.
+static func _useful_centre(board: PositionBoard, path: Array[Vector3i], size: int, reference: Vector3, right: Vector3, up: Vector3,
+		half_view: Vector2, fallback: Vector3) -> Vector3:
+	var squares: Dictionary = board.board_squares()
+	if squares.is_empty():
+		return fallback
+	var keep := board.square_width() * (0.5 * size + 1.0)
+	var low := Vector2(INF, INF)
+	var high := Vector2(-INF, -INF)
+	for anchor in path:
+		var offset := board.centre_of(anchor, size) - reference
+		var at := Vector2(offset.dot(right), offset.dot(up))
+		low = Vector2(minf(low.x, at.x - keep), minf(low.y, at.y - keep))
+		high = Vector2(maxf(high.x, at.x + keep), maxf(high.y, at.y + keep))
+	# the range the view's middle may take with the path still inside the free part
+	var min_c := Vector2(high.x - half_view.x, high.y - half_view.y)
+	var max_c := Vector2(low.x + half_view.x, low.y + half_view.y)
+	var path_mid := (low + high) * 0.5
+	for axis in 2:
+		if min_c[axis] > max_c[axis]:
+			min_c[axis] = path_mid[axis]
+			max_c[axis] = path_mid[axis]
+	var points: Array[Vector2] = []
+	for square: Vector3i in squares:
+		var offset := board.centre_of(square, 1) - reference
+		points.append(Vector2(offset.dot(right), offset.dot(up)))
+	var best := path_mid.clamp(min_c, max_c)
+	var best_score := -1
+	var best_shift := INF
+	for i in USEFUL_STEPS + 1:
+		for j in USEFUL_STEPS + 1:
+			var candidate := Vector2(lerpf(min_c.x, max_c.x, float(i) / USEFUL_STEPS), lerpf(min_c.y, max_c.y, float(j) / USEFUL_STEPS))
+			var score := 0
+			for point in points:
+				if absf(point.x - candidate.x) <= half_view.x and absf(point.y - candidate.y) <= half_view.y:
+					score += 1
+			var shift := candidate.distance_to(path_mid)
+			if score > best_score or (score == best_score and shift < best_shift):
+				best = candidate
+				best_score = score
+				best_shift = shift
+	return reference + right * best.x + up * best.y
 
 
 func _frame_path(path: Array[Vector3i], size: int) -> void:
