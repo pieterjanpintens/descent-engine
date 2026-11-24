@@ -2049,9 +2049,9 @@ const PATH_GLIDE_SECONDS := 0.6
 const PATH_PITCH := -1.5  ## nearly straight down (the camera's own limit when looking around)
 const PATH_FIT_WIDTH := 0.38  ## part of the screen width the path may use
 const PATH_FIT_HEIGHT := 0.8
-const PATH_MARGIN := 0.6  ## squares around the path
-const PATH_VIEW_MIN := 6.0
-const PATH_VIEW_MAX := 45.0
+const PATH_MARGIN := 3.0  ## squares of surroundings around the path, for overview
+const PATH_MIN_SQUARES := 14.0  ## at least this many squares from the top to the bottom of the screen (a short path still shows its surroundings)
+const PATH_VIEW_MAX := 90.0
 
 
 ## The camera view _frame_path() glides to (export_view() shape), for a screen of `screen` pixels.
@@ -2074,7 +2074,8 @@ static func path_view(camera: FreeLookCamera, board: PositionBoard, path: Array[
 	var tan_half := tan(deg_to_rad(camera.fov) * 0.5)
 	var aspect := screen.x / maxf(screen.y, 1.0)
 	var distance := maxf((high.y - low.y) / (2.0 * tan_half * PATH_FIT_HEIGHT), (high.x - low.x) / (2.0 * tan_half * aspect * PATH_FIT_WIDTH))
-	distance = clampf(distance, PATH_VIEW_MIN, PATH_VIEW_MAX)
+	var closest := PATH_MIN_SQUARES * board.square_width() / (2.0 * tan_half)
+	distance = clampf(distance, closest, maxf(closest, PATH_VIEW_MAX))
 	var view := {"position": centre + view_basis.z * distance, "yaw": yaw, "pitch": PATH_PITCH}
 	# shift the view (the camera's angle stays) so the ray through that screen point hits the path's middle
 	var local_ray := camera.project_local_ray_normal(Vector2(screen.x * PATH_SCREEN_X, screen.y * PATH_SCREEN_Y))
