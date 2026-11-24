@@ -47,6 +47,8 @@ var _see_through_transform := Transform3D()
 const SEE_THROUGH_ALPHA := 0.22
 const SEE_THROUGH_LIFT := 0.35  ## the rays aim this far above the path, so the floor the path lies on is never hit
 const SEE_THROUGH_MAX_HITS := 8  ## pieces one ray may pass through
+## Props a figure walks over: never made see-through when the path goes over them.
+const WALKED_ON_PROPS := ["stair", "bridge", "statue", "statue2"]
 var _board: Dictionary = {}
 ## Stair squares -> the world height of the stair's surface over the middle of that square (read from the stair mesh), so a figure
 ## on a stair stands on the step and a click on a step picks that square.
@@ -521,7 +523,7 @@ static func _smooth(points: Array[Vector3]) -> Array[Vector3]:
 # ---------------------------------------------------------------- seeing the path through what is in front of it
 
 ## Rays from `camera` to every square of the path (a bit above it); props and floor tiles they pass through are taken out of the board's
-## GridMap and shown as a transparent copy instead. Undone by restore_see_through() - which clear_path() calls, and which happens by
+## GridMap and shown as a transparent copy instead - except what the path itself goes over (its floor tiles, stairs, bridges). Undone by restore_see_through() - which clear_path() calls, and which happens by
 ## itself as soon as the camera moves.
 func see_through(camera: Camera3D, path: Array[Vector3i], size: int) -> void:
 	restore_see_through()
@@ -537,6 +539,20 @@ func see_through(camera: Camera3D, path: Array[Vector3i], size: int) -> void:
 		for corner in [Vector3(-half, 0, -half), Vector3(half, 0, -half), Vector3(-half, 0, half), Vector3(half, 0, half)]:
 			targets.append(centre + corner * size)
 	var done := {}  # "grid id:cell" -> true
+	# what the path walks on stays solid: the floor tiles under its squares and the stairs / bridges it climbs
+	var cpt := FootprintRegistry.CELLS_PER_TILE
+	for anchor in path:
+		for square in MonsterMovement.block(anchor, size):
+			for level in [square.y, square.y - 1]:
+				for dx in cpt:
+					for dz in cpt:
+						var fine := Vector3i(square.x * cpt + dx, level, square.z * cpt + dz)
+						if level == square.y and mission.floor_occupied_cells.has(fine):
+							done["%d:%s" % [layered_map.floor_grid.get_instance_id(), mission.floor_occupied_cells[fine]]] = true
+						for owner: Vector3i in mission.prop_owners_at(fine):
+							var walked_on := layered_map.prop_grid.get_cell_item(owner)
+							if walked_on != GridMap.INVALID_CELL_ITEM and WALKED_ON_PROPS.has(layered_map.prop_grid.mesh_library.get_item_name(walked_on)):
+								done["%d:%s" % [layered_map.prop_grid.get_instance_id(), owner]] = true
 	for target in targets:
 		var start := from
 		for hit_number in SEE_THROUGH_MAX_HITS:
