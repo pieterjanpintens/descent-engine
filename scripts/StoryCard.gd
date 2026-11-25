@@ -2,17 +2,17 @@ class_name StoryCard
 extends RefCounted
 
 ## The look of the game's quest / story cards (never instantiated, static helpers): a near-black panel in the game's ring-cornered
-## frame (`9Slice_1`, through OfficialAssetMap; models/ui/card_frame.png is the placeholder) with grey ornament lines, a white Cinzel
+## frame (`9Slice_1`, through OfficialAssetMap; models/ui/card_frame.png is the placeholder) with black ornament lines, a white Cinzel
 ## title, an orange subtitle and the orange button of the monster turn screen. Used by PlayerDialog (every in-game text box) and the
 ## campaign map's chapter / side quest card (QuestCard).
 ##
 ## The frame art is ONE white picture (body and ornament lines alike); frame_texture() splits it at run time: the big connected body
-## (what survives eroding away the thin lines) becomes the dark fill, everything else the grey lines.
+## (what survives eroding away the thin lines) becomes the dark fill, everything else the (black) lines.
 
 const FRAME_ART := "res://models/ui/card_frame.png"
 const BUTTON_ART := "res://models/ui/turn_button.png"  ## Button1_Small (white, 9-slice), the monster turn screen's button
 const BODY_COLOR := Color(0.055, 0.05, 0.05, 0.95)
-const LINE_COLOR := Color(0.62, 0.62, 0.64)
+const LINE_COLOR := Color(0.02, 0.02, 0.02)
 const ORANGE := Color(0.86, 0.4, 0.07)
 const SUBTITLE_COLOR := Color(1.0, 0.62, 0.2)
 const TEXT_COLOR := Color(0.95, 0.93, 0.9)
@@ -26,7 +26,7 @@ const CONTENT_TOP := 26
 static var _frame_cache: Texture2D
 
 
-## The frame art, recoloured: dark body, grey lines (cached).
+## The frame art, recoloured: dark body, black lines (cached).
 static func frame_texture() -> Texture2D:
 	if _frame_cache != null:
 		return _frame_cache
@@ -175,15 +175,38 @@ static func heading(value: String, size: int = 15) -> Label:
 
 
 ## The orange button (the monster turn screen's).
-static func button(label_text: String, min_size: Vector2 = Vector2(150, 46), font_size: int = 19) -> Button:
+## `art_scale` < 1 draws the button art (and so the button) smaller: the art's 9-slice corners set a minimum height of ~45 px at 1.
+static func button(label_text: String, min_size: Vector2 = Vector2(150, 46), font_size: int = 19, art_scale: float = 1.0) -> Button:
 	var result := Button.new()
 	result.text = label_text
-	style_button(result, min_size, font_size)
+	style_button(result, min_size, font_size, art_scale)
 	return result
 
 
+static var _button_art_cache := {}  # scale -> Texture2D
+
+
+## The button art, scaled (cached per scale).
+static func _button_art(art_scale: float) -> Texture2D:
+	var art := OfficialAssetOverrides.texture_for(BUTTON_ART)
+	if is_equal_approx(art_scale, 1.0) or art == null:
+		return art
+	if _button_art_cache.has(art_scale):
+		return _button_art_cache[art_scale]
+	var image := art.get_image()
+	if image == null:
+		return art
+	image = image.duplicate()
+	if image.is_compressed():
+		image.decompress()
+	image.resize(maxi(roundi(image.get_width() * art_scale), 4), maxi(roundi(image.get_height() * art_scale), 4), Image.INTERPOLATE_LANCZOS)
+	var scaled := ImageTexture.create_from_image(image)
+	_button_art_cache[art_scale] = scaled
+	return scaled
+
+
 ## Gives an existing button the orange look.
-static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), font_size: int = 19) -> void:
+static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), font_size: int = 19, art_scale: float = 1.0) -> void:
 	target.focus_mode = Control.FOCUS_NONE
 	target.custom_minimum_size = Vector2(maxf(target.custom_minimum_size.x, min_size.x), maxf(target.custom_minimum_size.y, min_size.y))
 	target.add_theme_font_override("font", MenuStyle.font())
@@ -193,16 +216,16 @@ static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), f
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		target.add_theme_color_override(state, Color.WHITE)
 	target.add_theme_color_override("font_disabled_color", Color(0.75, 0.72, 0.7))
-	var art := OfficialAssetOverrides.texture_for(BUTTON_ART)
+	var art := _button_art(art_scale)
 	for state in ["normal", "hover", "pressed", "disabled", "focus", "hover_pressed"]:
 		var box := StyleBoxTexture.new()
 		box.texture = art
-		box.texture_margin_left = 29
-		box.texture_margin_right = 29
-		box.texture_margin_top = 22
-		box.texture_margin_bottom = 23
-		box.content_margin_left = 22
-		box.content_margin_right = 22
+		box.texture_margin_left = roundf(29 * art_scale)
+		box.texture_margin_right = roundf(29 * art_scale)
+		box.texture_margin_top = roundf(22 * art_scale)
+		box.texture_margin_bottom = roundf(23 * art_scale)
+		box.content_margin_left = roundf(22 * art_scale)
+		box.content_margin_right = roundf(22 * art_scale)
 		match state:
 			"hover", "hover_pressed":
 				box.modulate_color = ORANGE.lightened(0.18)

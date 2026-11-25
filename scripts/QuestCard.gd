@@ -64,7 +64,7 @@ func fill(title: String, subtitle: String, story: String, extras: Array[Control]
 		_content.add_child(extra)
 	if action_text != "":
 		var holder := CenterContainer.new()
-		var action := StoryCard.button(action_text, Vector2(180, 50), 21)
+		var action := StoryCard.button(action_text, Vector2(130, 36), 17, 0.8)
 		action.disabled = not action_enabled
 		action.pressed.connect(on_action)
 		holder.add_child(action)

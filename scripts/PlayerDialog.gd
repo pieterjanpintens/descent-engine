@@ -593,7 +593,7 @@ func _set_buttons(specs: Array, as_list: bool = false) -> void:
 			else:
 				_choice_list.add_child(btn)
 		else:
-			StoryCard.style_button(btn, Vector2(120, 42), 17)
+			StoryCard.style_button(btn, Vector2(84, 30), 14, 0.66)
 			_button_row.add_child(btn)
 		_buttons.append(btn)
 
