@@ -32,10 +32,10 @@ const MONSTER_WOBBLE := 0.5
 ## The play area is lit, the ground around it falls into shadow: outside the rectangle the floor fades to this fraction of its
 ## brightness (1 = no shadow) over PLAY_FADE world units (a tile square is 3.2). Tune after a look.
 const PLAY_OUTSIDE_LIGHT := 0.0  # linear light: even 0.05 still shows as ~20% grey on screen, so it fades out completely
-const PLAY_FADE := 18.0
+const PLAY_FADE := 50.0
 ## The lit stage reaches this far past the edge of the board (the original game leaves a good strip of lit table around the map; a tile
 ## square is 3.2 units), so the shadow only starts out there. Both the ground and the fog use the area grown by this.
-const PLAY_MARGIN := 9.0
+const PLAY_MARGIN := 80.0  ## ~25 squares: the dialogs at the top of the screen sit on the lit stone, not on the black (user, 2026-11-25)
 ## How much of its own colour the map floor gives off on top of the scene light (0 = only lit by the scene, which is very dark with the
 ## game's own ground texture). Fades with the shadow like the rest. Tune after a look.
 const PLAY_GLOW := 0.1
