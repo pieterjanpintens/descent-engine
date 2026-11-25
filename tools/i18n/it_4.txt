@@ -164,3 +164,9 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 1038|Un mostro fugge
 1039|Fuggito
 1040|Fuggito!
+1041|Inizia
+1042|Missione principale
+1043|Prepara
+1044|Ricompensa:
+1045|Missione secondaria
+1046|Storia

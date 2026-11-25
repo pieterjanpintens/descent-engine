@@ -594,9 +594,6 @@ msgstr "中心到中心（严格）"
 msgid "Centre to corner (recommended)"
 msgstr "中心到角（推荐）"
 
-msgid "Chapter"
-msgstr "章节"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "你已完成的章节“%s”不在新版本中。"
 
@@ -1440,12 +1437,6 @@ msgstr "游玩任务"
 msgid "Play one mission"
 msgstr "游玩单个任务"
 
-msgid "Play this chapter"
-msgstr "游玩这一章"
-
-msgid "Play this side quest"
-msgstr "游玩这个支线任务"
-
 msgid "Player Phase"
 msgstr "玩家阶段"
 
@@ -1509,9 +1500,6 @@ msgstr "之后用这种语言阅读"
 msgid "Read the story aloud"
 msgstr "朗读故事"
 
-msgid "Read this chapter"
-msgstr "阅读这一章"
-
 msgid "Recipe - tier %d"
 msgstr "配方——%d 阶"
 
@@ -1572,9 +1560,6 @@ msgstr "撤退"
 msgid "reveals weakness to %s"
 msgstr "揭示对 %s 的弱点"
 
-msgid "Reward: "
-msgstr "奖励： "
-
 msgid "Round %d - %s"
 msgstr "第 %d 轮 - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "显示语音提示"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "显示这张卡牌是否已升级（+）。升级在战役中获得。"
-
-msgid "Side quest"
-msgstr "支线任务"
-
-msgid "Side quest (optional)"
-msgstr "支线任务（可选）"
 
 msgid "Side quest won: %s."
 msgstr "已赢得支线任务：%s。"
@@ -2939,6 +2918,24 @@ msgstr "逃跑"
 
 msgid "Escaped!"
 msgstr "逃跑了！"
+
+msgid "Begin"
+msgstr "开始"
+
+msgid "Main Quest"
+msgstr "主线任务"
+
+msgid "Prepare"
+msgstr "准备"
+
+msgid "Reward:"
+msgstr "奖励："
+
+msgid "Side Quest"
+msgstr "支线任务"
+
+msgid "Story"
+msgstr "故事"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

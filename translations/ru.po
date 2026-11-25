@@ -594,9 +594,6 @@ msgstr "Центр к центру (строго)"
 msgid "Centre to corner (recommended)"
 msgstr "Центр к углу (рекомендуется)"
 
-msgid "Chapter"
-msgstr "Глава"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "Глава «%s», которую вы уже прошли, отсутствует в новой версии."
 
@@ -1440,12 +1437,6 @@ msgstr "Играть миссию"
 msgid "Play one mission"
 msgstr "Сыграть одну миссию"
 
-msgid "Play this chapter"
-msgstr "Играть эту главу"
-
-msgid "Play this side quest"
-msgstr "Играть этот побочный сценарий"
-
 msgid "Player Phase"
 msgstr "Фаза игроков"
 
@@ -1509,9 +1500,6 @@ msgstr "Прочитано позже на этом языке"
 msgid "Read the story aloud"
 msgstr "Читать историю вслух"
 
-msgid "Read this chapter"
-msgstr "Прочитать эту главу"
-
 msgid "Recipe - tier %d"
 msgstr "Рецепт - ранг %d"
 
@@ -1572,9 +1560,6 @@ msgstr "Отступление"
 msgid "reveals weakness to %s"
 msgstr "открывает уязвимость к: %s"
 
-msgid "Reward: "
-msgstr "Награда: "
-
 msgid "Round %d - %s"
 msgstr "Раунд %d - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "Показывать голосовые подсказки"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "Показывает, улучшена ли эта карта (+). Улучшения зарабатываются в кампании."
-
-msgid "Side quest"
-msgstr "Побочный сценарий"
-
-msgid "Side quest (optional)"
-msgstr "Побочный сценарий (необязательный)"
 
 msgid "Side quest won: %s."
 msgstr "Побочный сценарий пройден: %s."
@@ -2939,6 +2918,24 @@ msgstr "Сбежал"
 
 msgid "Escaped!"
 msgstr "Сбежал!"
+
+msgid "Begin"
+msgstr "Начать"
+
+msgid "Main Quest"
+msgstr "Основной квест"
+
+msgid "Prepare"
+msgstr "Подготовка"
+
+msgid "Reward:"
+msgstr "Награда:"
+
+msgid "Side Quest"
+msgstr "Побочный квест"
+
+msgid "Story"
+msgstr "История"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

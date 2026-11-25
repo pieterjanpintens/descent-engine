@@ -93,17 +93,20 @@ func _build_ui() -> void:
 	add_child(panel)
 	_apply_panel_layout(false)
 
-	var background := PanelContainer.new()
+	# the game's story card look (StoryCard): dark body in the ring-cornered frame, light text, orange buttons
+	var card := StoryCard.build(10)
+	var background: Control = card["root"]
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	panel.add_child(background)
 
-	var vbox := VBoxContainer.new()
-	background.add_child(vbox)
+	var vbox: VBoxContainer = card["content"]
 
 	_label = Label.new()
 	_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label.add_theme_font_size_override("font_size", 17)
+	_label.add_theme_color_override("font_color", StoryCard.TEXT_COLOR)
 	vbox.add_child(_label)
 
 	# Optional image row (combat croptops): left = attacker, right = target.
@@ -142,6 +145,7 @@ func _build_ui() -> void:
 
 	_button_row = HBoxContainer.new()
 	_button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_button_row.add_theme_constant_override("separation", 12)
 	vbox.add_child(_button_row)
 
 	_hint_label = Label.new()
@@ -189,7 +193,7 @@ func _apply_panel_layout(large: bool, width: float = PANEL_WIDTH) -> void:
 	if large:
 		_label.add_theme_font_size_override("font_size", LARGE_FONT_SIZE)
 	else:
-		_label.remove_theme_font_size_override("font_size")
+		_label.add_theme_font_size_override("font_size", 17)
 
 
 ## `text` is a String or a Callable that builds it. A Callable is what makes a LOGGED text language-proof: the quest log runs it once per language
@@ -589,6 +593,7 @@ func _set_buttons(specs: Array, as_list: bool = false) -> void:
 			else:
 				_choice_list.add_child(btn)
 		else:
+			StoryCard.style_button(btn, Vector2(120, 42), 17)
 			_button_row.add_child(btn)
 		_buttons.append(btn)
 

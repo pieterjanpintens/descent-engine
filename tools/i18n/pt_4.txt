@@ -164,3 +164,9 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 1038|Um monstro escapa
 1039|Escapou
 1040|Escapou!
+1041|Começar
+1042|Missão principal
+1043|Preparar
+1044|Recompensa:
+1045|Missão secundária
+1046|História

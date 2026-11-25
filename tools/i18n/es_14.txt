@@ -164,3 +164,9 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1038|Un monstruo escapa
 1039|Escapado
 1040|¡Escapó!
+1041|Comenzar
+1042|Misión principal
+1043|Preparar
+1044|Recompensa:
+1045|Misión secundaria
+1046|Historia

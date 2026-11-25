@@ -594,9 +594,6 @@ msgstr "Centro a centro (rigido)"
 msgid "Centre to corner (recommended)"
 msgstr "Centro ad angolo (consigliato)"
 
-msgid "Chapter"
-msgstr "Capitolo"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "Il capitolo «%s» che hai già completato non è nella nuova versione."
 
@@ -1440,12 +1437,6 @@ msgstr "Gioca la missione"
 msgid "Play one mission"
 msgstr "Gioca una missione"
 
-msgid "Play this chapter"
-msgstr "Gioca questo capitolo"
-
-msgid "Play this side quest"
-msgstr "Gioca questa impresa secondaria"
-
 msgid "Player Phase"
 msgstr "Fase dei giocatori"
 
@@ -1509,9 +1500,6 @@ msgstr "Letto dopo in questa lingua"
 msgid "Read the story aloud"
 msgstr "Leggi la storia ad alta voce"
 
-msgid "Read this chapter"
-msgstr "Leggi questo capitolo"
-
 msgid "Recipe - tier %d"
 msgstr "Ricetta - livello %d"
 
@@ -1572,9 +1560,6 @@ msgstr "Ritirata"
 msgid "reveals weakness to %s"
 msgstr "rivela la vulnerabilità a %s"
 
-msgid "Reward: "
-msgstr "Ricompensa: "
-
 msgid "Round %d - %s"
 msgstr "Round %d - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "Mostra i suggerimenti vocali"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "Mostra se questa carta è potenziata (+). I potenziamenti si ottengono nella campagna."
-
-msgid "Side quest"
-msgstr "Impresa secondaria"
-
-msgid "Side quest (optional)"
-msgstr "Impresa secondaria (facoltativa)"
 
 msgid "Side quest won: %s."
 msgstr "Impresa secondaria vinta: %s."
@@ -2939,6 +2918,24 @@ msgstr "Fuggito"
 
 msgid "Escaped!"
 msgstr "Fuggito!"
+
+msgid "Begin"
+msgstr "Inizia"
+
+msgid "Main Quest"
+msgstr "Missione principale"
+
+msgid "Prepare"
+msgstr "Prepara"
+
+msgid "Reward:"
+msgstr "Ricompensa:"
+
+msgid "Side Quest"
+msgstr "Missione secondaria"
+
+msgid "Story"
+msgstr "Storia"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

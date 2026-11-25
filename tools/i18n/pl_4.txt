@@ -164,3 +164,9 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1038|Potwór ucieka
 1039|Uciekł
 1040|Uciekł!
+1041|Rozpocznij
+1042|Misja główna
+1043|Przygotuj
+1044|Nagroda:
+1045|Misja poboczna
+1046|Opowieść

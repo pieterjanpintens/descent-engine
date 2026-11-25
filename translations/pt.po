@@ -594,9 +594,6 @@ msgstr "Centro a centro (rígido)"
 msgid "Centre to corner (recommended)"
 msgstr "Centro a canto (recomendado)"
 
-msgid "Chapter"
-msgstr "Capítulo"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "O capítulo «%s» que você já concluiu não está na nova versão."
 
@@ -1440,12 +1437,6 @@ msgstr "Jogar missão"
 msgid "Play one mission"
 msgstr "Jogar uma missão"
 
-msgid "Play this chapter"
-msgstr "Jogar este capítulo"
-
-msgid "Play this side quest"
-msgstr "Jogar esta missão paralela"
-
 msgid "Player Phase"
 msgstr "Fase dos jogadores"
 
@@ -1509,9 +1500,6 @@ msgstr "Lido depois neste idioma"
 msgid "Read the story aloud"
 msgstr "Ler a história em voz alta"
 
-msgid "Read this chapter"
-msgstr "Ler este capítulo"
-
 msgid "Recipe - tier %d"
 msgstr "Receita - nível %d"
 
@@ -1572,9 +1560,6 @@ msgstr "Recuar"
 msgid "reveals weakness to %s"
 msgstr "revela fraqueza a %s"
 
-msgid "Reward: "
-msgstr "Recompensa: "
-
 msgid "Round %d - %s"
 msgstr "Rodada %d - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "Mostrar dicas de voz"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "Mostra se esta carta está aprimorada (+). Aprimoramentos são ganhos na campanha."
-
-msgid "Side quest"
-msgstr "Missão Paralela"
-
-msgid "Side quest (optional)"
-msgstr "Missão paralela (opcional)"
 
 msgid "Side quest won: %s."
 msgstr "Missão paralela vencida: %s."
@@ -2939,6 +2918,24 @@ msgstr "Escapou"
 
 msgid "Escaped!"
 msgstr "Escapou!"
+
+msgid "Begin"
+msgstr "Começar"
+
+msgid "Main Quest"
+msgstr "Missão principal"
+
+msgid "Prepare"
+msgstr "Preparar"
+
+msgid "Reward:"
+msgstr "Recompensa:"
+
+msgid "Side Quest"
+msgstr "Missão secundária"
+
+msgid "Story"
+msgstr "História"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

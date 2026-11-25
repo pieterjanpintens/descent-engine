@@ -594,9 +594,6 @@ msgstr "중심에서 중심 (엄격)"
 msgid "Centre to corner (recommended)"
 msgstr "중심에서 모서리 (권장)"
 
-msgid "Chapter"
-msgstr "장"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "이미 완료한 장 “%s”이(가) 새 버전에 없습니다."
 
@@ -1440,12 +1437,6 @@ msgstr "미션 플레이"
 msgid "Play one mission"
 msgstr "미션 하나 플레이"
 
-msgid "Play this chapter"
-msgstr "이 장 플레이"
-
-msgid "Play this side quest"
-msgstr "이 보조 퀘스트 플레이"
-
 msgid "Player Phase"
 msgstr "플레이어 단계"
 
@@ -1509,9 +1500,6 @@ msgstr "이 언어로 나중에 읽음"
 msgid "Read the story aloud"
 msgstr "이야기를 소리 내어 읽기"
 
-msgid "Read this chapter"
-msgstr "이 장 읽기"
-
 msgid "Recipe - tier %d"
 msgstr "제작법 - 등급 %d"
 
@@ -1572,9 +1560,6 @@ msgstr "후퇴"
 msgid "reveals weakness to %s"
 msgstr "%s에 대한 약점을 드러냅니다"
 
-msgid "Reward: "
-msgstr "보상: "
-
 msgid "Round %d - %s"
 msgstr "라운드 %d - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "음성 힌트 표시"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "이 카드가 강화(+)되었는지 보여 줍니다. 강화는 캠페인에서 얻습니다."
-
-msgid "Side quest"
-msgstr "보조 퀘스트"
-
-msgid "Side quest (optional)"
-msgstr "보조 퀘스트 (선택)"
 
 msgid "Side quest won: %s."
 msgstr "보조 퀘스트 클리어: %s."
@@ -2939,6 +2918,24 @@ msgstr "도주함"
 
 msgid "Escaped!"
 msgstr "도주했습니다!"
+
+msgid "Begin"
+msgstr "시작"
+
+msgid "Main Quest"
+msgstr "메인 퀘스트"
+
+msgid "Prepare"
+msgstr "준비"
+
+msgid "Reward:"
+msgstr "보상:"
+
+msgid "Side Quest"
+msgstr "사이드 퀘스트"
+
+msgid "Story"
+msgstr "이야기"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

@@ -164,3 +164,9 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 1038|Nestvůra uniká
 1039|Unikl
 1040|Unikl!
+1041|Začít
+1042|Hlavní úkol
+1043|Připravit
+1044|Odměna:
+1045|Vedlejší úkol
+1046|Příběh

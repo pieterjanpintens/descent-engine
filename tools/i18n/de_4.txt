@@ -164,3 +164,9 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 1038|Ein Monster entkommt
 1039|Entkommen
 1040|Entkommen!
+1041|Beginnen
+1042|Hauptquest
+1043|Vorbereiten
+1044|Belohnung:
+1045|Nebenquest
+1046|Geschichte

@@ -164,3 +164,9 @@ P6|Je hebt %d opgeslagen spel van een oudere versie van deze campagne. Nu naar d
 1038|Een monster ontsnapt
 1039|Ontsnapt
 1040|Ontsnapt!
+1041|Beginnen
+1042|Hoofdmissie
+1043|Voorbereiden
+1044|Beloning:
+1045|Nevenmissie
+1046|Verhaal

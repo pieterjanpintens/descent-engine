@@ -594,9 +594,6 @@ msgstr "Midden naar midden (streng)"
 msgid "Centre to corner (recommended)"
 msgstr "Midden naar hoek (aanbevolen)"
 
-msgid "Chapter"
-msgstr "Hoofdstuk"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "Hoofdstuk \"%s\", dat je al voltooid had, zit niet in de nieuwe versie."
 
@@ -1440,12 +1437,6 @@ msgstr "Missie spelen"
 msgid "Play one mission"
 msgstr "Eén missie spelen"
 
-msgid "Play this chapter"
-msgstr "Dit hoofdstuk spelen"
-
-msgid "Play this side quest"
-msgstr "Deze zijmissie spelen"
-
 msgid "Player Phase"
 msgstr "Spelersfase"
 
@@ -1509,9 +1500,6 @@ msgstr "Later in deze taal lezen"
 msgid "Read the story aloud"
 msgstr "Het verhaal hardop voorlezen"
 
-msgid "Read this chapter"
-msgstr "Dit hoofdstuk lezen"
-
 msgid "Recipe - tier %d"
 msgstr "Recept - niveau %d"
 
@@ -1572,9 +1560,6 @@ msgstr "Terugtocht"
 msgid "reveals weakness to %s"
 msgstr "onthult zwakte voor %s"
 
-msgid "Reward: "
-msgstr "Beloning: "
-
 msgid "Round %d - %s"
 msgstr "Ronde %d - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "Spraaktips tonen"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "Toont of deze kaart is verbeterd (+). Verbeteringen verdien je in de campagne."
-
-msgid "Side quest"
-msgstr "Zijmissie"
-
-msgid "Side quest (optional)"
-msgstr "Zijmissie (optioneel)"
 
 msgid "Side quest won: %s."
 msgstr "Zijmissie gewonnen: %s."
@@ -2939,6 +2918,24 @@ msgstr "Ontsnapt"
 
 msgid "Escaped!"
 msgstr "Ontsnapt!"
+
+msgid "Begin"
+msgstr "Beginnen"
+
+msgid "Main Quest"
+msgstr "Hoofdmissie"
+
+msgid "Prepare"
+msgstr "Voorbereiden"
+
+msgid "Reward:"
+msgstr "Beloning:"
+
+msgid "Side Quest"
+msgstr "Nevenmissie"
+
+msgid "Story"
+msgstr "Verhaal"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

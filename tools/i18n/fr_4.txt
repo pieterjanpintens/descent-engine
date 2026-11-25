@@ -164,3 +164,9 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 1038|Un monstre s'échappe
 1039|Échappé
 1040|Échappé !
+1041|Commencer
+1042|Quête principale
+1043|Préparer
+1044|Récompense :
+1045|Quête secondaire
+1046|Histoire

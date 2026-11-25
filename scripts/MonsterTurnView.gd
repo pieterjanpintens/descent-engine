@@ -210,35 +210,7 @@ func _build_panel() -> Control:
 
 
 func _button(text: String) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(150, 46)
-	button.add_theme_font_override("font", MenuStyle.font())
-	button.add_theme_font_size_override("font_size", 19)
-	button.add_theme_constant_override("outline_size", 6)
-	button.add_theme_color_override("font_outline_color", Color(0.25, 0.08, 0.0, 0.9))
-	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		button.add_theme_color_override(state, Color.WHITE)
-	var art := OfficialAssetOverrides.texture_for(BUTTON_ART)
-	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
-		var box := StyleBoxTexture.new()
-		box.texture = art
-		box.texture_margin_left = 29
-		box.texture_margin_right = 29
-		box.texture_margin_top = 22
-		box.texture_margin_bottom = 23
-		match state:
-			"hover":
-				box.modulate_color = ORANGE.lightened(0.18)
-			"pressed":
-				box.modulate_color = ORANGE.darkened(0.2)
-			"focus":
-				box.modulate_color = Color(0, 0, 0, 0)
-			_:
-				box.modulate_color = ORANGE
-		button.add_theme_stylebox_override(state, box)
-	return button
+	return StoryCard.button(text)  # the shared orange button (also the story cards')
 
 
 ## `cfg`: MonsterDisplay.preview_data() for the model, plus

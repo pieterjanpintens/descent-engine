@@ -1038,6 +1038,12 @@
 1038|A monster escapes
 1039|Escaped
 1040|Escaped!
+1041|Begin
+1042|Main Quest
+1043|Prepare
+1044|Reward:
+1045|Side Quest
+1046|Story
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

@@ -594,9 +594,6 @@ msgstr "Középpont-középpont (szigorú)"
 msgid "Centre to corner (recommended)"
 msgstr "Középpont-sarok (ajánlott)"
 
-msgid "Chapter"
-msgstr "Fejezet"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "A „%s” fejezet, amelyet már befejeztél, nincs az új verzióban."
 
@@ -1440,12 +1437,6 @@ msgstr "Küldetés játszása"
 msgid "Play one mission"
 msgstr "Egy küldetés játszása"
 
-msgid "Play this chapter"
-msgstr "E fejezet játszása"
-
-msgid "Play this side quest"
-msgstr "E mellékküldetés játszása"
-
 msgid "Player Phase"
 msgstr "Játékosok fázisa"
 
@@ -1509,9 +1500,6 @@ msgstr "Később olvasva ezen a nyelven"
 msgid "Read the story aloud"
 msgstr "A történet felolvasása"
 
-msgid "Read this chapter"
-msgstr "E fejezet elolvasása"
-
 msgid "Recipe - tier %d"
 msgstr "Recept - %d. fokozat"
 
@@ -1572,9 +1560,6 @@ msgstr "Visszavonulás"
 msgid "reveals weakness to %s"
 msgstr "felfedi a gyengeséget ellene: %s"
 
-msgid "Reward: "
-msgstr "Jutalom: "
-
 msgid "Round %d - %s"
 msgstr "%d. kör - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "Hangtippek megjelenítése"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "Megmutatja, hogy ez a kártya fejlesztett-e (+). A fejlesztéseket a kampányban lehet szerezni."
-
-msgid "Side quest"
-msgstr "Mellékküldetés"
-
-msgid "Side quest (optional)"
-msgstr "Mellékküldetés (opcionális)"
 
 msgid "Side quest won: %s."
 msgstr "Mellékküldetés megnyerve: %s."
@@ -2939,6 +2918,24 @@ msgstr "Elmenekült"
 
 msgid "Escaped!"
 msgstr "Elmenekült!"
+
+msgid "Begin"
+msgstr "Kezdés"
+
+msgid "Main Quest"
+msgstr "Fő küldetés"
+
+msgid "Prepare"
+msgstr "Felkészülés"
+
+msgid "Reward:"
+msgstr "Jutalom:"
+
+msgid "Side Quest"
+msgstr "Mellékküldetés"
+
+msgid "Story"
+msgstr "Történet"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

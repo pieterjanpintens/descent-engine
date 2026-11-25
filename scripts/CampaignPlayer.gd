@@ -56,6 +56,8 @@ var _map_view: CampaignMapView
 ## The panel of the chapter / side quest / place that was clicked on the map: a popup (_detail_dialog) holding `_side`.
 var _detail_dialog: AcceptDialog
 var _side: VBoxContainer
+## A chapter or side quest is shown on its own card in the game's style instead (QuestCard); places (shops) keep the popup.
+var _quest_card: QuestCard
 var _options_dialog: VoiceSettingsDialog
 var _notice: AcceptDialog
 var _log_dialog: LogDialog
@@ -106,6 +108,9 @@ func _ready() -> void:
 			Narrator.stop()
 	)
 	add_child(_detail_dialog)
+	_quest_card = QuestCard.new()
+	_quest_card.closed.connect(_on_detail_visibility_changed)
+	add_child(_quest_card)
 	_log_dialog = LogDialog.new()
 	_log_dialog.heading = "Campaign Log"
 	_log_dialog.current_label = "You can play"
@@ -362,7 +367,7 @@ func _refresh_after_language() -> void:
 	if _campaign == null or _state == null:
 		return
 	_refresh_view()
-	if _detail_dialog != null and _detail_dialog.visible:
+	if _detail_dialog != null and (_detail_dialog.visible or _quest_card.visible):
 		_rebuild_side()
 
 
@@ -372,7 +377,9 @@ func _on_map_item_selected(id: String) -> void:
 	_map_view.selected_id = id
 	_map_view.queue_redraw()
 	_rebuild_side()
-	if _side.get_child_count() > 0:
+	if _quest_card.has_content:
+		_quest_card.open()
+	elif _side.get_child_count() > 0:
 		# A fixed, narrow width and (nearly) the whole height of the window: the lists grow downwards and scroll, never sideways.
 		var screen := get_viewport_rect().size
 		_detail_dialog.max_size = Vector2i(660, int(screen.y * 0.94))
@@ -381,9 +388,10 @@ func _on_map_item_selected(id: String) -> void:
 
 ## Closing the popup deselects the pin.
 func _on_detail_visibility_changed() -> void:
-	if not _detail_dialog.visible:
-		Narrator.stop()
-	if not _detail_dialog.visible and _selected_id != "":
+	if _detail_dialog.visible or _quest_card.visible:
+		return
+	Narrator.stop()
+	if _selected_id != "":
 		_selected_id = ""
 		_map_view.selected_id = ""
 		_map_view.queue_redraw()
@@ -453,7 +461,8 @@ func _playtest_result(id: String, won: bool) -> void:
 
 
 ## The playtest buttons at the top of a chapter's or side quest's panel, above its long story text so they stay in view (playtest mode only).
-func _add_playtest_buttons(id: String) -> void:
+## `into`: an Array[Control] to append the row to (a card's extras); null = the place popup's panel.
+func _add_playtest_buttons(id: String, into: Variant = null) -> void:
 	if not _in_playtest():
 		return
 	var row := HFlowContainer.new()
@@ -462,7 +471,10 @@ func _add_playtest_buttons(id: String) -> void:
 	row.add_child(tag)
 	row.add_child(_button("Count as won", func(): _playtest_result(id, true)))
 	row.add_child(_button("Count as lost", func(): _playtest_result(id, false)))
-	_side.add_child(row)
+	if into is Array:
+		into.append(row)
+	else:
+		_side.add_child(row)
 
 
 ## Everything from here on is read, logged and narrated in `language` (the save game's own; "" = the player's preferred languages only). LText is
@@ -595,9 +607,10 @@ func _rebuild_side() -> void:
 	for child in _side.get_children():
 		_side.remove_child(child)
 		child.queue_free()
+	_quest_card.clear()
 	var act := _current_act()
 	if _campaign == null or act == null:
-		_detail_dialog.hide()
+		_hide_details()
 		return
 	var place := act.find_place(_selected_id)
 	if place != null and _state.is_place_open(place):
@@ -606,53 +619,71 @@ func _rebuild_side() -> void:
 		return
 	var quest := _campaign.find_side_quest(_selected_id)
 	if quest != null and _state.is_side_quest_visible(_campaign, quest):
-		_detail_dialog.title = "Side quest"
-		_build_side_quest_panel(quest)
+		_build_side_quest_card(quest)
 		return
 	var chapter := act.find_chapter(_selected_id)
 	if chapter == null or _status_of(chapter.id) != "available":
-		_detail_dialog.hide()  # nothing (valid) selected: no popup
+		_hide_details()  # nothing (valid) selected: no popup
 		return
-	_detail_dialog.title = "Chapter"
-	var title := _label(chapter.title)
-	title.add_theme_font_size_override("font_size", 20)
-	_side.add_child(title)
+	_build_chapter_card(chapter)
+
+
+## Closes the chapter card and the place popup.
+func _hide_details() -> void:
+	_detail_dialog.hide()
+	if _quest_card != null:
+		_quest_card.close()
+
+
+## A chapter on its card: "Main Quest" (a mission), "Story" (a narrative chapter) or "Coming soon"; its story, reward and the Prepare button.
+func _build_chapter_card(chapter: CampaignChapter) -> void:
+	var extras: Array[Control] = []
 	if chapter.coming_soon:
-		var tag := _label(tr("Coming soon"))
-		tag.modulate = Color(0.45, 0.75, 0.95)
-		_side.add_child(tag)
 		var teaser := chapter.coming_soon_text.strip_edges()
-		_side.add_child(_wrapped(teaser if teaser != "" else tr("This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept.")))
-		_add_playtest_buttons(chapter.id)
-		_add_feedback_button()
+		_add_playtest_buttons(chapter.id, extras)
+		if _campaign.safe_feedback_url() != "":
+			extras.append(_card_button(tr("Send feedback…"), _open_feedback))
+		_quest_card.fill(chapter.title, tr("Coming soon"), teaser if teaser != "" else tr("This chapter is not ready yet. A new version of the campaign will make it playable - your progress is kept."), extras, "", false, Callable())
 		return
-	_side.add_child(_label(tr("Reward: ") + CampaignState.reward_text(chapter.reward_xp, chapter.reward_gold)))
-	_add_playtest_buttons(chapter.id)
-	_add_story(chapter.story_before)
-	var play := _button("Read this chapter" if chapter.is_narrative else "Play this chapter", func(): _play(chapter))
-	play.disabled = chapter.steps.is_empty() if chapter.is_narrative else chapter.mission_file == ""
-	_side.add_child(play)
+	extras.append_array(_card_reward(chapter.reward_xp, chapter.reward_gold))
+	_add_playtest_buttons(chapter.id, extras)
+	_add_read_aloud(chapter.story_before, extras)
+	var playable := (not chapter.steps.is_empty()) if chapter.is_narrative else chapter.mission_file != ""
+	_quest_card.fill(chapter.title, tr("Story") if chapter.is_narrative else tr("Main Quest"), NarrationMarkup.plain(chapter.story_before, _speakers()), extras,
+			tr("Begin") if chapter.is_narrative else tr("Prepare"), playable, func(): _play(chapter))
 
 
-## An optional side quest on offer: tagged as such, its reward and story and a Play button.
-func _build_side_quest_panel(quest: CampaignSideQuest) -> void:
-	var tag := _label("Side quest (optional)")
-	tag.modulate = CampaignMapView.SIDE_QUEST_COLOR
-	_side.add_child(tag)
-	var title := _label(quest.title)
-	title.add_theme_font_size_override("font_size", 20)
-	_side.add_child(title)
+## An optional side quest on offer, on its card: the warning when it is about to vanish, its reward, story and the Prepare button.
+func _build_side_quest_card(quest: CampaignSideQuest) -> void:
+	var extras: Array[Control] = []
 	var vanishing := _state.vanishing_chapter(_campaign, quest) if quest.warn_when_ending else ""
 	if vanishing != "":
-		var warning := _wrapped(tr("Ending soon: this side quest is gone once \"%s\" is won.") % vanishing)
-		warning.modulate = Color(1.0, 0.45, 0.4)
-		_side.add_child(warning)
-	_side.add_child(_label(tr("Reward: ") + CampaignState.reward_text(quest.reward_xp, quest.reward_gold)))
-	_add_playtest_buttons(quest.id)
-	_add_story(quest.story_before)
-	var play := _button("Play this side quest", func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
-	play.disabled = quest.mission_file == ""
-	_side.add_child(play)
+		var warning := StoryCard.text(tr("Ending soon: this side quest is gone once \"%s\" is won.") % vanishing, 15)
+		warning.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
+		extras.append(warning)
+	extras.append_array(_card_reward(quest.reward_xp, quest.reward_gold))
+	_add_playtest_buttons(quest.id, extras)
+	_add_read_aloud(quest.story_before, extras)
+	_quest_card.fill(quest.title, tr("Side Quest"), NarrationMarkup.plain(quest.story_before, _speakers()), extras, tr("Prepare"), quest.mission_file != "",
+			func(): _play_mission(quest.mission_file, quest.id, quest.mission_inputs))
+
+
+## "Reward:" in the card's heading style, the reward itself in light blue (like the game's hero names).
+func _card_reward(xp: int, gold: int) -> Array[Control]:
+	var value := StoryCard.text(CampaignState.reward_text(xp, gold), 16)
+	value.add_theme_color_override("font_color", Color(0.45, 0.75, 0.95))
+	return [StoryCard.heading(tr("Reward:")), value]
+
+
+func _card_button(text: String, on_pressed: Callable) -> Control:
+	var holder := CenterContainer.new()
+	holder.add_child(_button(text, on_pressed))
+	return holder
+
+
+func _add_read_aloud(text: String, into: Array[Control]) -> void:
+	if text != "" and Narrator.is_enabled():
+		into.append(_card_button(tr("▶ Read aloud"), func(): _speak(text)))
 
 
 ## The shop of a place: its description, what the party has and each offer with a Buy button.
@@ -915,14 +946,8 @@ func _open_feedback() -> void:
 		OS.shell_open(url)
 
 
-## A "Send feedback" button in a panel, when the campaign has a link.
-func _add_feedback_button() -> void:
-	if _campaign != null and _campaign.safe_feedback_url() != "":
-		_side.add_child(_button(tr("Send feedback…"), _open_feedback))
-
-
 func _play(chapter: CampaignChapter) -> void:
-	_detail_dialog.hide()
+	_hide_details()
 	if chapter.coming_soon:
 		return
 	if chapter.is_narrative:
@@ -934,7 +959,7 @@ func _play(chapter: CampaignChapter) -> void:
 ## Starts the mission `mission_file` of the chapter or side quest `id`; `inputs` are the campaign variables
 ## handed to the mission's own variables.
 func _play_mission(mission_file: String, id: String, inputs: Array[MissionVariableMap]) -> void:
-	_detail_dialog.hide()
+	_hide_details()
 	var path := "%s/%s" % [CampaignIO.folder_path(_folder), mission_file]
 	if mission_file == "" or not FileAccess.file_exists(path):
 		_say("The mission is missing from the campaign folder.")
@@ -1028,7 +1053,7 @@ func _speak_answer(answer: NarrativeAnswer) -> void:
 # ---------------------------------------------------------------- results
 
 func _apply_result(result: Dictionary) -> void:
-	_detail_dialog.hide()
+	_hide_details()
 	var won: bool = result.get("won", false)
 	var finished_id := str(result.get("chapter_id", ""))
 	var summary: Dictionary
@@ -1164,17 +1189,8 @@ func _speak(text: String) -> void:
 		Narrator.speak(text, _speakers())
 
 
-## A story text of a chapter or side quest in its panel, without voice tags, with a button to hear it when narration is on.
-func _add_story(text: String) -> void:
-	if text == "":
-		return
-	_side.add_child(_wrapped(NarrationMarkup.plain(text, _speakers())))
-	if Narrator.is_enabled():
-		_side.add_child(_button("▶ Read aloud", func(): _speak(text)))
-
-
 func _say(message: String, title: String = "Notice") -> void:
-	_detail_dialog.hide()  # two exclusive popups at once are not allowed
+	_hide_details()  # two exclusive popups at once are not allowed
 	_notice.title = title
 	# Wrapped to a readable width: a long text (a campaign introduction) with no wrapping made the dialog wider than the screen.
 	_notice.dialog_autowrap = true

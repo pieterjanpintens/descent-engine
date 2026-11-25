@@ -594,9 +594,6 @@ msgstr "Střed ke středu (přísné)"
 msgid "Centre to corner (recommended)"
 msgstr "Střed k rohu (doporučeno)"
 
-msgid "Chapter"
-msgstr "Kapitola"
-
 msgid "Chapter \"%s\" that you already completed is not in the new version."
 msgstr "Kapitola „%s“, kterou jste už dokončili, v nové verzi není."
 
@@ -1440,12 +1437,6 @@ msgstr "Hrát misi"
 msgid "Play one mission"
 msgstr "Hrát jednu misi"
 
-msgid "Play this chapter"
-msgstr "Hrát tuto kapitolu"
-
-msgid "Play this side quest"
-msgstr "Hrát tuto vedlejší úlohu"
-
 msgid "Player Phase"
 msgstr "Fáze hráčů"
 
@@ -1509,9 +1500,6 @@ msgstr "Později čteno v tomto jazyce"
 msgid "Read the story aloud"
 msgstr "Přečíst příběh nahlas"
 
-msgid "Read this chapter"
-msgstr "Přečíst tuto kapitolu"
-
 msgid "Recipe - tier %d"
 msgstr "Recept - stupeň %d"
 
@@ -1572,9 +1560,6 @@ msgstr "Ústup"
 msgid "reveals weakness to %s"
 msgstr "odhaluje slabinu vůči %s"
 
-msgid "Reward: "
-msgstr "Odměna: "
-
 msgid "Round %d - %s"
 msgstr "Kolo %d - %s"
 
@@ -1631,12 +1616,6 @@ msgstr "Zobrazovat hlasové nápovědy"
 
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr "Ukazuje, zda je tato karta vylepšena (+). Vylepšení se získávají v kampani."
-
-msgid "Side quest"
-msgstr "Vedlejší úloha"
-
-msgid "Side quest (optional)"
-msgstr "Vedlejší úloha (volitelná)"
 
 msgid "Side quest won: %s."
 msgstr "Vedlejší úloha splněna: %s."
@@ -2939,6 +2918,24 @@ msgstr "Unikl"
 
 msgid "Escaped!"
 msgstr "Unikl!"
+
+msgid "Begin"
+msgstr "Začít"
+
+msgid "Main Quest"
+msgstr "Hlavní úkol"
+
+msgid "Prepare"
+msgstr "Připravit"
+
+msgid "Reward:"
+msgstr "Odměna:"
+
+msgid "Side Quest"
+msgstr "Vedlejší úkol"
+
+msgid "Story"
+msgstr "Příběh"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

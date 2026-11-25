@@ -194,7 +194,6 @@
 200|Cautious
 201|Centre to centre (strict)
 202|Centre to corner (recommended)
-203|Chapter
 204|Chapter \"%s\" that you already completed is not in the new version.
 205|Chapter \"%s\", where you are now, is not in act %d of the new version.
 206|Check for a newer version of the app at the main menu
@@ -476,8 +475,6 @@
 484|Play
 485|Play mission
 486|Play one mission
-487|Play this chapter
-488|Play this side quest
 489|Player Phase
 490|Player phase
 492|Playtest
@@ -499,7 +496,6 @@
 508|Read in this language earlier
 509|Read in this language later
 510|Read the story aloud
-511|Read this chapter
 512|Recipe - tier %d
 513|Recipe: 
 514|Recipes
@@ -520,7 +516,6 @@
 529|Resume monster attack
 530|Retreat
 531|reveals weakness to %s
-532|Reward: 
 533|Round %d - %s
 534|Rules Reference
 535|Rune
@@ -540,8 +535,6 @@
 554|Shift 1
 555|Show voice hints
 556|Shows whether this card is upgraded (+). Upgrades are earned in the campaign.
-557|Side quest
-558|Side quest (optional)
 559|Side quest won: %s.
 560|Side quest: %s
 561|Slash
@@ -976,6 +969,12 @@
 1038|A monster escapes
 1039|Escaped
 1040|Escaped!
+1041|Begin
+1042|Main Quest
+1043|Prepare
+1044|Reward:
+1045|Side Quest
+1046|Story
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage
