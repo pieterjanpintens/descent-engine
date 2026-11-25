@@ -106,6 +106,7 @@ func _ready() -> void:
 	go.pressed.connect(func():
 		visible = false
 		_closed.emit())
+	StoryCard.fit_button(go)
 	side.add_child(go)
 
 	for spin in [_width, _depth, _height, _back]:

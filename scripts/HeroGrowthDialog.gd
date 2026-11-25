@@ -78,7 +78,7 @@ func _ready() -> void:
 	footer.add_child(_apply_holder)
 	var close_button := Button.new()
 	close_button.text = "Close"
-	StoryCard.style_button(close_button, Vector2(64, 22), 12, 0.44)
+	StoryCard.style_button(close_button, Vector2(0, 22), 12, 0.44)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.pressed.connect(func(): visible = false)
 	footer.add_child(close_button)
@@ -527,4 +527,5 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.pressed.connect(on_pressed)
+	StoryCard.fit_button(button)  # as wide as its text (at least "Cancel"), never stretched
 	return button

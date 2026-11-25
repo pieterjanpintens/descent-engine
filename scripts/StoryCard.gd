@@ -199,6 +199,7 @@ static func _button_art() -> Texture2D:
 static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), font_size: int = 19, art_scale: float = 1.0) -> void:
 	target.focus_mode = Control.FOCUS_NONE
 	target.custom_minimum_size = Vector2(maxf(target.custom_minimum_size.x, min_size.x), maxf(target.custom_minimum_size.y, min_size.y))
+	fit_button(target)
 	target.add_theme_font_override("font", MenuStyle.font())
 	target.add_theme_font_size_override("font_size", font_size)
 	target.add_theme_constant_override("outline_size", 0)  # no outline around the letters
@@ -253,3 +254,25 @@ static func style_title(label: Label, size: int = 20) -> void:
 	label.add_theme_color_override("font_shadow_color", MenuStyle.SHADOW_COLOR)
 	label.add_theme_constant_override("shadow_offset_x", 0)
 	label.add_theme_constant_override("shadow_offset_y", 2)
+
+
+## The app's rule for buttons in the player (the user's): a button is as wide as its text - never stretched over its whole box - but at least
+## as wide as the word "Cancel" (in its own font and size, and the current language). A button that was told to expand keeps that.
+static func fit_button(button: Button) -> void:
+	if button.size_flags_horizontal == Control.SIZE_FILL:  # the default: fills the box (in a VBoxContainer: the whole width)
+		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	if button.is_inside_tree():
+		_cancel_width(button)
+	else:
+		button.ready.connect(_cancel_width.bind(button), CONNECT_ONE_SHOT)  # the theme (font, margins) is only known in the tree
+
+
+static func _cancel_width(button: Button) -> void:
+	var font := button.get_theme_font("font")
+	if font == null:
+		return
+	var size := button.get_theme_font_size("font_size")
+	var box := button.get_theme_stylebox("normal")
+	var margins := (box.get_margin(SIDE_LEFT) + box.get_margin(SIDE_RIGHT)) if box != null else 16.0
+	var width := font.get_string_size(TranslationServer.translate("Cancel"), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + margins
+	button.custom_minimum_size.x = maxf(button.custom_minimum_size.x, ceilf(width))

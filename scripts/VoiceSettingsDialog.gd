@@ -353,6 +353,7 @@ func _build() -> void:
 	_close_button = Button.new()
 	_close_button.text = "Close"
 	_close_button.pressed.connect(func(): visible = false)
+	StoryCard.fit_button(_close_button)
 	vbox.add_child(_close_button)
 
 	visible = false

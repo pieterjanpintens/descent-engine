@@ -81,6 +81,7 @@ func _ready() -> void:
 	turn.pressed.connect(func():
 		_map.turns = (_map.turns + 1) % 4
 		_map.queue_redraw())
+	StoryCard.fit_button(turn)
 	side.add_child(turn)
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

@@ -1118,6 +1118,7 @@ func _button(text: String, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.pressed.connect(on_pressed)
+	StoryCard.fit_button(button)  # as wide as its text (at least "Cancel"), never stretched
 	return button
 
 

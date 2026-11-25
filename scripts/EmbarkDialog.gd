@@ -217,6 +217,7 @@ func _build_ui() -> void:
 	_start_button.text = "Start"
 	_start_button.disabled = true
 	_start_button.pressed.connect(_on_start_pressed)
+	StoryCard.style_button(_start_button, Vector2(64, 22), 12, 0.44)
 	vbox.add_child(_start_button)
 
 	# Second page (ask_loadouts()): two weapons per chosen hero.
@@ -260,6 +261,7 @@ func _build_ui() -> void:
 	var loadout_start := Button.new()
 	loadout_start.text = "Start"
 	loadout_start.pressed.connect(_on_start_pressed)
+	StoryCard.style_button(loadout_start, Vector2(64, 22), 12, 0.44)
 	loadout_vbox.add_child(loadout_start)
 
 
