@@ -7,8 +7,8 @@ extends Control
 
 signal closed
 
-const CARD_WIDTH := 430.0
-const CARD_HEIGHT := 600.0  ## at most; never more than CARD_SCREEN_SHARE of the window
+const CARD_WIDTH := 360.0
+const CARD_HEIGHT := 440.0  ## at most; never more than CARD_SCREEN_SHARE of the window
 const CARD_SCREEN_SHARE := 0.88
 
 var has_content := false
@@ -25,7 +25,7 @@ func _ready() -> void:
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(scrim)
-	var built := StoryCard.build(12)
+	var built := StoryCard.build(8)
 	_card = built["root"]
 	_content = built["content"]
 	add_child(_card)
@@ -64,7 +64,7 @@ func fill(title: String, subtitle: String, story: String, extras: Array[Control]
 		_content.add_child(extra)
 	if action_text != "":
 		var holder := CenterContainer.new()
-		var action := StoryCard.button(action_text, Vector2(130, 36), 17, 0.8)
+		var action := StoryCard.button(action_text, Vector2(104, 26), 13, 0.5)
 		action.disabled = not action_enabled
 		action.pressed.connect(on_action)
 		holder.add_child(action)

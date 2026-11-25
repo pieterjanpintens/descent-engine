@@ -658,7 +658,7 @@ func _build_side_quest_card(quest: CampaignSideQuest) -> void:
 	var extras: Array[Control] = []
 	var vanishing := _state.vanishing_chapter(_campaign, quest) if quest.warn_when_ending else ""
 	if vanishing != "":
-		var warning := StoryCard.text(tr("Ending soon: this side quest is gone once \"%s\" is won.") % vanishing, 15)
+		var warning := StoryCard.text(tr("Ending soon: this side quest is gone once \"%s\" is won.") % vanishing, 13)
 		warning.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
 		extras.append(warning)
 	extras.append_array(_card_reward(quest.reward_xp, quest.reward_gold))
@@ -670,7 +670,7 @@ func _build_side_quest_card(quest: CampaignSideQuest) -> void:
 
 ## "Reward:" in the card's heading style, the reward itself in light blue (like the game's hero names).
 func _card_reward(xp: int, gold: int) -> Array[Control]:
-	var value := StoryCard.text(CampaignState.reward_text(xp, gold), 16)
+	var value := StoryCard.text(CampaignState.reward_text(xp, gold), 13)
 	value.add_theme_color_override("font_color", Color(0.45, 0.75, 0.95))
 	return [StoryCard.heading(tr("Reward:")), value]
 

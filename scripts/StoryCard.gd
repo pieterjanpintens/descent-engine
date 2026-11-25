@@ -17,11 +17,13 @@ const ORANGE := Color(0.86, 0.4, 0.07)
 const SUBTITLE_COLOR := Color(1.0, 0.62, 0.2)
 const TEXT_COLOR := Color(0.95, 0.93, 0.9)
 ## 9-slice margins of the frame art (256 x 93: two rings in each corner along the long side).
-const PATCH_SIDE := 100
-const PATCH_TOP := 46
+## The frame art is drawn at FRAME_SCALE (the game's 256 x 93 art at full size makes heavy ornaments).
+const FRAME_SCALE := 0.62
+const PATCH_SIDE := 62  ## 100 at full size
+const PATCH_TOP := 29  ## 46 at full size
 ## Room between the frame's edge and the content.
-const CONTENT_SIDE := 30
-const CONTENT_TOP := 26
+const CONTENT_SIDE := 22
+const CONTENT_TOP := 18
 
 static var _frame_cache: Texture2D
 
@@ -60,6 +62,7 @@ static func frame_texture() -> Texture2D:
 				image.set_pixel(x, y, Color(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b, pixel.a * BODY_COLOR.a))
 			else:
 				image.set_pixel(x, y, Color(LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b, pixel.a))
+	image.resize(roundi(width * FRAME_SCALE), roundi(height * FRAME_SCALE), Image.INTERPOLATE_LANCZOS)
 	_frame_cache = ImageTexture.create_from_image(image)
 	return _frame_cache
 
@@ -139,7 +142,7 @@ static func build(separation: int = 10) -> Dictionary:
 
 
 ## The card's title: white Cinzel with the logo shadow.
-static func title(text: String, size: int = 26) -> Label:
+static func title(text: String, size: int = 20) -> Label:
 	var label := MenuStyle.shadow_label(text, size, Color.WHITE)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.custom_minimum_size.x = 120.0
@@ -147,7 +150,7 @@ static func title(text: String, size: int = 26) -> Label:
 
 
 ## The orange line under the title ("Main Quest").
-static func subtitle(text: String, size: int = 16) -> Label:
+static func subtitle(text: String, size: int = 13) -> Label:
 	var label := MenuStyle.shadow_label(text, size, SUBTITLE_COLOR, MenuStyle.SHADOW_COLOR, false)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.custom_minimum_size.x = 120.0
@@ -155,7 +158,7 @@ static func subtitle(text: String, size: int = 16) -> Label:
 
 
 ## Body text (wrapping, light).
-static func text(value: String, size: int = 17) -> Label:
+static func text(value: String, size: int = 14) -> Label:
 	var label := Label.new()
 	label.text = value
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -166,7 +169,7 @@ static func text(value: String, size: int = 17) -> Label:
 
 
 ## A small Cinzel heading inside the card ("The following heroes are required:").
-static func heading(value: String, size: int = 15) -> Label:
+static func heading(value: String, size: int = 12) -> Label:
 	var label := MenuStyle.shadow_label(value, size, Color.WHITE, MenuStyle.SHADOW_COLOR, false)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -211,8 +214,7 @@ static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), f
 	target.custom_minimum_size = Vector2(maxf(target.custom_minimum_size.x, min_size.x), maxf(target.custom_minimum_size.y, min_size.y))
 	target.add_theme_font_override("font", MenuStyle.font())
 	target.add_theme_font_size_override("font_size", font_size)
-	target.add_theme_constant_override("outline_size", 6)
-	target.add_theme_color_override("font_outline_color", Color(0.25, 0.08, 0.0, 0.9))
+	target.add_theme_constant_override("outline_size", 0)  # no outline around the letters
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		target.add_theme_color_override(state, Color.WHITE)
 	target.add_theme_color_override("font_disabled_color", Color(0.75, 0.72, 0.7))

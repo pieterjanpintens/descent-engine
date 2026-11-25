@@ -94,7 +94,7 @@ func _build_ui() -> void:
 	_apply_panel_layout(false)
 
 	# the game's story card look (StoryCard): dark body in the ring-cornered frame, light text, orange buttons
-	var card := StoryCard.build(10)
+	var card := StoryCard.build(8)
 	var background: Control = card["root"]
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	panel.add_child(background)
@@ -105,7 +105,7 @@ func _build_ui() -> void:
 	_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label.add_theme_font_size_override("font_size", 17)
+	_label.add_theme_font_size_override("font_size", 15)
 	_label.add_theme_color_override("font_color", StoryCard.TEXT_COLOR)
 	vbox.add_child(_label)
 
@@ -193,7 +193,7 @@ func _apply_panel_layout(large: bool, width: float = PANEL_WIDTH) -> void:
 	if large:
 		_label.add_theme_font_size_override("font_size", LARGE_FONT_SIZE)
 	else:
-		_label.add_theme_font_size_override("font_size", 17)
+		_label.add_theme_font_size_override("font_size", 15)
 
 
 ## `text` is a String or a Callable that builds it. A Callable is what makes a LOGGED text language-proof: the quest log runs it once per language
@@ -593,7 +593,7 @@ func _set_buttons(specs: Array, as_list: bool = false) -> void:
 			else:
 				_choice_list.add_child(btn)
 		else:
-			StoryCard.style_button(btn, Vector2(84, 30), 14, 0.66)
+			StoryCard.style_button(btn, Vector2(64, 22), 12, 0.44)
 			_button_row.add_child(btn)
 		_buttons.append(btn)
 
