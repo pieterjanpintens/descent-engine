@@ -10,6 +10,8 @@ extends RefCounted
 ## (what survives eroding away the thin lines) becomes the dark fill, everything else the (black) lines.
 
 const FRAME_ART := "res://models/ui/card_frame.png"
+const GLOW_ART := "res://models/ui/card_frame_glow.png"  ## 9Slice_1_Glow: the halo behind the frame (5 px bigger on every side)
+const GLOW_COLOR := Color(1, 1, 1, 0.9)
 const BUTTON_ART := "res://models/ui/turn_button.png"  ## Button1_Small (white, 9-slice), the monster turn screen's button
 const BODY_COLOR := Color(0.055, 0.05, 0.05, 0.95)
 const LINE_COLOR := Color(0.02, 0.02, 0.02)
@@ -31,6 +33,32 @@ const CONTENT_SIDE := 22
 const CONTENT_TOP := 18
 
 static var _frame_cache: Texture2D
+static var _glow_cache: Texture2D
+
+
+## The halo art (only its light glow is used - the frame covers its dark middle), mipmapped and cached.
+static func glow_texture() -> Texture2D:
+	if _glow_cache != null:
+		return _glow_cache
+	var source := OfficialAssetOverrides.texture_for(GLOW_ART)
+	if source == null:
+		return null
+	var image := source.get_image()
+	if image == null:
+		return null
+	image = image.duplicate()
+	if image.is_compressed():
+		image.decompress()
+	image.convert(Image.FORMAT_RGBA8)
+	# keep only the light halo: the art's dark lines / body would show in the frame's open gaps as black blobs
+	for y in image.get_height():
+		for x in image.get_width():
+			var pixel := image.get_pixel(x, y)
+			if pixel.get_luminance() < 0.5:
+				image.set_pixel(x, y, Color(1, 1, 1, 0))
+	image.generate_mipmaps()
+	_glow_cache = ImageTexture.create_from_image(image)
+	return _glow_cache
 
 
 ## The frame art, recoloured: dark body, black lines (cached).
@@ -252,6 +280,8 @@ static func panel_style() -> CardFrameStyle:
 	box.source_margin_side = PATCH_SIDE
 	box.source_margin_top = PATCH_TOP
 	box.frame_scale = FRAME_SCALE
+	box.glow = glow_texture()
+	box.glow_color = GLOW_COLOR
 	box.content_margin_left = CONTENT_SIDE
 	box.content_margin_right = CONTENT_SIDE
 	box.content_margin_top = CONTENT_TOP

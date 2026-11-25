@@ -93,6 +93,7 @@ const MAP: Dictionary = {
 	"res://models/ui/turn_button.png": "Button1_Small",
 	"res://models/ui/turn_frame.png": "9Slice_2",
 	"res://models/ui/card_frame.png": "9Slice_1",  ## the story card frame (StoryCard): ring corners, body + lines in one white 9-slice
+	"res://models/ui/card_frame_glow.png": "9Slice_1_Glow",  ## the soft light halo drawn behind the story card frame (contrast on the dark)
 	"res://models/ui/turn_underline.png": "Underline",
 	"res://models/ui/map_pin_story.png": "Icon_StoryQuest",
 	"res://models/ui/map_pin_event.png": "Icon_WorldEvent",
