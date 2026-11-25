@@ -17,10 +17,11 @@ const ORANGE := Color(0.86, 0.4, 0.07)
 const SUBTITLE_COLOR := Color(1.0, 0.62, 0.2)
 const TEXT_COLOR := Color(0.95, 0.93, 0.9)
 ## 9-slice margins of the frame art (256 x 93: two rings in each corner along the long side).
-## The frame art is drawn at FRAME_SCALE (the game's 256 x 93 art at full size makes heavy ornaments).
+## The frame art is drawn at FRAME_SCALE (the game's 256 x 93 art at full size makes heavy ornaments). The art itself stays at full
+## resolution (mipmapped) and CardFrameStyle shrinks it while drawing, so it stays smooth at any window size.
 const FRAME_SCALE := 0.62
-const PATCH_SIDE := 62  ## 100 at full size
-const PATCH_TOP := 29  ## 46 at full size
+const PATCH_SIDE := 100  ## the corner pieces in the art's own pixels
+const PATCH_TOP := 46
 ## Room between the frame's edge and the content.
 const CONTENT_SIDE := 22
 const CONTENT_TOP := 18
@@ -62,7 +63,7 @@ static func frame_texture() -> Texture2D:
 				image.set_pixel(x, y, Color(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b, pixel.a * BODY_COLOR.a))
 			else:
 				image.set_pixel(x, y, Color(LINE_COLOR.r, LINE_COLOR.g, LINE_COLOR.b, pixel.a))
-	image.resize(roundi(width * FRAME_SCALE), roundi(height * FRAME_SCALE), Image.INTERPOLATE_LANCZOS)
+	image.generate_mipmaps()  # drawn smaller than the art (FRAME_SCALE): mipmaps keep the thin lines smooth
 	_frame_cache = ImageTexture.create_from_image(image)
 	return _frame_cache
 
@@ -118,27 +119,13 @@ static func _component(mask: PackedByteArray, width: int, height: int, seed: Vec
 ## A framed card: returns {root, content}. `root` is a MarginContainer sized by its content (add it where it should go); put the card's
 ## controls in `content` (a VBoxContainer).
 static func build(separation: int = 10) -> Dictionary:
-	var root := MarginContainer.new()
+	var root := PanelContainer.new()
 	root.mouse_filter = Control.MOUSE_FILTER_STOP
-	var frame := NinePatchRect.new()
-	frame.texture = frame_texture()
-	frame.patch_margin_left = PATCH_SIDE
-	frame.patch_margin_right = PATCH_SIDE
-	frame.patch_margin_top = PATCH_TOP
-	frame.patch_margin_bottom = PATCH_TOP
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(frame)
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", CONTENT_SIDE)
-	margin.add_theme_constant_override("margin_right", CONTENT_SIDE)
-	margin.add_theme_constant_override("margin_top", CONTENT_TOP)
-	margin.add_theme_constant_override("margin_bottom", CONTENT_TOP)
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(margin)
+	root.add_theme_stylebox_override("panel", panel_style())
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", separation)
-	margin.add_child(content)
-	return {"root": root, "content": content, "frame": frame}
+	root.add_child(content)
+	return {"root": root, "content": content}
 
 
 ## The card's title: white Cinzel with the logo shadow.
@@ -186,26 +173,26 @@ static func button(label_text: String, min_size: Vector2 = Vector2(150, 46), fon
 	return result
 
 
-static var _button_art_cache := {}  # scale -> Texture2D
+static var _button_art_cache: Texture2D
 
 
-## The button art, scaled (cached per scale).
-static func _button_art(art_scale: float) -> Texture2D:
+## The button art at full resolution with mipmaps (CardFrameStyle shrinks it while drawing; cached).
+static func _button_art() -> Texture2D:
+	if _button_art_cache != null:
+		return _button_art_cache
 	var art := OfficialAssetOverrides.texture_for(BUTTON_ART)
-	if is_equal_approx(art_scale, 1.0) or art == null:
-		return art
-	if _button_art_cache.has(art_scale):
-		return _button_art_cache[art_scale]
+	if art == null:
+		return null
 	var image := art.get_image()
 	if image == null:
 		return art
 	image = image.duplicate()
 	if image.is_compressed():
 		image.decompress()
-	image.resize(maxi(roundi(image.get_width() * art_scale), 4), maxi(roundi(image.get_height() * art_scale), 4), Image.INTERPOLATE_LANCZOS)
-	var scaled := ImageTexture.create_from_image(image)
-	_button_art_cache[art_scale] = scaled
-	return scaled
+	image.convert(Image.FORMAT_RGBA8)
+	image.generate_mipmaps()
+	_button_art_cache = ImageTexture.create_from_image(image)
+	return _button_art_cache
 
 
 ## Gives an existing button the orange look.
@@ -218,16 +205,17 @@ static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), f
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		target.add_theme_color_override(state, Color.WHITE)
 	target.add_theme_color_override("font_disabled_color", Color(0.75, 0.72, 0.7))
-	var art := _button_art(art_scale)
+	var art := _button_art()
 	for state in ["normal", "hover", "pressed", "disabled", "focus", "hover_pressed"]:
-		var box := StyleBoxTexture.new()
+		var box := CardFrameStyle.new()  # the art drawn shrunk by the GPU (mipmapped): smooth at any window size
 		box.texture = art
-		box.texture_margin_left = roundf(29 * art_scale)
-		box.texture_margin_right = roundf(29 * art_scale)
-		box.texture_margin_top = roundf(22 * art_scale)
-		box.texture_margin_bottom = roundf(23 * art_scale)
+		box.source_margin_side = 29.0
+		box.source_margin_top = 22.5
+		box.frame_scale = art_scale
 		box.content_margin_left = roundf(22 * art_scale)
 		box.content_margin_right = roundf(22 * art_scale)
+		box.content_margin_top = roundf(6 * art_scale)
+		box.content_margin_bottom = roundf(6 * art_scale)
 		match state:
 			"hover", "hover_pressed":
 				box.modulate_color = ORANGE.lightened(0.18)
@@ -243,13 +231,12 @@ static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), f
 
 
 ## The card frame as a panel style, for a PanelContainer that should look like a card (the mission / campaign player's own dialogs).
-static func panel_style() -> StyleBoxTexture:
-	var box := StyleBoxTexture.new()
+static func panel_style() -> CardFrameStyle:
+	var box := CardFrameStyle.new()
 	box.texture = frame_texture()
-	box.texture_margin_left = PATCH_SIDE
-	box.texture_margin_right = PATCH_SIDE
-	box.texture_margin_top = PATCH_TOP
-	box.texture_margin_bottom = PATCH_TOP
+	box.source_margin_side = PATCH_SIDE
+	box.source_margin_top = PATCH_TOP
+	box.frame_scale = FRAME_SCALE
 	box.content_margin_left = CONTENT_SIDE
 	box.content_margin_right = CONTENT_SIDE
 	box.content_margin_top = CONTENT_TOP
