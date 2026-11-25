@@ -74,7 +74,15 @@ enum Type {
 	DAMAGE_MONSTERS,
 	MONSTER_TARGET,
 	MOVE_FLOOR_TILE,
+	MONSTER_ESCAPES,
 }
+
+## MONSTER_ESCAPES (appended, 2026-11-25): only meaningful in a monster's "When defeated" effects. When the monster is defeated and this
+## effect's own `conditions` hold, it escapes with `escape_chance` percent (100 = always): it leaves the board like a defeated monster, but
+## the party gets NO loot, its other defeat effects and defeat text are skipped and the event "monster_escaped" fires instead of
+## "monster_defeated" - only the effects in `pass_effects` ("When it escapes") run. Feats, the Tarnished Brooch and the Undying Skull do
+## not count it as a kill. See MissionRuntime.release_monster() / escape_effect_for().
+@export_range(1, 100) var escape_chance: int = 100
 
 ## MONSTER_TARGET (appended, 2026-11-20): changes who the monsters on the board go for - every live monster matching the "which monsters"
 ## filter below (any / group / spawn area / type) gets `target_rule_kind` (a TargetRule.Kind; FIXED_HERO uses `target_hero_slot`) as a rule tried

@@ -2913,14 +2913,32 @@ msgstr "Posuň figurku po oranžové čáře na označené pole; potom zaútoč�
 msgid "On the way: "
 msgstr "Cestou: "
 
-msgid "Melee"
-msgstr "Na blízko"
-
 msgid "Reach"
 msgstr "Dosah"
 
 msgid "Target:"
 msgstr "Cíl:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s uniká! Odstraňte ho z desky - kořist si odnáší s sebou."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s utrpí %d zranění utrpením a uniká! Odstraňte ho z desky."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s utrpěl %d zranění a unikl."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: nepřítel unikl, žádná kořist"
+
+msgid "A monster escapes"
+msgstr "Nestvůra uniká"
+
+msgid "Escaped"
+msgstr "Unikl"
+
+msgid "Escaped!"
+msgstr "Unikl!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

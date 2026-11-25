@@ -2913,14 +2913,32 @@ msgstr "Déplacez la figurine le long de la ligne orange jusqu'à la case marqu�
 msgid "On the way: "
 msgstr "En chemin : "
 
-msgid "Melee"
-msgstr "Mêlée"
-
 msgid "Reach"
 msgstr "Allonge"
 
 msgid "Target:"
 msgstr "Cible :"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s s'échappe ! Retirez-le du plateau : il emporte son butin."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s subit %d dégâts d'accablement et s'échappe ! Retirez-le du plateau."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s a subi %d dégâts et s'est échappé."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s : l'ennemi s'est échappé, pas de butin"
+
+msgid "A monster escapes"
+msgstr "Un monstre s'échappe"
+
+msgid "Escaped"
+msgstr "Échappé"
+
+msgid "Escaped!"
+msgstr "Échappé !"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

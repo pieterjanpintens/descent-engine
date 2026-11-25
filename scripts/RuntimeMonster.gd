@@ -84,6 +84,10 @@ var loot: Array[LootItem] = []
 var defeat_text: String = ""
 ## Effects applied when this monster is defeated (copies of MonsterTemplate.defeat_effects).
 var defeat_effects: Array[Effect] = []
+## Set when it was brought down but escaped (an Effect.Type.MONSTER_ESCAPES defeat effect): no loot, `escape` = that effect. Runtime only
+## (an escaped monster is gone from the registry, so it is never saved).
+var escaped: bool = false
+var escape: Effect = null
 ## Its tactics (from its base template) and the one prepared for the next monster phase (-1 = none).
 var tactics: Array[MonsterTactic] = []
 var prepared_tactic: int = -1

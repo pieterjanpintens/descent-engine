@@ -2913,14 +2913,32 @@ msgstr "Mozgasd a figurát a narancs vonal mentén a megjelölt mezőre; utána 
 msgid "On the way: "
 msgstr "Útközben: "
 
-msgid "Melee"
-msgstr "Közelharc"
-
 msgid "Reach"
 msgstr "Elérés"
 
 msgid "Target:"
 msgstr "Célpont:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s elmenekül! Vedd le a tábláról - a zsákmányát magával viszi."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s gyötrelemsebzést szenved: %d, és elmenekül! Vedd le a tábláról."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s %d sebzést kapott és elmenekült."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: az ellenség elmenekült, nincs zsákmány"
+
+msgid "A monster escapes"
+msgstr "Egy szörny elmenekül"
+
+msgid "Escaped"
+msgstr "Elmenekült"
+
+msgid "Escaped!"
+msgstr "Elmenekült!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

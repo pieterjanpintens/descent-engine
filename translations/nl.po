@@ -2913,14 +2913,32 @@ msgstr "Verplaats de figuur langs de oranje lijn naar het gemarkeerde vak; daarn
 msgid "On the way: "
 msgstr "Onderweg: "
 
-msgid "Melee"
-msgstr "Melee"
-
 msgid "Reach"
 msgstr "Reikwijdte"
 
 msgid "Target:"
 msgstr "Doelwit:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s ontsnapt! Haal hem van het bord - hij neemt zijn buit mee."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s lijdt %d kwellingsschade en ontsnapt! Haal hem van het bord."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s kreeg %d schade en ontsnapte."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: de vijand is ontsnapt, geen buit"
+
+msgid "A monster escapes"
+msgstr "Een monster ontsnapt"
+
+msgid "Escaped"
+msgstr "Ontsnapt"
+
+msgid "Escaped!"
+msgstr "Ontsnapt!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

@@ -137,6 +137,10 @@ func _on_damage_pressed() -> void:
 	var amount := int(_amount.value)
 	var monster := _monster
 	var result := _runtime.damage_monster(_monster, amount)
+	if result["defeated"] and result.get("escaped", false):
+		logged.emit(func() -> String: return tr("%s took %d damage and escaped.") % [monster.display_name(), amount])
+		visible = false
+		return
 	if result["defeated"]:
 		logged.emit(func() -> String: return tr("%s took %d damage and was defeated.") % [monster.display_name(), amount])
 		# (the loot, if any, is reported by MissionRuntime.loot_collected)

@@ -2913,14 +2913,32 @@ msgstr "Przesuń figurkę wzdłuż pomarańczowej linii na zaznaczone pole; pote
 msgid "On the way: "
 msgstr "Po drodze: "
 
-msgid "Melee"
-msgstr "Wręcz"
-
 msgid "Reach"
 msgstr "Zasięg"
 
 msgid "Target:"
 msgstr "Cel:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s ucieka! Zdejmij go z planszy - zabiera swój łup."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s otrzymuje %d obrażeń od cierpienia i ucieka! Zdejmij go z planszy."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s otrzymał %d obrażeń i uciekł."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: wróg uciekł, brak łupu"
+
+msgid "A monster escapes"
+msgstr "Potwór ucieka"
+
+msgid "Escaped"
+msgstr "Uciekł"
+
+msgid "Escaped!"
+msgstr "Uciekł!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

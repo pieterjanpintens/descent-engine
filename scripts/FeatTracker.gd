@@ -118,7 +118,7 @@ func on_attack(slot: int, weapon_index: int, weapon: Weapon, monster: RuntimeMon
 	}
 	_add_round_flags(ctx, slot)
 	_dispatch("attack", ctx)
-	if bool(result.get("defeated", false)):
+	if bool(result.get("defeated", false)) and not bool(result.get("escaped", false)):  # an escape is no kill
 		var defeat := ctx.duplicate()
 		defeat["conditions"] = monster.conditions.duplicate()  # what it had when it fell
 		defeat["statuses"] = monster.conditions.size()

@@ -2913,14 +2913,32 @@ msgstr "Mueve la figura por la línea naranja hasta la casilla marcada; después
 msgid "On the way: "
 msgstr "Por el camino: "
 
-msgid "Melee"
-msgstr "Cuerpo a cuerpo"
-
 msgid "Reach"
 msgstr "Alcance"
 
 msgid "Target:"
 msgstr "Objetivo:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "¡%s escapa! Retíralo del tablero: se lleva su botín."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "¡%s sufre %d de daño por aflicción y escapa! Retíralo del tablero."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s sufrió %d de daño y escapó."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: el enemigo escapó, sin botín"
+
+msgid "A monster escapes"
+msgstr "Un monstruo escapa"
+
+msgid "Escaped"
+msgstr "Escapado"
+
+msgid "Escaped!"
+msgstr "¡Escapó!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

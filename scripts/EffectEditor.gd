@@ -368,7 +368,9 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 			["Math", Effect.Type.MATH], ["Spawn Monsters", Effect.Type.SPAWN_MONSTERS], ["Spawn Random Monsters", Effect.Type.SPAWN_RANDOM_MONSTERS], ["Loot", Effect.Type.LOOT],
 			["Show Object", Effect.Type.SHOW_OBJECT], ["Hide Object", Effect.Type.HIDE_OBJECT], ["Wake Monsters", Effect.Type.WAKE_MONSTERS], ["Ask Question", Effect.Type.ASK_QUESTION], ["If / Else", Effect.Type.IF_ELSE], ["Repeat", Effect.Type.REPEAT], ["Switch Table", Effect.Type.SWITCH_TABLE], ["Highlight Area", Effect.Type.HIGHLIGHT_AREA],
 			["Condition on Monsters", Effect.Type.CONDITION_MONSTERS], ["Damage Monsters", Effect.Type.DAMAGE_MONSTERS], ["Monster Target", Effect.Type.MONSTER_TARGET],
-			["Move Floor Tile", Effect.Type.MOVE_FLOOR_TILE]]:
+			["Move Floor Tile", Effect.Type.MOVE_FLOOR_TILE], ["Monster Escapes", Effect.Type.MONSTER_ESCAPES]]:
+		if entry[1] == Effect.Type.MONSTER_ESCAPES and not is_same(effects_list, _defeat_list) and effect.type != entry[1]:
+			continue  # only a monster's own "When defeated" list can use it
 		if allowed_effect_types.is_empty() or allowed_effect_types.has(entry[1]):
 			type_option.add_item(entry[0], entry[1])
 	type_option.select(type_option.get_item_index(effect.type))
@@ -476,12 +478,29 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 	row.add_child(question_button)
 
 	## IF_ELSE / REPEAT: the condition, the "then" / "else" lists and the loop settings live in their own small Window.
+	## MONSTER_ESCAPES - the chance; what happens when it escapes is the branch window's single list.
+	var escape_box := HBoxContainer.new()
+	escape_box.add_child(_label("Chance %:"))
+	var escape_spin := SpinBox.new()
+	escape_spin.min_value = 1
+	escape_spin.max_value = 100
+	escape_spin.value = effect.escape_chance
+	escape_spin.tooltip_text = "How likely the monster escapes when it is defeated (100 = always). Use the effect's Conditions to limit when."
+	escape_spin.value_changed.connect(func(value: float):
+		_commit_field("Edit escape chance", func(): effect.escape_chance = int(value))
+	)
+	escape_box.add_child(escape_spin)
+	row.add_child(escape_box)
+
 	var branch_button := Button.new()
 	var refresh_branch_button := func():
 		if not is_instance_valid(branch_button):  # the row was rebuilt or its window now shows another effect
 			return
 		var then_count := effect.pass_effects.size()
-		if effect.type == Effect.Type.REPEAT:
+		if effect.type == Effect.Type.MONSTER_ESCAPES:
+			branch_button.text = "When it escapes… (%d)" % then_count
+			branch_button.tooltip_text = "Effects that run when the monster escapes (its other defeat effects do not run then)"
+		elif effect.type == Effect.Type.REPEAT:
 			branch_button.text = "Repeat %s×…" % (effect.repeat_count if effect.repeat_count.strip_edges() != "" else "1")
 			branch_button.tooltip_text = "Run %d effect(s) several times, optionally with a counter variable" % then_count
 		else:
@@ -841,7 +860,8 @@ func build_effect_row(effects_list: Array[Effect], effect: Effect, on_changed: C
 		message_edit.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION or type == Effect.Type.HIGHLIGHT_AREA
 		message_variables_button.visible = type == Effect.Type.SHOW_MESSAGE or type == Effect.Type.ASK_QUESTION or type == Effect.Type.HIGHLIGHT_AREA
 		question_button.visible = type == Effect.Type.ASK_QUESTION
-		branch_button.visible = type == Effect.Type.IF_ELSE or type == Effect.Type.REPEAT
+		branch_button.visible = type == Effect.Type.IF_ELSE or type == Effect.Type.REPEAT or type == Effect.Type.MONSTER_ESCAPES
+		escape_box.visible = type == Effect.Type.MONSTER_ESCAPES
 		refresh_branch_button.call()
 		move_cell_box.visible = type == Effect.Type.MOVE_OBJECT
 		floor_box.visible = type == Effect.Type.MOVE_FLOOR_TILE
@@ -1302,6 +1322,10 @@ var _defeat_editor: Window
 var _defeat_editor_container: VBoxContainer
 
 
+## The defeat list shown in the "When defeated" window: only it offers the Monster Escapes effect.
+var _defeat_list: Array[Effect] = []
+
+
 func _open_defeat_editor(template: MonsterTemplate, after: Callable) -> void:
 	if _defeat_editor == null:
 		_defeat_editor = Window.new()
@@ -1330,6 +1354,7 @@ func _open_defeat_editor(template: MonsterTemplate, after: Callable) -> void:
 	var rebuild := func():
 		after.call()
 		_open_defeat_editor(template, after)
+	_defeat_list = template.defeat_effects
 	for effect in template.defeat_effects:
 		_defeat_editor_container.add_child(build_effect_row(template.defeat_effects, effect, rebuild))
 	var add_button := Button.new()
@@ -1655,7 +1680,8 @@ func _open_branch_editor(effect: Effect, after: Callable = Callable(), mode: int
 		_branch_editor_container.remove_child(child)
 		child.queue_free()
 	var is_repeat := effect.type == Effect.Type.REPEAT
-	_branch_editor.title = "Repeat" if is_repeat else "If / Else"
+	var is_escape := effect.type == Effect.Type.MONSTER_ESCAPES
+	_branch_editor.title = "Monster escapes" if is_escape else ("Repeat" if is_repeat else "If / Else")
 	var refresh := func():
 		if after.is_valid():
 			after.call()
@@ -1728,8 +1754,11 @@ func _open_branch_editor(effect: Effect, after: Callable = Callable(), mode: int
 		counter_row.add_child(counter_option)
 		box.add_child(HSeparator.new())
 
-	box.add_child(_wrapped_label("Only while these hold (empty = no check):" if is_repeat else "If all of these hold (empty = always true):", 520))
-	for condition in effect.branch_conditions:
+	if is_escape:
+		box.add_child(_wrapped_label("When the monster escapes it leaves the board without loot and its other defeat effects do not run - only these. The event \"A monster escapes\" fires too.", 520))
+	else:
+		box.add_child(_wrapped_label("Only while these hold (empty = no check):" if is_repeat else "If all of these hold (empty = always true):", 520))
+	for condition in (effect.branch_conditions if not is_escape else []):
 		box.add_child(build_condition_row(effect.branch_conditions, condition, refresh))
 	var add_condition_button := Button.new()
 	add_condition_button.text = "+ Add condition"
@@ -1739,9 +1768,10 @@ func _open_branch_editor(effect: Effect, after: Callable = Callable(), mode: int
 		_commit_field("Add condition", func(): effect.branch_conditions.append(condition))
 		refresh.call()
 	)
-	box.add_child(add_condition_button)
+	if not is_escape:
+		box.add_child(add_condition_button)
 
-	var branches: Array = [["Do:", effect.pass_effects, "Add effect"]] if is_repeat else [["Then:", effect.pass_effects, "Add effect to Then"], ["Else:", effect.fail_effects, "Add effect to Else"]]
+	var branches: Array = [["When it escapes:", effect.pass_effects, "Add effect"]] if is_escape else [["Do:", effect.pass_effects, "Add effect"]] if is_repeat else [["Then:", effect.pass_effects, "Add effect to Then"], ["Else:", effect.fail_effects, "Add effect to Else"]]
 	for branch in branches:
 		var effects_list: Array[Effect] = branch[1]
 		box.add_child(HSeparator.new())

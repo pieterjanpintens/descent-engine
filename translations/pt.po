@@ -2913,14 +2913,32 @@ msgstr "Mova a miniatura pela linha laranja até o espaço marcado; depois ela a
 msgid "On the way: "
 msgstr "No caminho: "
 
-msgid "Melee"
-msgstr "Corpo a corpo"
-
 msgid "Reach"
 msgstr "Alcance"
 
 msgid "Target:"
 msgstr "Alvo:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s escapa! Remova-o do tabuleiro: ele leva o próprio saque."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s sofre %d de dano de tormento e escapa! Retire-o do tabuleiro."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s sofreu %d de dano e escapou."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: o inimigo escapou, sem saque"
+
+msgid "A monster escapes"
+msgstr "Um monstro escapa"
+
+msgid "Escaped"
+msgstr "Escapou"
+
+msgid "Escaped!"
+msgstr "Escapou!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

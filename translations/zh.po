@@ -2913,14 +2913,32 @@ msgstr "沿橙色线将模型移到标记的格子；然后它会攻击。"
 msgid "On the way: "
 msgstr "途中： "
 
-msgid "Melee"
-msgstr "近战"
-
 msgid "Reach"
 msgstr "触及"
 
 msgid "Target:"
 msgstr "目标："
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s 逃跑了！请将其从桌面上移除——它带走了自己的战利品。"
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s 受到 %d 点苦痛伤害并逃跑了！请将其从桌面上移除。"
+
+msgid "%s took %d damage and escaped."
+msgstr "%s 受到 %d 点伤害并逃跑了。"
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s：敌人逃跑了，没有战利品"
+
+msgid "A monster escapes"
+msgstr "怪物逃跑"
+
+msgid "Escaped"
+msgstr "逃跑"
+
+msgid "Escaped!"
+msgstr "逃跑了！"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

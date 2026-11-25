@@ -157,3 +157,10 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1031|Cuerpo a cuerpo
 1032|Alcance
 1033|Objetivo:
+1034|¡%s escapa! Retíralo del tablero: se lleva su botín.
+1035|¡%s sufre %d de daño por aflicción y escapa! Retíralo del tablero.
+1036|%s sufrió %d de daño y escapó.
+1037|%s: el enemigo escapó, sin botín
+1038|Un monstruo escapa
+1039|Escapado
+1040|¡Escapó!

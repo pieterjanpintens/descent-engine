@@ -26,10 +26,12 @@ extends RefCounted
 
 ## Events the game itself fires (besides a prop action's id): a trigger can listen to them. `BUILTIN_EVENTS` = id -> the text the Triggers editor shows.
 const EVENT_MONSTER_DEFEATED := "monster_defeated"
+const EVENT_MONSTER_ESCAPED := "monster_escaped"
 const EVENT_HERO_WOUNDED := "hero_wounded"
 const BUILTIN_EVENTS := {
 	EVENT_HERO_WOUNDED: "A hero is wounded",
 	EVENT_MONSTER_DEFEATED: "A monster is defeated",
+	EVENT_MONSTER_ESCAPED: "A monster escapes",
 }
 
 const BUILTIN_TYPES := {
@@ -734,7 +736,7 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 		"weapon_name": weapon.weapon_name, "base_damage": own_damage,
 		"weakness_bonus": bonus, "resistance_penalty": penalty, "immune": immune,
 		"weapon_damage": weapon_damage, "successes": final_successes, "damage": damage,
-		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated,
+		"defense_roll": defense_roll, "dealt": dealt, "hitpoints": monster.hitpoints, "defeated": defeated, "escaped": false,
 		"conditions_applied": conditions_applied, "conditions_resisted": conditions_resisted, "exposed_bonus": exposed_bonus,
 		"exposed": not immune and monster.conditions.has(MonsterCondition.Kind.EXPOSED),
 		# what feats count: the damage that came from weaknesses (the extra damage per success), the hitpoints it had before, and the overkill (damage past zero)
@@ -743,9 +745,10 @@ func resolve_attack(monster: RuntimeMonster, successes: int, weapon: Weapon = nu
 	if defeated:
 		var brooch_kill: bool = monster.brooch_target and hero_slot >= 0 and hero_slot == monster.brooch_wearer
 		release_monster(monster.id)
-		if brooch_kill:
+		result["escaped"] = monster.escaped
+		if brooch_kill and not monster.escaped:
 			brooch_defeated.emit(monster)
-		if hero_slot >= 0 and str(hero_trinkets.get(hero_slot, {}).get("id", "")) == "TRINKET10_ID":
+		if hero_slot >= 0 and not monster.escaped and str(hero_trinkets.get(hero_slot, {}).get("id", "")) == "TRINKET10_ID":
 			skull_kill.emit(monster, hero_slot)
 	else:
 		monsters_changed.emit()  # the M view shows HP
@@ -858,7 +861,7 @@ func damage_monster(monster: RuntimeMonster, amount: int) -> Dictionary:
 		release_monster(monster.id)
 	else:
 		monsters_changed.emit()
-	return {"hitpoints": monster.hitpoints, "defeated": defeated}
+	return {"hitpoints": monster.hitpoints, "defeated": defeated, "escaped": monster.escaped}
 
 
 ## Heals `amount` hitpoints, never above max_hitpoints; returns how much was really healed.
@@ -951,9 +954,9 @@ func apply_affliction() -> Array[Dictionary]:
 			continue
 		monster.hitpoints -= damage
 		var defeated: bool = monster.hitpoints <= 0
-		results.append({"monster": monster, "damage": damage, "hitpoints": monster.hitpoints, "defeated": defeated})
 		if defeated:
 			release_monster(monster.id)
+		results.append({"monster": monster, "damage": damage, "hitpoints": monster.hitpoints, "defeated": defeated, "escaped": monster.escaped})
 	if not results.is_empty():
 		monsters_changed.emit()
 	return results
@@ -1091,10 +1094,23 @@ func release_monster(monster_id: String) -> void:
 		if monsters[i].id == monster_id:
 			var gone := monsters[i]
 			monsters.remove_at(i)
-			_collect_loot(gone)
+			gone.escape = escape_effect_for(gone)
+			gone.escaped = gone.escape != null
+			if not gone.escaped:
+				_collect_loot(gone)  # an escaped monster takes its loot with it
 			monsters_changed.emit()
 			monster_defeated.emit(gone)
 			return
+
+
+## The MONSTER_ESCAPES defeat effect that lets `monster` get away now (its conditions hold and its chance is rolled), or null.
+func escape_effect_for(monster: RuntimeMonster) -> Effect:
+	for effect in monster.defeat_effects:
+		if effect.type != Effect.Type.MONSTER_ESCAPES or not evaluate_conditions(effect.conditions):
+			continue
+		if randi_range(1, 100) <= clampi(effect.escape_chance, 1, 100):
+			return effect
+	return null
 
 
 ## A defeated monster's loot goes to the players: every material of every LootItem it carries is added to
@@ -1293,6 +1309,8 @@ func apply_effect(effect: Effect, hero_name: String = "") -> void:
 		if move_id != "":
 			_pending_object_moves.append({"id": move_id, "cell": effect.target_cell})
 		return
+	if effect.type == Effect.Type.MONSTER_ESCAPES:
+		return  # decided when the monster is defeated (release_monster()); nothing to do as an effect of its own
 	if effect.type == Effect.Type.MOVE_FLOOR_TILE:
 		if effect.target_object_id != "" and effect.move_offset != Vector3i.ZERO:
 			_pending_object_moves.append({"id": effect.target_object_id, "offset": effect.move_offset})  # MissionPlayer._apply_floor_move()

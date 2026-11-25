@@ -157,3 +157,10 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 1031|Corpo a corpo
 1032|Alcance
 1033|Alvo:
+1034|%s escapa! Remova-o do tabuleiro: ele leva o próprio saque.
+1035|%s sofre %d de dano de tormento e escapa! Retire-o do tabuleiro.
+1036|%s sofreu %d de dano e escapou.
+1037|%s: o inimigo escapou, sem saque
+1038|Um monstro escapa
+1039|Escapou
+1040|Escapou!

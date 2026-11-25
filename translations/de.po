@@ -2913,14 +2913,32 @@ msgstr "Bewege die Figur entlang der orangen Linie auf das markierte Feld; danac
 msgid "On the way: "
 msgstr "Unterwegs: "
 
-msgid "Melee"
-msgstr "Nahkampf"
-
 msgid "Reach"
 msgstr "Reichweite"
 
 msgid "Target:"
 msgstr "Ziel:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s entkommt! Entferne es vom Spielplan - es nimmt seine Beute mit."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s erleidet %d Zermürbungsschaden und entkommt! Entferne es vom Spielplan."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s erlitt %d Schaden und ist entkommen."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: Der Feind ist entkommen, keine Beute"
+
+msgid "A monster escapes"
+msgstr "Ein Monster entkommt"
+
+msgid "Escaped"
+msgstr "Entkommen"
+
+msgid "Escaped!"
+msgstr "Entkommen!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

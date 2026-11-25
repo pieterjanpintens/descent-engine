@@ -967,9 +967,15 @@
 1028|Activation: 
 1029|Move the figure along the orange line to the marked square, then it attacks.
 1030|On the way: 
-1031|Melee
 1032|Reach
 1033|Target:
+1034|%s escapes! Remove it from the board - it takes its loot with it.
+1035|%s takes %d affliction damage and escapes! Remove it from the board.
+1036|%s took %d damage and escaped.
+1037|%s: the enemy escaped, no loot
+1038|A monster escapes
+1039|Escaped
+1040|Escaped!
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

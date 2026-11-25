@@ -418,7 +418,7 @@ func finish(p: Plan, r: Dictionary) -> void:
 		match str(e["type"]):
 			"kill_chain":
 				# Bolt of Blood: the attack defeated the target -> another random enemy takes damage equal to pct% of the dead one's starting health.
-				if not _alive(target):
+				if not _alive(target) and not target.escaped:
 					var survivors: Array[RuntimeMonster] = []
 					for other in runtime.monsters:
 						survivors.append(other)
@@ -565,13 +565,16 @@ func finish(p: Plan, r: Dictionary) -> void:
 		if said != "":
 			p.lines.append("%s: %s" % [part_name, said])
 	for e in loot_times:
-		if _alive(target):
+		if target.escaped:
+			p.lines.append(tr("%s: the enemy escaped, no loot") % str(e["part"]))
+		elif _alive(target):
 			p.lines.append(tr("%s: the enemy is not defeated, no extra loot") % str(e["part"]))
 		else:
 			var extra := runtime.multiply_loot(target, int(e["n"]))
 			p.lines.append(tr("%s: loot x%d (+%s)") % [str(e["part"]), int(e["n"]), extra] if extra != "" else tr("%s: the enemy has no loot") % str(e["part"]))
 	r["hitpoints"] = target.hitpoints
 	r["defeated"] = target.hitpoints <= 0
+	r["escaped"] = target.escaped
 	var defense_lines: Array[String] = []
 	for line in r.get("defense_lines", []):
 		defense_lines.append(tr("Defense ability: %s") % str(line))

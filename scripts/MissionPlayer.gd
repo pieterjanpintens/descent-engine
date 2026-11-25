@@ -2571,7 +2571,7 @@ func _apply_affliction() -> void:
 	if _feat_tracker != null:
 		var fallen: Array = []
 		for entry in results:
-			if entry["defeated"]:
+			if entry["defeated"] and not entry.get("escaped", false):
 				fallen.append(entry["monster"])
 		_feat_tracker.on_affliction_defeats(fallen)
 	var chips: Dictionary = {}  # a defeated monster has lost its chip by the time the text is built per language
@@ -2582,7 +2582,9 @@ func _apply_affliction() -> void:
 		for entry in results:
 			var monster: RuntimeMonster = entry["monster"]
 			var who := tr("%s (%s chip)") % [monster.display_name(), MonsterChip.display_name(chips[monster])]
-			if entry["defeated"]:
+			if entry["defeated"] and entry.get("escaped", false):
+				lines.append(tr("%s takes %d affliction damage and escapes! Remove it from the board.") % [who, entry["damage"]])
+			elif entry["defeated"]:
 				lines.append(tr("%s takes %d affliction damage and is defeated! Remove it from the board.") % [who, entry["damage"]])
 			else:
 				lines.append(tr("%s takes %d affliction damage (%d hitpoints left).") % [who, entry["damage"], entry["hitpoints"]])
@@ -2803,6 +2805,9 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 			quiet = quiet + 1 if not dialog.visible else 0
 		var gone: RuntimeMonster = _defeat_queue.pop_front()
 		var shown_name := gone.display_name()
+		if gone.escaped:
+			await _monster_escaped(gone, shown_name)
+			continue
 		var loot: Array = _loot_notes.get(shown_name, [])
 		_loot_notes.erase(shown_name)
 		var usable: Array = _usable_notes.get(shown_name, [])
@@ -2827,6 +2832,22 @@ func _on_monster_defeated(monster: RuntimeMonster) -> void:
 		if ended != null:
 			await _handle_game_over(ended)
 	_defeat_busy = false
+
+
+## A defeated monster that escaped (Effect.Type.MONSTER_ESCAPES): it leaves the board with its loot; only the escape's own effects run, then
+## the "monster_escaped" event and the objectives.
+func _monster_escaped(gone: RuntimeMonster, shown_name: String) -> void:
+	_loot_notes.erase(shown_name)
+	_usable_notes.erase(shown_name)
+	var make_text := func() -> String:
+		return tr("%s escapes! Remove it from the board - it takes its loot with it.") % shown_name
+	await dialog.ask_ok(make_text, true, false, "Escaped")
+	if gone.escape != null:
+		await _runtime.apply_effects(gone.escape.pass_effects, "")
+	var ended := await _runtime.fire_event(MissionRuntime.EVENT_MONSTER_ESCAPED)
+	await _on_objectives_progressed()
+	if ended != null:
+		await _handle_game_over(ended)
 
 
 func _wound_hero(slot: int) -> void:

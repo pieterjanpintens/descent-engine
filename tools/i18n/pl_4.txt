@@ -157,3 +157,10 @@ P6|Masz %d zapis gry ze starszej wersji tej kampanii. Przenieść go teraz do no
 1031|Wręcz
 1032|Zasięg
 1033|Cel:
+1034|%s ucieka! Zdejmij go z planszy - zabiera swój łup.
+1035|%s otrzymuje %d obrażeń od cierpienia i ucieka! Zdejmij go z planszy.
+1036|%s otrzymał %d obrażeń i uciekł.
+1037|%s: wróg uciekł, brak łupu
+1038|Potwór ucieka
+1039|Uciekł
+1040|Uciekł!

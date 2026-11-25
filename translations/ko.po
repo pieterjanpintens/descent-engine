@@ -2913,14 +2913,32 @@ msgstr "주황색 선을 따라 표시된 칸으로 모형을 옮기세요. 그�
 msgid "On the way: "
 msgstr "이동 중: "
 
-msgid "Melee"
-msgstr "근접"
-
 msgid "Reach"
 msgstr "리치"
 
 msgid "Target:"
 msgstr "대상:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s이(가) 도주했습니다! 판에서 치우세요 - 전리품을 가지고 갑니다."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s이(가) 고통 피해 %d를 받고 도주했습니다! 판에서 치우세요."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s이(가) 피해 %d를 받고 도주했습니다."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: 적이 도주했습니다, 전리품 없음"
+
+msgid "A monster escapes"
+msgstr "몬스터가 도주함"
+
+msgid "Escaped"
+msgstr "도주함"
+
+msgid "Escaped!"
+msgstr "도주했습니다!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

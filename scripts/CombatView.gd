@@ -936,7 +936,7 @@ func show_outcome(cfg: Dictionary, r: Dictionary) -> void:
 		_outcome_tween.tween_property(term, "modulate:a", 1.0, OUTCOME_TERM_FADE_SEC)
 	var defeated: bool = r["defeated"]
 	_calc_note.visible = defeated
-	_calc_note.text = "☠ Defeated"
+	_calc_note.text = tr("Escaped!") if r.get("escaped", false) else "☠ Defeated"
 	_calc_note.modulate.a = 0.0
 	if defeated:
 		_outcome_tween.tween_property(_calc_note, "modulate:a", 1.0, 0.2)

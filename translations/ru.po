@@ -2913,14 +2913,32 @@ msgstr "Переместите фигурку по оранжевой линии
 msgid "On the way: "
 msgstr "По пути: "
 
-msgid "Melee"
-msgstr "Ближний бой"
-
 msgid "Reach"
 msgstr "Досягаемость"
 
 msgid "Target:"
 msgstr "Цель:"
+
+msgid "%s escapes! Remove it from the board - it takes its loot with it."
+msgstr "%s сбегает! Уберите его с поля - он уносит свою добычу."
+
+msgid "%s takes %d affliction damage and escapes! Remove it from the board."
+msgstr "%s получает урон от сокрушения: %d и сбегает! Уберите его с поля."
+
+msgid "%s took %d damage and escaped."
+msgstr "%s получил %d урона и сбежал."
+
+msgid "%s: the enemy escaped, no loot"
+msgstr "%s: враг сбежал, добычи нет"
+
+msgid "A monster escapes"
+msgstr "Монстр сбегает"
+
+msgid "Escaped"
+msgstr "Сбежал"
+
+msgid "Escaped!"
+msgstr "Сбежал!"
 
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"

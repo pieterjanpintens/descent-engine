@@ -157,3 +157,10 @@ P6|Vous avez %d sauvegarde d'une ancienne version de cette campagne. La transfé
 1031|Mêlée
 1032|Allonge
 1033|Cible :
+1034|%s s'échappe ! Retirez-le du plateau : il emporte son butin.
+1035|%s subit %d dégâts d'accablement et s'échappe ! Retirez-le du plateau.
+1036|%s a subi %d dégâts et s'est échappé.
+1037|%s : l'ennemi s'est échappé, pas de butin
+1038|Un monstre s'échappe
+1039|Échappé
+1040|Échappé !
