@@ -16,7 +16,7 @@ extends Node3D
 ## a flat timed pause standing in for real world-effect resolution.
 
 @export var menu_scene_path: String = "res://ui/MainMenu.tscn"  ## <<< set to your actual menu scene
-@export var darkness_phase_duration: float = 5.0  ## a pause that only happens when no monster is alive to take its turn
+@export var darkness_phase_duration: float = 2.0  ## a pause that only happens when no monster is alive to take its turn
 
 @onready var layered_map: LayeredMap = %LayeredMap
 @onready var info_label: Label = %InfoLabel

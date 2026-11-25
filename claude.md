@@ -5363,7 +5363,7 @@ first working version).
   see below) and waits for confirmation, then Player phase → "All players
   done" button → walks every remaining checkpoint, actually firing
   triggers/checking objectives at each one via `_advance_to()` → Darkness
-  phase (a flat `darkness_phase_duration` timed pause standing in for real
+  phase (a flat `darkness_phase_duration` (2 s) timed pause standing in for real
   world-effect resolution + monster AI, neither built yet) → loops back to
   Player phase, round incremented. `%DarknessOverlay` (a full-rect
   `ColorRect`, `mouse_filter = IGNORE` so it darkens without blocking
