@@ -1,4 +1,15 @@
-﻿## v0.0.89 - 2026-11-24
+﻿## v0.0.90 - 2026-11-25
+- New look for dialogs in missions and campaigns, in the style of the original game: a dark card with the game's ring-cornered frame and a soft halo, white titles, an orange subtitle and orange buttons. Messages, questions, results, confirmations, shops and the quest log, heroes, inventory and embark windows all use it.
+- Clicking a chapter or side quest on the campaign map opens a quest card: title, "Main Quest" / "Side Quest" / "Story", the story, the reward and a Prepare button.
+- After a mission the result card is titled "Victory!" or "Defeat.".
+- Long texts in dialogs scroll instead of running off the screen; the buttons stay visible.
+- Buttons are as wide as their text (at least the width of "Cancel") instead of stretching over the whole window.
+- The embark weapons page covers the whole screen with the heroes in two columns, so all six fit without scrolling.
+- New monster defeat effect "Monster Escapes": with a chance (and optional conditions) a defeated monster gets away - no loot, only its escape effects run, and the event "A monster escapes" fires.
+- The "Time passes" step shows the game's fatigue icon.
+- A monster phase without monsters pauses 2 seconds instead of 5.
+
+## v0.0.89 - 2026-11-24
 - When the app moves the monsters, the camera frames the most useful part of the map around the monster's path instead of empty table, while keeping the whole path in view.
 
 ## v0.0.88 - 2026-11-24
