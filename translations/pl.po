@@ -2937,6 +2937,9 @@ msgstr "Misja poboczna"
 msgid "Story"
 msgstr "Opowieść"
 
+msgid "OK"
+msgstr "OK"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d dla %d gracza)"

@@ -170,3 +170,4 @@ P6|%d mentésetek van a kampány egy régebbi verziójából. Áthelyezitek most
 1044|Jutalom:
 1045|Mellékküldetés
 1046|Történet
+1047|OK

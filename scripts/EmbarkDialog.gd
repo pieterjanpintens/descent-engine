@@ -48,10 +48,10 @@ var chosen_trinkets: Dictionary = {}
 var excluded_trinkets: Array[String] = []
 var _armor_button_party: Button
 var _armor_button_loadout: Button
-var _armor_dialog: AcceptDialog
+var _armor_dialog: CardPopup
 var _consumables_button_party: Button
 var _consumables_button_loadout: Button
-var _consumables_dialog: AcceptDialog
+var _consumables_dialog: CardPopup
 var _roster_size: int = 0  # set once the heroes are chosen (the loadout page)
 var upgraded_cards: Array[String] = []  # base ids of the owned cards that are upgraded (campaign only): shown "+", read-only
 
@@ -124,6 +124,7 @@ func _build_ui() -> void:
 	add_child(panel)
 
 	var background := PanelContainer.new()
+	background.add_theme_stylebox_override("panel", StoryCard.panel_style())  # the story card look (StoryCard)
 	background.custom_minimum_size = Vector2(360, 0)
 	panel.add_child(background)
 
@@ -136,6 +137,7 @@ func _build_ui() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_bold_title(title)
 	vbox.add_child(title)
+	StoryCard.style_title(title)
 
 	var grid := GridContainer.new()
 	grid.columns = 3
@@ -225,6 +227,7 @@ func _build_ui() -> void:
 	add_child(_loadout_panel)
 
 	var loadout_background := PanelContainer.new()
+	loadout_background.add_theme_stylebox_override("panel", StoryCard.panel_style())  # the story card look (StoryCard)
 	loadout_background.custom_minimum_size = Vector2(620, 0)
 	_loadout_panel.add_child(loadout_background)
 
@@ -282,22 +285,11 @@ func _armor_button() -> Button:
 
 func _open_armor() -> void:
 	if _armor_dialog == null:
-		_armor_dialog = AcceptDialog.new()
-		_armor_dialog.title = "Armor"
-		_armor_dialog.ok_button_text = "Close"
-		_armor_dialog.min_size = Vector2i(560, 360)
+		_armor_dialog = CardPopup.new()
 		add_child(_armor_dialog)
-	for child in _armor_dialog.get_children():
-		if child is ScrollContainer:
-			_armor_dialog.remove_child(child)
-			child.free()
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.custom_minimum_size = Vector2(540, 320)
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 8)
-	scroll.add_child(box)
 	var flow := HFlowContainer.new()
 	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	flow.add_theme_constant_override("h_separation", 8)
@@ -321,33 +313,21 @@ func _open_armor() -> void:
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.custom_minimum_size.x = 500.0
 		box.add_child(note)
-	_armor_dialog.add_child(scroll)
-	_armor_dialog.popup_centered_clamped(Vector2i(600, 420), 0.9)
+	_armor_dialog.open(tr("Armor"), box, [[tr("Close"), "close"]], 620.0, "close", true)
 
 
 func _open_consumables() -> void:
 	if _consumables_dialog == null:
-		_consumables_dialog = AcceptDialog.new()
-		_consumables_dialog.title = "Consumables"
-		_consumables_dialog.ok_button_text = "Close"
-		_consumables_dialog.min_size = Vector2i(560, 360)
+		_consumables_dialog = CardPopup.new()
 		add_child(_consumables_dialog)
-	for child in _consumables_dialog.get_children():
-		if child is ScrollContainer:
-			_consumables_dialog.remove_child(child)
-			child.free()
 	var players := _roster_size
 	if players <= 0:
 		for button in _slot_buttons:
 			if button.button_pressed:
 				players += 1
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.custom_minimum_size = Vector2(540, 320)
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 8)
-	scroll.add_child(box)
 	var limit := Label.new()
 	limit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	limit.custom_minimum_size.x = 500.0
@@ -374,8 +354,7 @@ func _open_consumables() -> void:
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		none.custom_minimum_size.x = 500.0
 		box.add_child(none)
-	_consumables_dialog.add_child(scroll)
-	_consumables_dialog.popup_centered_clamped(Vector2i(600, 420), 0.9)
+	_consumables_dialog.open(tr("Consumables"), box, [[tr("Close"), "close"]], 620.0, "close", true)
 
 
 func _on_slot_toggled(_pressed: bool) -> void:

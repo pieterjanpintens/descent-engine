@@ -170,3 +170,4 @@ P6|Máte %d uloženou hru ze starší verze této kampaně. Přesunout ji nyní 
 1044|Odměna:
 1045|Vedlejší úkol
 1046|Příběh
+1047|OK

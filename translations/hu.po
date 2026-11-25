@@ -2937,6 +2937,9 @@ msgstr "Mellékküldetés"
 msgid "Story"
 msgstr "Történet"
 
+msgid "OK"
+msgstr "OK"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, %d játékos esetén)"

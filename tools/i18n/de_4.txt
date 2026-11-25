@@ -170,3 +170,4 @@ P6|Ihr habt %d Spielstand einer älteren Version dieser Kampagne. Jetzt auf die 
 1044|Belohnung:
 1045|Nebenquest
 1046|Geschichte
+1047|OK

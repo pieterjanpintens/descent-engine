@@ -2937,6 +2937,9 @@ msgstr "사이드 퀘스트"
 msgid "Story"
 msgstr "이야기"
 
+msgid "OK"
+msgstr "OK"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d, 플레이어 %d명일 때)"

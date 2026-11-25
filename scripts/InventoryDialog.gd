@@ -35,6 +35,7 @@ func _ready() -> void:
 	add_child(margin)
 
 	var background := PanelContainer.new()
+	background.add_theme_stylebox_override("panel", StoryCard.panel_style())  # the story card look (StoryCard)
 	margin.add_child(background)
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
@@ -47,6 +48,7 @@ func _ready() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 20)
 	header.add_child(title)
+	StoryCard.style_title(title)
 	_gold_label = Label.new()
 	_gold_label.add_theme_font_size_override("font_size", 20)
 	_gold_label.modulate = Color(1.0, 0.85, 0.35)
@@ -59,6 +61,8 @@ func _ready() -> void:
 
 	var close_button := Button.new()
 	close_button.text = "Close"
+	StoryCard.style_button(close_button, Vector2(64, 22), 12, 0.44)
+	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.pressed.connect(func(): visible = false)
 	vbox.add_child(close_button)
 

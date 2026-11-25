@@ -2937,6 +2937,9 @@ msgstr "支线任务"
 msgid "Story"
 msgstr "故事"
 
+msgid "OK"
+msgstr "OK"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] "（%d，%d 名玩家时）"

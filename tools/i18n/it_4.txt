@@ -170,3 +170,4 @@ P6|Hai %d salvataggio di una versione precedente di questa campagna. Spostarlo o
 1044|Ricompensa:
 1045|Missione secondaria
 1046|Storia
+1047|OK

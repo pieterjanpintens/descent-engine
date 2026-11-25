@@ -1044,6 +1044,7 @@
 1044|Reward:
 1045|Side Quest
 1046|Story
+1047|OK
 P1| (%d for %d player)| (%d for %d players)
 P2|+%d success|+%d successes
 P3|lost %d status, %d damage|lost %d statuses, %d damage

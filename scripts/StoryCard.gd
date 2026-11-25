@@ -240,3 +240,29 @@ static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), f
 			_:
 				box.modulate_color = ORANGE
 		target.add_theme_stylebox_override(state, box)
+
+
+## The card frame as a panel style, for a PanelContainer that should look like a card (the mission / campaign player's own dialogs).
+static func panel_style() -> StyleBoxTexture:
+	var box := StyleBoxTexture.new()
+	box.texture = frame_texture()
+	box.texture_margin_left = PATCH_SIDE
+	box.texture_margin_right = PATCH_SIDE
+	box.texture_margin_top = PATCH_TOP
+	box.texture_margin_bottom = PATCH_TOP
+	box.content_margin_left = CONTENT_SIDE
+	box.content_margin_right = CONTENT_SIDE
+	box.content_margin_top = CONTENT_TOP
+	box.content_margin_bottom = CONTENT_TOP
+	return box
+
+
+## Gives an existing label the card title look (white Cinzel with the logo shadow).
+static func style_title(label: Label, size: int = 20) -> void:
+	label.theme_type_variation = &""
+	label.add_theme_font_override("font", MenuStyle.font())
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_shadow_color", MenuStyle.SHADOW_COLOR)
+	label.add_theme_constant_override("shadow_offset_x", 0)
+	label.add_theme_constant_override("shadow_offset_y", 2)

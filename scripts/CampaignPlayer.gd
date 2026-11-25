@@ -54,18 +54,19 @@ var _play_page: Control
 var _hud: CampaignHud
 var _map_view: CampaignMapView
 ## The panel of the chapter / side quest / place that was clicked on the map: a popup (_detail_dialog) holding `_side`.
-var _detail_dialog: AcceptDialog
+var _detail_dialog: CardPopup
 var _side: VBoxContainer
 ## A chapter or side quest is shown on its own card in the game's style instead (QuestCard); places (shops) keep the popup.
 var _quest_card: QuestCard
+const PLACE_CARD_WIDTH := 660.0
+const NOTICE_WIDTH := 520.0
 var _options_dialog: VoiceSettingsDialog
-var _notice: AcceptDialog
+var _notice: CardPopup
 var _log_dialog: LogDialog
 var _inventory_dialog: InventoryDialog
 var _heroes_dialog: HeroGrowthDialog
 var _setup_page: CampaignSetupPage  ## the page between Begin campaign and the first chapter; null when not showing
-var _confirm: ConfirmationDialog
-var _confirm_action: Callable
+var _confirm: CardPopup
 
 
 func _ready() -> void:
@@ -88,25 +89,14 @@ func _ready() -> void:
 	_play_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_play_page)
 
-	_notice = AcceptDialog.new()
-	_notice.min_size = Vector2i(480, 0)
-	add_child(_notice)
-	_detail_dialog = AcceptDialog.new()
-	_detail_dialog.ok_button_text = "Close"
-	_detail_dialog.min_size = Vector2i(560, 420)
-	var detail_scroll := ScrollContainer.new()
-	detail_scroll.custom_minimum_size = Vector2(560, 380)
-	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_detail_dialog.add_child(detail_scroll)
+	# every popup of the campaign screen is a story card (CardPopup): the notices, the confirmations and a place's (shop's) panel
+	_notice = CardPopup.new()
+	_notice.closed.connect(func(_result: String): Narrator.stop())
+	_detail_dialog = CardPopup.new()
 	_side = VBoxContainer.new()
 	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_side.add_theme_constant_override("separation", 6)
-	detail_scroll.add_child(_side)
-	_detail_dialog.visibility_changed.connect(_on_detail_visibility_changed)
-	_notice.visibility_changed.connect(func():
-		if not _notice.visible:
-			Narrator.stop()
-	)
+	_detail_dialog.closed.connect(func(_result: String): _on_detail_visibility_changed())
 	add_child(_detail_dialog)
 	_quest_card = QuestCard.new()
 	_quest_card.closed.connect(_on_detail_visibility_changed)
@@ -134,10 +124,9 @@ func _ready() -> void:
 	_heroes_dialog.state_provider = func() -> CampaignState: return _state
 	_heroes_dialog.on_changed = _save
 	add_child(_heroes_dialog)
-	_confirm = ConfirmationDialog.new()
-	_confirm.min_size = Vector2i(420, 0)
-	_confirm.confirmed.connect(func(): _confirm_action.call())
+	_confirm = CardPopup.new()
 	add_child(_confirm)
+	add_child(_notice)  # after the others: a notice is drawn over them
 
 	var screen := GameState.campaign_screen
 	if screen == "load":
@@ -380,10 +369,8 @@ func _on_map_item_selected(id: String) -> void:
 	if _quest_card.has_content:
 		_quest_card.open()
 	elif _side.get_child_count() > 0:
-		# A fixed, narrow width and (nearly) the whole height of the window: the lists grow downwards and scroll, never sideways.
-		var screen := get_viewport_rect().size
-		_detail_dialog.max_size = Vector2i(660, int(screen.y * 0.94))
-		_detail_dialog.popup_centered(Vector2i(640, int(screen.y * 0.9)))
+		# a fixed width: the lists grow downwards and scroll, never sideways
+		_detail_dialog.open("", _side, [[tr("Close"), "close"]], PLACE_CARD_WIDTH, "close")
 
 
 ## Closing the popup deselects the pin.
@@ -398,9 +385,9 @@ func _on_detail_visibility_changed() -> void:
 
 
 func _ask(text: String, action: Callable) -> void:
-	_confirm.dialog_text = text
-	_confirm_action = action
-	_confirm.popup_centered()
+	_confirm.open("", text, [[tr("Cancel"), "cancel"], [tr("OK"), "ok"]], CardPopup.DEFAULT_WIDTH, "cancel")
+	if await _confirm.closed == "ok":
+		action.call()
 
 
 # ---------------------------------------------------------------- campaign
@@ -614,8 +601,9 @@ func _rebuild_side() -> void:
 		return
 	var place := act.find_place(_selected_id)
 	if place != null and _state.is_place_open(place):
-		_detail_dialog.title = place.title
 		_build_place_panel(place)
+		if _detail_dialog.visible:
+			_detail_dialog.refit()  # rebuilt while open (after buying): its height may have changed
 		return
 	var quest := _campaign.find_side_quest(_selected_id)
 	if quest != null and _state.is_side_quest_visible(_campaign, quest):
@@ -630,7 +618,7 @@ func _rebuild_side() -> void:
 
 ## Closes the chapter card and the place popup.
 func _hide_details() -> void:
-	_detail_dialog.hide()
+	_detail_dialog.close("close")
 	if _quest_card != null:
 		_quest_card.close()
 
@@ -688,9 +676,7 @@ func _add_read_aloud(text: String, into: Array[Control]) -> void:
 
 ## The shop of a place: its description, what the party has and each offer with a Buy button.
 func _build_place_panel(place: CampaignPlace) -> void:
-	var title := _label(place.title)
-	title.add_theme_font_size_override("font_size", 20)
-	_side.add_child(title)
+	_side.add_child(StoryCard.title(place.title))
 	if place.description != "":
 		_side.add_child(_wrapped(place.description))
 	# the market and the smithy show the party's materials as pictures and the recipe shop is about gold: only the offers list them in text
@@ -1068,8 +1054,7 @@ func _apply_result(result: Dictionary) -> void:
 	_selected_id = ""
 	_refresh_view()
 	var lines: Array[String] = []
-	var story_after := ""
-	lines.append(tr("Victory!") if won else tr("Defeat."))
+	var story_after := ""  # (the outcome is the notice's title)
 	if won:
 		var parts: Array[String] = []
 		if summary["xp_gained"] > 0 or summary["gold"] > 0 or summary["materials"].is_empty():
@@ -1108,7 +1093,7 @@ func _apply_result(result: Dictionary) -> void:
 		lines.append("\n" + tr("Available now: %s") % ", ".join(playable_next))
 	if not new_quests.is_empty():
 		lines.append(("" if not playable_next.is_empty() else "\n") + tr_n("New side quest: %s", "New side quests: %s", new_quests.size()) % ", ".join(new_quests))
-	await _announce("\n".join(lines), tr("Notice"), story_after)
+	await _announce("\n".join(lines).strip_edges(), tr("Victory!") if won else tr("Defeat."), story_after)
 	if playable_next.is_empty() and not soon_chapters.is_empty():
 		await _announce_to_be_continued(soon_chapters)
 	if summary["act_complete"] and not summary["campaign_complete"]:
@@ -1142,8 +1127,8 @@ func _announce(message: String, title: String = "Notice", narrate: String = "") 
 	_say(message, title)
 	if narrate != "":
 		_speak(narrate)
-	while _notice.visible:
-		await _notice.visibility_changed
+	if _notice.visible:
+		await _notice.closed
 
 
 ## After a win that only leads to chapters that are announced but not made yet: "to be continued" with their teasers, the way to feedback
@@ -1154,18 +1139,11 @@ func _announce_to_be_continued(chapters: Array[CampaignChapter]) -> void:
 		var teaser := chapter.coming_soon_text.strip_edges()
 		parts.append("%s%s" % [chapter.title, (" - " + teaser) if teaser != "" else ""])
 	var text := tr("To be continued…") + "\n\n" + "\n".join(parts) + "\n\n" + tr("Your progress is saved. When a new version of this campaign comes out, install it and update your save game.")
-	var feedback_button: Button = null
-	if _campaign.safe_feedback_url() != "":
-		feedback_button = _notice.add_button(tr("Send feedback…"), false, "feedback")
-		_notice.custom_action.connect(_on_notice_custom_action)
-	await _announce(text, tr("To be continued"))
-	if feedback_button != null:
-		_notice.custom_action.disconnect(_on_notice_custom_action)
-		feedback_button.queue_free()
-
-
-func _on_notice_custom_action(action: StringName) -> void:
-	if action == &"feedback":
+	if _campaign.safe_feedback_url() == "":
+		await _announce(text, tr("To be continued"))
+		return
+	_say(text, tr("To be continued"), [[tr("Send feedback…"), "feedback"], [tr("OK"), "ok"]])
+	if await _notice.closed == "feedback":
 		_open_feedback()
 
 
@@ -1189,10 +1167,7 @@ func _speak(text: String) -> void:
 		Narrator.speak(text, _speakers())
 
 
-func _say(message: String, title: String = "Notice") -> void:
-	_hide_details()  # two exclusive popups at once are not allowed
-	_notice.title = title
-	# Wrapped to a readable width: a long text (a campaign introduction) with no wrapping made the dialog wider than the screen.
-	_notice.dialog_autowrap = true
-	_notice.dialog_text = NarrationMarkup.plain(message, _speakers())  # voice tags are not shown
-	_notice.popup_centered_clamped(Vector2i(620, 0), 0.8)
+## A notice card (title + text, the text scrolls when long). `buttons` as CardPopup.open() (default: OK).
+func _say(message: String, title: String = "Notice", buttons: Array = []) -> void:
+	_hide_details()
+	_notice.open(tr(title), NarrationMarkup.plain(message, _speakers()), buttons, NOTICE_WIDTH)  # voice tags are not shown

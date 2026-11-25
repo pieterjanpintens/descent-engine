@@ -170,3 +170,4 @@ P6|Tienes %d partida guardada de una versión anterior de esta campaña. ¿Trasl
 1044|Recompensa:
 1045|Misión secundaria
 1046|Historia
+1047|OK

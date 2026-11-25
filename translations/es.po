@@ -2937,6 +2937,9 @@ msgstr "Misión secundaria"
 msgid "Story"
 msgstr "Historia"
 
+msgid "OK"
+msgstr "OK"
+
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] " (%d para %d jugador)"

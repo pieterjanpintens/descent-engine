@@ -170,3 +170,4 @@ P6|Você tem %d jogo salvo de uma versão anterior desta campanha. Transferi-lo 
 1044|Recompensa:
 1045|Missão secundária
 1046|História
+1047|OK

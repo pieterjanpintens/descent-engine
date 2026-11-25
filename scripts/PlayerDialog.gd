@@ -41,6 +41,9 @@ const LARGE_FONT_SIZE := 28
 signal _closed(result: Variant)
 
 var _label: Label
+## The text sits in a scroll area: a text taller than the room on the screen scrolls, the buttons stay visible (_fit_text()).
+var _text_scroll: ScrollContainer
+const MAX_HEIGHT_SHARE := 0.86  ## the dialog never gets taller than this part of the window
 var _button_row: HBoxContainer
 var _choice_scroll: ScrollContainer
 var _choice_list: VBoxContainer
@@ -107,7 +110,11 @@ func _build_ui() -> void:
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label.add_theme_font_size_override("font_size", 15)
 	_label.add_theme_color_override("font_color", StoryCard.TEXT_COLOR)
-	vbox.add_child(_label)
+	_text_scroll = ScrollContainer.new()
+	_text_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_text_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_text_scroll.add_child(_label)
+	vbox.add_child(_text_scroll)
 
 	# Optional image row (combat croptops): left = attacker, right = target.
 	_image_row = HBoxContainer.new()
@@ -189,6 +196,8 @@ func _apply_panel_layout(large: bool, width: float = PANEL_WIDTH) -> void:
 	if _label == null:  # first call, from _build_ui(), before the label exists
 		return
 	_label.size_flags_vertical = Control.SIZE_EXPAND_FILL if large else Control.SIZE_FILL
+	_text_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL if large else Control.SIZE_FILL
+	_large = large
 	_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER if large else VERTICAL_ALIGNMENT_TOP
 	if large:
 		_label.add_theme_font_size_override("font_size", LARGE_FONT_SIZE)
@@ -502,7 +511,7 @@ func _fit_choice_list() -> void:
 	_choice_scroll.custom_minimum_size.y = 0
 	await get_tree().process_frame
 	await get_tree().process_frame
-	var room := get_viewport_rect().size.y - 16.0 - _label.get_combined_minimum_size().y - _button_row.get_combined_minimum_size().y - 100.0
+	var room := get_viewport_rect().size.y - 16.0 - minf(_label.get_combined_minimum_size().y, get_viewport_rect().size.y * 0.35) - _button_row.get_combined_minimum_size().y - 100.0
 	_choice_scroll.custom_minimum_size.y = clampf(_choice_list.get_combined_minimum_size().y, 80.0, maxf(room, 120.0))
 
 
@@ -553,7 +562,28 @@ func _show_narrative_page() -> void:
 
 ## `as_list` (ask_choice() with several or long answers): the answers go one per line in the scrolling list, wrapping to the width of the
 ## box; Cancel (result -1) stays in the button row below it so it is always visible. Everything else is one row of buttons.
+var _large := false
+var _fit_serial := 0
+
+
+## Sizes the text's scroll area to the text, up to the room left on the screen (the rest scrolls). Run after every change of text / buttons.
+func _fit_text() -> void:
+	_fit_serial += 1
+	var serial := _fit_serial
+	_text_scroll.custom_minimum_size.y = 0
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if serial != _fit_serial or _large:
+		return  # a newer fit is on its way / the large layout fills the screen anyway
+	var others: float = (_panel.get_child(0) as Control).get_combined_minimum_size().y - _text_scroll.get_combined_minimum_size().y
+	var room: float = get_viewport_rect().size.y * MAX_HEIGHT_SHARE - 16.0 - others
+	if _choice_scroll.visible:
+		room = minf(room, get_viewport_rect().size.y * 0.35)  # a long question shares the room with the answers
+	_text_scroll.custom_minimum_size.y = clampf(_label.get_combined_minimum_size().y, 20.0, maxf(room, 60.0))
+
+
 func _set_buttons(specs: Array, as_list: bool = false) -> void:
+	_fit_text()
 	for child in _button_row.get_children():
 		child.queue_free()
 	for child in _choice_list.get_children():

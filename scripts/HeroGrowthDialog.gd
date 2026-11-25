@@ -27,9 +27,8 @@ var _hero_row: HBoxContainer
 var _skills_box: VBoxContainer
 var _feats_box: VBoxContainer
 var _apply_holder: HBoxContainer
-var _confirm: ConfirmationDialog
-var _confirm_action := Callable()
-var _notice: AcceptDialog
+var _confirm: CardPopup  ## story card popups (CardPopup), like the rest of the player
+var _notice: CardPopup
 
 
 func _ready() -> void:
@@ -47,6 +46,7 @@ func _ready() -> void:
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(margin)
 	var background := PanelContainer.new()
+	background.add_theme_stylebox_override("panel", StoryCard.panel_style())  # the story card look (StoryCard)
 	margin.add_child(background)
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
@@ -56,6 +56,7 @@ func _ready() -> void:
 	title.text = "Heroes"
 	title.add_theme_font_size_override("font_size", 20)
 	vbox.add_child(title)
+	StoryCard.style_title(title)
 	_hero_row = HBoxContainer.new()
 	_hero_row.add_theme_constant_override("separation", 6)
 	vbox.add_child(_hero_row)
@@ -77,18 +78,14 @@ func _ready() -> void:
 	footer.add_child(_apply_holder)
 	var close_button := Button.new()
 	close_button.text = "Close"
+	StoryCard.style_button(close_button, Vector2(64, 22), 12, 0.44)
+	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.pressed.connect(func(): visible = false)
 	footer.add_child(close_button)
 
-	_confirm = ConfirmationDialog.new()
-	_confirm.min_size = Vector2i(420, 0)
-	_confirm.confirmed.connect(func():
-		if _confirm_action.is_valid():
-			_confirm_action.call()
-	)
+	_confirm = CardPopup.new()
 	add_child(_confirm)
-	_notice = AcceptDialog.new()
-	_notice.min_size = Vector2i(420, 0)
+	_notice = CardPopup.new()
 	add_child(_notice)
 	visible = false
 
@@ -236,12 +233,9 @@ func _skill_button(campaign: Campaign, state: CampaignState, tree: SkillTree, nu
 
 
 func _ask_buy(campaign: Campaign, state: CampaignState, number: int, cost: int, skill_name: String) -> void:
-	_confirm.title = tr("Buy a skill")
-	_confirm.dialog_text = tr("Buy %s for %d skill points?") % [skill_name, cost]
-	_confirm_action = func():
+	if await _confirmed(tr("Buy a skill"), tr("Buy %s for %d skill points?") % [skill_name, cost]):
 		if state.buy_skill(campaign, _hero_id, number):
 			_changed()
-	_confirm.popup_centered()
 
 
 func _build_feats(campaign: Campaign, state: CampaignState) -> void:
@@ -444,9 +438,7 @@ func _mark_progress(campaign: Campaign, state: CampaignState, feat_id: String) -
 			text += "\n" + tr("Recipe: ") + (RecipeData.label(recipe) if not recipe.is_empty() else str(result["recipe"]))
 		if not result["started"].is_empty():
 			text += "\n" + tr("Next feat: %s") % ", ".join(result["started"])
-		_notice.title = tr("Feat completed")
-		_notice.dialog_text = text
-		_notice.popup_centered()
+		_notice.open(tr("Feat completed"), text)
 	_drafting = false
 	_changed()
 
@@ -521,10 +513,14 @@ func _ask_apply(campaign: Campaign, state: CampaignState, committed: Array[Strin
 		text += "\n" + tr("Progress lost on \"%s\": %d") % [str(HeroData.feat(str(feat_id)).get("title", feat_id)), int(lost[feat_id])]
 	if note != "":
 		text += "\n" + note
-	_confirm.title = tr("Change the feat order")
-	_confirm.dialog_text = text
-	_confirm_action = apply
-	_confirm.popup_centered()
+	if await _confirmed(tr("Change the feat order"), text):
+		apply.call()
+
+
+## A yes / no card: true when the player chose OK.
+func _confirmed(title: String, text: String) -> bool:
+	_confirm.open(title, text, [[tr("Cancel"), "cancel"], [tr("OK"), "ok"]], CardPopup.DEFAULT_WIDTH, "cancel")
+	return await _confirm.closed == "ok"
 
 
 func _button(text: String, on_pressed: Callable) -> Button:
