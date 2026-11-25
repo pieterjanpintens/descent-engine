@@ -143,7 +143,7 @@
 523|Se quitó %s v%s.
 524|Resistencia: %s
 525|Resistente: %s
-526|Resuelve la infección y el terror. Cada héroe puede descartar 1 fatiga.
+526|Resuelve la infección y el terror. Cada héroe puede descartar 1 [fatigue].
 527|Reinicio necesario
 528|Reiniciar ahora
 529|Reanudar el ataque del monstruo

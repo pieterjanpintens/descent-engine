@@ -327,8 +327,8 @@ msgstr "\n\nТекущая миссия будет закрыта - сначал
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\nЭто третье ранение героя %s - игра будет проиграна!"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nКамень странника - каждый герой может выбрать альтернативную выгоду вместо сброса 1 истощения:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nКамень странника - каждый герой может выбрать альтернативную выгоду вместо сброса 1 [fatigue]:"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nА также немного материалов для ремесла отряду: %s."
@@ -1542,8 +1542,8 @@ msgstr "Устойчивость: %s"
 msgid "Resistant: %s"
 msgstr "Устойчив: %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Разрешите отравление и испуг. Каждый герой может сбросить 1 истощение."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Разрешите отравление и испуг. Каждый герой может сбросить 1 [fatigue]."
 
 msgid "Restart needed"
 msgstr "Нужен перезапуск"

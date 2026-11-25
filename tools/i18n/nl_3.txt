@@ -143,7 +143,7 @@
 523|%s v%s verwijderd.
 524|Weerstand: %s
 525|Weerstand biedend: %s
-526|Los besmetting en terreur op. Elke held mag 1 vermoeidheid afleggen.
+526|Los besmetting en terreur op. Elke held mag 1 [fatigue] afleggen.
 527|Herstart nodig
 528|Nu herstarten
 529|De monsteraanval hervatten

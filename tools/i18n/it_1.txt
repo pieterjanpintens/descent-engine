@@ -110,7 +110,7 @@
 110|\n\nL'app non può aggiornarsi da sola qui: %s. Scaricala dalla pagina delle versioni.
 111|\n\nLa missione in corso verrà chiusa - salvala prima (Opzioni > Salva) o scegli Più tardi.
 112|\n\nQuesta è la terza ferita di %s - la partita sarà persa!
-113|\n\nPietra del Viandante - ogni eroe può scegliere il proprio beneficio alternativo invece di scartare 1 fatica:
+113|\n\nPietra del Viandante - ogni eroe può scegliere il proprio beneficio alternativo invece di scartare 1 [fatigue]:
 114|\nAttivazione:
 115|\nInoltre alcuni materiali da creazione per il gruppo: %s.
 116|\nAl tavolo:
@@ -522,7 +522,7 @@
 523|%s v%s rimosso.
 524|Resistenza: %s
 525|Resistente: %s
-526|Risolvi infezione e terrore. Ogni eroe può scartare 1 fatica.
+526|Risolvi infezione e terrore. Ogni eroe può scartare 1 [fatigue].
 527|Riavvio necessario
 528|Riavvia ora
 529|Riprendi l'attacco del mostro

@@ -110,7 +110,7 @@
 110|\n\nDe app kan zichzelf hier niet bijwerken: %s. Download hem van de releasepagina.
 111|\n\nDe missie die je speelt wordt gesloten - sla hem eerst op (Opties > Opslaan) of kies Later.
 112|\n\nDit is de derde wond van %s - het spel gaat verloren!
-113|\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 vermoeidheid af te leggen:
+113|\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 [fatigue] af te leggen:
 114|\nActivatie:
 115|\nOok wat ambachtsmaterialen voor het gezelschap: %s.
 116|\nAan tafel:

@@ -327,8 +327,8 @@ msgstr "\n\nDe missie die je speelt wordt gesloten - sla hem eerst op (Opties > 
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\nDit is de derde wond van %s - het spel gaat verloren!"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 vermoeidheid af te leggen:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nSteen van de Zwerver - elke held mag zijn alternatieve voordeel kiezen in plaats van 1 [fatigue] af te leggen:"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nOok wat ambachtsmaterialen voor het gezelschap: %s."
@@ -1542,8 +1542,8 @@ msgstr "Weerstand: %s"
 msgid "Resistant: %s"
 msgstr "Weerstand biedend: %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Los besmetting en terreur op. Elke held mag 1 vermoeidheid afleggen."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Los besmetting en terreur op. Elke held mag 1 [fatigue] afleggen."
 
 msgid "Restart needed"
 msgstr "Herstart nodig"

@@ -105,7 +105,7 @@
 110|\n\nThe app can't update itself here: %s. Download it from the release page.
 111|\n\nThe mission you are playing will be closed - save it first (Options > Save), or choose Later.
 112|\n\nThis is %s's third wound - the game will be lost!
-113|\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:
+113|\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:
 115|\nAlso some crafting materials for the party: %s.
 116|\nAt the table: 
 117|\nConditions applied: %s
@@ -510,7 +510,7 @@
 523|Removed %s v%s.
 524|Resistance: %s
 525|Resistant: %s
-526|Resolve infection and terror. Each hero may discard 1 fatigue.
+526|Resolve infection and terror. Each hero may discard 1 [fatigue].
 527|Restart needed
 528|Restart now
 529|Resume monster attack

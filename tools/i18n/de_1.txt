@@ -110,7 +110,7 @@
 110|\n\nDie App kann sich hier nicht selbst aktualisieren: %s. Lade sie von der Release-Seite herunter.
 111|\n\nDie laufende Mission wird geschlossen - speichere sie zuerst (Optionen > Speichern) oder wähle Später.
 112|\n\nDas ist die dritte Verwundung von %s - das Spiel ist verloren!
-113|\n\nStein des Wanderers - jeder Held darf statt 1 Erschöpfung abzuwerfen seinen alternativen Vorteil wählen:
+113|\n\nStein des Wanderers - jeder Held darf statt 1 [fatigue] abzuwerfen seinen alternativen Vorteil wählen:
 114|\nAktivierung:
 115|\nAußerdem einige Handwerksmaterialien für die Gruppe: %s.
 116|\nAm Tisch:
@@ -522,7 +522,7 @@
 523|%s v%s entfernt.
 524|Resistenz: %s
 525|Resistent: %s
-526|Handle Infektion und Schrecken ab. Jeder Held darf 1 Erschöpfung abwerfen.
+526|Handle Infektion und Schrecken ab. Jeder Held darf 1 [fatigue] abwerfen.
 527|Neustart nötig
 528|Jetzt neu starten
 529|Monsterangriff fortsetzen

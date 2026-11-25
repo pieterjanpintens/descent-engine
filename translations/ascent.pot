@@ -45,7 +45,7 @@ msgstr ""
 msgid " (XP now %d)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:384
+#: VoiceSettingsDialog.gd:385
 msgid " - not imported yet"
 msgstr ""
 
@@ -65,7 +65,7 @@ msgstr ""
 msgid " There is no recipe left to gain."
 msgstr ""
 
-#: TableSetupSheet.gd:294 TableSetupSheet.gd:296 TableSetupSheet.gd:298
+#: TableSetupSheet.gd:295 TableSetupSheet.gd:297 TableSetupSheet.gd:299
 msgid "%d cm"
 msgstr ""
 
@@ -425,7 +425,7 @@ msgstr ""
 msgid "%s's Brew Basket provides a random consumable:"
 msgstr ""
 
-#: EmbarkDialog.gd:512
+#: EmbarkDialog.gd:521
 msgid "%s: %s\nFixed parts: %s"
 msgstr ""
 
@@ -578,7 +578,7 @@ msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr ""
 
 #: MissionPlayer.gd:1846
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
 msgstr ""
 
 #: MissionPlayer.gd:640
@@ -853,7 +853,7 @@ msgstr ""
 msgid "Aquos (water)"
 msgstr ""
 
-#: EmbarkDialog.gd:316 InventoryDialog.gd:84
+#: EmbarkDialog.gd:322 InventoryDialog.gd:84
 msgid "Armor"
 msgstr ""
 
@@ -865,7 +865,7 @@ msgstr ""
 msgid "Armor: "
 msgstr ""
 
-#: EmbarkDialog.gd:279
+#: EmbarkDialog.gd:285
 msgid "Armor…"
 msgstr ""
 
@@ -929,7 +929,7 @@ msgstr ""
 msgid "Behind the table edge (cm)"
 msgstr ""
 
-#: EmbarkDialog.gd:395
+#: EmbarkDialog.gd:401
 msgid "Bigger than a large table (%d x %d cm)."
 msgstr ""
 
@@ -953,15 +953,15 @@ msgstr ""
 msgid "Brew Basket"
 msgstr ""
 
-#: TableSetupSheet.gd:179
+#: TableSetupSheet.gd:180
 msgid "Build the map in the middle of the table."
 msgstr ""
 
-#: TableSetupSheet.gd:186
+#: TableSetupSheet.gd:187
 msgid "Build the orange start area first: %d cm from the left edge of the table and %d cm from your edge. Later stages then fit around it."
 msgstr ""
 
-#: TableSetupSheet.gd:184
+#: TableSetupSheet.gd:185
 msgid "Build the orange start area first: %d cm from the right edge of the table and %d cm from your edge. Later stages then fit around it."
 msgstr ""
 
@@ -997,7 +997,7 @@ msgstr ""
 msgid "by %s"
 msgstr ""
 
-#: TableSetupSheet.gd:309
+#: TableSetupSheet.gd:310
 msgid "Camera"
 msgstr ""
 
@@ -1029,7 +1029,7 @@ msgstr ""
 msgid "Can %s attack a second hero?"
 msgstr ""
 
-#: CameraCalibrationDialog.gd:115 CampaignPlayer.gd:388 CombatView.gd:383
+#: CameraCalibrationDialog.gd:116 CampaignPlayer.gd:388 CombatView.gd:383
 msgid "Cancel"
 msgstr ""
 
@@ -1069,7 +1069,7 @@ msgstr ""
 msgid "Check for a newer version of the app at the main menu"
 msgstr ""
 
-#: CameraCalibrationDialog.gd:186
+#: CameraCalibrationDialog.gd:187
 msgid "Check that the drawn grid lies on the tiles everywhere, also on raised floors. Drag a corner to correct it."
 msgstr ""
 
@@ -1097,7 +1097,7 @@ msgstr ""
 msgid "Choose the game folder…"
 msgstr ""
 
-#: EmbarkDialog.gd:238
+#: EmbarkDialog.gd:240
 msgid "Choose two weapons per hero (and optional attachments)"
 msgstr ""
 
@@ -1105,7 +1105,7 @@ msgstr ""
 msgid "Choose your party"
 msgstr ""
 
-#: CameraCalibrationDialog.gd:190
+#: CameraCalibrationDialog.gd:191
 msgid "Click corner %d of the orange area on the photo."
 msgstr ""
 
@@ -1113,7 +1113,7 @@ msgstr ""
 msgid "Click the corners of the orange area on the photo, in the order 1 to 4. Drag a corner to correct it."
 msgstr ""
 
-#: CampaignPlayer.gd:373 CombatView.gd:1002 EmbarkDialog.gd:316
+#: CampaignPlayer.gd:373 CombatView.gd:1002 EmbarkDialog.gd:322
 msgid "Close"
 msgstr ""
 
@@ -1165,11 +1165,11 @@ msgstr ""
 msgid "Connecting to the camera..."
 msgstr ""
 
-#: EmbarkDialog.gd:357 InventoryDialog.gd:86
+#: EmbarkDialog.gd:363 InventoryDialog.gd:86
 msgid "Consumables"
 msgstr ""
 
-#: EmbarkDialog.gd:269
+#: EmbarkDialog.gd:275
 msgid "Consumables…"
 msgstr ""
 
@@ -1437,15 +1437,15 @@ msgstr ""
 msgid "Doomed"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:465
+#: VoiceSettingsDialog.gd:466
 msgid "Download %s voices (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:489
+#: VoiceSettingsDialog.gd:490
 msgid "Download extra voices - accents (%s)"
 msgstr ""
 
-#: VoiceSettingsDialog.gd:486
+#: VoiceSettingsDialog.gd:487
 msgid "Download more voices - plain English (%s)"
 msgstr ""
 
@@ -1469,7 +1469,7 @@ msgstr ""
 msgid "each enemy suffers %d damage (trigger %d)"
 msgstr ""
 
-#: EmbarkDialog.gd:337
+#: EmbarkDialog.gd:343
 msgid "Each player may take %d into the mission%s. Crafted consumables are available again every mission - none is used up."
 msgstr ""
 
@@ -1561,15 +1561,15 @@ msgstr ""
 msgid "first"
 msgstr ""
 
-#: EmbarkDialog.gd:396
+#: EmbarkDialog.gd:402
 msgid "Fits a large table (%d x %d cm)."
 msgstr ""
 
-#: EmbarkDialog.gd:396
+#: EmbarkDialog.gd:402
 msgid "Fits a medium table (%d x %d cm)."
 msgstr ""
 
-#: EmbarkDialog.gd:396
+#: EmbarkDialog.gd:402
 msgid "Fits a small table (%d x %d cm)."
 msgstr ""
 
@@ -1621,11 +1621,11 @@ msgstr ""
 msgid "Friendly fire"
 msgstr ""
 
-#: TableSetupSheet.gd:196
+#: TableSetupSheet.gd:197
 msgid "From this height it does not see the whole map: raise it to at least %d cm."
 msgstr ""
 
-#: TableSetupSheet.gd:194
+#: TableSetupSheet.gd:195
 msgid "From this height it sees the whole map."
 msgstr ""
 
@@ -1805,7 +1805,7 @@ msgstr ""
 msgid "Horn of Courage - %s was wounded."
 msgstr ""
 
-#: EmbarkDialog.gd:311
+#: EmbarkDialog.gd:317
 msgid "Hover an armor for its rules. Armor is worn and resolved at the table."
 msgstr ""
 
@@ -1925,15 +1925,15 @@ msgstr ""
 msgid "Inventory"
 msgstr ""
 
-#: TableSetupSheet.gd:198
+#: TableSetupSheet.gd:199
 msgid "It cannot see the whole map from this side; put it further behind the edge."
 msgstr ""
 
-#: TableSetupSheet.gd:177
+#: TableSetupSheet.gd:178
 msgid "It does NOT fit on this table: some of it will hang over the edge."
 msgstr ""
 
-#: TableSetupSheet.gd:177
+#: TableSetupSheet.gd:178
 msgid "It fits on this table."
 msgstr ""
 
@@ -2249,15 +2249,15 @@ msgstr ""
 msgid "Narration"
 msgstr ""
 
-#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:459
+#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:460
 msgid "Narration is set up."
 msgstr ""
 
-#: SetupAssistant.gd:292 VoiceSettingsDialog.gd:468
+#: SetupAssistant.gd:292 VoiceSettingsDialog.gd:469
 msgid "Narration isn't available on %s."
 msgstr ""
 
-#: SetupAssistant.gd:300 VoiceSettingsDialog.gd:476
+#: SetupAssistant.gd:300 VoiceSettingsDialog.gd:477
 msgid "Narration isn't set up yet - the story is shown as text only."
 msgstr ""
 
@@ -2273,7 +2273,7 @@ msgstr ""
 msgid "New game"
 msgstr ""
 
-#: CameraCalibrationDialog.gd:95
+#: CameraCalibrationDialog.gd:96
 msgid "New photo"
 msgstr ""
 
@@ -2321,7 +2321,7 @@ msgstr ""
 msgid "No map image - choose one for this act"
 msgstr ""
 
-#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:461
+#: SetupAssistant.gd:303 VoiceSettingsDialog.gd:462
 msgid "No narration voices for %s are installed, so the story is shown as text only."
 msgstr ""
 
@@ -2401,7 +2401,7 @@ msgstr ""
 msgid "Nothing yet."
 msgstr ""
 
-#: CampaignPlayer.gd:1126 CampaignPlayer.gd:1171
+#: CampaignPlayer.gd:1127 CampaignPlayer.gd:1172
 msgid "Notice"
 msgstr ""
 
@@ -2421,7 +2421,7 @@ msgstr ""
 msgid "Offline - showing the last community list. "
 msgstr ""
 
-#: CampaignPlayer.gd:1145 CampaignPlayer.gd:388 HeroGrowthDialog.gd:522
+#: CampaignPlayer.gd:1146 CampaignPlayer.gd:388 HeroGrowthDialog.gd:522
 msgid "OK"
 msgstr ""
 
@@ -2493,7 +2493,7 @@ msgstr ""
 msgid "Pairing code"
 msgstr ""
 
-#: EmbarkDialog.gd:543
+#: EmbarkDialog.gd:553
 msgid "Part %s: none"
 msgstr ""
 
@@ -2605,15 +2605,15 @@ msgstr ""
 msgid "Purple"
 msgstr ""
 
-#: SetupAssistant.gd:349 VoiceSettingsDialog.gd:432
+#: SetupAssistant.gd:349 VoiceSettingsDialog.gd:433
 msgid "Push to talk (hold %s)"
 msgstr ""
 
-#: TableSetupSheet.gd:191
+#: TableSetupSheet.gd:192
 msgid "Put the camera in the middle of the left short side of the table, pointing along the table."
 msgstr ""
 
-#: TableSetupSheet.gd:191
+#: TableSetupSheet.gd:192
 msgid "Put the camera in the middle of the right short side of the table, pointing along the table."
 msgstr ""
 
@@ -2730,7 +2730,7 @@ msgid "Resistant: %s"
 msgstr ""
 
 #: MissionPlayer.gd:1843
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
 msgstr ""
 
 #: AssetImportPanel.gd:149
@@ -2781,7 +2781,7 @@ msgstr ""
 msgid "rune"
 msgstr ""
 
-#: EmbarkDialog.gd:507 RecipeData.gd:104
+#: EmbarkDialog.gd:516 RecipeData.gd:104
 msgid "Rune: "
 msgstr ""
 
@@ -2817,15 +2817,15 @@ msgstr ""
 msgid "Send feedback"
 msgstr ""
 
-#: CampaignPlayer.gd:1145 CampaignPlayer.gd:633
+#: CampaignPlayer.gd:1146 CampaignPlayer.gd:633
 msgid "Send feedback…"
 msgstr ""
 
-#: SetupAssistant.gd:299 VoiceSettingsDialog.gd:475
+#: SetupAssistant.gd:299 VoiceSettingsDialog.gd:476
 msgid "Set up narration (downloads %s)"
 msgstr ""
 
-#: SetupAssistant.gd:297 VoiceSettingsDialog.gd:473
+#: SetupAssistant.gd:297 VoiceSettingsDialog.gd:474
 msgid "Set up narration - %s voices (downloads about %d MB)"
 msgstr ""
 
@@ -2837,7 +2837,7 @@ msgstr ""
 msgid "Set up the table camera first: Options > Table camera."
 msgstr ""
 
-#: SetupAssistant.gd:383 VoiceSettingsDialog.gd:444
+#: SetupAssistant.gd:383 VoiceSettingsDialog.gd:445
 msgid "Set up voice control (downloads %s)"
 msgstr ""
 
@@ -2869,7 +2869,7 @@ msgstr ""
 msgid "Show voice hints"
 msgstr ""
 
-#: EmbarkDialog.gd:714
+#: EmbarkDialog.gd:724
 msgid "Shows whether this card is upgraded (+). Upgrades are earned in the campaign."
 msgstr ""
 
@@ -2945,7 +2945,7 @@ msgstr ""
 msgid "SOON"
 msgstr ""
 
-#: TableSetupSheet.gd:288
+#: TableSetupSheet.gd:289
 msgid "Space for the whole map"
 msgstr ""
 
@@ -2961,7 +2961,7 @@ msgstr ""
 msgid "staff"
 msgstr ""
 
-#: EmbarkDialog.gd:217 EmbarkDialog.gd:261
+#: EmbarkDialog.gd:217 EmbarkDialog.gd:266
 msgid "Start"
 msgstr ""
 
@@ -2969,7 +2969,7 @@ msgstr ""
 msgid "Start game"
 msgstr ""
 
-#: CameraCalibrationDialog.gd:100
+#: CameraCalibrationDialog.gd:101
 msgid "Start over"
 msgstr ""
 
@@ -3021,7 +3021,7 @@ msgstr ""
 msgid "Table camera"
 msgstr ""
 
-#: EmbarkDialog.gd:392
+#: EmbarkDialog.gd:398
 msgid "Table needed: about %d x %d cm (%d x %d squares)."
 msgstr ""
 
@@ -3057,7 +3057,7 @@ msgstr ""
 msgid "Taking a photo of the table..."
 msgstr ""
 
-#: CameraCalibrationDialog.gd:160 TableCameraPanel.gd:111
+#: CameraCalibrationDialog.gd:161 TableCameraPanel.gd:111
 msgid "Taking a photo..."
 msgstr ""
 
@@ -3153,7 +3153,7 @@ msgstr ""
 msgid "The app moves the monsters"
 msgstr ""
 
-#: EmbarkDialog.gd:280
+#: EmbarkDialog.gd:286
 msgid "The armor the party owns"
 msgstr ""
 
@@ -3329,7 +3329,7 @@ msgstr ""
 msgid "The party carries no consumables - brew them at an alchemist from potion recipes."
 msgstr ""
 
-#: EmbarkDialog.gd:352
+#: EmbarkDialog.gd:358
 msgid "The party has no consumables. Brew them at an alchemist from potion recipes."
 msgstr ""
 
@@ -3337,7 +3337,7 @@ msgstr ""
 msgid "The party has to try this chapter again."
 msgstr ""
 
-#: EmbarkDialog.gd:306
+#: EmbarkDialog.gd:312
 msgid "The party owns no armor yet."
 msgstr ""
 
@@ -3349,7 +3349,7 @@ msgstr ""
 msgid "The phase can't be ended right now."
 msgstr ""
 
-#: EmbarkDialog.gd:270
+#: EmbarkDialog.gd:276
 msgid "The potions the party has crafted - available in every mission"
 msgstr ""
 
@@ -3389,7 +3389,7 @@ msgstr ""
 msgid "The table is reset!\nTake everything off the table and put the pieces back in the box. Next you set up '%s'."
 msgstr ""
 
-#: EmbarkDialog.gd:586
+#: EmbarkDialog.gd:596
 msgid "The trinket this hero wears (one per hero; a trinket can only be worn by one hero)"
 msgstr ""
 
@@ -3413,15 +3413,15 @@ msgstr ""
 msgid "The variable \"%s\" no longer exists - its value is dropped."
 msgstr ""
 
-#: TableSetupSheet.gd:176
+#: TableSetupSheet.gd:177
 msgid "The whole map is %d x %d cm (%d x %d squares)."
 msgstr ""
 
-#: CameraCalibrationDialog.gd:144
+#: CameraCalibrationDialog.gd:145
 msgid "There is no area of at least 2 x 2 floor squares on the board to calibrate on yet."
 msgstr ""
 
-#: CameraCalibrationDialog.gd:188
+#: CameraCalibrationDialog.gd:189
 msgid "These corners do not make a usable shape. Start over and click them in the order 1, 2, 3, 4."
 msgstr ""
 
@@ -3473,7 +3473,7 @@ msgstr ""
 msgid "This save game was moved from version %s of the campaign to version %s."
 msgstr ""
 
-#: TableSetupSheet.gd:170
+#: TableSetupSheet.gd:171
 msgid "This Table has no floor yet."
 msgstr ""
 
@@ -3501,11 +3501,11 @@ msgstr ""
 msgid "Tired"
 msgstr ""
 
-#: CampaignPlayer.gd:1143 CampaignPlayer.gd:1145
+#: CampaignPlayer.gd:1144 CampaignPlayer.gd:1146
 msgid "To be continued"
 msgstr ""
 
-#: CampaignPlayer.gd:1141
+#: CampaignPlayer.gd:1142
 msgid "To be continued…"
 msgstr ""
 
@@ -3541,7 +3541,7 @@ msgstr ""
 msgid "trigger %d: %d damage to every enemy"
 msgstr ""
 
-#: EmbarkDialog.gd:578
+#: EmbarkDialog.gd:588
 msgid "Trinket"
 msgstr ""
 
@@ -3613,7 +3613,7 @@ msgstr ""
 msgid "Upgrade: "
 msgstr ""
 
-#: EmbarkDialog.gd:605
+#: EmbarkDialog.gd:615
 msgid "Upgraded (+). In a campaign this follows the party's upgrades."
 msgstr ""
 
@@ -3625,15 +3625,15 @@ msgstr ""
 msgid "Usable in this mission: %s. Put them in your play area to use them. They are not added to the inventory and are gone when the mission ends."
 msgstr ""
 
-#: VoiceSettingsDialog.gd:384
+#: VoiceSettingsDialog.gd:385
 msgid "Use the original game props in the map"
 msgstr ""
 
-#: EmbarkDialog.gd:605
+#: EmbarkDialog.gd:615
 msgid "Use the upgraded (+) side of this trinket."
 msgstr ""
 
-#: CameraCalibrationDialog.gd:109
+#: CameraCalibrationDialog.gd:110
 msgid "Use this calibration"
 msgstr ""
 
@@ -3693,11 +3693,11 @@ msgstr ""
 msgid "Voice commands let you play by speaking (\"hey DM, hero two attack the green bandit\") and answer dialogs out loud. It runs on your computer with a speech model that is a download; you need a microphone. Typed commands always work."
 msgstr ""
 
-#: SetupAssistant.gd:376 VoiceSettingsDialog.gd:437
+#: SetupAssistant.gd:376 VoiceSettingsDialog.gd:438
 msgid "Voice control is set up."
 msgstr ""
 
-#: SetupAssistant.gd:384 VoiceSettingsDialog.gd:445
+#: SetupAssistant.gd:384 VoiceSettingsDialog.gd:446
 msgid "Voice isn't set up yet - typed commands still work."
 msgstr ""
 
@@ -3705,7 +3705,7 @@ msgstr ""
 msgid "voice settings (%s)"
 msgstr ""
 
-#: SetupAssistant.gd:379 VoiceSettingsDialog.gd:440
+#: SetupAssistant.gd:379 VoiceSettingsDialog.gd:441
 msgid "Voice setup isn't available on %s - typed commands still work."
 msgstr ""
 
@@ -3769,7 +3769,7 @@ msgstr ""
 msgid "weapon"
 msgstr ""
 
-#: EmbarkDialog.gd:505
+#: EmbarkDialog.gd:514
 msgid "Weapon %d (%s)"
 msgstr ""
 
@@ -3893,11 +3893,11 @@ msgstr ""
 msgid "Your progress is saved automatically under this name, so you can leave and pick up where you stopped (Load game in the main menu). Use a different name for every group or playthrough."
 msgstr ""
 
-#: CampaignPlayer.gd:1141
+#: CampaignPlayer.gd:1142
 msgid "Your progress is saved. When a new version of this campaign comes out, install it and update your save game."
 msgstr ""
 
-#: TableSetupSheet.gd:301
+#: TableSetupSheet.gd:302
 msgid "Your side"
 msgstr ""
 
@@ -3917,7 +3917,7 @@ msgstr ""
 msgid "☠ Defeated"
 msgstr ""
 
-#: EmbarkDialog.gd:336
+#: EmbarkDialog.gd:342
 msgid " (%d for %d player)"
 msgid_plural " (%d for %d players)"
 msgstr[0] ""

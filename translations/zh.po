@@ -327,8 +327,8 @@ msgstr "\n\n你正在进行的任务将被关闭——请先保存（选项 > �
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\n这是 %s 的第三次受伤——游戏将失败！"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\n流浪者之石——每名英雄可以选择其备选益处，而不是弃掉 1 点疲劳："
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\n流浪者之石——每名英雄可以选择其备选益处，而不是弃掉 1 [fatigue]："
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\n另外还有一些给小队的制作材料：%s。"
@@ -1542,8 +1542,8 @@ msgstr "抵抗：%s"
 msgid "Resistant: %s"
 msgstr "抵抗：%s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "结算感染和惊惧。每名英雄可以弃掉 1 点疲劳。"
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "结算感染和惊惧。每名英雄可以弃掉 1 [fatigue]。"
 
 msgid "Restart needed"
 msgstr "需要重启"

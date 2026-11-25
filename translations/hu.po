@@ -327,8 +327,8 @@ msgstr "\n\nA folyamatban lévő küldetés bezáródik - előbb mentsd el (Beá
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\nEz %s harmadik sebesülése - a játék elveszett!"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nA vándor köve - minden hős választhatja az alternatív előnyét 1 fáradtság eldobása helyett:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nA vándor köve - minden hős választhatja az alternatív előnyét 1 [fatigue] eldobása helyett:"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nValamint néhány kézműves anyag a csapatnak: %s."
@@ -1542,8 +1542,8 @@ msgstr "Ellenállás: %s"
 msgid "Resistant: %s"
 msgstr "Ellenálló: %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Old meg a fertőzést és a rémületet. Minden hős eldobhat 1 fáradtságot."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Old meg a fertőzést és a rémületet. Minden hős eldobhat 1 [fatigue]."
 
 msgid "Restart needed"
 msgstr "Újraindítás szükséges"

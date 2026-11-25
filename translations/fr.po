@@ -327,8 +327,8 @@ msgstr "\n\nLa mission en cours sera fermée - sauvegardez-la d'abord (Options >
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\nC'est la troisième blessure de %s - la partie sera perdue !"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nPierre de vagabond - chaque héros peut choisir son autre avantage au lieu de défausser 1 fatigue :"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nPierre de vagabond - chaque héros peut choisir son autre avantage au lieu de défausser 1 [fatigue] :"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nAinsi que quelques matériaux d'artisanat pour le groupe : %s."
@@ -1542,8 +1542,8 @@ msgstr "Résistance : %s"
 msgid "Resistant: %s"
 msgstr "Résistant : %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Résolvez l'infection et la terreur. Chaque héros peut défausser 1 fatigue."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Résolvez l'infection et la terreur. Chaque héros peut défausser 1 [fatigue]."
 
 msgid "Restart needed"
 msgstr "Redémarrage nécessaire"

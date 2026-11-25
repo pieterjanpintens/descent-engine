@@ -110,7 +110,7 @@
 110|\n\nAplikacja nie może się tu sama zaktualizować: %s. Pobierz ją ze strony wydań.
 111|\n\nTrwająca misja zostanie zamknięta - najpierw ją zapisz (Opcje > Zapisz) lub wybierz Później.
 112|\n\nTo trzecia rana gracza %s - gra zostanie przegrana!
-113|\n\nKamień Tułacza - każdy bohater może wybrać swoją alternatywną korzyść zamiast odrzucać 1 zmęczenie:
+113|\n\nKamień Tułacza - każdy bohater może wybrać swoją alternatywną korzyść zamiast odrzucać 1 [fatigue]:
 114|\nAktywacja:
 115|\nOraz trochę surowców rzemieślniczych dla drużyny: %s.
 116|\nPrzy stole:
@@ -522,7 +522,7 @@
 523|Usunięto %s v%s.
 524|Odporność: %s
 525|Odporny: %s
-526|Rozpatrz zakażenie i przerażenie. Każdy bohater może odrzucić 1 zmęczenie.
+526|Rozpatrz zakażenie i przerażenie. Każdy bohater może odrzucić 1 [fatigue].
 527|Wymagany restart
 528|Uruchom ponownie teraz
 529|Wznów atak potwora

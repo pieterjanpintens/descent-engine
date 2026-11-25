@@ -327,8 +327,8 @@ msgstr "\n\nMise, kterou hrajete, bude zavřena - nejdřív ji uložte (Možnost
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\nToto je třetí zranění hrdiny %s - hra bude prohrána!"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nKámen poutníka - každý hrdina si může místo odhození 1 únavy vybrat svou alternativní výhodu:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nKámen poutníka - každý hrdina si může místo odhození 1 [fatigue] vybrat svou alternativní výhodu:"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nTaké nějaké řemeslné materiály pro skupinu: %s."
@@ -1542,8 +1542,8 @@ msgstr "Odolnost: %s"
 msgid "Resistant: %s"
 msgstr "Odolný: %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Vyhodnoťte nákazu a děs. Každý hrdina může odhodit 1 únavu."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Vyhodnoťte nákazu a děs. Každý hrdina může odhodit 1 [fatigue]."
 
 msgid "Restart needed"
 msgstr "Je potřeba restart"

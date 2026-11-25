@@ -110,7 +110,7 @@
 110|\n\nL'application ne peut pas se mettre à jour ici : %s. Téléchargez-la depuis la page des versions.
 111|\n\nLa mission en cours sera fermée - sauvegardez-la d'abord (Options > Sauvegarder) ou choisissez Plus tard.
 112|\n\nC'est la troisième blessure de %s - la partie sera perdue !
-113|\n\nPierre de vagabond - chaque héros peut choisir son autre avantage au lieu de défausser 1 fatigue :
+113|\n\nPierre de vagabond - chaque héros peut choisir son autre avantage au lieu de défausser 1 [fatigue] :
 114|\nActivation :
 115|\nAinsi que quelques matériaux d'artisanat pour le groupe : %s.
 116|\nÀ la table :
@@ -521,7 +521,7 @@
 523|%s v%s retiré.
 524|Résistance : %s
 525|Résistant : %s
-526|Résolvez l'infection et la terreur. Chaque héros peut défausser 1 fatigue.
+526|Résolvez l'infection et la terreur. Chaque héros peut défausser 1 [fatigue].
 527|Redémarrage nécessaire
 528|Redémarrer maintenant
 529|Reprendre l'attaque du monstre

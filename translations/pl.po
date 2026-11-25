@@ -327,8 +327,8 @@ msgstr "\n\nTrwająca misja zostanie zamknięta - najpierw ją zapisz (Opcje > Z
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\nTo trzecia rana gracza %s - gra zostanie przegrana!"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nKamień Tułacza - każdy bohater może wybrać swoją alternatywną korzyść zamiast odrzucać 1 zmęczenie:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nKamień Tułacza - każdy bohater może wybrać swoją alternatywną korzyść zamiast odrzucać 1 [fatigue]:"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nOraz trochę surowców rzemieślniczych dla drużyny: %s."
@@ -1542,8 +1542,8 @@ msgstr "Odporność: %s"
 msgid "Resistant: %s"
 msgstr "Odporny: %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Rozpatrz zakażenie i przerażenie. Każdy bohater może odrzucić 1 zmęczenie."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Rozpatrz zakażenie i przerażenie. Każdy bohater może odrzucić 1 [fatigue]."
 
 msgid "Restart needed"
 msgstr "Wymagany restart"

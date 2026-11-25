@@ -1840,10 +1840,10 @@ func _run_time_passes() -> void:
 	_runtime.time_passes_notes.clear()
 	var make_text := func() -> String:
 		var text := tr("Time passes.\n\n")
-		text += "\n".join(replaced) if not replaced.is_empty() else tr("Resolve infection and terror. Each hero may discard 1 fatigue.")
+		text += "\n".join(replaced) if not replaced.is_empty() else tr("Resolve infection and terror. Each hero may discard 1 [fatigue].")
 		# Wanderer's Stone: each hero may take the displayed alternate benefit instead of discarding the fatigue.
 		if wanderers:
-			text += tr("\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:")
+			text += tr("\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:")
 			for line in benefits:
 				text += "\n" + line
 		for note in notes:

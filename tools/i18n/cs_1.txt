@@ -110,7 +110,7 @@
 110|\n\nAplikace se tady nemůže aktualizovat sama: %s. Stáhněte ji ze stránky vydání.
 111|\n\nMise, kterou hrajete, bude zavřena - nejdřív ji uložte (Možnosti > Uložit), nebo zvolte Později.
 112|\n\nToto je třetí zranění hrdiny %s - hra bude prohrána!
-113|\n\nKámen poutníka - každý hrdina si může místo odhození 1 únavy vybrat svou alternativní výhodu:
+113|\n\nKámen poutníka - každý hrdina si může místo odhození 1 [fatigue] vybrat svou alternativní výhodu:
 114|\nAktivace:
 115|\nTaké nějaké řemeslné materiály pro skupinu: %s.
 116|\nU stolu:
@@ -521,7 +521,7 @@
 523|Odebráno %s v%s.
 524|Odolnost: %s
 525|Odolný: %s
-526|Vyhodnoťte nákazu a děs. Každý hrdina může odhodit 1 únavu.
+526|Vyhodnoťte nákazu a děs. Každý hrdina může odhodit 1 [fatigue].
 527|Je potřeba restart
 528|Restartovat nyní
 529|Pokračovat v útoku příšery

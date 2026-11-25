@@ -110,7 +110,7 @@
 110|\n\nO app não consegue se atualizar aqui: %s. Baixe-o na página de versões.
 111|\n\nA missão em andamento será fechada - salve-a primeiro (Opções > Salvar) ou escolha Mais tarde.
 112|\n\nEste é o terceiro ferimento de %s - o jogo será perdido!
-113|\n\nPedra Errante - cada herói pode escolher seu benefício alternativo em vez de descartar 1 fadiga:
+113|\n\nPedra Errante - cada herói pode escolher seu benefício alternativo em vez de descartar 1 [fatigue]:
 114|\nAtivação:
 115|\nTambém alguns materiais de criação para o grupo: %s.
 116|\nNa mesa:
@@ -522,7 +522,7 @@
 523|%s v%s removido.
 524|Resistência: %s
 525|Resistente: %s
-526|Resolva infecção e terror. Cada herói pode descartar 1 fadiga.
+526|Resolva infecção e terror. Cada herói pode descartar 1 [fatigue].
 527|Reinício necessário
 528|Reiniciar agora
 529|Retomar o ataque do monstro

@@ -327,8 +327,8 @@ msgstr "\n\nLa misión que estás jugando se cerrará - guárdala antes (Opcione
 msgid "\n\nThis is %s's third wound - the game will be lost!"
 msgstr "\n\n¡Esta es la tercera herida de %s - la partida se perderá!"
 
-msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 fatigue:"
-msgstr "\n\nPiedra del Caminante - cada héroe puede elegir su beneficio alternativo en lugar de descartar 1 fatiga:"
+msgid "\n\nWanderer's Stone - each hero may choose their alternate benefit instead of discarding 1 [fatigue]:"
+msgstr "\n\nPiedra del Caminante - cada héroe puede elegir su beneficio alternativo en lugar de descartar 1 [fatigue]:"
 
 msgid "\nAlso some crafting materials for the party: %s."
 msgstr "\nAdemás, algunos materiales de artesanía para el grupo: %s."
@@ -1542,8 +1542,8 @@ msgstr "Resistencia: %s"
 msgid "Resistant: %s"
 msgstr "Resistente: %s"
 
-msgid "Resolve infection and terror. Each hero may discard 1 fatigue."
-msgstr "Resuelve la infección y el terror. Cada héroe puede descartar 1 fatiga."
+msgid "Resolve infection and terror. Each hero may discard 1 [fatigue]."
+msgstr "Resuelve la infección y el terror. Cada héroe puede descartar 1 [fatigue]."
 
 msgid "Restart needed"
 msgstr "Reinicio necesario"

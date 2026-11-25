@@ -110,7 +110,7 @@
 110|\n\nAz alkalmazás itt nem tudja magát frissíteni: %s. Töltsd le a kiadások oldaláról.
 111|\n\nA folyamatban lévő küldetés bezáródik - előbb mentsd el (Beállítások > Mentés), vagy válaszd a Később lehetőséget.
 112|\n\nEz %s harmadik sebesülése - a játék elveszett!
-113|\n\nA vándor köve - minden hős választhatja az alternatív előnyét 1 fáradtság eldobása helyett:
+113|\n\nA vándor köve - minden hős választhatja az alternatív előnyét 1 [fatigue] eldobása helyett:
 114|\nAktiválás:
 115|\nValamint néhány kézműves anyag a csapatnak: %s.
 116|\nAz asztalnál:
@@ -522,7 +522,7 @@
 523|%s v%s eltávolítva.
 524|Ellenállás: %s
 525|Ellenálló: %s
-526|Old meg a fertőzést és a rémületet. Minden hős eldobhat 1 fáradtságot.
+526|Old meg a fertőzést és a rémületet. Minden hős eldobhat 1 [fatigue].
 527|Újraindítás szükséges
 528|Újraindítás most
 529|A szörny támadásának folytatása

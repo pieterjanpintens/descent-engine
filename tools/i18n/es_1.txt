@@ -110,7 +110,7 @@
 110|\n\nLa aplicación no puede actualizarse aquí: %s. Descárgala desde la página de la versión.
 111|\n\nLa misión que estás jugando se cerrará - guárdala antes (Opciones > Guardar) o elige Más tarde.
 112|\n\n¡Esta es la tercera herida de %s - la partida se perderá!
-113|\n\nPiedra del Caminante - cada héroe puede elegir su beneficio alternativo en lugar de descartar 1 fatiga:
+113|\n\nPiedra del Caminante - cada héroe puede elegir su beneficio alternativo en lugar de descartar 1 [fatigue]:
 114|\nActivación:
 115|\nAdemás, algunos materiales de artesanía para el grupo: %s.
 116|\nEn la mesa:
