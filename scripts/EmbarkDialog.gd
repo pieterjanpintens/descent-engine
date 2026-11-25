@@ -58,9 +58,9 @@ var upgraded_cards: Array[String] = []  # base ids of the owned cards that are u
 var _slot_buttons: Array[Button] = []
 var _start_button: Button
 var _party_panel: CenterContainer
-var _loadout_panel: CenterContainer
+var _loadout_panel: MarginContainer  ## the weapons page fills the screen (heroes in two columns when more than three play)
 var _loadout_scroll: ScrollContainer
-var _loadout_rows: VBoxContainer
+var _loadout_rows: GridContainer
 ## The difficulty (1-4, Difficulty) the party plays at: set before ask_roster(), read back after it.
 var difficulty: int = Difficulty.DEFAULT
 var _difficulty_picker: OptionButton
@@ -93,7 +93,7 @@ func _ready() -> void:
 ## (each Label gets its own, nothing shared/cached - these are only built
 ## once per dialog anyway).
 func _bold_title(label: Label) -> void:
-	label.theme_type_variation = &"TitleLabel"
+	StoryCard.style_title(label, 18)
 
 
 func _slot_style(color: Color, border_width: int = 2) -> StyleBoxFlat:
@@ -217,19 +217,20 @@ func _build_ui() -> void:
 	_start_button.text = "Start"
 	_start_button.disabled = true
 	_start_button.pressed.connect(_on_start_pressed)
-	StoryCard.style_button(_start_button, Vector2(64, 22), 12, 0.44)
+	StoryCard.style_dialog_button(_start_button)
 	vbox.add_child(_start_button)
 
 	# Second page (ask_loadouts()): two weapons per chosen hero.
-	_loadout_panel = CenterContainer.new()
+	_loadout_panel = MarginContainer.new()
 	_loadout_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right", "top", "bottom"]:
+		_loadout_panel.add_theme_constant_override("margin_" + side, 10)
 	_loadout_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_loadout_panel.visible = false
 	add_child(_loadout_panel)
 
 	var loadout_background := PanelContainer.new()
 	loadout_background.add_theme_stylebox_override("panel", StoryCard.panel_style())  # the story card look (StoryCard)
-	loadout_background.custom_minimum_size = Vector2(620, 0)
 	_loadout_panel.add_child(loadout_background)
 
 	var loadout_vbox := VBoxContainer.new()
@@ -241,12 +242,15 @@ func _build_ui() -> void:
 	_bold_title(loadout_title)
 	loadout_vbox.add_child(loadout_title)
 
-	# Six heroes with three pickers per weapon is taller than the window: the list scrolls, Start stays in reach
-	# (_fit_loadout_scroll() sizes the scroll area to the window).
+	# The page fills the screen and the heroes sit in a grid (two columns from four heroes on), so all six fit a 1152x648 window; the
+	# scroll area only matters on a smaller window.
 	_loadout_scroll = ScrollContainer.new()
 	_loadout_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_loadout_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	loadout_vbox.add_child(_loadout_scroll)
-	_loadout_rows = VBoxContainer.new()
+	_loadout_rows = GridContainer.new()
+	_loadout_rows.add_theme_constant_override("h_separation", 24)
+	_loadout_rows.add_theme_constant_override("v_separation", 14)
 	_loadout_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_loadout_scroll.add_child(_loadout_rows)
 
@@ -261,7 +265,7 @@ func _build_ui() -> void:
 	var loadout_start := Button.new()
 	loadout_start.text = "Start"
 	loadout_start.pressed.connect(_on_start_pressed)
-	StoryCard.style_button(loadout_start, Vector2(64, 22), 12, 0.44)
+	StoryCard.style_dialog_button(loadout_start)
 	loadout_vbox.add_child(loadout_start)
 
 
@@ -443,11 +447,7 @@ func ask_roster(mission: MissionData) -> Array[int]:
 ## item chosen, is what decides the combat croptop/mesh shown).
 ## Makes the list of heroes as tall as it needs, but never taller than the window leaves room for.
 func _fit_loadout_scroll() -> void:
-	_loadout_scroll.custom_minimum_size.y = 0.0
-	await get_tree().process_frame
-	var wanted := _loadout_rows.get_combined_minimum_size().y
-	var room := get_viewport_rect().size.y - 170.0  # the title, the Start button and some air around the box
-	_loadout_scroll.custom_minimum_size.y = minf(wanted, maxf(room, 160.0))
+	_loadout_scroll.scroll_vertical = 0  # the page is full screen: the scroll area takes the room between the title and the buttons
 
 
 func ask_loadouts(roster: Array[int]) -> Dictionary:
@@ -467,12 +467,18 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 	var trinket_pluses: Dictionary = {}  # slot -> CheckBox
 	var trinket_ids: Array[String] = []
 	chosen_trinkets = {}
+	_loadout_rows.columns = 2 if roster.size() > 3 else 1
 	for slot in roster:
-		var row := HBoxContainer.new()
+		# a hero: the name on top, the two weapons and the trinket side by side below it
+		var block := VBoxContainer.new()
+		block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var name_label := Label.new()
 		name_label.text = HeroCatalog.slot_name(slot)
-		name_label.custom_minimum_size = Vector2(70, 0)
-		row.add_child(name_label)
+		StoryCard.style_title(name_label, 15)
+		block.add_child(name_label)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		block.add_child(row)
 		var per_slot_catalogs: Array = []
 		var pair: Array[OptionButton] = []
 		for weapon_index in 2:
@@ -504,6 +510,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			picker.fit_to_longest_item = false  # else the longest weapon text decides the width of the whole page
 			picker.clip_text = true
+			picker.add_theme_font_size_override("font_size", 13)  # long weapon names: fit the two-column page
 			picker.tooltip_text = tr("Weapon %d (%s)") % [weapon_index + 1, type_name]  # the first picker is always Weapon 1, the second Weapon 2 (combat croptops)
 			for weapon in catalog:
 				_add_item(picker, ("Rune: " if weapon.is_rune else "") + weapon.summary(), weapon.icon_path)
@@ -523,6 +530,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 
 			var column := VBoxContainer.new()
 			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			column.custom_minimum_size.x = 150.0
 			column.add_child(type_label)
 			column.add_child(_with_plus(picker, weapon_plus))
 			# Optional premade attachments (secondary abilities) for this weapon.
@@ -615,7 +623,7 @@ func ask_loadouts(roster: Array[int]) -> Dictionary:
 			row.add_child(trinket_column)
 			trinket_pickers[slot] = trinket_picker
 			trinket_pluses[slot] = trinket_plus
-		_loadout_rows.add_child(row)
+		_loadout_rows.add_child(block)
 		catalogs[slot] = per_slot_catalogs
 		pickers[slot] = pair
 

@@ -78,7 +78,7 @@ func _ready() -> void:
 	footer.add_child(_apply_holder)
 	var close_button := Button.new()
 	close_button.text = "Close"
-	StoryCard.style_button(close_button, Vector2(0, 22), 12, 0.44)
+	StoryCard.style_dialog_button(close_button)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.pressed.connect(func(): visible = false)
 	footer.add_child(close_button)

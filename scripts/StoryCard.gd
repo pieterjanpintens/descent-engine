@@ -16,6 +16,10 @@ const LINE_COLOR := Color(0.02, 0.02, 0.02)
 const ORANGE := Color(0.86, 0.4, 0.07)
 const SUBTITLE_COLOR := Color(1.0, 0.62, 0.2)
 const TEXT_COLOR := Color(0.95, 0.93, 0.9)
+## The player's dialog buttons (style_dialog_button()): a bit bigger text than the body text (14-15 pt), room around it.
+const BUTTON_FONT := 16
+const BUTTON_HEIGHT := 32.0
+const BUTTON_ART_SCALE := 0.55
 ## 9-slice margins of the frame art (256 x 93: two rings in each corner along the long side).
 ## The frame art is drawn at FRAME_SCALE (the game's 256 x 93 art at full size makes heavy ornaments). The art itself stays at full
 ## resolution (mipmapped) and CardFrameStyle shrinks it while drawing, so it stays smooth at any window size.
@@ -195,6 +199,16 @@ static func _button_art() -> Texture2D:
 	return _button_art_cache
 
 
+## The standard orange button of the player's dialogs.
+static func dialog_button(label_text: String) -> Button:
+	return button(label_text, Vector2(0, BUTTON_HEIGHT), BUTTON_FONT, BUTTON_ART_SCALE)
+
+
+## Gives an existing button the standard dialog-button look.
+static func style_dialog_button(target: Button) -> void:
+	style_button(target, Vector2(0, BUTTON_HEIGHT), BUTTON_FONT, BUTTON_ART_SCALE)
+
+
 ## Gives an existing button the orange look.
 static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), font_size: int = 19, art_scale: float = 1.0) -> void:
 	target.focus_mode = Control.FOCUS_NONE
@@ -215,7 +229,7 @@ static func style_button(target: Button, min_size: Vector2 = Vector2(150, 46), f
 		box.frame_scale = art_scale
 		box.content_margin_left = roundf(22 * art_scale)
 		box.content_margin_right = roundf(22 * art_scale)
-		box.content_margin_top = roundf(6 * art_scale)
+		box.content_margin_top = roundf(6 * art_scale) + 1.0  # Cinzel sits a little high: one pixel down centres it
 		box.content_margin_bottom = roundf(6 * art_scale)
 		match state:
 			"hover", "hover_pressed":

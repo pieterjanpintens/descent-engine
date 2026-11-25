@@ -96,7 +96,7 @@ func open(title: String, body: Variant, buttons: Array = [], width: float = DEFA
 	if buttons.is_empty():
 		buttons = [[tr("OK"), "ok"]]
 	for spec in buttons:
-		var button := StoryCard.button(str(spec[0]), Vector2(64, 22), 12, 0.44)
+		var button := StoryCard.dialog_button(str(spec[0]))
 		var result := str(spec[1])
 		button.pressed.connect(func(): _close(result))
 		_button_row.add_child(button)
